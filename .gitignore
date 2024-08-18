@@ -1,0 +1,6 @@
+.bsp/
+.idea/
+target/
+project/project/target/
+project/target/
+src/test/scala/intervalidus/Main.scala
