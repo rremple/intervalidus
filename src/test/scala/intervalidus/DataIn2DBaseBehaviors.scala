@@ -17,7 +17,7 @@ trait DataIn2DBaseBehaviors:
 
   protected def testData[T](
     values: (T, DiscreteInterval1D[LocalDate], DiscreteInterval1D[Int])*
-  ): List[ValidData2D[T, LocalDate, Int]] = values.map(d => ValidData2D(d._1, DiscreteInterval2D(d._2, d._3))).toList
+  ): List[ValidData2D[T, LocalDate, Int]] = values.map(d => ValidData2D(d._1, d._2 x d._3)).toList
 
   protected val dayZero: LocalDate = LocalDate.of(2024, 7, 15)
 
@@ -40,7 +40,7 @@ trait DataIn2DBaseBehaviors:
     single.getOption shouldBe Some("Hello world")
     single.domain.toList shouldBe List(DiscreteInterval2D.unbounded[Int, Int])
 
-    val bounded = ValidData2D("Hello world", DiscreteInterval2D(intervalFrom(0), intervalTo(0)))
+    val bounded = ValidData2D("Hello world", intervalFrom(0) x intervalTo(0))
     bounded.toString shouldBe "ValidData2D(Hello world, {[0..+∞), (-∞..0]})"
     assert(bounded.isDefinedAt(DiscreteDomain2D(0, 0)))
     assert(!bounded.isDefinedAt(DiscreteDomain2D(-1, 0)))
@@ -49,7 +49,7 @@ trait DataIn2DBaseBehaviors:
       val bad = bounded(DiscreteDomain2D(-1, 0))
 
     val fixture1 = dataIn2DFrom(
-      Seq(ValidData2D("Hello world", DiscreteInterval2D(intervalFrom(dayZero), intervalFrom(0))))
+      Seq(ValidData2D("Hello world", intervalFrom(dayZero) x intervalFrom(0)))
     )
     fixture1.getOption shouldBe None
     assert(fixture1.isDefinedAt(DiscreteDomain2D(dayZero, 0)))
@@ -62,12 +62,12 @@ trait DataIn2DBaseBehaviors:
 
     val allData2 = testData(("Hello", unbounded, interval(0, 10)), ("World", unbounded, intervalFrom(11)))
     val fixture2 = dataIn2DFrom(allData2)
-    fixture2.domain.toList shouldBe List(DiscreteInterval2D(unbounded[Int], intervalFrom(0)))
+    fixture2.domain.toList shouldBe List(unbounded[Int] x intervalFrom(0))
     fixture2.getAt(DiscreteDomain2D(now, 5)) shouldBe Some("Hello")
     fixture2.getAt(DiscreteDomain2D(now, 15)) shouldBe Some("World")
     fixture2.getAt(DiscreteDomain2D(now, -1)) shouldBe None
-    assert(fixture2.intersects(DiscreteInterval2D(unbounded, interval(5, 15))))
-    fixture2.getIntersecting(DiscreteInterval2D(unbounded, interval(5, 15))) shouldBe allData2
+    assert(fixture2.intersects(unbounded x interval(5, 15)))
+    fixture2.getIntersecting(unbounded x interval(5, 15)) shouldBe allData2
 
     val allData3a = testData(
       ("Hello", unbounded, interval(0, 9)),

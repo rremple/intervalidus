@@ -10,6 +10,32 @@ import scala.math.Ordering.Implicits.infixOrderingOps
 
 object DataIn1DVersioned:
   /**
+    * Shorthand constructor for a single initial value that is valid in a specific discrete interval starting at the
+    * initial version.
+    *
+    * @tparam V
+    *   the type of the value managed as data
+    * @tparam R
+    *   the type of discrete value used in the discrete interval assigned to each value
+    * @param value
+    *   value to start with
+    * @param interval
+    *   interval in which the value is valid
+    * @param initialVersion
+    *   (optional) the version to start with, typically (and by default) zero
+    * @return
+    *   DataIn1DVersioned structure with a single valid value
+    */
+  def of[V, R: DiscreteValue](
+    value: V,
+    interval: DiscreteInterval1D[R],
+    initialVersion: Int
+  ): DataIn1DVersioned[V, R] = from(
+    Iterable(ValidData1D(value, DiscreteInterval1D.unbounded)),
+    initialVersion
+  )
+
+  /**
     * Shorthand constructor for a single initial value that is valid in the full discrete interval starting at the
     * initial version.
     *
@@ -27,10 +53,7 @@ object DataIn1DVersioned:
   def of[V, R: DiscreteValue](
     value: V,
     initialVersion: Int = 0
-  ): DataIn1DVersioned[V, R] = from(
-    Iterable(ValidData1D(value, DiscreteInterval1D.unbounded)),
-    initialVersion
-  )
+  ): DataIn1DVersioned[V, R] = of(value, DiscreteInterval1D.unbounded, initialVersion)
 
   /**
     * Shorthand constructor for a collection of initial valid values starting at the initial version.
@@ -50,9 +73,7 @@ object DataIn1DVersioned:
     initialData: Iterable[ValidData1D[V, R]] = Iterable.empty[ValidData1D[V, R]],
     initialVersion: Int = 0 // could use summon[DiscreteValue[Int]].minValue to extend range
   ): DataIn1DVersioned[V, R] = DataIn1DVersioned[V, R](
-    initialData.map(d =>
-      ValidData2D(d.value, DiscreteInterval2D(d.interval, DiscreteInterval1D.intervalFrom(initialVersion)))
-    ),
+    initialData.map(d => ValidData2D(d.value, d.interval x DiscreteInterval1D.intervalFrom(initialVersion))),
     initialVersion
   )
 
@@ -217,7 +238,7 @@ class DataIn1DVersioned[V, R: DiscreteValue](
   def set(value: V, interval: DiscreteInterval1D[R])(using versionSelection: VersionSelection): Unit =
     underlying2D.set(
       value,
-      DiscreteInterval2D(interval, versionSelection.intervalFrom)
+      interval x versionSelection.intervalFrom
     )
 
   /**
@@ -257,7 +278,7 @@ class DataIn1DVersioned[V, R: DiscreteValue](
     */
   def remove(interval: DiscreteInterval1D[R])(using versionSelection: VersionSelection): Unit =
     underlying2D.remove(
-      DiscreteInterval2D(interval, versionSelection.intervalFrom)
+      interval x versionSelection.intervalFrom
     )
 
   /**
@@ -275,7 +296,7 @@ class DataIn1DVersioned[V, R: DiscreteValue](
   def update(value: V, interval: DiscreteInterval1D[R])(using versionSelection: VersionSelection): Unit =
     underlying2D.update(
       value,
-      DiscreteInterval2D(interval, versionSelection.intervalFrom)
+      interval x versionSelection.intervalFrom
     )
 
   /**
@@ -335,15 +356,7 @@ class DataIn1DVersioned[V, R: DiscreteValue](
     */
   def collapseVersionHistory(using versionSelection: VersionSelection): Unit = synchronized:
     filter(_.interval.vertical contains versionSelection.boundary)
-    map(d =>
-      ValidData2D(
-        d.value,
-        DiscreteInterval2D(
-          d.interval.horizontal,
-          DiscreteInterval1D.intervalFrom(initialVersion)
-        )
-      )
-    )
+    map(d => ValidData2D(d.value, d.interval.withVertical(DiscreteInterval1D.intervalFrom(initialVersion))))
     compressAll()
     setCurrentVersion(initialVersion)
 
@@ -357,7 +370,7 @@ class DataIn1DVersioned[V, R: DiscreteValue](
     */
   def approve(data: ValidData1D[V, R]): Boolean =
     val allUnapproved = underlying2D
-      .getIntersecting(DiscreteInterval2D(data.interval, VersionSelection.Unapproved.intervalFrom))
+      .getIntersecting(data.interval x VersionSelection.Unapproved.intervalFrom)
       .filter(_.interval.vertical.start equiv unapprovedStartVersion) // only unapproved
     allUnapproved.headOption match
       case Some(d) if data.value == d.value && d.interval.horizontal == data.interval =>
@@ -374,12 +387,12 @@ class DataIn1DVersioned[V, R: DiscreteValue](
     */
   def approveAll(interval: DiscreteInterval1D[R]): Unit = synchronized:
     underlying2D
-      .getIntersecting(DiscreteInterval2D(interval, VersionSelection.Unapproved.intervalFrom))
+      .getIntersecting(interval x VersionSelection.Unapproved.intervalFrom)
       .filter(_.interval.vertical.start equiv unapprovedStartVersion) // only unapproved
       .map(d => ValidData1D(d.value, d.interval.horizontal)) // as 1D
       .foreach(approve)
     underlying2D
-      .getIntersecting(DiscreteInterval2D(interval, VersionSelection.Current.intervalFrom))
+      .getIntersecting(interval x VersionSelection.Current.intervalFrom)
       .filter(_.interval.vertical.end equiv unapprovedStartVersion.predecessor) // only related to unapproved removes
       .flatMap(_.interval.horizontal intersectionWith interval)
       .foreach(remove(_)(using VersionSelection.Current))

@@ -85,6 +85,56 @@ import intervalidus.DimensionalBase.{DataLike, DomainLike, IntervalLike}
 trait DimensionalBase[V, D <: DomainLike, I <: IntervalLike[D], ValidData <: DataLike[V, D, I]]
   extends PartialFunction[D, V]:
 
+  // For defining 1D and 2D toString methods - print a uniform grid representing the data.
+  protected def toStringGrid[R1: DiscreteValue, R2: DiscreteValue](
+    dataToString: ValidData => String,
+    dataToInterval: ValidData => DiscreteInterval1D[R1],
+    dataToSortBy: ValidData => DiscreteDomain1D[R2]
+  ): String =
+
+    val validData = getAll.toList
+    val maxDataSize = validData.map(dataToString).map(_.length + 3).maxOption.getOrElse(3)
+    val horizontalIntervals = DiscreteInterval1D.uniqueIntervals(validData.map(dataToInterval))
+    val horizontalSpacer = "| " // 2 +
+    val horizontalDots = " .. " // 4 = 6 + end space = 7
+    val maxHorizontalIntervalsSize = horizontalIntervals
+      .map(i => i.start.toString.length + i.end.toString.length + 7)
+      .maxOption
+      .getOrElse(7)
+    val cellSize = math.max(maxDataSize, maxHorizontalIntervalsSize)
+
+    def pad(chars: Int, p: String = " "): String = p * chars
+
+    val (horizontalStringBuilder, horizontalStartPositionBuilder, horizontalEndPositionBuilder) =
+      horizontalIntervals.zipWithIndex.foldLeft(
+        (StringBuilder(), Map.newBuilder[DiscreteDomain1D[R1], Int], Map.newBuilder[DiscreteDomain1D[R1], Int])
+      ):
+        case ((stringBuilder, startPositionBuilder, endPositionBuilder), (interval, index)) =>
+          val barString = s"$horizontalSpacer${interval.start}$horizontalDots${interval.end} "
+          startPositionBuilder.addOne(interval.start, stringBuilder.size)
+          stringBuilder.append(barString)
+          val padTo = cellSize * (index + 1)
+          if stringBuilder.size < padTo then stringBuilder.append(pad(padTo - stringBuilder.size))
+          endPositionBuilder.addOne(interval.end, stringBuilder.size)
+          (stringBuilder, startPositionBuilder, endPositionBuilder)
+
+    val horizontalStartPosition = horizontalStartPositionBuilder.result()
+    val horizontalEndPosition = horizontalEndPositionBuilder.result()
+    horizontalStringBuilder.append("|\n")
+
+    validData
+      .sortBy(dataToSortBy)
+      .foreach: v =>
+        val valueString = dataToString(v)
+        val leftPosition = horizontalStartPosition(dataToInterval(v).start)
+        val rightPosition = horizontalEndPosition(dataToInterval(v).end)
+        val valuePadding = rightPosition - leftPosition - valueString.length - 2
+        horizontalStringBuilder.append(
+          s"${pad(leftPosition)}| $valueString${pad(valuePadding)}|\n"
+        )
+
+    horizontalStringBuilder.result()
+
   // ---------- To be implemented by inheritor ----------
 
   /**

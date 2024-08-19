@@ -63,11 +63,11 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     fixture.toString shouldBe
       """current version = 4
         || 0 .. 4        | 5 .. 9        | 10 .. 15      | 16 .. 19      | 20 .. 25      | 26 .. +∞      |
-        || Hello [0..1]  |
-        |                                | World [1..1]  |
+        || Hello [0..1]                  |
+        |                                | World [1..1]                                                  |
         |                                                                | World [2..2]  |
         || Hello [2..+∞) |
-        |                | to [2..+∞)    |
+        |                | to [2..+∞)                    |
         |                                                | World [2..+∞) |
         |                                                                | ! [3..+∞)     |
         |                                                                                | World [2..+∞) |
@@ -109,21 +109,21 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
 
     val actionsFrom2To4 = copyFixture4.diffActionsFrom(copyFixture2)
     actionsFrom2To4.toList shouldBe List(
-      Create(ValidDataIn2D("Hey", DiscreteInterval2D(intervalTo(-1), intervalAt(4)))),
-      Create(ValidDataIn2D("Hey", DiscreteInterval2D(intervalTo(4), intervalFrom(5)))),
-      Update(ValidDataIn2D("Hello", DiscreteInterval2D(interval(0, 4), interval(2, 4)))),
-      Update(ValidDataIn2D("!", DiscreteInterval2D(interval(20, 25), interval(3, 4)))),
-      Create(ValidDataIn2D("!", DiscreteInterval2D(intervalAt(20), intervalAt(5)))),
-      Create(ValidDataIn2D("World", DiscreteInterval2D(intervalFrom(20), intervalFrom(6)))),
-      Update(ValidDataIn2D("World", DiscreteInterval2D(intervalFrom(26), interval(2, 4))))
+      Create(ValidDataIn2D("Hey", intervalTo(-1) x intervalAt(4))),
+      Create(ValidDataIn2D("Hey", intervalTo(4) x intervalFrom(5))),
+      Update(ValidDataIn2D("Hello", interval(0, 4) x interval(2, 4))),
+      Update(ValidDataIn2D("!", interval(20, 25) x interval(3, 4))),
+      Create(ValidDataIn2D("!", intervalAt(20) x intervalAt(5))),
+      Create(ValidDataIn2D("World", intervalFrom(20) x intervalFrom(6))),
+      Update(ValidDataIn2D("World", intervalFrom(26) x interval(2, 4)))
     )
     val actionsFrom4To6 = copyFixture6.diffActionsFrom(copyFixture4)
     actionsFrom4To6.toList shouldBe List(
-      Update(ValidDataIn2D("Hey", DiscreteInterval2D(intervalTo(4), interval(5, 7)))),
-      Create(ValidDataIn2D("Hey", DiscreteInterval2D(intervalTo(0), intervalFrom(8)))),
-      Update(ValidDataIn2D("to", DiscreteInterval2D(interval(5, 15), interval(2, 6)))),
-      Update(ValidDataIn2D("World", DiscreteInterval2D(interval(16, 19), interval(2, 7)))),
-      Update(ValidDataIn2D("World", DiscreteInterval2D(intervalFrom(20), interval(6, 7))))
+      Update(ValidDataIn2D("Hey", intervalTo(4) x interval(5, 7))),
+      Create(ValidDataIn2D("Hey", intervalTo(0) x intervalFrom(8))),
+      Update(ValidDataIn2D("to", interval(5, 15) x interval(2, 6))),
+      Update(ValidDataIn2D("World", interval(16, 19) x interval(2, 7))),
+      Update(ValidDataIn2D("World", intervalFrom(20) x interval(6, 7)))
     )
     copyFixture2.applyDiffActions(actionsFrom2To4)
     copyFixture2.getAll(using VersionSelection(copyFixture4.getCurrentVersion)).toList shouldBe expectedData4
@@ -221,9 +221,9 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
       """current version = 4
         || -∞ .. 4        | 5 .. 6         | 7 .. 7         | 8 .. +∞        |
         |                 | World [1..2]   |
-        |                                  | Hello [2..2]   |
+        |                                  | Hello [2..2]                    |
         || Hello [0..+∞)  |
-        |                 | World! [3..+∞) |
+        |                 | World! [3..+∞)                  |
         |                                                   | Hello [3..+∞)  |
         |""".stripMargin.replaceAll("\r", "")
 
@@ -235,12 +235,12 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
         || -∞ .. 4        | 5 .. 6         | 7 .. 7         | 8 .. +∞        |
         || Hello [0..0]   |
         |                 | World [1..2]   |
-        |                                  | Hello [2..2]   |
-        |                 | World! [3..+∞) |
+        |                                  | Hello [2..2]                    |
+        |                 | World! [3..+∞)                  |
         |                                                   | Hello [3..+∞)  |
         |""".stripMargin.replaceAll("\r", "")
     fixtureToReset.resetToVersion(2)
-    // println(fixtureReset.toString)
+    // println(fixtureToReset.toString)
     fixtureToReset.toString shouldBe
       """current version = 2
         || -∞ .. 4       | 5 .. 6        | 7 .. +∞       |
@@ -279,15 +279,15 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     fixture.toString shouldBe
       """current version = 6
         || -∞ .. 4        | 5 .. 5         | 6 .. 6         | 7 .. 7         | 8 .. +∞        |
-        |                 | World [1..2]   |
-        |                                                   | Hello [2..2]   |
-        |                 | World! [3..3]  |
-        |                 | Hello [4..4]   |
+        |                 | World [1..2]                    |
+        |                                                   | Hello [2..2]                    |
+        |                 | World! [3..3]                                    |
+        |                 | Hello [4..4]                    |
         |                                                   | World! [4..4]  |
         |                                                                    | Hello [3..4]   |
         || Hello [0..+∞)  |
         |                 | Hello [5..+∞)  |
-        |                                  | World! [5..+∞) |
+        |                                  | World! [5..+∞)                                   |
         |""".stripMargin.replaceAll("\r", "")
 
     fixture.collapseVersionHistory

@@ -43,14 +43,14 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
 
   test("Int 2D interval adjacency, etc."):
     val now = LocalDate.now
-    val d: DiscreteInterval2D[LocalDate, Int] = DiscreteInterval2D(intervalTo(now), intervalFrom(0))
-    d.flip shouldBe DiscreteInterval2D(intervalFrom(0), intervalTo(now))
+    val d: DiscreteInterval2D[LocalDate, Int] = intervalTo(now) x intervalFrom(0)
+    d.flip shouldBe (intervalFrom(0) x intervalTo(now))
 
-    def interval2d(hs: Int, he: Int, vs: Int, ve: Int) = DiscreteInterval2D(interval(hs, he), interval(vs, ve))
+    def interval2d(hs: Int, he: Int, vs: Int, ve: Int) = interval(hs, he) x interval(vs, ve)
 
-    def interval2dFrom(hs: Int, vs: Int) = DiscreteInterval2D(intervalFrom(hs), intervalFrom(vs))
+    def interval2dFrom(hs: Int, vs: Int) = intervalFrom(hs) x intervalFrom(vs)
 
-    def interval2dTo(he: Int, ve: Int) = DiscreteInterval2D(intervalTo(he), intervalTo(ve))
+    def interval2dTo(he: Int, ve: Int) = intervalTo(he) x intervalTo(ve)
 
     interval2d(1, 2, 3, 4).toString shouldBe "{[1..2], [3..4]}"
 
@@ -65,7 +65,7 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
     assert(!(interval2d(3, 4, 3, 4) isLeftAdjacentTo interval2d(1, 2, 3, 4)))
     assert(!(interval2d(1, 3, 3, 4) isLeftAdjacentTo interval2d(2, 4, 3, 4)))
     assert(!(interval2d(1, 3, 3, 4) isLeftAdjacentTo interval2d(3, 4, 3, 4)))
-    assert(interval2dTo(2, 2) isLeftAdjacentTo DiscreteInterval2D(intervalFrom(3), intervalTo(2)))
+    assert(interval2dTo(2, 2) isLeftAdjacentTo (intervalFrom(3) x intervalTo(2)))
     assert(!(interval2dFrom(2, 2) isLeftAdjacentTo interval2dTo(3, 3)))
 
     assert(interval2d(3, 4, 1, 2) isRightAdjacentTo interval2d(1, 2, 1, 2))
@@ -73,7 +73,7 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
     assert(!(interval2d(1, 2, 1, 2) isRightAdjacentTo interval2d(3, 4, 1, 2)))
     assert(!(interval2d(2, 4, 1, 2) isRightAdjacentTo interval2d(1, 3, 1, 2)))
     assert(!(interval2d(3, 4, 1, 2) isRightAdjacentTo interval2d(1, 3, 1, 2)))
-    assert(interval2dFrom(3, 3) isRightAdjacentTo DiscreteInterval2D(intervalTo(2), intervalFrom(3)))
+    assert(interval2dFrom(3, 3) isRightAdjacentTo (intervalTo(2) x intervalFrom(3)))
     assert(!(interval2dTo(3, 3) isRightAdjacentTo interval2dFrom(2, 2)))
 
     assert(interval2d(3, 4, 1, 2) isLowerAdjacentTo interval2d(3, 4, 3, 4))
@@ -81,7 +81,7 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
     assert(!(interval2d(3, 4, 3, 4) isLowerAdjacentTo interval2d(3, 4, 1, 2)))
     assert(!(interval2d(3, 4, 1, 3) isLowerAdjacentTo interval2d(3, 4, 2, 4)))
     assert(!(interval2d(3, 4, 1, 3) isLowerAdjacentTo interval2d(3, 4, 3, 4)))
-    assert(interval2dTo(2, 2) isLowerAdjacentTo DiscreteInterval2D(intervalTo(2), intervalFrom(3)))
+    assert(interval2dTo(2, 2) isLowerAdjacentTo (intervalTo(2) x intervalFrom(3)))
     assert(!(interval2dFrom(2, 2) isLowerAdjacentTo interval2dTo(3, 3)))
 
     assert(interval2d(1, 2, 3, 4) isUpperAdjacentTo interval2d(1, 2, 1, 2))
@@ -89,7 +89,7 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
     assert(!(interval2d(1, 2, 1, 2) isUpperAdjacentTo interval2d(1, 2, 3, 4)))
     assert(!(interval2d(1, 2, 2, 4) isUpperAdjacentTo interval2d(1, 2, 1, 3)))
     assert(!(interval2d(1, 2, 3, 4) isUpperAdjacentTo interval2d(1, 2, 1, 3)))
-    assert(interval2dFrom(3, 3) isUpperAdjacentTo DiscreteInterval2D(intervalFrom(3), intervalTo(2)))
+    assert(interval2dFrom(3, 3) isUpperAdjacentTo (intervalFrom(3) x intervalTo(2)))
     assert(!(interval2dTo(3, 3) isUpperAdjacentTo interval2dFrom(2, 2)))
 
   test("Int interval intersections"):
@@ -215,21 +215,21 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
     val intervals1 = intervalsUnsorted1.sortBy(_.start)
 
     assert(!isCompressible[Int, Int](Nil))
-    assert(isCompressible(intervals1.map(DiscreteInterval2D(_, DiscreteInterval1D.unbounded[Int]))))
-    assert(isCompressible(intervals1.map(DiscreteInterval2D(DiscreteInterval1D.unbounded[Int], _))))
+    assert(isCompressible(intervals1.map(_ x DiscreteInterval1D.unbounded[Int])))
+    assert(isCompressible(intervals1.map(DiscreteInterval1D.unbounded[Int] x _)))
     assert(
       isCompressible(
         List(
-          DiscreteInterval2D(interval(1, 15), DiscreteInterval1D.unbounded[Int]),
-          DiscreteInterval2D(interval(11, 20), DiscreteInterval1D.unbounded[Int]) // overlap
+          interval(1, 15) x DiscreteInterval1D.unbounded[Int],
+          interval(11, 20) x DiscreteInterval1D.unbounded[Int] // overlap
         )
       )
     )
     assert(
       isCompressible(
         List(
-          DiscreteInterval2D(DiscreteInterval1D.unbounded[Int], interval(1, 15)),
-          DiscreteInterval2D(DiscreteInterval1D.unbounded[Int], interval(11, 20)) // overlap
+          DiscreteInterval1D.unbounded[Int] x interval(1, 15),
+          DiscreteInterval1D.unbounded[Int] x interval(11, 20) // overlap
         )
       )
     )

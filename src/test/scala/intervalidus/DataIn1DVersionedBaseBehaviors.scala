@@ -21,7 +21,7 @@ trait DataIn1DVersionedBaseBehaviors:
     current: DiscreteDomain1D[Int],
     values: List[ValidData1D[T, Int]]
   ): List[ValidDataIn2D[T, Int, Int]] =
-    values.map(d => ValidDataIn2D(d.value, DiscreteInterval2D(d.interval, intervalFrom(current))))
+    values.map(d => ValidDataIn2D(d.value, d.interval x intervalFrom(current)))
 
   def stringLookupTests[S <: DataIn1DVersionedBase[String, Int]](
     dataIn1DVersionedFrom1D: Iterable[ValidData1D[String, Int]] => S,

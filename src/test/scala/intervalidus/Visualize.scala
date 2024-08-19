@@ -154,7 +154,7 @@ def tryIt(): Unit =
   def testData(
     values: (String, DiscreteInterval1D[LocalDate], DiscreteInterval1D[Int])*
   ): List[ValidData2D[String, LocalDate, Int]] =
-    values.map(v => ValidData2D(v._1, DiscreteInterval2D(v._2, v._3))).toList
+    values.map(v => ValidData2D(v._1, v._2 x v._3)).toList
 
   val now = LocalDate.now()
 

@@ -117,47 +117,12 @@ trait DataIn1DBase[V, R: DiscreteValue](
 
   // ---------- Implement methods not defined in DimensionalBase ----------
 
-  // from Object - print a uniform grid representing the data.
-  override def toString: String =
-    def dataToString(v: ValidData1D[V, R]): String = v.value.toString
-
-    val validData = getAll.toList
-    val maxDataSize = validData.map(dataToString).map(_.length + 3).maxOption.getOrElse(3)
-    val horizontalIntervals = DiscreteInterval1D.uniqueIntervals(validData.map(_.interval))
-    val horizontalSpacer = "| " // 2 +
-    val horizontalDots = " .. " // 4 = 6 + end space = 7
-    val maxHorizontalIntervalsSize = horizontalIntervals
-      .map(i => i.start.toString.length + i.end.toString.length + 7)
-      .maxOption
-      .getOrElse(7)
-    val cellSize = math.max(maxDataSize, maxHorizontalIntervalsSize)
-
-    def pad(chars: Int, p: String = " "): String = p * chars
-
-    val (horizontalStringBuilder, horizontalPositionBuilder) =
-      horizontalIntervals.zipWithIndex.foldLeft((StringBuilder(), Map.newBuilder[DiscreteDomain1D[R], Int])):
-        case ((stringBuilder, positionBuilder), (interval, index)) =>
-          val barString = s"$horizontalSpacer${interval.start}$horizontalDots${interval.end} "
-          positionBuilder.addOne(interval.start, stringBuilder.size)
-          stringBuilder.append(barString)
-          val padTo = cellSize * (index + 1)
-          if stringBuilder.size < padTo then stringBuilder.append(pad(padTo - stringBuilder.size))
-          (stringBuilder, positionBuilder)
-
-    val horizontalPosition = horizontalPositionBuilder.result()
-    horizontalStringBuilder.append("|\n")
-
-    validData
-      .sortBy(_.interval.end)
-      .foreach: v =>
-        val valueString = dataToString(v)
-        val leftPosition = horizontalPosition(v.interval.start)
-        val valuePadding = cellSize - valueString.length - 2
-        horizontalStringBuilder.append(
-          s"${pad(leftPosition)}| $valueString${pad(valuePadding)}|\n"
-        )
-
-    horizontalStringBuilder.result()
+  // from Object
+  override def toString: String = toStringGrid(
+    dataToString = _.value.toString,
+    dataToInterval = _.interval,
+    dataToSortBy = _.interval.end
+  )
 
   /**
     * Internal method, to compress in place. Structure is parameterized to support both mutable and immutable

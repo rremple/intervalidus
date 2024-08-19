@@ -6,6 +6,27 @@ import intervalidus.immutable.DataIn2D as DataIn2DImmutable
 
 object DataIn2D:
   /**
+    * Shorthand constructor for a single initial value that is valid in a particular interval.
+    *
+    * @tparam V
+    *   the type of the value managed as data.
+    * @tparam R1
+    *   the type of discrete value used in the horizontal discrete interval assigned to each value.
+    * @tparam R2
+    *   the type of discrete value used in the vertical discrete interval assigned to each value.
+    * @param value
+    *   value to start with.
+    * @param interval
+    *   interval in which the value is valid
+    * @return
+    *   DataIn2D structure with a single valid value
+    */
+  def of[V, R1: DiscreteValue, R2: DiscreteValue](
+    value: V,
+    interval: DiscreteInterval2D[R1, R2]
+  ): DataIn2D[V, R1, R2] = DataIn2D(Iterable(ValidData2D(value, interval)))
+
+  /**
     * Shorthand constructor for a single initial value that is valid in both full interval domains.
     *
     * @tparam V
@@ -19,9 +40,8 @@ object DataIn2D:
     * @return
     *   DataIn2D structure with a single valid value
     */
-  def of[V, R1: DiscreteValue, R2: DiscreteValue](
-    value: V
-  ): DataIn2D[V, R1, R2] = DataIn2D(Iterable(ValidData2D(value, DiscreteInterval2D.unbounded)))
+  def of[V, R1: DiscreteValue, R2: DiscreteValue](value: V): DataIn2D[V, R1, R2] =
+    of(value, DiscreteInterval2D.unbounded)
 
 /**
   * @inheritdoc

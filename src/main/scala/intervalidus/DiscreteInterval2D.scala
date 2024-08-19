@@ -140,7 +140,7 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
     for
       horizontalIntersection <- horizontal intersectionWith that.horizontal
       verticalIntersection <- vertical intersectionWith that.vertical
-    yield DiscreteInterval2D(horizontalIntersection, verticalIntersection)
+    yield horizontalIntersection x verticalIntersection
 
   import DiscreteInterval1D.Remainder
 
@@ -168,7 +168,7 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
     *   the smallest interval including both this and that.
     */
   infix def joinedWith(that: DiscreteInterval2D[T1, T2]): DiscreteInterval2D[T1, T2] =
-    DiscreteInterval2D(this.horizontal joinedWith that.horizontal, this.vertical joinedWith that.vertical)
+    (this.horizontal joinedWith that.horizontal) x (this.vertical joinedWith that.vertical)
 
   /**
     * Test for equivalence by comparing the horizontal and vertical intervals of this and that.
@@ -205,7 +205,7 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
   /**
     * Flips this interval by swapping the vertical and horizontal components with one another.
     */
-  def flip: DiscreteInterval2D[T2, T1] = DiscreteInterval2D(vertical, horizontal)
+  def flip: DiscreteInterval2D[T2, T1] = vertical x horizontal
 
   // equivalent symbolic method names
 
@@ -267,7 +267,7 @@ object DiscreteInterval2D:
     * Returns an interval unbounded in both dimensions.
     */
   def unbounded[T1: DiscreteValue, T2: DiscreteValue]: DiscreteInterval2D[T1, T2] =
-    DiscreteInterval2D(DiscreteInterval1D.unbounded, DiscreteInterval1D.unbounded)
+    DiscreteInterval1D.unbounded[T1] x DiscreteInterval1D.unbounded[T2]
 
   /*
    * These methods operate on collections of two-dimensional intervals.

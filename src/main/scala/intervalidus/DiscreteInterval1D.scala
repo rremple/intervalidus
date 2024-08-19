@@ -254,6 +254,19 @@ case class DiscreteInterval1D[T: DiscreteValue](
     */
   infix def isSubsetOf(that: DiscreteInterval1D[T]): Boolean = that contains this
 
+  /**
+    * Cross this interval with that interval to arrive at a new two-dimensional interval.
+    * @param that
+    *   a one-dimensional interval to be used in the vertical dimension
+    * @tparam T2
+    *   discrete value type for that interval
+    * @return
+    *   a new two-dimensional interval with this interval as the horizontal component and that interval as the vertical
+    *   component.
+    */
+  infix def x[T2: DiscreteValue](that: DiscreteInterval1D[T2]): DiscreteInterval2D[T, T2] =
+    DiscreteInterval2D(this, that)
+
   // equivalent symbolic method names
 
   /**

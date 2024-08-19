@@ -6,6 +6,24 @@ import intervalidus.mutable.DataIn1D as DataIn1DMutable
 
 object DataIn1D:
   /**
+    * Shorthand constructor for a single initial value that is valid in a particular interval domain.
+    *
+    * @tparam V
+    *   the type of the value managed as data.
+    * @tparam R
+    *   the type of discrete value used in the discrete interval assigned to each value.
+    * @param value
+    *   value to start with.
+    * @param interval
+    *   interval in which the value is valid
+    * @return
+    *   [[DataIn1D]] structure with a single valid value.
+    */
+  def of[V, R: DiscreteValue](value: V, interval: DiscreteInterval1D[R]): DataIn1D[V, R] = DataIn1D(
+    Iterable(ValidData1D(value, interval))
+  )
+
+  /**
     * Shorthand constructor for a single initial value that is valid in the full interval domain.
     *
     * @tparam V
@@ -17,9 +35,7 @@ object DataIn1D:
     * @return
     *   [[DataIn1D]] structure with a single valid value.
     */
-  def of[V, R: DiscreteValue](value: V): DataIn1D[V, R] = DataIn1D(
-    Iterable(ValidData1D(value, DiscreteInterval1D.unbounded[R]))
-  )
+  def of[V, R: DiscreteValue](value: V): DataIn1D[V, R] = of(value, DiscreteInterval1D.unbounded[R])
 
 /**
   * @inheritdoc
