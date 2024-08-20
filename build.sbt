@@ -3,8 +3,11 @@ ThisBuild / version := "0.1.0-SNAPSHOT"
 ThisBuild / scalaVersion := "3.3.3"
 
 lazy val root = (project in file("."))
+  .enablePlugins(GhpagesPlugin, SiteScaladocPlugin)
   .settings(
     name := "intervalidus",
+    organization := "rremple",
+    git.remoteRepo := "git@github.com:rremple/intervalidus.git",
     scalacOptions += "-feature",
     coverageFailOnMinimum := true,
     coverageMinimumStmtTotal := 99,
