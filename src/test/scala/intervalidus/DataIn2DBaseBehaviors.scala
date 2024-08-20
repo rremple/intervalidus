@@ -17,7 +17,7 @@ trait DataIn2DBaseBehaviors:
 
   protected def testData[T](
     values: (T, DiscreteInterval1D[LocalDate], DiscreteInterval1D[Int])*
-  ): List[ValidData2D[T, LocalDate, Int]] = values.map(d => ValidData2D(d._1, d._2 x d._3)).toList
+  ): List[ValidData2D[T, LocalDate, Int]] = values.map(d => (d._2 x d._3) -> d._1).toList
 
   protected val dayZero: LocalDate = LocalDate.of(2024, 7, 15)
 
@@ -26,7 +26,7 @@ trait DataIn2DBaseBehaviors:
   def stringLookupTests[S <: DataIn2DBase[String, LocalDate, Int]](
     dataIn2DFrom: Iterable[ValidData2D[String, LocalDate, Int]] => S,
     dataIn2DOf: String => S
-  ): Any = test("Looking up data in intervals - unbounded r1"):
+  ): Unit = test("Looking up data in intervals - unbounded r1"):
     assertThrows[IllegalArgumentException]:
       // not valid as it overlaps in the second dimension on [10, +∞)
       val badFixture = dataIn2DFrom(testData(("Hello", unbounded, interval(0, 10)), ("World", unbounded, unbounded)))
@@ -40,8 +40,8 @@ trait DataIn2DBaseBehaviors:
     single.getOption shouldBe Some("Hello world")
     single.domain.toList shouldBe List(DiscreteInterval2D.unbounded[Int, Int])
 
-    val bounded = ValidData2D("Hello world", intervalFrom(0) x intervalTo(0))
-    bounded.toString shouldBe "ValidData2D(Hello world, {[0..+∞), (-∞..0]})"
+    val bounded = (intervalFrom(0) x intervalTo(0)) -> "Hello world"
+    bounded.toString shouldBe "{[0..+∞), (-∞..0]} -> Hello world"
     assert(bounded.isDefinedAt(DiscreteDomain2D(0, 0)))
     assert(!bounded.isDefinedAt(DiscreteDomain2D(-1, 0)))
     bounded(DiscreteDomain2D(0, 0)) shouldBe "Hello world"
@@ -49,7 +49,7 @@ trait DataIn2DBaseBehaviors:
       val bad = bounded(DiscreteDomain2D(-1, 0))
 
     val fixture1 = dataIn2DFrom(
-      Seq(ValidData2D("Hello world", intervalFrom(dayZero) x intervalFrom(0)))
+      Seq((intervalFrom(dayZero) x intervalFrom(0)) -> "Hello world")
     )
     fixture1.getOption shouldBe None
     assert(fixture1.isDefinedAt(DiscreteDomain2D(dayZero, 0)))

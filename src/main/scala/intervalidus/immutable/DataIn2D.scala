@@ -4,44 +4,14 @@ import intervalidus.*
 import intervalidus.DataIn2DBase.{DiffAction2D, ValidData2D}
 import intervalidus.mutable.DataIn2D as DataIn2DMutable
 
-object DataIn2D:
-  /**
-    * Shorthand constructor for a single initial value that is valid in a particular interval.
-    *
-    * @tparam V
-    *   the type of the value managed as data.
-    * @tparam R1
-    *   the type of discrete value used in the horizontal discrete interval assigned to each value.
-    * @tparam R2
-    *   the type of discrete value used in the vertical discrete interval assigned to each value.
-    * @param value
-    *   value to start with.
-    * @param interval
-    *   interval in which the value is valid
-    * @return
-    *   DataIn2D structure with a single valid value
-    */
-  def of[V, R1: DiscreteValue, R2: DiscreteValue](
-    value: V,
-    interval: DiscreteInterval2D[R1, R2]
-  ): DataIn2D[V, R1, R2] = DataIn2D(Iterable(ValidData2D(value, interval)))
+object DataIn2D extends DataIn2DBaseObject:
+  override def of[V, R1: DiscreteValue, R2: DiscreteValue](
+    data: ValidData2D[V, R1, R2]
+  ): DataIn2D[V, R1, R2] = DataIn2D(Iterable(data))
 
-  /**
-    * Shorthand constructor for a single initial value that is valid in both full interval domains.
-    *
-    * @tparam V
-    *   the type of the value managed as data.
-    * @tparam R1
-    *   the type of discrete value used in the horizontal discrete interval assigned to each value.
-    * @tparam R2
-    *   the type of discrete value used in the vertical discrete interval assigned to each value.
-    * @param value
-    *   value to start with.
-    * @return
-    *   DataIn2D structure with a single valid value
-    */
-  def of[V, R1: DiscreteValue, R2: DiscreteValue](value: V): DataIn2D[V, R1, R2] =
-    of(value, DiscreteInterval2D.unbounded)
+  override def of[V, R1: DiscreteValue, R2: DiscreteValue](
+    value: V
+  ): DataIn2D[V, R1, R2] = of(DiscreteInterval2D.unbounded[R1, R2] -> value)
 
 /**
   * @inheritdoc
@@ -107,7 +77,9 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue](
     */
   def map[B, S1: DiscreteValue, S2: DiscreteValue](
     f: ValidData2D[V, R1, R2] => ValidData2D[B, S1, S2]
-  ): DataIn2D[B, S1, S2] = DataIn2D(getAll.map(f))
+  ): DataIn2D[B, S1, S2] = DataIn2D(
+    getAll.map(f)
+  ).compressAll()
 
   /**
     * Applies a function to all valid data values. Only the valid data value type can be changed in the mapping.
@@ -119,7 +91,11 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue](
     * @return
     *   a new structure resulting from applying the provided function f to each element of this structure.
     */
-  def mapValues[B](f: V => B): DataIn2D[B, R1, R2] = DataIn2D(getAll.map(d => d.copy(value = f(d.value))))
+  def mapValues[B](
+    f: V => B
+  ): DataIn2D[B, R1, R2] = DataIn2D(
+    getAll.map(d => d.copy(value = f(d.value)))
+  ).compressAll()
 
   /**
     * Builds a new structure by applying a function to all elements of this collection and concatenating the elements of
@@ -143,7 +119,7 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue](
     f: ValidData2D[V, R1, R2] => DataIn2D[B, S1, S2]
   ): DataIn2D[B, S1, S2] = DataIn2D(
     getAll.flatMap(f(_).getAll)
-  )
+  ).compressAll()
 
   /**
     * Project as 1-dimensional data based on a horizontal domain element
@@ -198,10 +174,6 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue](
     result.addValidData(newData)
     compressInPlace(result)(newData.value)
 
-  override def set(value: V, interval: DiscreteInterval2D[R1, R2]): DataIn2D[V, R1, R2] = set(
-    ValidData2D(value, interval)
-  )
-
   override def setIfNoConflict(newData: ValidData2D[V, R1, R2]): Option[DataIn2D[V, R1, R2]] =
     if getIntersecting(newData.interval).isEmpty then
       Some(copyAndModify: result =>
@@ -210,20 +182,28 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue](
       )
     else None
 
-  override def setIfNoConflict(value: V, interval: DiscreteInterval2D[R1, R2]): Option[DataIn2D[V, R1, R2]] =
-    setIfNoConflict(ValidData2D(value, interval))
-
   override def update(data: ValidData2D[V, R1, R2]): DataIn2D[V, R1, R2] =
     copyAndModify(_.updateOrRemove(data.interval, Some(data.value)))
 
-  override def update(value: V, interval: DiscreteInterval2D[R1, R2]): DataIn2D[V, R1, R2] =
-    update(ValidData2D(value, interval))
+  override def replace(
+    key: DiscreteDomain2D[R1, R2],
+    newData: ValidData2D[V, R1, R2]
+  ): DataIn2D[V, R1, R2] = copyAndModify: result =>
+    result.removeValidDataByKey(key)
+    result.updateOrRemove(newData.interval, None)
+    result.addValidData(newData)
+    result.compressInPlace(result)(newData.value)
+
+  override def replace(
+    oldData: ValidData2D[V, R1, R2],
+    newData: ValidData2D[V, R1, R2]
+  ): DataIn2D[V, R1, R2] = replace(oldData.key, newData)
 
   override def remove(interval: DiscreteInterval2D[R1, R2]): DataIn2D[V, R1, R2] =
     copyAndModify(_.updateOrRemove(interval, None))
 
-  override def compress(value: V): DataIn2DBase[V, R1, R2] = copyAndModify: result =>
+  override def compress(value: V): DataIn2D[V, R1, R2] = copyAndModify: result =>
     result.compressInPlace(result)(value)
 
-  override def compressAll(): DataIn2DBase[V, R1, R2] = copyAndModify: result =>
+  override def compressAll(): DataIn2D[V, R1, R2] = copyAndModify: result =>
     getAll.map(_.value).toSet.foreach(result.compressInPlace(result))

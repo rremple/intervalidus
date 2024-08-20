@@ -97,10 +97,8 @@ trait DataIn1DVersionedBase[V, R: DiscreteValue](
   // Construct 2D data from 1D data plus version selection
   protected def validDataIn2D(
     data: ValidData1D[V, R]
-  )(using versionSelection: VersionSelection): ValidData2D[V, R, Int] = ValidData2D(
-    data.value,
-    data.interval x versionSelection.intervalFrom
-  )
+  )(using versionSelection: VersionSelection): ValidData2D[V, R, Int] =
+    (data.interval x versionSelection.intervalFrom) -> data.value
 
   // --- API methods similar to those in DataIn1D/DataIn2D, often with version selection (can't use common super)
 

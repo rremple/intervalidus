@@ -11,7 +11,10 @@ import scala.language.implicitConversions
 import scala.util.chaining.*
 
 object Visualize:
-  def apply[V, R1: DiscreteValue, R2: DiscreteValue](validData: Iterable[ValidData2D[V, R1, R2]], title: String): Unit =
+  def apply[V, R1: DiscreteValue, R2: DiscreteValue](
+    validData: Iterable[ValidData2D[V, R1, R2]],
+    title: String
+  ): Unit =
     val mainPanel = new Visualize(validData, title)
     val frame = new JFrame("Visualize 2D Data")
     frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
@@ -22,7 +25,7 @@ object Visualize:
 
   def apply[V, R1: DiscreteValue, R2: DiscreteValue](
     dataIn2D: DataIn2DBase[V, R1, R2],
-    millis: Long,
+    millis: Long = 0,
     title: String = "Visualize 2D data"
   ): Unit =
     apply(dataIn2D.getAll, title)
@@ -154,7 +157,7 @@ def tryIt(): Unit =
   def testData(
     values: (String, DiscreteInterval1D[LocalDate], DiscreteInterval1D[Int])*
   ): List[ValidData2D[String, LocalDate, Int]] =
-    values.map(v => ValidData2D(v._1, v._2 x v._3)).toList
+    values.map(v => (v._2 x v._3) -> v._1).toList
 
   val now = LocalDate.now()
 

@@ -4,44 +4,14 @@ import intervalidus.*
 import intervalidus.DataIn2DBase.{DiffAction2D, ValidData2D}
 import intervalidus.immutable.DataIn2D as DataIn2DImmutable
 
-object DataIn2D:
-  /**
-    * Shorthand constructor for a single initial value that is valid in a particular interval.
-    *
-    * @tparam V
-    *   the type of the value managed as data.
-    * @tparam R1
-    *   the type of discrete value used in the horizontal discrete interval assigned to each value.
-    * @tparam R2
-    *   the type of discrete value used in the vertical discrete interval assigned to each value.
-    * @param value
-    *   value to start with.
-    * @param interval
-    *   interval in which the value is valid
-    * @return
-    *   DataIn2D structure with a single valid value
-    */
-  def of[V, R1: DiscreteValue, R2: DiscreteValue](
-    value: V,
-    interval: DiscreteInterval2D[R1, R2]
-  ): DataIn2D[V, R1, R2] = DataIn2D(Iterable(ValidData2D(value, interval)))
+object DataIn2D extends DataIn2DBaseObject:
+  override def of[V, R1: DiscreteValue, R2: DiscreteValue](
+    data: ValidData2D[V, R1, R2]
+  ): DataIn2D[V, R1, R2] = DataIn2D(Iterable(data))
 
-  /**
-    * Shorthand constructor for a single initial value that is valid in both full interval domains.
-    *
-    * @tparam V
-    *   the type of the value managed as data.
-    * @tparam R1
-    *   the type of discrete value used in the horizontal discrete interval assigned to each value.
-    * @tparam R2
-    *   the type of discrete value used in the vertical discrete interval assigned to each value.
-    * @param value
-    *   value to start with.
-    * @return
-    *   DataIn2D structure with a single valid value
-    */
-  def of[V, R1: DiscreteValue, R2: DiscreteValue](value: V): DataIn2D[V, R1, R2] =
-    of(value, DiscreteInterval2D.unbounded)
+  override def of[V, R1: DiscreteValue, R2: DiscreteValue](
+    value: V
+  ): DataIn2D[V, R1, R2] = of(DiscreteInterval2D.unbounded[R1, R2] -> value)
 
 /**
   * @inheritdoc
@@ -132,17 +102,6 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue](
   ): DataIn2D[(V, B), R1, R2] = DataIn2D(zipAllData(that, thisElem, thatElem))
 
   // ---------- Implement methods from MutableBase ----------
-
-  override def mapValues(f: V => V): Unit = synchronized:
-    getAll
-      .map(d => d.copy(value = f(d.value)))
-      .foreach: newData =>
-        updateValidData(newData)
-
-  override def set(value: V, interval: DiscreteInterval2D[R1, R2]): Unit = set(ValidData2D(value, interval))
-
-  override def setIfNoConflict(value: V, interval: DiscreteInterval2D[R1, R2]): Boolean =
-    setIfNoConflict(ValidData2D(value, interval))
 
   override def compress(value: V): Unit = synchronized:
     compressInPlace(this)(value)

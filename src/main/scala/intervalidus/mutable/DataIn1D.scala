@@ -4,38 +4,14 @@ import intervalidus.*
 import intervalidus.DataIn1DBase.{DiffAction1D, ValidData1D}
 import intervalidus.immutable.DataIn1D as DataIn1DImmutable
 
-object DataIn1D:
-  /**
-    * Shorthand constructor for a single initial value that is valid in a particular interval domain.
-    *
-    * @tparam V
-    *   the type of the value managed as data.
-    * @tparam R
-    *   the type of discrete value used in the discrete interval assigned to each value.
-    * @param value
-    *   value to start with.
-    * @param interval
-    *   interval in which the value is valid
-    * @return
-    *   [[DataIn1D]] structure with a single valid value.
-    */
-  def of[V, R: DiscreteValue](value: V, interval: DiscreteInterval1D[R]): DataIn1D[V, R] = DataIn1D(
-    Iterable(ValidData1D(value, interval))
-  )
+object DataIn1D extends DataIn1DBaseObject:
+  override def of[V, R: DiscreteValue](
+    data: ValidData1D[V, R]
+  ): DataIn1D[V, R] = DataIn1D(Iterable(data))
 
-  /**
-    * Shorthand constructor for a single initial value that is valid in the full interval domain.
-    *
-    * @tparam V
-    *   the type of the value managed as data.
-    * @tparam R
-    *   the type of discrete value used in the discrete interval assigned to each value.
-    * @param value
-    *   value to start with.
-    * @return
-    *   [[DataIn1D]] structure with a single valid value.
-    */
-  def of[V, R: DiscreteValue](value: V): DataIn1D[V, R] = of(value, DiscreteInterval1D.unbounded[R])
+  override def of[V, R: DiscreteValue](
+    value: V
+  ): DataIn1D[V, R] = of(DiscreteInterval1D.unbounded[R] -> value)
 
 /**
   * @inheritdoc
@@ -76,6 +52,10 @@ class DataIn1D[V, R: DiscreteValue](
     */
   def syncWith(that: DataIn1D[V, R]): Unit = applyDiffActions(that.diffActionsFrom(this))
 
+  // ---------- Implement methods from DimensionalBase ----------
+
+  override def copy: DataIn1D[V, R] = DataIn1D(getAll)
+
   // ---------- Implement methods from Dimensional1DBase ----------
 
   override def zip[B](that: DataIn1DBase[B, R]): DataIn1D[(V, B), R] = DataIn1D(zipData(that))
@@ -87,19 +67,6 @@ class DataIn1D[V, R: DiscreteValue](
   ): DataIn1D[(V, B), R] = DataIn1D(zipAllData(that, thisElem, thatElem))
 
   // ---------- Implement methods from MutableBase ----------
-
-  override def mapValues(f: V => V): Unit = synchronized:
-    getAll
-      .map(d => d.copy(value = f(d.value)))
-      .foreach: newData =>
-        updateValidData(newData)
-
-  override def copy: DataIn1D[V, R] = DataIn1D(getAll)
-
-  override def set(value: V, interval: DiscreteInterval1D[R]): Unit = set(ValidData1D(value, interval))
-
-  override def setIfNoConflict(value: V, interval: DiscreteInterval1D[R]): Boolean =
-    setIfNoConflict(ValidData1D(value, interval))
 
   override def compress(value: V): Unit = synchronized:
     compressInPlace(this)(value)

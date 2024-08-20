@@ -10,7 +10,6 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with intervalidus.
 
   import DataIn1DBase.ValidData1D
   import DataIn1DVersionedBase.VersionSelection
-  import DataIn2DBase.ValidData2D as ValidDataIn2D
   import DiscreteInterval1D.*
 
   // increment current version with each data element
@@ -41,13 +40,13 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with intervalidus.
 
     val allData = testData("Hello" -> interval(0, 9), "World" -> intervalFrom(10))
     val fixture1 = newDataIn1DVersioned(allData)
-      .set("to", interval(5, 15))
+      .set(interval(5, 15) -> "to")
       .incrementCurrentVersion()
     val expectedData1 = testData("Hello" -> interval(0, 4), "to" -> interval(5, 15), "World" -> intervalFrom(16))
     fixture1.getAll.toList shouldBe expectedData1
 
     val fixture2 = fixture1
-      .set("!", interval(20, 25)) // split
+      .set(interval(20, 25) -> "!") // split
       .incrementCurrentVersion()
     val expectedData2 = testData(
       "Hello" -> interval(0, 4),
@@ -72,11 +71,11 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with intervalidus.
         |                                                                                | World [2..+∞) |
         |""".stripMargin.replaceAll("\r", "")
 
-    fixture2.setIfNoConflict("Hey", intervalTo(4)) shouldBe None
-    val fixture3 = fixture2.setIfNoConflict("Hey", intervalTo(-1)) match
+    fixture2.setIfNoConflict(intervalTo(4) -> "Hey") shouldBe None
+    val fixture3 = fixture2.setIfNoConflict(intervalTo(-1) -> "Hey") match
       case Some(f) =>
         f.incrementCurrentVersion()
-          .set("Hey", intervalTo(4))
+          .set(intervalTo(4) -> "Hey")
           .remove(intervalFrom(21))
           .incrementCurrentVersion()
       case None => fail("unexpected conflict")
@@ -90,7 +89,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with intervalidus.
     fixture3.getAll.toList shouldBe expectedData3
 
     val fixture4 = fixture3
-      .set("World", intervalFrom(20))
+      .set(intervalFrom(20) -> "World")
       .incrementCurrentVersion()
     val expectedData4 = testData("Hey" -> intervalTo(4), "to" -> interval(5, 15), "World" -> intervalFrom(16))
     fixture4.getAll.toList shouldBe expectedData4
@@ -102,7 +101,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with intervalidus.
     fixture5.getAll.toList shouldBe expectedData5
 
     val fixture6 = fixture5
-      .set("remove me", intervalFrom(1))
+      .set(intervalFrom(1) -> "remove me")
       .remove(intervalFrom(1))
     val expectedData6 = testData("Hey" -> intervalTo(0))
     fixture6.getAll.toList shouldBe expectedData6
@@ -111,21 +110,21 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with intervalidus.
 
     val actionsFrom2To4 = fixture4.diffActionsFrom(fixture2)
     actionsFrom2To4.toList shouldBe List(
-      Create(ValidDataIn2D("Hey", intervalTo(-1) x intervalAt(4))),
-      Create(ValidDataIn2D("Hey", intervalTo(4) x intervalFrom(5))),
-      Update(ValidDataIn2D("Hello", interval(0, 4) x interval(2, 4))),
-      Update(ValidDataIn2D("!", interval(20, 25) x interval(3, 4))),
-      Create(ValidDataIn2D("!", intervalAt(20) x intervalAt(5))),
-      Create(ValidDataIn2D("World", intervalFrom(20) x intervalFrom(6))),
-      Update(ValidDataIn2D("World", intervalFrom(26) x interval(2, 4)))
+      Create((intervalTo(-1) x intervalAt(4)) -> "Hey"),
+      Create((intervalTo(4) x intervalFrom(5)) -> "Hey"),
+      Update((interval(0, 4) x interval(2, 4)) -> "Hello"),
+      Update((interval(20, 25) x interval(3, 4)) -> "!"),
+      Create((intervalAt(20) x intervalAt(5)) -> "!"),
+      Create((intervalFrom(20) x intervalFrom(6)) -> "World"),
+      Update((intervalFrom(26) x interval(2, 4)) -> "World")
     )
     val actionsFrom4To6 = fixture6.diffActionsFrom(fixture4)
     actionsFrom4To6.toList shouldBe List(
-      Update(ValidDataIn2D("Hey", intervalTo(4) x interval(5, 7))),
-      Create(ValidDataIn2D("Hey", intervalTo(0) x intervalFrom(8))),
-      Update(ValidDataIn2D("to", interval(5, 15) x interval(2, 6))),
-      Update(ValidDataIn2D("World", interval(16, 19) x interval(2, 7))),
-      Update(ValidDataIn2D("World", intervalFrom(20) x interval(6, 7)))
+      Update((intervalTo(4) x interval(5, 7)) -> "Hey"),
+      Create((intervalTo(0) x intervalFrom(8)) -> "Hey"),
+      Update((interval(5, 15) x interval(2, 6)) -> "to"),
+      Update((interval(16, 19) x interval(2, 7)) -> "World"),
+      Update((intervalFrom(20) x interval(6, 7)) -> "World")
     )
     val fixture2to4 = fixture2.applyDiffActions(actionsFrom2To4)
     fixture2to4.getAll(using VersionSelection(fixture4.getCurrentVersion)).toList shouldBe expectedData4
@@ -144,10 +143,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with intervalidus.
     concat.result() shouldBe "Hey->(-∞..4] World->[16..+∞) "
 
     val fixture2 = fixture1.map(d =>
-      ValidDataIn2D(
-        d.value + "!",
-        d.interval.withHorizontalUpdate(_.endingWith(d.interval.horizontal.end.successor))
-      )
+      d.interval.withHorizontalUpdate(_.endingWith(d.interval.horizontal.end.successor)) -> (d.value + "!")
     )
     val expectedData2 = testData("Hey!" -> intervalTo(5), "World!" -> intervalFrom(16))
     fixture2.getAll.toList shouldBe expectedData2
@@ -157,7 +153,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with intervalidus.
     fixture3.getAll.toList shouldBe expectedData3
 
     val fixture4 = fixture3
-      .flatMap(d => DataIn1DVersioned.of[String, Int](d.value).map(x => ValidDataIn2D(x.value, d.interval)))
+      .flatMap(d => DataIn1DVersioned.of[String, Int](d.value).map(x => d.interval -> x.value))
     val expectedData4 = testData("Hey!!!" -> intervalTo(5), "World!!!" -> intervalFrom(16))
     fixture4.getAll.toList shouldBe expectedData4
     assertThrows[NoSuchElementException]:
@@ -216,7 +212,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with intervalidus.
 
     val allData = testData("Hello" -> intervalTo(4), "World" -> interval(5, 6), "Hello" -> intervalFrom(7))
     val fixture1 = newDataIn1DVersioned(allData)
-      .update("World!", interval(5, 7))
+      .update(interval(5, 7) -> "World!")
       .incrementCurrentVersion()
     val expectedData1 = testData("Hello" -> intervalTo(4), "World!" -> interval(5, 7), "Hello" -> intervalFrom(8))
     fixture1.getAll.toList shouldBe expectedData1
@@ -271,13 +267,13 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with intervalidus.
          |""".stripMargin.replaceAll("\r", "")
 
     val fixture2 = fixture1
-      .update("Hello", interval(5, 6))
+      .update(interval(5, 6) -> "Hello")
       .incrementCurrentVersion()
     val expectedData2 = testData("Hello" -> intervalTo(6), "World!" -> intervalAt(7), "Hello" -> intervalFrom(8))
     fixture2.getAll.toList shouldBe expectedData2
 
     val fixture3 = fixture2
-      .update("World!", intervalFrom(6))
+      .update(intervalFrom(6) -> "World!")
       .incrementCurrentVersion()
     val expectedData3 = testData("Hello" -> intervalTo(5), "World!" -> intervalFrom(6))
     fixture3.getAll.toList shouldBe expectedData3

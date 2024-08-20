@@ -10,7 +10,6 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
 
   import DataIn1DBase.ValidData1D
   import DataIn1DVersionedBase.VersionSelection
-  import DataIn2DBase.ValidData2D as ValidDataIn2D
   import DiscreteInterval1D.*
 
   // increment current version with each data element
@@ -43,12 +42,12 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     val allData = testData("Hello" -> interval(0, 9), "World" -> intervalFrom(10))
     val fixture = newDataIn1DVersioned(allData)
 
-    fixture.set("to", interval(5, 15))
+    fixture.set(interval(5, 15) -> "to")
     fixture.incrementCurrentVersion()
     val expectedData1 = testData("Hello" -> interval(0, 4), "to" -> interval(5, 15), "World" -> intervalFrom(16))
     fixture.getAll.toList shouldBe expectedData1
 
-    fixture.set("!", interval(20, 25)) // split
+    fixture.set(interval(20, 25) -> "!") // split
     fixture.incrementCurrentVersion()
     val expectedData2 = testData(
       "Hello" -> interval(0, 4),
@@ -75,18 +74,18 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
 
     val copyFixture2 = fixture.copy
 
-    assert(!fixture.setIfNoConflict("Hey", intervalTo(4)))
-    assert(fixture.setIfNoConflict("Hey", intervalTo(-1)))
+    assert(!fixture.setIfNoConflict(intervalTo(4) -> "Hey"))
+    assert(fixture.setIfNoConflict(intervalTo(-1) -> "Hey"))
     fixture.incrementCurrentVersion()
 
-    fixture.set("Hey", intervalTo(4))
+    fixture.set(intervalTo(4) -> "Hey")
     fixture.remove(intervalFrom(21))
     fixture.incrementCurrentVersion()
     val expectedData3 =
       testData("Hey" -> intervalTo(4), "to" -> interval(5, 15), "World" -> interval(16, 19), "!" -> intervalAt(20))
     fixture.getAll.toList shouldBe expectedData3
 
-    fixture.set("World", intervalFrom(20))
+    fixture.set(intervalFrom(20) -> "World")
     fixture.incrementCurrentVersion()
     val expectedData4 = testData("Hey" -> intervalTo(4), "to" -> interval(5, 15), "World" -> intervalFrom(16))
     fixture.getAll.toList shouldBe expectedData4
@@ -98,7 +97,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     val expectedData5 = testData("Hey" -> intervalTo(4), "World" -> intervalFrom(16))
     fixture.getAll.toList shouldBe expectedData5
 
-    fixture.set("remove me", intervalFrom(1))
+    fixture.set(intervalFrom(1) -> "remove me")
     fixture.remove(intervalFrom(1))
     val expectedData6 = testData("Hey" -> intervalTo(0))
     fixture.getAll.toList shouldBe expectedData6
@@ -109,21 +108,21 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
 
     val actionsFrom2To4 = copyFixture4.diffActionsFrom(copyFixture2)
     actionsFrom2To4.toList shouldBe List(
-      Create(ValidDataIn2D("Hey", intervalTo(-1) x intervalAt(4))),
-      Create(ValidDataIn2D("Hey", intervalTo(4) x intervalFrom(5))),
-      Update(ValidDataIn2D("Hello", interval(0, 4) x interval(2, 4))),
-      Update(ValidDataIn2D("!", interval(20, 25) x interval(3, 4))),
-      Create(ValidDataIn2D("!", intervalAt(20) x intervalAt(5))),
-      Create(ValidDataIn2D("World", intervalFrom(20) x intervalFrom(6))),
-      Update(ValidDataIn2D("World", intervalFrom(26) x interval(2, 4)))
+      Create((intervalTo(-1) x intervalAt(4)) -> "Hey"),
+      Create((intervalTo(4) x intervalFrom(5)) -> "Hey"),
+      Update((interval(0, 4) x interval(2, 4)) -> "Hello"),
+      Update((interval(20, 25) x interval(3, 4)) -> "!"),
+      Create((intervalAt(20) x intervalAt(5)) -> "!"),
+      Create((intervalFrom(20) x intervalFrom(6)) -> "World"),
+      Update((intervalFrom(26) x interval(2, 4)) -> "World")
     )
     val actionsFrom4To6 = copyFixture6.diffActionsFrom(copyFixture4)
     actionsFrom4To6.toList shouldBe List(
-      Update(ValidDataIn2D("Hey", intervalTo(4) x interval(5, 7))),
-      Create(ValidDataIn2D("Hey", intervalTo(0) x intervalFrom(8))),
-      Update(ValidDataIn2D("to", interval(5, 15) x interval(2, 6))),
-      Update(ValidDataIn2D("World", interval(16, 19) x interval(2, 7))),
-      Update(ValidDataIn2D("World", intervalFrom(20) x interval(6, 7)))
+      Update((intervalTo(4) x interval(5, 7)) -> "Hey"),
+      Create((intervalTo(0) x intervalFrom(8)) -> "Hey"),
+      Update((interval(5, 15) x interval(2, 6)) -> "to"),
+      Update((interval(16, 19) x interval(2, 7)) -> "World"),
+      Update((intervalFrom(20) x interval(6, 7)) -> "World")
     )
     copyFixture2.applyDiffActions(actionsFrom2To4)
     copyFixture2.getAll(using VersionSelection(copyFixture4.getCurrentVersion)).toList shouldBe expectedData4
@@ -142,10 +141,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     concat.result() shouldBe "Hey->(-∞..4] World->[16..+∞) "
 
     fixture.map(d =>
-      ValidDataIn2D(
-        d.value + "!",
-        d.interval.withHorizontalUpdate(_.endingWith(d.interval.horizontal.end.successor))
-      )
+      d.interval.withHorizontalUpdate(_.endingWith(d.interval.horizontal.end.successor)) -> (d.value + "!")
     )
     val expectedData2 = testData("Hey!" -> intervalTo(5), "World!" -> intervalFrom(16))
     fixture.getAll.toList shouldBe expectedData2
@@ -211,7 +207,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     val allData = testData("Hello" -> intervalTo(4), "World" -> interval(5, 6), "Hello" -> intervalFrom(7))
     val fixture = newDataIn1DVersioned(allData)
 
-    fixture.update("World!", interval(5, 7))
+    fixture.update(interval(5, 7) -> "World!")
     fixture.incrementCurrentVersion()
     val expectedData1 = testData("Hello" -> intervalTo(4), "World!" -> interval(5, 7), "Hello" -> intervalFrom(8))
     fixture.getAll.toList shouldBe expectedData1
@@ -265,12 +261,12 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
          |                    | Hello   |
          |""".stripMargin.replaceAll("\r", "")
 
-    fixture.update("Hello", interval(5, 6))
+    fixture.update(interval(5, 6) -> "Hello")
     fixture.incrementCurrentVersion()
     val expectedData2 = testData("Hello" -> intervalTo(6), "World!" -> intervalAt(7), "Hello" -> intervalFrom(8))
     fixture.getAll.toList shouldBe expectedData2
 
-    fixture.update("World!", intervalFrom(6))
+    fixture.update(intervalFrom(6) -> "World!")
     fixture.incrementCurrentVersion()
     val expectedData3 = testData("Hello" -> intervalTo(5), "World!" -> intervalFrom(6))
     fixture.getAll.toList shouldBe expectedData3

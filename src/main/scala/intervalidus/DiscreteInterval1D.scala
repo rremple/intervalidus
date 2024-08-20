@@ -23,6 +23,18 @@ case class DiscreteInterval1D[T: DiscreteValue](
 ) extends DimensionalBase.IntervalLike[DiscreteDomain1D[T]]:
   require(start <= end, s"Interval $this invalid")
 
+  /**
+    * Construct new valid data from this interval.
+    *
+    * @param value
+    *   the value in the valid data
+    * @tparam V
+    *   the value type
+    * @return
+    *   valid data in this interval
+    */
+  infix def withValue[V](value: V): DataIn1DBase.ValidData1D[V, T] = DataIn1DBase.ValidData1D(value, this)
+
   override def key: DiscreteDomain1D[T] = start
 
   override infix def contains(domainElement: DiscreteDomain1D[T]): Boolean =
@@ -268,6 +280,20 @@ case class DiscreteInterval1D[T: DiscreteValue](
     DiscreteInterval2D(this, that)
 
   // equivalent symbolic method names
+
+  /**
+    * Same as [[withValue]]
+    *
+    * Construct new valid data from this interval.
+    *
+    * @param value
+    *   the value in the valid data
+    * @tparam V
+    *   the value type
+    * @return
+    *   valid data in this interval
+    */
+  infix def ->[V](value: V): DataIn1DBase.ValidData1D[V, T] = withValue(value)
 
   /**
     * Same as [[intersectionWith]].

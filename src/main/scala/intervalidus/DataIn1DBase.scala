@@ -20,7 +20,7 @@ object DataIn1DBase:
     value: V,
     interval: DiscreteInterval1D[R]
   ) extends DimensionalBase.DataLike[V, DiscreteDomain1D[R], DiscreteInterval1D[R]]:
-    override def toString: String = s"ValidData1D($value, $interval)"
+    override def toString: String = s"$interval -> $value"
 
   /**
     * Create/update/delete actions (like CQRS mutation commands). Used when extrapolating or applying event source-style
@@ -38,6 +38,37 @@ object DataIn1DBase:
 
 import intervalidus.DataIn1DBase.{DiffAction1D, ValidData1D}
 import DiscreteInterval1D.interval
+
+trait DataIn1DBaseObject:
+  /**
+    * Shorthand constructor for a single initial value that is valid in a particular interval domain.
+    *
+    * @tparam V
+    *   the type of the value managed as data.
+    * @tparam R
+    *   the type of discrete value used in the discrete interval assigned to each value.
+    * @param data
+    *   value in interval to start with.
+    * @return
+    *   [[DataIn1DBase]] structure with a single valid value.
+    */
+  def of[V, R: DiscreteValue](
+    data: ValidData1D[V, R]
+  ): DataIn1DBase[V, R]
+
+  /**
+    * Shorthand constructor for a single initial value that is valid in the full interval domain.
+    *
+    * @tparam V
+    *   the type of the value managed as data.
+    * @tparam R
+    *   the type of discrete value used in the discrete interval assigned to each value.
+    * @param value
+    *   value to start with.
+    * @return
+    *   [[DataIn1DBase]] structure with a single valid value.
+    */
+  def of[V, R: DiscreteValue](value: V): DataIn1DBase[V, R]
 
 /**
   * Data that may have different values in different intervals. These intervals may represent when the data are valid in
@@ -57,6 +88,9 @@ trait DataIn1DBase[V, R: DiscreteValue](
   initialData: Iterable[ValidData1D[V, R]]
 ) extends DimensionalBase[V, DiscreteDomain1D[R], DiscreteInterval1D[R], ValidData1D[V, R]]:
 
+  override protected def newValidData(value: V, interval: DiscreteInterval1D[R]): ValidData1D[V, R] =
+    interval -> value
+
   private def subIntervalsWith[B](that: DataIn1DBase[B, R]) = DiscreteInterval1D.uniqueIntervals(
     this.getAll.map(_.interval).toSet ++ that.getAll.map(_.interval)
   )
@@ -66,7 +100,7 @@ trait DataIn1DBase[V, R: DiscreteValue](
       subInterval <- subIntervalsWith(that)
       v <- getIntersecting(subInterval).headOption.map(_.value)
       b <- that.getIntersecting(subInterval).headOption.map(_.value)
-    yield ValidData1D((v, b), subInterval)
+    yield subInterval -> (v, b)
 
   protected def zipAllData[B](
     that: DataIn1DBase[B, R],
@@ -80,7 +114,7 @@ trait DataIn1DBase[V, R: DiscreteValue](
       case (Some(v), Some(b)) => Some((v, b))
       case (Some(v), None)    => Some((v, thatElem))
       case (None, Some(b))    => Some((thisElem, b))
-    valuePair.map(ValidData1D(_, subInterval))
+    valuePair.map(subInterval -> _)
 
   /**
     * Returns a new structure formed from this structure and another structure by combining the corresponding elements
@@ -143,7 +177,7 @@ trait DataIn1DBase[V, R: DiscreteValue](
       .filter(_.value == value)
       .foldLeft(None: Option[ValidData1D[V, R]]):
         case (Some(left), right) if left.interval isLeftAdjacentTo right.interval =>
-          val newLeft = ValidData1D(value, left.interval ∪ right.interval)
+          val newLeft = left.interval ∪ right.interval -> value
           data.updateValidData(newLeft)
           data.removeValidDataByKey(right.key)
           Some(newLeft)
@@ -194,31 +228,31 @@ trait DataIn1DBase[V, R: DiscreteValue](
         // overlap is subset, just update/remove entirely
         case Remainder.None =>
           newValueOption match
-            case Some(newValue) => updateValidData(ValidData1D(newValue, overlap.interval))
+            case Some(newValue) => updateValidData(overlap.interval -> newValue)
             case None           => removeValidDataByKey(overlap.key)
 
         // no split: adjust on left
         case Remainder.Single(remaining) if remaining hasSameStartAs overlap.interval =>
-          updateValidData(ValidData1D(overlap.value, remaining)) // shortened on left
+          updateValidData(remaining -> overlap.value) // shortened on left
           newValueOption.foreach: newValue =>
-            addValidData(ValidData1D(newValue, overlap.interval.startingAfter(remaining.end)))
+            addValidData(overlap.interval.startingAfter(remaining.end) -> newValue)
 
         // no split: adjust on right
         case Remainder.Single(remaining) =>
           removeValidDataByKey(overlap.key) // remove and re-add to shorten
-          addValidData(ValidData1D(overlap.value, remaining)) // shortened on right
+          addValidData(remaining -> overlap.value) // shortened on right
           newValueOption.foreach: newValue =>
-            addValidData(ValidData1D(newValue, overlap.interval.endingBefore(remaining.start)))
+            addValidData(overlap.interval.endingBefore(remaining.start) -> newValue)
 
         // split: shorten left, add right remaining
         case Remainder.Split(leftRemaining, rightRemaining) =>
           // assert(leftRemaining hasSameStart overlap.interval)
-          updateValidData(ValidData1D(overlap.value, leftRemaining))
+          updateValidData(leftRemaining -> overlap.value)
           newValueOption.foreach: newValue =>
             addValidData(
-              ValidData1D(newValue, interval(leftRemaining.end.successor, rightRemaining.start.predecessor))
+              interval(leftRemaining.end.successor, rightRemaining.start.predecessor) -> newValue
             )
-          addValidData(ValidData1D(overlap.value, rightRemaining))
+          addValidData(rightRemaining -> overlap.value)
 
     newValueOption.foreach(compressInPlace(this))
 

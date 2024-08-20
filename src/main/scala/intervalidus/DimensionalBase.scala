@@ -85,6 +85,8 @@ import intervalidus.DimensionalBase.{DataLike, DomainLike, IntervalLike}
 trait DimensionalBase[V, D <: DomainLike, I <: IntervalLike[D], ValidData <: DataLike[V, D, I]]
   extends PartialFunction[D, V]:
 
+  protected def newValidData(value: V, interval: I): ValidData
+
   // For defining 1D and 2D toString methods - print a uniform grid representing the data.
   protected def toStringGrid[R1: DiscreteValue, R2: DiscreteValue](
     dataToString: ValidData => String,

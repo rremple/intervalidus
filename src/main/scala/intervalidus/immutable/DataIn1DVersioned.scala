@@ -31,7 +31,7 @@ object DataIn1DVersioned:
     interval: DiscreteInterval1D[R],
     initialVersion: Int
   ): DataIn1DVersioned[V, R] = from(
-    Iterable(ValidData1D(value, DiscreteInterval1D.unbounded)),
+    Iterable(DiscreteInterval1D.unbounded -> value),
     initialVersion
   )
 
@@ -73,7 +73,7 @@ object DataIn1DVersioned:
     initialData: Iterable[ValidData1D[V, R]] = Iterable.empty[ValidData1D[V, R]],
     initialVersion: Int = 0 // could use summon[DiscreteValue[Int]].minValue to extend range
   ): DataIn1DVersioned[V, R] = DataIn1DVersioned[V, R](
-    initialData.map(d => ValidData2D(d.value, d.interval x DiscreteInterval1D.intervalFrom(initialVersion))),
+    initialData.map(d => (d.interval x DiscreteInterval1D.intervalFrom(initialVersion)) -> d.value),
     initialVersion
   )
 
@@ -266,18 +266,6 @@ class DataIn1DVersioned[V, R: DiscreteValue](
     copyAndModify(_.underlying2D.set(validDataIn2D(data)))
 
   /**
-    * Set new valid data. Note that any value previously valid in this interval and the given version selection context
-    * are replace by this value.
-    *
-    * @param value
-    *   the valid data value to set.
-    * @param interval
-    *   the valid data interval to set.
-    */
-  def set(value: V, interval: DiscreteInterval1D[R])(using VersionSelection): DataIn1DVersioned[V, R] =
-    set(ValidData1D(value, interval))
-
-  /**
     * Set new valid data, but only if there are no previously valid values in its interval and given the version
     * selection context.
     *
@@ -290,22 +278,6 @@ class DataIn1DVersioned[V, R: DiscreteValue](
     val result = copy
     val updated = result.underlying2D.setIfNoConflict(validDataIn2D(newData))
     if updated then Some(result) else None
-
-  /**
-    * Set new valid value, but only if there are no previously valid values in the interval and given the version
-    * selection context.
-    *
-    * @param value
-    *   the valid data value to set.
-    * @param interval
-    *   the valid data interval to set.
-    * @return
-    *   true if there were no conflicts and new data was set, false otherwise.
-    */
-  def setIfNoConflict(
-    value: V,
-    interval: DiscreteInterval1D[R]
-  )(using VersionSelection): Option[DataIn1DVersioned[V, R]] = setIfNoConflict(ValidData1D(value, interval))
 
   /**
     * Remove valid values on the interval and the given version selection context. If there are values valid on portions
@@ -324,18 +296,15 @@ class DataIn1DVersioned[V, R: DiscreteValue](
     * value. Note that no new intervals of validity are added as part of this operation. Data with overlaps are adjusted
     * accordingly.
     *
-    * @param value
-    *   the new value existing data should take on.
-    * @param interval
-    *   the interval in which the update should be applied.
+    * @param data
+    *   the new value and interval existing data should take on.
     * @param versionSelection
     *   version used for updating data -- default is the current version.
     */
   def update(
-    value: V,
-    interval: DiscreteInterval1D[R]
+    data: ValidData1D[V, R]
   )(using versionSelection: VersionSelection): DataIn1DVersioned[V, R] =
-    copyAndModify(_.underlying2D.update(value, interval x versionSelection.intervalFrom))
+    copyAndModify(_.underlying2D.update((data.interval x versionSelection.intervalFrom) -> data.value))
 
   /**
     * Compress out adjacent intervals with the same value. Does not use a version selection context -- operates on full
@@ -388,7 +357,7 @@ class DataIn1DVersioned[V, R: DiscreteValue](
         .filter(_.interval.vertical intersects keep.intervalTo)
         .map(d =>
           if d.interval.vertical.end >= keep.boundary
-          then ValidData2D(d.value, d.interval.withVertical(d.interval.vertical.toTop))
+          then d.interval.withVertical(d.interval.vertical.toTop) -> d.value
           else d
         ),
       initialVersion,
@@ -429,7 +398,7 @@ class DataIn1DVersioned[V, R: DiscreteValue](
     val approved = underlying2D
       .getIntersecting(interval x VersionSelection.Unapproved.intervalFrom)
       .filter(_.interval.vertical.start equiv unapprovedStartVersion) // only unapproved
-      .map(d => ValidData1D(d.value, d.interval.horizontal)) // as 1D
+      .map(d => d.interval.horizontal -> d.value) // as 1D
       .foldLeft(this): (prev, d) =>
         prev.approve(d).getOrElse(prev)
     approved.underlying2D

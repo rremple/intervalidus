@@ -8,7 +8,6 @@ import scala.language.implicitConversions
 
 class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors:
 
-  import DataIn1DBase.ValidData1D
   import DiscreteInterval1D.*
 
   // shared
@@ -23,11 +22,11 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors:
     val allData = testData("Hello" -> interval(0, 9), "World" -> intervalFrom(10))
     val fixture = immutable.DataIn1D(allData).toMutable
 
-    fixture.set("to", interval(5, 15))
+    fixture.set(interval(5, 15) -> "to")
     val expectedData1 = testData("Hello" -> interval(0, 4), "to" -> interval(5, 15), "World" -> intervalFrom(16))
     fixture.getAll.toList shouldBe expectedData1
 
-    fixture.set("!", interval(20, 25)) // split
+    fixture.set(interval(20, 25) -> "!") // split
     val expectedData2 = testData(
       "Hello" -> interval(0, 4),
       "to" -> interval(5, 15),
@@ -48,10 +47,10 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors:
 
     val copyFixture2 = fixture.copy
 
-    assert(!fixture.setIfNoConflict("Hey", intervalTo(4)))
-    assert(fixture.setIfNoConflict("Hey", intervalTo(-1)))
+    assert(!fixture.setIfNoConflict(intervalTo(4) -> "Hey"))
+    assert(fixture.setIfNoConflict(intervalTo(-1) -> "Hey"))
 
-    fixture.set("Hey", intervalTo(4))
+    fixture.set(intervalTo(4) -> "Hey")
     fixture.remove(intervalFrom(21))
     val expectedData3 = testData(
       "Hey" -> intervalTo(4),
@@ -61,7 +60,17 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors:
     )
     fixture.getAll.toList shouldBe expectedData3
 
-    fixture.set("World", intervalFrom(20))
+    val f3a = fixture.copy
+    f3a.replace(intervalTo(4).key, intervalTo(3) -> "Hello")
+    f3a.replace(interval(16, 19) -> "World", interval(15, 20) -> "World!")
+    val expectedData3a = testData(
+      "Hello" -> intervalTo(3),
+      "to" -> interval(5, 14),
+      "World!" -> interval(15, 20)
+    )
+    f3a.getAll.toList shouldBe expectedData3a
+
+    fixture.set(intervalFrom(20) -> "World")
     val expectedData4 = testData("Hey" -> intervalTo(4), "to" -> interval(5, 15), "World" -> intervalFrom(16))
     fixture.getAll.toList shouldBe expectedData4
 
@@ -71,7 +80,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors:
     val expectedData5 = testData("Hey" -> intervalTo(4), "World" -> intervalFrom(16))
     fixture.getAll.toList shouldBe expectedData5
 
-    fixture.set("remove me", intervalFrom(1))
+    fixture.set(intervalFrom(1) -> "remove me")
     fixture.remove(intervalFrom(1))
     val expectedData6 = testData("Hey" -> intervalTo(0))
     fixture.getAll.toList shouldBe expectedData6
@@ -82,15 +91,15 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors:
 
     val actionsFrom2To4 = copyFixture4.diffActionsFrom(copyFixture2)
     actionsFrom2To4.toList shouldBe List(
-      Create(ValidData1D("Hey", intervalTo(4))),
+      Create(intervalTo(4) -> "Hey"),
       Delete(0),
-      Update(ValidData1D("World", intervalFrom(16))),
+      Update(intervalFrom(16) -> "World"),
       Delete(20),
       Delete(26)
     )
     val actionsFrom4To6 = copyFixture6.diffActionsFrom(copyFixture4)
     actionsFrom4To6.toList shouldBe List(
-      Update(ValidData1D("Hey", intervalTo(0))),
+      Update(intervalTo(0) -> "Hey"),
       Delete(5),
       Delete(16)
     )
@@ -110,11 +119,11 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors:
       b.append(d.value).append("->").append(d.interval.toString).append(" ")
     concat.result() shouldBe "Hey->(-∞..4] World->[16..+∞) "
 
-    fixture1.map(d => ValidData1D(d.value + "!", d.interval.endingWith(d.interval.end.successor)))
+    fixture1.map(d => d.interval.endingWith(d.interval.end.successor) -> (d.value + "!"))
     val expectedData2a = testData("Hey!" -> intervalTo(5), "World!" -> intervalFrom(16))
     fixture1.getAll.toList shouldBe expectedData2a
 
-    fixture1.map(d => ValidData1D(d.value, d.interval.startingWith(d.interval.start.predecessor)))
+    fixture1.map(d => d.interval.startingWith(d.interval.start.predecessor) -> d.value)
     val expectedData2b = testData("Hey!" -> intervalTo(5), "World!" -> intervalFrom(15))
     fixture1.getAll.toList shouldBe expectedData2b
 
@@ -185,12 +194,12 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors:
     val allData = testData("Hello" -> intervalTo(4), "World" -> interval(5, 6), "Hello" -> intervalFrom(7))
     val fixture = DataIn1D(allData)
 
-    fixture.update(ValidData1D("World!", interval(5, 7)))
+    fixture.update(interval(5, 7) -> "World!")
     val expectedData1 = testData("Hello" -> intervalTo(4), "World!" -> interval(5, 7), "Hello" -> intervalFrom(8))
     fixture.getAll.toList shouldBe expectedData1
 
     fixture.remove(interval(3, 5))
-    fixture.update("to", interval(2, 9))
+    fixture.update(interval(2, 9) -> "to")
     val expectedData2 = testData(
       "Hello" -> intervalTo(1),
       "to" -> intervalAt(2),
@@ -201,7 +210,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors:
     fixture.domain.toList shouldBe List(intervalTo(2), intervalFrom(6))
 
     fixture.remove(interval(2, 9))
-    fixture.update("World!", interval(-5, -2))
+    fixture.update(interval(-5, -2) -> "World!")
     val expectedData3 = testData(
       "Hello" -> intervalTo(-6),
       "World!" -> interval(-5, -2),

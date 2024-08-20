@@ -20,6 +20,18 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
   vertical: DiscreteInterval1D[T2]
 ) extends DimensionalBase.IntervalLike[DiscreteDomain2D[T1, T2]]:
 
+  /**
+    * Construct new valid data from this interval.
+    *
+    * @param value
+    *   the value in the valid data
+    * @tparam V
+    *   the value type
+    * @return
+    *   valid data in this interval
+    */
+  infix def withValue[V](value: V): DataIn2DBase.ValidData2D[V, T1, T2] = DataIn2DBase.ValidData2D(value, this)
+
   override def key: DiscreteDomain2D[T1, T2] = DiscreteDomain2D(horizontal.start, vertical.start)
 
   override infix def contains(
@@ -208,6 +220,18 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
   def flip: DiscreteInterval2D[T2, T1] = vertical x horizontal
 
   // equivalent symbolic method names
+
+  /**
+    * Same as [[withValue]] Construct new valid data from this interval.
+    *
+    * @param value
+    *   the value in the valid data
+    * @tparam V
+    *   the value type
+    * @return
+    *   valid data in this interval
+    */
+  infix def ->[V](value: V): DataIn2DBase.ValidData2D[V, T1, T2] = withValue(value)
 
   /**
     * Same as [[intersectionWith]].

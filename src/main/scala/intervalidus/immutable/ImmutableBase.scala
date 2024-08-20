@@ -41,18 +41,6 @@ trait ImmutableBase[V, D <: DomainLike, I <: IntervalLike[D], ValidData <: DataL
   def set(newData: ValidData): DimensionalBase[V, D, I, ValidData]
 
   /**
-    * Set new valid data. Note that any value previously valid in this interval are replace by this value.
-    *
-    * @param value
-    *   the valid data value to set.
-    * @param interval
-    *   the valid data interval to set.
-    * @return
-    *   a new, updated structure.
-    */
-  def set(value: V, interval: I): DimensionalBase[V, D, I, ValidData]
-
-  /**
     * Set new valid data, but only if there are no data previously valid in this interval.
     *
     * @param newData
@@ -61,18 +49,6 @@ trait ImmutableBase[V, D <: DomainLike, I <: IntervalLike[D], ValidData <: DataL
     *   some new, updated structure if there were no conflicts and new data was set, None otherwise.
     */
   def setIfNoConflict(newData: ValidData): Option[DimensionalBase[V, D, I, ValidData]]
-
-  /**
-    * Set new valid data, but only if there are no data previously valid in this interval.
-    *
-    * @param value
-    *   the valid data value to set.
-    * @param interval
-    *   the valid data interval to set.
-    * @return
-    *   some new, updated structure if there were no conflicts and new data was set, None otherwise.
-    */
-  def setIfNoConflict(value: V, interval: I): Option[DimensionalBase[V, D, I, ValidData]]
 
   /**
     * Update everything valid in data's interval to have the data's value. Note that no new intervals of validity are
@@ -86,17 +62,30 @@ trait ImmutableBase[V, D <: DomainLike, I <: IntervalLike[D], ValidData <: DataL
   def update(data: ValidData): DimensionalBase[V, D, I, ValidData]
 
   /**
-    * Update everything valid in the specified interval to have the specified value. Note that no new intervals of
-    * validity are added as part of this operation. Data with overlaps are adjusted accordingly.
+    * Remove the old data and replace it with the new data. The new data value and interval can be different. Data with
+    * overlaps with the new data interval are adjusted accordingly.
     *
-    * @param value
-    *   the new value existing data should take on.
-    * @param interval
-    *   the interval in which the update should be applied.
+    * @param oldData
+    *   the old data to be replaced.
+    * @param newData
+    *   the new data replacing the old data
     * @return
     *   a new, updated structure.
     */
-  def update(value: V, interval: I): DimensionalBase[V, D, I, ValidData]
+  def replace(oldData: ValidData, newData: ValidData): DimensionalBase[V, D, I, ValidData]
+
+  /**
+    * Remove the old data and replace it with the new data. The new data value and interval can be different. Data with
+    * overlaps with the new data interval are adjusted accordingly.
+    *
+    * @param key
+    *   key of the old data to be replaced (the interval start).
+    * @param newData
+    *   the new data replacing the old data
+    * @return
+    *   a new, updated structure.
+    */
+  def replace(key: D, newData: ValidData): DimensionalBase[V, D, I, ValidData]
 
   /**
     * Remove valid values on the interval. If there are values valid on portions of the interval, those values have

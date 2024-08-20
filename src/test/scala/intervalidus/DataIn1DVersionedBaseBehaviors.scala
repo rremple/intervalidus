@@ -1,7 +1,7 @@
 package intervalidus
 
 import intervalidus.DataIn1DBase.ValidData1D
-import intervalidus.DataIn2DBase.ValidData2D as ValidDataIn2D
+import intervalidus.DataIn2DBase.ValidData2D
 import intervalidus.DiscreteInterval1D.*
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
@@ -20,14 +20,14 @@ trait DataIn1DVersionedBaseBehaviors:
   protected def testDataIn2D[T](
     current: DiscreteDomain1D[Int],
     values: List[ValidData1D[T, Int]]
-  ): List[ValidDataIn2D[T, Int, Int]] =
-    values.map(d => ValidDataIn2D(d.value, d.interval x intervalFrom(current)))
+  ): List[ValidData2D[T, Int, Int]] =
+    values.map(d => (d.interval x intervalFrom(current)) -> d.value)
 
   def stringLookupTests[S <: DataIn1DVersionedBase[String, Int]](
     dataIn1DVersionedFrom1D: Iterable[ValidData1D[String, Int]] => S,
-    dataIn1DVersionedFrom2D: Iterable[ValidDataIn2D[String, Int, Int]] => S,
+    dataIn1DVersionedFrom2D: Iterable[ValidData2D[String, Int, Int]] => S,
     dataIn1DVersionedOf: String => S
-  ): Any =
+  ): Unit =
     test("General setup"):
       assertThrows[IllegalArgumentException]:
         // not valid as it overlaps on [10, +∞)

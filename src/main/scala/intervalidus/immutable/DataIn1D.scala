@@ -4,38 +4,14 @@ import intervalidus.*
 import intervalidus.DataIn1DBase.{DiffAction1D, ValidData1D}
 import intervalidus.mutable.DataIn1D as DataIn1DMutable
 
-object DataIn1D:
-  /**
-    * Shorthand constructor for a single initial value that is valid in a particular interval domain.
-    *
-    * @tparam V
-    *   the type of the value managed as data.
-    * @tparam R
-    *   the type of discrete value used in the discrete interval assigned to each value.
-    * @param value
-    *   value to start with.
-    * @param interval
-    *   interval in which the value is valid
-    * @return
-    *   [[DataIn1D]] structure with a single valid value.
-    */
-  def of[V, R: DiscreteValue](value: V, interval: DiscreteInterval1D[R]): DataIn1D[V, R] = DataIn1D(
-    Iterable(ValidData1D(value, interval))
-  )
+object DataIn1D extends DataIn1DBaseObject:
+  override def of[V, R: DiscreteValue](
+    data: ValidData1D[V, R]
+  ): DataIn1D[V, R] = DataIn1D(Iterable(data))
 
-  /**
-    * Shorthand constructor for a single initial value that is valid in the full interval domain.
-    *
-    * @tparam V
-    *   the type of the value managed as data.
-    * @tparam R
-    *   the type of discrete value used in the discrete interval assigned to each value.
-    * @param value
-    *   value to start with.
-    * @return
-    *   [[DataIn1D]] structure with a single valid value.
-    */
-  def of[V, R: DiscreteValue](value: V): DataIn1D[V, R] = of(value, DiscreteInterval1D.unbounded[R])
+  override def of[V, R: DiscreteValue](
+    value: V
+  ): DataIn1D[V, R] = of(DiscreteInterval1D.unbounded[R] -> value)
 
 /**
   * @inheritdoc
@@ -97,7 +73,7 @@ class DataIn1D[V, R: DiscreteValue](
     */
   def map[B, S: DiscreteValue](f: ValidData1D[V, R] => ValidData1D[B, S]): DataIn1D[B, S] = DataIn1D(
     getAll.map(f)
-  )
+  ).compressAll()
 
   /**
     * Applies a function to all valid data values. Only the valid data value type can be changed in the mapping.
@@ -111,7 +87,7 @@ class DataIn1D[V, R: DiscreteValue](
     */
   def mapValues[B](f: V => B): DataIn1D[B, R] = DataIn1D(
     getAll.map(d => d.copy(value = f(d.value)))
-  )
+  ).compressAll()
 
   /**
     * Builds a new structure by applying a function to all elements of this collection and concatenating the elements of
@@ -131,7 +107,7 @@ class DataIn1D[V, R: DiscreteValue](
     */
   def flatMap[B, S: DiscreteValue](f: ValidData1D[V, R] => DataIn1D[B, S]): DataIn1D[B, S] = DataIn1D(
     getAll.flatMap(f(_).getAll)
-  )
+  ).compressAll()
 
   // ---------- Implement methods from Dimensional1DBase ----------
 
@@ -156,8 +132,6 @@ class DataIn1D[V, R: DiscreteValue](
     result.addValidData(newData)
     result.compressInPlace(result)(newData.value)
 
-  override def set(value: V, interval: DiscreteInterval1D[R]): DataIn1D[V, R] = set(ValidData1D(value, interval))
-
   override def setIfNoConflict(newData: ValidData1D[V, R]): Option[DataIn1D[V, R]] =
     if getIntersecting(newData.interval).isEmpty
     then
@@ -167,16 +141,22 @@ class DataIn1D[V, R: DiscreteValue](
       )
     else None
 
-  override def setIfNoConflict(
-    value: V,
-    interval: DiscreteInterval1D[R]
-  ): Option[DataIn1D[V, R]] = setIfNoConflict(ValidData1D(value, interval))
-
   override def update(data: ValidData1D[V, R]): DataIn1D[V, R] =
     copyAndModify(_.updateOrRemove(data.interval, Some(data.value)))
 
-  override def update(value: V, interval: DiscreteInterval1D[R]): DataIn1D[V, R] =
-    copyAndModify(_.updateOrRemove(interval, Some(value)))
+  override def replace(
+    key: DiscreteDomain1D[R],
+    newData: ValidData1D[V, R]
+  ): DataIn1D[V, R] = copyAndModify: result =>
+    result.removeValidDataByKey(key)
+    result.updateOrRemove(newData.interval, None)
+    result.addValidData(newData)
+    result.compressInPlace(result)(newData.value)
+
+  override def replace(
+    oldData: ValidData1D[V, R],
+    newData: ValidData1D[V, R]
+  ): DataIn1D[V, R] = replace(oldData.key, newData)
 
   override def remove(interval: DiscreteInterval1D[R]): DataIn1D[V, R] = copyAndModify(_.updateOrRemove(interval, None))
 

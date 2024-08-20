@@ -24,7 +24,7 @@ object DataIn2DBase:
     interval: DiscreteInterval2D[R1, R2]
   ) extends DimensionalBase.DataLike[V, DiscreteDomain2D[R1, R2], DiscreteInterval2D[R1, R2]]:
 
-    override def toString: String = s"ValidData2D($value, $interval)"
+    override def toString: String = s"$interval -> $value"
 
   /**
     * Create/update/delete actions (like CQRS mutation commands). Used when extrapolating or applying event source-style
@@ -44,6 +44,41 @@ object DataIn2DBase:
 
 import intervalidus.DataIn2DBase.{DiffAction2D, ValidData2D}
 import DiscreteInterval1D.interval
+
+trait DataIn2DBaseObject:
+  /**
+    * Shorthand constructor for a single initial value that is valid in a particular interval domain.
+    *
+    * @tparam V
+    *   the type of the value managed as data.
+    * @tparam R1
+    *   the type of discrete value used in the horizontal discrete interval assigned to each value.
+    * @tparam R2
+    *   the type of discrete value used in the vertical discrete interval assigned to each value.
+    * @param data
+    *   value in interval to start with.
+    * @return
+    *   [[DataIn2DBase]] structure with a single valid value.
+    */
+  def of[V, R1: DiscreteValue, R2: DiscreteValue](
+    data: ValidData2D[V, R1, R2]
+  ): DataIn2DBase[V, R1, R2]
+
+  /**
+    * Shorthand constructor for a single initial value that is valid in both full interval domains.
+    *
+    * @tparam V
+    *   the type of the value managed as data.
+    * @tparam R1
+    *   the type of discrete value used in the horizontal discrete interval assigned to each value.
+    * @tparam R2
+    *   the type of discrete value used in the vertical discrete interval assigned to each value.
+    * @param value
+    *   value to start with.
+    * @return
+    *   [[DataIn2DBase]] structure with a single valid value.
+    */
+  def of[V, R1: DiscreteValue, R2: DiscreteValue](value: V): DataIn2DBase[V, R1, R2]
 
 /**
   * Like [[DataIn1DBase]], data here have different values in different discrete intervals. But here data values vary in
@@ -69,6 +104,9 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
   initialData: Iterable[ValidData2D[V, R1, R2]]
 ) extends DimensionalBase[V, DiscreteDomain2D[R1, R2], DiscreteInterval2D[R1, R2], ValidData2D[V, R1, R2]]:
 
+  override protected def newValidData(value: V, interval: DiscreteInterval2D[R1, R2]): ValidData2D[V, R1, R2] =
+    interval -> value
+
   private def horizontalSubIntervalsWith[B](that: DataIn2DBase[B, R1, R2]) = DiscreteInterval1D.uniqueIntervals(
     this.getAll.map(_.interval.horizontal).toSet ++ that.getAll.map(_.interval.horizontal)
   )
@@ -84,7 +122,7 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
       subInterval = horizontalSubInterval x verticalSubInterval
       v <- getIntersecting(subInterval).headOption.map(_.value)
       b <- that.getIntersecting(subInterval).headOption.map(_.value)
-    yield ValidData2D((v, b), subInterval)
+    yield subInterval -> (v, b)
 
   protected def zipAllData[B](
     that: DataIn2DBase[B, R1, R2],
@@ -101,7 +139,7 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
           case (Some(v), Some(b)) => Some((v, b))
           case (Some(v), None)    => Some((v, thatElem))
           case (None, Some(b))    => Some((thisElem, b))
-        valuePair.map(ValidData2D(_, subInterval))
+        valuePair.map(subInterval -> _)
 
   /**
     * Returns a new structure formed from this structure and another structure by combining the corresponding elements
@@ -175,7 +213,7 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
               case s if (s.interval isLeftAdjacentTo r.interval) || (s.interval isLowerAdjacentTo r.interval) =>
                 Seq(
                   () => data.removeValidDataByKey(r.key),
-                  () => data.updateValidData(ValidData2D(value, s.interval ∪ r.interval))
+                  () => data.updateValidData(s.interval ∪ r.interval -> value)
                 )
         .headOption
       firstActions match
@@ -202,39 +240,17 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
         case (Some(oldData), None)                                => Some(DiffAction2D.Delete(oldData.key))
         case _                                                    => None
 
-  /**
-    * Internal mutator to add, where there is no existing overlapping data.
-    *
-    * @param value
-    *   component of data to add.
-    * @param interval
-    *   component of data to add.
-    */
-  protected def addValidData(value: V, interval: DiscreteInterval2D[R1, R2]): Unit =
-    addValidData(ValidData2D(value, interval))
-
-  /**
-    * Internal mutator to update, where a value with v.key already exists.
-    *
-    * @param value
-    *   component of data to add.
-    * @param interval
-    *   component of data to add.
-    */
-  protected def updateValidData(value: V, interval: DiscreteInterval2D[R1, R2]): Unit =
-    updateValidData(ValidData2D(value, interval))
-
   protected def getByHorizontalIndexData(
     horizontalIndex: DiscreteDomain1D[R1]
   ): Iterable[DataIn1DBase.ValidData1D[V, R2]] = getAll.collect:
     case ValidData2D(value, interval) if horizontalIndex ∈ interval.horizontal =>
-      DataIn1DBase.ValidData1D(value, interval.vertical)
+      interval.vertical -> value
 
   protected def getByVerticalIndexData(
     verticalIndex: DiscreteDomain1D[R2]
   ): Iterable[DataIn1DBase.ValidData1D[V, R1]] = getAll.collect:
     case ValidData2D(value, interval) if verticalIndex ∈ interval.vertical =>
-      DataIn1DBase.ValidData1D(value, interval.horizontal)
+      interval.horizontal -> value
 
   // ---------- Implement methods from DimensionalBase ----------
 
@@ -271,35 +287,35 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
         // simple: total overlap in dim 1 and 2 (no remainders) - just update/remove the whole thing
         case (Remainder.None, Remainder.None) =>
           newValueOption match
-            case Some(newValue) => updateValidData(ValidData2D(newValue, overlap.interval))
+            case Some(newValue) => updateValidData(overlap.interval -> newValue)
             case None           => removeValidDataByKey(overlap.key)
 
         // edge: total overlap in dim 1 with partial overlap in dim 2 - adjust in dim 2
         case (Remainder.None, Remainder.Single(remainingVertical)) =>
           if remainingVertical hasSameStartAs overlap.interval.vertical
           then // same start in dim 2: shorten
-            updateValidData(overlap.value, overlap.interval.withVertical(remainingVertical))
+            updateValidData(overlap.interval.withVertical(remainingVertical) -> overlap.value)
             newValueOption.foreach: newValue =>
               addValidData(
-                ValidData2D(newValue, overlap.interval.withVerticalUpdate(_.startingAfter(remainingVertical.end)))
+                overlap.interval.withVerticalUpdate(_.startingAfter(remainingVertical.end)) -> newValue
               )
           else // different start in dim 2: remove and add remaining on right, new on left
             removeValidDataByKey(overlap.key)
-            addValidData(overlap.value, overlap.interval.withVertical(remainingVertical))
+            addValidData(overlap.interval.withVertical(remainingVertical) -> overlap.value)
             newValueOption.foreach: newValue =>
               addValidData(
-                ValidData2D(newValue, overlap.interval.withVerticalUpdate(_.endingBefore(remainingVertical.start)))
+                overlap.interval.withVerticalUpdate(_.endingBefore(remainingVertical.start)) -> newValue
               )
 
         // slice: total overlap in dim 1 with split in dim 2 - shorten bottom, add top remaining
         case (Remainder.None, Remainder.Split(belowRemaining, aboveRemaining)) =>
           // assert(belowRemaining hasSameStartAs overlap.interval.vertical) // same overlap key
-          updateValidData(overlap.value, overlap.interval.withVertical(belowRemaining))
-          addValidData(overlap.value, overlap.interval.withVertical(aboveRemaining))
+          updateValidData(overlap.interval.withVertical(belowRemaining) -> overlap.value)
+          addValidData(overlap.interval.withVertical(aboveRemaining) -> overlap.value)
           newValueOption.foreach: newValue =>
             val verticalSliceBit = interval(belowRemaining.end.successor, aboveRemaining.start.predecessor)
             addValidData(
-              ValidData2D(newValue, overlap.interval.withVertical(verticalSliceBit))
+              overlap.interval.withVertical(verticalSliceBit) -> newValue
             )
 
         // edge: partial overlap in dim 1 with total overlap in dim 2 - adjust in dim 1
@@ -307,17 +323,17 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
         case (Remainder.Single(remainingHorizontal), Remainder.None) =>
           if remainingHorizontal hasSameStartAs overlap.interval.horizontal
           then // same start in dim 1: shorten
-            updateValidData(overlap.value, overlap.interval.withHorizontal(remainingHorizontal))
+            updateValidData(overlap.interval.withHorizontal(remainingHorizontal) -> overlap.value)
             newValueOption.foreach: newValue =>
               addValidData(
-                ValidData2D(newValue, overlap.interval.withHorizontalUpdate(_.startingAfter(remainingHorizontal.end)))
+                overlap.interval.withHorizontalUpdate(_.startingAfter(remainingHorizontal.end)) -> newValue
               )
           else // different start in dim 1: remove and then add remaining to change the start (PK)
             removeValidDataByKey(overlap.key)
-            addValidData(overlap.value, overlap.interval.withHorizontal(remainingHorizontal))
+            addValidData(overlap.interval.withHorizontal(remainingHorizontal) -> overlap.value)
             newValueOption.foreach: newValue =>
               addValidData(
-                ValidData2D(newValue, overlap.interval.withHorizontalUpdate(_.endingBefore(remainingHorizontal.start)))
+                overlap.interval.withHorizontalUpdate(_.endingBefore(remainingHorizontal.start)) -> newValue
               )
 
         // corner: partial overlap in both dim 1 and 2 - remove and add 2 remaining (compress later)
@@ -330,8 +346,8 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
             else // missing bit is below
               overlap.interval.vertical.endingBefore(remainingVertical.start)
           removeValidDataByKey(overlap.key)
-          addValidData(overlap.value, overlap.interval.withVertical(remainingVertical))
-          addValidData(overlap.value, remainingHorizontal x verticalCornerBit)
+          addValidData(overlap.interval.withVertical(remainingVertical) -> overlap.value)
+          addValidData((remainingHorizontal x verticalCornerBit) -> overlap.value)
           newValueOption.foreach: newValue =>
             // can be to the left or right. Equivalent to (overlap.interval.horizontal \ remainingHorizontal).head
             val horizontalCornerBit =
@@ -340,16 +356,16 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
                 overlap.interval.horizontal.startingAfter(remainingHorizontal.end)
               else // missing bit is to the left
                 overlap.interval.horizontal.endingBefore(remainingHorizontal.start)
-            addValidData(newValue, horizontalCornerBit x verticalCornerBit)
+            addValidData((horizontalCornerBit x verticalCornerBit) -> newValue)
 
         // bite: partial overlap in dim 1 with split in dim 2 - shorten bottom and add 2 remaining
         case (Remainder.Single(remainingHorizontal), Remainder.Split(belowRemaining, aboveRemaining)) =>
           // assert(belowRemaining hasSameStartAs overlap.interval.vertical) // same overlap key
           // Equivalent to ((overlap.interval.vertical \ bottomRemaining).head \ topRemaining).head
           val verticalBiteBit = interval(belowRemaining.end.successor, aboveRemaining.start.predecessor)
-          updateValidData(overlap.value, overlap.interval.withVertical(belowRemaining)) // shorten to below bite
-          addValidData(overlap.value, remainingHorizontal x verticalBiteBit) // through the bite
-          addValidData(overlap.value, overlap.interval.withVertical(aboveRemaining)) // above the bite
+          updateValidData(overlap.interval.withVertical(belowRemaining) -> overlap.value) // shorten to below bite
+          addValidData((remainingHorizontal x verticalBiteBit) -> overlap.value) // through the bite
+          addValidData(overlap.interval.withVertical(aboveRemaining) -> overlap.value) // above the bite
           newValueOption.foreach: newValue =>
             // can be to the left or right. Equivalent to (overlap.interval.horizontal \ remainingHorizontal).head
             val horizontalBiteBit =
@@ -358,19 +374,19 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
                 overlap.interval.horizontal.startingAfter(remainingHorizontal.end)
               else // missing bit is to the left
                 overlap.interval.horizontal.endingBefore(remainingHorizontal.start)
-            addValidData(newValue, horizontalBiteBit x verticalBiteBit) // the bite is updated
+            addValidData((horizontalBiteBit x verticalBiteBit) -> newValue) // the bite is updated
 
         // slice: split in dim 1 with no remainder in dim 2 - shorten left, add right remaining
         // [symmetric with (Remainder.None, Remainder.Split(belowRemaining, aboveRemaining)) above]
         case (Remainder.Split(leftRemaining, rightRemaining), Remainder.None) =>
           // assert(leftRemaining hasSameStartAs overlap.interval.horizontal) // same overlap key
-          updateValidData(overlap.value, overlap.interval.withHorizontal(leftRemaining))
+          updateValidData(overlap.interval.withHorizontal(leftRemaining) -> overlap.value)
           newValueOption.foreach: newValue =>
             val horizontalSliceBit = interval(leftRemaining.end.successor, rightRemaining.start.predecessor)
             addValidData(
-              ValidData2D(newValue, overlap.interval.withHorizontal(horizontalSliceBit))
+              overlap.interval.withHorizontal(horizontalSliceBit) -> newValue
             )
-          addValidData(overlap.value, overlap.interval.withHorizontal(rightRemaining))
+          addValidData(overlap.interval.withHorizontal(rightRemaining) -> overlap.value)
 
         // bite: split in dim 1 with partial overlap in dim 2 - shorten left and add 2 remaining
         // [symmetric with Remainder.Single(remainingHorizontal), Remainder.Split(belowRemaining, aboveRemaining) above]
@@ -378,9 +394,9 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
           // assert(leftRemaining hasSameStartAs overlap.interval.horizontal) // same overlap key
           // Equivalent to ((overlap.interval.horizontal \ leftRemaining).head \ rightRemaining).head
           val horizontalBiteBit = interval(leftRemaining.end.successor, rightRemaining.start.predecessor)
-          updateValidData(overlap.value, overlap.interval.withHorizontal(leftRemaining)) // shorten to left of bite
-          addValidData(overlap.value, horizontalBiteBit x remainingVertical) // through the bite
-          addValidData(overlap.value, overlap.interval.withHorizontal(rightRemaining)) // right of the bite
+          updateValidData(overlap.interval.withHorizontal(leftRemaining) -> overlap.value) // shorten to left of bite
+          addValidData((horizontalBiteBit x remainingVertical) -> overlap.value) // through the bite
+          addValidData(overlap.interval.withHorizontal(rightRemaining) -> overlap.value) // right of the bite
           newValueOption.foreach: newValue =>
             // can be below or above. Equivalent to (overlap.interval.vertical \ remainingVertical).head
             val verticalBiteBit =
@@ -389,20 +405,20 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
                 overlap.interval.vertical.startingAfter(remainingVertical.end)
               else // missing bit is below
                 overlap.interval.vertical.endingBefore(remainingVertical.start)
-            addValidData(newValue, horizontalBiteBit x verticalBiteBit) // the bite is updated
+            addValidData((horizontalBiteBit x verticalBiteBit) -> newValue) // the bite is updated
 
         //  hole: split in dim 1 and 2 - shorten below, add two sides, and the bit above
         case (Remainder.Split(leftRemaining, rightRemaining), Remainder.Split(belowRemaining, aboveRemaining)) =>
           // assert(belowRemaining hasSameStartAs overlap.interval.vertical) // same overlap key
           // Equivalent to ((overlap.interval.vertical \ bottomRemaining).head \ topRemaining).head
           val verticalHoleBit = interval(belowRemaining.end.successor, aboveRemaining.start.predecessor)
-          updateValidData(overlap.value, overlap.interval.withVertical(belowRemaining)) // shorten below the hole
-          addValidData(overlap.value, leftRemaining x verticalHoleBit) // left side of the hole
-          addValidData(overlap.value, rightRemaining x verticalHoleBit) // right side of the hole
-          addValidData(overlap.value, overlap.interval.withVertical(aboveRemaining)) // above the hole
+          updateValidData(overlap.interval.withVertical(belowRemaining) -> overlap.value) // shorten below the hole
+          addValidData((leftRemaining x verticalHoleBit) -> overlap.value) // left side of the hole
+          addValidData((rightRemaining x verticalHoleBit) -> overlap.value) // right side of the hole
+          addValidData(overlap.interval.withVertical(aboveRemaining) -> overlap.value) // above the hole
           newValueOption.foreach: newValue =>
             val horizontalHoleBit = interval(leftRemaining.end.successor, rightRemaining.start.predecessor)
-            addValidData(newValue, horizontalHoleBit x verticalHoleBit) // the hole is updated
+            addValidData((horizontalHoleBit x verticalHoleBit) -> newValue) // the hole is updated
 
     newValueOption.foreach(compressInPlace(this))
 

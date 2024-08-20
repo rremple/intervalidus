@@ -20,7 +20,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with intervalidus.DataIn1DB
     val brackets = DataIn1D(taxBrackets)
 
     def taxUsingZip(income: Int): Double =
-      val incomeInterval: DataIn1D[Unit, Int] = DataIn1D(Seq(ValidData1D((), interval(1, income))))
+      val incomeInterval: DataIn1D[Unit, Int] = DataIn1D(Seq(interval(1, income) -> ()))
       val taxesByBracket = incomeInterval
         .zip(brackets)
         .getAll
@@ -45,17 +45,16 @@ class DataIn1DTest extends AnyFunSuite with Matchers with intervalidus.DataIn1DB
     val allData = testData("Hello" -> interval(0, 9), "World" -> intervalFrom(10))
     val f0 = mutable.DataIn1D(allData).toImmutable
 
-    val f1 = f0.set("to", interval(5, 15))
+    val f1 = f0.set(interval(5, 15) -> "to")
     val expectedData1 = testData("Hello" -> interval(0, 4), "to" -> interval(5, 15), "World" -> intervalFrom(16))
     f1.getAll.toList shouldBe expectedData1
 
-    val f2 = f1.set("!", interval(20, 25)) // split
+    val f2 = f1.set(interval(20, 25) -> "!") // split
     val expectedData2 = testData(
       "Hello" -> interval(0, 4),
       "to" -> interval(5, 15),
       "World" -> interval(16, 19),
-      "!"
-        -> interval(20, 25),
+      "!" -> interval(20, 25),
       "World" -> intervalFrom(26)
     )
     f2.getAll.toList shouldBe expectedData2
@@ -69,22 +68,31 @@ class DataIn1DTest extends AnyFunSuite with Matchers with intervalidus.DataIn1DB
          |                                            | World    |
          |""".stripMargin.replaceAll("\r", "")
 
-    f2.setIfNoConflict("Hey", intervalTo(4)) shouldBe None
+    f2.setIfNoConflict(intervalTo(4) -> "Hey") shouldBe None
     val f3 = f2
-      .setIfNoConflict("Hey", intervalTo(-1))
+      .setIfNoConflict(intervalTo(-1) -> "Hey")
       .getOrElse(fail("Expected Some, got None"))
-      .set("Hey", intervalTo(4))
+      .set(intervalTo(4) -> "Hey")
       .remove(intervalFrom(21))
     val expectedData3 = testData(
       "Hey" -> intervalTo(4),
       "to" -> interval(5, 15),
       "World" -> interval(16, 19),
-      "!" ->
-        intervalAt(20)
+      "!" -> intervalAt(20)
     )
     f3.getAll.toList shouldBe expectedData3
 
-    val f4 = f3.set("World", intervalFrom(20))
+    val f3a = f3
+      .replace(intervalTo(4).key, intervalTo(3) -> "Hello")
+      .replace(interval(16, 19) -> "World", interval(15, 20) -> "World!")
+    val expectedData3a = testData(
+      "Hello" -> intervalTo(3),
+      "to" -> interval(5, 14),
+      "World!" -> interval(15, 20)
+    )
+    f3a.getAll.toList shouldBe expectedData3a
+
+    val f4 = f3.set(intervalFrom(20) -> "World")
     val expectedData4 = testData("Hey" -> intervalTo(4), "to" -> interval(5, 15), "World" -> intervalFrom(16))
     f4.getAll.toList shouldBe expectedData4
 
@@ -93,7 +101,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with intervalidus.DataIn1DB
     f5.getAll.toList shouldBe expectedData5
 
     val f6 = f5
-      .set("remove me", intervalFrom(1))
+      .set(intervalFrom(1) -> "remove me")
       .remove(intervalFrom(1))
     val expectedData6 = testData("Hey" -> intervalTo(0))
     f6.getAll.toList shouldBe expectedData6
@@ -102,15 +110,15 @@ class DataIn1DTest extends AnyFunSuite with Matchers with intervalidus.DataIn1DB
 
     val actionsFrom2To4 = f4.diffActionsFrom(f2)
     actionsFrom2To4.toList shouldBe List(
-      Create(ValidData1D("Hey", intervalTo(4))),
+      Create(intervalTo(4) -> "Hey"),
       Delete(0),
-      Update(ValidData1D("World", intervalFrom(16))),
+      Update(intervalFrom(16) -> "World"),
       Delete(20),
       Delete(26)
     )
     val actionsFrom4To6 = f6.diffActionsFrom(f4)
     actionsFrom4To6.toList shouldBe List(
-      Update(ValidData1D("Hey", intervalTo(0))),
+      Update(intervalTo(0) -> "Hey"),
       Delete(5),
       Delete(16)
     )
@@ -130,7 +138,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with intervalidus.DataIn1DB
       b.append(d.value).append("->").append(d.interval.toString).append(" ")
     concat.result() shouldBe "Hey->(-∞..4] World->[16..+∞) "
 
-    val fixture2 = fixture1.map(d => ValidData1D(d.value + "!", d.interval.endingWith(d.interval.end.successor)))
+    val fixture2 = fixture1.map(d => d.interval.endingWith(d.interval.end.successor) -> (d.value + "!"))
     val expectedData2 = testData("Hey!" -> intervalTo(5), "World!" -> intervalFrom(16))
     fixture2.getAll.toList shouldBe expectedData2
 
@@ -138,7 +146,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with intervalidus.DataIn1DB
     val expectedData3 = testData("Hey!!!" -> intervalTo(5), "World!!!" -> intervalFrom(16))
     fixture3.getAll.toList shouldBe expectedData3
 
-    val fixture4 = fixture3.flatMap(d => DataIn1D.of[String, Int](d.value).map(x => ValidData1D(x.value, d.interval)))
+    val fixture4 = fixture3.flatMap(d => DataIn1D.of[String, Int](d.value).map(x => d.interval -> x.value))
     val expectedData4 = testData("Hey!!!" -> intervalTo(5), "World!!!" -> intervalFrom(16))
     fixture4.getAll.toList shouldBe expectedData4
     assertThrows[NoSuchElementException]:
@@ -199,13 +207,13 @@ class DataIn1DTest extends AnyFunSuite with Matchers with intervalidus.DataIn1DB
     val allData = testData("Hello" -> intervalTo(4), "World" -> interval(5, 6), "Hello" -> intervalFrom(7))
     val f0 = DataIn1D(allData)
 
-    val f1 = f0.update(ValidData1D("World!", interval(5, 7)))
+    val f1 = f0.update(interval(5, 7) -> "World!")
     val expectedData1 = testData("Hello" -> intervalTo(4), "World!" -> interval(5, 7), "Hello" -> intervalFrom(8))
     f1.getAll.toList shouldBe expectedData1
 
     val f2 = f1
       .remove(interval(3, 5))
-      .update("to", interval(2, 9))
+      .update(interval(2, 9) -> "to")
     val expectedData2 = testData(
       "Hello" -> intervalTo(1),
       "to" -> intervalAt(2),
@@ -217,7 +225,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with intervalidus.DataIn1DB
 
     val f3 = f2
       .remove(interval(2, 9))
-      .update("World!", interval(-5, -2))
+      .update(interval(-5, -2) -> "World!")
     val expectedData3 = testData(
       "Hello" -> intervalTo(-6),
       "World!" -> interval(-5, -2),

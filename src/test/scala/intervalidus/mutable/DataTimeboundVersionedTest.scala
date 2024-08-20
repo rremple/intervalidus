@@ -19,7 +19,7 @@ class DataTimeboundVersionedTest extends AnyFunSuite with Matchers:
 
   private def day(offsetDays: Int) = dayZero.plusDays(offsetDays)
 
-  def validString(s: String, validTime: DiscreteInterval1D[LocalDate]): ValidString = ValidData1D(s, validTime)
+  def validString(s: String, validTime: DiscreteInterval1D[LocalDate]): ValidString = validTime -> s
 
   private def testData(values: (String, DiscreteInterval1D[LocalDate])*): List[ValidString] =
     values.map(validString).toList

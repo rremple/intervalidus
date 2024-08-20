@@ -21,36 +21,6 @@ trait MutableBase[V, D <: DomainLike, I <: IntervalLike[D], ValidData <: DataLik
   // ---------- To be implemented by inheritor ----------
 
   /**
-    * Applies a function to all valid data values. Data are mutated in place.
-    *
-    * @param f
-    *   the function to apply to the value part of each valid data element.
-    */
-  def mapValues(f: V => V): Unit
-
-  /**
-    * Set new valid data. Note that any value previously valid in this interval are replace by this value.
-    *
-    * @param value
-    *   the valid data value to set.
-    * @param interval
-    *   the valid data interval to set.
-    */
-  def set(value: V, interval: I): Unit
-
-  /**
-    * Set new valid data, but only if there are no data previously valid in this interval.
-    *
-    * @param value
-    *   the valid data value to set.
-    * @param interval
-    *   the valid data interval to set.
-    * @return
-    *   true if there were no conflicts and new data was set, false otherwise.
-    */
-  def setIfNoConflict(value: V, interval: I): Boolean
-
-  /**
     * Compress out adjacent intervals with the same value
     *
     * @param value
@@ -91,6 +61,18 @@ trait MutableBase[V, D <: DomainLike, I <: IntervalLike[D], ValidData <: DataLik
         else
           removeValidDataByKey(oldData.key)
           addValidData(newData)
+
+  /**
+    * Applies a function to all valid data values. Data are mutated in place.
+    *
+    * @param f
+    *   the function to apply to the value part of each valid data element.
+    */
+  def mapValues(f: V => V): Unit =
+    getAll
+      .map(d => newValidData(f(d.value), d.interval))
+      .foreach: newData =>
+        updateValidData(newData)
 
   /**
     * Applies a function to all the elements of this structure and updates valid values from the elements of the
@@ -142,15 +124,30 @@ trait MutableBase[V, D <: DomainLike, I <: IntervalLike[D], ValidData <: DataLik
   def update(data: ValidData): Unit = updateOrRemove(data.interval, Some(data.value))
 
   /**
-    * Update everything valid in the specified interval to have the specified value. Note that no new intervals of
-    * validity are added as part of this operation. Data with overlaps are adjusted accordingly.
+    * Remove the old data and replace it with the new data. The new data value and interval can be different. Data with
+    * overlaps with the new data interval are adjusted accordingly.
     *
-    * @param value
-    *   the new value existing data should take on.
-    * @param interval
-    *   the interval in which the update should be applied.
+    * @param oldData
+    *   the old data to be replaced.
+    * @param newData
+    *   the new data replacing the old data
     */
-  def update(value: V, interval: I): Unit = updateOrRemove(interval, Some(value))
+  def replace(oldData: ValidData, newData: ValidData): Unit =
+    removeValidDataByKey(oldData.key)
+    set(newData)
+
+  /**
+    * Remove the old data and replace it with the new data. The new data value and interval can be different. Data with
+    * overlaps with the new data interval are adjusted accordingly.
+    *
+    * @param key
+    *   key of the old data to be replaced (the interval start).
+    * @param newData
+    *   the new data replacing the old data
+    */
+  def replace(key: D, newData: ValidData): Unit =
+    removeValidDataByKey(key)
+    set(newData)
 
   /**
     * Remove valid values on the interval. If there are values valid on portions of the interval, those values have

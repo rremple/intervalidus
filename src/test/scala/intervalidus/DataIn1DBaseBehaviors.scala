@@ -22,7 +22,7 @@ trait DataIn1DBaseBehaviors:
   def stringLookupTests[S <: DataIn1DBase[String, Int]](
     dataIn1DFrom: Iterable[ValidData1D[String, Int]] => S,
     dataIn1DOf: String => S
-  ): Any = test("Looking up data in intervals"):
+  ): Unit = test("Looking up data in intervals"):
     assertThrows[IllegalArgumentException]:
       // not valid as it overlaps on [10, +∞)
       val badFixture = dataIn1DFrom(testData("Hello" -> interval(0, 10), "World" -> unbounded))
@@ -38,15 +38,15 @@ trait DataIn1DBaseBehaviors:
     single.getOption shouldBe Some("Hello world")
     single.domain.toList shouldBe List(unbounded[Int])
 
-    val bounded = ValidData1D("Hello world", intervalFrom(0))
-    bounded.toString shouldBe "ValidData1D(Hello world, [0..+∞))"
+    val bounded = intervalFrom(0) -> "Hello world"
+    bounded.toString shouldBe "[0..+∞) -> Hello world" // !!!
     assert(bounded.isDefinedAt(0))
     assert(!bounded.isDefinedAt(-1))
     bounded(0) shouldBe "Hello world"
     assertThrows[Exception]:
       val bad = bounded(-1)
 
-    val fixture1: S = dataIn1DFrom(Seq(ValidData1D("Hello world", intervalFrom(0))))
+    val fixture1: S = dataIn1DFrom(Seq(intervalFrom(0) -> "Hello world"))
     fixture1.getOption shouldBe None
     assert(fixture1.isDefinedAt(0))
     fixture1(0) shouldBe "Hello world"
@@ -105,7 +105,7 @@ trait DataIn1DBaseBehaviors:
 
   def doubleUseCaseTests[S <: DataIn1DBase[Double, Int]](
     dataIn1DFrom: Iterable[ValidData1D[Double, Int]] => S
-  ): Any = test("Practical use case: tax brackets"):
+  ): Unit = test("Practical use case: tax brackets"):
     val fixture: S = dataIn1DFrom(taxBrackets)
 
     def taxUsingFold(income: Int): Double = fixture.foldLeft(0.0): (priorTax, bracket) =>
