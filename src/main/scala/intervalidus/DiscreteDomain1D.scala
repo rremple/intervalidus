@@ -9,9 +9,7 @@ package intervalidus
   * Bottom.predecessor == Bottom.successor == Bottom.
   *
   * @tparam T
-  *   expected to be a discrete value (i.e., DiscreteValue[T] should be given). But because T must be covariant in the
-  *   enum definition, it is impossible to express this dependency directly through context bounds. Therefore this
-  *   dependency gets expressed in the definition of Point and in each method of the enum instead.
+  *   expected to be a discrete value (i.e., DiscreteValue[T] should be given).
   */
 enum DiscreteDomain1D[+T] extends DimensionalBase.DomainLike:
   /**
@@ -34,28 +32,33 @@ enum DiscreteDomain1D[+T] extends DimensionalBase.DomainLike:
     case Point(t) => t.toString
     case Top      => "+∞"
 
+import DiscreteDomain1D.{Bottom, Point, Top}
+
+/**
+  * Extends [[DiscreteDomain1D]] with methods on a domain of a discrete value. Using an extension rather than defining
+  * these methods on the enum itself resolves the issue of not being able to express the type class context bound
+  * directly in the enum definition (because, there, T must be covariant to accommodate Bottom and Top).
+  */
+extension [T: DiscreteValue](domain1d: DiscreteDomain1D[T])
+
   /**
     * Successor of this, where Bottom and Top are their own successors, and the successor of maxValue is Top.
     *
-    * @tparam S
-    *   discrete value supertype of T (usually the same as T) used in the return type.
     * @return
     *   successor of this
     */
-  def successor[S >: T: DiscreteValue]: DiscreteDomain1D[S] = this match
-    case Point(p)    => p.successor.map(Point(_)).getOrElse(Top)
+  def successor: DiscreteDomain1D[T] = domain1d match
+    case Point(p)    => p.successorValue.map(Point(_)).getOrElse(Top)
     case topOrBottom => topOrBottom
 
   /**
     * Predecessor of this, where Bottom and Top are their own predecessors, and the predecessor of minValue is Bottom.
     *
-    * @tparam S
-    *   discrete value supertype of T (usually the same as T) used in the return type.
     * @return
     *   successor of this
     */
-  def predecessor[S >: T: DiscreteValue]: DiscreteDomain1D[S] = this match
-    case Point(p)    => p.predecessor.map(Point(_)).getOrElse(Bottom)
+  def predecessor: DiscreteDomain1D[T] = domain1d match
+    case Point(p)    => p.predecessorValue.map(Point(_)).getOrElse(Bottom)
     case topOrBottom => topOrBottom
 
   /**
@@ -63,12 +66,22 @@ enum DiscreteDomain1D[+T] extends DimensionalBase.DomainLike:
     *
     * @param interval
     *   interval to test.
-    * @tparam S
-    *   discrete value supertype of T (usually the same as T) used in the return type.
     * @return
     *   true if this belongs to the specified interval, false otherwise.
     */
-  infix def belongsTo[S >: T: DiscreteValue](interval: DiscreteInterval1D[S]): Boolean = interval contains this
+  infix def belongsTo(interval: DiscreteInterval1D[T]): Boolean = interval contains domain1d
+
+  /**
+    * Cross this domain element with that domain element to arrive at a new two-dimensional domain element.
+    * @param that
+    *   a one-dimensional domain element to be used in the vertical dimension.
+    * @tparam T2
+    *   discrete value type for that domain.
+    * @return
+    *   a new two-dimensional domain element with this as the horizontal component and that as the vertical component.
+    */
+  infix def x[T2: DiscreteValue](that: DiscreteDomain1D[T2]): DiscreteDomain2D[T, T2] =
+    DiscreteDomain2D(domain1d, that)
 
   // equivalent symbolic method names
 
@@ -79,12 +92,10 @@ enum DiscreteDomain1D[+T] extends DimensionalBase.DomainLike:
     *
     * @param interval
     *   interval to test.
-    * @tparam S
-    *   discrete value supertype of T (usually the same as T) used in the return type.
     * @return
     *   true if this belongs to the specified interval, false otherwise.
     */
-  def ∈[S >: T: DiscreteValue](interval: DiscreteInterval1D[S]): Boolean = this belongsTo interval
+  def ∈(interval: DiscreteInterval1D[T]): Boolean = domain1d belongsTo interval
 
 object DiscreteDomain1D:
   /**

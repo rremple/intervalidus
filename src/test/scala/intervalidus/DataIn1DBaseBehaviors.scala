@@ -20,9 +20,10 @@ trait DataIn1DBaseBehaviors:
   ): List[ValidData1D[T, Int]] = values.map(ValidData1D(_, _)).toList
 
   def stringLookupTests[S <: DataIn1DBase[String, Int]](
+    prefix: String,
     dataIn1DFrom: Iterable[ValidData1D[String, Int]] => S,
     dataIn1DOf: String => S
-  ): Unit = test("Looking up data in intervals"):
+  ): Unit = test(s"$prefix: Looking up data in intervals"):
     assertThrows[IllegalArgumentException]:
       // not valid as it overlaps on [10, +∞)
       val badFixture = dataIn1DFrom(testData("Hello" -> interval(0, 10), "World" -> unbounded))
@@ -104,8 +105,9 @@ trait DataIn1DBaseBehaviors:
   )
 
   def doubleUseCaseTests[S <: DataIn1DBase[Double, Int]](
+    prefix: String,
     dataIn1DFrom: Iterable[ValidData1D[Double, Int]] => S
-  ): Unit = test("Practical use case: tax brackets"):
+  ): Unit = test(s"$prefix: Practical use case: tax brackets"):
     val fixture: S = dataIn1DFrom(taxBrackets)
 
     def taxUsingFold(income: Int): Double = fixture.foldLeft(0.0): (priorTax, bracket) =>

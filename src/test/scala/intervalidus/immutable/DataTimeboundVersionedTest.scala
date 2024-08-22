@@ -40,7 +40,7 @@ class DataTimeboundVersionedTest extends AnyFunSuite with Matchers:
           .incrementCurrentVersion()
     )
 
-  test("Looking up data in intervals"):
+  test("Immutable: Looking up data in intervals"):
     val fixture0: DataTimeboundVersioned[String] = DataTimeboundVersioned()
     assert(fixture0.getAll.isEmpty)
 

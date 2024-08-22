@@ -11,10 +11,10 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors:
   import DiscreteInterval1D.*
 
   // shared
-  testsFor(stringLookupTests(DataIn1D(_), DataIn1D.of(_)))
-  testsFor(doubleUseCaseTests(DataIn1D(_)))
+  testsFor(stringLookupTests("Mutable", DataIn1D(_), DataIn1D.of(_)))
+  testsFor(doubleUseCaseTests("Mutable", DataIn1D(_)))
 
-  test("Adding and removing data in intervals"):
+  test("Mutable: Adding and removing data in intervals"):
     val empty: DataIn1D[String, Int] = DataIn1D()
     assert(empty.getAll.isEmpty)
     assert(empty.domain.isEmpty)
@@ -109,7 +109,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors:
     copyFixture2.syncWith(copyFixture6)
     copyFixture2.getAll.toList shouldBe expectedData6
 
-  test("Mapping, flatmapping, etc."):
+  test("Mutable: Mapping, flatmapping, etc."):
     val allData = testData("Hey" -> intervalTo(4), "World" -> intervalFrom(16))
 
     val fixture1 = DataIn1D(allData)
@@ -154,7 +154,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors:
     assertThrows[NoSuchElementException]:
       fixture1.get
 
-  test("Compressing data in intervals"):
+  test("Mutable: Compressing data in intervals"):
     val allData = testData(
       "Hello" -> intervalTo(4),
       "World" -> intervalAt(5),
@@ -182,7 +182,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors:
     fixture2.getAll.toList shouldBe expectedData2
     fixture2.domain.toList shouldBe List(unbounded[Int])
 
-  test("Updating data in intervals"):
+  test("Mutable: Updating data in intervals"):
     val one: DataIn1D[String, Int] = DataIn1D.of("value")
 
     one.remove(intervalAt(0)) // split

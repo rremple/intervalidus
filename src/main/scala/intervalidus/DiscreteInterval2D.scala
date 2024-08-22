@@ -32,7 +32,7 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
     */
   infix def withValue[V](value: V): DataIn2DBase.ValidData2D[V, T1, T2] = DataIn2DBase.ValidData2D(value, this)
 
-  override def key: DiscreteDomain2D[T1, T2] = DiscreteDomain2D(horizontal.start, vertical.start)
+  override def key: DiscreteDomain2D[T1, T2] = horizontal.start x vertical.start
 
   override infix def contains(
     domainElement: DiscreteDomain2D[T1, T2]

@@ -9,10 +9,10 @@ class DiscreteValueTest extends AnyFunSuite:
 
   test("Ops on Ints"):
     import DiscreteValue.IntDiscreteValue
-    assert(1.predecessor equiv Some(0))
-    assert(Int.MinValue.predecessor equiv None)
-    assert(1.successor equiv Some(2))
-    assert(Int.MaxValue.successor equiv None)
+    assert(1.predecessorValue equiv Some(0))
+    assert(Int.MinValue.predecessorValue equiv None)
+    assert(1.successorValue equiv Some(2))
+    assert(Int.MaxValue.successorValue equiv None)
     assert(3 equiv 3)
     assert(3 <= 3)
     assert(3 >= 3)
@@ -50,10 +50,10 @@ class DiscreteValueTest extends AnyFunSuite:
 
   test("Ops on Longs"):
     import DiscreteValue.LongDiscreteValue
-    assert(1.predecessor equiv Some(0))
-    assert(Long.MinValue.predecessor equiv None)
-    assert(1.successor equiv Some(2))
-    assert(Long.MaxValue.successor equiv None)
+    assert(1.predecessorValue equiv Some(0))
+    assert(Long.MinValue.predecessorValue equiv None)
+    assert(1.successorValue equiv Some(2))
+    assert(Long.MaxValue.successorValue equiv None)
     assert(3 equiv 3)
     assert(3 <= 3)
     assert(3 >= 3)
@@ -93,10 +93,10 @@ class DiscreteValueTest extends AnyFunSuite:
   test("Ops on BigIntegers"):
     import DiscreteValue.BigIntegerDiscreteValue
     import java.math.BigInteger.valueOf
-    assert(valueOf(1).predecessor equiv Some(valueOf(0)))
-    assert(BigIntegerDiscreteValue.minValue.predecessor equiv None)
-    assert(valueOf(1).successor equiv Some(valueOf(2)))
-    assert(BigIntegerDiscreteValue.maxValue.successor equiv None)
+    assert(valueOf(1).predecessorValue equiv Some(valueOf(0)))
+    assert(BigIntegerDiscreteValue.minValue.predecessorValue equiv None)
+    assert(valueOf(1).successorValue equiv Some(valueOf(2)))
+    assert(BigIntegerDiscreteValue.maxValue.successorValue equiv None)
     assert(valueOf(3) equiv valueOf(3))
     assert(valueOf(3) <= valueOf(3))
     assert(valueOf(3) >= valueOf(3))
@@ -144,8 +144,8 @@ class DiscreteValueTest extends AnyFunSuite:
     val date2 = LocalDate.of(2024, 6, 2)
     val date3 = LocalDate.of(2024, 6, 3)
     val date4 = LocalDate.of(2024, 6, 4)
-    assert(date1.predecessor equiv Some(date0))
-    assert(date1.successor equiv Some(date2))
+    assert(date1.predecessorValue equiv Some(date0))
+    assert(date1.successorValue equiv Some(date2))
     assert(date3 equiv date3)
     assert(date3 <= date3)
     assert(date3 >= date3)

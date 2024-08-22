@@ -13,10 +13,10 @@ class DataIn1DTest extends AnyFunSuite with Matchers with intervalidus.DataIn1DB
   import DiscreteInterval1D.*
 
   // shared
-  testsFor(stringLookupTests(DataIn1D(_), DataIn1D.of(_)))
-  testsFor(doubleUseCaseTests(DataIn1D(_)))
+  testsFor(stringLookupTests("Immutable", DataIn1D(_), DataIn1D.of(_)))
+  testsFor(doubleUseCaseTests("Immutable", DataIn1D(_)))
 
-  test("Practical use case: tax brackets using zip"):
+  test("Immutable: Practical use case: tax brackets using zip"):
     val brackets = DataIn1D(taxBrackets)
 
     def taxUsingZip(income: Int): Double =
@@ -37,7 +37,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with intervalidus.DataIn1DB
 
     taxUsingZip(250000) shouldBe expectedTax // 2320 + 8532 + 23485 + 11747
 
-  test("Adding and removing data in intervals"):
+  test("Immutable: Adding and removing data in intervals"):
     val empty: DataIn1D[String, Int] = DataIn1D()
     assert(empty.getAll.isEmpty)
     assert(empty.domain.isEmpty)
@@ -128,7 +128,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with intervalidus.DataIn1DB
     val f6sync = f2.syncWith(f6)
     f6sync.getAll.toList shouldBe expectedData6
 
-  test("Mapping, flatmapping, etc."):
+  test("Immutable: Mapping, flatmapping, etc."):
     val allData = testData("Hey" -> intervalTo(4), "World" -> intervalFrom(16))
 
     val fixture1 = DataIn1D(allData)
@@ -169,7 +169,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with intervalidus.DataIn1DB
     assertThrows[NoSuchElementException]:
       fixture7.get
 
-  test("Compressing data in intervals"):
+  test("Immutable: Compressing data in intervals"):
     val allData = testData(
       "Hello" -> intervalTo(4),
       "World" -> intervalAt(5),
@@ -197,7 +197,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with intervalidus.DataIn1DB
     compressed2.getAll.toList shouldBe expectedData2
     compressed2.domain.toList shouldBe List(unbounded[Int])
 
-  test("Updating data in intervals"):
+  test("Immutable: Updating data in intervals"):
     val one = DataIn1D.of("value").remove(intervalAt(0)) // split
     val expectedData0 = testData("value" -> intervalTo(-1), "value" -> intervalFrom(1))
     one.getAll.toList shouldBe expectedData0

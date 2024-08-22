@@ -24,9 +24,10 @@ trait DataIn2DBaseBehaviors:
   protected def day(offsetDays: Int): LocalDate = dayZero.plusDays(offsetDays)
 
   def stringLookupTests[S <: DataIn2DBase[String, LocalDate, Int]](
+    prefix: String,
     dataIn2DFrom: Iterable[ValidData2D[String, LocalDate, Int]] => S,
     dataIn2DOf: String => S
-  ): Unit = test("Looking up data in intervals - unbounded r1"):
+  ): Unit = test(s"$prefix: Looking up data in intervals - unbounded r1"):
     assertThrows[IllegalArgumentException]:
       // not valid as it overlaps in the second dimension on [10, +∞)
       val badFixture = dataIn2DFrom(testData(("Hello", unbounded, interval(0, 10)), ("World", unbounded, unbounded)))

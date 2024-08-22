@@ -39,12 +39,12 @@ trait DiscreteValue[T] extends Ordering[T]:
     /**
       * Successor of this discrete value, when defined: only maxValue.successor is not defined.
       */
-    def successor: Option[T] = successorOf(lhs)
+    def successorValue: Option[T] = successorOf(lhs)
 
     /**
       * Predecessor of this discrete value, when defined: only minValue.predecessor is not defined.
       */
-    def predecessor: Option[T] = predecessorOf(lhs)
+    def predecessorValue: Option[T] = predecessorOf(lhs)
 
 object DiscreteValue:
 

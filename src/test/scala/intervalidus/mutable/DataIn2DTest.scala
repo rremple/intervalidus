@@ -13,12 +13,12 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
   import DiscreteInterval1D.*
 
   // shared
-  testsFor(stringLookupTests(DataIn2D(_), DataIn2D.of(_)))
+  testsFor(stringLookupTests("Mutable", DataIn2D(_), DataIn2D.of(_)))
 
   def vertical2D[T: DiscreteValue](interval2: DiscreteInterval1D[T]): DiscreteInterval2D[LocalDate, T] =
     unbounded[LocalDate] x interval2
 
-  test("Looking up data in intervals - bounded r1"):
+  test("Mutable: Looking up data in intervals - bounded r1"):
     val empty: DataIn2D[String, Int, Int] = DataIn2D()
     assert(empty.getAll.isEmpty)
     assert(empty.domain.isEmpty)
@@ -33,7 +33,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
 
     fixture.getByVerticalIndex(11).getAt(day(1)) shouldBe Some("World")
 
-  test("Adding and removing data in intervals - unbounded r1"):
+  test("Mutable: Adding and removing data in intervals - unbounded r1"):
     val allData = testData(("Hello", unbounded, interval(0, 10)), ("World", unbounded, intervalFrom(11)))
     val fixture = DataIn2D(allData)
 
@@ -132,7 +132,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
     copyFixture2.syncWith(copyFixture6)
     copyFixture2.getAll.toList shouldBe expectedData6
 
-  test("Mapping, flatmapping, etc."):
+  test("Mutable: Mapping, flatmapping, etc."):
     val allData = testData(("Hey", unbounded, intervalTo(4)), ("World", unbounded, intervalFrom(16)))
 
     val fixture = DataIn2D(allData)
@@ -178,7 +178,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
     assertThrows[NoSuchElementException]:
       fixture.get
 
-  test("Compressing data in intervals - unbounded r1"):
+  test("Mutable: Compressing data in intervals - unbounded r1"):
     val allData = testData(
       ("Hello", unbounded, intervalTo(4)),
       ("World", unbounded, intervalAt(5)),
@@ -210,7 +210,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
     fixture2.getAll.toList shouldBe expectedData2
     fixture2.domain.toList shouldBe List(DiscreteInterval2D.unbounded[Int, Int])
 
-  test("Updating data in intervals - unbounded r1"):
+  test("Mutable: Updating data in intervals - unbounded r1"):
     val allData = testData(
       ("Hello", unbounded, intervalTo(4)),
       ("World", unbounded, interval(5, 6)),
@@ -286,7 +286,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
    *  (5) partial + split or split + partial = bite (2)
    *  (6) split + split = hole (1)
    */
-  test("All remove by interval - (1) simple + simple = simple"):
+  test("Mutable: All remove by interval - (1) simple + simple = simple"):
     // the same or larger
     val allData: Seq[ValidData2D[String, LocalDate, Int]] = testData(
       ("World", interval(day(-14), day(14)), interval(4, 7))
@@ -301,7 +301,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
     val expectedData2 = testData()
     fixture2.getAll.toList shouldBe expectedData2
 
-  test("All remove by interval - (2) simple + partial or partial + simple = edge (2)"):
+  test("Mutable: All remove by interval - (2) simple + partial or partial + simple = edge (2)"):
     // each with or without a common start
     val allData: Seq[ValidData2D[String, LocalDate, Int]] = testData(
       ("World", interval(day(-14), day(14)), interval(4, 7))
@@ -339,7 +339,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
     )
     fixture4.getAll.toList shouldBe expectedData4
 
-  test("All remove by interval - (3) simple + split or split + simple = slice (2)"):
+  test("Mutable: All remove by interval - (3) simple + split or split + simple = slice (2)"):
     val allData: Seq[ValidData2D[String, LocalDate, Int]] = testData(
       ("World", interval(day(-14), day(14)), interval(4, 7))
     )
@@ -362,7 +362,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
     )
     fixture2.getAll.toList shouldBe expectedData2
 
-  test("All remove by interval - (4) partial + partial = corner (1)"):
+  test("Mutable: All remove by interval - (4) partial + partial = corner (1)"):
     val allData: Seq[ValidData2D[String, LocalDate, Int]] = testData(
       ("World", interval(day(-14), day(14)), interval(4, 7))
     )
@@ -403,7 +403,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
     )
     fixture4.getAll.toList shouldBe expectedData4
 
-  test("All remove by interval - (5) partial + split or split + partial = bite (2)"):
+  test("Mutable: All remove by interval - (5) partial + split or split + partial = bite (2)"):
     val allData: Seq[ValidData2D[String, LocalDate, Int]] = testData(
       ("World", interval(day(-14), day(14)), interval(4, 7))
     )
@@ -449,7 +449,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
     )
     fixture4.getAll.toList shouldBe expectedData4
 
-  test("All remove by interval - (6) split + split = hole (1)"):
+  test("Mutable: All remove by interval - (6) split + split = hole (1)"):
     val allData: Seq[ValidData2D[String, LocalDate, Int]] = testData(
       ("World", interval(day(-14), day(14)), interval(4, 7))
     )
@@ -465,7 +465,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
 
   // same, but for updates
 
-  test("All update by interval - (1) simple + simple = simple"):
+  test("Mutable: All update by interval - (1) simple + simple = simple"):
     // the same or larger
     val allData: Seq[ValidData2D[String, LocalDate, Int]] = testData(
       ("World", interval(day(-14), day(14)), interval(4, 7))
@@ -480,7 +480,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
     val expectedData2 = testData(("update", interval(day(-14), day(14)), interval(4, 7)))
     fixture2.getAll.toList shouldBe expectedData2
 
-  test("All update by interval - (2) simple + partial or partial + simple = edge (2)"):
+  test("Mutable: All update by interval - (2) simple + partial or partial + simple = edge (2)"):
     // each with or without a common start
     val allData: Seq[ValidData2D[String, LocalDate, Int]] = testData(
       ("World", interval(day(-14), day(14)), interval(4, 7))
@@ -522,7 +522,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
     )
     fixture4.getAll.toList shouldBe expectedData4
 
-  test("All update by interval - (3) simple + split or split + simple = slice (2)"):
+  test("Mutable: All update by interval - (3) simple + split or split + simple = slice (2)"):
     val allData: Seq[ValidData2D[String, LocalDate, Int]] = testData(
       ("World", interval(day(-14), day(14)), interval(4, 7))
     )
@@ -547,7 +547,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
     )
     fixture2.getAll.toList shouldBe expectedData2
 
-  test("All update by interval - (4) partial + partial = corner (1)"):
+  test("Mutable: All update by interval - (4) partial + partial = corner (1)"):
     val allData: Seq[ValidData2D[String, LocalDate, Int]] = testData(
       ("World", interval(day(-14), day(14)), interval(4, 7))
     )
@@ -592,7 +592,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
     )
     fixture4.getAll.toList shouldBe expectedData4
 
-  test("All update by interval - (5) partial + split or split + partial = bite (2)"):
+  test("Mutable: All update by interval - (5) partial + split or split + partial = bite (2)"):
     val allData: Seq[ValidData2D[String, LocalDate, Int]] = testData(
       ("World", interval(day(-14), day(14)), interval(4, 7))
     )
@@ -642,7 +642,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
     )
     fixture4.getAll.toList shouldBe expectedData4
 
-  test("All update by interval - (6) split + split = hole (1)"):
+  test("Mutable: All update by interval - (6) split + split = hole (1)"):
     val allData: Seq[ValidData2D[String, LocalDate, Int]] = testData(
       ("World", interval(day(-14), day(14)), interval(4, 7))
     )
@@ -657,7 +657,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
     )
     fixture1.getAll.toList shouldBe expectedData1
 
-  test("Simple toString"):
+  test("Mutable: Simple toString"):
     val fixturePadData = DataIn2D.of[String, LocalDate, Int]("H")
     fixturePadData.set((intervalFrom(day(0)) x unbounded[Int]) -> "W")
     // println(fixturePadData.toString)

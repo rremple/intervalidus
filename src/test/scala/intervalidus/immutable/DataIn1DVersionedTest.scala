@@ -20,9 +20,9 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with intervalidus.
         .incrementCurrentVersion()
 
   // shared
-  testsFor(stringLookupTests(newDataIn1DVersioned, DataIn1DVersioned(_), DataIn1DVersioned.of(_)))
+  testsFor(stringLookupTests("Immutable", newDataIn1DVersioned, DataIn1DVersioned(_), DataIn1DVersioned.of(_)))
 
-  test("Adding and removing data in intervals"):
+  test("Immutable: Adding and removing data in intervals"):
     val empty: DataIn1DVersioned[String, Int] = mutable.DataIn1DVersioned().toImmutable
 
     assertThrows[Exception]: // version too large
@@ -132,7 +132,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with intervalidus.
     val fixture2to6 = fixture2.syncWith(fixture6)
     fixture2to6.getAll(using VersionSelection(fixture6.getCurrentVersion)).toList shouldBe expectedData6
 
-  test("Mapping, flat mapping, etc."):
+  test("Immutable: Mapping, flat mapping, etc."):
     val allData = testData("Hey" -> intervalTo(4), "World" -> intervalFrom(16))
 
     val fixture1 = newDataIn1DVersioned(allData)
@@ -176,7 +176,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with intervalidus.
     assertThrows[NoSuchElementException]:
       fixture7.get
 
-  test("Compressing data in intervals"):
+  test("Immutable: Compressing data in intervals"):
     val allData = testData(
       "Hello" -> intervalTo(4),
       "World" -> intervalAt(5),
@@ -199,7 +199,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with intervalidus.
     val expectedData2 = testData("Hello" -> intervalTo(4), "World" -> interval(5, 6), "Hello" -> intervalFrom(7))
     fixture2.getDataIn1D.getAll.toList shouldBe expectedData2
 
-  test("Updating data in intervals"):
+  test("Immutable: Updating data in intervals"):
     val one: DataIn1DVersioned[String, Int] = DataIn1DVersioned
       .of("value")
       .incrementCurrentVersion()

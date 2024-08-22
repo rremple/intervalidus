@@ -24,11 +24,12 @@ trait DataIn1DVersionedBaseBehaviors:
     values.map(d => (d.interval x intervalFrom(current)) -> d.value)
 
   def stringLookupTests[S <: DataIn1DVersionedBase[String, Int]](
+    prefix: String,
     dataIn1DVersionedFrom1D: Iterable[ValidData1D[String, Int]] => S,
     dataIn1DVersionedFrom2D: Iterable[ValidData2D[String, Int, Int]] => S,
     dataIn1DVersionedOf: String => S
   ): Unit =
-    test("General setup"):
+    test(s"$prefix: General setup"):
       assertThrows[IllegalArgumentException]:
         // not valid as it overlaps on [10, +∞)
         val badFixture =
@@ -86,7 +87,7 @@ trait DataIn1DVersionedBaseBehaviors:
       )
       fixture4.getAll.toList shouldBe expected4
 
-    test("Looking up data in intervals"):
+    test(s"$prefix: Looking up data in intervals"):
       val allData = testData("Hello" -> interval(0, 9), "World" -> intervalFrom(10))
       val fixture = dataIn1DVersionedFrom1D(allData)
       fixture.getAt(5) shouldBe Some("Hello")
