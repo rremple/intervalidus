@@ -39,6 +39,10 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
   ): Boolean =
     (this.horizontal contains domainElement.horizontalIndex) && (this.vertical contains domainElement.verticalIndex)
 
+  override infix def isUnbounded: Boolean = this.horizontal.isUnbounded && this.vertical.isUnbounded
+
+  override def toString: String = s"{${this.horizontal.toString}, ${this.vertical.toString}}"
+
   /**
     * Returns a new two-dimensional interval with the same vertical interval and the provided horizontal interval.
     *
@@ -74,8 +78,6 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
     */
   def withVerticalUpdate(update: DiscreteInterval1D[T2] => DiscreteInterval1D[T2]): DiscreteInterval2D[T1, T2] =
     withVertical(update(this.vertical))
-
-  override def toString: String = s"{${this.horizontal.toString}, ${this.vertical.toString}}"
 
   /**
     * Returns true only if there this interval is below that interval, there is no vertical gap between them, and their
@@ -124,12 +126,6 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
   infix def isAdjacentTo(that: DiscreteInterval2D[T1, T2]): Boolean =
     (this isLeftAdjacentTo that) || (this isRightAdjacentTo that) ||
       (this isLowerAdjacentTo that) || (this isUpperAdjacentTo that)
-
-  /**
-    * Returns true only if there is no fixed start or end in either the horizontal or vertical dimensions - spans the
-    * entire domain.
-    */
-  infix def isUnbounded: Boolean = this.horizontal.isUnbounded && this.vertical.isUnbounded
 
   /**
     * Returns true only if this and that have elements of the domain in common (not disjoint).
@@ -222,7 +218,9 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
   // equivalent symbolic method names
 
   /**
-    * Same as [[withValue]] Construct new valid data from this interval.
+    * Same as [[withValue]]
+    *
+    * Construct new valid data from this interval.
     *
     * @param value
     *   the value in the valid data

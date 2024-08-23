@@ -40,6 +40,8 @@ case class DiscreteInterval1D[T: DiscreteValue](
   override infix def contains(domainElement: DiscreteDomain1D[T]): Boolean =
     start <= domainElement && domainElement <= end
 
+  override infix def isUnbounded: Boolean = (this.start equiv Bottom) && (this.end equiv Top)
+
   // Use mathematical interval notation -- default.
   override def toString: String =
     val leftBrace = start match
@@ -154,11 +156,6 @@ case class DiscreteInterval1D[T: DiscreteValue](
     *   the interval to test.
     */
   infix def hasSameEndAs(that: DiscreteInterval1D[T]): Boolean = this.end equiv that.end
-
-  /**
-    * Returns true only if there is no fixed start or end - spans the entire domain.
-    */
-  infix def isUnbounded: Boolean = (this.start equiv Bottom) && (this.end equiv Top)
 
   /**
     * Returns true only if this and that have elements of the domain in common (not disjoint).

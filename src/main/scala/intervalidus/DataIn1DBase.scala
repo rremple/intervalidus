@@ -196,11 +196,10 @@ trait DataIn1DBase[V, R: DiscreteValue](
   def diffActionsFrom(old: DataIn1DBase[V, R]): Iterable[DiffAction1D[V, R]] =
     (dataByStart.keys.toSet ++ old.dataByStart.keys).toList.sorted.flatMap: key =>
       (old.dataByStart.get(key), dataByStart.get(key)) match
-        case (Some(oldData), Some(newData)) if oldData != newData =>
-          Some(DiffAction1D.Update(newData))
-        case (None, Some(newData)) => Some(DiffAction1D.Create(newData))
-        case (Some(oldData), None) => Some(DiffAction1D.Delete(oldData.key))
-        case _                     => None
+        case (Some(oldData), Some(newData)) if oldData != newData => Some(DiffAction1D.Update(newData))
+        case (None, Some(newData))                                => Some(DiffAction1D.Create(newData))
+        case (Some(oldData), None)                                => Some(DiffAction1D.Delete(oldData.key))
+        case _                                                    => None
 
   // ---------- Implement methods from DimensionalBase ----------
 
@@ -212,6 +211,7 @@ trait DataIn1DBase[V, R: DiscreteValue](
     * @inheritdoc
     *
     * Both have to deal with exclusions, which can have three cases: simple, partial, and split.
+    *
     * @param targetInterval
     *   the new value existing data in the interval should take on
     * @param newValueOption
@@ -255,13 +255,6 @@ trait DataIn1DBase[V, R: DiscreteValue](
           addValidData(rightRemaining -> overlap.value)
 
     newValueOption.foreach(compressInPlace(this))
-
-  override def get: V = getAll.headOption match
-    case Some(ValidData1D(value, interval)) if interval.isUnbounded => value
-    case Some(_) => throw new NoSuchElementException("bounded DataIn1D.get")
-    case None    => throw new NoSuchElementException("empty DataIn1D.get")
-
-  override def getOption: Option[V] = getAll.headOption.filter(_.interval.isUnbounded).map(_.value)
 
   override def getAt(domainIndex: DiscreteDomain1D[R]): Option[V] =
     dataByStart

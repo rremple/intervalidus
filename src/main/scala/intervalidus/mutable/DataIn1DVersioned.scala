@@ -201,20 +201,6 @@ class DataIn1DVersioned[V, R: DiscreteValue](
   def flatMap(f: ValidData2D[V, R, Int] => DataIn1DVersioned[V, R]): Unit =
     underlying2D.flatMap(d => DataIn2D(f(d).underlying2D.getAll))
 
-  override def zip[B](that: DataIn1DVersionedBase[B, R]): DataIn1DVersioned[(V, B), R] =
-    DataIn1DVersioned(
-      underlying2D.zip(that.getDataIn2D).getAll,
-      initialVersion,
-      Some(currentVersion)
-    )
-
-  override def zipAll[B](that: DataIn1DVersionedBase[B, R], thisElem: V, thatElem: B): DataIn1DVersioned[(V, B), R] =
-    DataIn1DVersioned(
-      underlying2D.zipAll(that.getDataIn2D, thisElem, thatElem).getAll,
-      initialVersion,
-      Some(currentVersion)
-    )
-
   /**
     * Set new valid data. Note that any data previously valid in this interval and the given version selection context
     * are replaced by this data.
@@ -362,3 +348,19 @@ class DataIn1DVersioned[V, R: DiscreteValue](
       .filter(_.interval.vertical.end equiv unapprovedStartVersion.predecessor) // only related to unapproved removes
       .flatMap(_.interval.horizontal intersectionWith interval)
       .foreach(remove(_)(using VersionSelection.Current))
+
+  // ---------- Implement methods from DataIn1DVersionedBase ----------
+
+  override def zip[B](that: DataIn1DVersionedBase[B, R]): DataIn1DVersioned[(V, B), R] =
+    DataIn1DVersioned(
+      underlying2D.zip(that.getDataIn2D).getAll,
+      initialVersion,
+      Some(currentVersion)
+    )
+
+  override def zipAll[B](that: DataIn1DVersionedBase[B, R], thisElem: V, thatElem: B): DataIn1DVersioned[(V, B), R] =
+    DataIn1DVersioned(
+      underlying2D.zipAll(that.getDataIn2D, thisElem, thatElem).getAll,
+      initialVersion,
+      Some(currentVersion)
+    )

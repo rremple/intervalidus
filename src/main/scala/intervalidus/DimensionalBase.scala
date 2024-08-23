@@ -32,6 +32,11 @@ object DimensionalBase:
       */
     infix def contains(domainIndex: D): Boolean
 
+    /**
+      * Returns true only if there is no fixed start or end - spans the entire domain.
+      */
+    infix def isUnbounded: Boolean
+
   /**
     * A value that is valid in some discrete interval. This defines a partial function where all domain elements that
     * are part of the interval map to the specified value.
@@ -166,20 +171,6 @@ trait DimensionalBase[V, D <: DomainLike, I <: IntervalLike[D], ValidData <: Dat
   def copy: DimensionalBase[V, D, I, ValidData]
 
   /**
-    * Returns a the value if a single, unbounded valid value. Otherwise throws an exception.
-    *
-    * @throws NoSuchElementException
-    *   if there isn't any valid data, or valid data are bounded (i.e., take on different values in different
-    *   intervals).
-    */
-  def get: V
-
-  /**
-    * Returns a Some value if a single, unbounded valid value. Otherwise returns None.
-    */
-  def getOption: Option[V]
-
-  /**
     * Returns a value that is valid in the specified interval domain element. That is, where the specified domain
     * element is a member of some valid data interval. If no such valid data exists, returns None.
     *
@@ -255,6 +246,23 @@ trait DimensionalBase[V, D <: DomainLike, I <: IntervalLike[D], ValidData <: Dat
   override def apply(domainIndex: D): V = getAt(domainIndex).getOrElse(
     throw Exception(s"Not defined at $domainIndex")
   )
+
+  /**
+    * Returns a the value if a single, unbounded valid value. Otherwise throws an exception.
+    *
+    * @throws NoSuchElementException
+    *   if there isn't any valid data, or valid data are bounded (i.e., take on different values in different
+    *   intervals).
+    */
+  def get: V = getAll.headOption match
+    case Some(d: ValidData) if d.interval.isUnbounded => d.value
+    case Some(_)                                      => throw new NoSuchElementException("bounded get")
+    case None                                         => throw new NoSuchElementException("empty get")
+
+  /**
+    * Returns a Some value if a single, unbounded valid value. Otherwise returns None.
+    */
+  def getOption: Option[V] = getAll.headOption.filter(_.interval.isUnbounded).map(_.value)
 
   /**
     * Returns true when there are no valid data in this structure, otherwise false.

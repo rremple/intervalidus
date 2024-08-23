@@ -209,7 +209,7 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
         .flatMap: r =>
           data.getAll
             .filter(s => s.value == value && !(r.interval equiv s.interval))
-            .collect:
+            .collectFirst:
               case s if (s.interval isLeftAdjacentTo r.interval) || (s.interval isLowerAdjacentTo r.interval) =>
                 Seq(
                   () => data.removeValidDataByKey(r.key),
@@ -421,13 +421,6 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
             addValidData((horizontalHoleBit x verticalHoleBit) -> newValue) // the hole is updated
 
     newValueOption.foreach(compressInPlace(this))
-
-  override def get: V = getAll.headOption match
-    case Some(ValidData2D(value, interval)) if interval.isUnbounded => value
-    case Some(_) => throw new NoSuchElementException("bounded DataIn2D.get")
-    case None    => throw new NoSuchElementException("empty DataIn2D.get")
-
-  override def getOption: Option[V] = getAll.headOption.filter(_.interval.isUnbounded).map(_.value)
 
   override def getAt(domainIndex: DiscreteDomain2D[R1, R2]): Option[V] =
     dataByStart

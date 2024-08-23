@@ -79,6 +79,11 @@ trait DataIn1DVersionedBase[V, R: DiscreteValue](
       */
     def intervalFrom: DiscreteInterval1D[Int] = DiscreteInterval1D.intervalFrom(boundary)
 
+  // --- definitions unique to this "versioned" variant
+
+  // Underlying 2D representation of versioned 1D data (mutable)
+  protected val underlying2D: mutable.DataIn2D[V, R, Int] = mutable.DataIn2D(initialData)
+
   // The current version, mutable via access methods only
   protected var currentVersion: DiscreteDomain1D[Int] =
     withCurrentVersion.getOrElse(DiscreteDomain1D.Point(initialVersion))
@@ -91,25 +96,33 @@ trait DataIn1DVersionedBase[V, R: DiscreteValue](
   // Special version at which we place (or delete) unapproved stuff (fixed)
   protected val unapprovedStartVersion: DiscreteDomain1D[Int] = summon[DiscreteValue[Int]].maxValue
 
-  // Underlying 2D representation of versioned 1D data (mutable)
-  protected val underlying2D: mutable.DataIn2D[V, R, Int] = mutable.DataIn2D(initialData)
-
   // Construct 2D data from 1D data plus version selection
   protected def validDataIn2D(
     data: ValidData1D[V, R]
   )(using versionSelection: VersionSelection): ValidData2D[V, R, Int] =
     (data.interval x versionSelection.intervalFrom) -> data.value
 
+  /**
+    * Based on the given version selection context, gets all the data as a 1D structure (immutable)
+    *
+    * @param versionSelection
+    *   version selection context for this operation.
+    * @return
+    *   new 1D structure meeting version selection criteria.
+    */
+  def getDataIn1D(using versionSelection: VersionSelection): immutable.DataIn1D[V, R] = immutable.DataIn1D(
+    underlying2D.getByVerticalIndex(versionSelection.boundary).getAll
+  )
+
+  /**
+    * Gets all the data in all versions as a 2D structure (immutable)
+    *
+    * @return
+    *   new 2D structure.
+    */
+  def getDataIn2D: immutable.DataIn2D[V, R, Int] = underlying2D.toImmutable
+
   // --- API methods similar to those in DataIn1D/DataIn2D, often with version selection (can't use common super)
-
-  // from PartialFunction
-  override def isDefinedAt(key: DiscreteDomain2D[R, Int]): Boolean = underlying2D.isDefinedAt(key)
-
-  // from PartialFunction
-  override def apply(key: DiscreteDomain2D[R, Int]): V = underlying2D(key)
-
-  // from Object - print the current version and a uniform 2D grid representing the versioned data.
-  override def toString: String = s"current version = $currentVersion\n${underlying2D.toString}"
 
   /**
     * Returns a new structure formed from this structure and another structure by combining the corresponding elements
@@ -148,6 +161,17 @@ trait DataIn1DVersionedBase[V, R: DiscreteValue](
     thatElem: B
   ): DataIn1DVersionedBase[(V, B), R]
 
+  // ---------- Implement methods not like those in DimensionalBase ----------
+
+  // from PartialFunction
+  override def isDefinedAt(key: DiscreteDomain2D[R, Int]): Boolean = underlying2D.isDefinedAt(key)
+
+  // from PartialFunction
+  override def apply(key: DiscreteDomain2D[R, Int]): V = underlying2D(key)
+
+  // from Object - print the current version and a uniform 2D grid representing the versioned data.
+  override def toString: String = s"current version = $currentVersion\n${underlying2D.toString}"
+
   /**
     * Constructs a sequence of 2D diff actions that, if applied to the old structure, would synchronize it with this
     * one. Does not use a version selection context -- operates on full underlying 2D structure.
@@ -159,6 +183,8 @@ trait DataIn1DVersionedBase[V, R: DiscreteValue](
     */
   def diffActionsFrom(old: DataIn1DVersionedBase[V, R]): Iterable[DiffAction2D[V, R, Int]] =
     underlying2D.diffActionsFrom(old.underlying2D)
+
+  // ---------- Implement methods like those in DimensionalBase ----------
 
   /**
     * Returns true when there are no valid data in this structure, otherwise false.
@@ -232,11 +258,6 @@ trait DataIn1DVersionedBase[V, R: DiscreteValue](
   infix def isValidAt(key: DiscreteDomain1D[R])(using VersionSelection): Boolean = getDataIn1D.isDefinedAt(key)
 
   /**
-    * Returns all the intervals (compressed) in which there are valid values given some version selection context.
-    */
-  def domain(using VersionSelection): Iterable[DiscreteInterval1D[R]] = getDataIn1D.domain
-
-  /**
     * Returns all data that are valid on some or all of the provided interval given some version selection context.
     *
     * @param interval
@@ -258,24 +279,7 @@ trait DataIn1DVersionedBase[V, R: DiscreteValue](
   infix def intersects(interval: DiscreteInterval1D[R])(using VersionSelection): Boolean =
     getDataIn1D intersects interval
 
-  // --- API methods unique to this "versioned" variant
-
   /**
-    * Based on the given version selection context, gets all the data as a 1D structure (immutable)
-    *
-    * @param versionSelection
-    *   version selection context for this operation.
-    * @return
-    *   new 1D structure meeting version selection criteria.
+    * Returns all the intervals (compressed) in which there are valid values given some version selection context.
     */
-  def getDataIn1D(using versionSelection: VersionSelection): immutable.DataIn1D[V, R] = immutable.DataIn1D(
-    underlying2D.getByVerticalIndex(versionSelection.boundary).getAll
-  )
-
-  /**
-    * Gets all the data in all versions as a 2D structure (immutable)
-    *
-    * @return
-    *   new 2D structure.
-    */
-  def getDataIn2D: immutable.DataIn2D[V, R, Int] = underlying2D.toImmutable
+  def domain(using VersionSelection): Iterable[DiscreteInterval1D[R]] = getDataIn1D.domain

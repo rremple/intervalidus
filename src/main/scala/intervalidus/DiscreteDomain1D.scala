@@ -114,10 +114,10 @@ object DiscreteDomain1D:
   ): Ordering[DiscreteDomain1D[T]] =
     case (Bottom, Bottom)     => 0
     case (Bottom, _)          => -1
-    case (Point(_), Bottom)   => 1
+    case (_, Bottom)          => 1
     case (Point(x), Point(y)) => orderedValues.compare(x, y)
-    case (Point(_), Top)      => -1
     case (Top, Top)           => 0
+    case (_, Top)             => -1
     case (Top, _)             => 1
 
   /**
