@@ -87,7 +87,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors:
 
     val copyFixture6 = fixture.copy
 
-    import DataIn1DBase.DiffAction1D.*
+    import DiffAction1D.*
 
     val actionsFrom2To4 = copyFixture4.diffActionsFrom(copyFixture2)
     actionsFrom2To4.toList shouldBe List(

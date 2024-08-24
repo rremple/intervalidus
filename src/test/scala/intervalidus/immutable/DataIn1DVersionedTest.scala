@@ -8,7 +8,6 @@ import scala.language.implicitConversions
 
 class DataIn1DVersionedTest extends AnyFunSuite with Matchers with intervalidus.DataIn1DVersionedBaseBehaviors:
 
-  import DataIn1DBase.ValidData1D
   import DataIn1DVersionedBase.VersionSelection
   import DiscreteInterval1D.*
 
@@ -106,7 +105,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with intervalidus.
     val expectedData6 = testData("Hey" -> intervalTo(0))
     fixture6.getAll.toList shouldBe expectedData6
 
-    import DataIn2DBase.DiffAction2D.*
+    import DiffAction2D.*
 
     val actionsFrom2To4 = fixture4.diffActionsFrom(fixture2)
     actionsFrom2To4.toList shouldBe List(

@@ -1,7 +1,6 @@
 package intervalidus.mutable
 
 import intervalidus.*
-import intervalidus.DataIn2DBase.{DiffAction2D, ValidData2D}
 import intervalidus.immutable.DataIn2D as DataIn2DImmutable
 
 object DataIn2D extends DataIn2DBaseObject:
@@ -26,7 +25,7 @@ object DataIn2D extends DataIn2DBaseObject:
   */
 // Base for all 2D data, both mutable and immutable
 class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue](
-  initialData: Iterable[DataIn2DBase.ValidData2D[V, R1, R2]] = Iterable.empty[DataIn2DBase.ValidData2D[V, R1, R2]]
+  initialData: Iterable[ValidData2D[V, R1, R2]] = Iterable.empty[ValidData2D[V, R1, R2]]
 ) extends DataIn2DBase[V, R1, R2](initialData)
   with MutableBase[V, DiscreteDomain2D[R1, R2], DiscreteInterval2D[R1, R2], ValidData2D[V, R1, R2]]:
 

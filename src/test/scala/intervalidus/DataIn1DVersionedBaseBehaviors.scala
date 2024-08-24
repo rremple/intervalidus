@@ -1,7 +1,5 @@
 package intervalidus
 
-import intervalidus.DataIn1DBase.ValidData1D
-import intervalidus.DataIn2DBase.ValidData2D
 import intervalidus.DiscreteInterval1D.*
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers

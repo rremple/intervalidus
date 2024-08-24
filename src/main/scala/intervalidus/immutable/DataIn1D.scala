@@ -1,7 +1,6 @@
 package intervalidus.immutable
 
 import intervalidus.*
-import intervalidus.DataIn1DBase.{DiffAction1D, ValidData1D}
 import intervalidus.mutable.DataIn1D as DataIn1DMutable
 
 object DataIn1D extends DataIn1DBaseObject:

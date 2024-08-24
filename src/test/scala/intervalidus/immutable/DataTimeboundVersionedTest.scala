@@ -9,7 +9,6 @@ import scala.language.implicitConversions
 
 class DataTimeboundVersionedTest extends AnyFunSuite with Matchers:
 
-  import DataIn1DBase.ValidData1D
   import DataIn1DVersionedBase.VersionSelection
   import DiscreteInterval1D.{interval, intervalFrom, unbounded}
 

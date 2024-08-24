@@ -1,7 +1,6 @@
 package intervalidus.immutable
 
 import intervalidus.*
-import intervalidus.DataIn2DBase.ValidData2D
 
 import java.time.LocalDate
 

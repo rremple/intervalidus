@@ -33,7 +33,7 @@ case class DiscreteInterval1D[T: DiscreteValue](
     * @return
     *   valid data in this interval
     */
-  infix def withValue[V](value: V): DataIn1DBase.ValidData1D[V, T] = DataIn1DBase.ValidData1D(value, this)
+  infix def withValue[V](value: V): ValidData1D[V, T] = ValidData1D(value, this)
 
   override def key: DiscreteDomain1D[T] = start
 
@@ -290,7 +290,7 @@ case class DiscreteInterval1D[T: DiscreteValue](
     * @return
     *   valid data in this interval
     */
-  infix def ->[V](value: V): DataIn1DBase.ValidData1D[V, T] = withValue(value)
+  infix def ->[V](value: V): ValidData1D[V, T] = withValue(value)
 
   /**
     * Same as [[intersectionWith]].

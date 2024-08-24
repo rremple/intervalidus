@@ -1,8 +1,6 @@
 package intervalidus.mutable
 
 import intervalidus.*
-import intervalidus.DataIn1DBase.ValidData1D
-import intervalidus.DataIn2DBase.{DiffAction2D, ValidData2D}
 import intervalidus.immutable.DataIn1DVersioned as DataIn1DVersionedImmutable
 
 import scala.language.implicitConversions

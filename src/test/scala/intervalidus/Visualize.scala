@@ -1,7 +1,5 @@
 package intervalidus
 
-import DataIn2DBase.ValidData2D
-
 import java.awt.geom.{Line2D, Point2D, Rectangle2D}
 import java.awt.{Dimension, Graphics, Graphics2D}
 import java.time.LocalDate

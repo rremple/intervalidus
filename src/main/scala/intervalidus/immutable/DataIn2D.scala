@@ -1,7 +1,6 @@
 package intervalidus.immutable
 
 import intervalidus.*
-import intervalidus.DataIn2DBase.{DiffAction2D, ValidData2D}
 import intervalidus.mutable.DataIn2D as DataIn2DMutable
 
 object DataIn2D extends DataIn2DBaseObject:
@@ -25,7 +24,7 @@ object DataIn2D extends DataIn2DBaseObject:
   *   (optional) a collection of valid data to start with -- intervals must be disjoint in two dimensions.
   */
 class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue](
-  initialData: Iterable[DataIn2DBase.ValidData2D[V, R1, R2]] = Iterable.empty[DataIn2DBase.ValidData2D[V, R1, R2]]
+  initialData: Iterable[ValidData2D[V, R1, R2]] = Iterable.empty[ValidData2D[V, R1, R2]]
 ) extends DataIn2DBase[V, R1, R2](initialData)
   with ImmutableBase[V, DiscreteDomain2D[R1, R2], DiscreteInterval2D[R1, R2], ValidData2D[V, R1, R2]]:
 

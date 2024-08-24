@@ -1,42 +1,6 @@
 package intervalidus
 
 import scala.collection.mutable
-
-object DataIn1DBase:
-  /**
-    * A value that is valid in a one-dimensional discrete interval. Conceptually, this defines a partial function where
-    * all domain elements that are part of the interval map to the value.
-    *
-    * @tparam V
-    *   the type of the value managed as data (the codomain).
-    * @tparam R
-    *   the type of discrete value used in the discrete interval assigned to each value (the domain).
-    * @param value
-    *   value that is valid in this interval.
-    * @param interval
-    *   the discrete interval in which the value is valid.
-    */
-  case class ValidData1D[V, R: DiscreteValue](
-    value: V,
-    interval: DiscreteInterval1D[R]
-  ) extends DimensionalBase.DataLike[V, DiscreteDomain1D[R], DiscreteInterval1D[R]]:
-    override def toString: String = s"$interval -> $value"
-
-  /**
-    * Create/update/delete actions (like CQRS mutation commands). Used when extrapolating or applying event source-style
-    * information. Note that this is not an event-sourced data structure, and history of mutations are not maintained.
-    *
-    * @tparam V
-    *   the type of the value managed as data (not used in Delete).
-    * @tparam R
-    *   the type of discrete value used in the discrete interval assigned to each value.
-    */
-  enum DiffAction1D[V, R]:
-    case Create(validData: ValidData1D[V, R])
-    case Update(validData: ValidData1D[V, R])
-    case Delete(key: DiscreteDomain1D[R])
-
-import intervalidus.DataIn1DBase.{DiffAction1D, ValidData1D}
 import DiscreteInterval1D.interval
 
 trait DataIn1DBaseObject:

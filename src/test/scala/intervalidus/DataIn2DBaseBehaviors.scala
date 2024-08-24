@@ -12,7 +12,6 @@ import scala.language.implicitConversions
 trait DataIn2DBaseBehaviors:
   this: AnyFunSuite & Matchers =>
 
-  import DataIn2DBase.ValidData2D
   import DiscreteInterval1D.*
 
   protected def testData[T](

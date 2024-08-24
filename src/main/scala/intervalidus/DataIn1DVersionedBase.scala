@@ -1,8 +1,5 @@
 package intervalidus
 
-import intervalidus.DataIn1DBase.ValidData1D
-import intervalidus.DataIn2DBase.{DiffAction2D, ValidData2D}
-
 import scala.language.implicitConversions
 
 object DataIn1DVersionedBase:

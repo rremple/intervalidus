@@ -8,7 +8,6 @@ import scala.language.implicitConversions
 
 class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersionedBaseBehaviors:
 
-  import DataIn1DBase.ValidData1D
   import DataIn1DVersionedBase.VersionSelection
   import DiscreteInterval1D.*
 
@@ -104,7 +103,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
 
     val copyFixture6 = fixture.copy
 
-    import DataIn2DBase.DiffAction2D.*
+    import DiffAction2D.*
 
     val actionsFrom2To4 = copyFixture4.diffActionsFrom(copyFixture2)
     actionsFrom2To4.toList shouldBe List(

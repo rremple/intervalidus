@@ -11,7 +11,6 @@ import scala.language.implicitConversions
 trait DataIn1DBaseBehaviors:
   this: AnyFunSuite & Matchers =>
 
-  import DataIn1DBase.ValidData1D
   import DiscreteDomain1D.Point
   import DiscreteInterval1D.*
 

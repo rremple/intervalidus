@@ -9,7 +9,6 @@ import scala.language.implicitConversions
 
 class DataIn2DTest extends AnyFunSuite with Matchers with intervalidus.DataIn2DBaseBehaviors:
 
-  import DataIn2DBase.ValidData2D
   import DiscreteInterval1D.*
 
   // shared
@@ -111,7 +110,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with intervalidus.DataIn2DB
     )
     fixture6.getAll.toList shouldBe expectedData6
 
-    import DataIn2DBase.DiffAction2D.*
+    import DiffAction2D.*
     import DiscreteDomain1D.{Bottom, Point}
 
     val actionsFrom2To4 = fixture4.diffActionsFrom(fixture2a)

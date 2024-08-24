@@ -30,7 +30,7 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
     * @return
     *   valid data in this interval
     */
-  infix def withValue[V](value: V): DataIn2DBase.ValidData2D[V, T1, T2] = DataIn2DBase.ValidData2D(value, this)
+  infix def withValue[V](value: V): ValidData2D[V, T1, T2] = ValidData2D(value, this)
 
   override def key: DiscreteDomain2D[T1, T2] = horizontal.start x vertical.start
 
@@ -229,7 +229,7 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
     * @return
     *   valid data in this interval
     */
-  infix def ->[V](value: V): DataIn2DBase.ValidData2D[V, T1, T2] = withValue(value)
+  infix def ->[V](value: V): ValidData2D[V, T1, T2] = withValue(value)
 
   /**
     * Same as [[intersectionWith]].

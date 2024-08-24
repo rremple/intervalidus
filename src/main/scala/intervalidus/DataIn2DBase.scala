@@ -2,47 +2,6 @@ package intervalidus
 
 import scala.annotation.tailrec
 import scala.collection.mutable
-
-object DataIn2DBase:
-  /**
-    * A value that is valid in a two-dimensional discrete interval. Conceptually, this defines a partial function where
-    * all domain elements that are part of the 2D interval map to the value.
-    *
-    * @tparam V
-    *   the type of the value managed as data (the codomain).
-    * @tparam R1
-    *   the type of the horizontal discrete interval.
-    * @tparam R2
-    *   the type of the vertical discrete interval.
-    * @param value
-    *   value that is valid in this 2D interval.
-    * @param interval
-    *   the discrete interval in which the value is valid.
-    */
-  case class ValidData2D[V, R1: DiscreteValue, R2: DiscreteValue](
-    value: V,
-    interval: DiscreteInterval2D[R1, R2]
-  ) extends DimensionalBase.DataLike[V, DiscreteDomain2D[R1, R2], DiscreteInterval2D[R1, R2]]:
-
-    override def toString: String = s"$interval -> $value"
-
-  /**
-    * Create/update/delete actions (like CQRS mutation commands). Used when extrapolating or applying event source-style
-    * information. Note that this is not an event-sourced data structure, and history of mutations are not maintained.
-    *
-    * @tparam V
-    *   the type of the value managed as data (not used in Delete).
-    * @tparam R1
-    *   the type of discrete value used in the horizontal interval assigned to each value.
-    * @tparam R2
-    *   the type of discrete value used in the vertical interval assigned to each value.
-    */
-  enum DiffAction2D[V, R1, R2]:
-    case Create(validData: ValidData2D[V, R1, R2])
-    case Update(validData: ValidData2D[V, R1, R2])
-    case Delete(key: DiscreteDomain2D[R1, R2])
-
-import intervalidus.DataIn2DBase.{DiffAction2D, ValidData2D}
 import DiscreteInterval1D.interval
 
 trait DataIn2DBaseObject:
@@ -242,13 +201,13 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
 
   protected def getByHorizontalIndexData(
     horizontalIndex: DiscreteDomain1D[R1]
-  ): Iterable[DataIn1DBase.ValidData1D[V, R2]] = getAll.collect:
+  ): Iterable[ValidData1D[V, R2]] = getAll.collect:
     case ValidData2D(value, interval) if horizontalIndex ∈ interval.horizontal =>
       interval.vertical -> value
 
   protected def getByVerticalIndexData(
     verticalIndex: DiscreteDomain1D[R2]
-  ): Iterable[DataIn1DBase.ValidData1D[V, R1]] = getAll.collect:
+  ): Iterable[ValidData1D[V, R1]] = getAll.collect:
     case ValidData2D(value, interval) if verticalIndex ∈ interval.vertical =>
       interval.horizontal -> value
 
