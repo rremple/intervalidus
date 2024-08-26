@@ -42,7 +42,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with intervalidus.DataIn1DB
     assert(empty.domain.isEmpty)
 
     val allData = testData("Hello" -> interval(0, 9), "World" -> intervalFrom(10))
-    val f0 = mutable.DataIn1D(allData).toImmutable
+    val f0 = mutable.DataIn1D(allData).toMutable.toImmutable
 
     val f1 = f0.set(interval(5, 15) -> "to")
     val expectedData1 = testData("Hello" -> interval(0, 4), "to" -> interval(5, 15), "World" -> intervalFrom(16))
@@ -82,7 +82,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with intervalidus.DataIn1DB
     f3.getAll.toList shouldBe expectedData3
 
     val f3a = f3
-      .replace(intervalTo(4).key, intervalTo(3) -> "Hello")
+      .replaceByKey(intervalTo(4).key, intervalTo(3) -> "Hello")
       .replace(interval(16, 19) -> "World", interval(15, 20) -> "World!")
     val expectedData3a = testData(
       "Hello" -> intervalTo(3),

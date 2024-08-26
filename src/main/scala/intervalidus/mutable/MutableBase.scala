@@ -145,7 +145,7 @@ trait MutableBase[V, D <: DomainLike, I <: IntervalLike[D], ValidData <: DataLik
     * @param newData
     *   the new data replacing the old data
     */
-  def replace(key: D, newData: ValidData): Unit =
+  def replaceByKey(key: D, newData: ValidData): Unit =
     removeValidDataByKey(key)
     set(newData)
 

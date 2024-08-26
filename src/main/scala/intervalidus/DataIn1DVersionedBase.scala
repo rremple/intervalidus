@@ -122,6 +122,16 @@ trait DataIn1DVersionedBase[V, R: DiscreteValue](
   // --- API methods similar to those in DataIn1D/DataIn2D, often with version selection (can't use common super)
 
   /**
+    * Returns this as a mutable structure.
+    */
+  def toMutable: DataIn1DVersionedBase[V, R]
+
+  /**
+    * Returns this as a immutable structure.
+    */
+  def toImmutable: DataIn1DVersionedBase[V, R]
+
+  /**
     * Returns a new structure formed from this structure and another structure by combining the corresponding elements
     * (all intersections) in a pair. The other structure can have a different value type but must have the same interval
     * type.

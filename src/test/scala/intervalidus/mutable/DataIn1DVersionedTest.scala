@@ -4,6 +4,7 @@ import intervalidus.*
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
+import java.time.LocalDate
 import scala.language.implicitConversions
 
 class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersionedBaseBehaviors:
@@ -23,7 +24,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
   testsFor(stringLookupTests("Mutable", newDataIn1DVersioned, DataIn1DVersioned(_), DataIn1DVersioned.of(_)))
 
   test("Mutable: Adding and removing data in intervals"):
-    val empty: DataIn1DVersioned[String, Int] = immutable.DataIn1DVersioned().toMutable
+    val empty: DataIn1DVersioned[String, Int] = immutable.DataIn1DVersioned().toImmutable.toMutable
 
     assertThrows[Exception]: // version too large
       empty.setCurrentVersion(Int.MaxValue)
@@ -293,3 +294,71 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
         || Hello [0..+∞)  |
         |                 | World! [0..+∞) |
         |""".stripMargin.replaceAll("\r", "")
+
+  test("Immutable: Approvals"):
+    type ValidString = ValidData1D[String, LocalDate]
+
+    val dayZero = LocalDate.of(2024, 6, 30)
+
+    def day(offsetDays: Int) = dayZero.plusDays(offsetDays)
+
+    def validString(s: String, validTime: DiscreteInterval1D[LocalDate]): ValidString = validTime -> s
+
+    def testData(values: (String, DiscreteInterval1D[LocalDate])*): List[ValidString] =
+      values.map(validString).toList
+
+    def dataVersionedAsTimebound(dataIn1DVersioned: DataIn1DVersioned[String, LocalDate]) =
+      DataIn1DVersioned(
+        dataIn1DVersioned.getDataIn2D.getAll,
+        dataIn1DVersioned.initialVersion,
+        Some(dataIn1DVersioned.getCurrentVersion)
+      )
+
+    // increment current version with each data element
+
+    def timeboundVersionedString(allData: Iterable[ValidString]): DataIn1DVersioned[String, LocalDate] =
+      val data = DataIn1DVersioned[String, LocalDate]()
+      allData.foreach: validData =>
+        data.set(validData)(using VersionSelection.Current)
+        data.incrementCurrentVersion()
+      data
+
+    val fixture0: DataIn1DVersioned[String, LocalDate] = DataIn1DVersioned()
+    assert(fixture0.getAll.isEmpty)
+
+    val allData =
+      testData("Testing" -> unbounded, "Hello" -> interval(day(1), day(15)), "World" -> intervalFrom(day(10)))
+    val fixture = timeboundVersionedString(allData)
+    val zoinks = validString("Zoinks!", interval(day(-30), day(0)))
+    fixture.set(zoinks)(using VersionSelection.Unapproved)
+    // Visualize(fixture.underlying2D, 5000, "gets")
+
+    fixture.getAt(day(5)) shouldBe Some("Hello")
+    fixture.getAt(day(15)) shouldBe Some("World")
+    fixture.getAt(day(0)) shouldBe Some("Testing")
+
+    // Visualize(fixture.underlying2D, 15000, "before zoinks is approved")
+
+    fixture.incrementCurrentVersion()
+    // fixture.approveAll(unbounded) // approves zoinks
+    assert(fixture.approve(zoinks)) // approves zoinks
+    assert(!fixture.approve(zoinks)) // already approved
+
+    fixture.remove(interval(day(-5), day(5)))(using VersionSelection.Unapproved)
+    // Visualize(fixture.underlying2D, 15000, "after zoinks approved, before remove is approved")
+
+    fixture.getAt(day(0)) shouldBe Some(zoinks.value)
+    fixture.getIntersecting(interval(day(5), day(15))) shouldBe testData(
+      "Hello" -> interval(day(1), day(9)),
+      "World" -> intervalFrom(day(10))
+    )
+
+    fixture.incrementCurrentVersion()
+    fixture.approveAll(unbounded) // approves the unapproved remove
+    // Visualize(fixture.underlying2D, 15000, "after remove is approved")
+
+    fixture.getAt(day(0)) shouldBe None
+    fixture.getIntersecting(interval(day(5), day(15))) shouldBe testData(
+      "Hello" -> interval(day(6), day(9)),
+      "World" -> intervalFrom(day(10))
+    )

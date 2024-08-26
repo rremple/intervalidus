@@ -16,6 +16,9 @@ case class DiscreteDomain2D[T1, T2](
   horizontalIndex: DiscreteDomain1D[T1],
   verticalIndex: DiscreteDomain1D[T2]
 ) extends DimensionalBase.DomainLike:
+
+  override def toString: String = s"{${horizontalIndex.toString}, ${verticalIndex.toString}}"
+
   /**
     * Tests if this belongs to an interval.
     *
@@ -25,6 +28,11 @@ case class DiscreteDomain2D[T1, T2](
     *   true if this belongs to the specified interval, false otherwise.
     */
   infix def belongsTo(interval: DiscreteInterval2D[T1, T2]): Boolean = interval contains this
+
+  /**
+    * Flips this domain by swapping the vertical and horizontal components with one another.
+    */
+  def flip: DiscreteDomain2D[T2, T1] = DiscreteDomain2D(verticalIndex, horizontalIndex)
 
   // equivalent symbolic method names
 

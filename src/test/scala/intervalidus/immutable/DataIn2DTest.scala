@@ -26,7 +26,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with intervalidus.DataIn2DB
       testData(("Hello", intervalTo(day(14)), interval(0, 10)), ("World", intervalFrom(day(1)), intervalFrom(11)))
     // even though naive validity check fails (since intervalTo(day(14)) overlaps intervalFrom(day(1))), fixture is
     // still valid
-    val fixture = mutable.DataIn2D(allData).toImmutable
+    val fixture = mutable.DataIn2D(allData).toMutable.toImmutable
 
     fixture.getByHorizontalIndex(dayZero).getAt(0) shouldBe Some("Hello")
 
@@ -73,7 +73,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with intervalidus.DataIn2DB
     fixture3.getAll.toList shouldBe expectedData3
 
     val fixture3a = fixture3
-      .replace(
+      .replaceByKey(
         (unbounded[LocalDate] x intervalTo(4)).key,
         (unbounded[LocalDate] x intervalTo(3)) -> "Hello"
       )

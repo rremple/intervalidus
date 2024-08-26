@@ -41,6 +41,11 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
     assert(!(intervalFrom(2) isAdjacentTo intervalTo(3)))
     assert(!(intervalTo(3) isAdjacentTo intervalFrom(2)))
 
+    interval(1, 2).after shouldBe Some(intervalFrom(3))
+    interval(1, 2).before shouldBe Some(intervalTo(0))
+    intervalFrom(2).after shouldBe None
+    intervalTo(2).before shouldBe None
+
   test("Int 2D interval adjacency, etc."):
     val now = LocalDate.now
     val d: DiscreteInterval2D[LocalDate, Int] = intervalTo(now) x intervalFrom(0)
@@ -91,6 +96,11 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
     assert(!(interval2d(1, 2, 3, 4) isUpperAdjacentTo interval2d(1, 2, 1, 3)))
     assert(interval2dFrom(3, 3) isUpperAdjacentTo (intervalFrom(3) x intervalTo(2)))
     assert(!(interval2dTo(3, 3) isUpperAdjacentTo interval2dFrom(2, 2)))
+
+    interval2d(1, 2, 3, 4).after shouldBe Some(interval2dFrom(3, 5))
+    interval2d(1, 2, 3, 4).before shouldBe Some(interval2dTo(0, 2))
+    interval2dFrom(2, 2).after shouldBe None
+    interval2dTo(2, 2).before shouldBe None
 
   test("Int interval intersections"):
     assert(!(interval(3, 4) intersects interval(1, 2)))

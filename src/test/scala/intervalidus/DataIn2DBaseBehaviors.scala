@@ -53,7 +53,9 @@ trait DataIn2DBaseBehaviors:
     )
     fixture1.getOption shouldBe None
     assert(fixture1.isDefinedAt(DiscreteDomain2D(dayZero, 0)))
+    DiscreteDomain2D(dayZero, 0).flip shouldBe DiscreteDomain2D(0, dayZero)
     fixture1(DiscreteDomain2D(dayZero, 0)) shouldBe "Hello world"
+    fixture1.flip(DiscreteDomain2D(0, dayZero)) shouldBe "Hello world"
     assert(!fixture1.isDefinedAt(DiscreteDomain2D(day(-1), 0)))
     assertThrows[Exception]:
       val missingData = fixture1(DiscreteDomain2D(day(-1), 0))

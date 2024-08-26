@@ -77,9 +77,9 @@ object DataIn1DVersioned:
 
 /**
   * Interface is similar to [[DataIn1D]], but it operates on an underlying [[DataIn2D]] using an integer-valued
-  * interval2 to version data. One use case (as defined in [[DataTimeboundVersioned]]) would be that R = LocalDate, so
-  * data values may vary in terms of both version and date. Most methods require some generic version selection criteria
-  * rather than specific integer intervals.
+  * interval2 to version data. One use case would be that R = LocalDate, so data values may vary in terms of both
+  * version and date. Most methods require some generic version selection criteria rather than specific integer
+  * intervals.
   *
   * The "current" version is managed as state (a var). Versioning also separates notions of approved vs. unapproved data
   * (unapproved data are pushed up to start at version maxValue).
@@ -109,14 +109,13 @@ class DataIn1DVersioned[V, R: DiscreteValue](
 
   import DataIn1DVersionedBase.VersionSelection
 
-  /**
-    * Returns this as a immutable structure.
-    */
-  def toImmutable: DataIn1DVersionedImmutable[V, R] = DataIn1DVersionedImmutable(
+  override def toImmutable: DataIn1DVersionedImmutable[V, R] = DataIn1DVersionedImmutable(
     underlying2D.getAll,
     initialVersion,
     Some(currentVersion)
   )
+
+  override def toMutable: DataIn1DVersioned[V, R] = this
 
   /**
     * Applies a sequence of 2D diff actions to this structure. Does not use a version selection context -- operates on

@@ -85,7 +85,7 @@ trait ImmutableBase[V, D <: DomainLike, I <: IntervalLike[D], ValidData <: DataL
     * @return
     *   a new, updated structure.
     */
-  def replace(key: D, newData: ValidData): DimensionalBase[V, D, I, ValidData]
+  def replaceByKey(key: D, newData: ValidData): DimensionalBase[V, D, I, ValidData]
 
   /**
     * Remove valid values on the interval. If there are values valid on portions of the interval, those values have

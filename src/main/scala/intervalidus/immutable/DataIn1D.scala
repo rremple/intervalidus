@@ -26,10 +26,9 @@ class DataIn1D[V, R: DiscreteValue](
 ) extends DataIn1DBase[V, R](initialData)
   with ImmutableBase[V, DiscreteDomain1D[R], DiscreteInterval1D[R], ValidData1D[V, R]]:
 
-  /**
-    * Returns this as a mutable structure.
-    */
-  def toMutable: DataIn1DMutable[V, R] = DataIn1DMutable(getAll)
+  override def toMutable: DataIn1DMutable[V, R] = DataIn1DMutable(getAll)
+
+  override def toImmutable: DataIn1D[V, R] = this
 
   private def copyAndModify(f: DataIn1D[V, R] => Unit): DataIn1D[V, R] =
     val result = copy
@@ -143,7 +142,7 @@ class DataIn1D[V, R: DiscreteValue](
   override def update(data: ValidData1D[V, R]): DataIn1D[V, R] =
     copyAndModify(_.updateOrRemove(data.interval, Some(data.value)))
 
-  override def replace(
+  override def replaceByKey(
     key: DiscreteDomain1D[R],
     newData: ValidData1D[V, R]
   ): DataIn1D[V, R] = copyAndModify: result =>
@@ -155,7 +154,7 @@ class DataIn1D[V, R: DiscreteValue](
   override def replace(
     oldData: ValidData1D[V, R],
     newData: ValidData1D[V, R]
-  ): DataIn1D[V, R] = replace(oldData.key, newData)
+  ): DataIn1D[V, R] = replaceByKey(oldData.key, newData)
 
   override def remove(interval: DiscreteInterval1D[R]): DataIn1D[V, R] = copyAndModify(_.updateOrRemove(interval, None))
 

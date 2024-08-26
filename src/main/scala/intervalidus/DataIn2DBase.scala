@@ -133,6 +133,11 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
     */
   def zipAll[B](that: DataIn2DBase[B, R1, R2], thisElem: V, thatElem: B): DataIn2DBase[(V, B), R1, R2]
 
+  /**
+    * Flips this by swapping the vertical and horizontal interval components with one another in all data.
+    */
+  def flip: DataIn2DBase[V, R2, R1]
+
   // ---------- Implement methods not defined in DimensionalBase ----------
 
   // from Object - use Visualize (in the test package) if you want something fancier

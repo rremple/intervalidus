@@ -29,10 +29,9 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue](
 ) extends DataIn2DBase[V, R1, R2](initialData)
   with MutableBase[V, DiscreteDomain2D[R1, R2], DiscreteInterval2D[R1, R2], ValidData2D[V, R1, R2]]:
 
-  /**
-    * Returns this as a immutable structure.
-    */
-  def toImmutable: DataIn2DImmutable[V, R1, R2] = DataIn2DImmutable(getAll)
+  override def toImmutable: DataIn2DImmutable[V, R1, R2] = DataIn2DImmutable(getAll)
+
+  override def toMutable: DataIn2D[V, R1, R2] = this
 
   /**
     * Applies a sequence of diff actions to this structure.
@@ -99,6 +98,8 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue](
     thisElem: V,
     thatElem: B
   ): DataIn2D[(V, B), R1, R2] = DataIn2D(zipAllData(that, thisElem, thatElem))
+
+  override def flip: DataIn2D[V, R2, R1] = DataIn2D(getAll.map(d => d.copy(interval = d.interval.flip)))
 
   // ---------- Implement methods from MutableBase ----------
 

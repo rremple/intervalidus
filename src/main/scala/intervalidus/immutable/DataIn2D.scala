@@ -28,10 +28,9 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue](
 ) extends DataIn2DBase[V, R1, R2](initialData)
   with ImmutableBase[V, DiscreteDomain2D[R1, R2], DiscreteInterval2D[R1, R2], ValidData2D[V, R1, R2]]:
 
-  /**
-    * Returns this as a mutable structure.
-    */
-  def toMutable: DataIn2DMutable[V, R1, R2] = DataIn2DMutable(getAll)
+  override def toMutable: DataIn2DMutable[V, R1, R2] = DataIn2DMutable(getAll)
+
+  override def toImmutable: DataIn2D[V, R1, R2] = this
 
   private def copyAndModify(f: DataIn2D[V, R1, R2] => Unit): DataIn2D[V, R1, R2] =
     val result = copy
@@ -164,6 +163,8 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue](
     thatElem: B
   ): DataIn2D[(V, B), R1, R2] = DataIn2D(zipAllData(that, thisElem, thatElem))
 
+  override def flip: DataIn2D[V, R2, R1] = DataIn2D(getAll.map(d => d.copy(interval = d.interval.flip)))
+
   // ---------- Implement methods from ImmutableBase ----------
 
   override def filter(p: ValidData2D[V, R1, R2] => Boolean): DataIn2D[V, R1, R2] = DataIn2D(getAll.filter(p))
@@ -184,7 +185,7 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue](
   override def update(data: ValidData2D[V, R1, R2]): DataIn2D[V, R1, R2] =
     copyAndModify(_.updateOrRemove(data.interval, Some(data.value)))
 
-  override def replace(
+  override def replaceByKey(
     key: DiscreteDomain2D[R1, R2],
     newData: ValidData2D[V, R1, R2]
   ): DataIn2D[V, R1, R2] = copyAndModify: result =>
@@ -196,7 +197,7 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue](
   override def replace(
     oldData: ValidData2D[V, R1, R2],
     newData: ValidData2D[V, R1, R2]
-  ): DataIn2D[V, R1, R2] = replace(oldData.key, newData)
+  ): DataIn2D[V, R1, R2] = replaceByKey(oldData.key, newData)
 
   override def remove(interval: DiscreteInterval2D[R1, R2]): DataIn2D[V, R1, R2] =
     copyAndModify(_.updateOrRemove(interval, None))

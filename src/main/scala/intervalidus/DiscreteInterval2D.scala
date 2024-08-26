@@ -34,9 +34,7 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
 
   override def key: DiscreteDomain2D[T1, T2] = horizontal.start x vertical.start
 
-  override infix def contains(
-    domainElement: DiscreteDomain2D[T1, T2]
-  ): Boolean =
+  override infix def contains(domainElement: DiscreteDomain2D[T1, T2]): Boolean =
     (this.horizontal contains domainElement.horizontalIndex) && (this.vertical contains domainElement.verticalIndex)
 
   override infix def isUnbounded: Boolean = this.horizontal.isUnbounded && this.vertical.isUnbounded
@@ -209,6 +207,22 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
     *   true if this is a subset of that.
     */
   infix def isSubsetOf(that: DiscreteInterval2D[T1, T2]): Boolean = that contains this
+
+  /**
+    * If there are intervals after both the horizontal and vertical components, returns the interval after this one in
+    * both dimensions. Otherwise returns none. Does not include adjacent intervals above and to the right.
+    */
+  def after: Option[DiscreteInterval2D[T1, T2]] = (horizontal.after, vertical.after) match
+    case (Some(horizontalAfter), Some(verticalAfter)) => Some(DiscreteInterval2D(horizontalAfter, verticalAfter))
+    case _                                            => None
+
+  /**
+    * If there are intervals before both the horizontal and vertical components, returns the interval before this one in
+    * both dimensions. Otherwise returns none. Does not include adjacent intervals below and to the left.
+    */
+  def before: Option[DiscreteInterval2D[T1, T2]] = (horizontal.before, vertical.before) match
+    case (Some(horizontalBefore), Some(verticalBefore)) => Some(DiscreteInterval2D(horizontalBefore, verticalBefore))
+    case _                                              => None
 
   /**
     * Flips this interval by swapping the vertical and horizontal components with one another.

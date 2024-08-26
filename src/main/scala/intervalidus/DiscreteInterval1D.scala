@@ -1,6 +1,7 @@
 package intervalidus
 
 import intervalidus.DiscreteDomain1D.{Bottom, Point, Top}
+import intervalidus.DiscreteInterval1D.{intervalFrom, intervalTo}
 
 import scala.math.Ordering.Implicits.infixOrderingOps
 
@@ -275,6 +276,22 @@ case class DiscreteInterval1D[T: DiscreteValue](
     */
   infix def x[T2: DiscreteValue](that: DiscreteInterval1D[T2]): DiscreteInterval2D[T, T2] =
     DiscreteInterval2D(this, that)
+
+  /**
+    * If this interval has a bounded end, returns the interval starting after this one with an unbounded end. Otherwise
+    * returns none. Can be thought of as a right complement.
+    */
+  def after: Option[DiscreteInterval1D[T]] = end.successor match
+    case Top          => None
+    case endSuccessor => Some(intervalFrom(endSuccessor))
+
+  /**
+    * If this interval has a bounded start, returns the interval ending before this one with an unbounded start.
+    * Otherwise returns none. Can be thought of as a right complement.
+    */
+  def before: Option[DiscreteInterval1D[T]] = start.predecessor match
+    case Bottom           => None
+    case startPredecessor => Some(intervalTo(startPredecessor))
 
   // equivalent symbolic method names
 

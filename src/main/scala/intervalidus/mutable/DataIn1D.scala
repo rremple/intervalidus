@@ -26,10 +26,9 @@ class DataIn1D[V, R: DiscreteValue](
 ) extends DataIn1DBase[V, R](initialData)
   with MutableBase[V, DiscreteDomain1D[R], DiscreteInterval1D[R], ValidData1D[V, R]]:
 
-  /**
-    * Returns this as a immutable structure.
-    */
-  def toImmutable: DataIn1DImmutable[V, R] = DataIn1DImmutable(getAll)
+  override def toImmutable: DataIn1DImmutable[V, R] = DataIn1DImmutable(getAll)
+
+  override def toMutable: DataIn1D[V, R] = this
 
   /**
     * Applies a sequence of diff actions to this structure.
