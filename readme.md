@@ -61,15 +61,16 @@ Which outputs a handy little Ascii Gantt of the valid values in the structure:
 ```
 
 Since `DataIn1D` is a partial function, you can query individual valid values using that interface (many other query
-methods exist as well). For example, using `apply`:
+methods exist as well). For example, using function application:
 
-```scala
-plan1d(date(2024, 4, 15))
+```scala 
+plan1d(date(2024, 3, 15))
 ```
 
-will return `Basic` because the user had the Basic tier on 4/15.
+will return `Basic` because the user had the Basic tier on 3/15.
 
-You could have just as easily used the immutable variant of `DataIn1D`, and the output would be the same as above:
+We could have just as easily used the immutable variant of `DataIn1D`, and the output would have been the same as
+the above output:
 
 ```scala
 import intervalidus.immutable.DataIn1D
@@ -95,38 +96,47 @@ val plan2d = DataIn2D
 println(plan2d)
 ```
 
-Which outputs the following, which is slightly less straightforward:
+Which results in the following (slightly less straightforward) output:
 
 ```
-| 2024-01-01 .. 2024-03-31         | 2024-04-01 .. 2024-06-30         | 2024-07-01 .. +∞                 |
-| Basic [2023-12-25..2024-03-14]                                                                         |
-                                   | Premium [2024-03-15..2024-06-27]                                    |
+| 2024-01-01 .. 2024-03-31         | 2024-04-01 .. 2024-06-30         | 2024-07-01 .. +∞            |
+| Basic [2023-12-25..2024-03-14]                                                                    |
+                                   | Premium [2024-03-15..2024-06-27]                               |
 | Basic [2024-03-15..+∞)           |
                                    | Premium [2024-06-28..+∞)         |
 ```
 
 Here, the second time dimension is shown next to each valid value. Reading this line by line, the interpretation is:
 
-- From 12/25/2023 until 3/14, the user was known to have the Basic tier effective from 1/1 (without any planned
-  termination).
+- From 12/25/2023 until 3/14, the user was known to have the Basic tier effective from 1/1, without any planned
+  termination.
 - From 3/15 until 6/27, the user was known to have the Premium tier effective from 4/1.
-- From 3/15 and thereafter, the user was known to have the Basic tier effective only from 1/1 until 3/31.
+- Also from 3/15 and thereafter, the user was known to have the Basic tier effective only from 1/1 until 3/31.
 - From 6/28 and thereafter, the user was known to have the Premium tier effective only from 4/1 until 6/30.
 
+Since decoding the `toString` output of `DataIn2D` can get complicated as more intervals are present, there is a utility
+(in the test package) called `Visualize` that can assist with debugging and testing tasks. It uses 2D graphics to render
+the horizontal and vertical dimensions more clearly. For example, `Visualize(plan2d)` displays the following, which is a
+bit easier to decipher:
+![core class diagram](/doc/intervalidus-visualize.png)
+
+One might query this structure to find what was known about expected August effective tiers at various sampled dates in
+the past or future. For example:
+
 ```scala
-val futureEffective: DiscreteDomain1D[LocalDate] = date(2024, 8, 1)
-List(date(2024, 12, 15), date(2024, 1, 15), date(2024, 5, 15), date(2024, 7, 15)).foreach: known =>
+val futureEffective: DiscreteDomain1D[LocalDate] = date(2024, 9, 1)
+List(date(2024, 12, 15), date(2024, 1, 15), date(2024, 5, 15), date(2024, 7, 15)).foreach: knownDate =>
   println
-(s"On $known, expected tier on $futureEffective: ${plan2d.getAt(futureEffective x known)}")
+(s"On $known, expected tier on $futureEffective: ${plan2d.getAt(futureEffective x knownDate)}")
 ```
 
-Which outputs the following, showing how what is known changes over time:
+The result shows how what is known about this expected future effectivity changed over time:
 
 ```
-On 2024-12-15, expected tier on 2024-08-01: None
-On 2024-01-15, expected tier on 2024-08-01: Some(Basic)
-On 2024-05-15, expected tier on 2024-08-01: Some(Premium)
-On 2024-07-15, expected tier on 2024-08-01: None
+On 2024-12-15, expected tier on 2024-09-01: None
+On 2024-01-15, expected tier on 2024-09-01: Some(Basic)
+On 2024-05-15, expected tier on 2024-09-01: Some(Premium)
+On 2024-07-15, expected tier on 2024-09-01: None
 ```
 
 The same methods are available in both mutable/immutable and one-dimensional/two-dimensional forms (though parameter and
@@ -136,8 +146,8 @@ these methods.
 These query methods provide various data, difference, and Boolean results:
 
 - `get` / `getAll` / `getAt` / `getIntersecting`
-- `foldLeft`
 - `domain`
+- `foldLeft`
 - `isEmpty`
 - `intersects`
 - `diffActionsFrom`
@@ -146,9 +156,9 @@ These methods always return a new structure:
 
 - `copy` / `toImmutable` / `toMutable`
 - `zip` / `zipAll`
-- `flip` (only on 2D)
+- `flip` (only available on 2D)
 
-These mutation methods return a new structure when using immutable and Unit when using mutable:
+These mutation methods return a new structure when using immutable and `Unit` when using mutable:
 
 - `remove`
 - `replace` / `replaceByKey`
@@ -185,6 +195,6 @@ of approval is supported by specifying a specific future version for anything un
 Below is the class diagram for the core bits of Intervalidus:
 ![core class diagram](/doc/intervalidus-core.png)
 
-As described above `DataIn1DVersioned` leverages the core classes to provide specific functionality. Below is the class
-diagram for it:
+As described above, `DataIn1DVersioned` leverages the core classes to provide specific functionality you might want when
+versioning data (such as approval). Below is the class diagram for it:
 ![core class diagram](/doc/intervalidus-versioned.png)

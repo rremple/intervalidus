@@ -13,7 +13,16 @@ object DataIn2D extends DataIn2DBaseObject:
   ): DataIn2D[V, R1, R2] = of(DiscreteInterval2D.unbounded[R1, R2] -> value)
 
 /**
-  * @inheritdoc
+  * Like [[DataIn1D]], data here have different values in different discrete intervals. But here data values vary in two
+  * dimensions. For example, one may want to represent when the data are valid in time and over certain versions
+  * simultaneously.
+  *
+  * We can capture the dependency between various values and related two-dimensional intervals cohesively in this
+  * structure rather than in separate data structures using distributed (and potentially inconsistent) logic. This is
+  * especially important for managing mutation, which can be a bit complex in two dimensions. Note that visualizing two
+  * dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there is a
+  * simple Visualize tool provided (in the test package... though maybe this should be its own separate subproject).
+  *
   * @tparam V
   *   the type of the value managed as data.
   * @tparam R1

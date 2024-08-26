@@ -13,7 +13,11 @@ object DataIn1D extends DataIn1DBaseObject:
   ): DataIn1D[V, R] = of(DiscreteInterval1D.unbounded[R] -> value)
 
 /**
-  * @inheritdoc
+  * Data that may have different values in different intervals. These intervals may represent when the data are valid in
+  * time or over certain versions ranges or whatever. But we can capture the dependency between various values and
+  * related intervals cohesively in this structure rather than in separate data structures using distributed (and
+  * potentially inconsistent) logic.
+  *
   * @tparam V
   *   the type of the value managed as data.
   * @tparam R
