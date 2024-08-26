@@ -4,8 +4,6 @@ const attrsToCopy = [
   "data-githubContributorsUrl",
   "data-githubContributorsFilename",
   "data-pathToRoot",
-  "data-rawLocation",
-  "data-dynamicSideMenu",
 ]
 
 /**
@@ -27,7 +25,7 @@ function savePageState(doc) {
   }
   return {
     mainDiv: doc.querySelector("#main")?.innerHTML,
-    leftColumn: dynamicSideMenu ? null : doc.querySelector("#leftColumn").innerHTML,
+    leftColumn: doc.querySelector("#leftColumn").innerHTML,
     title: doc.title,
     attrs,
   };
@@ -40,14 +38,11 @@ function savePageState(doc) {
 function loadPageState(doc, saved) {
   doc.title = saved.title;
   doc.querySelector("#main").innerHTML = saved.mainDiv;
-  if (!dynamicSideMenu)
-    doc.querySelector("#leftColumn").innerHTML = saved.leftColumn;
+  doc.querySelector("#leftColumn").innerHTML = saved.leftColumn;
   for (const attr of attrsToCopy) {
     doc.documentElement.setAttribute(attr, saved.attrs[attr]);
   }
 }
-
-const attachedElements = new WeakSet()
 
 function attachAllListeners() {
   if (observer) {
@@ -102,19 +97,19 @@ function attachAllListeners() {
     }
   }
 
-  document
-    .querySelectorAll(".documentableElement .signature")
-    .forEach((signature) => {
-      const short = signature.querySelector(".signature-short");
-      const long = signature.querySelector(".signature-long");
-      const extender = document.createElement("span");
-      const extenderDots = document.createTextNode("...");
-      extender.appendChild(extenderDots);
-      extender.classList.add("extender");
-      if (short && long && signature.children[1].hasChildNodes()) {
-        signature.children[0].append(extender);
-      }
-    });
+document
+  .querySelectorAll(".documentableElement .signature")
+  .forEach((signature) => {
+    const short = signature.querySelector(".signature-short");
+    const long = signature.querySelector(".signature-long");
+    const extender = document.createElement("span");
+    const extenderDots = document.createTextNode("...");
+    extender.appendChild(extenderDots);
+    extender.classList.add("extender");
+    if (short && long && signature.children[1].hasChildNodes()) {
+      signature.children[0].append(extender);
+    }
+  });
 
   const documentableLists = document.getElementsByClassName("documentableList");
   [...documentableLists].forEach((list) => {
@@ -156,8 +151,6 @@ function attachAllListeners() {
       return;
     }
     const url = new URL(href);
-    if (attachedElements.has(el)) return;
-    attachedElements.add(el);
     el.addEventListener("click", (e) => {
       if (
         url.href.replace(/#.*/, "") === window.location.href.replace(/#.*/, "")
@@ -173,7 +166,6 @@ function attachAllListeners() {
       e.preventDefault();
       e.stopPropagation();
       $.get(href, function (data) {
-        const oldLoc = getRawLoc();
         if (window.history.state === null) {
           window.history.replaceState(savePageState(document), "");
         }
@@ -182,11 +174,6 @@ function attachAllListeners() {
         const state = savePageState(parsedDocument);
         window.history.pushState(state, "", href);
         loadPageState(document, state);
-        const newLoc = getRawLoc();
-        if (dynamicSideMenu) {
-          updateMenu(oldLoc, newLoc);
-        }
-
         window.dispatchEvent(new Event(DYNAMIC_PAGE_LOAD));
         document
           .querySelector("#main")
@@ -195,15 +182,11 @@ function attachAllListeners() {
     });
   });
 
-  document.querySelectorAll('.ar').forEach((el) => {
-    if (attachedElements.has(el)) return;
-    attachedElements.add(el);
-    el.addEventListener('click', (e) => {
-      e.stopPropagation();
-      el.parentElement.parentElement.classList.toggle("expanded");
-      el.classList.toggle("expanded");
-    })
-  })
+  $(".ar").on("click", function (e) {
+    $(this).parent().parent().toggleClass("expanded");
+    $(this).toggleClass("expanded");
+    e.stopPropagation();
+  });
 
   document.querySelectorAll(".documentableList .ar").forEach((arrow) => {
     arrow.addEventListener("click", () => {
@@ -212,9 +195,7 @@ function attachAllListeners() {
     });
   });
 
-  document.querySelectorAll(".nh").forEach((el) => {
-    if (attachedElements.has(el)) return;
-    attachedElements.add(el);
+  document.querySelectorAll(".nh").forEach((el) =>
     el.addEventListener("click", () => {
       if (
         el.lastChild.href.replace("#", "") ===
@@ -225,8 +206,8 @@ function attachAllListeners() {
       } else {
         el.lastChild.click();
       }
-    });
-  });
+    }),
+  );
 
   const toggleShowAllElem = (element) => {
     if (element.textContent == "Show all") {
@@ -364,7 +345,7 @@ window.addEventListener(DYNAMIC_PAGE_LOAD, () => {
   attachAllListeners();
 });
 
-window.addEventListener(DYNAMIC_PAGE_LOAD, () => {
+window.addEventListener("dynamicPageLoad", () => {
   const sideMenuOpen = sessionStorage.getItem("sideMenuOpen");
   if (sideMenuOpen) {
     if (document.querySelector("#leftColumn").classList.contains("show")) {
@@ -384,136 +365,10 @@ window.addEventListener(DYNAMIC_PAGE_LOAD, () => {
   }
 });
 
-let dynamicSideMenu = false;
-/** @param {Element} elem @param {boolean} hide */
-function updatePath(elem, hide, first = true) {
-  if (elem.classList.contains("side-menu")) return;
-  const span = elem.firstElementChild
-  const btn = span.firstElementChild
-  if (hide) {
-    elem.classList.remove("expanded");
-    span.classList.remove("h100", "selected", "expanded", "cs");
-    if (btn) btn.classList.remove("expanded");
-  } else {
-    elem.classList.add("expanded");
-    span.classList.add("h100", "expanded", "cs");
-    if (btn) btn.classList.add("expanded");
-    if (first) span.classList.add("selected");
-  }
-  updatePath(elem.parentElement, hide, false);
-}
-let updateMenu = null;
-function getRawLoc() {
-  return document.documentElement.getAttribute("data-rawLocation")?.split("/")?.filter(c => c !== "");
-}
-
-/**
- * @template {keyof HTMLElementTagNameMap} T
- * @param {T} el type of element to create
- * @param {{ cls?: string | null, id?: string | null, href?: string | null }} attrs element attributes
- * @param {Array<HTMLElement | string | null>} chldr element children
- * @returns {HTMLElementTagNameMap[T]}
- */
-function render(el, { cls = null, id = null, href = null, loc = null } = {}, chldr = []) {
-  const r = document.createElement(el);
-  if (cls) cls.split(" ").filter(x => x !== "").forEach(c => r.classList.add(c));
-  if (id) r.id = id;
-  if (href) r.href = href;
-  if (loc) r.setAttribute("data-loc", loc);
-  chldr.filter(c => c !== null).forEach(c =>
-    r.appendChild(typeof c === "string" ? document.createTextNode(c) : c)
-  );
-  return r;
-}
-function renderDynamicSideMenu() {
-  const pathToRoot = document.documentElement.getAttribute("data-pathToRoot")
-  const path = pathToRoot + "dynamicSideMenu.json";
-  const rawLocation = getRawLoc();
-  const baseUrl = window.location.pathname.split("/").slice(0,
-    -1 - pathToRoot.split("/").filter(c => c != "").length
-  );
-  function linkTo(loc) {
-    return `${baseUrl}/${loc.join("/")}.html`;
-  }
-  fetch(path).then(r => r.json()).then(menu => {
-    function renderNested(item, nestLevel, prefix, isApi) {
-      const name = item.name;
-      const newName =
-        isApi && item.kind === "package" && name.startsWith(prefix + ".")
-        ? name.substring(prefix.length + 1)
-        : name;
-      const newPrefix =
-        prefix == ""
-        ? newName
-        : prefix + "." + newName;
-      const chldr =
-        item.children.map(x => renderNested(x, nestLevel + 1, newPrefix, isApi));
-      const link = render("span", { cls: `nh ${isApi ? "" : "de"}` }, [
-        chldr.length ? render("button", { cls: "ar icon-button" }) : null,
-        render("a", { href: linkTo(item.location) }, [
-          item.kind && render("span", { cls: `micon ${item.kind.slice(0, 2)}` }),
-          render("span", {}, [newName]),
-        ]),
-      ]);
-      const loc = item.location.join("/");
-      const ret = render("div", { cls: `ni n${nestLevel}`, loc: item.location.join("/") }, [link, ...chldr]);
-      return ret;
-    }
-    const d = render("div", { cls: "switcher-container" }, [
-      menu.docs && render("a", {
-        id: "docs-nav-button",
-        cls: "switcher h100",
-        href: linkTo(menu.docs.location)
-      }, ["Docs"]),
-      menu.api && render("a", {
-        id: "api-nav-button",
-        cls: "switcher h100",
-        href: linkTo(menu.api.location)
-      }, ["API"]),
-    ]);
-    const d1 = menu.docs && render("nav", { cls: "side-menu", id: "docs-nav" },
-      menu.docs.children.map(item => renderNested(item, 0, "", false))
-    );
-    const d2 = menu.api && render("nav", { cls: "side-menu", id: "api-nav" },
-      menu.api.children.map(item => renderNested(item, 0, "", true))
-    );
-
-    document.getElementById("leftColumn").appendChild(d);
-    d1 && document.getElementById("leftColumn").appendChild(d1);
-    d2 && document.getElementById("leftColumn").appendChild(d2);
-    updateMenu = (oldLoc, newLoc) => {
-      if (oldLoc) {
-        const elem = document.querySelector(`[data-loc="${oldLoc.join("/")}"]`);
-        if (elem) updatePath(elem, true);
-      }
-      if (d1 && d2) {
-        if (newLoc[0] && newLoc[0] == menu.api.location[0]) {
-          d1.hidden = true;
-          d2.hidden = false;
-        } else {
-          d1.hidden = false;
-          d2.hidden = true;
-        }
-      }
-      const elem = document.querySelector(`[data-loc="${newLoc.join("/")}"]`);
-      if (elem) updatePath(elem, false)
-    }
-    updateMenu(null, rawLocation);
-
-    window.dispatchEvent(new Event(DYNAMIC_PAGE_LOAD));
-  })
-}
-
 window.addEventListener("DOMContentLoaded", () => {
   hljs.registerLanguage("scala", highlightDotty);
   hljs.registerAliases(["dotty", "scala3"], "scala");
-
-  dynamicSideMenu = document.documentElement.getAttribute("data-dynamicSideMenu") === "true";
-  if (dynamicSideMenu) {
-    renderDynamicSideMenu();
-  } else {
-    window.dispatchEvent(new Event(DYNAMIC_PAGE_LOAD));
-  }
+  window.dispatchEvent(new Event(DYNAMIC_PAGE_LOAD));
 });
 
 const elements = document.querySelectorAll(".documentableElement");
