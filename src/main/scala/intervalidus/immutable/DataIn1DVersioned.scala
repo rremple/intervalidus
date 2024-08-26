@@ -104,7 +104,7 @@ object DataIn1DVersioned:
 class DataIn1DVersioned[V, R: DiscreteValue](
   initialData: Iterable[ValidData2D[V, R, Int]] = Iterable.empty[ValidData2D[V, R, Int]],
   initialVersion: Int = 0, // could use summon[DiscreteValue[Int]].minValue to extend range
-  withCurrentVersion: Option[intervalidus.DiscreteDomain1D[Int]] = None
+  withCurrentVersion: Option[DiscreteDomain1D[Int]] = None
 ) extends DataIn1DVersionedBase[V, R](initialData, initialVersion, withCurrentVersion):
 
   import DataIn1DVersionedBase.VersionSelection
@@ -327,9 +327,9 @@ class DataIn1DVersioned[V, R: DiscreteValue](
     * @param version
     *   the new current version
     */
-  def setCurrentVersion(version: intervalidus.DiscreteDomain1D[Int]): DataIn1DVersioned[V, R] =
+  def setCurrentVersion(version: DiscreteDomain1D[Int]): DataIn1DVersioned[V, R] =
     if version >= unapprovedStartVersion then throw Exception("version too large")
-    else if version equiv intervalidus.DiscreteDomain1D.Bottom then throw Exception("version too small")
+    else if version equiv DiscreteDomain1D.Bottom then throw Exception("version too small")
     else copyAndModify(_.currentVersion = version)
 
   /**
@@ -347,7 +347,7 @@ class DataIn1DVersioned[V, R: DiscreteValue](
     * @return
     *   a new structure reset to the specified version, with the current version set to the same.
     */
-  def resetToVersion(version: intervalidus.DiscreteDomain1D[Int]): DataIn1DVersioned[V, R] =
+  def resetToVersion(version: DiscreteDomain1D[Int]): DataIn1DVersioned[V, R] =
     val keep = VersionSelection(version)
     DataIn1DVersioned(
       underlying2D.getAll

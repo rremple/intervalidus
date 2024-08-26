@@ -4,6 +4,7 @@ import intervalidus.DiscreteInterval1D.*
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
+import java.time.LocalDate
 import scala.language.implicitConversions
 
 /*
@@ -12,7 +13,14 @@ import scala.language.implicitConversions
 trait DataIn1DVersionedBaseBehaviors:
   this: AnyFunSuite & Matchers =>
 
-  protected def testData[T](values: (T, DiscreteInterval1D[Int])*): List[ValidData1D[T, Int]] =
+  val dayZero: LocalDate = LocalDate.of(2024, 6, 30)
+
+  def day(offsetDays: Int): LocalDate = dayZero.plusDays(offsetDays)
+
+  def validString(s: String, validTime: DiscreteInterval1D[LocalDate]): ValidData1D[String, LocalDate] =
+    validTime -> s
+
+  protected def testData[T, R: DiscreteValue](values: (T, DiscreteInterval1D[R])*): List[ValidData1D[T, R]] =
     values.map(ValidData1D(_, _)).toList
 
   protected def testDataIn2D[T](

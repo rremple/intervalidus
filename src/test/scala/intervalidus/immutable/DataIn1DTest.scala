@@ -1,15 +1,15 @@
 package intervalidus.immutable
 
 import intervalidus.*
-import intervalidus.DiscreteDomain1D.Point
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
 import scala.language.implicitConversions
 
-class DataIn1DTest extends AnyFunSuite with Matchers with intervalidus.DataIn1DBaseBehaviors:
+class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors:
 
   import DiscreteInterval1D.*
+  import DiscreteDomain1D.Point
 
   // shared
   testsFor(stringLookupTests("Immutable", DataIn1D(_), DataIn1D.of(_)))

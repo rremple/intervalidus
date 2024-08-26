@@ -73,7 +73,7 @@ object DimensionalBase:
 
     override def isDefinedAt(d: D): Boolean = interval contains d
 
-import intervalidus.DimensionalBase.{DataLike, DomainLike, IntervalLike}
+import DimensionalBase.{DataLike, DomainLike, IntervalLike}
 
 /**
   * Base for all dimensional data, both mutable and immutable, both 1D and 2D.

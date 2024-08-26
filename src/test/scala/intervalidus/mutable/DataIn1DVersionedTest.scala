@@ -164,7 +164,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
       fixture.get
 
     fixture.flatMap(d => DataIn1DVersioned.of[String, Int](d.value))
-    val expectedData6 = testData("Hey!!!" -> unbounded)
+    val expectedData6 = testData("Hey!!!" -> unbounded[Int])
     fixture.getAll.toList shouldBe expectedData6
     fixture.get shouldBe "Hey!!!"
 
@@ -296,27 +296,10 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
         |""".stripMargin.replaceAll("\r", "")
 
   test("Immutable: Approvals"):
-    type ValidString = ValidData1D[String, LocalDate]
-
-    val dayZero = LocalDate.of(2024, 6, 30)
-
-    def day(offsetDays: Int) = dayZero.plusDays(offsetDays)
-
-    def validString(s: String, validTime: DiscreteInterval1D[LocalDate]): ValidString = validTime -> s
-
-    def testData(values: (String, DiscreteInterval1D[LocalDate])*): List[ValidString] =
-      values.map(validString).toList
-
-    def dataVersionedAsTimebound(dataIn1DVersioned: DataIn1DVersioned[String, LocalDate]) =
-      DataIn1DVersioned(
-        dataIn1DVersioned.getDataIn2D.getAll,
-        dataIn1DVersioned.initialVersion,
-        Some(dataIn1DVersioned.getCurrentVersion)
-      )
-
     // increment current version with each data element
-
-    def timeboundVersionedString(allData: Iterable[ValidString]): DataIn1DVersioned[String, LocalDate] =
+    def timeboundVersionedString(
+      allData: Iterable[ValidData1D[String, LocalDate]]
+    ): DataIn1DVersioned[String, LocalDate] =
       val data = DataIn1DVersioned[String, LocalDate]()
       allData.foreach: validData =>
         data.set(validData)(using VersionSelection.Current)
@@ -326,8 +309,11 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     val fixture0: DataIn1DVersioned[String, LocalDate] = DataIn1DVersioned()
     assert(fixture0.getAll.isEmpty)
 
-    val allData =
-      testData("Testing" -> unbounded, "Hello" -> interval(day(1), day(15)), "World" -> intervalFrom(day(10)))
+    val allData = testData(
+      "Testing" -> unbounded[LocalDate],
+      "Hello" -> interval(day(1), day(15)),
+      "World" -> intervalFrom(day(10))
+    )
     val fixture = timeboundVersionedString(allData)
     val zoinks = validString("Zoinks!", interval(day(-30), day(0)))
     fixture.set(zoinks)(using VersionSelection.Unapproved)

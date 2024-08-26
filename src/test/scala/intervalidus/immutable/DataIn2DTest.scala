@@ -7,7 +7,7 @@ import org.scalatest.matchers.should.Matchers
 import java.time.LocalDate
 import scala.language.implicitConversions
 
-class DataIn2DTest extends AnyFunSuite with Matchers with intervalidus.DataIn2DBaseBehaviors:
+class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
 
   import DiscreteInterval1D.*
 
