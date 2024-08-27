@@ -16,16 +16,16 @@ everything wrong in the world, look elsewhere…)
 
 In my experience, there are lots of ways to represent and collect commonly used data types. For example, just using the
 types that come with the Java/Scala standard libraries and other popular libraries (i.e., primitive types, strings, time
-types, various collections, etc.) is great. But the notion of how to express the conditions under which data are valid (
-not to be confused with validating data), although it comes up in project after project, is generally left as an
+types, various collections, etc.) is great. But the notion of how to express the conditions under which data are valid
+(not to be confused with validating data), although it comes up in project after project, is generally left as an
 application design consideration. But it is such a common pattern, it is odd that there isn’t some more direct support
 for validity as well as representation.
 
-For example, what is valid may depend on time. Say that on December 25th a user signs up for a basic tier of service
-effective January 1st. Then, on March 15th, they upgrade to the premium service tier effective on April 1st. Later,
-on June 28th, they choose not to renew and cancel their service, expecting it to expire at the end of the month. The
-following shows what tier is known to be valid, and how that evolves over time. (Here we use +∞ to represent no planned
-termination, or what is sometimes called the “end of time”.)
+For example, what is valid may depend on time. Say that on December 25<sup>th</sup> a user signs up for a basic tier of
+service effective January 1<sup>st</sup>. Then, on March 15<sup>th</sup>, they upgrade to the premium service tier
+effective on April 1<sup>st</sup>. Later, on June 28<sup>th</sup>, they choose not to renew and cancel their service,
+expecting it to expire at the end of the month. The following shows what tier is known to be valid, and how that evolves
+over time. (Here we use +∞ to represent no planned termination, or what is sometimes called the “end of time”.)
 
 | On    | Evolving valid tier data               |
 |-------|----------------------------------------|
@@ -42,7 +42,10 @@ immutable -- to address storage and management of data like this. For more infor
 You could use Intervalidus `DataIn1D` to represent the above as a one-dimensional structure like this:
 
 ```scala
-import LocalDate.of as date
+import LocalDate.of
+
+as date
+
 import intervalidus.DiscreteInterval1D.*
 import intervalidus.mutable.DataIn1D
 
