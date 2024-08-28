@@ -207,6 +207,16 @@ trait DimensionalBase[V, D <: DomainLike, I <: IntervalLike[D], ValidData <: Dat
     */
   infix def intersects(interval: I): Boolean
 
+  /**
+    * Returns this as a mutable structure.
+    */
+  def toMutable: DimensionalBase[V, D, I, ValidData]
+
+  /**
+    * Returns this as an immutable structure.
+    */
+  def toImmutable: DimensionalBase[V, D, I, ValidData]
+
   // ---------- Implemented here based on the above ----------
 
   /**
@@ -291,13 +301,3 @@ trait DimensionalBase[V, D <: DomainLike, I <: IntervalLike[D], ValidData <: Dat
     *   all valid data in interval order
     */
   def getAll: Iterable[ValidData] = dataByStart.values
-
-  /**
-    * Returns this as a mutable structure.
-    */
-  def toMutable: DimensionalBase[V, D, I, ValidData]
-
-  /**
-    * Returns this as an immutable structure.
-    */
-  def toImmutable: DimensionalBase[V, D, I, ValidData]

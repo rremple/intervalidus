@@ -138,6 +138,26 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
     */
   def flip: DataIn2DBase[V, R2, R1]
 
+  /**
+    * Project as 1-dimensional data based on a horizontal domain element
+    *
+    * @param horizontalIndex
+    *   the horizontal domain element
+    * @return
+    *   a 1-dimensional projection
+    */
+  def getByHorizontalIndex(horizontalIndex: DiscreteDomain1D[R1]): DataIn1DBase[V, R2]
+
+  /**
+    * Project as 1-dimensional data based on a vertical domain element
+    *
+    * @param verticalIndex
+    *   the vertical domain element
+    * @return
+    *   a 1-dimensional projection
+    */
+  def getByVerticalIndex(verticalIndex: DiscreteDomain1D[R2]): DataIn1DBase[V, R1]
+
   // ---------- Implement methods not defined in DimensionalBase ----------
 
   // from Object - use Visualize (in the test package) if you want something fancier

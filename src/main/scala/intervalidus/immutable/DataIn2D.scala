@@ -128,30 +128,6 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue](
     getAll.flatMap(f(_).getAll)
   ).compressAll()
 
-  /**
-    * Project as 1-dimensional data based on a horizontal domain element
-    *
-    * @param horizontalIndex
-    *   the horizontal domain element
-    * @return
-    *   a 1-dimensional projection
-    */
-  def getByHorizontalIndex(horizontalIndex: DiscreteDomain1D[R1]): DataIn1D[V, R2] = DataIn1D[V, R2](
-    getByHorizontalIndexData(horizontalIndex)
-  )
-
-  /**
-    * Project as 1-dimensional data based on a vertical domain element
-    *
-    * @param verticalIndex
-    *   the vertical domain element
-    * @return
-    *   a 1-dimensional projection
-    */
-  def getByVerticalIndex(verticalIndex: DiscreteDomain1D[R2]): DataIn1D[V, R1] = DataIn1D[V, R1](
-    getByVerticalIndexData(verticalIndex)
-  )
-
   // ---------- Implement methods from DimensionalBase ----------
 
   override def copy: DataIn2D[V, R1, R2] = DataIn2D(getAll)
@@ -173,6 +149,14 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue](
   ): DataIn2D[(V, B), R1, R2] = DataIn2D(zipAllData(that, thisElem, thatElem))
 
   override def flip: DataIn2D[V, R2, R1] = DataIn2D(getAll.map(d => d.copy(interval = d.interval.flip)))
+
+  override def getByHorizontalIndex(horizontalIndex: DiscreteDomain1D[R1]): DataIn1D[V, R2] = DataIn1D[V, R2](
+    getByHorizontalIndexData(horizontalIndex)
+  )
+
+  override def getByVerticalIndex(verticalIndex: DiscreteDomain1D[R2]): DataIn1D[V, R1] = DataIn1D[V, R1](
+    getByVerticalIndexData(verticalIndex)
+  )
 
   // ---------- Implement methods from ImmutableBase ----------
 
