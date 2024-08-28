@@ -121,25 +121,26 @@ Since decoding the `toString` output of `DataIn2D` can get complicated as more i
 (in the test package) called `Visualize` that can assist with debugging and testing tasks. It uses 2D graphics to render
 the horizontal and vertical dimensions more clearly. For example, `Visualize(plan2d)` displays the following, which is a
 bit easier to decipher:
-![core class diagram](/doc/intervalidus-visualize.png)
+![2D data visualization](/doc/intervalidus-visualize.png)
 
 One might query this structure to find what was known about expected August effective tiers at various sampled dates in
-the past or future. For example:
+the past or future. For example, leveraging `plan2d` as a partial function (with an `unapply`):
 
 ```scala
-val futureEffective: DiscreteDomain1D[LocalDate] = date(2024, 9, 1)
-List(date(2024, 12, 15), date(2024, 1, 15), date(2024, 5, 15), date(2024, 7, 15)).foreach: knownDate =>
-  println
-(s"On $known, expected tier on $futureEffective: ${plan2d.getAt(futureEffective x knownDate)}")
+  val futureEffectiveDate: DiscreteDomain1D[LocalDate] = date(2024, 8, 1)
+  List(date(2023, 12, 15), date(2024, 1, 15), date(2024, 5, 15), date(2024, 7, 15)).foreach: knownDate => 
+    futureEffectiveDate x knownDate match
+      case plan2d(tier) => println(s"On $knownDate, expected $tier tier on $futureEffectiveDate")
+      case _            => println(s"On $knownDate, no expected tier on $futureEffectiveDate")
 ```
 
 The result shows how what is known about this expected future effectivity changed over time:
 
 ```
-On 2024-12-15, expected tier on 2024-09-01: None
-On 2024-01-15, expected tier on 2024-09-01: Some(Basic)
-On 2024-05-15, expected tier on 2024-09-01: Some(Premium)
-On 2024-07-15, expected tier on 2024-09-01: None
+On 2023-12-15, no expected tier on 2024-08-01
+On 2024-01-15, expected Basic tier on 2024-08-01
+On 2024-05-15, expected Premium tier on 2024-08-01
+On 2024-07-15, no expected tier on 2024-08-01
 ```
 
 The same methods are available in both mutable/immutable and one-dimensional/two-dimensional forms (though parameter and

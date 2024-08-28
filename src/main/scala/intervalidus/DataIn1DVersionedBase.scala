@@ -177,7 +177,7 @@ trait DataIn1DVersionedBase[V, R: DiscreteValue](
   override def apply(key: DiscreteDomain2D[R, Int]): V = underlying2D(key)
 
   // from Object - print the current version and a uniform 2D grid representing the versioned data.
-  override def toString: String = s"current version = $currentVersion\n${underlying2D.toString}"
+  override def toString: String = s"current version = $currentVersion\n$underlying2D"
 
   /**
     * Constructs a sequence of 2D diff actions that, if applied to the old structure, would synchronize it with this

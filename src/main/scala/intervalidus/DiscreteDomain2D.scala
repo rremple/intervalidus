@@ -17,7 +17,7 @@ case class DiscreteDomain2D[T1, T2](
   verticalIndex: DiscreteDomain1D[T2]
 ) extends DimensionalBase.DomainLike:
 
-  override def toString: String = s"{${horizontalIndex.toString}, ${verticalIndex.toString}}"
+  override def toString: String = s"{$horizontalIndex, $verticalIndex}"
 
   /**
     * Tests if this belongs to an interval.

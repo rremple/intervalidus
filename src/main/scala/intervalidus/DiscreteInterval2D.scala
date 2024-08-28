@@ -39,7 +39,7 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
 
   override infix def isUnbounded: Boolean = this.horizontal.isUnbounded && this.vertical.isUnbounded
 
-  override def toString: String = s"{${this.horizontal.toString}, ${this.vertical.toString}}"
+  override def toString: String = s"{$horizontal, $vertical}"
 
   /**
     * Returns a new two-dimensional interval with the same vertical interval and the provided horizontal interval.

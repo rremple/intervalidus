@@ -162,7 +162,7 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
 
   // from Object - use Visualize (in the test package) if you want something fancier
   override def toString: String = toStringGrid(
-    dataToString = v => s"${v.value.toString} ${v.interval.vertical.toString}",
+    dataToString = v => s"${v.value} ${v.interval.vertical}",
     dataToInterval = _.interval.horizontal,
     dataToSortBy = _.interval.vertical.end
   )
