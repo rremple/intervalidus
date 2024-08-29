@@ -127,11 +127,11 @@ One might query this structure to find what was known about expected August effe
 the past or future. For example, leveraging `plan2d` as a partial function (with an `unapply`):
 
 ```scala
-  val futureEffectiveDate: DiscreteDomain1D[LocalDate] = date(2024, 8, 1)
-  List(date(2023, 12, 15), date(2024, 1, 15), date(2024, 5, 15), date(2024, 7, 15)).foreach: knownDate => 
-    futureEffectiveDate x knownDate match
-      case plan2d(tier) => println(s"On $knownDate, expected $tier tier on $futureEffectiveDate")
-      case _            => println(s"On $knownDate, no expected tier on $futureEffectiveDate")
+val futureEffectiveDate: DiscreteDomain1D[LocalDate] = date(2024, 8, 1)
+List(date(2023, 12, 15), date(2024, 1, 15), date(2024, 5, 15), date(2024, 7, 15)).foreach: knownDate => 
+  futureEffectiveDate x knownDate match
+    case plan2d(tier) => println(s"On $knownDate, expected $tier tier on $futureEffectiveDate")
+    case _            => println(s"On $knownDate, no expected tier on $futureEffectiveDate")
 ```
 
 The result shows how what is known about this expected future effectivity changed over time:
@@ -156,11 +156,11 @@ These query methods provide various data, difference, and Boolean results:
 - `intersects`
 - `diffActionsFrom`
 
-These methods always return a new structure:
+These methods return a new structure:
 
-- `copy` / `toImmutable` / `toMutable`
+- `copy` / `toImmutable` (when mutable) / `toMutable` (when immutable)
 - `zip` / `zipAll`
-- `flip` (only available on 2D)
+- `flip` / `getByHorizontalIndex` / `getByVerticalIndex` (only available on 2D)
 
 These mutation methods return a new structure when using immutable and `Unit` when using mutable:
 
@@ -174,11 +174,11 @@ These mutation methods return a new structure when using immutable and `Unit` wh
 - `applyDiffActions` / `syncWith`
 - `compress` / `compressAll`
 
-## Extending
+## Using and Extending
 
 There is nothing remarkable about `LocalDate` here. It is an example of something called a "discrete value" upon which a
-"discrete domain" can be defined. Discrete values are finite with min/max values, they have an ordering, and methods to
-finding successors/predecessors for each value. It is the "discrete domain" that is used to define "discrete intervals".
+"discrete domain" can be defined. Discrete values are finite with min/max values, they have an ordering, and they have 
+methods for finding successors/predecessors. It is the "discrete domain" that is used to define "discrete intervals".
 A discrete value is a type class, and there are implementations given for the following types:
 
 - `Int`
@@ -187,12 +187,49 @@ A discrete value is a type class, and there are implementations given for the fo
 - `BigInteger`
 
 But if you have your own type with these properties, you can certainly give an implementation of the type class for that
-type and use it in the definition of one-dimensional or two-dimensional intervals.
+type and use it in the definition of one-dimensional or two-dimensional intervals. For example, these intervals use 
+colors instead of dates or numbers:
+```scala
+import intervalidus.DiscreteInterval1D.*
+import intervalidus.immutable.DataIn1D
+
+enum Color:
+  case Red, Yellow, Green, Cyan, Blue, Magenta
+
+given DiscreteValue[Color] with
+  override val minValue: Color = Color.values.head
+
+  override val maxValue: Color = Color.values.last
+
+  override def predecessorOf(x: Color): Option[Color] =
+    if x == minValue then None else Some(Color.fromOrdinal(x.ordinal - 1))
+
+  override def successorOf(x: Color): Option[Color] =
+    if x == maxValue then None else Some(Color.fromOrdinal(x.ordinal + 1))
+
+  override def compare(lhs: Color, rhs: Color): Int = lhs.ordinal.compareTo(rhs.ordinal)
+
+val color1d = DataIn1D
+  .of(intervalTo(Color.Green) -> "Red, Yellow, Green")
+  .set(intervalAt(Color.Cyan) -> "just Cyan")
+  .set(intervalFrom(Color.Blue) -> "Blue, Magenta")
+
+println(color1d)
+```
+
+This prints the following:
+```
+| -∞ .. Green        | Cyan .. Cyan       | Blue .. +∞         |
+| Red, Yellow, Green |
+                     | just Cyan          |
+                                          | Blue, Magenta      |
+```
 
 You can also extend through composition. For example `DataIn1DVersioned` mimics the `DataIn1D` API but uses an
-underlying `DataIn2D` structure with an integer vertical dimension to create a versioned data structure. Generic version
-selection is used to operate on the right vertical components of the underlying structure transparently. Also, a notion
-of approval is supported by specifying a specific future version for anything unapproved.
+underlying `DataIn2D` structure with an integer vertical dimension to create a versioned data structure. The "current"
+version is tracked as internal state and methods accept version selection as a context parameter, with "current" as the
+default version selection applied. Also, a notion of approval is supported by specifying a specific future version for 
+anything unapproved.
 
 ## Software Structure
 
@@ -201,4 +238,11 @@ Below is the class diagram for the core bits of Intervalidus:
 
 As described above, `DataIn1DVersioned` leverages the core classes to provide specific functionality you might want when
 versioning data (such as approval). Below is the class diagram for it:
-![core class diagram](/doc/intervalidus-versioned.png)
+![versioned class diagram](/doc/intervalidus-versioned.png)
+
+Lastly, the definitions and implementations of methods across mutable/immutable and one-dimensional/two-dimensional 
+variants have been made as generic as possible to avoid repetitive code/scaladoc (DRY). However, this can make it
+harder to navigate to these methods. The following (rather unorthodox) diagram shows where to find each method in a
+kind of Venn-like way, where overlaps indicate a definition (and documentation) is in the lower trait with the
+implementation in the higher, inheriting trait/class:
+![trait stack diagram](/doc/intervalidus-trait-stack.png)
