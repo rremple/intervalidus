@@ -35,7 +35,7 @@ over time. (Here we use +∞ to represent no planned termination, or what is som
 
 Intervalidus provides composable data structures -- both one-dimensional and two-dimensional, both mutable and
 immutable -- to address storage and management of data like this. For more information, see the
-[full API documentation](https://rremple.github.io/intervalidus/latest/api/)
+[full API documentation](https://rremple.github.io/intervalidus/latest/api/intervalidus)
 
 ### Usage:
 
@@ -144,7 +144,7 @@ On 2024-07-15, no expected tier on 2024-08-01
 ```
 
 The same methods are available in both mutable/immutable and one-dimensional/two-dimensional forms (though parameter and
-return types vary). See the [full API documentation](https://rremple.github.io/intervalidus/latest/api/) for details on
+return types vary). See the [full API documentation](https://rremple.github.io/intervalidus/latest/api/intervalidus) for details on
 these methods.
 
 These query methods provide various data, difference, and Boolean results:
