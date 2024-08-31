@@ -37,6 +37,11 @@ object DimensionalBase:
       */
     infix def isUnbounded: Boolean
 
+    /**
+      * Returns individual discrete domain points in this interval.
+      */
+    def points: Iterator[D]
+
   /**
     * A value that is valid in some discrete interval. This defines a partial function where all domain elements that
     * are part of the interval map to the specified value.

@@ -409,7 +409,7 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
   override def getAt(domainIndex: DiscreteDomain2D[R1, R2]): Option[V] =
     dataByStart
       .rangeTo(domainIndex) // can't be after this
-      .values
+      .valuesIterator
       .find(domainIndex ∈ _.interval)
       .map(_.value)
 

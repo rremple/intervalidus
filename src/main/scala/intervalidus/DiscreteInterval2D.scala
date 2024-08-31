@@ -39,6 +39,12 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
 
   override infix def isUnbounded: Boolean = this.horizontal.isUnbounded && this.vertical.isUnbounded
 
+  override def points: Iterator[DiscreteDomain2D[T1, T2]] =
+    for
+      horizontalPoint <- horizontal.points
+      verticalPoint <- vertical.points
+    yield horizontalPoint x verticalPoint
+
   override def toString: String = s"{$horizontal, $vertical}"
 
   /**

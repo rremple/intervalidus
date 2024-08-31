@@ -222,7 +222,7 @@ trait DataIn1DBase[V, R: DiscreteValue](
 
   override def getAt(domainIndex: DiscreteDomain1D[R]): Option[V] =
     dataByStart
-      .rangeTo(domainIndex) // can't be after r
+      .rangeTo(domainIndex) // can't be after this
       .lastOption // can't be before the last one
       .collect:
         case (_, data) if domainIndex ∈ data.interval => data.value

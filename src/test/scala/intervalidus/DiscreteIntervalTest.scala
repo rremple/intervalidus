@@ -19,7 +19,7 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
     assertThrows[IllegalArgumentException]:
       val endBeforeStart = DiscreteInterval1D[Int](Top, Bottom)
 
-  test("Int interval adjacency"):
+  test("Int interval adjacency, etc."):
     assert(interval(1, 2) isLeftAdjacentTo interval(3, 4))
     assert(!(interval(3, 4) isLeftAdjacentTo interval(1, 2)))
     assert(!(interval(1, 3) isLeftAdjacentTo interval(2, 4)))
@@ -45,6 +45,9 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
     interval(1, 2).before shouldBe Some(intervalTo(0))
     intervalFrom(2).after shouldBe None
     intervalTo(2).before shouldBe None
+    interval(1, 3).points.toList shouldBe List(1, 2, 3).map(Point(_))
+    intervalFrom(Int.MaxValue - 1).points.toList shouldBe List(Int.MaxValue - 1, Int.MaxValue).map(Point(_))
+    intervalTo(Int.MinValue + 1).points.toList shouldBe List(Int.MinValue, Int.MinValue + 1).map(Point(_))
 
   test("Int 2D interval adjacency, etc."):
     val now = LocalDate.now
@@ -101,6 +104,17 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
     interval2d(1, 2, 3, 4).before shouldBe Some(interval2dTo(0, 2))
     interval2dFrom(2, 2).after shouldBe None
     interval2dTo(2, 2).before shouldBe None
+    interval2d(1, 3, 1, 3).points.toList shouldBe List(
+      (1, 1),
+      (1, 2),
+      (1, 3),
+      (2, 1),
+      (2, 2),
+      (2, 3),
+      (3, 1),
+      (3, 2),
+      (3, 3)
+    ).map((t1, t2) => Point(t1) x Point(t2))
 
   test("Int interval intersections"):
     assert(!(interval(3, 4) intersects interval(1, 2)))

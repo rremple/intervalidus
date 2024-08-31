@@ -1,7 +1,7 @@
 package intervalidus
 
 import intervalidus.DiscreteDomain1D.{Bottom, Point, Top}
-import intervalidus.DiscreteInterval1D.{intervalFrom, intervalTo}
+import intervalidus.DiscreteInterval1D.{interval, intervalFrom, intervalTo}
 
 import scala.math.Ordering.Implicits.infixOrderingOps
 
@@ -42,6 +42,23 @@ case class DiscreteInterval1D[T: DiscreteValue](
     start <= domainElement && domainElement <= end
 
   override infix def isUnbounded: Boolean = (this.start equiv Bottom) && (this.end equiv Top)
+
+  override def points: Iterator[DiscreteDomain1D[T]] =
+    val discreteValue = summon[DiscreteValue[T]]
+
+    def nearest(d: DiscreteDomain1D[T]): DiscreteDomain1D[T] =
+      d match
+        case point @ Point(_) => point
+        case Bottom           => Point(discreteValue.minValue)
+        case Top              => Point(discreteValue.maxValue)
+
+    Iterator.unfold(Some(interval(nearest(start), nearest(end))): Option[DiscreteInterval1D[T]]):
+      case None => None
+      case Some(prevRemaining) =>
+        val nextRemaining =
+          if prevRemaining.start equiv prevRemaining.end then None
+          else Some(prevRemaining.startingAfter(prevRemaining.start))
+        Some(prevRemaining.start, nextRemaining)
 
   // Use mathematical interval notation -- default.
   override def toString: String =
