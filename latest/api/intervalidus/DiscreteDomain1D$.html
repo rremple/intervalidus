@@ -111,11 +111,11 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>This allows a client to use discrete values in methods requiring a discrete domain element by implicitly converting them to a Point. For example, a client can write dataIn1D.getAt(Point(1)) or dataIn1D.getAt(1). It is nice to not have to wrap all discrete values as Points all the time, and cleaner to have one implicit conversion rather than a multitude of overloaded methods (which are especially problematic when combined with default parameters).</p>
+             <p>This allows a client to use discrete values in methods requiring a discrete domain element by implicitly converting them to a <code>Point</code>. For example, a client can write <code>dataIn1D.getAt(Point(1))</code> or <code>dataIn1D.getAt(1)</code>. It is nice to not have to wrap all discrete values as <code>Point</code>s all the time, and cleaner to have one implicit conversion rather than a multitude of overloaded methods (which are especially problematic when combined with default parameters).</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>This allows a client to use discrete values in methods requiring a discrete domain element by implicitly converting them to a Point. For example, a client can write dataIn1D.getAt(Point(1)) or dataIn1D.getAt(1). It is nice to not have to wrap all discrete values as Points all the time, and cleaner to have one implicit conversion rather than a multitude of overloaded methods (which are especially problematic when combined with default parameters).</p>
+              <p>This allows a client to use discrete values in methods requiring a discrete domain element by implicitly converting them to a <code>Point</code>. For example, a client can write <code>dataIn1D.getAt(Point(1))</code> or <code>dataIn1D.getAt(1)</code>. It is nice to not have to wrap all discrete values as <code>Point</code>s all the time, and cleaner to have one implicit conversion rather than a multitude of overloaded methods (which are especially problematic when combined with default parameters).</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -144,8 +144,8 @@ node3 -> node2;
             <div class="cover">
              <div class="doc">
               <p>This ordering sorts Bottoms and Tops correctly and leverages the discrete value ordering for the data points in between.</p>
-              <p>Note that, because T is covariant in the enum definition, this ordering will not get summoned automatically for specific instance values of the enum. For example, Point(3).predecessor equiv Point(2) will summon the ordering since Point(3).predecessor has the type DiscreteDomain1D[Int], but Point(2) equiv Point(3).predecessor will not summon the ordering since Point(2) returns the type DiscreteDomain1D.Point[Int].</p>
-              <p>One workaround is to safe cast as supertype, e.g., (Point(2): DiscreteDomain1D[Int]) equiv Point(3).predecessor</p>
+              <p>Note that, because <code>T</code> is covariant in the enum definition, this ordering will not get summoned automatically for specific instance values of the enum. For example, <code>Point(3).predecessor equiv Point(2)</code> will summon the ordering since <code>Point(3).predecessor</code> has the type <code>DiscreteDomain1D[Int]</code>, but <code>Point(2) equiv Point(3).predecessor</code> will not summon the ordering since <code>Point(2)</code> returns the type <code>DiscreteDomain1D.Point[Int]</code>.</p>
+              <p>One workaround is to safe cast as supertype, e.g., <code>(Point(2): DiscreteDomain1D[Int]) equiv Point(3).predecessor</code></p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
