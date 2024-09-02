@@ -2,14 +2,14 @@ package intervalidus
 
 /**
   * Domain used in defining and operating on a discrete interval. It describes specific discrete data points as well as
-  * the special "Bottom" or "Top" cases which conceptually lie below and above the finite range of data points
-  * (logically below and above minValue and maxValue respectively). This also gives us a way to accommodate having a
-  * predecessor or successor on a boundary, i.e., maxValue.successor == Top and minValue.predecessor == Bottom. Note
-  * this allows predecessor and successor to be closed, where Top.successor == Top.predecessor == Top, and
-  * Bottom.predecessor == Bottom.successor == Bottom.
+  * the special "`Bottom`" and "`Top`" cases which conceptually lie below and above the finite range of data points
+  * (logically below and above `minValue` and `maxValue` respectively). This also gives us a way to accommodate having a
+  * predecessor or successor on a boundary, i.e., `maxValue.successor == Top` and `minValue.predecessor == Bottom`. Note
+  * this allows predecessor and successor to be closed, where `Top.successor == Top.predecessor == Top`, and
+  * `Bottom.predecessor == Bottom.successor == Bottom`.
   *
   * @tparam T
-  *   expected to be a discrete value (i.e., DiscreteValue[T] should be given).
+  *   expected to be a discrete value (i.e., `DiscreteValue[T]` should be given).
   */
 enum DiscreteDomain1D[+T] extends DimensionalBase.DomainLike:
   /**
@@ -37,12 +37,12 @@ import DiscreteDomain1D.{Bottom, Point, Top}
 /**
   * Extends [[DiscreteDomain1D]] with methods on a domain of a discrete value. Using an extension rather than defining
   * these methods on the enum itself resolves the issue of not being able to express the type class context bound
-  * directly in the enum definition (because, there, T must be covariant to accommodate Bottom and Top).
+  * directly in the enum definition (because, there, `T` must be covariant to accommodate `Bottom` and `Top`).
   */
 extension [T: DiscreteValue](domain1d: DiscreteDomain1D[T])
 
   /**
-    * Successor of this, where Bottom and Top are their own successors, and the successor of maxValue is Top.
+    * Successor of this, where `Bottom` and `Top` are their own successors, and the successor of `maxValue` is `Top`.
     *
     * @return
     *   successor of this
@@ -52,7 +52,8 @@ extension [T: DiscreteValue](domain1d: DiscreteDomain1D[T])
     case topOrBottom => topOrBottom
 
   /**
-    * Predecessor of this, where Bottom and Top are their own predecessors, and the predecessor of minValue is Bottom.
+    * Predecessor of this, where `Bottom` and `Top` are their own predecessors, and the predecessor of `minValue` is
+    * `Bottom`.
     *
     * @return
     *   successor of this
@@ -73,6 +74,7 @@ extension [T: DiscreteValue](domain1d: DiscreteDomain1D[T])
 
   /**
     * Cross this domain element with that domain element to arrive at a new two-dimensional domain element.
+    *
     * @param that
     *   a one-dimensional domain element to be used in the vertical dimension.
     * @tparam T2
@@ -102,29 +104,27 @@ object DiscreteDomain1D:
     * This ordering sorts Bottoms and Tops correctly and leverages the discrete value ordering for the data points in
     * between.
     *
-    * Note that, because T is covariant in the enum definition, this ordering will not get summoned automatically for
-    * specific instance values of the enum. For example, Point(3).predecessor equiv Point(2) will summon the ordering
-    * since Point(3).predecessor has the type IntervalBoundary[Int], but Point(2) equiv Point(3).predecessor will not
-    * summon the ordering since Point(2) returns the type IntervalBoundary.Point[Int].
+    * Note that, because `T` is covariant in the enum definition, this ordering will not get summoned automatically for
+    * specific instance values of the enum. For example, `Point(3).predecessor equiv Point(2)` will summon the ordering
+    * since `Point(3).predecessor` has the type `DiscreteDomain1D[Int]`, but `Point(2) equiv Point(3).predecessor` will
+    * not summon the ordering since `Point(2)` returns the type `DiscreteDomain1D.Point[Int]`.
     *
-    * One workaround is to cast as supertype, e.g., (Point(2): DiscreteIntervalBoundary[Int]) equiv Point(3).predecessor
+    * One workaround is to safe cast as supertype, e.g., `(Point(2): DiscreteDomain1D[Int]) equiv Point(3).predecessor`
     */
-  given [T](using
-    orderedValues: DiscreteValue[T]
-  ): Ordering[DiscreteDomain1D[T]] =
+  given [T](using discreteValue: DiscreteValue[T]): Ordering[DiscreteDomain1D[T]] =
     case (Bottom, Bottom)     => 0
     case (Bottom, _)          => -1
     case (_, Bottom)          => 1
-    case (Point(x), Point(y)) => orderedValues.compare(x, y)
+    case (Point(x), Point(y)) => discreteValue.compare(x, y)
     case (Top, Top)           => 0
     case (_, Top)             => -1
     case (Top, _)             => 1
 
   /**
     * This allows a client to use discrete values in methods requiring a discrete domain element by implicitly
-    * converting them to a Point. For example, a client can write dataIn1D.getAt(Point(1)) or dataIn1D.getAt(1). It is
-    * nice to not have to wrap all discrete values as Points all the time, and cleaner to have one implicit conversion
-    * rather than a multitude of overloaded methods (which are especially problematic when combined with default
-    * parameters).
+    * converting them to a `Point`. For example, a client can write `dataIn1D.getAt(Point(1))` or `dataIn1D.getAt(1)`.
+    * It is nice to not have to wrap all discrete values as `Point`s all the time, and cleaner to have one implicit
+    * conversion rather than a multitude of overloaded methods (which are especially problematic when combined with
+    * default parameters).
     */
   given [T](using DiscreteValue[T]): Conversion[T, DiscreteDomain1D[T]] = Point(_)
