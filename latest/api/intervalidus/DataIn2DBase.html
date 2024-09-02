@@ -480,58 +480,6 @@ node8 -> node0;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="getAt-fffffcbc" data-f-keywords="override">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="DataIn2DBase.html#getAt-fffffcbc" t="n" class="documentableName ">getAt</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">domainIndex</span>: <a href="DiscreteDomain2D.html" t="t">DiscreteDomain2D</a>[<span t="t">R1</span>, <span t="t">R2</span>]): <span data-unresolved-link="" t="t">Option</span>[<span t="t">V</span>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Returns a value that is valid in the specified interval domain element. That is, where the specified domain element is a member of some valid data interval. If no such valid data exists, returns None.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Returns a value that is valid in the specified interval domain element. That is, where the specified domain element is a member of some valid data interval. If no such valid data exists, returns None.</p>
-             </div>
-             <h2 class="h200">Value parameters</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               domainIndex
-              </dt>
-              <dd class="body-medium">
-               <p>the domain element where data may be valid. Note that the domain element can be a specific data point or the special notions of "bottom" or "top" of the domain.</p>
-              </dd>
-             </dl>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Returns
-              </dt>
-              <dd class="body-medium">
-               <p>Some value if valid at the specified domain element, otherwise None.</p>
-              </dd>
-              <dt class="body-small">
-               Definition Classes
-              </dt>
-              <dd class="body-medium">
-               <div>
-                <a href="DimensionalBase.html">DimensionalBase</a>
-               </div>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
         <div class="documentableElement" id="getByHorizontalIndexData-fffffc5a" data-f-visibility="protected">
          <div class="documentableElement-expander">
           <div class="header monospace mono-medium">
@@ -754,7 +702,7 @@ node8 -> node0;
               <ol>
                <li>simple = none + none (1 of 9)</li>
                <li>edge = none + single or single + none (2 of 9)</li>
-               <li>slice = single + split or split + single (2 of 9)</li>
+               <li>slice = none + split or split + none (2 of 9)</li>
                <li>corner = single + single (1 of 9)</li>
                <li>bite = single + split or split + single (2 of 9)</li>
                <li>hole = split + split (1 of 9)</li>
@@ -1245,25 +1193,69 @@ node8 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Get all valid data.</p>
+             <p>Get all valid data in interval start order</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Get all valid data.</p>
+              <p>Get all valid data in interval start order</p>
              </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="DimensionalBase.html#getAll-0">DimensionalBase</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="getAt-b14" data-f-inherited="DimensionalBase">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DataIn2DBase.html#getAt-b14" t="n" class="documentableName ">getAt</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">domainIndex</span>: <a href="DiscreteDomain2D.html" t="t">DiscreteDomain2D</a>[<span t="t">R1</span>, <span t="t">R2</span>]): <span data-unresolved-link="" t="t">Option</span>[<span t="t">V</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Returns a value that is valid in the specified interval domain element. That is, where the specified domain element is a member of some valid data interval. If no such valid data exists, returns None.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Returns a value that is valid in the specified interval domain element. That is, where the specified domain element is a member of some valid data interval. If no such valid data exists, returns None.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               domainIndex
+              </dt>
+              <dd class="body-medium">
+               <p>the domain element where data may be valid. Note that the domain element can be a specific data point or the special notions of "bottom" or "top" of the domain.</p>
+              </dd>
+             </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
                Returns
               </dt>
               <dd class="body-medium">
-               <p>all valid data in interval order</p>
+               <p>Some value if valid at the specified domain element, otherwise None.</p>
               </dd>
               <dt class="body-small">
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <a href="DimensionalBase.html#getAll-0">DimensionalBase</a>
+               <a href="DimensionalBase.html#getAt-b14">DimensionalBase</a>
               </dd>
              </dl>
             </div>
@@ -1577,12 +1569,12 @@ node8 -> node0;
          <button class="icon-button show-content expand"></button>
          <h4 class="groupHeader h200">Concrete fields</h4>
         </div>
-        <div class="documentableElement" id="dataByStart-0" data-f-visibility="protected" data-f-keywords="override">
+        <div class="documentableElement" id="dataByStartAsc-0" data-f-visibility="protected" data-f-keywords="override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"><span t="k">override protected </span></span><span class="kind"><span t="k">val </span></span><a href="DataIn2DBase.html#dataByStart-0" t="n" class="documentableName ">dataByStart</a>: <span data-unresolved-link="" t="t">TreeMap</span>[<a href="DiscreteDomain2D.html" t="t">DiscreteDomain2D</a>[<span t="t">R1</span>, <span t="t">R2</span>], <a href="ValidData2D.html" t="t">ValidData2D</a>[<span t="t">V</span>, <span t="t">R1</span>, <span t="t">R2</span>]]
+            <span class="modifiers"><span t="k">override protected </span></span><span class="kind"><span t="k">val </span></span><a href="DataIn2DBase.html#dataByStartAsc-0" t="n" class="documentableName ">dataByStartAsc</a>: <span data-unresolved-link="" t="t">TreeMap</span>[<a href="DiscreteDomain2D.html" t="t">DiscreteDomain2D</a>[<span t="t">R1</span>, <span t="t">R2</span>], <a href="ValidData2D.html" t="t">ValidData2D</a>[<span t="t">V</span>, <span t="t">R1</span>, <span t="t">R2</span>]]
            </div>
           </div>
          </div>
@@ -1592,11 +1584,39 @@ node8 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Internal data structure where all the interval-bounded data are stored, always expected to be disjoint. TreeMap maintains interval start order.</p>
+             <p>Internal data structure where all the interval-bounded data are stored, always expected to be disjoint. TreeMap maintains interval key order.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Internal data structure where all the interval-bounded data are stored, always expected to be disjoint. TreeMap maintains interval start order.</p>
+              <p>Internal data structure where all the interval-bounded data are stored, always expected to be disjoint. TreeMap maintains interval key order.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="dataByStartDesc-0" data-f-visibility="protected" data-f-keywords="override">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">override protected </span></span><span class="kind"><span t="k">val </span></span><a href="DataIn2DBase.html#dataByStartDesc-0" t="n" class="documentableName ">dataByStartDesc</a>: <span data-unresolved-link="" t="t">TreeMap</span>[<a href="DiscreteDomain2D.html" t="t">DiscreteDomain2D</a>[<span t="t">R1</span>, <span t="t">R2</span>], <a href="ValidData2D.html" t="t">ValidData2D</a>[<span t="t">V</span>, <span t="t">R1</span>, <span t="t">R2</span>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Internal shadow data structure where all the interval-bounded data are also stored, but using the interval key in reverse order (for much quicker range lookups -- validated in microbenchmarks).</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Internal shadow data structure where all the interval-bounded data are also stored, but using the interval key in reverse order (for much quicker range lookups -- validated in microbenchmarks).</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>

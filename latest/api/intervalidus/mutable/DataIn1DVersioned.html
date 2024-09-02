@@ -1656,11 +1656,11 @@ node6 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Based on the given version selection context, gets all the data as a 1D structure (immutable)</p>
+             <p>Based on the given version selection context, gets all the data as a 1D structure (compressed, immutable).</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Based on the given version selection context, gets all the data as a 1D structure (immutable)</p>
+              <p>Based on the given version selection context, gets all the data as a 1D structure (compressed, immutable).</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -1677,13 +1677,64 @@ node6 -> node1;
                Returns
               </dt>
               <dd class="body-medium">
-               <p>new 1D structure meeting version selection criteria.</p>
+               <p>new, compressed, immutable 1D structure meeting version selection criteria.</p>
               </dd>
               <dt class="body-small">
                Inherited from:
               </dt>
               <dd class="body-medium">
                <a href="../DataIn1DVersionedBase.html#getDataIn1D-90a">DataIn1DVersionedBase</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="getDataIn1DMutable-fffffae6" data-f-inherited="DataIn1DVersionedBase">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DataIn1DVersioned.html#getDataIn1DMutable-fffffae6" t="n" class="documentableName ">getDataIn1DMutable</a>(<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">versionSelection</span>: <a href="../DataIn1DVersionedBase$$VersionSelection.html" t="t">VersionSelection</a>): <a href="DataIn1D.html" t="t">DataIn1D</a>[<span t="t">V</span>, <span t="t">R</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Based on the given version selection context, gets all the data as a 1D structure (uncompressed, mutable).</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Based on the given version selection context, gets all the data as a 1D structure (uncompressed, mutable).</p>
+              <p>Useful when you don't need the overhead of creating an immutable structure and compressing the data, e.g., if just doing a <code>getAt</code> after version selection, which will give the same answer compressed or uncompressed, mutable or immutable.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               versionSelection
+              </dt>
+              <dd class="body-medium">
+               <p>version selection context for this operation.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>new, uncompressed, mutable 1D structure meeting version selection criteria.</p>
+              </dd>
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="../DataIn1DVersionedBase.html#getDataIn1DMutable-fffffae6">DataIn1DVersionedBase</a>
               </dd>
              </dl>
             </div>

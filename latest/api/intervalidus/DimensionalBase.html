@@ -226,50 +226,6 @@ node11 -> node9;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="getAt-b14">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DimensionalBase.html#getAt-b14" t="n" class="documentableName ">getAt</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">domainIndex</span>: <span t="t">D</span>): <span data-unresolved-link="" t="t">Option</span>[<span t="t">V</span>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Returns a value that is valid in the specified interval domain element. That is, where the specified domain element is a member of some valid data interval. If no such valid data exists, returns None.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Returns a value that is valid in the specified interval domain element. That is, where the specified domain element is a member of some valid data interval. If no such valid data exists, returns None.</p>
-             </div>
-             <h2 class="h200">Value parameters</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               domainIndex
-              </dt>
-              <dd class="body-medium">
-               <p>the domain element where data may be valid. Note that the domain element can be a specific data point or the special notions of "bottom" or "top" of the domain.</p>
-              </dd>
-             </dl>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Returns
-              </dt>
-              <dd class="body-medium">
-               <p>Some value if valid at the specified domain element, otherwise None.</p>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
         <div class="documentableElement" id="getIntersecting-62">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -568,19 +524,56 @@ node11 -> node9;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Get all valid data.</p>
+             <p>Get all valid data in interval start order</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Get all valid data.</p>
+              <p>Get all valid data in interval start order</p>
              </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="getAt-b14">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DimensionalBase.html#getAt-b14" t="n" class="documentableName ">getAt</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">domainIndex</span>: <span t="t">D</span>): <span data-unresolved-link="" t="t">Option</span>[<span t="t">V</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Returns a value that is valid in the specified interval domain element. That is, where the specified domain element is a member of some valid data interval. If no such valid data exists, returns None.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Returns a value that is valid in the specified interval domain element. That is, where the specified domain element is a member of some valid data interval. If no such valid data exists, returns None.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               domainIndex
+              </dt>
+              <dd class="body-medium">
+               <p>the domain element where data may be valid. Note that the domain element can be a specific data point or the special notions of "bottom" or "top" of the domain.</p>
+              </dd>
+             </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
                Returns
               </dt>
               <dd class="body-medium">
-               <p>all valid data in interval order</p>
+               <p>Some value if valid at the specified domain element, otherwise None.</p>
               </dd>
              </dl>
             </div>
