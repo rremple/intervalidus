@@ -85,7 +85,7 @@ trait MutableBase[V, D <: DomainLike, I <: IntervalLike[D], ValidData <: DataLik
     */
   def flatMap(f: ValidData => DimensionalBase[V, D, I, ValidData]): Unit = synchronized:
     val newData = getAll.flatMap(f(_).getAll)
-    dataByStart.clear()
+    clearValidData()
     newData.foreach(addValidData)
 
   /**

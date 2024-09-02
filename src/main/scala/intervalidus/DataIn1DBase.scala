@@ -158,8 +158,8 @@ trait DataIn1DBase[V, R: DiscreteValue](
     *   a sequence of diff actions that would synchronize it with this.
     */
   def diffActionsFrom(old: DataIn1DBase[V, R]): Iterable[DiffAction1D[V, R]] =
-    (dataByStart.keys.toSet ++ old.dataByStart.keys).toList.sorted.flatMap: key =>
-      (old.dataByStart.get(key), dataByStart.get(key)) match
+    (dataByStartDesc.keys.toSet ++ old.dataByStartDesc.keys).toList.sorted.flatMap: key =>
+      (old.dataByStartDesc.get(key), dataByStartDesc.get(key)) match
         case (Some(oldData), Some(newData)) if oldData != newData => Some(DiffAction1D.Update(newData))
         case (None, Some(newData))                                => Some(DiffAction1D.Create(newData))
         case (Some(oldData), None)                                => Some(DiffAction1D.Delete(oldData.key))
@@ -167,9 +167,12 @@ trait DataIn1DBase[V, R: DiscreteValue](
 
   // ---------- Implement methods from DimensionalBase ----------
 
-  protected override val dataByStart: mutable.TreeMap[DiscreteDomain1D[R], ValidData1D[V, R]] =
+  protected override val dataByStartAsc: mutable.TreeMap[DiscreteDomain1D[R], ValidData1D[V, R]] =
     mutable.TreeMap.from(initialData.map(v => v.key -> v))
   require(DiscreteInterval1D.isDisjoint(getAll.map(_.interval)))
+
+  protected override val dataByStartDesc: mutable.TreeMap[DiscreteDomain1D[R], ValidData1D[V, R]] =
+    mutable.TreeMap.from(dataByStartAsc.iterator)(summon[Ordering[DiscreteDomain1D[R]]].reverse)
 
   /**
     * @inheritdoc
@@ -219,13 +222,6 @@ trait DataIn1DBase[V, R: DiscreteValue](
           addValidData(rightRemaining -> overlap.value)
 
     newValueOption.foreach(compressInPlace(this))
-
-  override def getAt(domainIndex: DiscreteDomain1D[R]): Option[V] =
-    dataByStart
-      .rangeTo(domainIndex) // can't be after this
-      .lastOption // can't be before the last one
-      .collect:
-        case (_, data) if domainIndex ∈ data.interval => data.value
 
   override def getIntersecting(interval: DiscreteInterval1D[R]): Iterable[ValidData1D[V, R]] =
     getAll.filter(_.interval intersects interval)

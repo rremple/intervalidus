@@ -74,7 +74,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
 
     val fixture3a = fixture3
       .replaceByKey(
-        (unbounded[LocalDate] x intervalTo(4)).key,
+        (unbounded[LocalDate] x intervalTo(4)).start,
         (unbounded[LocalDate] x intervalTo(3)) -> "Hello"
       )
       .replace(

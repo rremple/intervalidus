@@ -217,8 +217,8 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
     *   a sequence of diff actions that would synchronize it with this.
     */
   def diffActionsFrom(old: DataIn2DBase[V, R1, R2]): Iterable[DiffAction2D[V, R1, R2]] =
-    (dataByStart.keys.toSet ++ old.dataByStart.keys).toList.sorted.flatMap: key =>
-      (old.dataByStart.get(key), dataByStart.get(key)) match
+    (dataByStartDesc.keys.toSet ++ old.dataByStartDesc.keys).toList.sorted.flatMap: key =>
+      (old.dataByStartDesc.get(key), dataByStartDesc.get(key)) match
         case (Some(oldData), Some(newData)) if oldData != newData => Some(DiffAction2D.Update(newData))
         case (None, Some(newData))                                => Some(DiffAction2D.Create(newData))
         case (Some(oldData), None)                                => Some(DiffAction2D.Delete(oldData.key))
@@ -238,9 +238,12 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
 
   // ---------- Implement methods from DimensionalBase ----------
 
-  protected override val dataByStart: mutable.TreeMap[DiscreteDomain2D[R1, R2], ValidData2D[V, R1, R2]] =
+  protected override val dataByStartAsc: mutable.TreeMap[DiscreteDomain2D[R1, R2], ValidData2D[V, R1, R2]] =
     mutable.TreeMap.from(initialData.map(v => v.key -> v))
   require(DiscreteInterval2D.isDisjoint(getAll.map(_.interval)))
+
+  protected override val dataByStartDesc: mutable.TreeMap[DiscreteDomain2D[R1, R2], ValidData2D[V, R1, R2]] =
+    mutable.TreeMap.from(dataByStartAsc.iterator)(summon[Ordering[DiscreteDomain2D[R1, R2]]].reverse)
 
   /**
     * @inheritdoc
@@ -405,13 +408,6 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
             addValidData((horizontalHoleBit x verticalHoleBit) -> newValue) // the hole is updated
 
     newValueOption.foreach(compressInPlace(this))
-
-  override def getAt(domainIndex: DiscreteDomain2D[R1, R2]): Option[V] =
-    dataByStart
-      .rangeTo(domainIndex) // can't be after this
-      .valuesIterator
-      .find(domainIndex ∈ _.interval)
-      .map(_.value)
 
   override def getIntersecting(interval: DiscreteInterval2D[R1, R2]): Iterable[ValidData2D[V, R1, R2]] =
     getAll.filter(_.interval intersects interval)

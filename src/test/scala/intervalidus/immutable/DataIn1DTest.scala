@@ -82,7 +82,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors:
     f3.getAll.toList shouldBe expectedData3
 
     val f3a = f3
-      .replaceByKey(intervalTo(4).key, intervalTo(3) -> "Hello")
+      .replaceByKey(intervalTo(4).start, intervalTo(3) -> "Hello")
       .replace(interval(16, 19) -> "World", interval(15, 20) -> "World!")
     val expectedData3a = testData(
       "Hello" -> intervalTo(3),

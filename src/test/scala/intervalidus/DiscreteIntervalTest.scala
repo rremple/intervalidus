@@ -162,6 +162,9 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
     assert(Bottom belongsTo unbounded[Int])
     assert(Top ∈ unbounded[Int])
 
+    assert((Point(3) x Point(5)) ∈ (intervalTo(5) x intervalTo(7)))
+    assert((Point(3) x Point(5)) belongsTo (intervalTo(5) x intervalTo(7)))
+
     interval(Some(3), Some(5)).fromBottom shouldBe interval(None, Some(5))
     interval(Some(3), Some(5)).fromBottom shouldBe intervalTo(5)
     interval(Some(3), Some(5)).toTop shouldBe interval(Some(3), None)

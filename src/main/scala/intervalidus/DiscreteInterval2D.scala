@@ -32,14 +32,16 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
     */
   infix def withValue[V](value: V): ValidData2D[V, T1, T2] = ValidData2D(value, this)
 
-  override def key: DiscreteDomain2D[T1, T2] = horizontal.start x vertical.start
+  override val start: DiscreteDomain2D[T1, T2] = horizontal.start x vertical.start
+
+  override val end: DiscreteDomain2D[T1, T2] = horizontal.end x vertical.end
 
   override infix def contains(domainElement: DiscreteDomain2D[T1, T2]): Boolean =
     (this.horizontal contains domainElement.horizontalIndex) && (this.vertical contains domainElement.verticalIndex)
 
   override infix def isUnbounded: Boolean = this.horizontal.isUnbounded && this.vertical.isUnbounded
 
-  override def points: Iterator[DiscreteDomain2D[T1, T2]] =
+  override def points: Iterable[DiscreteDomain2D[T1, T2]] =
     for
       horizontalPoint <- horizontal.points
       verticalPoint <- vertical.points

@@ -61,7 +61,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors:
     fixture.getAll.toList shouldBe expectedData3
 
     val f3a = fixture.copy
-    f3a.replaceByKey(intervalTo(4).key, intervalTo(3) -> "Hello")
+    f3a.replaceByKey(intervalTo(4).start, intervalTo(3) -> "Hello")
     f3a.replace(interval(16, 19) -> "World", interval(15, 20) -> "World!")
     val expectedData3a = testData(
       "Hello" -> intervalTo(3),

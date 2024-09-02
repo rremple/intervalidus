@@ -36,14 +36,12 @@ case class DiscreteInterval1D[T: DiscreteValue](
     */
   infix def withValue[V](value: V): ValidData1D[V, T] = ValidData1D(value, this)
 
-  override def key: DiscreteDomain1D[T] = start
-
   override infix def contains(domainElement: DiscreteDomain1D[T]): Boolean =
     start <= domainElement && domainElement <= end
 
   override infix def isUnbounded: Boolean = (this.start equiv Bottom) && (this.end equiv Top)
 
-  override def points: Iterator[DiscreteDomain1D[T]] =
+  override def points: Iterable[DiscreteDomain1D[T]] =
     val discreteValue = summon[DiscreteValue[T]]
 
     def nearest(d: DiscreteDomain1D[T]): DiscreteDomain1D[T] =
@@ -52,7 +50,7 @@ case class DiscreteInterval1D[T: DiscreteValue](
         case Bottom           => Point(discreteValue.minValue)
         case Top              => Point(discreteValue.maxValue)
 
-    Iterator.unfold(Some(interval(nearest(start), nearest(end))): Option[DiscreteInterval1D[T]]):
+    Iterable.unfold(Some(interval(nearest(start), nearest(end))): Option[DiscreteInterval1D[T]]):
       case None => None
       case Some(prevRemaining) =>
         val nextRemaining =
@@ -495,7 +493,7 @@ object DiscreteInterval1D:
     *   a new collection of intervals sorted by the key.
     */
   def sort[T: DiscreteValue](intervals: Iterable[DiscreteInterval1D[T]]): Iterable[DiscreteInterval1D[T]] =
-    intervals.toList.sortBy(_.key)
+    intervals.toList.sortBy(_.start)
 
   /**
     * Finds all intervals, including all overlaps and gaps between intervals, as intervals. Inputs may be overlapping.

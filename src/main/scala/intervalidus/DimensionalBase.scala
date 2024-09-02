@@ -1,5 +1,7 @@
 package intervalidus
 
+import scala.math.Ordering.Implicits.infixOrderingOps
+
 object DimensionalBase:
   /**
     * A discrete domain used to define intervals.
@@ -14,13 +16,17 @@ object DimensionalBase:
     */
   trait IntervalLike[D <: DomainLike: Ordering]:
     /**
-      * When stored in a collection, this aspect of the interval can be used as the key. (E.g., the start of a 1D
+      * The "infimum", i.e., the lower/left boundary of the interval (inclusive). When stored in a collection, this
+      * aspect of the interval can be used as the key. (E.g., the start of a 1D interval, the lower/left corner of a 2D
       * interval).
-      *
-      * @return
-      *   a domain-like key
       */
-    def key: D
+    def start: D
+
+    /**
+      * The "supremum", i.e., the upper/right boundary of the interval (inclusive). Must be greater than or equal to the
+      * start.
+      */
+    def end: D
 
     /**
       * Tests if this interval contains a specific element of the domain.
@@ -40,7 +46,7 @@ object DimensionalBase:
     /**
       * Returns individual discrete domain points in this interval.
       */
-    def points: Iterator[D]
+    def points: Iterable[D]
 
   /**
     * A value that is valid in some discrete interval. This defines a partial function where all domain elements that
@@ -71,7 +77,7 @@ object DimensionalBase:
       * @return
       *   a domain-like key
       */
-    def key: D = interval.key
+    def key: D = interval.start
 
     override def apply(domainIndex: D): V =
       if isDefinedAt(domainIndex) then value else throw new Exception(s"Not defined at $domainIndex")
@@ -92,7 +98,7 @@ import DimensionalBase.{DataLike, DomainLike, IntervalLike}
   * @tparam ValidData
   *   the valid data type. Must be `DataLike` based on V, D, and I.
   */
-trait DimensionalBase[V, D <: DomainLike, I <: IntervalLike[D], ValidData <: DataLike[V, D, I]]
+trait DimensionalBase[V, D <: DomainLike: Ordering, I <: IntervalLike[D], ValidData <: DataLike[V, D, I]]
   extends PartialFunction[D, V]:
 
   protected def newValidData(value: V, interval: I): ValidData
@@ -151,9 +157,15 @@ trait DimensionalBase[V, D <: DomainLike, I <: IntervalLike[D], ValidData <: Dat
 
   /**
     * Internal data structure where all the interval-bounded data are stored, always expected to be disjoint. TreeMap
-    * maintains interval start order.
+    * maintains interval key order.
     */
-  protected def dataByStart: scala.collection.mutable.TreeMap[D, ValidData]
+  protected def dataByStartAsc: scala.collection.mutable.TreeMap[D, ValidData]
+
+  /**
+    * Internal shadow data structure where all the interval-bounded data are also stored, but using the interval key in
+    * reverse order (for much quicker range lookups -- validated in microbenchmarks).
+    */
+  protected def dataByStartDesc: scala.collection.mutable.TreeMap[D, ValidData]
 
   /**
     * Remove, and possibly update, valid values on the target interval. If there are values valid on portions of the
@@ -174,18 +186,6 @@ trait DimensionalBase[V, D <: DomainLike, I <: IntervalLike[D], ValidData <: Dat
     *   a new structure with the same data.
     */
   def copy: DimensionalBase[V, D, I, ValidData]
-
-  /**
-    * Returns a value that is valid in the specified interval domain element. That is, where the specified domain
-    * element is a member of some valid data interval. If no such valid data exists, returns None.
-    *
-    * @param domainIndex
-    *   the domain element where data may be valid. Note that the domain element can be a specific data point or the
-    *   special notions of "bottom" or "top" of the domain.
-    * @return
-    *   Some value if valid at the specified domain element, otherwise None.
-    */
-  def getAt(domainIndex: D): Option[V]
 
   /**
     * Returns all the intervals (compressed) in which there are valid values.
@@ -231,8 +231,10 @@ trait DimensionalBase[V, D <: DomainLike, I <: IntervalLike[D], ValidData <: Dat
     *   valid data to add.
     */
   protected def addValidData(data: ValidData): Unit =
-    // assert(!dataByStart.isDefinedAt(data.key))
-    dataByStart.addOne(data.key -> data)
+    // assert(!dataByStartAsc.isDefinedAt(data.key))
+    // assert(!dataByStartDesc.isDefinedAt(data.key))
+    dataByStartAsc.addOne(data.key -> data)
+    dataByStartDesc.addOne(data.key -> data)
 
   /**
     * Internal mutator to update, where a value with v.key already exists.
@@ -241,8 +243,10 @@ trait DimensionalBase[V, D <: DomainLike, I <: IntervalLike[D], ValidData <: Dat
     *   valid data to update.
     */
   protected def updateValidData(data: ValidData): Unit =
-    // assert(dataByStart.isDefinedAt(data.key))
-    dataByStart.update(data.key, data)
+    // assert(dataByStartAsc.isDefinedAt(data.key))
+    // assert(dataByStartDesc.isDefinedAt(data.key))
+    dataByStartAsc.update(data.key, data)
+    dataByStartDesc.update(data.key, data)
 
   /**
     * Internal mutator to remove, where a value with key already exists.
@@ -251,8 +255,14 @@ trait DimensionalBase[V, D <: DomainLike, I <: IntervalLike[D], ValidData <: Dat
     *   key (interval start) for valid data to remove.
     */
   protected def removeValidDataByKey(key: D): Unit =
-    val previous = dataByStart.remove(key)
-    // assert(previous.isDefined)
+    val previousAsc = dataByStartAsc.remove(key)
+    val previousDesc = dataByStartDesc.remove(key)
+    // assert(previousAsc.isDefined)
+    // assert(previousDesc.isDefined)
+
+  protected def clearValidData(): Unit =
+    dataByStartAsc.clear()
+    dataByStartDesc.clear()
 
   // from PartialFunction
   override def isDefinedAt(key: D): Boolean = getAt(key).isDefined
@@ -280,9 +290,26 @@ trait DimensionalBase[V, D <: DomainLike, I <: IntervalLike[D], ValidData <: Dat
   def getOption: Option[V] = getAll.headOption.filter(_.interval.isUnbounded).map(_.value)
 
   /**
+    * Returns a value that is valid in the specified interval domain element. That is, where the specified domain
+    * element is a member of some valid data interval. If no such valid data exists, returns None.
+    *
+    * @param domainIndex
+    *   the domain element where data may be valid. Note that the domain element can be a specific data point or the
+    *   special notions of "bottom" or "top" of the domain.
+    * @return
+    *   Some value if valid at the specified domain element, otherwise None.
+    */
+  def getAt(domainIndex: D): Option[V] =
+    dataByStartDesc // Using reverse-key order allows us O(1) in 1D and nearly O(1) in 2D
+      .valuesIteratorFrom(domainIndex) // starting at or before the index
+      .takeWhile(_.interval.end >= domainIndex) // improves miss performance
+      .collectFirst:
+        case d if d.interval.contains(domainIndex) => d.value
+
+  /**
     * Returns true when there are no valid data in this structure, otherwise false.
     */
-  def isEmpty: Boolean = dataByStart.isEmpty
+  def isEmpty: Boolean = dataByStartDesc.isEmpty
 
   /**
     * Applies a binary operator to a start value and all valid data, going left to right.
@@ -300,9 +327,6 @@ trait DimensionalBase[V, D <: DomainLike, I <: IntervalLike[D], ValidData <: Dat
   def foldLeft[B](z: B)(op: (B, ValidData) => B): B = getAll.foldLeft(z)(op)
 
   /**
-    * Get all valid data.
-    *
-    * @return
-    *   all valid data in interval order
+    * Get all valid data in interval start order
     */
-  def getAll: Iterable[ValidData] = dataByStart.values
+  def getAll: Iterable[ValidData] = dataByStartAsc.values
