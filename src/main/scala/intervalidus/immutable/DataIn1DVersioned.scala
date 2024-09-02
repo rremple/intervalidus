@@ -1,7 +1,6 @@
 package intervalidus.immutable
 
 import intervalidus.*
-import intervalidus.mutable.DataIn1DVersioned as DataIn1DVersionedMutable
 
 import scala.language.implicitConversions
 import scala.math.Ordering.Implicits.infixOrderingOps
@@ -109,7 +108,7 @@ class DataIn1DVersioned[V, R: DiscreteValue](
 
   import DataIn1DVersionedBase.VersionSelection
 
-  override def toMutable: DataIn1DVersionedMutable[V, R] = DataIn1DVersionedMutable(
+  override def toMutable: mutable.DataIn1DVersioned[V, R] = mutable.DataIn1DVersioned(
     underlying2D.getAll,
     initialVersion,
     Some(currentVersion)

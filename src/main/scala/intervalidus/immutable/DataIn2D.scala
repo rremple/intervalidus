@@ -1,7 +1,6 @@
 package intervalidus.immutable
 
 import intervalidus.*
-import intervalidus.mutable.DataIn2D as DataIn2DMutable
 
 object DataIn2D extends DataIn2DBaseObject:
   override def of[V, R1: DiscreteValue, R2: DiscreteValue](
@@ -37,7 +36,7 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue](
 ) extends DataIn2DBase[V, R1, R2](initialData)
   with ImmutableBase[V, DiscreteDomain2D[R1, R2], DiscreteInterval2D[R1, R2], ValidData2D[V, R1, R2]]:
 
-  override def toMutable: DataIn2DMutable[V, R1, R2] = DataIn2DMutable(getAll)
+  override def toMutable: mutable.DataIn2D[V, R1, R2] = mutable.DataIn2D(getAll)
 
   override def toImmutable: DataIn2D[V, R1, R2] = this
 

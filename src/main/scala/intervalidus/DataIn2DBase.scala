@@ -254,7 +254,7 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
     * partners for 3 of them, so actually there are only 6 unique cases:
     *   1. simple = none + none (1 of 9)
     *   1. edge = none + single or single + none (2 of 9)
-    *   1. slice = single + split or split + single (2 of 9)
+    *   1. slice = none + split or split + none (2 of 9)
     *   1. corner = single + single (1 of 9)
     *   1. bite = single + split or split + single (2 of 9)
     *   1. hole = split + split (1 of 9)

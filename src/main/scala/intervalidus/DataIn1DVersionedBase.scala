@@ -100,16 +100,30 @@ trait DataIn1DVersionedBase[V, R: DiscreteValue](
     (data.interval x versionSelection.intervalFrom) -> data.value
 
   /**
-    * Based on the given version selection context, gets all the data as a 1D structure (immutable)
+    * Based on the given version selection context, gets all the data as a 1D structure (uncompressed, mutable).
+    *
+    * Useful when you don't need the overhead of creating an immutable structure and compressing the data, e.g., if just
+    * doing a `getAt` after version selection, which will give the same answer compressed or uncompressed, mutable or
+    * immutable.
     *
     * @param versionSelection
     *   version selection context for this operation.
     * @return
-    *   new 1D structure meeting version selection criteria.
+    *   new, uncompressed, mutable 1D structure meeting version selection criteria.
     */
-  def getDataIn1D(using versionSelection: VersionSelection): immutable.DataIn1D[V, R] = immutable.DataIn1D(
-    underlying2D.getByVerticalIndex(versionSelection.boundary).getAll
-  )
+  def getDataIn1DMutable(using versionSelection: VersionSelection): mutable.DataIn1D[V, R] =
+    underlying2D.getByVerticalIndex(versionSelection.boundary)
+
+  /**
+    * Based on the given version selection context, gets all the data as a 1D structure (compressed, immutable).
+    *
+    * @param versionSelection
+    *   version selection context for this operation.
+    * @return
+    *   new, compressed, immutable 1D structure meeting version selection criteria.
+    */
+  def getDataIn1D(using versionSelection: VersionSelection): immutable.DataIn1D[V, R] =
+    getDataIn1DMutable.toImmutable.compressAll()
 
   /**
     * Gets all the data in all versions as a 2D structure (immutable)
@@ -225,13 +239,13 @@ trait DataIn1DVersionedBase[V, R: DiscreteValue](
     *   if there isn't any valid data, or valid data are bounded (i.e., take on different values in different
     *   intervals), given the version selection provided.
     */
-  def get(using VersionSelection): V = getDataIn1D.compressAll().get
+  def get(using VersionSelection): V = getDataIn1D.get
 
   /**
     * Returns a Some value if there is a single, unbounded valid value given some version selection context. Otherwise
     * returns None.
     */
-  def getOption(using VersionSelection): Option[V] = getDataIn1D.compressAll().getOption
+  def getOption(using VersionSelection): Option[V] = getDataIn1D.getOption
 
   /**
     * Get all valid data given some version selection context.
@@ -239,7 +253,7 @@ trait DataIn1DVersionedBase[V, R: DiscreteValue](
     * @return
     *   all valid data given some version selection context in interval.start order
     */
-  def getAll(using VersionSelection): Iterable[ValidData1D[V, R]] = getDataIn1D.compressAll().getAll
+  def getAll(using VersionSelection): Iterable[ValidData1D[V, R]] = getDataIn1D.getAll
 
   /**
     * Returns a value that is valid in the specified interval domain element given some version selection context. That
@@ -252,7 +266,7 @@ trait DataIn1DVersionedBase[V, R: DiscreteValue](
     * @return
     *   Some value if valid at the specified domain element, otherwise None.
     */
-  def getAt(r: DiscreteDomain1D[R])(using VersionSelection): Option[V] = getDataIn1D.getAt(r)
+  def getAt(r: DiscreteDomain1D[R])(using VersionSelection): Option[V] = getDataIn1DMutable.getAt(r)
 
   /**
     * Is a value defined at a part of the domain given some version selection context.
@@ -262,7 +276,7 @@ trait DataIn1DVersionedBase[V, R: DiscreteValue](
     * @return
     *   true if data is valid in the specified domain, false otherwise.
     */
-  infix def isValidAt(key: DiscreteDomain1D[R])(using VersionSelection): Boolean = getDataIn1D.isDefinedAt(key)
+  infix def isValidAt(key: DiscreteDomain1D[R])(using VersionSelection): Boolean = getDataIn1DMutable.isDefinedAt(key)
 
   /**
     * Returns all data that are valid on some or all of the provided interval given some version selection context.
@@ -273,7 +287,7 @@ trait DataIn1DVersionedBase[V, R: DiscreteValue](
     *   all data that are valid on some or all of the interval (some intersection).
     */
   def getIntersecting(interval: DiscreteInterval1D[R])(using VersionSelection): Iterable[ValidData1D[V, R]] =
-    getDataIn1D.compressAll().getIntersecting(interval)
+    getDataIn1D.getIntersecting(interval)
 
   /**
     * Are there values that are valid on some or all of the provided interval given some version selection context?
@@ -284,9 +298,9 @@ trait DataIn1DVersionedBase[V, R: DiscreteValue](
     *   true if there are values that are valid somewhere on the interval.
     */
   infix def intersects(interval: DiscreteInterval1D[R])(using VersionSelection): Boolean =
-    getDataIn1D intersects interval
+    getDataIn1DMutable intersects interval
 
   /**
     * Returns all the intervals (compressed) in which there are valid values given some version selection context.
     */
-  def domain(using VersionSelection): Iterable[DiscreteInterval1D[R]] = getDataIn1D.domain
+  def domain(using VersionSelection): Iterable[DiscreteInterval1D[R]] = getDataIn1DMutable.domain

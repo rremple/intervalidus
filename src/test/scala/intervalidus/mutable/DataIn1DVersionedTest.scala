@@ -187,12 +187,12 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     fixture1.compress("Hello")
     val expectedData1 =
       testData("Hello" -> intervalTo(4), "World" -> intervalAt(5), "World" -> intervalAt(6), "Hello" -> intervalFrom(7))
-    fixture1.getDataIn1D.getAll.toList shouldBe expectedData1
+    fixture1.getDataIn1DMutable.getAll.toList shouldBe expectedData1
 
     val fixture2 = DataIn1DVersioned.from(allData)
     fixture2.compressAll()
     val expectedData2 = testData("Hello" -> intervalTo(4), "World" -> interval(5, 6), "Hello" -> intervalFrom(7))
-    fixture2.getDataIn1D.getAll.toList shouldBe expectedData2
+    fixture2.getDataIn1DMutable.getAll.toList shouldBe expectedData2
 
   test("Mutable: Updating data in intervals"):
     val one: DataIn1DVersioned[String, Int] = DataIn1DVersioned.of("value")

@@ -1,7 +1,6 @@
 package intervalidus.immutable
 
 import intervalidus.*
-import intervalidus.mutable.DataIn1D as DataIn1DMutable
 
 object DataIn1D extends DataIn1DBaseObject:
   override def of[V, R: DiscreteValue](
@@ -30,7 +29,7 @@ class DataIn1D[V, R: DiscreteValue](
 ) extends DataIn1DBase[V, R](initialData)
   with ImmutableBase[V, DiscreteDomain1D[R], DiscreteInterval1D[R], ValidData1D[V, R]]:
 
-  override def toMutable: DataIn1DMutable[V, R] = DataIn1DMutable(getAll)
+  override def toMutable: mutable.DataIn1D[V, R] = mutable.DataIn1D(getAll)
 
   override def toImmutable: DataIn1D[V, R] = this
 
