@@ -42,9 +42,7 @@ immutable -- to address storage and management of data like this. For more infor
 You could use Intervalidus `DataIn1D` to represent the above as a one-dimensional structure like this:
 
 ```scala
-import LocalDate.of
-
-as date
+import LocalDate.of as date
 
 import intervalidus.DiscreteInterval1D.*
 import intervalidus.mutable.DataIn1D
@@ -172,7 +170,7 @@ These mutation methods return a new structure when using immutable and `Unit` wh
 - `map` / `mapValues`
 - `flatMap`
 - `applyDiffActions` / `syncWith`
-- `compress` / `compressAll`
+- `compress` / `compressAll` / `recompressAll`
 
 ## Using and Extending
 
@@ -234,15 +232,15 @@ anything unapproved.
 ## Software Structure
 
 Below is the class diagram for the core bits of Intervalidus:
-![core class diagram](/doc/intervalidus-core.png)
+![core class diagram](/doc/intervalidus-core.svg)
 
 As described above, `DataIn1DVersioned` leverages the core classes to provide specific functionality you might want when
 versioning data (such as approval). Below is the class diagram for it:
-![versioned class diagram](/doc/intervalidus-versioned.png)
+![versioned class diagram](/doc/intervalidus-versioned.svg)
 
 Lastly, the definitions and implementations of methods across mutable/immutable and one-dimensional/two-dimensional 
 variants have been made as generic as possible to avoid repetitive code/scaladoc (DRY). However, this can make it
 harder to navigate to these methods. The following (rather unorthodox) diagram shows where to find each method in a
 kind of Venn-like way, where overlaps indicate a definition (and documentation) is in the lower trait with the
 implementation in the higher, inheriting trait/class:
-![trait stack diagram](/doc/intervalidus-trait-stack.png)
+![trait stack diagram](/doc/intervalidus-trait-stack.svg)

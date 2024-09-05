@@ -134,6 +134,26 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
       (this isLowerAdjacentTo that) || (this isUpperAdjacentTo that)
 
   /**
+    * Returns true only if this and that have the same start.
+    *
+    * @param that
+    *   the interval to test.
+    */
+  infix def hasSameStartAs(that: DiscreteInterval2D[T1, T2]): Boolean =
+    (horizontal hasSameStartAs that.horizontal) &&
+      (vertical hasSameStartAs that.vertical)
+
+  /**
+    * Returns true only if this and that have the same end.
+    *
+    * @param that
+    *   the interval to test.
+    */
+  infix def hasSameEndAs(that: DiscreteInterval2D[T1, T2]): Boolean =
+    (horizontal hasSameEndAs that.horizontal) &&
+      (vertical hasSameEndAs that.vertical)
+
+  /**
     * Returns true only if this and that have elements of the domain in common (not disjoint).
     *
     * @param that
@@ -362,3 +382,24 @@ object DiscreteInterval2D:
       .filter(_.horizontal.start <= r.horizontal.start) // by symmetry
       .filterNot(_ equiv r)
       .exists(_ intersects r)
+
+  /**
+    * Finds all intervals, including all overlaps and gaps between intervals, as intervals. Inputs may be overlapping.
+    * The result is disjoint and covers the span of the input intervals.
+    *
+    * @param intervals
+    *   collection of intervals
+    * @tparam T1
+    *   a discrete value type for this interval's horizontal domain.
+    * @tparam T2
+    *   a discrete value type for this interval's vertical domain.
+    * @return
+    *   a new collection of intervals representing disjoint intervals covering the span of the input.
+    */
+  def uniqueIntervals[T1: DiscreteValue, T2: DiscreteValue](
+    intervals: Iterable[DiscreteInterval2D[T1, T2]]
+  ): Iterable[DiscreteInterval2D[T1, T2]] =
+    for
+      horizontal <- DiscreteInterval1D.uniqueIntervals(intervals.map(_.horizontal))
+      vertical <- DiscreteInterval1D.uniqueIntervals(intervals.map(_.vertical))
+    yield horizontal x vertical

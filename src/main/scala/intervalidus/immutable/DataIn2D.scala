@@ -66,6 +66,17 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue](
   def syncWith(that: DataIn2D[V, R1, R2]): DataIn2D[V, R1, R2] = applyDiffActions(that.diffActionsFrom(this))
 
   /**
+    * Unlike in 1D, there is no unique compression in 2D. For example {[1..5], [1..2]} + {[1..2], [3..4]} could also be
+    * represented physically as {[1..2], [1..4]} + {[3..5], [1..2]}.
+    *
+    * This method decompresses data so there is a unique arrangement of "atomic" intervals. In the above example, that
+    * would be the following "atomic" intervals: {[1..2], [1..2]} + {[3..5], [1..2]} + {[1..2], [3..4]}. Then it
+    * recompresses the data, which results in a unique physical representation. It may be useful when comparing two
+    * structures to see if they are logically equivalent even if, physically, they differ in how they are compressed.
+    */
+  def recompressAll(): DataIn2D[V, R1, R2] = copyAndModify(_.recompressInPlace())
+
+  /**
     * Applies a function to all valid data. Both the valid data value and interval types can be changed in the mapping.
     *
     * @param f
@@ -134,7 +145,7 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue](
   override def domain: Iterable[DiscreteInterval2D[R1, R2]] =
     // leverage compression logic by setting all the values as being the same thing
     val r = mapValues(_ => ())
-    r.compressInPlace(r)(())
+    r.recompressInPlace()
     r.getAll.map(_.interval)
 
   // ---------- Implement methods from DataIn2DBase ----------
@@ -164,13 +175,13 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue](
   override def set(newData: ValidData2D[V, R1, R2]): DataIn2D[V, R1, R2] = copyAndModify: result =>
     result.updateOrRemove(newData.interval, None)
     result.addValidData(newData)
-    compressInPlace(result)(newData.value)
+    result.compressInPlace(result)(newData.value)
 
   override def setIfNoConflict(newData: ValidData2D[V, R1, R2]): Option[DataIn2D[V, R1, R2]] =
     if getIntersecting(newData.interval).isEmpty then
       Some(copyAndModify: result =>
         result.addValidData(newData)
-        compressInPlace(result)(newData.value)
+        result.compressInPlace(result)(newData.value)
       )
     else None
 

@@ -71,12 +71,12 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
 
     val fixture3a = fixture.copy
     fixture3a.replaceByKey(
-      (unbounded[LocalDate] x intervalTo(4)).start,
-      (unbounded[LocalDate] x intervalTo(3)) -> "Hello"
+      vertical2D(intervalTo(4)).start,
+      vertical2D(intervalTo(3)) -> "Hello"
     )
     fixture3a.replace(
-      (unbounded[LocalDate] x interval(16, 19)) -> "World",
-      (unbounded[LocalDate] x interval(15, 20)) -> "World!"
+      vertical2D(interval(16, 19)) -> "World",
+      vertical2D(interval(15, 20)) -> "World!"
     )
     val expectedData3a = testData(
       ("Hello", unbounded, intervalTo(3)),
@@ -86,6 +86,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
     fixture3a.getAll.toList shouldBe expectedData3a
 
     fixture.set(vertical2D(intervalFrom(20)) -> "World")
+    // needed? fixture.recompressAll()
     val expectedData4 = testData(
       ("Hey", unbounded, intervalTo(4)),
       ("to", unbounded, interval(5, 15)),
@@ -101,6 +102,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
 
     fixture.set((intervalFrom(day(1)) x intervalFrom(1)) -> "remove me")
     fixture.remove(intervalFrom(day(1)) x intervalFrom(1))
+    // needed? fixture.recompressAll()
     val expectedData6 = testData(
       ("Hey", unbounded, intervalTo(0)),
       ("Hey", intervalTo(day(0)), interval(1, 4)),
@@ -258,7 +260,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
 
     fixture.set((intervalFrom(day(0)) x intervalFrom(1)) -> "update me")
     fixture.update((intervalFrom(day(1)) x intervalFrom(0)) -> "update me")
-    fixture.compressAll()
+    // needed? fixture.recompressAll()
     val expectedData4 = testData(
       ("Hello", unbounded, intervalTo(-6)),
       ("World!", unbounded, interval(-5, -2)),
@@ -272,10 +274,9 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
 
     fixture.getAll.toList shouldBe expectedData4
     fixture.domain.toList shouldBe List(
-      unbounded[LocalDate] x intervalTo(0), // first four
-      intervalTo(day(-1)) x intervalAt(1),
-      intervalTo(day(-1)) x intervalFrom(10),
-      intervalFrom(day(0)) x intervalFrom(1) // last two
+      vertical2D(intervalTo(1)),
+      vertical2D(intervalFrom(10)),
+      intervalFrom(day(0)) x interval(2, 9)
     )
 
   /*
@@ -372,6 +373,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
     // lower left
     val fixture1 = DataIn2D(allData)
     fixture1.remove(interval(day(-15), day(-8)) x interval(3, 5))
+    // needed? fixture1.recompressAll()
     val expectedData1 = testData(
       ("World", interval(day(-14), day(14)), interval(6, 7)),
       ("World", interval(day(-7), day(14)), interval(4, 5))
@@ -381,6 +383,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
     // upper left
     val fixture2 = DataIn2D(allData)
     fixture2.remove(interval(day(-15), day(-8)) x interval(6, 8))
+    // needed? fixture2.recompressAll()
     val expectedData2 = testData(
       ("World", interval(day(-14), day(14)), interval(4, 5)),
       ("World", interval(day(-7), day(14)), interval(6, 7))
@@ -390,15 +393,17 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
     // lower right
     val fixture3 = DataIn2D(allData)
     fixture3.remove(interval(day(8), day(15)) x interval(3, 5))
+    fixture3.recompressAll()
     val expectedData3 = testData(
-      ("World", interval(day(-14), day(7)), interval(4, 5)),
-      ("World", interval(day(-14), day(14)), interval(6, 7))
+      ("World", interval(day(-14), day(7)), interval(4, 7)),
+      ("World", interval(day(8), day(14)), interval(6, 7))
     )
     fixture3.getAll.toList shouldBe expectedData3
 
     // upper right
     val fixture4 = DataIn2D(allData)
     fixture4.remove(interval(day(8), day(15)) x interval(6, 8))
+    // needed? fixture4.recompressAll()
     val expectedData4 = testData(
       ("World", interval(day(-14), day(14)), interval(4, 5)),
       ("World", interval(day(-14), day(7)), interval(6, 7))
@@ -413,6 +418,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
     // bite left
     val fixture1 = DataIn2D(allData)
     fixture1.remove(interval(day(-15), day(-8)) x interval(5, 6))
+    fixture1.recompressAll()
     val expectedData1 = testData(
       ("World", interval(day(-14), day(14)), intervalAt(4)),
       ("World", interval(day(-14), day(14)), intervalAt(7)),
@@ -423,31 +429,34 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
     // bite right
     val fixture2 = DataIn2D(allData)
     fixture2.remove(interval(day(8), day(15)) x interval(5, 6))
+    fixture2.recompressAll()
     val expectedData2 = testData(
       ("World", interval(day(-14), day(14)), intervalAt(4)),
-      ("World", interval(day(-14), day(7)), interval(5, 6)),
-      ("World", interval(day(-14), day(14)), intervalAt(7))
+      ("World", interval(day(-14), day(7)), interval(5, 7)),
+      ("World", interval(day(8), day(14)), intervalAt(7))
     )
     fixture2.getAll.toList shouldBe expectedData2
 
     // bite below
     val fixture3 = DataIn2D(allData)
     fixture3.remove(interval(day(-6), day(6)) x interval(3, 5))
+    // needed? fixture3.recompressAll()
 
     val expectedData3 = testData(
       ("World", interval(day(-14), day(-7)), interval(4, 7)),
-      ("World", interval(day(-6), day(6)), interval(6, 7)),
-      ("World", interval(day(7), day(14)), interval(4, 7))
+      ("World", interval(day(-6), day(14)), interval(6, 7)),
+      ("World", interval(day(7), day(14)), interval(4, 5))
     )
     fixture3.getAll.toList shouldBe expectedData3
 
     // bite above
     val fixture4 = DataIn2D(allData)
     fixture4.remove(interval(day(-6), day(6)) x interval(6, 8))
+    fixture4.recompressAll()
     val expectedData4 = testData(
-      ("World", interval(day(-14), day(-7)), interval(4, 7)),
-      ("World", interval(day(-6), day(6)), interval(4, 5)),
-      ("World", interval(day(7), day(14)), interval(4, 7))
+      ("World", interval(day(-14), day(14)), interval(4, 5)),
+      ("World", interval(day(-14), day(-7)), interval(6, 7)),
+      ("World", interval(day(7), day(14)), interval(6, 7))
     )
     fixture4.getAll.toList shouldBe expectedData4
 
@@ -457,10 +466,11 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
     )
     val fixture1 = DataIn2D(allData)
     fixture1.remove(interval(day(-6), day(6)) x interval(5, 6))
+    fixture1.recompressAll()
     val expectedData1 = testData(
       ("World", interval(day(-14), day(14)), intervalAt(4)),
-      ("World", interval(day(-14), day(-7)), interval(5, 6)),
-      ("World", interval(day(-14), day(14)), intervalAt(7)),
+      ("World", interval(day(-14), day(-7)), interval(5, 7)),
+      ("World", interval(day(-6), day(14)), intervalAt(7)),
       ("World", interval(day(7), day(14)), interval(5, 6))
     )
     fixture1.getAll.toList shouldBe expectedData1
@@ -557,6 +567,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
     // lower left
     val fixture1 = DataIn2D(allData)
     fixture1.update((interval(day(-15), day(-8)) x interval(3, 5)) -> "update")
+    // needed? fixture1.recompressAll()
     val expectedData1 = testData(
       ("update", interval(day(-14), day(-8)), interval(4, 5)),
       ("World", interval(day(-14), day(14)), interval(6, 7)),
@@ -567,6 +578,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
     // upper left
     val fixture2 = DataIn2D(allData)
     fixture2.update((interval(day(-15), day(-8)) x interval(6, 8)) -> "update")
+    // needed? fixture2.recompressAll()
     val expectedData2 = testData(
       ("World", interval(day(-14), day(14)), interval(4, 5)),
       ("update", interval(day(-14), day(-8)), interval(6, 7)),
@@ -577,16 +589,18 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
     // lower right
     val fixture3 = DataIn2D(allData)
     fixture3.update((interval(day(8), day(15)) x interval(3, 5)) -> "update")
+    fixture3.recompressAll()
     val expectedData3 = testData(
-      ("World", interval(day(-14), day(7)), interval(4, 5)),
-      ("World", interval(day(-14), day(14)), interval(6, 7)),
-      ("update", interval(day(8), day(14)), interval(4, 5))
+      ("World", interval(day(-14), day(7)), interval(4, 7)),
+      ("update", interval(day(8), day(14)), interval(4, 5)),
+      ("World", interval(day(8), day(14)), interval(6, 7))
     )
     fixture3.getAll.toList shouldBe expectedData3
 
     // upper right
     val fixture4 = DataIn2D(allData)
     fixture4.update((interval(day(8), day(15)) x interval(6, 8)) -> "update")
+    // needed? fixture4.recompressAll()
     val expectedData4 = testData(
       ("World", interval(day(-14), day(14)), interval(4, 5)),
       ("World", interval(day(-14), day(7)), interval(6, 7)),
@@ -602,6 +616,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
     // bite left
     val fixture1 = DataIn2D(allData)
     fixture1.update((interval(day(-15), day(-8)) x interval(5, 6)) -> "update")
+    fixture1.recompressAll()
     val expectedData1 = testData(
       ("World", interval(day(-14), day(14)), intervalAt(4)),
       ("update", interval(day(-14), day(-8)), interval(5, 6)),
@@ -613,34 +628,36 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
     // bite right
     val fixture2 = DataIn2D(allData)
     fixture2.update((interval(day(8), day(15)) x interval(5, 6)) -> "update")
+    fixture2.recompressAll()
     val expectedData2 = testData(
       ("World", interval(day(-14), day(14)), intervalAt(4)),
-      ("World", interval(day(-14), day(7)), interval(5, 6)),
-      ("World", interval(day(-14), day(14)), intervalAt(7)),
-      ("update", interval(day(8), day(14)), interval(5, 6))
+      ("World", interval(day(-14), day(7)), interval(5, 7)),
+      ("update", interval(day(8), day(14)), interval(5, 6)),
+      ("World", interval(day(8), day(14)), intervalAt(7))
     )
     fixture2.getAll.toList shouldBe expectedData2
 
     // bite below
     val fixture3 = DataIn2D(allData)
     fixture3.update((interval(day(-6), day(6)) x interval(3, 5)) -> "update")
-
+    // needed? fixture3.recompressAll()
     val expectedData3 = testData(
       ("World", interval(day(-14), day(-7)), interval(4, 7)),
       ("update", interval(day(-6), day(6)), interval(4, 5)),
-      ("World", interval(day(-6), day(6)), interval(6, 7)),
-      ("World", interval(day(7), day(14)), interval(4, 7))
+      ("World", interval(day(-6), day(14)), interval(6, 7)),
+      ("World", interval(day(7), day(14)), interval(4, 5))
     )
     fixture3.getAll.toList shouldBe expectedData3
 
     // bite above
     val fixture4 = DataIn2D(allData)
     fixture4.update((interval(day(-6), day(6)) x interval(6, 8)) -> "update")
+    fixture4.recompressAll()
     val expectedData4 = testData(
-      ("World", interval(day(-14), day(-7)), interval(4, 7)),
-      ("World", interval(day(-6), day(6)), interval(4, 5)),
+      ("World", interval(day(-14), day(14)), interval(4, 5)),
+      ("World", interval(day(-14), day(-7)), interval(6, 7)),
       ("update", interval(day(-6), day(6)), interval(6, 7)),
-      ("World", interval(day(7), day(14)), interval(4, 7))
+      ("World", interval(day(7), day(14)), interval(6, 7))
     )
     fixture4.getAll.toList shouldBe expectedData4
 
@@ -650,11 +667,12 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
     )
     val fixture1 = DataIn2D(allData)
     fixture1.update((interval(day(-6), day(6)) x interval(5, 6)) -> "update")
+    fixture1.recompressAll()
     val expectedData1 = testData(
       ("World", interval(day(-14), day(14)), intervalAt(4)),
-      ("World", interval(day(-14), day(-7)), interval(5, 6)),
-      ("World", interval(day(-14), day(14)), intervalAt(7)),
+      ("World", interval(day(-14), day(-7)), interval(5, 7)),
       ("update", interval(day(-6), day(6)), interval(5, 6)),
+      ("World", interval(day(-6), day(14)), intervalAt(7)),
       ("World", interval(day(7), day(14)), interval(5, 6))
     )
     fixture1.getAll.toList shouldBe expectedData1

@@ -312,10 +312,17 @@ class DataIn1DVersioned[V, R: DiscreteValue](
   def compress(value: V): DataIn1DVersioned[V, R] = copyAndModify(_.underlying2D.compress(value))
 
   /**
-    * Compress out adjacent intervals with the same value for all values. Does not use a version selection context -- *
+    * Compress out adjacent intervals with the same value for all values. Does not use a version selection context --
     * operates on full underlying 2D structure. (Shouldn't ever need to do this.)
     */
   def compressAll(): DataIn1DVersioned[V, R] = copyAndModify(_.underlying2D.compressAll())
+
+  /**
+    * Compress out adjacent intervals with the same value for all values after decompressing everything, resulting in a
+    * unique physical representation. Does not use a version selection context -- operates on full underlying 2D
+    * structure. (Shouldn't ever need to do this.)
+    */
+  def recompressAll(): DataIn1DVersioned[V, R] = copyAndModify(_.underlying2D.recompressAll())
 
   // --- API methods unique to this "versioned" variant
 
@@ -358,7 +365,7 @@ class DataIn1DVersioned[V, R: DiscreteValue](
         ),
       initialVersion,
       Some(version)
-    )
+    ).compressAll()
 
   /**
     * Creates a new structure based on the version selection context, but without any version history.

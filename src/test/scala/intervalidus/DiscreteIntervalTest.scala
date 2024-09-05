@@ -116,6 +116,9 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
       (3, 3)
     ).map((t1, t2) => Point(t1) x Point(t2))
 
+    assert(interval2d(1, 2, 3, 4) hasSameStartAs interval2dFrom(1, 3))
+    assert(interval2d(1, 2, 3, 4) hasSameEndAs interval2dTo(2, 4))
+
   test("Int interval intersections"):
     assert(!(interval(3, 4) intersects interval(1, 2)))
     assert(interval(1, 3) intersects interval(2, 4))

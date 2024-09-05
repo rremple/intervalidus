@@ -264,6 +264,11 @@ trait DimensionalBase[V, D <: DomainLike: Ordering, I <: IntervalLike[D], ValidD
     dataByStartAsc.clear()
     dataByStartDesc.clear()
 
+  protected def replaceValidData(data: Iterable[ValidData]): Unit =
+    clearValidData()
+    dataByStartAsc.addAll(data.map(d => d.key -> d))
+    dataByStartDesc.addAll(dataByStartAsc)
+
   // from PartialFunction
   override def isDefinedAt(key: D): Boolean = getAt(key).isDefined
 
