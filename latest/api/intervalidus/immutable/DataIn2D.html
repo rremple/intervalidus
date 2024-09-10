@@ -759,6 +759,35 @@ node8 -> node1;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="recompressAll-cbd">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DataIn2D.html#recompressAll-cbd" t="n" class="documentableName ">recompressAll</a>(<span t="k"></span>): <a href="DataIn2D.html" t="t">DataIn2D</a>[<span t="t">V</span>, <span t="t">R1</span>, <span t="t">R2</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Unlike in 1D, there is no unique compression in 2D. For example {[1..5], [1..2]} + {[1..2], [3..4]} could also be represented physically as {[1..2], [1..4]} + {[3..5], [1..2]}.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Unlike in 1D, there is no unique compression in 2D. For example {[1..5], [1..2]} + {[1..2], [3..4]} could also be represented physically as {[1..2], [1..4]} + {[3..5], [1..2]}.</p>
+              <p>This method decompresses data so there is a unique arrangement of "atomic" intervals. In the above example, that would be the following "atomic" intervals: {[1..2], [1..2]} + {[3..5], [1..2]} + {[1..2], [3..4]}. Then it recompresses the data, which results in a unique physical representation. It may be useful when comparing two structures to see if they are logically equivalent even if, physically, they differ in how they are compressed.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="remove-23d" data-f-keywords="override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -1547,11 +1576,11 @@ node8 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Internal method, to compress in place. Structure is parameterized to support both mutable and immutable compression. (Immutable compression acts on a copy.) Assumes caller does synchronization (if needed). TODO: address intersections.</p>
+             <p>Internal method, to compress in place. Structure is parameterized to support both mutable and immutable compression. (Immutable compression acts on a copy.) Assumes caller does synchronization (if needed). Assumes underlying data are disjoint, so no need to address intersections.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Internal method, to compress in place. Structure is parameterized to support both mutable and immutable compression. (Immutable compression acts on a copy.) Assumes caller does synchronization (if needed). TODO: address intersections.</p>
+              <p>Internal method, to compress in place. Structure is parameterized to support both mutable and immutable compression. (Immutable compression acts on a copy.) Assumes caller does synchronization (if needed). Assumes underlying data are disjoint, so no need to address intersections.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -2246,6 +2275,42 @@ node8 -> node1;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="recompressInPlace-94c" data-f-visibility="protected" data-f-inherited="DataIn2DBase">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">protected </span></span><span class="kind"><span t="k">def </span></span><a href="DataIn2D.html#recompressInPlace-94c" t="n" class="documentableName ">recompressInPlace</a>(<span t="k"></span>): <span data-unresolved-link="" t="t">Unit</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Unlike in 1D, there is no unique compression in 2D. For example {[1..5], [1..2]} + {[1..2], [3..4]} could also be represented physically as {[1..2], [1..4]} + {[3..5], [1..2]}.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Unlike in 1D, there is no unique compression in 2D. For example {[1..5], [1..2]} + {[1..2], [3..4]} could also be represented physically as {[1..2], [1..4]} + {[3..5], [1..2]}.</p>
+              <p>This method decompresses data so there is a unique arrangement of "atomic" intervals. In the above example, that would be the following "atomic" intervals: {[1..2], [1..2]} + {[3..5], [1..2]} + {[1..2], [3..4]}. Then it recompresses the data, which results in a unique physical representation. It may be useful when comparing two structures to see if they are logically equivalent even if, physically, they differ in how they are compressed.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="../DataIn2DBase.html#recompressInPlace-94c">DataIn2DBase</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="runWith-51" data-f-inherited="PartialFunction">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -2379,11 +2444,11 @@ node8 -> node1;
               <p>More specifically, this gets a bit complicated because there are two dimensions. Exclusions in one dimension can have three remainders: none (simple), single (partial), and split. But two dimensional exclusions have these same three remainders in each dimension, so there are a total of 3 x 3 = 9 remainder cases. But there are symmetric partners for 3 of them, so actually there are only 6 unique cases:</p>
               <ol>
                <li>simple = none + none (1 of 9)</li>
+               <li>corner = single + single (1 of 9)</li>
+               <li>hole = split + split (1 of 9)</li>
                <li>edge = none + single or single + none (2 of 9)</li>
                <li>slice = none + split or split + none (2 of 9)</li>
-               <li>corner = single + single (1 of 9)</li>
                <li>bite = single + split or split + single (2 of 9)</li>
-               <li>hole = split + split (1 of 9)</li>
               </ol>
              </div>
              <h2 class="h200">Value parameters</h2>

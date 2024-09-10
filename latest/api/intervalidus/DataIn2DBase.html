@@ -13,7 +13,7 @@
 <div class="cover">
  <div class="doc">
   <p>Like <a href="DataIn1DBase.html">DataIn1DBase</a>, data here have different values in different discrete intervals. But here data values vary in two dimensions. For example, one may want to represent when the data are valid in time and over certain versions simultaneously.</p>
-  <p>We can capture the dependency between various values and related two-dimensional intervals cohesively in this structure rather than in separate data structures using distributed (and potentially inconsistent) logic. This is especially important for managing mutation, which can be a bit complex in two dimensions. Note that visualizing two dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there is a simple Visualize tool provided (in the test package... though maybe this should be its own separate subproject).</p>
+  <p>We can capture the dependency between various values and related two-dimensional intervals cohesively in this structure rather than in separate data structures using distributed (and potentially inconsistent) logic. This is especially important for managing mutation, which can be a bit complex in two dimensions. Note that visualizing two-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there is a simple Visualize tool provided (in the test package... though maybe this should be its own separate subproject).</p>
  </div>
  <section id="attributes">
   <h2 class="h500">Type parameters</h2>
@@ -401,11 +401,11 @@ node8 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Internal method, to compress in place. Structure is parameterized to support both mutable and immutable compression. (Immutable compression acts on a copy.) Assumes caller does synchronization (if needed). TODO: address intersections.</p>
+             <p>Internal method, to compress in place. Structure is parameterized to support both mutable and immutable compression. (Immutable compression acts on a copy.) Assumes caller does synchronization (if needed). Assumes underlying data are disjoint, so no need to address intersections.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Internal method, to compress in place. Structure is parameterized to support both mutable and immutable compression. (Immutable compression acts on a copy.) Assumes caller does synchronization (if needed). TODO: address intersections.</p>
+              <p>Internal method, to compress in place. Structure is parameterized to support both mutable and immutable compression. (Immutable compression acts on a copy.) Assumes caller does synchronization (if needed). Assumes underlying data are disjoint, so no need to address intersections.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -634,6 +634,35 @@ node8 -> node0;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="recompressInPlace-94c" data-f-visibility="protected">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">protected </span></span><span class="kind"><span t="k">def </span></span><a href="DataIn2DBase.html#recompressInPlace-94c" t="n" class="documentableName ">recompressInPlace</a>(<span t="k"></span>): <span data-unresolved-link="" t="t">Unit</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Unlike in 1D, there is no unique compression in 2D. For example {[1..5], [1..2]} + {[1..2], [3..4]} could also be represented physically as {[1..2], [1..4]} + {[3..5], [1..2]}.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Unlike in 1D, there is no unique compression in 2D. For example {[1..5], [1..2]} + {[1..2], [3..4]} could also be represented physically as {[1..2], [1..4]} + {[3..5], [1..2]}.</p>
+              <p>This method decompresses data so there is a unique arrangement of "atomic" intervals. In the above example, that would be the following "atomic" intervals: {[1..2], [1..2]} + {[3..5], [1..2]} + {[1..2], [3..4]}. Then it recompresses the data, which results in a unique physical representation. It may be useful when comparing two structures to see if they are logically equivalent even if, physically, they differ in how they are compressed.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="toString-0" data-f-keywords="override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -701,11 +730,11 @@ node8 -> node0;
               <p>More specifically, this gets a bit complicated because there are two dimensions. Exclusions in one dimension can have three remainders: none (simple), single (partial), and split. But two dimensional exclusions have these same three remainders in each dimension, so there are a total of 3 x 3 = 9 remainder cases. But there are symmetric partners for 3 of them, so actually there are only 6 unique cases:</p>
               <ol>
                <li>simple = none + none (1 of 9)</li>
+               <li>corner = single + single (1 of 9)</li>
+               <li>hole = split + split (1 of 9)</li>
                <li>edge = none + single or single + none (2 of 9)</li>
                <li>slice = none + split or split + none (2 of 9)</li>
-               <li>corner = single + single (1 of 9)</li>
                <li>bite = single + split or split + single (2 of 9)</li>
-               <li>hole = split + split (1 of 9)</li>
               </ol>
              </div>
              <h2 class="h200">Value parameters</h2>
