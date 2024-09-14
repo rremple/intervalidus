@@ -1,5 +1,6 @@
 package intervalidus
 
+import org.scalatest.compatible.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
@@ -42,6 +43,7 @@ trait DataIn2DBaseBehaviors:
 
     val bounded = (intervalFrom(0) x intervalTo(0)) -> "Hello world"
     bounded.toString shouldBe "{[0..+∞), (-∞..0]} -> Hello world"
+    bounded.toCodeLikeString shouldBe "(intervalFrom(0) x intervalTo(0)) -> \"Hello world\""
     assert(bounded.isDefinedAt(DiscreteDomain2D(0, 0)))
     assert(!bounded.isDefinedAt(DiscreteDomain2D(-1, 0)))
     bounded(DiscreteDomain2D(0, 0)) shouldBe "Hello world"
@@ -101,3 +103,129 @@ trait DataIn2DBaseBehaviors:
       (("<", "World"), unbounded, interval(21, 24))
     )
     fixture4.getAll.toList shouldBe expected4
+
+  /*
+   * Two-dimensional removals and updates can have 3 x 3 = 9 cases. But there is symmetry for 3 of
+   * them, so logically only 6:
+   *  (1) simple + simple = simple (1)
+   *  (2) simple + partial or partial + simple = edge (2), each with or without a common start
+   *  (3) simple + split or split + simple = slice (2), vertical or horizontal
+   *  (4) partial + partial = corner (1)
+   *  (5) partial + split or split + partial = bite (2)
+   *  (6) split + split = hole (1)
+   */
+  protected def assertRemoveOrUpdateResult(
+    removeExpectedUnsorted: ValidData2D[String, LocalDate, Int]*
+  )(
+    removeOrUpdateInterval: DiscreteInterval2D[LocalDate, Int],
+    updateValue: String = "update"
+  ): Assertion
+
+  def removeOrUpdateTests(prefix: String): Unit =
+    test(s"$prefix: All remove/update by interval - (1) simple + simple = simple"):
+      assertRemoveOrUpdateResult()(
+        interval(day(-14), day(14)) x interval(4, 7)
+      )
+      assertRemoveOrUpdateResult()(
+        interval(day(-15), day(15)) x interval(3, 8)
+      )
+
+    test(s"$prefix: All remove/update by interval - (2) simple + partial or partial + simple = edge (2)"):
+      // each with or without a common start
+
+      // partial + simple, to the right (remainder with common start)
+      assertRemoveOrUpdateResult(
+        (interval(day(-14), day(7)) x interval(4, 7)) -> "World"
+      )(interval(day(8), day(14)) x interval(3, 8))
+
+      // partial + simple, to the left (remainder does not have a common start)
+      assertRemoveOrUpdateResult(
+        (interval(day(0), day(14)) x interval(4, 7)) -> "World"
+      )(interval(day(-15), day(-1)) x interval(3, 8))
+
+      // simple + partial, above (remainder with common start)
+      assertRemoveOrUpdateResult(
+        (interval(day(-14), day(14)) x interval(4, 5)) -> "World"
+      )(interval(day(-15), day(15)) x interval(6, 8))
+
+      // simple + partial, below (remainder does not have a common start)
+      assertRemoveOrUpdateResult(
+        (interval(day(-14), day(14)) x interval(6, 7)) -> "World"
+      )(interval(day(-15), day(15)) x interval(1, 5))
+
+    test(s"$prefix: All remove/update by interval - (3) simple + split or split + simple = slice (2)"):
+      // vertical slice, resulting in a left and right elements
+      assertRemoveOrUpdateResult(
+        (interval(day(-14), day(-2)) x interval(4, 7)) -> "World",
+        (interval(day(2), day(14)) x interval(4, 7)) -> "World"
+      )(interval(day(-1), day(1)) x interval(3, 8))
+
+      // horizontal slice, resulting in a lower and upper elements
+      assertRemoveOrUpdateResult(
+        (interval(day(-14), day(14)) x intervalAt(4)) -> "World",
+        (interval(day(-14), day(14)) x interval(6, 7)) -> "World"
+      )(interval(day(-15), day(15)) x intervalAt(5))
+
+    test(s"$prefix: All remove/update by interval - (4) partial + partial = corner (1)"):
+
+      // lower left
+      assertRemoveOrUpdateResult(
+        (interval(day(-14), day(14)) x interval(6, 7)) -> "World",
+        (interval(day(-7), day(14)) x interval(4, 5)) -> "World"
+      )(interval(day(-15), day(-8)) x interval(3, 5))
+
+      // upper left
+      assertRemoveOrUpdateResult(
+        (interval(day(-14), day(14)) x interval(4, 5)) -> "World",
+        (interval(day(-7), day(14)) x interval(6, 7)) -> "World"
+      )(interval(day(-15), day(-8)) x interval(6, 8))
+
+      // lower right
+      assertRemoveOrUpdateResult(
+        (interval(day(-14), day(7)) x interval(4, 7)) -> "World",
+        (interval(day(8), day(14)) x interval(6, 7)) -> "World"
+      )(interval(day(8), day(15)) x interval(3, 5))
+
+      // upper right
+      assertRemoveOrUpdateResult(
+        (interval(day(-14), day(14)) x interval(4, 5)) -> "World",
+        (interval(day(-14), day(7)) x interval(6, 7)) -> "World"
+      )(interval(day(8), day(15)) x interval(6, 8))
+
+    test(s"$prefix: All remove/update by interval - (5) partial + split or split + partial = bite (2)"):
+
+      // bite left
+      assertRemoveOrUpdateResult(
+        (interval(day(-14), day(14)) x intervalAt(4)) -> "World",
+        (interval(day(-14), day(14)) x intervalAt(7)) -> "World",
+        (interval(day(-7), day(14)) x interval(5, 6)) -> "World"
+      )(interval(day(-15), day(-8)) x interval(5, 6))
+
+      // bite right
+      assertRemoveOrUpdateResult(
+        (interval(day(-14), day(14)) x intervalAt(4)) -> "World",
+        (interval(day(-14), day(7)) x interval(5, 7)) -> "World",
+        (interval(day(8), day(14)) x intervalAt(7)) -> "World"
+      )(interval(day(8), day(15)) x interval(5, 6))
+
+      // bite below
+      assertRemoveOrUpdateResult(
+        (interval(day(-14), day(-7)) x interval(4, 7)) -> "World",
+        (interval(day(-6), day(14)) x interval(6, 7)) -> "World",
+        (interval(day(7), day(14)) x interval(4, 5)) -> "World"
+      )(interval(day(-6), day(6)) x interval(3, 5))
+
+      // bite above
+      assertRemoveOrUpdateResult(
+        (interval(day(-14), day(14)) x interval(4, 5)) -> "World",
+        (interval(day(-14), day(-7)) x interval(6, 7)) -> "World",
+        (interval(day(7), day(14)) x interval(6, 7)) -> "World"
+      )(interval(day(-6), day(6)) x interval(6, 8))
+
+    test(s"$prefix: All remove/update by interval - (6) split + split = hole (1)"):
+      assertRemoveOrUpdateResult(
+        (interval(day(-14), day(14)) x intervalAt(4)) -> "World",
+        (interval(day(-14), day(-7)) x interval(5, 7)) -> "World",
+        (interval(day(-6), day(14)) x intervalAt(7)) -> "World",
+        (interval(day(7), day(14)) x interval(5, 6)) -> "World"
+      )(interval(day(-6), day(6)) x interval(5, 6))

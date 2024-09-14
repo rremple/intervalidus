@@ -6,7 +6,11 @@ object DimensionalBase:
   /**
     * A discrete domain used to define intervals.
     */
-  trait DomainLike
+  trait DomainLike:
+    /**
+      * Alternative to toString for something that looks more like code
+      */
+    def toCodeLikeString: String
 
   /**
     * A interval over a contiguous set of ordered elements of a discrete domain.
@@ -27,6 +31,11 @@ object DimensionalBase:
       * start.
       */
     def end: D
+
+    /**
+      * Alternative to toString for something that looks more like code
+      */
+    def toCodeLikeString: String
 
     /**
       * Tests if this interval contains a specific element of the domain.
@@ -69,6 +78,19 @@ object DimensionalBase:
       * The interval in which the value is valid
       */
     def interval: I
+
+    override def toString: String = s"$interval -> $value"
+
+    // by default, put the interval in parens to x function works
+    protected def qualifiedInterval: String = s"(${interval.toCodeLikeString})"
+
+    /**
+      * Alternative to toString for something that looks more like code
+      */
+    def toCodeLikeString: String = s"$qualifiedInterval -> ${value match
+        case _: String => s"\"$value\""
+        case _         => value.toString
+      }"
 
     /**
       * When stored in a collection, this aspect of the data can be used as the key. (E.g., the start of the

@@ -1,6 +1,5 @@
 package intervalidus
 
-import DiscreteDomain1D.Bottom
 import DiscreteInterval1D.interval
 
 import scala.annotation.tailrec

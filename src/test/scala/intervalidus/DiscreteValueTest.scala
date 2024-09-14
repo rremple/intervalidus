@@ -19,7 +19,7 @@ class DiscreteValueTest extends AnyFunSuite:
     assert(0 < 4)
     assert(4 > 0)
 
-  test("Ops on Int Data"):
+  test("Ops on Int Domain"):
     import DiscreteDomain1D.*
     import DiscreteValue.IntDiscreteValue
     import DiscreteValue.IntDiscreteValue.{maxValue, minValue}
@@ -48,6 +48,9 @@ class DiscreteValueTest extends AnyFunSuite:
     assert(!(bottom > bottom))
     assert(!(bottom equiv top))
 
+    assertResult("Point(3) x Bottom")((point(3) x Bottom).toCodeLikeString)
+    assertResult("Point(3) x Top")((point(3) x Top).toCodeLikeString)
+
   test("Ops on Longs"):
     import DiscreteValue.LongDiscreteValue
     assert(1.predecessorValue equiv Some(0))
@@ -60,7 +63,7 @@ class DiscreteValueTest extends AnyFunSuite:
     assert(0 < 4)
     assert(4 > 0)
 
-  test("Ops on Long Data"):
+  test("Ops on Long Domain"):
     import DiscreteDomain1D.*
     import DiscreteValue.LongDiscreteValue
     import DiscreteValue.LongDiscreteValue.{maxValue, minValue}
@@ -90,6 +93,9 @@ class DiscreteValueTest extends AnyFunSuite:
     assert(!(bottom > bottom))
     assert(!(bottom equiv top))
 
+    assertResult("Point(3) x Bottom")((point(3) x Bottom).toCodeLikeString)
+    assertResult("Point(3) x Top")((point(3) x Top).toCodeLikeString)
+
   test("Ops on BigIntegers"):
     import DiscreteValue.BigIntegerDiscreteValue
     import java.math.BigInteger.valueOf
@@ -103,7 +109,7 @@ class DiscreteValueTest extends AnyFunSuite:
     assert(valueOf(0) < valueOf(4))
     assert(valueOf(4) > valueOf(0))
 
-  test("Ops on BigInteger Data"):
+  test("Ops on BigInteger Domain"):
     import DiscreteDomain1D.*
     import DiscreteValue.BigIntegerDiscreteValue
     import DiscreteValue.BigIntegerDiscreteValue.{maxValue, minValue}
@@ -136,6 +142,9 @@ class DiscreteValueTest extends AnyFunSuite:
     assert(!(bottom > bottom))
     assert(!(bottom equiv top))
 
+    assertResult("Point(3) x Bottom")((point(3) x Bottom).toCodeLikeString)
+    assertResult("Point(3) x Top")((point(3) x Top).toCodeLikeString)
+
   test("Ops on LocalDates"):
     import DiscreteValue.LocalDateDiscreteValue
 
@@ -152,7 +161,7 @@ class DiscreteValueTest extends AnyFunSuite:
     assert(date0 < date4)
     assert(date4 > date0)
 
-  test("Ops on LocalDate Data"):
+  test("Ops on LocalDate Domain"):
     import DiscreteDomain1D.*
     import DiscreteValue.LocalDateDiscreteValue
     import DiscreteValue.LocalDateDiscreteValue.{maxValue, minValue}
@@ -178,3 +187,7 @@ class DiscreteValueTest extends AnyFunSuite:
 
     assert(point(maxValue).successor equiv top)
     assert(point(minValue).predecessor equiv bottom)
+
+    assertResult("Point(2024-05-31) x Point(2024-06-03)")(
+      (Point(date0) x Point(date3)).toCodeLikeString
+    )

@@ -49,6 +49,12 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
     intervalFrom(Int.MaxValue - 1).points.toList shouldBe List(Int.MaxValue - 1, Int.MaxValue).map(Point(_))
     intervalTo(Int.MinValue + 1).points.toList shouldBe List(Int.MinValue, Int.MinValue + 1).map(Point(_))
 
+    intervalFrom(0).toCodeLikeString shouldBe "intervalFrom(0)"
+    intervalTo(0).toCodeLikeString shouldBe "intervalTo(0)"
+    intervalAt(0).toCodeLikeString shouldBe "intervalAt(0)"
+    interval(0, 1).toCodeLikeString shouldBe "interval(0, 1)"
+    unbounded[Int].toCodeLikeString shouldBe "unbounded"
+
   test("Int 2D interval adjacency, etc."):
     val now = LocalDate.now
     val d: DiscreteInterval2D[LocalDate, Int] = intervalTo(now) x intervalFrom(0)
@@ -118,6 +124,8 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
 
     assert(interval2d(1, 2, 3, 4) hasSameStartAs interval2dFrom(1, 3))
     assert(interval2d(1, 2, 3, 4) hasSameEndAs interval2dTo(2, 4))
+    (intervalFrom(0) x intervalTo(0)).toCodeLikeString shouldBe
+      "intervalFrom(0) x intervalTo(0)"
 
   test("Int interval intersections"):
     assert(!(interval(3, 4) intersects interval(1, 2)))

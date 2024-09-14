@@ -18,7 +18,4 @@ package intervalidus
 case class ValidData2D[V, R1: DiscreteValue, R2: DiscreteValue](
   value: V,
   interval: DiscreteInterval2D[R1, R2]
-) extends DimensionalBase.DataLike[V, DiscreteDomain2D[R1, R2], DiscreteInterval2D[R1, R2]]:
-
-  // Or else we get PartialFunction's useless toString
-  override def toString: String = s"$interval -> $value"
+) extends DimensionalBase.DataLike[V, DiscreteDomain2D[R1, R2], DiscreteInterval2D[R1, R2]]

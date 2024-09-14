@@ -17,6 +17,5 @@ case class ValidData1D[V, R: DiscreteValue](
   value: V,
   interval: DiscreteInterval1D[R]
 ) extends DimensionalBase.DataLike[V, DiscreteDomain1D[R], DiscreteInterval1D[R]]:
-
-  // Or else we get PartialFunction's useless toString
-  override def toString: String = s"$interval -> $value"
+  // no crossing, so no parens required
+  override protected def qualifiedInterval: String = s"${interval.toCodeLikeString}"

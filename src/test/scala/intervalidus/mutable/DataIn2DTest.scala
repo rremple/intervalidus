@@ -1,6 +1,7 @@
 package intervalidus.mutable
 
 import intervalidus.*
+import org.scalatest.compatible.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
@@ -14,6 +15,40 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
   // shared
   testsFor(stringLookupTests("Mutable", DataIn2D(_), DataIn2D.of(_)))
 
+  protected def assertRemoveOrUpdateResult(
+    removeExpectedUnsorted: ValidData2D[String, LocalDate, Int]*
+  )(
+    removeOrUpdateInterval: DiscreteInterval2D[LocalDate, Int],
+    updateValue: String = "update"
+  ): Assertion =
+    val rectangle = interval(day(-14), day(14)) x interval(4, 7)
+    val removeFixture = DataIn2D.of(rectangle -> "World")
+    val updateFixture = DataIn2D.of(rectangle -> "World")
+    val expectedUpdateInterval = removeOrUpdateInterval ∩ rectangle match
+      case Some(intersection) => intersection
+      case None               => fail("Test failed, no intersection with the rectangle")
+
+    val removeExpected = removeExpectedUnsorted.toList.sortBy(_.key)
+    val updateExpected = (removeExpectedUnsorted :+ (expectedUpdateInterval -> updateValue)).toList.sortBy(_.key)
+    removeFixture.remove(removeOrUpdateInterval)
+    removeFixture.recompressAll()
+    updateFixture.update(removeOrUpdateInterval -> updateValue)
+    updateFixture.recompressAll()
+    try assertResult(removeExpected)(removeFixture.getAll.toList)
+    catch
+      case ex: Exception =>
+        println("Test failed (in remove), here's the actual remove data:")
+        println(removeFixture.getAll.map(_.toCodeLikeString).mkString(",\n"))
+        throw ex
+    try assertResult(updateExpected)(updateFixture.getAll.toList)
+    catch
+      case ex: Exception =>
+        println("Test failed (in update), here's the actual update data:")
+        println(updateFixture.getAll.map(_.toCodeLikeString).mkString(",\n"))
+        throw ex
+
+  testsFor(removeOrUpdateTests("Mutable"))
+
   def vertical2D[T: DiscreteValue](interval2: DiscreteInterval1D[T]): DiscreteInterval2D[LocalDate, T] =
     unbounded[LocalDate] x interval2
 
@@ -24,8 +59,6 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
 
     val allData =
       testData(("Hello", intervalTo(day(14)), interval(0, 10)), ("World", intervalFrom(day(1)), intervalFrom(11)))
-    // even though naive validity check fails (since intervalTo(day(14)) overlaps intervalFrom(day(1))), fixture is
-    // still valid
     val fixture = immutable.DataIn2D(allData).toImmutable.toMutable
 
     fixture.getByHorizontalIndex(dayZero).getAt(0) shouldBe Some("Hello")
@@ -278,404 +311,6 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
       vertical2D(intervalFrom(10)),
       intervalFrom(day(0)) x interval(2, 9)
     )
-
-  /*
-   * Two dimensional exclusions and updates can have 3 x 3 = 9 cases. But there is symmetry for 3 of
-   * them, so logically only 6:
-   *  (1) simple + simple = simple (1)
-   *  (2) simple + partial or partial + simple = edge (2), each with or without a common start
-   *  (3) simple + split or split + simple = slice (2), vertical or horizontal
-   *  (4) partial + partial = corner (1)
-   *  (5) partial + split or split + partial = bite (2)
-   *  (6) split + split = hole (1)
-   */
-  test("Mutable: All remove by interval - (1) simple + simple = simple"):
-    // the same or larger
-    val allData: Seq[ValidData2D[String, LocalDate, Int]] = testData(
-      ("World", interval(day(-14), day(14)), interval(4, 7))
-    )
-    val fixture1 = DataIn2D(allData)
-    fixture1.remove(interval(day(-14), day(14)) x interval(4, 7))
-    val expectedData1 = testData()
-    fixture1.getAll.toList shouldBe expectedData1
-
-    val fixture2 = DataIn2D(allData)
-    fixture2.remove(interval(day(-15), day(15)) x interval(3, 8))
-    val expectedData2 = testData()
-    fixture2.getAll.toList shouldBe expectedData2
-
-  test("Mutable: All remove by interval - (2) simple + partial or partial + simple = edge (2)"):
-    // each with or without a common start
-    val allData: Seq[ValidData2D[String, LocalDate, Int]] = testData(
-      ("World", interval(day(-14), day(14)), interval(4, 7))
-    )
-
-    // partial + simple, to the right (remainder with common start)
-    val fixture1 = DataIn2D(allData)
-    fixture1.remove(interval(day(8), day(14)) x interval(3, 8))
-    val expectedData1 = testData(
-      ("World", interval(day(-14), day(7)), interval(4, 7))
-    )
-    fixture1.getAll.toList shouldBe expectedData1
-
-    // partial + simple, to the left (remainder does not have a common start)
-    val fixture2 = DataIn2D(allData)
-    fixture2.remove(interval(day(-15), day(-1)) x interval(3, 8))
-    val expectedData2 = testData(
-      ("World", interval(day(0), day(14)), interval(4, 7))
-    )
-    fixture2.getAll.toList shouldBe expectedData2
-
-    // simple + partial, above (remainder with common start)
-    val fixture3 = DataIn2D(allData)
-    fixture3.remove(interval(day(-15), day(15)) x interval(6, 8))
-    val expectedData3 = testData(
-      ("World", interval(day(-14), day(14)), interval(4, 5))
-    )
-    fixture3.getAll.toList shouldBe expectedData3
-
-    // simple + partial, below (remainder does not have a common start)
-    val fixture4 = DataIn2D(allData)
-    fixture4.remove(interval(day(-15), day(15)) x interval(1, 5))
-    val expectedData4 = testData(
-      ("World", interval(day(-14), day(14)), interval(6, 7))
-    )
-    fixture4.getAll.toList shouldBe expectedData4
-
-  test("Mutable: All remove by interval - (3) simple + split or split + simple = slice (2)"):
-    val allData: Seq[ValidData2D[String, LocalDate, Int]] = testData(
-      ("World", interval(day(-14), day(14)), interval(4, 7))
-    )
-
-    // vertical slice, resulting in a left and right elements
-    val fixture1 = DataIn2D(allData)
-    fixture1.remove(interval(day(-1), day(1)) x interval(3, 8))
-    val expectedData1 = testData(
-      ("World", interval(day(-14), day(-2)), interval(4, 7)),
-      ("World", interval(day(2), day(14)), interval(4, 7))
-    )
-    fixture1.getAll.toList shouldBe expectedData1
-
-    // horizontal slice, resulting in a lower and upper elements
-    val fixture2 = DataIn2D(allData)
-    fixture2.remove(interval(day(-15), day(15)) x intervalAt(5))
-    val expectedData2 = testData(
-      ("World", interval(day(-14), day(14)), intervalAt(4)),
-      ("World", interval(day(-14), day(14)), interval(6, 7))
-    )
-    fixture2.getAll.toList shouldBe expectedData2
-
-  test("Mutable: All remove by interval - (4) partial + partial = corner (1)"):
-    val allData: Seq[ValidData2D[String, LocalDate, Int]] = testData(
-      ("World", interval(day(-14), day(14)), interval(4, 7))
-    )
-
-    // lower left
-    val fixture1 = DataIn2D(allData)
-    fixture1.remove(interval(day(-15), day(-8)) x interval(3, 5))
-    // needed? fixture1.recompressAll()
-    val expectedData1 = testData(
-      ("World", interval(day(-14), day(14)), interval(6, 7)),
-      ("World", interval(day(-7), day(14)), interval(4, 5))
-    )
-    fixture1.getAll.toList shouldBe expectedData1
-
-    // upper left
-    val fixture2 = DataIn2D(allData)
-    fixture2.remove(interval(day(-15), day(-8)) x interval(6, 8))
-    // needed? fixture2.recompressAll()
-    val expectedData2 = testData(
-      ("World", interval(day(-14), day(14)), interval(4, 5)),
-      ("World", interval(day(-7), day(14)), interval(6, 7))
-    )
-    fixture2.getAll.toList shouldBe expectedData2
-
-    // lower right
-    val fixture3 = DataIn2D(allData)
-    fixture3.remove(interval(day(8), day(15)) x interval(3, 5))
-    fixture3.recompressAll()
-    val expectedData3 = testData(
-      ("World", interval(day(-14), day(7)), interval(4, 7)),
-      ("World", interval(day(8), day(14)), interval(6, 7))
-    )
-    fixture3.getAll.toList shouldBe expectedData3
-
-    // upper right
-    val fixture4 = DataIn2D(allData)
-    fixture4.remove(interval(day(8), day(15)) x interval(6, 8))
-    // needed? fixture4.recompressAll()
-    val expectedData4 = testData(
-      ("World", interval(day(-14), day(14)), interval(4, 5)),
-      ("World", interval(day(-14), day(7)), interval(6, 7))
-    )
-    fixture4.getAll.toList shouldBe expectedData4
-
-  test("Mutable: All remove by interval - (5) partial + split or split + partial = bite (2)"):
-    val allData: Seq[ValidData2D[String, LocalDate, Int]] = testData(
-      ("World", interval(day(-14), day(14)), interval(4, 7))
-    )
-
-    // bite left
-    val fixture1 = DataIn2D(allData)
-    fixture1.remove(interval(day(-15), day(-8)) x interval(5, 6))
-    fixture1.recompressAll()
-    val expectedData1 = testData(
-      ("World", interval(day(-14), day(14)), intervalAt(4)),
-      ("World", interval(day(-14), day(14)), intervalAt(7)),
-      ("World", interval(day(-7), day(14)), interval(5, 6))
-    )
-    fixture1.getAll.toList shouldBe expectedData1
-
-    // bite right
-    val fixture2 = DataIn2D(allData)
-    fixture2.remove(interval(day(8), day(15)) x interval(5, 6))
-    fixture2.recompressAll()
-    val expectedData2 = testData(
-      ("World", interval(day(-14), day(14)), intervalAt(4)),
-      ("World", interval(day(-14), day(7)), interval(5, 7)),
-      ("World", interval(day(8), day(14)), intervalAt(7))
-    )
-    fixture2.getAll.toList shouldBe expectedData2
-
-    // bite below
-    val fixture3 = DataIn2D(allData)
-    fixture3.remove(interval(day(-6), day(6)) x interval(3, 5))
-    // needed? fixture3.recompressAll()
-
-    val expectedData3 = testData(
-      ("World", interval(day(-14), day(-7)), interval(4, 7)),
-      ("World", interval(day(-6), day(14)), interval(6, 7)),
-      ("World", interval(day(7), day(14)), interval(4, 5))
-    )
-    fixture3.getAll.toList shouldBe expectedData3
-
-    // bite above
-    val fixture4 = DataIn2D(allData)
-    fixture4.remove(interval(day(-6), day(6)) x interval(6, 8))
-    fixture4.recompressAll()
-    val expectedData4 = testData(
-      ("World", interval(day(-14), day(14)), interval(4, 5)),
-      ("World", interval(day(-14), day(-7)), interval(6, 7)),
-      ("World", interval(day(7), day(14)), interval(6, 7))
-    )
-    fixture4.getAll.toList shouldBe expectedData4
-
-  test("Mutable: All remove by interval - (6) split + split = hole (1)"):
-    val allData: Seq[ValidData2D[String, LocalDate, Int]] = testData(
-      ("World", interval(day(-14), day(14)), interval(4, 7))
-    )
-    val fixture1 = DataIn2D(allData)
-    fixture1.remove(interval(day(-6), day(6)) x interval(5, 6))
-    fixture1.recompressAll()
-    val expectedData1 = testData(
-      ("World", interval(day(-14), day(14)), intervalAt(4)),
-      ("World", interval(day(-14), day(-7)), interval(5, 7)),
-      ("World", interval(day(-6), day(14)), intervalAt(7)),
-      ("World", interval(day(7), day(14)), interval(5, 6))
-    )
-    fixture1.getAll.toList shouldBe expectedData1
-
-  // same, but for updates
-
-  test("Mutable: All update by interval - (1) simple + simple = simple"):
-    // the same or larger
-    val allData: Seq[ValidData2D[String, LocalDate, Int]] = testData(
-      ("World", interval(day(-14), day(14)), interval(4, 7))
-    )
-    val fixture1 = DataIn2D(allData)
-    fixture1.update((interval(day(-14), day(14)) x interval(4, 7)) -> "update")
-    val expectedData1 = testData(("update", interval(day(-14), day(14)), interval(4, 7)))
-    fixture1.getAll.toList shouldBe expectedData1
-
-    val fixture2 = DataIn2D(allData)
-    fixture2.update((interval(day(-15), day(15)) x interval(3, 8)) -> "update")
-    val expectedData2 = testData(("update", interval(day(-14), day(14)), interval(4, 7)))
-    fixture2.getAll.toList shouldBe expectedData2
-
-  test("Mutable: All update by interval - (2) simple + partial or partial + simple = edge (2)"):
-    // each with or without a common start
-    val allData: Seq[ValidData2D[String, LocalDate, Int]] = testData(
-      ("World", interval(day(-14), day(14)), interval(4, 7))
-    )
-
-    // partial + simple, to the right (remainder with common start)
-    val fixture1 = DataIn2D(allData)
-    fixture1.update((interval(day(8), day(14)) x interval(3, 8)) -> "update")
-    val expectedData1 = testData(
-      ("World", interval(day(-14), day(7)), interval(4, 7)),
-      ("update", interval(day(8), day(14)), interval(4, 7))
-    )
-    fixture1.getAll.toList shouldBe expectedData1
-
-    // partial + simple, to the left (remainder does not have a common start)
-    val fixture2 = DataIn2D(allData)
-    fixture2.update((interval(day(-15), day(-1)) x interval(3, 8)) -> "update")
-    val expectedData2 = testData(
-      ("update", interval(day(-14), day(-1)), interval(4, 7)),
-      ("World", interval(day(0), day(14)), interval(4, 7))
-    )
-    fixture2.getAll.toList shouldBe expectedData2
-
-    // simple + partial, above (remainder with common start)
-    val fixture3 = DataIn2D(allData)
-    fixture3.update((interval(day(-14), day(14)) x interval(6, 8)) -> "update")
-    val expectedData3 = testData(
-      ("World", interval(day(-14), day(14)), interval(4, 5)),
-      ("update", interval(day(-14), day(14)), interval(6, 7))
-    )
-    fixture3.getAll.toList shouldBe expectedData3
-
-    // simple + partial, below (remainder does not have a common start)
-    val fixture4 = DataIn2D(allData)
-    fixture4.update((interval(day(-15), day(15)) x interval(1, 5)) -> "update")
-    val expectedData4 = testData(
-      ("update", interval(day(-14), day(14)), interval(4, 5)),
-      ("World", interval(day(-14), day(14)), interval(6, 7))
-    )
-    fixture4.getAll.toList shouldBe expectedData4
-
-  test("Mutable: All update by interval - (3) simple + split or split + simple = slice (2)"):
-    val allData: Seq[ValidData2D[String, LocalDate, Int]] = testData(
-      ("World", interval(day(-14), day(14)), interval(4, 7))
-    )
-
-    // vertical slice, resulting in a left and right elements
-    val fixture1 = DataIn2D(allData)
-    fixture1.update((interval(day(-1), day(1)) x interval(3, 8)) -> "update")
-    val expectedData1 = testData(
-      ("World", interval(day(-14), day(-2)), interval(4, 7)),
-      ("update", interval(day(-1), day(1)), interval(4, 7)),
-      ("World", interval(day(2), day(14)), interval(4, 7))
-    )
-    fixture1.getAll.toList shouldBe expectedData1
-
-    // horizontal slice, resulting in a lower and upper elements
-    val fixture2 = DataIn2D(allData)
-    fixture2.update((interval(day(-15), day(15)) x intervalAt(5)) -> "update")
-    val expectedData2 = testData(
-      ("World", interval(day(-14), day(14)), intervalAt(4)),
-      ("update", interval(day(-14), day(14)), intervalAt(5)),
-      ("World", interval(day(-14), day(14)), interval(6, 7))
-    )
-    fixture2.getAll.toList shouldBe expectedData2
-
-  test("Mutable: All update by interval - (4) partial + partial = corner (1)"):
-    val allData: Seq[ValidData2D[String, LocalDate, Int]] = testData(
-      ("World", interval(day(-14), day(14)), interval(4, 7))
-    )
-
-    // lower left
-    val fixture1 = DataIn2D(allData)
-    fixture1.update((interval(day(-15), day(-8)) x interval(3, 5)) -> "update")
-    // needed? fixture1.recompressAll()
-    val expectedData1 = testData(
-      ("update", interval(day(-14), day(-8)), interval(4, 5)),
-      ("World", interval(day(-14), day(14)), interval(6, 7)),
-      ("World", interval(day(-7), day(14)), interval(4, 5))
-    )
-    fixture1.getAll.toList shouldBe expectedData1
-
-    // upper left
-    val fixture2 = DataIn2D(allData)
-    fixture2.update((interval(day(-15), day(-8)) x interval(6, 8)) -> "update")
-    // needed? fixture2.recompressAll()
-    val expectedData2 = testData(
-      ("World", interval(day(-14), day(14)), interval(4, 5)),
-      ("update", interval(day(-14), day(-8)), interval(6, 7)),
-      ("World", interval(day(-7), day(14)), interval(6, 7))
-    )
-    fixture2.getAll.toList shouldBe expectedData2
-
-    // lower right
-    val fixture3 = DataIn2D(allData)
-    fixture3.update((interval(day(8), day(15)) x interval(3, 5)) -> "update")
-    fixture3.recompressAll()
-    val expectedData3 = testData(
-      ("World", interval(day(-14), day(7)), interval(4, 7)),
-      ("update", interval(day(8), day(14)), interval(4, 5)),
-      ("World", interval(day(8), day(14)), interval(6, 7))
-    )
-    fixture3.getAll.toList shouldBe expectedData3
-
-    // upper right
-    val fixture4 = DataIn2D(allData)
-    fixture4.update((interval(day(8), day(15)) x interval(6, 8)) -> "update")
-    // needed? fixture4.recompressAll()
-    val expectedData4 = testData(
-      ("World", interval(day(-14), day(14)), interval(4, 5)),
-      ("World", interval(day(-14), day(7)), interval(6, 7)),
-      ("update", interval(day(8), day(14)), interval(6, 7))
-    )
-    fixture4.getAll.toList shouldBe expectedData4
-
-  test("Mutable: All update by interval - (5) partial + split or split + partial = bite (2)"):
-    val allData: Seq[ValidData2D[String, LocalDate, Int]] = testData(
-      ("World", interval(day(-14), day(14)), interval(4, 7))
-    )
-
-    // bite left
-    val fixture1 = DataIn2D(allData)
-    fixture1.update((interval(day(-15), day(-8)) x interval(5, 6)) -> "update")
-    fixture1.recompressAll()
-    val expectedData1 = testData(
-      ("World", interval(day(-14), day(14)), intervalAt(4)),
-      ("update", interval(day(-14), day(-8)), interval(5, 6)),
-      ("World", interval(day(-14), day(14)), intervalAt(7)),
-      ("World", interval(day(-7), day(14)), interval(5, 6))
-    )
-    fixture1.getAll.toList shouldBe expectedData1
-
-    // bite right
-    val fixture2 = DataIn2D(allData)
-    fixture2.update((interval(day(8), day(15)) x interval(5, 6)) -> "update")
-    fixture2.recompressAll()
-    val expectedData2 = testData(
-      ("World", interval(day(-14), day(14)), intervalAt(4)),
-      ("World", interval(day(-14), day(7)), interval(5, 7)),
-      ("update", interval(day(8), day(14)), interval(5, 6)),
-      ("World", interval(day(8), day(14)), intervalAt(7))
-    )
-    fixture2.getAll.toList shouldBe expectedData2
-
-    // bite below
-    val fixture3 = DataIn2D(allData)
-    fixture3.update((interval(day(-6), day(6)) x interval(3, 5)) -> "update")
-    // needed? fixture3.recompressAll()
-    val expectedData3 = testData(
-      ("World", interval(day(-14), day(-7)), interval(4, 7)),
-      ("update", interval(day(-6), day(6)), interval(4, 5)),
-      ("World", interval(day(-6), day(14)), interval(6, 7)),
-      ("World", interval(day(7), day(14)), interval(4, 5))
-    )
-    fixture3.getAll.toList shouldBe expectedData3
-
-    // bite above
-    val fixture4 = DataIn2D(allData)
-    fixture4.update((interval(day(-6), day(6)) x interval(6, 8)) -> "update")
-    fixture4.recompressAll()
-    val expectedData4 = testData(
-      ("World", interval(day(-14), day(14)), interval(4, 5)),
-      ("World", interval(day(-14), day(-7)), interval(6, 7)),
-      ("update", interval(day(-6), day(6)), interval(6, 7)),
-      ("World", interval(day(7), day(14)), interval(6, 7))
-    )
-    fixture4.getAll.toList shouldBe expectedData4
-
-  test("Mutable: All update by interval - (6) split + split = hole (1)"):
-    val allData: Seq[ValidData2D[String, LocalDate, Int]] = testData(
-      ("World", interval(day(-14), day(14)), interval(4, 7))
-    )
-    val fixture1 = DataIn2D(allData)
-    fixture1.update((interval(day(-6), day(6)) x interval(5, 6)) -> "update")
-    fixture1.recompressAll()
-    val expectedData1 = testData(
-      ("World", interval(day(-14), day(14)), intervalAt(4)),
-      ("World", interval(day(-14), day(-7)), interval(5, 7)),
-      ("update", interval(day(-6), day(6)), interval(5, 6)),
-      ("World", interval(day(-6), day(14)), intervalAt(7)),
-      ("World", interval(day(7), day(14)), interval(5, 6))
-    )
-    fixture1.getAll.toList shouldBe expectedData1
 
   test("Mutable: Simple toString"):
     val fixturePadData = DataIn2D.of[String, LocalDate, Int]("H")

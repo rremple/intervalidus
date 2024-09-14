@@ -158,7 +158,7 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue](
     thatElem: B
   ): DataIn2D[(V, B), R1, R2] = DataIn2D(zipAllData(that, thisElem, thatElem))
 
-  override def flip: DataIn2D[V, R2, R1] = DataIn2D(getAll.map(d => d.copy(interval = d.interval.flip)))
+  override def flip: DataIn2D[V, R2, R1] = map(d => d.copy(interval = d.interval.flip))
 
   override def getByHorizontalIndex(horizontalIndex: DiscreteDomain1D[R1]): DataIn1D[V, R2] = DataIn1D[V, R2](
     getByHorizontalIndexData(horizontalIndex)

@@ -70,13 +70,13 @@ case class DiscreteInterval1D[T: DiscreteValue](
 
     s"$leftBrace$start..$end$rightBrace"
 
-  // Use method-like interval notation -- useful in debugging, but will cause some toString unit tests to fail.
-  //  override def toString: String = //    (start, end) match
-  //      case (Bottom, Top) => "unbounded"
-  //      case (Bottom, Point(e)) => s"intervalTo($e)"
-  //      case (Point(s), Top) => s"intervalFrom($s)"
-  //      case (Point(s), Point(e)) if s == e => s"intervalAt($s)"
-  //      case (s, e) => s"interval($s, $e)"
+  // Use method-like interval notation -- useful when constructing tests.
+  override def toCodeLikeString: String = (start, end) match
+    case (Bottom, Top)                  => "unbounded"
+    case (Bottom, Point(e))             => s"intervalTo($e)"
+    case (Point(s), Top)                => s"intervalFrom($s)"
+    case (Point(s), Point(e)) if s == e => s"intervalAt($s)"
+    case (s, e)                         => s"interval($s, $e)"
 
   /**
     * Returns a new interval starting at the provided value.

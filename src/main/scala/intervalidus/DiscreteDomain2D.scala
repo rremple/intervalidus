@@ -19,6 +19,8 @@ case class DiscreteDomain2D[T1, T2](
 
   override def toString: String = s"{$horizontalIndex, $verticalIndex}"
 
+  override def toCodeLikeString: String = s"${horizontalIndex.toCodeLikeString} x ${verticalIndex.toCodeLikeString}"
+
   /**
     * Tests if this belongs to an interval.
     *

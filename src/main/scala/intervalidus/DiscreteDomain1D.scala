@@ -32,6 +32,11 @@ enum DiscreteDomain1D[+T] extends DimensionalBase.DomainLike:
     case Point(t) => t.toString
     case Top      => "+∞"
 
+  override def toCodeLikeString: String = this match
+    case Bottom   => "Bottom"
+    case Point(t) => s"Point($t)"
+    case Top      => "Top"
+
 import DiscreteDomain1D.{Bottom, Point, Top}
 
 /**

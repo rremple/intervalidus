@@ -49,6 +49,8 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
 
   override def toString: String = s"{$horizontal, $vertical}"
 
+  override def toCodeLikeString: String = s"${horizontal.toCodeLikeString} x ${vertical.toCodeLikeString}"
+
   /**
     * Returns a new two-dimensional interval with the same vertical interval and the provided horizontal interval.
     *

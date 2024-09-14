@@ -38,8 +38,13 @@ trait DataIn1DBaseBehaviors:
     single.getOption shouldBe Some("Hello world")
     single.domain.toList shouldBe List(unbounded[Int])
 
+    val boundedInt = intervalFrom(0) -> 1
+    boundedInt.toString shouldBe "[0..+∞) -> 1"
+    boundedInt.toCodeLikeString shouldBe "intervalFrom(0) -> 1"
+
     val bounded = intervalFrom(0) -> "Hello world"
-    bounded.toString shouldBe "[0..+∞) -> Hello world" // !!!
+    bounded.toString shouldBe "[0..+∞) -> Hello world"
+    bounded.toCodeLikeString shouldBe "intervalFrom(0) -> \"Hello world\""
     assert(bounded.isDefinedAt(0))
     assert(!bounded.isDefinedAt(-1))
     bounded(0) shouldBe "Hello world"
