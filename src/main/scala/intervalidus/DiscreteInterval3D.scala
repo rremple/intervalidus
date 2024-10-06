@@ -414,6 +414,9 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
     */
   def ⊆(that: DiscreteInterval3D[T1, T2, T3]): Boolean = this isSubsetOf that
 
+/**
+  * Companion for the three-dimensional interval used in defining and operating on a valid data.
+  */
 object DiscreteInterval3D:
 
   /**

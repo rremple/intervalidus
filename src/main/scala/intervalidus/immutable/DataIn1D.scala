@@ -6,6 +6,9 @@ import intervalidus.mutable.DataIn1D as DataIn1DMutable
 
 import scala.collection.mutable
 
+/**
+  * @inheritdoc
+  */
 object DataIn1D extends DataIn1DBaseObject:
   override def of[V, R: DiscreteValue](
     data: ValidData1D[V, R]

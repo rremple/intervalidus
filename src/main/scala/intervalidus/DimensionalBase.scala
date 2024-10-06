@@ -5,6 +5,9 @@ import intervalidus.collection.mutable.{MultiDictSorted, MutableBoxTreeLike}
 
 import scala.math.Ordering.Implicits.infixOrderingOps
 
+/**
+  * Base types used in all dimensional data.
+  */
 object DimensionalBase:
   /**
     * A discrete domain used to define intervals.

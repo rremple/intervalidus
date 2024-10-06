@@ -383,6 +383,9 @@ case class DiscreteInterval1D[T: DiscreteValue](
     */
   def ⊆(that: DiscreteInterval1D[T]): Boolean = this isSubsetOf that
 
+/**
+  * Companion for the one-dimensional interval used in defining and operating on a valid data.
+  */
 object DiscreteInterval1D:
   // used in return type of excluding
   enum Remainder[+G]:

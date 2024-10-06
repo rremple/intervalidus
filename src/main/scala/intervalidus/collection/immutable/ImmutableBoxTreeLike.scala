@@ -2,6 +2,20 @@ package intervalidus.collection.immutable
 
 import intervalidus.collection.{BoxLike, BoxTreeLike, BoxTreeObjectLike, BoxedPayloadLike, CoordinateLike}
 
+/**
+  * Immutable box tree base type.
+  *
+  * @tparam A
+  *   payload type
+  * @tparam C
+  *   F-bounded coordinate type
+  * @tparam B
+  *   F-bounded box type (depends on the coordinate type)
+  * @tparam P
+  *   F-bounded boxed payload type (depends on the payload, coordinate, and box types)
+  * @tparam Self
+  *   F-bounded self type
+  */
 trait ImmutableBoxTreeLike[
   A,
   C <: CoordinateLike[C],
@@ -44,7 +58,7 @@ trait ImmutableBoxTreeLike[
   def addAll(ds: IterableOnce[P]): Self //  = ds.iterator.foldLeft(this)(_.addOne(_))
 
 /**
-  * A leaf holds a list of data (up to capacity) for this particular quadrant.
+  * A leaf holds a list of data (up to capacity) for a particular subtree.
   */
 trait ImmutableBoxTreeLeafLike[
   A,
@@ -81,7 +95,7 @@ trait ImmutableBoxTreeLeafLike[
   override def clear: SuperSelf = newLeaf(List.empty)
 
 /**
-  * A branch divides the management of data into four subtrees -- no data are stored on the branch itself
+  * A branch divides the management of data into multiple subtrees -- no data are stored on the branch itself.
   */
 trait ImmutableBoxTreeBranchLike[
   A,
@@ -101,7 +115,7 @@ trait ImmutableBoxTreeBranchLike[
 
   override def copy: SuperSelf = newBranch(subtrees)
 
-  // Here we may have to split boxes that overlap our quadrant boundaries
+  // Here we may have to split boxes that overlap our subtree boundaries
   override def addOne(d: P): SuperSelf =
     val boxSplits = subtreeBoundaries.count(d.box.intersects) > 1
     val updatedSubtrees = subtrees.map: subtree =>
@@ -131,6 +145,14 @@ trait ImmutableBoxTreeBranchLike[
   override def clear: SuperSelf = // recursively clear, leaving structure in place
     newBranch(subtrees.map(_.clear))
 
+/**
+  * Constructors for companion immutable box tree.
+  *
+  * @tparam C
+  *   F-bounded coordinate type
+  * @tparam B
+  *   F-bounded box type (depends on the coordinate type)
+  */
 trait ImmutableBoxTreeObjectLike[C <: CoordinateLike[C], B <: BoxLike[C, B]] extends BoxTreeObjectLike:
 
   type BoxedPayloadType[A] <: BoxedPayloadLike[A, C, B, BoxedPayloadType[A]]

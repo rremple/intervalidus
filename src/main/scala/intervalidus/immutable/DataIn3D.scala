@@ -6,6 +6,9 @@ import intervalidus.mutable.DataIn3D as DataIn3DMutable
 
 import scala.collection.mutable
 
+/**
+  * @inheritdoc
+  */
 object DataIn3D extends DataIn3DBaseObject:
   override def of[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](
     data: ValidData3D[V, R1, R2, R3]

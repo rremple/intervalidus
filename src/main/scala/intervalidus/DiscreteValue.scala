@@ -58,6 +58,9 @@ trait DiscreteValue[T] extends Ordering[T]:
       */
     def orderedHashValue: Double = orderedHashOf(lhs)
 
+/**
+  * Default discrete value type classes for common data types.
+  */
 object DiscreteValue:
 
   /**

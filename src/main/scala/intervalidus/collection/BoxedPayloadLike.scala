@@ -78,12 +78,23 @@ case class BoxedPayload3D[A](box: Box3D, payload: A, parentBox: Option[Box3D] = 
   override def withBox(newBox: Box3D): BoxedPayload3D[A] = copy(box = newBox)
   override def withParentBox(newParentBox: Option[Box3D]): BoxedPayload3D[A] = copy(parentBox = newParentBox)
 
+/**
+  * Common operations on boxed payloads of any dimension.
+  */
 object BoxedPayload:
   /**
     * Removed duplicates where boxes are split.
     *
     * @param data
     *   boxed data that may include duplicates because of box splits
+    * @tparam A
+    *   payload type
+    * @tparam C
+    *   F-bounded coordinate type
+    * @tparam B
+    *   F-bounded box type (depends on the coordinate type)
+    * @tparam P
+    *   F-bounded boxed payload type
     * @return
     *   boxed data with duplicates removed
     */

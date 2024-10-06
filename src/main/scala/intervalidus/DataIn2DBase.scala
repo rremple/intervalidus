@@ -7,6 +7,9 @@ import intervalidus.collection.mutable.{BoxQuadtree, MultiDictSorted}
 import scala.annotation.tailrec
 import scala.collection.mutable
 
+/**
+  * Constructs data in two-dimensional intervals.
+  */
 trait DataIn2DBaseObject:
   /**
     * Shorthand constructor for a single initial value that is valid in a particular interval domain.
@@ -121,7 +124,6 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
     DataIn2DBase[V, R1, R2]
   ]:
 
-  // ---- experimental use of Quadtrees
   def dataInSearchTree: BoxQuadtree[ValidData2D[V, R1, R2]]
 
   experimental.control("requireDisjoint")(
@@ -233,12 +235,11 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
   )
 
   /**
-    * Internal method, to compress in place. Structure is parameterized to support both mutable and immutable
-    * compression. (Immutable compression acts on a copy.) Assumes caller does synchronization (if needed). Assumes
-    * underlying data are disjoint, so no need to address intersections.
+    * Internal method, to compress in place. Assumes caller does synchronization (if needed). Assumes underlying data
+    * are disjoint, so no need to address intersections.
     *
     * @param value
-    *   value to be evaluate
+    *   value to evaluate
     * @return
     *   this structure once compressed (not a copy)
     */
@@ -339,8 +340,6 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
 
   // ---------- Implement methods from DimensionalBase ----------
 
-  // ----start: experimental use of quadtrees
-
   override protected def dataInSearchTreeAdd(data: ValidData2D[V, R1, R2]): Unit =
     dataInSearchTree.addOne(data.asBoxedPayload)
 
@@ -366,8 +365,6 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
 
   override protected def dataInSearchTreeIntersects(interval: DiscreteInterval2D[R1, R2]): Boolean =
     dataInSearchTree.get(interval.asBox).exists(_.payload.interval intersects interval)
-
-  //// ----end: experimental use of quadtrees
 
   /**
     * @inheritdoc

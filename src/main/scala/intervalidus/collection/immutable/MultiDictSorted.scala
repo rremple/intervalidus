@@ -4,8 +4,7 @@ import scala.collection.immutable
 import scala.collection.immutable.SortedSet
 
 /**
-  * Like SortedMultiDict in scala-collection-contrib, but this returns values in order, not just keys (and only
-  * implements the small subset of methods needed in this project).
+  * Constructors for immutable multi-maps.
   */
 object MultiDictSorted:
   def apply[K, V: Ordering](): MultiDictSorted[K, V] = new MultiDictSorted(
@@ -16,6 +15,16 @@ object MultiDictSorted:
     val dict = elems.groupMap(_._1)(_._2).map((k, vs) => k -> SortedSet.from(vs)).withDefaultValue(SortedSet.empty)
     new MultiDictSorted[K, V](dict)
 
+/**
+  * An immutable multi-map where multiple values can be associated with the same key. Similar to `SortedMultiDict` in
+  * `scala-collection-contrib`, but this returns values in order (values are stored in a sorted set). Also, this only
+  * implements a small subset of methods needed in this project.
+  *
+  * @tparam K
+  *   key type
+  * @tparam V
+  *   value type, must have an Ordering[V] given
+  */
 class MultiDictSorted[K, V: Ordering] private (dict: Map[K, SortedSet[V]]):
 
   override def clone(): MultiDictSorted[K, V] = new MultiDictSorted[K, V](dict)

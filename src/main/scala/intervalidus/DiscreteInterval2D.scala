@@ -344,6 +344,9 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
     */
   def ⊆(that: DiscreteInterval2D[T1, T2]): Boolean = this isSubsetOf that
 
+/**
+  * Companion for the two-dimensional interval used in defining and operating on a valid data.
+  */
 object DiscreteInterval2D:
 
   /**

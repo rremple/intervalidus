@@ -2,6 +2,20 @@ package intervalidus.collection.mutable
 
 import intervalidus.collection.{BoxLike, BoxTreeLike, BoxTreeObjectLike, BoxedPayloadLike, CoordinateLike}
 
+/**
+  * Mutable box tree base type.
+  *
+  * @tparam A
+  *   payload type
+  * @tparam C
+  *   F-bounded coordinate type
+  * @tparam B
+  *   F-bounded box type (depends on the coordinate type)
+  * @tparam P
+  *   F-bounded boxed payload type (depends on the payload, coordinate, and box types)
+  * @tparam Self
+  *   F-bounded self type
+  */
 trait MutableBoxTreeLike[
   A,
   C <: CoordinateLike[C],
@@ -46,7 +60,7 @@ trait MutableBoxTreeLike[
     ds.iterator.foreach(addOne)
 
 /**
-  * A leaf holds a list of data (up to capacity) for this particular quadrant.
+  * A leaf holds a list of data (up to capacity) for a particular subtree.
   */
 trait MutableBoxTreeLeafLike[
   A,
@@ -100,7 +114,7 @@ trait MutableBoxTreeBranchLike[
     depth: Int
   ): MutableBoxTreeBranchLike[A, C, B, P, SuperSelf]
 
-  // Here we may have to split boxes that overlap our quadrant boundaries
+  // Here we may have to split boxes that overlap our subtree boundaries
   override def addOne(d: P): Unit =
     val boxSplits = subtreeBoundaries.count(d.box.intersects) > 1
     val updatedSubtrees = subtrees.map: subtree =>
@@ -139,6 +153,14 @@ trait MutableBoxTreeBranchLike[
   override def clear(): Unit = subtrees.foreach(_.clear()) // recursively clear, leaving structure in place
   // updateSubtrees(subtreeBoundaries.map(newLeaf(_, depth + 1))) // truncate structure
 
+/**
+  * Constructors for companion mutable box tree.
+  *
+  * @tparam C
+  *   F-bounded coordinate type
+  * @tparam B
+  *   F-bounded box type (depends on the coordinate type)
+  */
 trait MutableBoxTreeObjectLike[C <: CoordinateLike[C], B <: BoxLike[C, B]] extends BoxTreeObjectLike:
 
   type BoxedPayloadType[A] <: BoxedPayloadLike[A, C, B, BoxedPayloadType[A]]

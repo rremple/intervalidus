@@ -7,6 +7,9 @@ import intervalidus.collection.{Box3D, BoxedPayload, Coordinate3D}
 import scala.annotation.tailrec
 import scala.collection.mutable
 
+/**
+  * Constructs data in three-dimensional intervals.
+  */
 trait DataIn3DBaseObject:
   /**
     * Shorthand constructor for a single initial value that is valid in a particular interval domain.
@@ -146,7 +149,6 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
     DataIn3DBase[V, R1, R2, R3]
   ]:
 
-  // ---- experimental use of Octrees
   def dataInSearchTree: BoxOctree[ValidData3D[V, R1, R2, R3]]
 
   experimental.control("requireDisjoint")(
@@ -283,12 +285,11 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
   )
 
   /**
-    * Internal method, to compress in place. Structure is parameterized to support both mutable and immutable
-    * compression. (Immutable compression acts on a copy.) Assumes caller does synchronization (if needed). Assumes
-    * underlying data are disjoint, so no need to address intersections.
+    * Internal method, to compress in place. Assumes caller does synchronization (if needed). Assumes underlying data
+    * are disjoint, so no need to address intersections.
     *
     * @param value
-    *   value to be evaluate
+    *   value to evaluate
     * @return
     *   this structure once compressed (not a copy)
     */
@@ -409,7 +410,6 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
 
   // ---------- Implement methods from DimensionalBase ----------
 
-  // ----start: experimental use of octrees
   override protected def dataInSearchTreeAdd(data: ValidData3D[V, R1, R2, R3]): Unit =
     dataInSearchTree.addOne(data.asBoxedPayload)
 
@@ -437,8 +437,6 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
 
   override protected def dataInSearchTreeIntersects(interval: DiscreteInterval3D[R1, R2, R3]): Boolean =
     dataInSearchTree.get(interval.asBox).exists(_.payload.interval intersects interval)
-
-  // ----end: experimental use of octrees
 
   /**
     * @inheritdoc

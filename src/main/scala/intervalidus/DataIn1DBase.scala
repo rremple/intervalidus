@@ -6,6 +6,9 @@ import intervalidus.collection.{Box1D, BoxedPayload, Coordinate1D}
 
 import scala.collection.mutable
 
+/**
+  * Constructs data in one-dimensional intervals.
+  */
 trait DataIn1DBaseObject:
   /**
     * Shorthand constructor for a single initial value that is valid in a particular interval domain.
@@ -97,7 +100,6 @@ trait DataIn1DBaseObject:
 trait DataIn1DBase[V, R: DiscreteValue](using experimental: Experimental)
   extends DimensionalBase[V, DiscreteDomain1D[R], DiscreteInterval1D[R], ValidData1D[V, R], DataIn1DBase[V, R]]:
 
-  // ---- experimental use of B-trees
   def dataInSearchTree: BoxBtree[ValidData1D[V, R]]
 
   experimental.control("requireDisjoint")(
@@ -180,12 +182,9 @@ trait DataIn1DBase[V, R: DiscreteValue](using experimental: Experimental)
     * compression. (Immutable compression acts on a copy.) Assumes caller does synchronization (if needed).
     *
     * @param value
-    *   value to be evaluate
+    *   value to evaluate
     * @return
     *   this structure once compressed (not a copy)
-    * @note
-    *   This method doesn't act on this, but it is defined in the class rather than in the companion object to allow it
-    *   to access the protected mutator methods.
     */
   override protected def compressInPlace(value: V): Unit =
     dataByValue
@@ -217,8 +216,6 @@ trait DataIn1DBase[V, R: DiscreteValue](using experimental: Experimental)
         case _                                                    => None
 
   // ---------- Implement methods from DimensionalBase ----------
-
-  // ---- experimental use of B-trees
 
   override protected def dataInSearchTreeAdd(data: ValidData1D[V, R]): Unit =
     dataInSearchTree.addOne(data.asBoxedPayload)

@@ -2,6 +2,9 @@ package intervalidus.collection.mutable
 
 import intervalidus.collection.*
 
+/**
+  * @inheritdoc
+  */
 object BoxQuadtree extends MutableBoxTreeObjectLike[Coordinate2D, Box2D]:
   type BoxedPayloadType[A] = BoxedPayload2D[A]
   type SelfType[A] = BoxQuadtree[A]
@@ -11,8 +14,18 @@ object BoxQuadtree extends MutableBoxTreeObjectLike[Coordinate2D, Box2D]:
     depthLimit: Int = defaultDepthLimit
   ): BoxQuadtree[A] = BoxQuadtreeBranch[A](boundary, 0, capacity, depthLimit)
 
+/**
+  * Mutable box tree in two dimensions, see [[https://en.wikipedia.org/wiki/Quadtree]].
+  *
+  * @tparam A
+  *   payload type
+  */
 sealed trait BoxQuadtree[A] extends MutableBoxTreeLike[A, Coordinate2D, Box2D, BoxedPayload2D[A], BoxQuadtree[A]]
 
+/**
+  * @inheritdoc
+  * A leaf holds a list of data (up to capacity) for a particular subtree.
+  */
 class BoxQuadtreeLeaf[A](val boundary: Box2D, val depth: Int, val capacity: Int, val depthLimit: Int)
   extends BoxQuadtree[A]
   with MutableBoxTreeLeafLike[A, Coordinate2D, Box2D, BoxedPayload2D[A], BoxQuadtree[A]]:
@@ -22,6 +35,10 @@ class BoxQuadtreeLeaf[A](val boundary: Box2D, val depth: Int, val capacity: Int,
     newLeaf.data = this.data // safe because data is a mutable reference to an immutable list
     newLeaf
 
+/**
+  * @inheritdoc
+  * A branch divides the management of data into multiple subtrees -- no data are stored on the branch itself.
+  */
 class BoxQuadtreeBranch[A](val boundary: Box2D, val depth: Int, val capacity: Int, val depthLimit: Int)
   extends BoxQuadtree[A]
   with MutableBoxTreeBranchLike[A, Coordinate2D, Box2D, BoxedPayload2D[A], BoxQuadtree[A]]:

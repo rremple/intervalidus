@@ -69,7 +69,7 @@ trait BoxTreeLike[
   def depthLimit: Int
 
   /**
-    * Queries the tree for boxes intersecting a certain range. Because boxes can be split across multiple quadrants, the
+    * Queries the tree for boxes intersecting a certain range. Because boxes can be split across multiple subtrees, the
     * data returned can have duplicates, i.e., same data value with the same parent box. (Use
     * [[BoxedPayload.deduplicate]] to remove these duplicates.)
     * @param range

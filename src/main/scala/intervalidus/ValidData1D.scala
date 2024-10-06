@@ -25,6 +25,9 @@ case class ValidData1D[V, R: DiscreteValue](
   // no crossing, so no parens required
   override protected def qualifiedInterval: String = s"${interval.toCodeLikeString}"
 
+/**
+  * Companion for valid data in one dimension.
+  */
 object ValidData1D:
   import scala.math.Ordered.orderingToOrdered
   given [V, R: DiscreteValue]: Ordering[ValidData1D[V, R]] with

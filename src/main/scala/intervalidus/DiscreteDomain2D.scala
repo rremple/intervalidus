@@ -68,6 +68,9 @@ case class DiscreteDomain2D[T1: DiscreteValue, T2: DiscreteValue](
     */
   def ∈(interval: DiscreteInterval2D[T1, T2]): Boolean = this belongsTo interval
 
+/**
+  * Companion for the two-dimensional domain used in defining and operating on a discrete intervals.
+  */
 object DiscreteDomain2D:
   /**
     * Provides a default ordering for any 2D domain based on the orderings of its constituent horizontal and vertical

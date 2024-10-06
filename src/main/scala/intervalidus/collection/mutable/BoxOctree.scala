@@ -2,6 +2,9 @@ package intervalidus.collection.mutable
 
 import intervalidus.collection.*
 
+/**
+  * @inheritdoc
+  */
 object BoxOctree extends MutableBoxTreeObjectLike[Coordinate3D, Box3D]:
   type BoxedPayloadType[A] = BoxedPayload3D[A]
   type SelfType[A] = BoxOctree[A]
@@ -11,8 +14,18 @@ object BoxOctree extends MutableBoxTreeObjectLike[Coordinate3D, Box3D]:
     depthLimit: Int = defaultDepthLimit
   ): BoxOctree[A] = BoxOctreeBranch[A](boundary, 0, capacity, depthLimit)
 
+/**
+  * Immutable box tree in three dimensions, see [[https://en.wikipedia.org/wiki/Octree]].
+  *
+  * @tparam A
+  *   payload type
+  */
 sealed trait BoxOctree[A] extends MutableBoxTreeLike[A, Coordinate3D, Box3D, BoxedPayload3D[A], BoxOctree[A]]
 
+/**
+  * @inheritdoc
+  * A leaf holds a list of data (up to capacity) for a particular subtree.
+  */
 class BoxOctreeLeaf[A](val boundary: Box3D, val depth: Int, val capacity: Int, val depthLimit: Int)
   extends BoxOctree[A]
   with MutableBoxTreeLeafLike[A, Coordinate3D, Box3D, BoxedPayload3D[A], BoxOctree[A]]:
@@ -22,6 +35,10 @@ class BoxOctreeLeaf[A](val boundary: Box3D, val depth: Int, val capacity: Int, v
     newLeaf.data = this.data // safe because data is a mutable reference to an immutable list
     newLeaf
 
+/**
+  * @inheritdoc
+  * A branch divides the management of data into multiple subtrees -- no data are stored on the branch itself.
+  */
 class BoxOctreeBranch[A](val boundary: Box3D, val depth: Int, val capacity: Int, val depthLimit: Int)
   extends BoxOctree[A]
   with MutableBoxTreeBranchLike[A, Coordinate3D, Box3D, BoxedPayload3D[A], BoxOctree[A]]:

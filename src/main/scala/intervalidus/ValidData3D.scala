@@ -31,6 +31,9 @@ case class ValidData3D[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValu
   def asBoxedPayload: BoxedPayload3D[ValidData3D[V, R1, R2, R3]] =
     BoxedPayload3D(interval.asBox, this)
 
+/**
+  * Companion for valid data in three dimensions.
+  */
 object ValidData3D:
   import scala.math.Ordered.orderingToOrdered
   given [V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue]: Ordering[ValidData3D[V, R1, R2, R3]] with

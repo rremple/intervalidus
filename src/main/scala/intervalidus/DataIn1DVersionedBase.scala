@@ -2,6 +2,9 @@ package intervalidus
 
 import scala.language.implicitConversions
 
+/**
+  * Constructs data in one-dimensional intervals that are also versioned (hidden second dimension).
+  */
 object DataIn1DVersionedBase:
 
   /**

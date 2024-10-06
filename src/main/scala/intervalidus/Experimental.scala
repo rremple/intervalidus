@@ -1,7 +1,13 @@
 package intervalidus
 
+/**
+  * Enables/disables experimental features.
+  */
 opaque type Experimental = Map[String, Boolean]
 
+/**
+  * Constructs experimental feature configurations.
+  */
 object Experimental:
   /**
     * No experimental features are enabled

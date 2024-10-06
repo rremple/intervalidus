@@ -24,6 +24,9 @@ case class ValidData2D[V, R1: DiscreteValue, R2: DiscreteValue](
   def asBoxedPayload: BoxedPayload2D[ValidData2D[V, R1, R2]] =
     BoxedPayload2D(interval.asBox, this)
 
+/**
+  * Companion for valid data in two dimensions.
+  */
 object ValidData2D:
   import scala.math.Ordered.orderingToOrdered
   given [V, R1: DiscreteValue, R2: DiscreteValue]: Ordering[ValidData2D[V, R1, R2]] with

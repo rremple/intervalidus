@@ -9,7 +9,7 @@ class BoxBtreeTest extends AnyFunSuite with Matchers:
     Box1D(Coordinate1D(start), Coordinate1D(end))
 
   test("Mutable: BoxBtree methods"):
-    // Create a quadtree with a small capacity per node and insert some boxes
+    // Create a B-tree with a small capacity per node and insert some boxes
     val boundary = box(-8, 8)
     val tree = BoxBtree[String](boundary)
     tree.addOne(box(3, 5) -> "one") // right

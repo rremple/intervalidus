@@ -2,8 +2,8 @@
 
 ## In what intervals are your data valid?
 
-A Scala library with zero dependencies for representing data as valid only in discrete intervals, both one-dimensional
-and two-dimensional. This seems to come up a lot in application design both in terms of effective dating and versioning
+A Scala library with zero dependencies for representing data as valid only in discrete intervals, one-, two-, and
+three-dimensional. This seems to come up a lot in application design both in terms of effective dating and versioning
 data.
 
 ### Goals, Non-Goals, Background, and Motivation:
@@ -141,7 +141,7 @@ On 2024-05-15, expected Premium tier on 2024-08-01
 On 2024-07-15, no expected tier on 2024-08-01
 ```
 
-The same methods are available in both mutable/immutable and one-dimensional/two-dimensional forms (though parameter and
+The same methods are available in both mutable/immutable and one-/two-/three-dimensional forms (though parameter and
 return types vary). See the [full API documentation](https://rremple.github.io/intervalidus/latest/api/intervalidus) for details on
 these methods.
 
@@ -156,9 +156,12 @@ These query methods provide various data, difference, and Boolean results:
 
 These methods return a new structure:
 
-- `copy` / `toImmutable` (when mutable) / `toMutable` (when immutable)
+- `copy` / `toImmutable` / `toMutable`
 - `zip` / `zipAll`
-- `flip` / `getByHorizontalIndex` / `getByVerticalIndex` (only available on 2D)
+- `getByHorizontalIndex` / `getByVerticalIndex` (only available on 2D and 3D)
+- `getByDepthIndex` (only available on 3D)
+- `flip` (only available on 2D)
+- `flipAboutHorizontal` / `flipAboutVertical` / `flipAboutDepth` /  (only available on 3D)
 
 These mutation methods return a new structure when using immutable and `Unit` when using mutable:
 
@@ -227,20 +230,23 @@ You can also extend through composition. For example `DataIn1DVersioned` mimics 
 underlying `DataIn2D` structure with an integer vertical dimension to create a versioned data structure. The "current"
 version is tracked as internal state and methods accept version selection as a context parameter, with "current" as the
 default version selection applied. Also, a notion of approval is supported by specifying a specific future version for 
-anything unapproved.
+anything unapproved. TODO: Similarly, there should be a `DataIn2DVersioned` mimicking the `DataIn2D` API using an 
+underlying `DataIn3D` structure.
 
 ## Software Structure
 
-Below is the class diagram for the core bits of Intervalidus:
+Below is the class diagram for the core bits of Intervalidus
+(three-dimensional is not shown, but it is very similar to two-dimensional):
 ![core class diagram](/doc/intervalidus-core.svg)
 
 As described above, `DataIn1DVersioned` leverages the core classes to provide specific functionality you might want when
 versioning data (such as approval). Below is the class diagram for it:
 ![versioned class diagram](/doc/intervalidus-versioned.svg)
 
-Lastly, the definitions and implementations of methods across mutable/immutable and one-dimensional/two-dimensional 
+Lastly, the definitions and implementations of methods across mutable/immutable and one-/two-/three-dimensional 
 variants have been made as generic as possible to avoid repetitive code/scaladoc (DRY). However, this can make it
 harder to navigate to these methods. The following (rather unorthodox) diagram shows where to find each method in a
 kind of Venn-like way, where overlaps indicate a definition (and documentation) is in the lower trait with the
-implementation in the higher, inheriting trait/class:
+implementation in the higher, inheriting trait/class
+(three-dimensional is not shown, but it is very similar to two-dimensional).:
 ![trait stack diagram](/doc/intervalidus-trait-stack.svg)

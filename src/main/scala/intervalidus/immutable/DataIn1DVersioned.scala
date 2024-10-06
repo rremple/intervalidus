@@ -5,6 +5,9 @@ import intervalidus.*
 import scala.language.implicitConversions
 import scala.math.Ordering.Implicits.infixOrderingOps
 
+/**
+  * Constructs data in one-dimensional intervals that are also versioned (hidden second dimension).
+  */
 object DataIn1DVersioned:
   /**
     * Shorthand constructor for a single initial value that is valid in a specific discrete interval starting at the

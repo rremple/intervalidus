@@ -1,6 +1,9 @@
 package intervalidus.collection.immutable
 import intervalidus.collection.*
 
+/**
+  * @inheritdoc
+  */
 object BoxQuadtree extends ImmutableBoxTreeObjectLike[Coordinate2D, Box2D]:
   type BoxedPayloadType[A] = BoxedPayload2D[A]
   type SelfType[A] = BoxQuadtree[A]
@@ -10,10 +13,20 @@ object BoxQuadtree extends ImmutableBoxTreeObjectLike[Coordinate2D, Box2D]:
     depthLimit: Int = defaultDepthLimit
   ): BoxQuadtree[A] = BoxQuadtreeBranch[A](boundary, 0, capacity, depthLimit)
 
+/**
+  * Immutable box tree in two dimensions, see [[https://en.wikipedia.org/wiki/Quadtree]].
+  *
+  * @tparam A
+  *   payload type
+  */
 sealed trait BoxQuadtree[A] extends ImmutableBoxTreeLike[A, Coordinate2D, Box2D, BoxedPayload2D[A], BoxQuadtree[A]]:
   override def addAll(ds: IterableOnce[BoxedPayload2D[A]]): BoxQuadtree[A] =
     ds.iterator.foldLeft(this: BoxQuadtree[A])(_.addOne(_))
 
+/**
+  * @inheritdoc
+  * A leaf holds a list of data (up to capacity) for a particular subtree.
+  */
 class BoxQuadtreeLeaf[A] private (
   val boundary: Box2D,
   val depth: Int,
@@ -33,6 +46,10 @@ class BoxQuadtreeLeaf[A] private (
   override protected def newBranch: BoxQuadtreeBranch[A] =
     BoxQuadtreeBranch(boundary, depth, capacity, depthLimit)
 
+/**
+  * @inheritdoc
+  * A branch divides the management of data into multiple subtrees -- no data are stored on the branch itself.
+  */
 class BoxQuadtreeBranch[A] private (
   val boundary: Box2D,
   val depth: Int,

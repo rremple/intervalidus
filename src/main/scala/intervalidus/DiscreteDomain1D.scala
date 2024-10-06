@@ -117,6 +117,9 @@ extension [T: DiscreteValue](domain1d: DiscreteDomain1D[T])
     */
   def ∈(interval: DiscreteInterval1D[T]): Boolean = domain1d belongsTo interval
 
+/**
+  * Companion for the one-dimensional domain used in defining and operating on a discrete intervals.
+  */
 object DiscreteDomain1D:
   /**
     * This ordering sorts Bottoms and Tops correctly and leverages the discrete value ordering for the data points in

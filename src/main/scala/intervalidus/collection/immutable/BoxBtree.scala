@@ -1,6 +1,9 @@
 package intervalidus.collection.immutable
 import intervalidus.collection.*
 
+/**
+  * @inheritdoc
+  */
 object BoxBtree extends ImmutableBoxTreeObjectLike[Coordinate1D, Box1D]:
   type BoxedPayloadType[A] = BoxedPayload1D[A]
   type SelfType[A] = BoxBtree[A]
@@ -10,10 +13,20 @@ object BoxBtree extends ImmutableBoxTreeObjectLike[Coordinate1D, Box1D]:
     depthLimit: Int = defaultDepthLimit
   ): BoxBtree[A] = BoxBtreeBranch[A](boundary, 0, capacity, depthLimit)
 
+/**
+  * Immutable box tree in one dimension, see [[https://en.wikipedia.org/wiki/B-tree]].
+  *
+  * @tparam A
+  *   payload type
+  */
 sealed trait BoxBtree[A] extends ImmutableBoxTreeLike[A, Coordinate1D, Box1D, BoxedPayload1D[A], BoxBtree[A]]:
   override def addAll(ds: IterableOnce[BoxedPayload1D[A]]): BoxBtree[A] =
     ds.iterator.foldLeft(this: BoxBtree[A])(_.addOne(_))
 
+/**
+  * @inheritdoc
+  * A leaf holds a list of data (up to capacity) for a particular subtree.
+  */
 class BoxBtreeLeaf[A] private (
   val boundary: Box1D,
   val depth: Int,
@@ -33,6 +46,10 @@ class BoxBtreeLeaf[A] private (
   override protected def newBranch: BoxBtreeBranch[A] =
     BoxBtreeBranch(boundary, depth, capacity, depthLimit)
 
+/**
+  * @inheritdoc
+  * A branch divides the management of data into multiple subtrees -- no data are stored on the branch itself.
+  */
 class BoxBtreeBranch[A] private (
   val boundary: Box1D,
   val depth: Int,
