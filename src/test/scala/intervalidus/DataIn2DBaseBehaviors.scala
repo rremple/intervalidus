@@ -25,12 +25,16 @@ trait DataIn2DBaseBehaviors:
 
   def stringLookupTests[S <: DataIn2DBase[String, LocalDate, Int]](
     prefix: String,
-    dataIn2DFrom: Iterable[ValidData2D[String, LocalDate, Int]] => S,
-    dataIn2DOf: String => S
-  ): Unit = test(s"$prefix: Looking up data in intervals - unbounded r1"):
-    assertThrows[IllegalArgumentException]:
-      // not valid as it overlaps in the second dimension on [10, +∞)
-      val badFixture = dataIn2DFrom(testData(("Hello", unbounded, interval(0, 10)), ("World", unbounded, unbounded)))
+    dataIn2DFrom: Experimental ?=> Iterable[ValidData2D[String, LocalDate, Int]] => S,
+    dataIn2DOf: Experimental ?=> String => S
+  )(using Experimental): Unit = test(s"$prefix: Looking up data in intervals - unbounded r1"):
+    {
+      given Experimental = Experimental("requireDisjoint")
+
+      assertThrows[IllegalArgumentException]:
+        // not valid as it overlaps in the second dimension on [10, +∞)
+        val badFixture = dataIn2DFrom(testData(("Hello", unbounded, interval(0, 10)), ("World", unbounded, unbounded)))
+    }
 
     val empty = dataIn2DFrom(List.empty)
     assert(empty.getAll.isEmpty)
@@ -71,7 +75,7 @@ trait DataIn2DBaseBehaviors:
     fixture2.getAt(DiscreteDomain2D(now, 15)) shouldBe Some("World")
     fixture2.getAt(DiscreteDomain2D(now, -1)) shouldBe None
     assert(fixture2.intersects(unbounded x interval(5, 15)))
-    fixture2.getIntersecting(unbounded x interval(5, 15)) shouldBe allData2
+    fixture2.getIntersecting(unbounded x interval(5, 15)) should contain theSameElementsAs allData2
 
     val allData3a = testData(
       ("Hello", unbounded, interval(0, 9)),
@@ -119,9 +123,9 @@ trait DataIn2DBaseBehaviors:
   )(
     removeOrUpdateInterval: DiscreteInterval2D[LocalDate, Int],
     updateValue: String = "update"
-  ): Assertion
+  )(using Experimental): Assertion
 
-  def removeOrUpdateTests(prefix: String): Unit =
+  def removeOrUpdateTests(prefix: String)(using Experimental): Unit =
     test(s"$prefix: All remove/update by interval - (1) simple + simple = simple"):
       assertRemoveOrUpdateResult()(
         interval(day(-14), day(14)) x interval(4, 7)

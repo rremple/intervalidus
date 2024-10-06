@@ -1,5 +1,7 @@
 package intervalidus
 
+import intervalidus.collection.{Coordinate2D, CoordinateLike}
+
 /**
   * A two-dimensional discrete domain, like cartesian coordinates. Used in conjunction with [[DiscreteInterval2D]].
   *
@@ -12,10 +14,12 @@ package intervalidus
   * @tparam T2
   *   the vertical domain type
   */
-case class DiscreteDomain2D[T1, T2](
+case class DiscreteDomain2D[T1: DiscreteValue, T2: DiscreteValue](
   horizontalIndex: DiscreteDomain1D[T1],
   verticalIndex: DiscreteDomain1D[T2]
-) extends DimensionalBase.DomainLike:
+) extends DimensionalBase.DomainLike[DiscreteDomain2D[T1, T2]]:
+  def asCoordinate: Coordinate2D =
+    Coordinate2D(horizontalIndex.orderedHash, verticalIndex.orderedHash)
 
   override def toString: String = s"{$horizontalIndex, $verticalIndex}"
 
@@ -30,6 +34,20 @@ case class DiscreteDomain2D[T1, T2](
     *   true if this belongs to the specified interval, false otherwise.
     */
   infix def belongsTo(interval: DiscreteInterval2D[T1, T2]): Boolean = interval contains this
+
+  /**
+    * Cross this domain element with that domain element to arrive at a new three-dimensional domain element.
+    *
+    * @param that
+    *   a one-dimensional domain element to be used in the depth dimension.
+    * @tparam T3
+    *   discrete value type for that domain.
+    * @return
+    *   a new three-dimensional domain element with this as the horizontal and vertical components and that as the depth
+    *   component.
+    */
+  infix def x[T3: DiscreteValue](that: DiscreteDomain1D[T3]): DiscreteDomain3D[T1, T2, T3] =
+    DiscreteDomain3D(horizontalIndex, verticalIndex, that)
 
   /**
     * Flips this domain by swapping the vertical and horizontal components with one another.

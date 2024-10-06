@@ -1,6 +1,7 @@
 package intervalidus.mutable
 
 import intervalidus.*
+import org.scalatest.compatible.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
@@ -12,7 +13,37 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors:
 
   // shared
   testsFor(stringLookupTests("Mutable", DataIn1D(_), DataIn1D.of(_)))
+  testsFor(
+    stringLookupTests("Mutable [experimental noSearchTree]", DataIn1D(_), DataIn1D.of(_))(using
+      Experimental("noSearchTree")
+    )
+  )
+
   testsFor(doubleUseCaseTests("Mutable", DataIn1D(_)))
+
+  testsFor(removeOrUpdateTests("Mutable"))
+  testsFor(removeOrUpdateTests("Mutable [experimental noSearchTree]")(using Experimental("noSearchTree")))
+  testsFor(removeOrUpdateTests("Mutable [experimental bruteForceUpdate]")(using Experimental("bruteForceUpdate")))
+
+  override def assertRemoveOrUpdateResult(
+    removeExpectedUnsorted: ValidData1D[String, Int]*
+  )(
+    removeOrUpdateInterval: DiscreteInterval1D[Int],
+    updateValue: String = "update"
+  )(using Experimental): Assertion =
+    val fixtureInterval = interval(-7, 7)
+    val removeFixture = DataIn1D.of(fixtureInterval -> "World")
+    val updateFixture = removeFixture.copy
+    val expectedUpdateInterval = removeOrUpdateInterval ∩ fixtureInterval match
+      case Some(intersection) => intersection
+      case None               => fail("Test failed, no intersection with the fixture interval")
+
+    val removeExpected = removeExpectedUnsorted.toList.sortBy(_.key)
+    val updateExpected = (removeExpectedUnsorted :+ (expectedUpdateInterval -> updateValue)).toList.sortBy(_.key)
+    removeFixture.remove(removeOrUpdateInterval)
+    updateFixture.update(removeOrUpdateInterval -> updateValue)
+    assertResult(removeExpected)(removeFixture.getAll.toList)
+    assertResult(updateExpected)(updateFixture.getAll.toList)
 
   test("Mutable: Adding and removing data in intervals"):
     val empty: DataIn1D[String, Int] = DataIn1D()
@@ -153,6 +184,17 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors:
     assert(fixture1.isEmpty)
     assertThrows[NoSuchElementException]:
       fixture1.get
+
+  // do map again experimentally to get coverage for clear and addAll
+  test("Immutable [experimental noSearchTree]: Mapping, flatmapping, etc."):
+    given Experimental = Experimental("noSearchTree")
+
+    val allData = testData("Hey" -> intervalTo(4), "World" -> intervalFrom(16))
+
+    val fixture = DataIn1D(allData)
+    fixture.map(d => d.interval.endingWith(d.interval.end.successor) -> (d.value + "!"))
+    val expectedData = testData("Hey!" -> intervalTo(5), "World!" -> intervalFrom(16))
+    fixture.getAll.toList shouldBe expectedData
 
   test("Mutable: Compressing data in intervals"):
     val allData = testData(

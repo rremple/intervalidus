@@ -53,7 +53,8 @@ trait DataIn1DVersionedBase[V, R: DiscreteValue](
   initialData: Iterable[ValidData2D[V, R, Int]],
   val initialVersion: Int,
   withCurrentVersion: Option[DiscreteDomain1D[Int]]
-) extends PartialFunction[DiscreteDomain2D[R, Int], V]:
+)(using Experimental)
+  extends PartialFunction[DiscreteDomain2D[R, Int], V]:
 
   import DataIn1DVersionedBase.VersionSelection
 

@@ -1,5 +1,7 @@
 package intervalidus
 
+import intervalidus.collection.BoxedPayload1D
+
 /**
   * A value that is valid in a one-dimensional discrete interval. Conceptually, this defines a partial function where
   * all domain elements that are part of the interval map to the value.
@@ -16,6 +18,15 @@ package intervalidus
 case class ValidData1D[V, R: DiscreteValue](
   value: V,
   interval: DiscreteInterval1D[R]
-) extends DimensionalBase.DataLike[V, DiscreteDomain1D[R], DiscreteInterval1D[R]]:
+) extends DimensionalBase.DataLike[V, DiscreteDomain1D[R], DiscreteInterval1D[R], ValidData1D[V, R]]:
+  def asBoxedPayload: BoxedPayload1D[ValidData1D[V, R]] =
+    BoxedPayload1D(interval.asBox, this)
+
   // no crossing, so no parens required
   override protected def qualifiedInterval: String = s"${interval.toCodeLikeString}"
+
+object ValidData1D:
+  import scala.math.Ordered.orderingToOrdered
+  given [V, R: DiscreteValue]: Ordering[ValidData1D[V, R]] with
+    override def compare(x: ValidData1D[V, R], y: ValidData1D[V, R]): Int =
+      x.key.compareTo(y.key)

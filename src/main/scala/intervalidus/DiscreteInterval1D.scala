@@ -2,6 +2,7 @@ package intervalidus
 
 import intervalidus.DiscreteDomain1D.{Bottom, Point, Top}
 import intervalidus.DiscreteInterval1D.{interval, intervalFrom, intervalTo}
+import intervalidus.collection.{Box1D, Coordinate1D}
 
 import scala.math.Ordering.Implicits.infixOrderingOps
 
@@ -21,8 +22,10 @@ import scala.math.Ordering.Implicits.infixOrderingOps
 case class DiscreteInterval1D[T: DiscreteValue](
   start: DiscreteDomain1D[T],
   end: DiscreteDomain1D[T]
-) extends DimensionalBase.IntervalLike[DiscreteDomain1D[T]]:
+) extends DimensionalBase.IntervalLike[DiscreteDomain1D[T], DiscreteInterval1D[T]]:
   require(start <= end, s"Interval $this invalid")
+
+  def asBox: Box1D = Box1D(start.asCoordinate, end.asCoordinate)
 
   /**
     * Construct new valid data from this interval.

@@ -31,15 +31,19 @@ trait DataIn1DVersionedBaseBehaviors:
 
   def stringLookupTests[S <: DataIn1DVersionedBase[String, Int]](
     prefix: String,
-    dataIn1DVersionedFrom1D: Iterable[ValidData1D[String, Int]] => S,
-    dataIn1DVersionedFrom2D: Iterable[ValidData2D[String, Int, Int]] => S,
-    dataIn1DVersionedOf: String => S
+    dataIn1DVersionedFrom1D: Experimental ?=> Iterable[ValidData1D[String, Int]] => S,
+    dataIn1DVersionedFrom2D: Experimental ?=> Iterable[ValidData2D[String, Int, Int]] => S,
+    dataIn1DVersionedOf: Experimental ?=> String => S
   ): Unit =
     test(s"$prefix: General setup"):
-      assertThrows[IllegalArgumentException]:
-        // not valid as it overlaps on [10, +∞)
-        val badFixture =
-          dataIn1DVersionedFrom2D(testDataIn2D(0, testData("Hello" -> interval(0, 10), "World" -> unbounded[Int])))
+      {
+        given Experimental = Experimental("requireDisjoint")
+
+        assertThrows[IllegalArgumentException]:
+          // not valid as it overlaps on [10, +∞)
+          val badFixture =
+            dataIn1DVersionedFrom2D(testDataIn2D(0, testData("Hello" -> interval(0, 10), "World" -> unbounded[Int])))
+      }
 
       val empty: S = dataIn1DVersionedFrom1D(Seq.empty)
       assert(empty.getAll.isEmpty)
@@ -67,7 +71,7 @@ trait DataIn1DVersionedBaseBehaviors:
       fixture2.getAt(15) shouldBe Some("World")
       fixture2.getAt(-1) shouldBe None
       assert(fixture2.intersects(interval(5, 15)))
-      fixture2.getIntersecting(interval(5, 15)) shouldBe allData2
+      fixture2.getIntersecting(interval(5, 15)) should contain theSameElementsAs allData2
 
       val allData3a = testData("Hello" -> interval(0, 9), "World" -> interval(12, 20))
       val allData3b = testData("Goodbye" -> interval(-4, -2), "Cruel" -> interval(6, 14), "World" -> interval(16, 24))
@@ -99,4 +103,4 @@ trait DataIn1DVersionedBaseBehaviors:
       fixture.getAt(5) shouldBe Some("Hello")
       fixture.getAt(15) shouldBe Some("World")
       fixture.getAt(-1) shouldBe None
-      fixture.getIntersecting(interval(5, 15)) shouldBe allData
+      fixture.getIntersecting(interval(5, 15)) should contain theSameElementsAs allData

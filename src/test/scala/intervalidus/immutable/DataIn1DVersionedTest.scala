@@ -21,6 +21,17 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
 
   // shared
   testsFor(stringLookupTests("Immutable", newDataIn1DVersioned, DataIn1DVersioned(_), DataIn1DVersioned.of(_)))
+  {
+    given Experimental = Experimental("noSearchTree")
+    testsFor(
+      stringLookupTests(
+        "Immutable [experimental noSearchTree]",
+        newDataIn1DVersioned,
+        DataIn1DVersioned(_),
+        DataIn1DVersioned.of(_)
+      )
+    )
+  }
 
   test("Immutable: Adding and removing data in intervals"):
     val empty: DataIn1DVersioned[String, Int] = mutable.DataIn1DVersioned().toMutable.toImmutable
@@ -352,7 +363,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     // Visualize(fixture4.underlying2D, 15000, "after zoinks approved, before remove is approved")
 
     fixture4.getAt(day(0)) shouldBe Some(zoinks.value)
-    fixture4.getIntersecting(interval(day(5), day(15))) shouldBe testData(
+    fixture4.getIntersecting(interval(day(5), day(15))) should contain theSameElementsAs testData(
       "Hello" -> interval(day(1), day(9)),
       "World" -> intervalFrom(day(10))
     )
@@ -363,7 +374,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     // Visualize(fixture5.underlying2D, 15000, "after remove is approved")
 
     fixture5.getAt(day(0)) shouldBe None
-    fixture5.getIntersecting(interval(day(5), day(15))) shouldBe testData(
+    fixture5.getIntersecting(interval(day(5), day(15))) should contain theSameElementsAs testData(
       "Hello" -> interval(day(6), day(9)),
       "World" -> intervalFrom(day(10))
     )

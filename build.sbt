@@ -14,3 +14,12 @@ lazy val root = (project in file("."))
     coverageMinimumBranchTotal := 99,
     libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.19" % Test // and nothing else!
   )
+
+lazy val bench = project
+  .enablePlugins(JmhPlugin)
+  .dependsOn(root)
+  .settings(
+    publish / skip := true,
+    Compile / packageDoc / publishArtifact := false,
+    coverageEnabled := false
+  )

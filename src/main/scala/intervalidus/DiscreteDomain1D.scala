@@ -1,5 +1,9 @@
 package intervalidus
 
+import intervalidus.collection.{Coordinate1D, CoordinateLike}
+
+import scala.language.implicitConversions
+
 /**
   * Domain used in defining and operating on a discrete interval. It describes specific discrete data points as well as
   * the special "`Bottom`" and "`Top`" cases which conceptually lie below and above the finite range of data points
@@ -11,7 +15,7 @@ package intervalidus
   * @tparam T
   *   expected to be a discrete value (i.e., `DiscreteValue[T]` should be given).
   */
-enum DiscreteDomain1D[+T] extends DimensionalBase.DomainLike:
+enum DiscreteDomain1D[+T] extends DimensionalBase.DomainLike[DiscreteDomain1D[T]]:
   /**
     * Smaller than smallest data point (like -∞)
     */
@@ -45,6 +49,8 @@ import DiscreteDomain1D.{Bottom, Point, Top}
   * directly in the enum definition (because, there, `T` must be covariant to accommodate `Bottom` and `Top`).
   */
 extension [T: DiscreteValue](domain1d: DiscreteDomain1D[T])
+  def asCoordinate: Coordinate1D =
+    Coordinate1D(domain1d.orderedHash)
 
   /**
     * Successor of this, where `Bottom` and `Top` are their own successors, and the successor of `maxValue` is `Top`.
@@ -66,6 +72,13 @@ extension [T: DiscreteValue](domain1d: DiscreteDomain1D[T])
   def predecessor: DiscreteDomain1D[T] = domain1d match
     case Point(p)    => p.predecessorValue.map(Point(_)).getOrElse(Bottom)
     case topOrBottom => topOrBottom
+
+  def orderedHash: Double =
+    val discreteValue = summon[DiscreteValue[T]]
+    domain1d match
+      case Point(p) => p.orderedHashValue
+      case Top      => discreteValue.maxValue.orderedHashValue
+      case Bottom   => discreteValue.minValue.orderedHashValue
 
   /**
     * Tests if this belongs to an interval.

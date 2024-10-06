@@ -1,6 +1,8 @@
 package intervalidus
 
-import DiscreteInterval1D.interval
+import intervalidus.DiscreteInterval1D.{interval, intervalAt, unbounded}
+import intervalidus.collection.*
+import intervalidus.collection.mutable.{BoxQuadtree, MultiDictSorted}
 
 import scala.annotation.tailrec
 import scala.collection.mutable
@@ -22,7 +24,7 @@ trait DataIn2DBaseObject:
     */
   def of[V, R1: DiscreteValue, R2: DiscreteValue](
     data: ValidData2D[V, R1, R2]
-  ): DataIn2DBase[V, R1, R2]
+  )(using Experimental): DataIn2DBase[V, R1, R2]
 
   /**
     * Shorthand constructor for a single initial value that is valid in both full interval domains.
@@ -38,7 +40,59 @@ trait DataIn2DBaseObject:
     * @return
     *   [[DataIn2DBase]] structure with a single valid value.
     */
-  def of[V, R1: DiscreteValue, R2: DiscreteValue](value: V): DataIn2DBase[V, R1, R2]
+  def of[V, R1: DiscreteValue, R2: DiscreteValue](value: V)(using Experimental): DataIn2DBase[V, R1, R2]
+
+  /**
+    * Constructor for a multiple (or no) initial values that are valid in the various intervals.
+    *
+    * @param initialData
+    *   (optional) a collection of valid data to start with -- intervals must be disjoint.
+    * @tparam V
+    *   the type of the value managed as data.
+    * @tparam R1
+    *   the type of discrete domain used in the horizontal interval assigned to each value.
+    * @tparam R2
+    *   the type of discrete domain used in the vertical interval assigned to each value.
+    * @return
+    *   [[DataIn2DBase]] structure with zero or more valid values.
+    */
+  def apply[V, R1: DiscreteValue, R2: DiscreteValue](initialData: Iterable[ValidData2D[V, R1, R2]])(using
+    Experimental
+  ): DataIn2DBase[V, R1, R2]
+
+  protected def constructorParams[V, R1, R2](
+    initialData: Iterable[ValidData2D[V, R1, R2]]
+  )(using experimental: Experimental, discreteValue1: DiscreteValue[R1], discreteValue2: DiscreteValue[R2]): (
+    mutable.TreeMap[DiscreteDomain2D[R1, R2], ValidData2D[V, R1, R2]],
+    mutable.TreeMap[DiscreteDomain2D[R1, R2], ValidData2D[V, R1, R2]],
+    MultiDictSorted[V, ValidData2D[V, R1, R2]],
+    BoxQuadtree[ValidData2D[V, R1, R2]]
+  ) =
+    val dataByStartAsc: mutable.TreeMap[DiscreteDomain2D[R1, R2], ValidData2D[V, R1, R2]] =
+      mutable.TreeMap.from(initialData.map(v => v.key -> v))
+
+    val dataByStartDesc: mutable.TreeMap[DiscreteDomain2D[R1, R2], ValidData2D[V, R1, R2]] =
+      experimental.control("noSearchTree")(
+        experimental =
+          mutable.TreeMap.from(dataByStartAsc.iterator)(summon[Ordering[DiscreteDomain2D[R1, R2]]].reverse),
+        nonExperimental = mutable.TreeMap()(summon[Ordering[DiscreteDomain2D[R1, R2]]].reverse) // not used
+      )
+
+    val dataByValue: MultiDictSorted[V, ValidData2D[V, R1, R2]] =
+      collection.mutable.MultiDictSorted.from(initialData.map(v => v.value -> v))
+
+    val (r1, r2) = (summon[DiscreteValue[R1]], summon[DiscreteValue[R2]])
+    val minPoint = Coordinate2D(r1.minValue.orderedHashValue, r2.minValue.orderedHashValue)
+    val maxPoint = Coordinate2D(r1.maxValue.orderedHashValue, r2.maxValue.orderedHashValue)
+    val boundary = Box2D(minPoint, maxPoint)
+
+    val dataInSearchTree: BoxQuadtree[ValidData2D[V, R1, R2]] =
+      experimental.control("noSearchTree")(
+        experimental = BoxQuadtree[ValidData2D[V, R1, R2]](boundary),
+        nonExperimental = BoxQuadtree.from[ValidData2D[V, R1, R2]](boundary, initialData.map(_.asBoxedPayload))
+      )
+
+    (dataByStartAsc, dataByStartDesc, dataByValue, dataInSearchTree)
 
 /**
   * Like [[DataIn1DBase]], data here have different values in different discrete intervals. But here data values vary in
@@ -57,12 +111,23 @@ trait DataIn2DBaseObject:
   *   the type of discrete domain used in the horizontal interval assigned to each value.
   * @tparam R2
   *   the type of discrete domain used in the vertical interval assigned to each value.
-  * @param initialData
-  *   (optional) a collection of valid data to start with -- intervals must be disjoint in two dimensions.
   */
-trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
-  initialData: Iterable[ValidData2D[V, R1, R2]]
-) extends DimensionalBase[V, DiscreteDomain2D[R1, R2], DiscreteInterval2D[R1, R2], ValidData2D[V, R1, R2]]:
+trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: Experimental)
+  extends DimensionalBase[
+    V,
+    DiscreteDomain2D[R1, R2],
+    DiscreteInterval2D[R1, R2],
+    ValidData2D[V, R1, R2],
+    DataIn2DBase[V, R1, R2]
+  ]:
+
+  // ---- experimental use of Quadtrees
+  def dataInSearchTree: BoxQuadtree[ValidData2D[V, R1, R2]]
+
+  experimental.control("requireDisjoint")(
+    nonExperimental = (),
+    experimental = require(DiscreteInterval2D.isDisjoint(getAll.map(_.interval)))
+  )
 
   override protected def newValidData(value: V, interval: DiscreteInterval2D[R1, R2]): ValidData2D[V, R1, R2] =
     interval -> value
@@ -172,14 +237,12 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
     * compression. (Immutable compression acts on a copy.) Assumes caller does synchronization (if needed). Assumes
     * underlying data are disjoint, so no need to address intersections.
     *
-    * @param data
-    *   structure that should be compressed
     * @param value
     *   value to be evaluate
     * @return
     *   this structure once compressed (not a copy)
     */
-  protected def compressInPlace(data: DataIn2DBase[V, R1, R2])(value: V): Unit =
+  override protected def compressInPlace(value: V): Unit =
     /*
      * Each mutation gives rise to other compression possibilities. And applying a compression action can invalidate
      * the remainder of the actions (e.g., three-in-a-row). Unlike in one dimension, there is no safe order to fold
@@ -188,23 +251,23 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
      */
     @tailrec
     def compressRecursively(): Unit =
-      val firstActions = dataByStartAsc.values
-        .filter(_.value == value)
+      val firstActions = dataByValue
+        .get(value)
         .map: r =>
-          val rightKey = r.interval.horizontal.end.successor x r.key.verticalIndex
-          val upperKey = r.key.horizontalIndex x r.interval.vertical.end.successor
-          val rightAdjacent = dataByStartAsc
+          def rightKey = r.key.copy(horizontalIndex = r.interval.horizontal.end.successor)
+          def upperKey = r.key.copy(verticalIndex = r.interval.vertical.end.successor)
+          def rightAdjacent = dataByStartAsc
             .get(rightKey)
             .filter(s => s.value == value && (s.interval isRightAdjacentTo r.interval))
-          val upperAdjacent = dataByStartAsc
+          def upperAdjacent = dataByStartAsc
             .get(upperKey)
             .filter(s => s.value == value && (s.interval isUpperAdjacentTo r.interval))
           rightAdjacent // preferred
             .orElse(upperAdjacent)
             .map: s =>
               Seq(
-                () => data.removeValidDataByKey(s.key),
-                () => data.updateValidData(r.interval ∪ s.interval -> value)
+                () => removeValidData(s),
+                () => updateValidData(r.interval ∪ s.interval -> value)
               )
         .collectFirst:
           case Some(actions) => actions
@@ -234,7 +297,7 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
     replaceValidData(atomicData)
 
     // recompress
-    getAll.map(_.value).toSet.foreach(compressInPlace(this))
+    dataByValue.keySet.foreach(compressInPlace)
 
   /**
     * Constructs a sequence of diff actions that, if applied to the old structure, would synchronize it with this one.
@@ -245,8 +308,8 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
     *   a sequence of diff actions that would synchronize it with this.
     */
   def diffActionsFrom(old: DataIn2DBase[V, R1, R2]): Iterable[DiffAction2D[V, R1, R2]] =
-    (dataByStartDesc.keys.toSet ++ old.dataByStartDesc.keys).toList.sorted.flatMap: key =>
-      (old.dataByStartDesc.get(key), dataByStartDesc.get(key)) match
+    (dataByStartAsc.keys.toSet ++ old.dataByStartAsc.keys).toList.sorted.flatMap: key =>
+      (old.dataByStartAsc.get(key), dataByStartAsc.get(key)) match
         case (Some(oldData), Some(newData)) if oldData != newData => Some(DiffAction2D.Update(newData))
         case (None, Some(newData))                                => Some(DiffAction2D.Create(newData))
         case (Some(oldData), None)                                => Some(DiffAction2D.Delete(oldData.key))
@@ -254,30 +317,63 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
 
   protected def getByHorizontalIndexData(
     horizontalIndex: DiscreteDomain1D[R1]
-  ): Iterable[ValidData1D[V, R2]] = getAll.collect:
-    case ValidData2D(value, interval) if horizontalIndex ∈ interval.horizontal =>
-      interval.vertical -> value
+  ): Iterable[ValidData1D[V, R2]] =
+    val candidates = experimental.control("noSearchTree")(
+      experimental = getAll,
+      nonExperimental = dataInSearchTreeGet(DiscreteInterval1D.intervalAt(horizontalIndex) x unbounded[R2])
+    )
+    candidates.collect:
+      case ValidData2D(value, interval) if horizontalIndex ∈ interval.horizontal =>
+        interval.vertical -> value
 
   protected def getByVerticalIndexData(
     verticalIndex: DiscreteDomain1D[R2]
-  ): Iterable[ValidData1D[V, R1]] = getAll.collect:
-    case ValidData2D(value, interval) if verticalIndex ∈ interval.vertical =>
-      interval.horizontal -> value
+  ): Iterable[ValidData1D[V, R1]] =
+    val candidates = experimental.control("noSearchTree")(
+      experimental = getAll,
+      nonExperimental = dataInSearchTreeGet(unbounded[R1] x DiscreteInterval1D.intervalAt(verticalIndex))
+    )
+    candidates.collect:
+      case ValidData2D(value, interval) if verticalIndex ∈ interval.vertical =>
+        interval.horizontal -> value
 
   // ---------- Implement methods from DimensionalBase ----------
 
-  protected override val dataByStartAsc: mutable.TreeMap[DiscreteDomain2D[R1, R2], ValidData2D[V, R1, R2]] =
-    mutable.TreeMap.from(initialData.map(v => v.key -> v))
-  require(DiscreteInterval2D.isDisjoint(getAll.map(_.interval)))
+  // ----start: experimental use of quadtrees
 
-  protected override val dataByStartDesc: mutable.TreeMap[DiscreteDomain2D[R1, R2], ValidData2D[V, R1, R2]] =
-    mutable.TreeMap.from(dataByStartAsc.iterator)(summon[Ordering[DiscreteDomain2D[R1, R2]]].reverse)
+  override protected def dataInSearchTreeAdd(data: ValidData2D[V, R1, R2]): Unit =
+    dataInSearchTree.addOne(data.asBoxedPayload)
+
+  override protected def dataInSearchTreeRemove(data: ValidData2D[V, R1, R2]): Unit =
+    dataInSearchTree.remove(data.asBoxedPayload)
+
+  override protected def dataInSearchTreeClear(): Unit =
+    dataInSearchTree.clear()
+
+  override protected def dataInSearchTreeAddAll(data: Iterable[ValidData2D[V, R1, R2]]): Unit =
+    dataInSearchTree.addAll(data.map(_.asBoxedPayload))
+
+  override protected def dataInSearchTreeGet(interval: DiscreteInterval2D[R1, R2]): Iterable[ValidData2D[V, R1, R2]] =
+    BoxedPayload.deduplicate(dataInSearchTree.get(interval.asBox)).map(_.payload)
+
+  override protected def dataInSearchTreeGetByDomain(
+    domainIndex: DiscreteDomain2D[R1, R2]
+  ): Option[ValidData2D[V, R1, R2]] =
+    dataInSearchTree
+      .get(DiscreteInterval2D.intervalAt(domainIndex).asBox)
+      .collectFirst:
+        case d if d.payload.interval.contains(domainIndex) => d.payload
+
+  override protected def dataInSearchTreeIntersects(interval: DiscreteInterval2D[R1, R2]): Boolean =
+    dataInSearchTree.get(interval.asBox).exists(_.payload.interval intersects interval)
+
+  //// ----end: experimental use of quadtrees
 
   /**
     * @inheritdoc
     *
     * More specifically, this gets a bit complicated because there are two dimensions. Exclusions in one dimension can
-    * have three remainders: none (simple), single (partial), and split. But two dimensional exclusions have these same
+    * have three remainders: none (simple), single (partial), and split. But two-dimensional exclusions have these same
     * three remainders in each dimension, so there are a total of 3 x 3 = 9 remainder cases. But there are symmetric
     * partners for 3 of them, so actually there are only 6 unique cases:
     *   1. simple = none + none (1 of 9)
@@ -292,6 +388,14 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
     *   when defined, the value to be stored as part of an update
     */
   protected override def updateOrRemove(
+    targetInterval: DiscreteInterval2D[R1, R2],
+    newValueOption: Option[V]
+  ): Unit = experimental.control("bruteForceUpdate")(
+    nonExperimental = updateOrRemoveOptimized(targetInterval, newValueOption),
+    experimental = updateOrRemoveBruteForce(targetInterval, newValueOption)
+  )
+
+  private def updateOrRemoveOptimized(
     targetInterval: DiscreteInterval2D[R1, R2],
     newValueOption: Option[V]
   ): Unit = synchronized:
@@ -312,7 +416,11 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
       then full.startingAfter(remaining.end)
       else full.endingBefore(remaining.start)
 
-    getIntersecting(targetInterval).foreach: overlap =>
+    val intersecting = getIntersecting(targetInterval)
+    // These values will be targets for compression later
+    val potentiallyAffectedValues = intersecting.map(_.value).toSet ++ newValueOption
+
+    intersecting.foreach: overlap =>
 
       /*
        * These methods are generic by dimension to accommodate symmetric operations without code duplication.
@@ -336,7 +444,7 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
               ) -> newValue
             )
         else // different start: remove and add remaining after, new before
-          removeValidDataByKey(overlap.key)
+          removeValidData(overlap)
           addValidData(modify2D(overlap.interval, remaining1D) -> overlap.value)
           newValueOption.foreach: newValue =>
             addValidData(
@@ -368,7 +476,7 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
         case (Remainder.None, Remainder.None) =>
           newValueOption match
             case Some(newValue) => updateValidData(overlap.interval -> newValue)
-            case None           => removeValidDataByKey(overlap.key)
+            case None           => removeValidData(overlap)
 
         // corner: partial overlap in both dim 1 and 2 - remove and add 2 remaining (compress later)
         case (Remainder.Single(horizontalRemaining), Remainder.Single(verticalRemaining)) =>
@@ -376,7 +484,7 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
           val verticalCornerBit = excludeRemaining(overlap.interval.vertical, verticalRemaining)
           // can be to the left or right.
           val horizontalCornerBit = excludeRemaining(overlap.interval.horizontal, horizontalRemaining)
-          removeValidDataByKey(overlap.key)
+          removeValidData(overlap)
           addValidData(overlap.interval.withVertical(verticalRemaining) -> overlap.value)
           addValidData((horizontalRemaining x verticalCornerBit) -> overlap.value)
           newValueOption.foreach: newValue =>
@@ -480,10 +588,75 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](
             // the bite is updated
             addValidData(overlap.interval.withVertical(biteBitVertical).withHorizontal(biteBitHorizontal) -> newValue)
 
-    newValueOption.foreach(compressInPlace(this))
+    potentiallyAffectedValues.foreach(compressInPlace)
+
+  // On second thought... less efficient, but simpler and gets the job done!
+  // TODO: Experimental: benchmark the difference
+  private def updateOrRemoveBruteForce(
+    targetInterval: DiscreteInterval2D[R1, R2],
+    newValueOption: Option[V]
+  ): Unit = synchronized:
+    import DiscreteInterval1D.Remainder
+
+    val intersecting = getIntersecting(targetInterval)
+    val potentiallyAffectedValues = intersecting.map(_.value).toSet ++ newValueOption
+
+    intersecting.foreach: overlap =>
+
+      def excludeOverlapRemainder1D[T: DiscreteValue](
+        extractFromOverlap: DiscreteInterval2D[R1, R2] => DiscreteInterval1D[T],
+        remainder: Remainder[DiscreteInterval1D[T]]
+      ): DiscreteInterval1D[T] =
+        val full = extractFromOverlap(overlap.interval)
+        remainder match
+          case Remainder.None =>
+            full
+          case Remainder.Single(remaining) if remaining hasSameStartAs full =>
+            full.startingAfter(remaining.end)
+          case Remainder.Single(remaining) =>
+            full.endingBefore(remaining.start)
+          case Remainder.Split(leftRemaining, rightRemaining) =>
+            interval(leftRemaining.end.successor, rightRemaining.start.predecessor)
+
+      def allOverlapSubintevals1D[T: DiscreteValue](
+        extractFromOverlap: DiscreteInterval2D[R1, R2] => DiscreteInterval1D[T],
+        remainder: Remainder[DiscreteInterval1D[T]]
+      ): Seq[DiscreteInterval1D[T]] =
+        val excluded = excludeOverlapRemainder1D(extractFromOverlap, remainder)
+        remainder match
+          case Remainder.None                                 => Seq(excluded)
+          case Remainder.Single(remaining)                    => Seq(remaining, excluded).sortBy(_.start)
+          case Remainder.Split(leftRemaining, rightRemaining) => Seq(leftRemaining, excluded, rightRemaining)
+
+      val (horizontalRemainder, verticalRemainder) = overlap.interval \ targetInterval
+      val excludedSubinterval =
+        excludeOverlapRemainder1D(_.horizontal, horizontalRemainder) x
+          excludeOverlapRemainder1D(_.vertical, verticalRemainder)
+      if excludedSubinterval hasSameStartAs overlap.interval then removeValidData(overlap)
+      for
+        horizontal <- allOverlapSubintevals1D(_.horizontal, horizontalRemainder)
+        vertical <- allOverlapSubintevals1D(_.vertical, verticalRemainder)
+      do
+        val subinterval = horizontal x vertical
+        if subinterval != excludedSubinterval
+        then
+          if subinterval hasSameStartAs overlap.interval
+          then updateValidData(subinterval -> overlap.value)
+          else addValidData(subinterval -> overlap.value)
+
+      newValueOption.foreach: newValue =>
+        addValidData(excludedSubinterval -> newValue)
+
+    potentiallyAffectedValues.foreach(compressInPlace)
 
   override def getIntersecting(interval: DiscreteInterval2D[R1, R2]): Iterable[ValidData2D[V, R1, R2]] =
-    getAll.filter(_.interval intersects interval)
+    experimental.control("noSearchTree")(
+      experimental = getAll.filter(_.interval intersects interval),
+      nonExperimental = dataInSearchTreeGet(interval).filter(_.interval intersects interval)
+    )
 
   override infix def intersects(interval: DiscreteInterval2D[R1, R2]): Boolean =
-    getAll.exists(_.interval intersects interval)
+    experimental.control("noSearchTree")(
+      experimental = getAll.exists(_.interval intersects interval),
+      nonExperimental = dataInSearchTreeIntersects(interval)
+    )

@@ -1,7 +1,10 @@
 package intervalidus
 
+import intervalidus.DiscreteInterval1D.interval
+import intervalidus.collection.mutable.{BoxBtree, MultiDictSorted}
+import intervalidus.collection.{Box1D, BoxedPayload, Coordinate1D}
+
 import scala.collection.mutable
-import DiscreteInterval1D.interval
 
 trait DataIn1DBaseObject:
   /**
@@ -18,7 +21,7 @@ trait DataIn1DBaseObject:
     */
   def of[V, R: DiscreteValue](
     data: ValidData1D[V, R]
-  ): DataIn1DBase[V, R]
+  )(using Experimental): DataIn1DBase[V, R]
 
   /**
     * Shorthand constructor for a single initial value that is valid in the full interval domain.
@@ -32,7 +35,52 @@ trait DataIn1DBaseObject:
     * @return
     *   [[DataIn1DBase]] structure with a single valid value.
     */
-  def of[V, R: DiscreteValue](value: V): DataIn1DBase[V, R]
+  def of[V, R: DiscreteValue](value: V)(using Experimental): DataIn1DBase[V, R]
+
+  /**
+    * Constructor for a multiple (or no) initial values that are valid in the various intervals.
+    *
+    * @param initialData
+    *   (optional) a collection of valid data to start with -- intervals must be disjoint.
+    * @tparam V
+    *   the type of the value managed as data.
+    * @tparam R
+    *   the type of discrete domain used in the interval assigned to each value.
+    * @return
+    *   [[DataIn1DBase]] structure with zero or more valid values.
+    */
+  def apply[V, R: DiscreteValue](initialData: Iterable[ValidData1D[V, R]])(using Experimental): DataIn1DBase[V, R]
+
+  protected def constructorParams[V, R](
+    initialData: Iterable[ValidData1D[V, R]]
+  )(using experimental: Experimental, discreteValue: DiscreteValue[R]): (
+    mutable.TreeMap[DiscreteDomain1D[R], ValidData1D[V, R]],
+    mutable.TreeMap[DiscreteDomain1D[R], ValidData1D[V, R]],
+    MultiDictSorted[V, ValidData1D[V, R]],
+    BoxBtree[ValidData1D[V, R]]
+  ) =
+    val dataByStartAsc: mutable.TreeMap[DiscreteDomain1D[R], ValidData1D[V, R]] =
+      mutable.TreeMap.from(initialData.map(v => v.key -> v))
+
+    val dataByStartDesc: mutable.TreeMap[DiscreteDomain1D[R], ValidData1D[V, R]] =
+      experimental.control("noSearchTree")(
+        experimental = mutable.TreeMap.from(dataByStartAsc.iterator)(summon[Ordering[DiscreteDomain1D[R]]].reverse),
+        nonExperimental = mutable.TreeMap()(summon[Ordering[DiscreteDomain1D[R]]].reverse) // not used
+      )
+
+    val dataByValue: MultiDictSorted[V, ValidData1D[V, R]] =
+      collection.mutable.MultiDictSorted.from(initialData.map(v => v.value -> v))
+
+    val minPoint = Coordinate1D(discreteValue.minValue.orderedHashValue)
+    val maxPoint = Coordinate1D(discreteValue.maxValue.orderedHashValue)
+    val boundary = Box1D(minPoint, maxPoint)
+    val dataInSearchTree: BoxBtree[ValidData1D[V, R]] =
+      experimental.control("noSearchTree")(
+        experimental = BoxBtree[ValidData1D[V, R]](boundary), // not used
+        nonExperimental = BoxBtree.from[ValidData1D[V, R]](boundary, initialData.map(_.asBoxedPayload))
+      )
+
+    (dataByStartAsc, dataByStartDesc, dataByValue, dataInSearchTree)
 
 /**
   * Data that may have different values in different intervals. These intervals may represent when the data are valid in
@@ -44,13 +92,18 @@ trait DataIn1DBaseObject:
   *   the type of the value managed as data.
   * @tparam R
   *   the type of discrete domain used in the interval assigned to each value.
-  * @param initialData
-  *   (optional) a collection of valid data to start with -- intervals must be disjoint.
   */
 // Base for all 1D data, both mutable and immutable
-trait DataIn1DBase[V, R: DiscreteValue](
-  initialData: Iterable[ValidData1D[V, R]]
-) extends DimensionalBase[V, DiscreteDomain1D[R], DiscreteInterval1D[R], ValidData1D[V, R]]:
+trait DataIn1DBase[V, R: DiscreteValue](using experimental: Experimental)
+  extends DimensionalBase[V, DiscreteDomain1D[R], DiscreteInterval1D[R], ValidData1D[V, R], DataIn1DBase[V, R]]:
+
+  // ---- experimental use of B-trees
+  def dataInSearchTree: BoxBtree[ValidData1D[V, R]]
+
+  experimental.control("requireDisjoint")(
+    nonExperimental = (),
+    experimental = require(DiscreteInterval1D.isDisjoint(getAll.map(_.interval)))
+  )
 
   override protected def newValidData(value: V, interval: DiscreteInterval1D[R]): ValidData1D[V, R] =
     interval -> value
@@ -126,8 +179,6 @@ trait DataIn1DBase[V, R: DiscreteValue](
     * Internal method, to compress in place. Structure is parameterized to support both mutable and immutable
     * compression. (Immutable compression acts on a copy.) Assumes caller does synchronization (if needed).
     *
-    * @param data
-    *   structure that should be compressed
     * @param value
     *   value to be evaluate
     * @return
@@ -136,14 +187,14 @@ trait DataIn1DBase[V, R: DiscreteValue](
     *   This method doesn't act on this, but it is defined in the class rather than in the companion object to allow it
     *   to access the protected mutator methods.
     */
-  protected def compressInPlace(data: DataIn1DBase[V, R])(value: V): Unit =
-    data.getAll
-      .filter(_.value == value)
+  override protected def compressInPlace(value: V): Unit =
+    dataByValue
+      .get(value)
       .foldLeft(None: Option[ValidData1D[V, R]]):
         case (Some(left), right) if left.interval isLeftAdjacentTo right.interval =>
           val newLeft = left.interval ∪ right.interval -> value
-          data.updateValidData(newLeft)
-          data.removeValidDataByKey(right.key)
+          updateValidData(newLeft)
+          removeValidData(right)
           Some(newLeft)
         case (_, right) =>
           Some(right)
@@ -158,8 +209,8 @@ trait DataIn1DBase[V, R: DiscreteValue](
     *   a sequence of diff actions that would synchronize it with this.
     */
   def diffActionsFrom(old: DataIn1DBase[V, R]): Iterable[DiffAction1D[V, R]] =
-    (dataByStartDesc.keys.toSet ++ old.dataByStartDesc.keys).toList.sorted.flatMap: key =>
-      (old.dataByStartDesc.get(key), dataByStartDesc.get(key)) match
+    (dataByStartAsc.keys.toSet ++ old.dataByStartAsc.keys).toList.sorted.flatMap: key =>
+      (old.dataByStartAsc.get(key), dataByStartAsc.get(key)) match
         case (Some(oldData), Some(newData)) if oldData != newData => Some(DiffAction1D.Update(newData))
         case (None, Some(newData))                                => Some(DiffAction1D.Create(newData))
         case (Some(oldData), None)                                => Some(DiffAction1D.Delete(oldData.key))
@@ -167,12 +218,31 @@ trait DataIn1DBase[V, R: DiscreteValue](
 
   // ---------- Implement methods from DimensionalBase ----------
 
-  protected override val dataByStartAsc: mutable.TreeMap[DiscreteDomain1D[R], ValidData1D[V, R]] =
-    mutable.TreeMap.from(initialData.map(v => v.key -> v))
-  require(DiscreteInterval1D.isDisjoint(getAll.map(_.interval)))
+  // ---- experimental use of B-trees
 
-  protected override val dataByStartDesc: mutable.TreeMap[DiscreteDomain1D[R], ValidData1D[V, R]] =
-    mutable.TreeMap.from(dataByStartAsc.iterator)(summon[Ordering[DiscreteDomain1D[R]]].reverse)
+  override protected def dataInSearchTreeAdd(data: ValidData1D[V, R]): Unit =
+    dataInSearchTree.addOne(data.asBoxedPayload)
+
+  override protected def dataInSearchTreeRemove(data: ValidData1D[V, R]): Unit =
+    dataInSearchTree.remove(data.asBoxedPayload)
+
+  override protected def dataInSearchTreeClear(): Unit =
+    dataInSearchTree.clear()
+
+  override protected def dataInSearchTreeAddAll(data: Iterable[ValidData1D[V, R]]): Unit =
+    dataInSearchTree.addAll(data.map(_.asBoxedPayload))
+
+  override protected def dataInSearchTreeGet(interval: DiscreteInterval1D[R]): Iterable[ValidData1D[V, R]] =
+    BoxedPayload.deduplicate(dataInSearchTree.get(interval.asBox)).map(_.payload)
+
+  override protected def dataInSearchTreeGetByDomain(domainIndex: DiscreteDomain1D[R]): Option[ValidData1D[V, R]] =
+    dataInSearchTree
+      .get(DiscreteInterval1D.intervalAt(domainIndex).asBox)
+      .collectFirst:
+        case d if d.payload.interval.contains(domainIndex) => d.payload
+
+  override protected def dataInSearchTreeIntersects(interval: DiscreteInterval1D[R]): Boolean =
+    dataInSearchTree.get(interval.asBox).exists(_.payload.interval intersects interval)
 
   /**
     * @inheritdoc
@@ -196,7 +266,7 @@ trait DataIn1DBase[V, R: DiscreteValue](
         case Remainder.None =>
           newValueOption match
             case Some(newValue) => updateValidData(overlap.interval -> newValue)
-            case None           => removeValidDataByKey(overlap.key)
+            case None           => removeValidData(overlap)
 
         // no split: adjust on left
         case Remainder.Single(remaining) if remaining hasSameStartAs overlap.interval =>
@@ -206,7 +276,7 @@ trait DataIn1DBase[V, R: DiscreteValue](
 
         // no split: adjust on right
         case Remainder.Single(remaining) =>
-          removeValidDataByKey(overlap.key) // remove and re-add to shorten
+          removeValidData(overlap) // remove and re-add to shorten
           addValidData(remaining -> overlap.value) // shortened on right
           newValueOption.foreach: newValue =>
             addValidData(overlap.interval.endingBefore(remaining.start) -> newValue)
@@ -216,17 +286,21 @@ trait DataIn1DBase[V, R: DiscreteValue](
           // assert(leftRemaining hasSameStart overlap.interval)
           updateValidData(leftRemaining -> overlap.value)
           newValueOption.foreach: newValue =>
-            addValidData(
-              interval(leftRemaining.end.successor, rightRemaining.start.predecessor) -> newValue
-            )
+            addValidData(interval(leftRemaining.end.successor, rightRemaining.start.predecessor) -> newValue)
           addValidData(rightRemaining -> overlap.value)
 
-    newValueOption.foreach(compressInPlace(this))
+    newValueOption.foreach(compressInPlace)
 
   override def getIntersecting(interval: DiscreteInterval1D[R]): Iterable[ValidData1D[V, R]] =
-    getAll.filter(_.interval intersects interval)
+    experimental.control("noSearchTree")(
+      experimental = getAll.filter(_.interval intersects interval),
+      nonExperimental = dataInSearchTreeGet(interval).filter(_.interval intersects interval)
+    )
 
   override infix def intersects(interval: DiscreteInterval1D[R]): Boolean =
-    getAll.exists(_.interval intersects interval)
+    experimental.control("noSearchTree")(
+      experimental = getAll.exists(_.interval intersects interval),
+      nonExperimental = dataInSearchTreeIntersects(interval)
+    )
 
   override def domain: Iterable[DiscreteInterval1D[R]] = DiscreteInterval1D.compress(getAll.map(_.interval))

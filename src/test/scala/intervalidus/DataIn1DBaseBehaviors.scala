@@ -1,5 +1,7 @@
 package intervalidus
 
+import intervalidus.*
+import org.scalatest.compatible.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
@@ -20,12 +22,16 @@ trait DataIn1DBaseBehaviors:
 
   def stringLookupTests[S <: DataIn1DBase[String, Int]](
     prefix: String,
-    dataIn1DFrom: Iterable[ValidData1D[String, Int]] => S,
-    dataIn1DOf: String => S
-  ): Unit = test(s"$prefix: Looking up data in intervals"):
-    assertThrows[IllegalArgumentException]:
-      // not valid as it overlaps on [10, +∞)
-      val badFixture = dataIn1DFrom(testData("Hello" -> interval(0, 10), "World" -> unbounded))
+    dataIn1DFrom: Experimental ?=> Iterable[ValidData1D[String, Int]] => S,
+    dataIn1DOf: Experimental ?=> String => S
+  )(using Experimental): Unit = test(s"$prefix: Looking up data in intervals"):
+    {
+      given Experimental = Experimental("requireDisjoint")
+
+      assertThrows[IllegalArgumentException]:
+        // not valid as it overlaps on [10, +∞)
+        val badFixture = dataIn1DFrom(testData("Hello" -> interval(0, 10), "World" -> unbounded))
+    }
 
     val empty: S = dataIn1DFrom(List.empty)
     assert(empty.getAll.isEmpty)
@@ -66,7 +72,7 @@ trait DataIn1DBaseBehaviors:
     fixture2.getAt(15) shouldBe Some("World")
     fixture2.getAt(-1) shouldBe None
     assert(fixture2.intersects(interval(5, 15)))
-    fixture2.getIntersecting(interval(5, 15)) shouldBe allData2
+    fixture2.getIntersecting(interval(5, 15)) should contain theSameElementsAs allData2
 
     dataIn1DFrom(testData("Hello" -> intervalTo(10)))
       .zip(dataIn1DFrom(testData("world" -> intervalFrom(5))))
@@ -130,3 +136,42 @@ trait DataIn1DBaseBehaviors:
       0.24 * (250000 - 201050)
 
     taxUsingFold(250000) shouldBe expectedTax // 2320 + 8532 + 23485 + 11747
+
+  /*
+   * One-dimensional removals and updates can have 3 cases.:
+   *  (1) simple
+   *  (2) partial
+   *  (3) split
+   */
+  protected def assertRemoveOrUpdateResult(
+    removeExpectedUnsorted: ValidData1D[String, Int]*
+  )(
+    removeOrUpdateInterval: DiscreteInterval1D[Int],
+    updateValue: String = "update"
+  )(using Experimental): Assertion
+
+  def removeOrUpdateTests(prefix: String)(using Experimental): Unit =
+    test(s"$prefix: All remove/update by interval - (1) simple"):
+      // same size
+      assertRemoveOrUpdateResult(
+      )(interval(-7, 7))
+      // larger
+      assertRemoveOrUpdateResult(
+      )(interval(-8, 8))
+
+    test(s"$prefix: All remove/update by interval - (2) partial"):
+      // on left
+      assertRemoveOrUpdateResult(
+        interval(1, 7) -> "World"
+      )(intervalTo(0))
+
+      // on right
+      assertRemoveOrUpdateResult(
+        interval(-7, -1) -> "World"
+      )(intervalFrom(0))
+
+    test(s"$prefix: All remove/update by interval - (3) split"):
+      assertRemoveOrUpdateResult(
+        interval(-7, -1) -> "World",
+        interval(1, 7) -> "World"
+      )(intervalAt(0))

@@ -1,12 +1,18 @@
 package intervalidus
 
+import intervalidus.collection.*
+import intervalidus.collection.mutable.{MultiDictSorted, MutableBoxTreeLike}
+
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 object DimensionalBase:
   /**
     * A discrete domain used to define intervals.
+    * @tparam Self
+    *   F-bounded self type.
     */
-  trait DomainLike:
+  trait DomainLike[+Self <: DomainLike[Self]]:
+
     /**
       * Alternative to toString for something that looks more like code
       */
@@ -17,18 +23,20 @@ object DimensionalBase:
     *
     * @tparam D
     *   the type of discrete domain used in the discrete interval (e.g., DiscreteDomain1D[Int]).
+    * @tparam Self
+    *   F-bounded self type.
     */
-  trait IntervalLike[D <: DomainLike: Ordering]:
+  trait IntervalLike[D <: DomainLike[D]: Ordering, Self <: IntervalLike[D, Self]]:
     /**
-      * The "infimum", i.e., the lower/left boundary of the interval (inclusive). When stored in a collection, this
-      * aspect of the interval can be used as the key. (E.g., the start of a 1D interval, the lower/left corner of a 2D
-      * interval).
+      * The "infimum", i.e., the lower/left/behind boundary of the interval (inclusive). When stored in a collection,
+      * this aspect of the interval can be used as the key. (E.g., the start of a 1D interval, the lower/left corner of
+      * a 2D interval).
       */
     def start: D
 
     /**
-      * The "supremum", i.e., the upper/right boundary of the interval (inclusive). Must be greater than or equal to the
-      * start.
+      * The "supremum", i.e., the upper/right/front boundary of the interval (inclusive). Must be greater than or equal
+      * to the start.
       */
     def end: D
 
@@ -67,8 +75,11 @@ object DimensionalBase:
     *   the type of discrete domain used in the discrete interval assigned to each value (the domain).
     * @tparam I
     *   the type of discrete interval in which the value is valid.
+    * @tparam Self
+    *   F-bounded self type.
     */
-  trait DataLike[V, D <: DomainLike, I <: IntervalLike[D]] extends PartialFunction[D, V]:
+  trait DataLike[V, D <: DomainLike[D], I <: IntervalLike[D, I], Self <: DataLike[V, D, I, Self]]
+    extends PartialFunction[D, V]:
     /**
       * The value valid in this interval
       */
@@ -119,9 +130,18 @@ import DimensionalBase.{DataLike, DomainLike, IntervalLike}
   *   the interval type, based on the domain type. Must be `IntervalLike` based on D.
   * @tparam ValidData
   *   the valid data type. Must be `DataLike` based on V, D, and I.
+  * @tparam Self
+  *   F-bounded self type.
   */
-trait DimensionalBase[V, D <: DomainLike: Ordering, I <: IntervalLike[D], ValidData <: DataLike[V, D, I]]
-  extends PartialFunction[D, V]:
+trait DimensionalBase[
+  V,
+  D <: DomainLike[D]: Ordering,
+  I <: IntervalLike[D, I],
+  ValidData <: DataLike[V, D, I, ValidData],
+  Self <: DimensionalBase[V, D, I, ValidData, Self]
+](using
+  experimental: Experimental
+) extends PartialFunction[D, V]:
 
   protected def newValidData(value: V, interval: I): ValidData
 
@@ -190,6 +210,25 @@ trait DimensionalBase[V, D <: DomainLike: Ordering, I <: IntervalLike[D], ValidD
   protected def dataByStartDesc: scala.collection.mutable.TreeMap[D, ValidData]
 
   /**
+    * Another internal shadow data structure where all the interval-bounded data are also stored, but using the value
+    * itself as the key (for faster compression, which is done by value). The ValidData are stored in a sorted set, so
+    * they are retrieved in key order, making compression operations repeatable.
+    */
+  protected def dataByValue: MultiDictSorted[V, ValidData]
+
+  /*
+   * Because the type parameters are a bit wonky, the search tree is instantiated in the subclass, and accessed here
+   * using only the following methods
+   */
+  protected def dataInSearchTreeAdd(data: ValidData): Unit
+  protected def dataInSearchTreeRemove(data: ValidData): Unit
+  protected def dataInSearchTreeClear(): Unit
+  protected def dataInSearchTreeAddAll(data: Iterable[ValidData]): Unit
+  protected def dataInSearchTreeGet(interval: I): Iterable[ValidData]
+  protected def dataInSearchTreeGetByDomain(domainIndex: D): Option[ValidData]
+  protected def dataInSearchTreeIntersects(interval: I): Boolean
+
+  /**
     * Remove, and possibly update, valid values on the target interval. If there are values valid on portions of the
     * interval, those values have their interval adjusted (e.g., shortened, shifted, split) accordingly. The logic of
     * remove and update are similar, and this method supports both.
@@ -202,12 +241,24 @@ trait DimensionalBase[V, D <: DomainLike: Ordering, I <: IntervalLike[D], ValidD
   protected def updateOrRemove(targetInterval: I, newValueOption: Option[V]): Unit
 
   /**
+    * Internal method, to compress in place. Structure is parameterized to support both mutable and immutable
+    * compression. (Immutable compression acts on a copy.) Assumes caller does synchronization (if needed). Assumes
+    * underlying data are disjoint, so no need to address intersections.
+    *
+    * @param value
+    *   value to be evaluate
+    * @return
+    *   this structure once compressed (not a copy)
+    */
+  protected def compressInPlace(value: V): Unit
+
+  /**
     * Creates a copy.
     *
     * @return
     *   a new structure with the same data.
     */
-  def copy: DimensionalBase[V, D, I, ValidData]
+  def copy: Self
 
   /**
     * Returns all the intervals (compressed) in which there are valid values.
@@ -237,12 +288,12 @@ trait DimensionalBase[V, D <: DomainLike: Ordering, I <: IntervalLike[D], ValidD
   /**
     * Returns this as a mutable structure.
     */
-  def toMutable: DimensionalBase[V, D, I, ValidData]
+  def toMutable: Self
 
   /**
     * Returns this as an immutable structure.
     */
-  def toImmutable: DimensionalBase[V, D, I, ValidData]
+  def toImmutable: Self
 
   // ---------- Implemented here based on the above ----------
 
@@ -254,9 +305,15 @@ trait DimensionalBase[V, D <: DomainLike: Ordering, I <: IntervalLike[D], ValidD
     */
   protected def addValidData(data: ValidData): Unit =
     // assert(!dataByStartAsc.isDefinedAt(data.key))
-    // assert(!dataByStartDesc.isDefinedAt(data.key))
     dataByStartAsc.addOne(data.key -> data)
-    dataByStartDesc.addOne(data.key -> data)
+    dataByValue.addOne(data.value -> data)
+    experimental.control("noSearchTree")(
+      experimental = {
+        // assert(!dataByStartDesc.isDefinedAt(data.key))
+        dataByStartDesc.addOne(data.key -> data)
+      },
+      nonExperimental = dataInSearchTreeAdd(data)
+    )
 
   /**
     * Internal mutator to update, where a value with v.key already exists.
@@ -266,30 +323,65 @@ trait DimensionalBase[V, D <: DomainLike: Ordering, I <: IntervalLike[D], ValidD
     */
   protected def updateValidData(data: ValidData): Unit =
     // assert(dataByStartAsc.isDefinedAt(data.key))
-    // assert(dataByStartDesc.isDefinedAt(data.key))
+    val oldData = dataByStartAsc(data.key)
+    dataByValue.subtractOne(oldData.value -> oldData)
+    dataByValue.addOne(data.value -> data)
     dataByStartAsc.update(data.key, data)
-    dataByStartDesc.update(data.key, data)
+    experimental.control("noSearchTree")(
+      experimental = {
+        // assert(dataByStartDesc.isDefinedAt(data.key))
+        dataByStartDesc.update(data.key, data)
+      },
+      nonExperimental = {
+        dataInSearchTreeRemove(oldData)
+        dataInSearchTreeAdd(data)
+      }
+    )
 
   /**
-    * Internal mutator to remove, where a value with key already exists.
+    * Internal mutator to remove, where a known value already exists.
+    *
+    * @param oldData
+    *   valid data to remove.
+    */
+  protected def removeValidData(oldData: ValidData): Unit =
+    val key = oldData.key
+    dataByValue.subtractOne(oldData.value -> oldData)
+    val previousAsc = dataByStartAsc.remove(key)
+    // assert(previousDesc.isDefined)
+    experimental.control("noSearchTree")(
+      experimental = {
+        val previousDesc = dataByStartDesc.remove(key)
+        // assert(previousAsc.isDefined)
+      },
+      nonExperimental = dataInSearchTreeRemove(oldData)
+    )
+
+  /**
+    * Internal mutator to remove, where a value with a known key already exists.
     *
     * @param key
     *   key (interval start) for valid data to remove.
     */
   protected def removeValidDataByKey(key: D): Unit =
-    val previousAsc = dataByStartAsc.remove(key)
-    val previousDesc = dataByStartDesc.remove(key)
-    // assert(previousAsc.isDefined)
-    // assert(previousDesc.isDefined)
+    removeValidData(dataByStartAsc(key))
 
   protected def clearValidData(): Unit =
     dataByStartAsc.clear()
-    dataByStartDesc.clear()
+    dataByValue.clear()
+    experimental.control("noSearchTree")(
+      experimental = dataByStartDesc.clear(),
+      nonExperimental = dataInSearchTreeClear()
+    )
 
   protected def replaceValidData(data: Iterable[ValidData]): Unit =
     clearValidData()
     dataByStartAsc.addAll(data.map(d => d.key -> d))
-    dataByStartDesc.addAll(dataByStartAsc)
+    dataByValue.addAll(data.map(d => d.value -> d))
+    experimental.control("noSearchTree")(
+      experimental = dataByStartDesc.addAll(dataByStartAsc),
+      nonExperimental = dataInSearchTreeAddAll(data)
+    )
 
   // from PartialFunction
   override def isDefinedAt(key: D): Boolean = getAt(key).isDefined
@@ -327,16 +419,19 @@ trait DimensionalBase[V, D <: DomainLike: Ordering, I <: IntervalLike[D], ValidD
     *   Some value if valid at the specified domain element, otherwise None.
     */
   def getAt(domainIndex: D): Option[V] =
-    dataByStartDesc // Using reverse-key order allows us O(1) in 1D and nearly O(1) in 2D
-      .valuesIteratorFrom(domainIndex) // starting at or before the index
-      .takeWhile(_.interval.end >= domainIndex) // improves miss performance
-      .collectFirst:
-        case d if d.interval.contains(domainIndex) => d.value
+    experimental.control("noSearchTree")(
+      experimental = dataByStartDesc // Using reverse-key order allows us nearly O(1) for hits
+        .valuesIteratorFrom(domainIndex) // (starting at or before the index)
+        .filter(_.interval.end >= domainIndex) // but misses are still slow - this slightly improves miss performance
+        .collectFirst:
+          case d if d.interval.contains(domainIndex) => d.value,
+      nonExperimental = dataInSearchTreeGetByDomain(domainIndex).map(_.value)
+    )
 
   /**
     * Returns true when there are no valid data in this structure, otherwise false.
     */
-  def isEmpty: Boolean = dataByStartDesc.isEmpty
+  def isEmpty: Boolean = dataByStartAsc.isEmpty
 
   /**
     * Applies a binary operator to a start value and all valid data, going left to right.

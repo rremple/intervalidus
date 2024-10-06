@@ -1,15 +1,25 @@
 package intervalidus.immutable
 
 import intervalidus.*
+import intervalidus.collection.mutable.{BoxQuadtree, MultiDictSorted}
+import intervalidus.mutable.DataIn2D as DataIn2DMutable
+
+import scala.collection.mutable
 
 object DataIn2D extends DataIn2DBaseObject:
   override def of[V, R1: DiscreteValue, R2: DiscreteValue](
     data: ValidData2D[V, R1, R2]
-  ): DataIn2D[V, R1, R2] = DataIn2D(Iterable(data))
+  )(using Experimental): DataIn2D[V, R1, R2] = DataIn2D(Iterable(data))
 
   override def of[V, R1: DiscreteValue, R2: DiscreteValue](
     value: V
-  ): DataIn2D[V, R1, R2] = of(DiscreteInterval2D.unbounded[R1, R2] -> value)
+  )(using Experimental): DataIn2D[V, R1, R2] = of(DiscreteInterval2D.unbounded[R1, R2] -> value)
+
+  override def apply[V, R1: DiscreteValue, R2: DiscreteValue](
+    initialData: Iterable[ValidData2D[V, R1, R2]] = Iterable.empty[ValidData2D[V, R1, R2]]
+  )(using Experimental): DataIn2D[V, R1, R2] =
+    val param = constructorParams(initialData)
+    new DataIn2D(param._1, param._2, param._3, param._4)
 
 /**
   * Like [[DataIn1D]], data here have different values in different discrete intervals. But here data values vary in two
@@ -28,19 +38,27 @@ object DataIn2D extends DataIn2DBaseObject:
   *   the type of discrete domain used in the horizontal interval assigned to each value.
   * @tparam R2
   *   the type of discrete domain used in the vertical interval assigned to each value.
-  * @param initialData
-  *   (optional) a collection of valid data to start with -- intervals must be disjoint in two dimensions.
   */
-class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue](
-  initialData: Iterable[ValidData2D[V, R1, R2]] = Iterable.empty[ValidData2D[V, R1, R2]]
-) extends DataIn2DBase[V, R1, R2](initialData)
-  with ImmutableBase[V, DiscreteDomain2D[R1, R2], DiscreteInterval2D[R1, R2], ValidData2D[V, R1, R2]]:
+class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue] private (
+  override val dataByStartAsc: mutable.TreeMap[DiscreteDomain2D[R1, R2], ValidData2D[V, R1, R2]],
+  override val dataByStartDesc: mutable.TreeMap[DiscreteDomain2D[R1, R2], ValidData2D[V, R1, R2]],
+  override val dataByValue: MultiDictSorted[V, ValidData2D[V, R1, R2]],
+  override val dataInSearchTree: BoxQuadtree[ValidData2D[V, R1, R2]]
+)(using Experimental)
+  extends DataIn2DBase[V, R1, R2]
+  with ImmutableBase[
+    V,
+    DiscreteDomain2D[R1, R2],
+    DiscreteInterval2D[R1, R2],
+    ValidData2D[V, R1, R2],
+    DataIn2D[V, R1, R2]
+  ]:
 
-  override def toMutable: mutable.DataIn2D[V, R1, R2] = mutable.DataIn2D(getAll)
+  override def toMutable: DataIn2DMutable[V, R1, R2] = DataIn2DMutable(getAll)
 
   override def toImmutable: DataIn2D[V, R1, R2] = this
 
-  private def copyAndModify(f: DataIn2D[V, R1, R2] => Unit): DataIn2D[V, R1, R2] =
+  override protected def copyAndModify(f: DataIn2D[V, R1, R2] => Unit): DataIn2D[V, R1, R2] =
     val result = copy
     f(result)
     result
@@ -140,7 +158,8 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue](
 
   // ---------- Implement methods from DimensionalBase ----------
 
-  override def copy: DataIn2D[V, R1, R2] = DataIn2D(getAll)
+  override def copy: DataIn2D[V, R1, R2] =
+    new DataIn2D(dataByStartAsc.clone(), dataByStartDesc.clone(), dataByValue.clone(), dataInSearchTree.copy)
 
   override def domain: Iterable[DiscreteInterval2D[R1, R2]] =
     // leverage compression logic by setting all the values as being the same thing
@@ -167,46 +186,3 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue](
   override def getByVerticalIndex(verticalIndex: DiscreteDomain1D[R2]): DataIn1D[V, R1] = DataIn1D[V, R1](
     getByVerticalIndexData(verticalIndex)
   )
-
-  // ---------- Implement methods from ImmutableBase ----------
-
-  override def filter(p: ValidData2D[V, R1, R2] => Boolean): DataIn2D[V, R1, R2] = DataIn2D(getAll.filter(p))
-
-  override def set(newData: ValidData2D[V, R1, R2]): DataIn2D[V, R1, R2] = copyAndModify: result =>
-    result.updateOrRemove(newData.interval, None)
-    result.addValidData(newData)
-    result.compressInPlace(result)(newData.value)
-
-  override def setIfNoConflict(newData: ValidData2D[V, R1, R2]): Option[DataIn2D[V, R1, R2]] =
-    if getIntersecting(newData.interval).isEmpty then
-      Some(copyAndModify: result =>
-        result.addValidData(newData)
-        result.compressInPlace(result)(newData.value)
-      )
-    else None
-
-  override def update(data: ValidData2D[V, R1, R2]): DataIn2D[V, R1, R2] =
-    copyAndModify(_.updateOrRemove(data.interval, Some(data.value)))
-
-  override def replaceByKey(
-    key: DiscreteDomain2D[R1, R2],
-    newData: ValidData2D[V, R1, R2]
-  ): DataIn2D[V, R1, R2] = copyAndModify: result =>
-    result.removeValidDataByKey(key)
-    result.updateOrRemove(newData.interval, None)
-    result.addValidData(newData)
-    result.compressInPlace(result)(newData.value)
-
-  override def replace(
-    oldData: ValidData2D[V, R1, R2],
-    newData: ValidData2D[V, R1, R2]
-  ): DataIn2D[V, R1, R2] = replaceByKey(oldData.key, newData)
-
-  override def remove(interval: DiscreteInterval2D[R1, R2]): DataIn2D[V, R1, R2] =
-    copyAndModify(_.updateOrRemove(interval, None))
-
-  override def compress(value: V): DataIn2D[V, R1, R2] = copyAndModify: result =>
-    result.compressInPlace(result)(value)
-
-  override def compressAll(): DataIn2D[V, R1, R2] = copyAndModify: result =>
-    getAll.map(_.value).toSet.foreach(result.compressInPlace(result))

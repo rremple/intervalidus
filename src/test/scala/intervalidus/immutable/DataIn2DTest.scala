@@ -14,13 +14,18 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
 
   // shared
   testsFor(stringLookupTests("Immutable", DataIn2D(_), DataIn2D.of(_)))
+  testsFor(
+    stringLookupTests("Immutable [experimental noSearchTree]", DataIn2D(_), DataIn2D.of(_))(using
+      Experimental("noSearchTree")
+    )
+  )
 
   override def assertRemoveOrUpdateResult(
     removeExpectedUnsorted: ValidData2D[String, LocalDate, Int]*
   )(
     removeOrUpdateInterval: DiscreteInterval2D[LocalDate, Int],
     updateValue: String = "update"
-  ): Assertion =
+  )(using Experimental): Assertion =
     val rectangle = interval(day(-14), day(14)) x interval(4, 7)
     val fixture = DataIn2D.of(rectangle -> "World")
     val expectedUpdateInterval = removeOrUpdateInterval ∩ rectangle match
@@ -45,6 +50,8 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
         throw ex
 
   testsFor(removeOrUpdateTests("Immutable"))
+  testsFor(removeOrUpdateTests("Immutable [experimental noSearchTree]")(using Experimental("noSearchTree")))
+  testsFor(removeOrUpdateTests("Immutable [experimental bruteForceUpdate]")(using Experimental("bruteForceUpdate")))
 
   def vertical2D[T: DiscreteValue](interval2: DiscreteInterval1D[T]): DiscreteInterval2D[LocalDate, T] =
     unbounded[LocalDate] x interval2
@@ -53,6 +60,17 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
     val empty: DataIn2D[String, Int, Int] = DataIn2D()
     assert(empty.getAll.isEmpty)
     assert(empty.domain.isEmpty)
+
+    val allData =
+      testData(("Hello", intervalTo(day(14)), interval(0, 10)), ("World", intervalFrom(day(1)), intervalFrom(11)))
+    val fixture = mutable.DataIn2D(allData).toMutable.toImmutable
+
+    fixture.getByHorizontalIndex(dayZero).getAt(0) shouldBe Some("Hello")
+
+    fixture.getByVerticalIndex(11).getAt(day(1)) shouldBe Some("World")
+
+  test("Immutable [experimental noSearchTree]: Looking up data in intervals - bounded r1"):
+    given Experimental = Experimental("noSearchTree")
 
     val allData =
       testData(("Hello", intervalTo(day(14)), interval(0, 10)), ("World", intervalFrom(day(1)), intervalFrom(11)))
@@ -149,16 +167,16 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
     val actionsFrom2To4 = fixture4.diffActionsFrom(fixture2a)
     actionsFrom2To4.toList shouldBe List(
       Create(vertical2D(intervalTo(4)) -> "Hey"),
-      Delete(DiscreteDomain2D(Bottom, 0)),
+      Delete(DiscreteDomain2D[Int, Int](Bottom, 0)),
       Update(vertical2D(intervalFrom(16)) -> "World"),
-      Delete(DiscreteDomain2D(Bottom, 20)),
-      Delete(DiscreteDomain2D(Bottom, 26))
+      Delete(DiscreteDomain2D[Int, Int](Bottom, 20)),
+      Delete(DiscreteDomain2D[Int, Int](Bottom, 26))
     )
     val actionsFrom4To6 = fixture6.diffActionsFrom(fixture4)
     actionsFrom4To6.toList shouldBe List(
       Update(vertical2D(intervalTo(0)) -> "Hey"),
       Create((intervalTo(day(0)) x interval(1, 4)) -> "Hey"),
-      Delete(DiscreteDomain2D(Bottom, Point(5))),
+      Delete(DiscreteDomain2D[Int, Int](Bottom, Point(5))),
       Update((intervalTo(day(0)) x intervalFrom(16)) -> "World")
     )
 

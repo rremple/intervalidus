@@ -48,8 +48,15 @@ class DiscreteValueTest extends AnyFunSuite:
     assert(!(bottom > bottom))
     assert(!(bottom equiv top))
 
+    assert(point(3).orderedHash == point(3).orderedHash)
+    assert(point(0).orderedHash <= point(4).orderedHash)
+    assert(bottom.orderedHash <= point(4).orderedHash)
+    assert(point(4).orderedHash <= top.orderedHash)
+    assert(bottom.orderedHash <= top.orderedHash)
+    assert(bottom.orderedHash <= top.orderedHash)
+
     assertResult("Point(3) x Bottom")((point(3) x Bottom).toCodeLikeString)
-    assertResult("Point(3) x Top")((point(3) x Top).toCodeLikeString)
+    assertResult("Point(3) x Bottom x Top")((point(3) x Bottom x Top).toCodeLikeString)
 
   test("Ops on Longs"):
     import DiscreteValue.LongDiscreteValue
@@ -93,8 +100,15 @@ class DiscreteValueTest extends AnyFunSuite:
     assert(!(bottom > bottom))
     assert(!(bottom equiv top))
 
+    assert(point(3).orderedHash == point(3).orderedHash)
+    assert(point(0).orderedHash <= point(4).orderedHash)
+    assert(bottom.orderedHash <= point(4).orderedHash)
+    assert(point(4).orderedHash <= top.orderedHash)
+    assert(bottom.orderedHash <= top.orderedHash)
+    assert(bottom.orderedHash <= top.orderedHash)
+
     assertResult("Point(3) x Bottom")((point(3) x Bottom).toCodeLikeString)
-    assertResult("Point(3) x Top")((point(3) x Top).toCodeLikeString)
+    assertResult("Point(3) x Bottom x Top")((point(3) x Bottom x Top).toCodeLikeString)
 
   test("Ops on BigIntegers"):
     import DiscreteValue.BigIntegerDiscreteValue
@@ -142,8 +156,15 @@ class DiscreteValueTest extends AnyFunSuite:
     assert(!(bottom > bottom))
     assert(!(bottom equiv top))
 
+    assert(point(3).orderedHash == point(3).orderedHash)
+    assert(point(0).orderedHash <= point(4).orderedHash)
+    assert(bottom.orderedHash <= point(4).orderedHash)
+    assert(point(4).orderedHash <= top.orderedHash)
+    assert(bottom.orderedHash <= top.orderedHash)
+    assert(bottom.orderedHash <= top.orderedHash)
+
     assertResult("Point(3) x Bottom")((point(3) x Bottom).toCodeLikeString)
-    assertResult("Point(3) x Top")((point(3) x Top).toCodeLikeString)
+    assertResult("Point(3) x Bottom x Top")((point(3) x Bottom x Top).toCodeLikeString)
 
   test("Ops on LocalDates"):
     import DiscreteValue.LocalDateDiscreteValue
@@ -185,9 +206,16 @@ class DiscreteValueTest extends AnyFunSuite:
     assert(!(bottom > top))
     assert(!(bottom equiv top))
 
+    assert(point(date3).orderedHash == point(date3).orderedHash)
+    assert(point(date0).orderedHash <= point(date4).orderedHash)
+    assert(point(date4).orderedHash >= point(date0).orderedHash)
+    assert(bottom.orderedHash <= point(date4).orderedHash)
+    assert(point(date4).orderedHash <= top.orderedHash)
+    assert(bottom.orderedHash <= top.orderedHash)
+
     assert(point(maxValue).successor equiv top)
     assert(point(minValue).predecessor equiv bottom)
 
-    assertResult("Point(2024-05-31) x Point(2024-06-03)")(
-      (Point(date0) x Point(date3)).toCodeLikeString
+    assertResult("Point(2024-05-31) x Point(2024-06-03) x Point(2024-06-04)")(
+      (Point(date0) x Point(date3) x Point(date4)).toCodeLikeString
     )

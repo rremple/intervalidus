@@ -28,7 +28,7 @@ object DataIn1DVersioned:
     value: V,
     interval: DiscreteInterval1D[R],
     initialVersion: Int
-  ): DataIn1DVersioned[V, R] = from(
+  )(using Experimental): DataIn1DVersioned[V, R] = from(
     Iterable(DiscreteInterval1D.unbounded -> value),
     initialVersion
   )
@@ -51,7 +51,7 @@ object DataIn1DVersioned:
   def of[V, R: DiscreteValue](
     value: V,
     initialVersion: Int = 0
-  ): DataIn1DVersioned[V, R] = of(value, DiscreteInterval1D.unbounded, initialVersion)
+  )(using Experimental): DataIn1DVersioned[V, R] = of(value, DiscreteInterval1D.unbounded, initialVersion)
 
   /**
     * Shorthand constructor for a collection of initial valid values starting at the initial version.
@@ -70,7 +70,7 @@ object DataIn1DVersioned:
   def from[V, R: DiscreteValue](
     initialData: Iterable[ValidData1D[V, R]] = Iterable.empty[ValidData1D[V, R]],
     initialVersion: Int = 0 // could use summon[DiscreteValue[Int]].minValue to extend range
-  ): DataIn1DVersioned[V, R] = DataIn1DVersioned[V, R](
+  )(using Experimental): DataIn1DVersioned[V, R] = DataIn1DVersioned[V, R](
     initialData.map(d => (d.interval x DiscreteInterval1D.intervalFrom(initialVersion)) -> d.value),
     initialVersion
   )
@@ -105,7 +105,8 @@ class DataIn1DVersioned[V, R: DiscreteValue](
   initialData: Iterable[ValidData2D[V, R, Int]] = Iterable.empty[ValidData2D[V, R, Int]],
   initialVersion: Int = 0, // could use summon[DiscreteValue[Int]].minValue to extend range
   withCurrentVersion: Option[DiscreteDomain1D[Int]] = None
-) extends DataIn1DVersionedBase[V, R](initialData, initialVersion, withCurrentVersion):
+)(using Experimental)
+  extends DataIn1DVersionedBase[V, R](initialData, initialVersion, withCurrentVersion):
 
   import DataIn1DVersionedBase.VersionSelection
 

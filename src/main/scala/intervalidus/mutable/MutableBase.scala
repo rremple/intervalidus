@@ -14,23 +14,19 @@ import intervalidus.DimensionalBase.{DataLike, DomainLike, IntervalLike}
   *   the interval type, based on the domain type. Must be `IntervalLike` based on D.
   * @tparam ValidData
   *   the valid data type. Must be `DataLike` based on V, D, and I.
+  * @tparam Self
+  *   F-bounded self type.
   */
-trait MutableBase[V, D <: DomainLike, I <: IntervalLike[D], ValidData <: DataLike[V, D, I]]:
-  self: DimensionalBase[V, D, I, ValidData] =>
+trait MutableBase[
+  V,
+  D <: DomainLike[D],
+  I <: IntervalLike[D, I],
+  ValidData <: DataLike[V, D, I, ValidData],
+  Self <: MutableBase[V, D, I, ValidData, Self] with DimensionalBase[V, D, I, ValidData, _]
+]:
+  self: Self =>
 
-  // ---------- To be implemented by inheritor ----------
-
-  /**
-    * Compress out adjacent intervals with the same value
-    *
-    * @param value
-    *   value to be evaluate
-    * @return
-    *   this structure once compressed (not a copy)
-    */
-  def compress(value: V): Unit
-
-  // ---------- Implemented here based on the above (and DimensionalBase) ----------
+  // ---------- Implement methods from DimensionalBase ----------
 
   /**
     * Updates structure to only include elements which satisfy a predicate. Data are mutated in place.
@@ -39,54 +35,7 @@ trait MutableBase[V, D <: DomainLike, I <: IntervalLike[D], ValidData <: DataLik
     *   the predicate used to test elements.
     */
   def filter(p: ValidData => Boolean): Unit = synchronized:
-    getAll
-      .filterNot(p)
-      .foreach: d =>
-        removeValidDataByKey(d.key)
-    ()
-
-  /**
-    * Applies a function to all valid data. Data are mutated in place.
-    *
-    * @param f
-    *   the function to apply to each valid data element.
-    * @throws IllegalArgumentException
-    *   if the mapping function results in invalid data (e.g., introduces overlaps).
-    */
-  def map(f: ValidData => ValidData): Unit = synchronized:
-    getAll
-      .map(d => d -> f(d))
-      .foreach: (oldData, newData) =>
-        if oldData.key == newData.key then updateValidData(newData)
-        else
-          removeValidDataByKey(oldData.key)
-          addValidData(newData)
-
-  /**
-    * Applies a function to all valid data values. Data are mutated in place.
-    *
-    * @param f
-    *   the function to apply to the value part of each valid data element.
-    */
-  def mapValues(f: V => V): Unit =
-    getAll
-      .map(d => newValidData(f(d.value), d.interval))
-      .foreach: newData =>
-        updateValidData(newData)
-
-  /**
-    * Applies a function to all the elements of this structure and updates valid values from the elements of the
-    * resulting structures.
-    *
-    * @param f
-    *   the function to apply to each valid data element which results in a new structure.
-    * @throws IllegalArgumentException
-    *   if the mapping function results in invalid data (e.g., introduces overlaps).
-    */
-  def flatMap(f: ValidData => DimensionalBase[V, D, I, ValidData]): Unit = synchronized:
-    val newData = getAll.flatMap(f(_).getAll)
-    clearValidData()
-    newData.foreach(addValidData)
+    replaceValidData(getAll.filter(p))
 
   /**
     * Set new valid data. Note that any data previously valid in this interval are replace by this data.
@@ -133,7 +82,7 @@ trait MutableBase[V, D <: DomainLike, I <: IntervalLike[D], ValidData <: DataLik
     *   the new data replacing the old data
     */
   def replace(oldData: ValidData, newData: ValidData): Unit =
-    removeValidDataByKey(oldData.key)
+    removeValidData(oldData)
     set(newData)
 
   /**
@@ -146,8 +95,7 @@ trait MutableBase[V, D <: DomainLike, I <: IntervalLike[D], ValidData <: DataLik
     *   the new data replacing the old data
     */
   def replaceByKey(key: D, newData: ValidData): Unit =
-    removeValidDataByKey(key)
-    set(newData)
+    replace(dataByStartAsc(key), newData)
 
   /**
     * Remove valid values on the interval. If there are values valid on portions of the interval, those values have
@@ -159,10 +107,56 @@ trait MutableBase[V, D <: DomainLike, I <: IntervalLike[D], ValidData <: DataLik
   def remove(interval: I): Unit = updateOrRemove(interval, None)
 
   /**
+    * Compress out adjacent intervals with the same value
+    *
+    * @param value
+    *   value to be evaluate
+    * @return
+    *   this structure once compressed (not a copy)
+    */
+  def compress(value: V): Unit = synchronized:
+    compressInPlace(value)
+
+  /**
     * Compress out adjacent intervals with the same value for all values (Shouldn't ever need to do this.)
     *
     * @return
     *   this structure once compressed (not a copy)
     */
   def compressAll(): Unit = synchronized:
-    getAll.map(_.value).toSet.foreach(compress)
+    dataByValue.keySet.foreach(compress)
+
+  /**
+    * Applies a function to all valid data. Data are mutated in place.
+    *
+    * @param f
+    *   the function to apply to each valid data element.
+    * @throws IllegalArgumentException
+    *   if the mapping function results in invalid data (e.g., introduces overlaps).
+    */
+  def map(f: ValidData => ValidData): Unit = synchronized:
+    replaceValidData(getAll.map(f))
+
+  /**
+    * Applies a function to all valid data values. Data are mutated in place.
+    *
+    * @param f
+    *   the function to apply to the value part of each valid data element.
+    */
+  def mapValues(f: V => V): Unit =
+    getAll
+      .map(d => newValidData(f(d.value), d.interval))
+      .foreach: newData =>
+        updateValidData(newData)
+
+  /**
+    * Applies a function to all the elements of this structure and updates valid values from the elements of the
+    * resulting structures.
+    *
+    * @param f
+    *   the function to apply to each valid data element which results in a new structure.
+    * @throws IllegalArgumentException
+    *   if the mapping function results in invalid data (e.g., introduces overlaps).
+    */
+  def flatMap(f: ValidData => Self): Unit = synchronized:
+    replaceValidData(getAll.flatMap(f(_).getAll))
