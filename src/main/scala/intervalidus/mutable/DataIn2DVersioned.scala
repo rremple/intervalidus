@@ -1,37 +1,39 @@
 package intervalidus.mutable
 
 import intervalidus.*
-import intervalidus.immutable.DataIn1DVersioned as DataIn1DVersionedImmutable
-import intervalidus.DimensionalVersionedBase.{VersionDomain, VersionSelection}
+import intervalidus.immutable.DataIn2DVersioned as DataIn2DVersionedImmutable
 
 import scala.language.implicitConversions
 import scala.math.Ordering.Implicits.infixOrderingOps
 
+import intervalidus.DimensionalVersionedBase.{VersionDomain, VersionSelection}
+
 /** @inheritdoc */
-object DataIn1DVersioned extends DataIn1DVersionedBaseObject:
-  override def of[V, R: DiscreteValue](
-    data: ValidData1D[V, R],
+object DataIn2DVersioned extends DataIn2DVersionedBaseObject:
+  override def of[V, R1: DiscreteValue, R2: DiscreteValue](
+    data: ValidData2D[V, R1, R2],
     initialVersion: Int
-  )(using Experimental): DataIn1DVersioned[V, R] = from(
+  )(using Experimental): DataIn2DVersioned[V, R1, R2] = from(
     Iterable(data),
     initialVersion
   )
 
-  override def of[V, R: DiscreteValue](
+  override def of[V, R1: DiscreteValue, R2: DiscreteValue](
     value: V,
     initialVersion: Int = 0
-  )(using Experimental): DataIn1DVersioned[V, R] = of(DiscreteInterval1D.unbounded -> value, initialVersion)
+  )(using Experimental): DataIn2DVersioned[V, R1, R2] =
+    of(DiscreteInterval2D.unbounded[R1, R2] -> value, initialVersion)
 
-  override def from[V, R: DiscreteValue](
-    initialData: Iterable[ValidData1D[V, R]],
+  override def from[V, R1: DiscreteValue, R2: DiscreteValue](
+    initialData: Iterable[ValidData2D[V, R1, R2]],
     initialVersion: Int = 0 // could use summon[DiscreteValue[Int]].minValue to extend range
-  )(using Experimental): DataIn1DVersioned[V, R] = DataIn1DVersioned[V, R](
+  )(using Experimental): DataIn2DVersioned[V, R1, R2] = DataIn2DVersioned[V, R1, R2](
     initialData.map(d => (d.interval x DiscreteInterval1D.intervalFrom(initialVersion)) -> d.value),
     initialVersion
   )
 
 /**
-  * Interface is similar to [[DataIn1D]], but it operates on an underlying [[DataIn2D]] using an integer-valued
+  * Interface is similar to [[DataIn2D]], but it operates on an underlying [[DataIn3D]] using an integer-valued
   * interval2 to version data. One use case would be that R = LocalDate, so data values may vary in terms of both
   * version and date. Most methods require some generic version selection criteria rather than specific integer
   * intervals.
@@ -45,47 +47,49 @@ object DataIn1DVersioned extends DataIn1DVersionedBaseObject:
   *
   * @tparam V
   *   the type of the value managed as data
-  * @tparam R
-  *   the type of discrete value used in the discrete interval assigned to each value
+  * @tparam R1
+  *   the type of discrete value used in the horizontal discrete interval assigned to each value
+  * @tparam R2
+  *   the type of discrete value used in the vertical discrete interval assigned to each value
   * @param initialData
-  *   (optional) a collection of valid data in two dimensions (the vertical dimension is the version) to start with --
-  *   note that two-dimensional intervals must be disjoint
+  *   (optional) a collection of valid data in two dimensions (the depth dimension is the version) to start with -- note
+  *   that two-dimensional intervals must be disjoint
   * @param initialVersion
   *   (optional) the version to start with, typically zero
   * @param withCurrentVersion
   *   (optional) the version to use as current if different form the initial version, e.g., when making a copy,
   *   typically None
   */
-class DataIn1DVersioned[V, R: DiscreteValue](
-  initialData: Iterable[ValidData2D[V, R, Int]] = Iterable.empty[ValidData2D[V, R, Int]],
+class DataIn2DVersioned[V, R1: DiscreteValue, R2: DiscreteValue](
+  initialData: Iterable[ValidData3D[V, R1, R2, Int]] = Iterable.empty[ValidData3D[V, R1, R2, Int]],
   initialVersion: Int = 0, // could use summon[DiscreteValue[Int]].minValue to extend range
   withCurrentVersion: Option[VersionDomain] = None
 )(using Experimental)
-  extends DataIn1DVersionedBase[V, R](initialData, initialVersion, withCurrentVersion)
+  extends DataIn2DVersionedBase[V, R1, R2](initialData, initialVersion, withCurrentVersion)
   with MutableVersionedBase[
     V,
-    DiscreteDomain1D[R],
-    DiscreteInterval1D[R],
-    ValidData1D[V, R],
-    DiscreteDomain2D[R, Int],
-    DiscreteInterval2D[R, Int],
-    ValidData2D[V, R, Int],
-    DataIn1DVersioned[V, R]
+    DiscreteDomain2D[R1, R2],
+    DiscreteInterval2D[R1, R2],
+    ValidData2D[V, R1, R2],
+    DiscreteDomain3D[R1, R2, Int],
+    DiscreteInterval3D[R1, R2, Int],
+    ValidData3D[V, R1, R2, Int],
+    DataIn2DVersioned[V, R1, R2]
   ]:
 
   // ---------- Implement methods from DimensionalVersionedBase ----------
 
-  override def toImmutable: DataIn1DVersionedImmutable[V, R] = DataIn1DVersionedImmutable(
+  override def toImmutable: DataIn2DVersionedImmutable[V, R1, R2] = DataIn2DVersionedImmutable(
     underlying.getAll,
     initialVersion,
     Some(currentVersion)
   )
 
-  override def toMutable: DataIn1DVersioned[V, R] = this
+  override def toMutable: DataIn2DVersioned[V, R1, R2] = this
 
   // ---------- Implement methods from MutableVersionedBase ----------
 
-  override def copy: DataIn1DVersioned[V, R] = DataIn1DVersioned(
+  override def copy: DataIn2DVersioned[V, R1, R2] = DataIn2DVersioned(
     underlying.getAll,
     initialVersion,
     Some(currentVersion)
@@ -117,54 +121,58 @@ class DataIn1DVersioned[V, R: DiscreteValue](
     compressAll()
     setCurrentVersion(initialVersion)
 
-  override def approveAll(interval: DiscreteInterval1D[R]): Unit = synchronized:
+  override def approveAll(interval: DiscreteInterval2D[R1, R2]): Unit = synchronized:
     underlying
-      .getIntersecting(underlyingIntervalWithVersion(interval, VersionSelection.Unapproved.intervalFrom))
+      .getIntersecting(interval x VersionSelection.Unapproved.intervalFrom)
       .filter(versionInterval(_).start equiv unapprovedStartVersion) // only unapproved
-      .map(publicValidData) // as 1D
+      .map(publicValidData) // as 2D
       .foreach(approve)
     underlying
-      .getIntersecting(underlyingIntervalWithVersion(interval, VersionSelection.Current.intervalFrom))
+      .getIntersecting(interval x VersionSelection.Current.intervalFrom)
       .filter(versionInterval(_).end equiv unapprovedStartVersion.predecessor) // only related to unapproved removes
       .flatMap(publicValidData(_).interval intersectionWith interval)
       .foreach(remove(_)(using VersionSelection.Current))
 
-  // ---------- Implement methods from DataIn1DVersionedBase ----------
+  // ---------- Implement methods from DataIn2DVersionedBase ----------
 
-  override def zip[B](that: DataIn1DVersionedBase[B, R]): DataIn1DVersioned[(V, B), R] =
-    DataIn1DVersioned(
-      underlying.zip(that.getDataIn2D).getAll,
+  override def zip[B](that: DataIn2DVersionedBase[B, R1, R2]): DataIn2DVersioned[(V, B), R1, R2] =
+    DataIn2DVersioned(
+      underlying.zip(that.getDataIn3D).getAll,
       initialVersion,
       Some(currentVersion)
     )
 
-  override def zipAll[B](that: DataIn1DVersionedBase[B, R], thisElem: V, thatElem: B): DataIn1DVersioned[(V, B), R] =
-    DataIn1DVersioned(
-      underlying.zipAll(that.getDataIn2D, thisElem, thatElem).getAll,
+  override def zipAll[B](
+    that: DataIn2DVersionedBase[B, R1, R2],
+    thisElem: V,
+    thatElem: B
+  ): DataIn2DVersioned[(V, B), R1, R2] =
+    DataIn2DVersioned(
+      underlying.zipAll(that.getDataIn3D, thisElem, thatElem).getAll,
       initialVersion,
       Some(currentVersion)
     )
 
-  override def flatMap(f: ValidData2D[V, R, Int] => DataIn1DVersioned[V, R]): Unit =
+  override def flatMap(f: ValidData3D[V, R1, R2, Int] => DataIn2DVersioned[V, R1, R2]): Unit =
     underlying.flatMap(f(_).underlying)
 
   // --- API methods unique to this "versioned" variant
 
   /**
-    * Applies a sequence of 2D diff actions to this structure. Does not use a version selection context -- operates on
-    * full underlying 2D structure.
+    * Applies a sequence of 3D diff actions to this structure. Does not use a version selection context -- operates on
+    * full underlying 3D structure.
     *
     * @param diffActions
     *   actions to be applied.
     */
-  def applyDiffActions(diffActions: Iterable[DiffAction2D[V, R, Int]]): Unit =
+  def applyDiffActions(diffActions: Iterable[DiffAction3D[V, R1, R2, Int]]): Unit =
     underlying.applyDiffActions(diffActions)
 
   /**
     * Synchronizes this with another structure by getting and applying the applicable diff actions. Does not use a
-    * version selection context -- operates on full underlying 2D structure.
+    * version selection context -- operates on full underlying 3D structure.
     *
     * @param that
     *   the structure with which this will be synchronized.
     */
-  def syncWith(that: DataIn1DVersioned[V, R]): Unit = applyDiffActions(that.diffActionsFrom(this))
+  def syncWith(that: DataIn2DVersioned[V, R1, R2]): Unit = applyDiffActions(that.diffActionsFrom(this))

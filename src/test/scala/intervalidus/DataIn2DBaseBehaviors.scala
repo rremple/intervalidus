@@ -48,32 +48,32 @@ trait DataIn2DBaseBehaviors:
     val bounded = (intervalFrom(0) x intervalTo(0)) -> "Hello world"
     bounded.toString shouldBe "{[0..+∞), (-∞..0]} -> Hello world"
     bounded.toCodeLikeString shouldBe "(intervalFrom(0) x intervalTo(0)) -> \"Hello world\""
-    assert(bounded.isDefinedAt(DiscreteDomain2D(0, 0)))
-    assert(!bounded.isDefinedAt(DiscreteDomain2D(-1, 0)))
-    bounded(DiscreteDomain2D(0, 0)) shouldBe "Hello world"
+    assert(bounded.isDefinedAt(0, 0))
+    assert(!bounded.isDefinedAt(-1, 0))
+    bounded(0, 0) shouldBe "Hello world"
     assertThrows[Exception]:
-      val _ = bounded(DiscreteDomain2D(-1, 0))
+      val _ = bounded(-1, 0)
 
     val fixture1 = dataIn2DFrom(
       Seq((intervalFrom(dayZero) x intervalFrom(0)) -> "Hello world")
     )
     fixture1.getOption shouldBe None
-    assert(fixture1.isDefinedAt(DiscreteDomain2D(dayZero, 0)))
+    assert(fixture1.isDefinedAt(dayZero, 0))
     DiscreteDomain2D(dayZero, 0).flip shouldBe DiscreteDomain2D(0, dayZero)
-    fixture1(DiscreteDomain2D(dayZero, 0)) shouldBe "Hello world"
-    fixture1.flip(DiscreteDomain2D(0, dayZero)) shouldBe "Hello world"
-    assert(!fixture1.isDefinedAt(DiscreteDomain2D(day(-1), 0)))
+    fixture1(dayZero, 0) shouldBe "Hello world"
+    fixture1.flip(0, dayZero) shouldBe "Hello world"
+    assert(!fixture1.isDefinedAt(day(-1), 0))
     assertThrows[Exception]:
-      val _ = fixture1(DiscreteDomain2D(day(-1), 0))
+      val _ = fixture1(day(-1), 0)
 
     val now = LocalDate.now // since all the dates are unbounded, this value shouldn't matter
 
     val allData2 = testData(("Hello", unbounded, interval(0, 10)), ("World", unbounded, intervalFrom(11)))
     val fixture2 = dataIn2DFrom(allData2)
     fixture2.domain.toList shouldBe List(unbounded[Int] x intervalFrom(0))
-    fixture2.getAt(DiscreteDomain2D(now, 5)) shouldBe Some("Hello")
-    fixture2.getAt(DiscreteDomain2D(now, 15)) shouldBe Some("World")
-    fixture2.getAt(DiscreteDomain2D(now, -1)) shouldBe None
+    fixture2.getAt(now, 5) shouldBe Some("Hello")
+    fixture2.getAt(now, 15) shouldBe Some("World")
+    fixture2.getAt(now, -1) shouldBe None
     assert(fixture2.intersects(unbounded x interval(5, 15)))
     fixture2.getIntersecting(unbounded x interval(5, 15)) should contain theSameElementsAs allData2
 

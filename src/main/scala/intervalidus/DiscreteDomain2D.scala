@@ -2,6 +2,8 @@ package intervalidus
 
 import intervalidus.collection.Coordinate2D
 
+import scala.language.implicitConversions
+
 /**
   * A two-dimensional discrete domain, like cartesian coordinates. Used in conjunction with [[DiscreteInterval2D]].
   *
@@ -95,3 +97,12 @@ object DiscreteDomain2D:
       val horizontalCompare = horizontalOrdering.compare(x.horizontalIndex, y.horizontalIndex)
       if horizontalCompare != 0 then horizontalCompare
       else verticalOrdering.compare(x.verticalIndex, y.verticalIndex)
+
+  /**
+    * This allows a client to use a tuple of discrete values in methods requiring a two-dimensional discrete domain
+    * element by implicitly converting. For example, a client can write `dataIn2D.getAt(DiscreteDomain2D(1, 2))` (or
+    * even `dataIn2D.getAt(Point(1) x Point(2))`) or, simpler, `dataIn1D.getAt((1, 2))` (or, with auto-tupling, even the
+    * extra parens can be dropped: `dataIn1D.getAt(1, 2)`)
+    */
+  given [T1, T2](using DiscreteValue[T1], DiscreteValue[T2]): Conversion[(T1, T2), DiscreteDomain2D[T1, T2]] =
+    (t: (T1, T2)) => DiscreteDomain2D(t._1, t._2)

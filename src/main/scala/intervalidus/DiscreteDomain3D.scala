@@ -2,6 +2,8 @@ package intervalidus
 
 import intervalidus.collection.Coordinate3D
 
+import scala.language.implicitConversions
+
 /**
   * A three-dimensional discrete domain, like cartesian coordinates. Used in conjunction with [[DiscreteInterval3D]].
   *
@@ -108,3 +110,15 @@ object DiscreteDomain3D:
         val verticalCompare = verticalOrdering.compare(x.verticalIndex, y.verticalIndex)
         if verticalCompare != 0 then verticalCompare
         else depthOrdering.compare(x.depthIndex, y.depthIndex)
+
+  /**
+    * This allows a client to use a tuple of discrete values in methods requiring a three-dimensional discrete domain
+    * element by implicitly converting. For example, a client can write `dataIn2D.getAt(DiscreteDomain3D(1, 2, 3))` (or
+    * even `dataIn2D.getAt(Point(1) x Point(2) x Point(3))`) or, simpler, `dataIn1D.getAt((1, 2, 3))` (or, with
+    * auto-tupling, even the extra parens can be dropped: `dataIn1D.getAt(1, 2, 3)`)
+    */
+  given [T1, T2, T3](using
+    DiscreteValue[T1],
+    DiscreteValue[T2],
+    DiscreteValue[T3]
+  ): Conversion[(T1, T2, T3), DiscreteDomain3D[T1, T2, T3]] = (t: (T1, T2, T3)) => DiscreteDomain3D(t._1, t._2, t._3)

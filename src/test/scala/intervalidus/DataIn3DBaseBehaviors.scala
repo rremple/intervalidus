@@ -52,11 +52,11 @@ trait DataIn3DBaseBehaviors:
     bounded.toString shouldBe "{[0..+∞), (-∞..0], (-∞..0]} -> Hello world"
     bounded.toCodeLikeString shouldBe
       "(intervalFrom(0) x intervalTo(0) x intervalTo(0)) -> \"Hello world\""
-    assert(bounded.isDefinedAt(DiscreteDomain3D(0, 0, 0)))
-    assert(!bounded.isDefinedAt(DiscreteDomain3D(-1, 0, 0)))
-    bounded(DiscreteDomain3D(0, 0, 0)) shouldBe "Hello world"
+    assert(bounded.isDefinedAt(0, 0, 0))
+    assert(!bounded.isDefinedAt(-1, 0, 0))
+    bounded(0, 0, 0) shouldBe "Hello world"
     assertThrows[Exception]:
-      val _ = bounded(DiscreteDomain3D(-1, 0, 0))
+      val _ = bounded(-1, 0, 0)
 
     DiscreteDomain3D(dayZero, day(1), 0).flipAboutHorizontal shouldBe DiscreteDomain3D(dayZero, 0, day(1))
     DiscreteDomain3D(dayZero, day(1), 0).flipAboutVertical shouldBe DiscreteDomain3D(0, day(1), dayZero)
@@ -65,14 +65,14 @@ trait DataIn3DBaseBehaviors:
       List((intervalFrom(dayZero) x intervalTo(dayZero) x intervalFrom(0)) -> "Hello world")
     )
     fixture1.getOption shouldBe None
-    assert(fixture1.isDefinedAt(DiscreteDomain3D(day(1), dayZero, 0)))
-    fixture1(DiscreteDomain3D(day(1), dayZero, 0)) shouldBe "Hello world"
+    assert(fixture1.isDefinedAt(day(1), dayZero, 0))
+    fixture1(day(1), dayZero, 0) shouldBe "Hello world"
     fixture1.flipAboutHorizontal(DiscreteDomain3D(day(1), dayZero, 0).flipAboutHorizontal) shouldBe "Hello world"
     fixture1.flipAboutVertical(DiscreteDomain3D(day(1), dayZero, 0).flipAboutVertical) shouldBe "Hello world"
     fixture1.flipAboutDepth(DiscreteDomain3D(day(1), dayZero, 0).flipAboutDepth) shouldBe "Hello world"
-    assert(!fixture1.isDefinedAt(DiscreteDomain3D(day(-1), day(1), 0)))
+    assert(!fixture1.isDefinedAt(day(-1), day(1), 0))
     assertThrows[Exception]:
-      val _ = fixture1(DiscreteDomain3D(day(-1), day(1), 0))
+      val _ = fixture1(day(-1), day(1), 0)
 
     val now: DiscreteDomain1D[LocalDate] =
       LocalDate.now // since all the dates are unbounded, this value shouldn't matter

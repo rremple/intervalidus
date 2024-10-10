@@ -34,14 +34,14 @@ trait DataIn1DVersionedBaseBehaviors:
     dataIn1DVersionedFrom1D: Experimental ?=> Iterable[ValidData1D[String, Int]] => S,
     dataIn1DVersionedFrom2D: Experimental ?=> Iterable[ValidData2D[String, Int, Int]] => S,
     dataIn1DVersionedOf: Experimental ?=> String => S
-  ): Unit =
+  )(using Experimental): Unit =
     test(s"$prefix: General setup"):
       {
         given Experimental = Experimental("requireDisjoint")
 
         assertThrows[IllegalArgumentException]:
           // not valid as it overlaps on [10, +∞)
-          val badFixture =
+          val _ =
             dataIn1DVersionedFrom2D(testDataIn2D(0, testData("Hello" -> interval(0, 10), "World" -> unbounded[Int])))
       }
 
@@ -56,13 +56,13 @@ trait DataIn1DVersionedBaseBehaviors:
 
       val fixture1: S = dataIn1DVersionedFrom1D(testData("Hello world" -> intervalFrom(0)))
       fixture1.getOption shouldBe None
-      assert(fixture1.isDefinedAt(DiscreteDomain2D(0, 0)))
+      assert(fixture1.isDefinedAt(0, 0))
       assert(fixture1.isValidAt(0))
-      fixture1(DiscreteDomain2D(0, 0)) shouldBe "Hello world"
-      assert(!fixture1.isDefinedAt(DiscreteDomain2D(-1, 0)))
+      fixture1(0, 0) shouldBe "Hello world"
+      assert(!fixture1.isDefinedAt(-1, 0))
       assert(!fixture1.isValidAt(-1))
       assertThrows[Exception]:
-        val missingData = fixture1(DiscreteDomain2D(-1, 0))
+        val _ = fixture1(-1, 0)
 
       val allData2 = testData("Hello" -> interval(0, 10), "World" -> intervalFrom(11))
       val fixture2 = dataIn1DVersionedFrom2D(testDataIn2D(0, allData2))

@@ -230,7 +230,7 @@ You can also extend through composition. For example `DataIn1DVersioned` mimics 
 underlying `DataIn2D` structure with an integer vertical dimension to create a versioned data structure. The "current"
 version is tracked as internal state and methods accept version selection as a context parameter, with "current" as the
 default version selection applied. Also, a notion of approval is supported by specifying a specific future version for 
-anything unapproved. TODO: Similarly, there should be a `DataIn2DVersioned` mimicking the `DataIn2D` API using an 
+anything unapproved. Similarly, there is a `DataIn2DVersioned` mimicking the `DataIn2D` API using an 
 underlying `DataIn3D` structure.
 
 ## Software Structure

@@ -7,26 +7,28 @@ import DimensionalVersionedBase.{VersionDomain, VersionSelection}
 /**
   * Constructs data in one-dimensional intervals that are also versioned (hidden second dimension).
   */
-trait DataIn1DVersionedBaseObject:
+trait DataIn2DVersionedBaseObject:
   /**
     * Shorthand constructor for a single initial value that is valid in a specific discrete interval starting at the
     * initial version.
     *
     * @tparam V
     *   the type of the value managed as data
-    * @tparam R
-    *   the type of discrete value used in the discrete interval assigned to each value
+    * @tparam R1
+    *   the type of discrete value used in the horizontal discrete interval assigned to each value
+    * @tparam R2
+    *   the type of discrete value used in the vertical discrete interval assigned to each value
     * @param data
     *   data to start with
     * @param initialVersion
     *   the version to start with, typically zero
     * @return
-    *   DataIn1DVersioned structure with a single valid value
+    *   DataIn2DVersioned structure with a single valid value
     */
-  def of[V, R: DiscreteValue](
-    data: ValidData1D[V, R],
+  def of[V, R1: DiscreteValue, R2: DiscreteValue](
+    data: ValidData2D[V, R1, R2],
     initialVersion: Int
-  )(using Experimental): DataIn1DVersionedBase[V, R]
+  )(using Experimental): DataIn2DVersionedBase[V, R1, R2]
 
   /**
     * Shorthand constructor for a single initial value that is valid in the full discrete interval starting at the
@@ -34,41 +36,45 @@ trait DataIn1DVersionedBaseObject:
     *
     * @tparam V
     *   the type of the value managed as data
-    * @tparam R
-    *   the type of discrete value used in the discrete interval assigned to each value
+    * @tparam R1
+    *   the type of discrete value used in the horizontal discrete interval assigned to each value
+    * @tparam R2
+    *   the type of discrete value used in the vertical discrete interval assigned to each value
     * @param value
     *   value to start with
     * @param initialVersion
     *   (optional) the version to start with, typically (and by default) zero
     * @return
-    *   DataIn1DVersioned structure with a single valid value
+    *   DataIn2DVersioned structure with a single valid value
     */
-  def of[V, R: DiscreteValue](
+  def of[V, R1: DiscreteValue, R2: DiscreteValue](
     value: V,
     initialVersion: Int
-  )(using Experimental): DataIn1DVersionedBase[V, R]
+  )(using Experimental): DataIn2DVersionedBase[V, R1, R2]
 
   /**
     * Shorthand constructor for a collection of initial valid values starting at the initial version.
     *
     * @tparam V
     *   the type of the value managed as data
-    * @tparam R
-    *   the type of discrete value used in the discrete interval assigned to each value
+    * @tparam R1
+    *   the type of discrete value used in the horizontal discrete interval assigned to each value
+    * @tparam R2
+    *   the type of discrete value used in the vertical discrete interval assigned to each value
     * @param initialData
     *   valid data to start with
     * @param initialVersion
     *   (optional) the version to start with, typically (and by default) zero
     * @return
-    *   DataIn1DVersioned structure with the provided initial values
+    *   DataIn2DVersioned structure with the provided initial values
     */
-  def from[V, R: DiscreteValue](
-    initialData: Iterable[ValidData1D[V, R]],
+  def from[V, R1: DiscreteValue, R2: DiscreteValue](
+    initialData: Iterable[ValidData2D[V, R1, R2]],
     initialVersion: Int // could use summon[DiscreteValue[Int]].minValue to extend range
-  )(using Experimental): DataIn1DVersionedBase[V, R]
+  )(using Experimental): DataIn2DVersionedBase[V, R1, R2]
 
 /**
-  * Interface is similar to [[DataIn1DBase]], but it operates on an underlying [[mutable.DataIn2D]] using an
+  * Interface is similar to [[DataIn2DBase]], but it operates on an underlying [[mutable.DataIn3D]] using an
   * integer-valued vertical dimension to version data. One use case (as defined in DataTimeboundVersioned) would be that
   * R = LocalDate, so data values may vary in terms of both version and time. Most methods require some generic version
   * selection criteria rather than specific integer intervals, therefore this does not extend [[DimensionalBase]].
@@ -82,8 +88,10 @@ trait DataIn1DVersionedBaseObject:
   *
   * @tparam V
   *   the type of the value managed as data
-  * @tparam R
-  *   the type of discrete value used in the discrete interval assigned to each value
+  * @tparam R1
+  *   the type of discrete value used in the horizontal discrete interval assigned to each value
+  * @tparam R2
+  *   the type of discrete value used in the vertical discrete interval assigned to each value
   * @param initialData
   *   (optional) a collection of valid data in two dimensions (the vertical dimension is the version) to start with --
   *   note that two-dimensional intervals must be disjoint
@@ -94,25 +102,25 @@ trait DataIn1DVersionedBaseObject:
   *   (optional) the version to use as current if different form the initial version, e.g., when making a copy,
   *   typically None
   */
-trait DataIn1DVersionedBase[V, R: DiscreteValue](
-  initialData: Iterable[ValidData2D[V, R, Int]],
+trait DataIn2DVersionedBase[V, R1: DiscreteValue, R2: DiscreteValue](
+  initialData: Iterable[ValidData3D[V, R1, R2, Int]],
   val initialVersion: Int,
   withCurrentVersion: Option[VersionDomain]
 )(using Experimental)
   extends DimensionalVersionedBase[
     V,
-    DiscreteDomain1D[R],
-    DiscreteInterval1D[R],
-    ValidData1D[V, R],
-    DiscreteDomain2D[R, Int],
-    DiscreteInterval2D[R, Int],
-    ValidData2D[V, R, Int],
-    DataIn1DVersionedBase[V, R]
+    DiscreteDomain2D[R1, R2],
+    DiscreteInterval2D[R1, R2],
+    ValidData2D[V, R1, R2],
+    DiscreteDomain3D[R1, R2, Int],
+    DiscreteInterval3D[R1, R2, Int],
+    ValidData3D[V, R1, R2, Int],
+    DataIn2DVersionedBase[V, R1, R2]
   ]:
 
-  override type UnversionedSelf = DataIn1DBase[V, R]
-  override type UnderlyingMutable = mutable.DataIn2D[V, R, Int]
-  override type UnderlyingImmutable = immutable.DataIn2D[V, R, Int]
+  override type UnversionedSelf = DataIn2DBase[V, R1, R2]
+  override type UnderlyingMutable = mutable.DataIn3D[V, R1, R2, Int]
+  override type UnderlyingImmutable = immutable.DataIn3D[V, R1, R2, Int]
 
   // --- definitions unique to this "versioned" variant
 
@@ -122,76 +130,76 @@ trait DataIn1DVersionedBase[V, R: DiscreteValue](
 
   // -- implement methods from DimensionalVersionedBase
   override protected def underlyingDomain(
-    domain: DiscreteDomain1D[R]
-  )(using versionSelection: VersionSelection): DiscreteDomain2D[R, Int] =
+    domain: DiscreteDomain2D[R1, R2]
+  )(using versionSelection: VersionSelection): DiscreteDomain3D[R1, R2, Int] =
     domain x versionSelection.boundary
 
   override protected def underlyingIntervalFrom(
-    interval: DiscreteInterval1D[R]
-  )(using versionSelection: VersionSelection): DiscreteInterval2D[R, Int] =
+    interval: DiscreteInterval2D[R1, R2]
+  )(using versionSelection: VersionSelection): DiscreteInterval3D[R1, R2, Int] =
     interval x versionSelection.intervalFrom
 
   override protected def underlyingIntervalAt(
-    interval: DiscreteInterval1D[R]
-  )(using versionSelection: VersionSelection): DiscreteInterval2D[R, Int] =
+    interval: DiscreteInterval2D[R1, R2]
+  )(using versionSelection: VersionSelection): DiscreteInterval3D[R1, R2, Int] =
     interval x versionSelection.intervalAt
 
   override protected def underlyingIntervalWithVersion(
-    interval: DiscreteInterval1D[R],
+    interval: DiscreteInterval2D[R1, R2],
     version: DiscreteInterval1D[Int]
-  ): DiscreteInterval2D[R, Int] = interval x version
+  ): DiscreteInterval3D[R1, R2, Int] = interval x version
 
   override protected def underlyingValidData(
-    data: ValidData1D[V, R]
-  )(using VersionSelection): ValidData2D[V, R, Int] =
+    data: ValidData2D[V, R1, R2]
+  )(using VersionSelection): ValidData3D[V, R1, R2, Int] =
     underlyingIntervalFrom(data.interval) -> data.value
 
   override protected def publicValidData(
-    data: ValidData2D[V, R, Int]
-  ): ValidData1D[V, R] =
-    data.interval.horizontal -> data.value
+    data: ValidData3D[V, R1, R2, Int]
+  ): ValidData2D[V, R1, R2] =
+    (data.interval.horizontal x data.interval.vertical) -> data.value
 
   override protected def versionInterval(
-    data: ValidData2D[V, R, Int]
-  ): DiscreteInterval1D[Int] = data.interval.vertical
+    data: ValidData3D[V, R1, R2, Int]
+  ): DiscreteInterval1D[Int] = data.interval.depth
 
   override protected def withVersionUpdate(
-    data: ValidData2D[V, R, Int],
+    data: ValidData3D[V, R1, R2, Int],
     update: DiscreteInterval1D[Int] => DiscreteInterval1D[Int]
-  ): ValidData2D[V, R, Int] =
-    data.copy(interval = data.interval.withVertical(update(versionInterval(data))))
+  ): ValidData3D[V, R1, R2, Int] =
+    data.copy(interval = data.interval.withDepth(update(versionInterval(data))))
 
-  // Underlying 2D representation of versioned 1D data (mutable)
-  override protected val underlying: UnderlyingMutable = mutable.DataIn2D(initialData)
+  // Underlying 3D representation of versioned 2D data (mutable)
+  override protected val underlying: UnderlyingMutable = mutable.DataIn3D(initialData)
 
   override def getCurrentVersion: VersionDomain = currentVersion
 
-  override def getSelectedDataMutable(using versionSelection: VersionSelection): mutable.DataIn1D[V, R] =
-    underlying.getByVerticalIndex(versionSelection.boundary)
+  override def getSelectedDataMutable(using versionSelection: VersionSelection): mutable.DataIn2D[V, R1, R2] =
+    underlying.getByDepthIndex(versionSelection.boundary)
 
-  override def getSelectedData(using VersionSelection): immutable.DataIn1D[V, R] =
+  override def getSelectedData(using VersionSelection): immutable.DataIn2D[V, R1, R2] =
     getSelectedDataMutable.toImmutable.compressAll()
 
   // --- API methods similar to those in DataIn*D (can't use common super because of types)
 
   /**
-    * Gets all the data in all versions as a 2D structure (immutable)
+    * Gets all the data in all versions as a 3D structure (immutable)
     *
     * @return
-    *   new 2D structure.
+    *   new 3D structure.
     */
-  def getDataIn2D: UnderlyingImmutable = underlying.toImmutable
+  def getDataIn3D: UnderlyingImmutable = underlying.toImmutable
 
   /**
-    * Constructs a sequence of 2D diff actions that, if applied to the old structure, would synchronize it with this
-    * one. Does not use a version selection context -- operates on full underlying 2D structure.
+    * Constructs a sequence of 3D diff actions that, if applied to the old structure, would synchronize it with this
+    * one. Does not use a version selection context -- operates on full underlying 3D structure.
     *
     * @param old
     *   the old structure from which we are comparing.
     * @return
     *   a sequence of diff actions that would synchronize it with this.
     */
-  def diffActionsFrom(old: DataIn1DVersionedBase[V, R]): Iterable[DiffAction2D[V, R, Int]] =
+  def diffActionsFrom(old: DataIn2DVersionedBase[V, R1, R2]): Iterable[DiffAction3D[V, R1, R2, Int]] =
     underlying.diffActionsFrom(old.underlying)
 
   /**
@@ -206,7 +214,7 @@ trait DataIn1DVersionedBase[V, R: DiscreteValue](
     * @return
     *   a new structure with this and that value type as a pair.
     */
-  def zip[B](that: DataIn1DVersionedBase[B, R]): DataIn1DVersionedBase[(V, B), R]
+  def zip[B](that: DataIn2DVersionedBase[B, R1, R2]): DataIn2DVersionedBase[(V, B), R1, R2]
 
   /**
     * Returns a new structure formed from this structure and another structure by combining the corresponding elements
@@ -225,4 +233,4 @@ trait DataIn1DVersionedBase[V, R: DiscreteValue](
     * @return
     *   a new structure with this and that value type as a pair.
     */
-  def zipAll[B](that: DataIn1DVersionedBase[B, R], thisElem: V, thatElem: B): DataIn1DVersionedBase[(V, B), R]
+  def zipAll[B](that: DataIn2DVersionedBase[B, R1, R2], thisElem: V, thatElem: B): DataIn2DVersionedBase[(V, B), R1, R2]

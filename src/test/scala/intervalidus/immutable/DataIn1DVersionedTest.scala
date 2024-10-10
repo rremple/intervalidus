@@ -9,12 +9,12 @@ import scala.language.implicitConversions
 
 class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersionedBaseBehaviors:
 
-  import DataIn1DVersionedBase.VersionSelection
+  import DimensionalVersionedBase.VersionSelection
   import DiscreteInterval1D.*
 
   // increment current version with each data element
   def newDataIn1DVersioned(allData: Iterable[ValidData1D[String, Int]]): DataIn1DVersioned[String, Int] =
-    allData.foldLeft(DataIn1DVersioned.from[String, Int]()): (dataIn1DVersioned, validData) =>
+    allData.foldLeft(DataIn1DVersioned[String, Int]()): (dataIn1DVersioned, validData) =>
       dataIn1DVersioned
         .set(validData)
         .incrementCurrentVersion()
@@ -205,13 +205,13 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
       .compress("Hello")
     val expectedData1 =
       testData("Hello" -> intervalTo(4), "World" -> intervalAt(5), "World" -> intervalAt(6), "Hello" -> intervalFrom(7))
-    fixture1.getDataIn1DMutable.getAll.toList shouldBe expectedData1
+    fixture1.getSelectedDataMutable.getAll.toList shouldBe expectedData1
 
     val fixture2 = DataIn1DVersioned
       .from(allData)
       .compressAll()
     val expectedData2 = testData("Hello" -> intervalTo(4), "World" -> interval(5, 6), "Hello" -> intervalFrom(7))
-    fixture2.getDataIn1DMutable.getAll.toList shouldBe expectedData2
+    fixture2.getSelectedDataMutable.getAll.toList shouldBe expectedData2
 
   test("Immutable: Updating data in intervals"):
     val one: DataIn1DVersioned[String, Int] = DataIn1DVersioned
@@ -267,7 +267,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
         |""".stripMargin.replaceAll("\r", "")
 
     // println(fixture1.getDataIn1D(using VersionSelection(2)).toString)
-    fixture1.getDataIn1D(using VersionSelection(2)).toString shouldBe
+    fixture1.getSelectedData(using VersionSelection(2)).toString shouldBe
       """|| -∞ .. 4 | 5 .. 6  | 7 .. +∞ |
          || Hello   |
          |          | World   |
@@ -275,7 +275,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
          |""".stripMargin.replaceAll("\r", "")
 
     // println(fixture1.getDataIn1D.toString)
-    fixture1.getDataIn1D.toString shouldBe
+    fixture1.getSelectedData.toString shouldBe
       """|| -∞ .. 4 | 5 .. 7  | 8 .. +∞ |
          || Hello   |
          |          | World!  |

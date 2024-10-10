@@ -9,12 +9,12 @@ import scala.language.implicitConversions
 
 class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersionedBaseBehaviors:
 
-  import DataIn1DVersionedBase.VersionSelection
+  import DimensionalVersionedBase.VersionSelection
   import DiscreteInterval1D.*
 
   // increment current version with each data element
   def newDataIn1DVersioned(allData: Iterable[ValidData1D[String, Int]]): DataIn1DVersioned[String, Int] =
-    val dataIn1DVersioned = DataIn1DVersioned.from[String, Int]()
+    val dataIn1DVersioned = DataIn1DVersioned[String, Int]()
     allData.foreach: validData =>
       dataIn1DVersioned.set(validData)
       dataIn1DVersioned.incrementCurrentVersion()
@@ -201,12 +201,12 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     fixture1.compress("Hello")
     val expectedData1 =
       testData("Hello" -> intervalTo(4), "World" -> intervalAt(5), "World" -> intervalAt(6), "Hello" -> intervalFrom(7))
-    fixture1.getDataIn1DMutable.getAll.toList shouldBe expectedData1
+    fixture1.getSelectedDataMutable.getAll.toList shouldBe expectedData1
 
     val fixture2 = DataIn1DVersioned.from(allData)
     fixture2.compressAll()
     val expectedData2 = testData("Hello" -> intervalTo(4), "World" -> interval(5, 6), "Hello" -> intervalFrom(7))
-    fixture2.getDataIn1DMutable.getAll.toList shouldBe expectedData2
+    fixture2.getSelectedDataMutable.getAll.toList shouldBe expectedData2
 
   test("Mutable: Updating data in intervals"):
     val one: DataIn1DVersioned[String, Int] = DataIn1DVersioned.of("value")
@@ -240,7 +240,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
 
     val fixtureToReset = fixture.copy
     fixtureToReset.remove(intervalTo(4))(using VersionSelection(1))
-    // needed? fixture.recompressAll()
+    // needed? fixtureToReset.recompressAll()
     // println(fixtureToReset.toString)
     fixtureToReset.toString shouldBe
       """current version = 4
@@ -261,16 +261,16 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
         |                                | Hello [2..+∞) |
         |""".stripMargin.replaceAll("\r", "")
 
-    // println(fixture.getDataIn1D(VersionSelection(2)).toString)
-    fixture.getDataIn1D(using VersionSelection(2)).toString shouldBe
+    // println(fixture.getSelectedData(using VersionSelection(2)).toString)
+    fixture.getSelectedData(using VersionSelection(2)).toString shouldBe
       """|| -∞ .. 4 | 5 .. 6  | 7 .. +∞ |
          || Hello   |
          |          | World   |
          |                    | Hello   |
          |""".stripMargin.replaceAll("\r", "")
 
-    // println(fixture.getDataIn1D.toString)
-    fixture.getDataIn1D.toString shouldBe
+    // println(fixture.getSelectedData.toString)
+    fixture.getSelectedData.toString shouldBe
       """|| -∞ .. 4 | 5 .. 7  | 8 .. +∞ |
          || Hello   |
          |          | World!  |
@@ -312,7 +312,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
         |                 | World! [0..+∞) |
         |""".stripMargin.replaceAll("\r", "")
 
-  test("Immutable: Approvals"):
+  test("Mutable: Approvals"):
     // increment current version with each data element
     def timeboundVersionedString(
       allData: Iterable[ValidData1D[String, LocalDate]]
