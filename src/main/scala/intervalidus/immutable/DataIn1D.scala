@@ -6,9 +6,7 @@ import intervalidus.mutable.DataIn1D as DataIn1DMutable
 
 import scala.collection.mutable
 
-/**
-  * @inheritdoc
-  */
+/** @inheritdoc */
 object DataIn1D extends DataIn1DBaseObject:
   override def of[V, R: DiscreteValue](
     data: ValidData1D[V, R]
@@ -52,6 +50,8 @@ class DataIn1D[V, R: DiscreteValue] private (
     val result = copy
     f(result)
     result
+
+  override def recompressAll(): DataIn1D[V, R] = this // nothing to do in 1D
 
   /**
     * Applies a sequence of diff actions to this structure.

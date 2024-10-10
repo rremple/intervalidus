@@ -6,9 +6,7 @@ import intervalidus.immutable.DataIn1D as DataIn1DImmutable
 
 import scala.collection.mutable
 
-/**
-  * @inheritdoc
-  */
+/** @inheritdoc */
 object DataIn1D extends DataIn1DBaseObject:
   override def of[V, R: DiscreteValue](
     data: ValidData1D[V, R]
@@ -67,6 +65,10 @@ class DataIn1D[V, R: DiscreteValue] private (
     *   the structure with which this will be synchronized.
     */
   def syncWith(that: DataIn1D[V, R]): Unit = applyDiffActions(that.diffActionsFrom(this))
+
+  // ---------- Implement methods from MutableBase ----------
+
+  override def recompressAll(): Unit = () // nothing to do in 1D
 
   // ---------- Implement methods from DimensionalBase ----------
 

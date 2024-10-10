@@ -3,9 +3,6 @@ package intervalidus
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
-import java.time.LocalDate
-import scala.math.Ordering.Implicits.infixOrderingOps
-
 class ExperimentalTest extends AnyFunSuite with Matchers:
 
   test("Experimental functions"):
@@ -15,7 +12,7 @@ class ExperimentalTest extends AnyFunSuite with Matchers:
     fixtureAll.parallelCheck("anyFeature")("one", "one")() shouldBe "one"
     fixtureAll.parallelCheck("anyFeature")("one", "not one")((_, _) => "failed") shouldBe "failed"
     assertThrows[Exception]:
-      val bad = fixtureAll.parallelCheck("anyFeature")("one", "not one")()
+      val _ = fixtureAll.parallelCheck("anyFeature")("one", "not one")()
 
     val fixtureAllExcept = Experimental.allExcept("thatFeature")
     assert(fixtureAllExcept.enabled("thisFeature"))

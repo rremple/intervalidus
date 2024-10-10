@@ -38,18 +38,18 @@ trait DiscreteValue[T] extends Ordering[T]:
   /**
     * A special totally-ordered hash of a discrete value used for mapping intervals to B/Quad/Oc box trees. If x1 < x2
     * (i.e., there are some number of successorOf functions that can be applied to x1 to reach x2), then
-    * doubleHashOf(x1) <= doubleHashOf(x2).
+    * doubleHashOf(x1) ≤ doubleHashOf(x2).
     */
   def orderedHashOf(x: T): Double
 
   extension (lhs: T)
     /**
-      * Successor of this discrete value, when defined: only maxValue.successor is not defined.
+      * Successor of this discrete value, when defined: only maxValue.successorValue is not defined.
       */
     def successorValue: Option[T] = successorOf(lhs)
 
     /**
-      * Predecessor of this discrete value, when defined: only minValue.predecessor is not defined.
+      * Predecessor of this discrete value, when defined: only minValue.predecessorValue is not defined.
       */
     def predecessorValue: Option[T] = predecessorOf(lhs)
 

@@ -4,7 +4,7 @@ import intervalidus.DimensionalBase
 import intervalidus.DimensionalBase.{DataLike, DomainLike, IntervalLike}
 
 /**
-  * Base for all immutable dimensional data, both 1D and 2D.
+  * Base for all immutable dimensional data.
   *
   * @tparam V
   *   the value type for valid data.
@@ -30,6 +30,17 @@ trait ImmutableBase[
   // ---------- To be implemented by inheritor ----------
 
   protected def copyAndModify(f: Self => Unit): Self
+
+  /**
+    * Unlike in 1D, there is no unique compression in 2D and 3D. For example {[1..5], [1..2]} + {[1..2], [3..4]} could
+    * also be represented physically as {[1..2], [1..4]} + {[3..5], [1..2]}.
+    *
+    * This method decompresses data so there is a unique arrangement of "atomic" intervals. In the above example, that
+    * would be the following "atomic" intervals: {[1..2], [1..2]} + {[3..5], [1..2]} + {[1..2], [3..4]}. Then it
+    * recompresses the data, which results in a unique physical representation. It may be useful when comparing two
+    * structures to see if they are logically equivalent even if, physically, they differ in how they are compressed.
+    */
+  def recompressAll(): Self
 
   // ---------- Implement methods from DimensionalBase ----------
 

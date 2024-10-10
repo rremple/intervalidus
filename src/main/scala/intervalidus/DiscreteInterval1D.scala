@@ -2,7 +2,7 @@ package intervalidus
 
 import intervalidus.DiscreteDomain1D.{Bottom, Point, Top}
 import intervalidus.DiscreteInterval1D.{interval, intervalFrom, intervalTo}
-import intervalidus.collection.{Box1D, Coordinate1D}
+import intervalidus.collection.Box1D
 
 import scala.math.Ordering.Implicits.infixOrderingOps
 

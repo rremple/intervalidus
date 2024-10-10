@@ -6,9 +6,7 @@ import intervalidus.mutable.DataIn2D as DataIn2DMutable
 
 import scala.collection.mutable
 
-/**
-  * @inheritdoc
-  */
+/** @inheritdoc */
 object DataIn2D extends DataIn2DBaseObject:
   override def of[V, R1: DiscreteValue, R2: DiscreteValue](
     data: ValidData2D[V, R1, R2]
@@ -66,6 +64,8 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue] private (
     f(result)
     result
 
+  override def recompressAll(): DataIn2D[V, R1, R2] = copyAndModify(_.recompressInPlace())
+
   /**
     * Applies a sequence of diff actions to this structure.
     *
@@ -85,17 +85,6 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue] private (
     *   the structure with which this will be synchronized.
     */
   def syncWith(that: DataIn2D[V, R1, R2]): DataIn2D[V, R1, R2] = applyDiffActions(that.diffActionsFrom(this))
-
-  /**
-    * Unlike in 1D, there is no unique compression in 2D. For example {[1..5], [1..2]} + {[1..2], [3..4]} could also be
-    * represented physically as {[1..2], [1..4]} + {[3..5], [1..2]}.
-    *
-    * This method decompresses data so there is a unique arrangement of "atomic" intervals. In the above example, that
-    * would be the following "atomic" intervals: {[1..2], [1..2]} + {[3..5], [1..2]} + {[1..2], [3..4]}. Then it
-    * recompresses the data, which results in a unique physical representation. It may be useful when comparing two
-    * structures to see if they are logically equivalent even if, physically, they differ in how they are compressed.
-    */
-  def recompressAll(): DataIn2D[V, R1, R2] = copyAndModify(_.recompressInPlace())
 
   /**
     * Applies a function to all valid data. Both the valid data value and interval types can be changed in the mapping.

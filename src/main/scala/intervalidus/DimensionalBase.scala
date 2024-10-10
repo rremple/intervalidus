@@ -1,7 +1,7 @@
 package intervalidus
 
 import intervalidus.collection.*
-import intervalidus.collection.mutable.{MultiDictSorted, MutableBoxTreeLike}
+import intervalidus.collection.mutable.MultiDictSorted
 
 import scala.math.Ordering.Implicits.infixOrderingOps
 

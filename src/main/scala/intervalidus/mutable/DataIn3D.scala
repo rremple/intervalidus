@@ -2,13 +2,11 @@ package intervalidus.mutable
 
 import intervalidus.*
 import intervalidus.collection.mutable.{BoxOctree, MultiDictSorted}
-import intervalidus.immutable.{DataIn1D, DataIn3D as DataIn3DImmutable}
+import intervalidus.immutable.DataIn3D as DataIn3DImmutable
 
 import scala.collection.mutable
 
-/**
-  * @inheritdoc
-  */
+/** @inheritdoc */
 object DataIn3D extends DataIn3DBaseObject:
   override def of[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](
     data: ValidData3D[V, R1, R2, R3]
@@ -81,16 +79,9 @@ class DataIn3D[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue] priva
     */
   def syncWith(that: DataIn3D[V, R1, R2, R3]): Unit = applyDiffActions(that.diffActionsFrom(this))
 
-  /**
-    * Unlike in 1D, there is no unique compression in 2D and 3D. For example {[1..5], [1..2]} + {[1..2], [3..4]} could
-    * also be represented physically as {[1..2], [1..4]} + {[3..5], [1..2]}.
-    *
-    * This method decompresses data so there is a unique arrangement of "atomic" intervals. In the above example, that
-    * would be the following "atomic" intervals: {[1..2], [1..2]} + {[3..5], [1..2]} + {[1..2], [3..4]}. Then it
-    * recompresses the data, which results in a unique physical representation. It may be useful when comparing two
-    * structures to see if they are logically equivalent even if, physically, they differ in how they are compressed.
-    */
-  def recompressAll(): Unit = recompressInPlace()
+  // ---------- Implement methods from MutableBase ----------
+
+  override def recompressAll(): Unit = recompressInPlace()
 
   // ---------- Implement methods from DimensionalBase ----------
 

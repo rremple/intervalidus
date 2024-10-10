@@ -1,9 +1,7 @@
 package intervalidus.collection.immutable
 import intervalidus.collection.*
 
-/**
-  * @inheritdoc
-  */
+/** @inheritdoc */
 object BoxOctree extends ImmutableBoxTreeObjectLike[Coordinate3D, Box3D]:
   type BoxedPayloadType[A] = BoxedPayload3D[A]
   type SelfType[A] = BoxOctree[A]

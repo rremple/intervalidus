@@ -33,7 +33,7 @@ trait DataIn2DBaseBehaviors:
 
       assertThrows[IllegalArgumentException]:
         // not valid as it overlaps in the second dimension on [10, +∞)
-        val badFixture = dataIn2DFrom(testData(("Hello", unbounded, interval(0, 10)), ("World", unbounded, unbounded)))
+        val _ = dataIn2DFrom(testData(("Hello", unbounded, interval(0, 10)), ("World", unbounded, unbounded)))
     }
 
     val empty = dataIn2DFrom(List.empty)
@@ -52,7 +52,7 @@ trait DataIn2DBaseBehaviors:
     assert(!bounded.isDefinedAt(DiscreteDomain2D(-1, 0)))
     bounded(DiscreteDomain2D(0, 0)) shouldBe "Hello world"
     assertThrows[Exception]:
-      val bad = bounded(DiscreteDomain2D(-1, 0))
+      val _ = bounded(DiscreteDomain2D(-1, 0))
 
     val fixture1 = dataIn2DFrom(
       Seq((intervalFrom(dayZero) x intervalFrom(0)) -> "Hello world")
@@ -64,7 +64,7 @@ trait DataIn2DBaseBehaviors:
     fixture1.flip(DiscreteDomain2D(0, dayZero)) shouldBe "Hello world"
     assert(!fixture1.isDefinedAt(DiscreteDomain2D(day(-1), 0)))
     assertThrows[Exception]:
-      val missingData = fixture1(DiscreteDomain2D(day(-1), 0))
+      val _ = fixture1(DiscreteDomain2D(day(-1), 0))
 
     val now = LocalDate.now // since all the dates are unbounded, this value shouldn't matter
 

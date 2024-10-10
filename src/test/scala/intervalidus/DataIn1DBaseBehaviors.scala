@@ -30,7 +30,7 @@ trait DataIn1DBaseBehaviors:
 
       assertThrows[IllegalArgumentException]:
         // not valid as it overlaps on [10, +∞)
-        val badFixture = dataIn1DFrom(testData("Hello" -> interval(0, 10), "World" -> unbounded))
+        val _ = dataIn1DFrom(testData("Hello" -> interval(0, 10), "World" -> unbounded))
     }
 
     val empty: S = dataIn1DFrom(List.empty)
@@ -55,7 +55,7 @@ trait DataIn1DBaseBehaviors:
     assert(!bounded.isDefinedAt(-1))
     bounded(0) shouldBe "Hello world"
     assertThrows[Exception]:
-      val bad = bounded(-1)
+      val _ = bounded(-1)
 
     val fixture1: S = dataIn1DFrom(Seq(intervalFrom(0) -> "Hello world"))
     fixture1.getOption shouldBe None
@@ -63,7 +63,7 @@ trait DataIn1DBaseBehaviors:
     fixture1(0) shouldBe "Hello world"
     assert(!fixture1.isDefinedAt(-1))
     assertThrows[Exception]:
-      val missingData = fixture1(-1)
+      val _ = fixture1(-1)
 
     val allData2 = testData("Hello" -> interval(0, 10), "World" -> intervalFrom(11))
     val fixture2 = dataIn1DFrom(allData2)

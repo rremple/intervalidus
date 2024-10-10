@@ -1,6 +1,6 @@
 package intervalidus
 
-import intervalidus.collection.{Coordinate3D, CoordinateLike}
+import intervalidus.collection.Coordinate3D
 
 /**
   * A three-dimensional discrete domain, like cartesian coordinates. Used in conjunction with [[DiscreteInterval3D]].

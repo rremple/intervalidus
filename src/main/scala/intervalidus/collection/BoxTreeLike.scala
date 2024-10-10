@@ -10,10 +10,10 @@ package intervalidus.collection
   * performance of data structures in one-, two-, and three-dimensional discrete domain space.
   *
   * In particular, it makes querying faster for box intersections. The cost is that duplicates can be returned (since
-  * boxes can be split). Benchmarks have shown a 7x-11x improvement in throughput of random `DataIn2D.set` operations
-  * (depending on number and size of the intervals used), so clearly the speed benefit outweighs the cost of
-  * deduplicating results (at least in two dimensions). The mutable version was also faster than the immutable version,
-  * but only slightly (less than 5%).
+  * boxes can be split). Benchmarks have shown 14x-70x improvement in throughput of random `DataIn2D.set` and 12x-142x
+  * improvement in `DataIn2D.intersects` operations (depending on number and size of the intervals used), so clearly the
+  * speed benefit outweighs the cost of deduplicating results (at least in two dimensions). The mutable version was also
+  * faster than the immutable version, but only slightly (less than 5%).
   *
   * @tparam A
   *   payload type

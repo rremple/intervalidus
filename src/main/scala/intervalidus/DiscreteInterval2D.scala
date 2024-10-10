@@ -1,6 +1,6 @@
 package intervalidus
 
-import intervalidus.collection.{Box2D, Coordinate2D}
+import intervalidus.collection.Box2D
 
 import scala.math.Ordering.Implicits.infixOrderingOps
 

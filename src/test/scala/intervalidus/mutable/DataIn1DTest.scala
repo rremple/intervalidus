@@ -67,7 +67,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors:
     )
     fixture.getAll.toList shouldBe expectedData2
 
-    fixture.toString shouldBe
+    val expectedString =
       """|| 0 .. 4   | 5 .. 15  | 16 .. 19 | 20 .. 25 | 26 .. +∞ |
          || Hello    |
          |           | to       |
@@ -75,6 +75,10 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors:
          |                                 | !        |
          |                                            | World    |
          |""".stripMargin.replaceAll("\r", "")
+
+    fixture.toString shouldBe expectedString
+    fixture.recompressAll() // does nothing in 1D
+    fixture.toString shouldBe expectedString
 
     val copyFixture2 = fixture.copy
 

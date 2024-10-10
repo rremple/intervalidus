@@ -57,9 +57,7 @@ trait BoxLike[C <: CoordinateLike[C], Self <: BoxLike[C, Self]]:
 
   override def toString: String = s"[$minPoint..$maxPoint]"
 
-/**
-  * @inheritdoc
-  */
+/** @inheritdoc */
 case class Box1D(minPoint: Coordinate1D, maxPoint: Coordinate1D) extends BoxLike[Coordinate1D, Box1D]:
   override def contains(other: Box1D): Boolean =
     other.minPoint.x >= minPoint.x && other.maxPoint.x <= maxPoint.x
@@ -92,9 +90,7 @@ case class Box1D(minPoint: Coordinate1D, maxPoint: Coordinate1D) extends BoxLike
     */
   infix def ->[A](value: A): BoxedPayload1D[A] = BoxedPayload1D(this, value)
 
-/**
-  * @inheritdoc
-  */
+/** @inheritdoc */
 case class Box2D(minPoint: Coordinate2D, maxPoint: Coordinate2D) extends BoxLike[Coordinate2D, Box2D]:
   override def contains(other: Box2D): Boolean =
     other.minPoint.x >= minPoint.x && other.maxPoint.x <= maxPoint.x &&
@@ -139,9 +135,7 @@ case class Box2D(minPoint: Coordinate2D, maxPoint: Coordinate2D) extends BoxLike
     */
   infix def ->[A](payload: A): BoxedPayload2D[A] = BoxedPayload2D(this, payload)
 
-/**
-  * @inheritdoc
-  */
+/** @inheritdoc */
 case class Box3D(minPoint: Coordinate3D, maxPoint: Coordinate3D) extends BoxLike[Coordinate3D, Box3D]:
   override def contains(other: Box3D): Boolean =
     other.minPoint.x >= minPoint.x && other.maxPoint.x <= maxPoint.x &&

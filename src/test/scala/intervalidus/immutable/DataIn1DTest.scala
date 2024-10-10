@@ -87,7 +87,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors:
     )
     f2.getAll.toList shouldBe expectedData2
 
-    f2.toString shouldBe
+    val expectedString =
       """|| 0 .. 4   | 5 .. 15  | 16 .. 19 | 20 .. 25 | 26 .. +∞ |
          || Hello    |
          |           | to       |
@@ -95,6 +95,9 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors:
          |                                 | !        |
          |                                            | World    |
          |""".stripMargin.replaceAll("\r", "")
+
+    f2.toString shouldBe expectedString
+    f2.recompressAll().toString shouldBe expectedString // does nothing in 1D
 
     f2.setIfNoConflict(intervalTo(4) -> "Hey") shouldBe None
     val f3 = f2

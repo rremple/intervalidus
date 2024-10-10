@@ -14,10 +14,10 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
 
   test("Int interval validity"):
     assertThrows[IllegalArgumentException]:
-      val endBeforeStart = interval(2, 1)
+      val _ = interval(2, 1) // end before start
 
     assertThrows[IllegalArgumentException]:
-      val endBeforeStart = DiscreteInterval1D[Int](Top, Bottom)
+      val _ = DiscreteInterval1D[Int](Top, Bottom) // end before start
 
   test("Int interval adjacency, etc."):
     assert(interval(1, 2) isLeftAdjacentTo interval(3, 4))

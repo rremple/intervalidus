@@ -2,9 +2,7 @@ package intervalidus.collection.mutable
 
 import intervalidus.collection.*
 
-/**
-  * @inheritdoc
-  */
+/** @inheritdoc */
 object BoxBtree extends MutableBoxTreeObjectLike[Coordinate1D, Box1D]:
   type BoxedPayloadType[A] = BoxedPayload1D[A]
   type SelfType[A] = BoxBtree[A]
