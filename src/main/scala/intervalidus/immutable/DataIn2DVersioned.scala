@@ -212,8 +212,10 @@ class DataIn2DVersioned[V, R1: DiscreteValue, R2: DiscreteValue](
     *   the function to apply to each valid data element.
     * @tparam B
     *   the valid data value type of the returned structure.
-    * @tparam S
-    *   the valid data interval type of the returned structure.
+    * @tparam S1
+    *   the valid data horizontal interval type of the returned structure.
+    * @tparam S2
+    *   the valid data vertical interval type of the returned structure.
     * @return
     *   a new structure with the same current version resulting from applying the provided function f to each element of
     *   this structure.
@@ -257,8 +259,10 @@ class DataIn2DVersioned[V, R1: DiscreteValue, R2: DiscreteValue](
     *   the function to apply to each valid data element which results in a new structure.
     * @tparam B
     *   the valid data value type of the returned structure.
-    * @tparam S
-    *   the valid data interval type of the returned structure.
+    * @tparam S1
+    *   the valid data horizontal interval type of the returned structure.
+    * @tparam S2
+    *   the valid data vertical interval type of the returned structure.
     * @return
     *   a new structure with the same current version resulting from applying the provided function f to each element of
     *   this structure and concatenating the results.

@@ -92,7 +92,7 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
     withVertical(update(this.vertical))
 
   /**
-    * Returns true only if there this interval is below that interval, there is no vertical gap between them, and their
+    * Returns true only if this interval is below that interval, there is no vertical gap between them, and their
     * horizontal intervals are equivalent.
     *
     * @param that
@@ -102,8 +102,8 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
     (this.vertical.end.successor equiv that.vertical.start) && (this.horizontal equiv that.horizontal)
 
   /**
-    * Returns true only if there this interval is to the left of that interval, and there is no gap between them, and
-    * their vertical intervals are equivalent.
+    * Returns true only if this interval is to the left of that interval, and there is no gap between them, and their
+    * vertical intervals are equivalent.
     *
     * @param that
     *   the interval to test for adjacency.
@@ -112,7 +112,7 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
     (this.horizontal.end.successor equiv that.horizontal.start) && (this.vertical equiv that.vertical)
 
   /**
-    * Returns true only if there this interval is above that interval, there is no vertical gap between them, and their
+    * Returns true only if this interval is above that interval, there is no vertical gap between them, and their
     * horizontal intervals are equivalent.
     *
     * @param that
@@ -121,8 +121,8 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
   infix def isUpperAdjacentTo(that: DiscreteInterval2D[T1, T2]): Boolean = that isLowerAdjacentTo this
 
   /**
-    * Returns true only if there this interval is to the right of that interval, and there is no gap between them, and
-    * their vertical intervals are equivalent.
+    * Returns true only if this interval is to the right of that interval, and there is no gap between them, and their
+    * vertical intervals are equivalent.
     *
     * @param that
     *   the interval to test for adjacency.
@@ -257,7 +257,7 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
 
   /**
     * If there are intervals after both the horizontal and vertical components, returns the interval after this one in
-    * both dimensions. Otherwise returns none. Does not include adjacent intervals above and to the right.
+    * both dimensions, otherwise returns None. Does not include adjacent intervals above and to the right.
     */
   def after: Option[DiscreteInterval2D[T1, T2]] = (horizontal.after, vertical.after) match
     case (Some(horizontalAfter), Some(verticalAfter)) => Some(DiscreteInterval2D(horizontalAfter, verticalAfter))
@@ -265,7 +265,7 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
 
   /**
     * If there are intervals before both the horizontal and vertical components, returns the interval before this one in
-    * both dimensions. Otherwise returns none. Does not include adjacent intervals below and to the left.
+    * both dimensions, otherwise returns None. Does not include adjacent intervals below and to the left.
     */
   def before: Option[DiscreteInterval2D[T1, T2]] = (horizontal.before, vertical.before) match
     case (Some(horizontalBefore), Some(verticalBefore)) => Some(DiscreteInterval2D(horizontalBefore, verticalBefore))

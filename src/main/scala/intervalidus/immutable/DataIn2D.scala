@@ -29,9 +29,9 @@ object DataIn2D extends DataIn2DBaseObject:
   *
   * We can capture the dependency between various values and related two-dimensional intervals cohesively in this
   * structure rather than in separate data structures using distributed (and potentially inconsistent) logic. This is
-  * especially important for managing mutation, which can be a bit complex in two dimensions. Note that visualizing two
-  * dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there is a
-  * simple Visualize tool provided (in the test package... though maybe this should be its own separate subproject).
+  * especially important for managing mutation, which can be a bit complex in two dimensions. Note that visualizing
+  * two-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there is
+  * a simple Visualize tool provided (in the test package... though maybe this should be its own separate subproject).
   *
   * @tparam V
   *   the type of the value managed as data.

@@ -442,7 +442,7 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
     * @inheritdoc
     *
     * More specifically, this gets even more complicated because there are three dimensions. Exclusions in one dimension
-    * can have three remainders: none (simple), single (partial), and split. But three dimensional exclusions have these
+    * can have three remainders: none (simple), single (partial), and split. But three-dimensional exclusions have these
     * same three remainders in each dimension, so there are a total of 3 x 3 x 9 = 27 remainder cases. But there are
     * symmetric partners for many of them, so actually there are only 5!/(2! x 3!) = 10 unique cases:
     *   1. simple = none + none + none (1 case)

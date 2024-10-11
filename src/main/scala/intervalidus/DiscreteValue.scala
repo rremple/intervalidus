@@ -87,9 +87,9 @@ object DiscreteValue:
       * leaves and 13 branches that are kind of worthless and just slow things down. Attempting to resolve this here by
       * using a logistic function to hash integers to doubles, which would increase resolution for numbers with smaller
       * magnitudes and decrease resolution for the larger. (See https://en.wikipedia.org/wiki/Sigmoid_function). This
-      * one places all Ints into a double range -1 to 1 following the logistic function. It is "normalized" in the sense
-      * that negatives map to negatives, positives to positives, and zero to zero. The choice of a small k is to keep
-      * the curve steep enough that integers with smaller magnitudes will be well represented in the result where
+      * one places all integers into a double range -1 to 1 following the logistic function. It is "normalized" in the
+      * sense that negatives map to negatives, positives to positives, and zero to zero. The choice of a small k is to
+      * keep the curve steep enough that integers with smaller magnitudes will be well represented in the result where
       * integers with very large magnitudes will not be.
       *   - All integers greater than about 3.6 million will result in 1.0, where some integers greater than about 2.4
       *     million will increasingly hash to the same value. Similarly, those less than -3.8 will result in -1.0 (not

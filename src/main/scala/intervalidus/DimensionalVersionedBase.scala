@@ -79,7 +79,7 @@ trait DimensionalVersionedBase[
 
   // ---------- To be implemented by inheritor ----------
 
-  type UnversionedSelf <: DimensionalBase[V, D, I, ValidData, UnversionedSelf]
+  type PublicSelf <: DimensionalBase[V, D, I, ValidData, PublicSelf]
   type UnderlyingMutable <: mutable.MutableBase[V, D2, I2, ValidData2, UnderlyingMutable] with DimensionalBase[
     V,
     D2,
@@ -157,7 +157,7 @@ trait DimensionalVersionedBase[
     */
   def getSelectedDataMutable(using
     versionSelection: VersionSelection
-  ): UnversionedSelf with mutable.MutableBase[V, D, I, ValidData, _]
+  ): PublicSelf with mutable.MutableBase[V, D, I, ValidData, _]
 
   /**
     * Based on the given version selection context, gets all the data (compressed, immutable).
@@ -169,7 +169,7 @@ trait DimensionalVersionedBase[
     */
   def getSelectedData(using
     versionSelection: VersionSelection
-  ): UnversionedSelf with immutable.ImmutableBase[V, D, I, ValidData, _]
+  ): PublicSelf with immutable.ImmutableBase[V, D, I, ValidData, _]
 
   // ---------- Implement methods not similar to those in DimensionalBase ----------
 

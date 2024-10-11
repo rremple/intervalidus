@@ -136,7 +136,7 @@ case class DiscreteInterval1D[T: DiscreteValue](
   def toTop: DiscreteInterval1D[T] = endingWith(Top)
 
   /**
-    * Returns true only if there this interval is to the left of that interval, and there is no gap between them.
+    * Returns true only if this interval is to the left of that interval, and there is no gap between them.
     *
     * @param that
     *   the interval to test for adjacency.
@@ -144,7 +144,7 @@ case class DiscreteInterval1D[T: DiscreteValue](
   infix def isLeftAdjacentTo(that: DiscreteInterval1D[T]): Boolean = this.end.successor equiv that.start
 
   /**
-    * Returns true only if there this interval is to the right of that interval, and there is no gap between them.
+    * Returns true only if this interval is to the right of that interval, and there is no gap between them.
     *
     * @param that
     *   the interval to test for adjacency.
@@ -203,7 +203,7 @@ case class DiscreteInterval1D[T: DiscreteValue](
     *   1. this interval is a subset of that one, so once it is excluded, nothing remains. Remainder.None is returned.
     *   1. that either lies outside of this or has a simple edge intersection (only contains the start or the end, but
     *      not both), and a single interval remains. Remainder.Single is returned.
-    *   1. that interval is a proper subset of this one, containing neither the start or the end of this, so this
+    *   1. that interval is a proper subset of this one, containing neither the start nor the end of this, so this
     *      interval gets split, and two intervals remain. Remainder.Split is returned
     *
     * @param that
@@ -296,16 +296,16 @@ case class DiscreteInterval1D[T: DiscreteValue](
     DiscreteInterval2D(this, that)
 
   /**
-    * If this interval has a bounded end, returns the interval starting after this one with an unbounded end. Otherwise
-    * returns none. Can be thought of as a right complement.
+    * If this interval has a bounded end, returns the interval starting after this one with an unbounded end, otherwise
+    * returns None. Can be thought of as a right complement.
     */
   def after: Option[DiscreteInterval1D[T]] = end.successor match
     case Top          => None
     case endSuccessor => Some(intervalFrom(endSuccessor))
 
   /**
-    * If this interval has a bounded start, returns the interval ending before this one with an unbounded start.
-    * Otherwise returns none. Can be thought of as a right complement.
+    * If this interval has a bounded start, returns the interval ending before this one with an unbounded start,
+    * otherwise returns None. Can be thought of as a right complement.
     */
   def before: Option[DiscreteInterval1D[T]] = start.predecessor match
     case Bottom           => None
@@ -346,7 +346,7 @@ case class DiscreteInterval1D[T: DiscreteValue](
     *   1. this interval is a subset of that one, so once it is excluded, nothing remains.
     *   1. that either lies outside of this or has a simple edge intersection (only contains the start or the end, but
     *      not both), and a single interval remains.
-    *   1. that interval is a proper subset of this one, containing neither the start or the end of this, so this
+    *   1. that interval is a proper subset of this one, containing neither the start nor the end of this, so this
     *      interval gets split, and two intervals remain.
     *
     * @param that

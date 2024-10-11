@@ -22,7 +22,7 @@ object DimensionalBase:
     def toCodeLikeString: String
 
   /**
-    * A interval over a contiguous set of ordered elements of a discrete domain.
+    * An interval over a contiguous set of ordered elements of a discrete domain.
     *
     * @tparam D
     *   the type of discrete domain used in the discrete interval (e.g., DiscreteDomain1D[Int]).
@@ -369,21 +369,20 @@ trait DimensionalBase[
   protected def removeValidDataByKey(key: D): Unit =
     removeValidData(dataByStartAsc(key))
 
-  protected def clearValidData(): Unit =
-    dataByStartAsc.clear()
-    dataByValue.clear()
-    experimental.control("noSearchTree")(
-      experimental = dataByStartDesc.clear(),
-      nonExperimental = dataInSearchTreeClear()
-    )
-
   protected def replaceValidData(data: Iterable[ValidData]): Unit =
-    clearValidData()
+    dataByStartAsc.clear()
     dataByStartAsc.addAll(data.map(d => d.key -> d))
+    dataByValue.clear()
     dataByValue.addAll(data.map(d => d.value -> d))
     experimental.control("noSearchTree")(
-      experimental = dataByStartDesc.addAll(dataByStartAsc),
-      nonExperimental = dataInSearchTreeAddAll(data)
+      experimental = {
+        dataByStartDesc.clear()
+        dataByStartDesc.addAll(dataByStartAsc)
+      },
+      nonExperimental = {
+        dataInSearchTreeClear()
+        dataInSearchTreeAddAll(data)
+      }
     )
 
   // from PartialFunction
@@ -395,7 +394,7 @@ trait DimensionalBase[
   )
 
   /**
-    * Returns a the value if a single, unbounded valid value. Otherwise throws an exception.
+    * Returns the value if a single, unbounded valid value, otherwise throws an exception.
     *
     * @throws NoSuchElementException
     *   if there isn't any valid data, or valid data are bounded (i.e., take on different values in different
@@ -407,7 +406,7 @@ trait DimensionalBase[
     case None                                         => throw new NoSuchElementException("empty get")
 
   /**
-    * Returns a Some value if a single, unbounded valid value. Otherwise returns None.
+    * Returns Some value if a single, unbounded valid value, otherwise returns None.
     */
   def getOption: Option[V] = getAll.headOption.filter(_.interval.isUnbounded).map(_.value)
 

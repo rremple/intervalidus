@@ -13,7 +13,7 @@ import scala.math.Ordering.Implicits.infixOrderingOps
   * @param vertical
   *   the ordinate interval: the vertical Y-axis (from lower to upper)
   * @param depth
-  *   the third dimension interval: the (right handed) depth Z-axis (behind to in front)
+  *   the third dimension interval: the (right-handed) depth Z-axis (behind to in front)
   * @tparam T1
   *   a discrete value type for this interval's horizontal domain
   * @tparam T2
@@ -308,7 +308,7 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
 
   /**
     * If there are intervals after the horizontal, vertical, and depth components, returns the interval after this one
-    * in three dimensions. Otherwise returns none. Does not include adjacent intervals behind, above, and to the right.
+    * in three dimensions, otherwise returns None. Does not include adjacent intervals behind, above, and to the right.
     */
   def after: Option[DiscreteInterval3D[T1, T2, T3]] = (horizontal.after, vertical.after, depth.after) match
     case (Some(horizontalAfter), Some(verticalAfter), Some(depthAfter)) =>
@@ -318,7 +318,7 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
 
   /**
     * If there are intervals before the horizontal, vertical, and depth components, returns the interval before this one
-    * in three dimensions. Otherwise returns none. Does not include adjacent intervals in front of, below and to the
+    * in three dimensions, otherwise returns None. Does not include adjacent intervals in front of, below and to the
     * left.
     */
   def before: Option[DiscreteInterval3D[T1, T2, T3]] = (horizontal.before, vertical.before, depth.before) match

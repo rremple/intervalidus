@@ -75,9 +75,9 @@ trait DataIn2DVersionedBaseObject:
 
 /**
   * Interface is similar to [[DataIn2DBase]], but it operates on an underlying [[mutable.DataIn3D]] using an
-  * integer-valued vertical dimension to version data. One use case (as defined in DataTimeboundVersioned) would be that
-  * R = LocalDate, so data values may vary in terms of both version and time. Most methods require some generic version
-  * selection criteria rather than specific integer intervals, therefore this does not extend [[DimensionalBase]].
+  * integer-valued vertical dimension to version data. One use case would be that R1 and R2 = LocalDate, so data values
+  * may vary in terms of both version and two dimensions of time. Most methods require some generic version selection
+  * criteria rather than specific integer intervals, therefore this does not extend [[DimensionalBase]].
   *
   * The "current" version is managed as state (a var). Versioning also separates notions of approved vs. unapproved data
   * (unapproved data are pushed up to start at version maxValue).
@@ -118,7 +118,7 @@ trait DataIn2DVersionedBase[V, R1: DiscreteValue, R2: DiscreteValue](
     DataIn2DVersionedBase[V, R1, R2]
   ]:
 
-  override type UnversionedSelf = DataIn2DBase[V, R1, R2]
+  override type PublicSelf = DataIn2DBase[V, R1, R2]
   override type UnderlyingMutable = mutable.DataIn3D[V, R1, R2, Int]
   override type UnderlyingImmutable = immutable.DataIn3D[V, R1, R2, Int]
 

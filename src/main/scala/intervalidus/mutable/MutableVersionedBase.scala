@@ -80,7 +80,7 @@ trait MutableVersionedBase[
     * Useful when approving everything in a range, including empty space (i.e., an unapproved removal)
     *
     * @param interval
-    *   interval in which all changes (upserts and deletes) are approved
+    *   interval in which all changes (updates and deletes) are approved
     */
   def approveAll(interval: I): Unit
 

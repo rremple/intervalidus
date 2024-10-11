@@ -5,6 +5,43 @@ import intervalidus.collection.Coordinate1D
 import scala.language.implicitConversions
 
 /**
+  * Domain used in defining and operating on a discrete interval. It describes specific discrete data points as well as
+  * the special "`Bottom`" and "`Top`" cases which conceptually lie below and above the finite range of data points
+  * (logically below and above `minValue` and `maxValue` respectively). This also gives us a way to accommodate having a
+  * predecessor or successor on a boundary, i.e., `maxValue.successor == Top` and `minValue.predecessor == Bottom`. Note
+  * this allows predecessor and successor to be closed, where `Top.successor == Top.predecessor == Top`, and
+  * `Bottom.predecessor == Bottom.successor == Bottom`.
+  *
+  * @tparam T
+  *   expected to be a discrete value (i.e., `DiscreteValue[T]` should be given).
+  */
+enum DiscreteDomain1D[+T] extends DimensionalBase.DomainLike[DiscreteDomain1D[T]]:
+  /**
+    * Smaller than smallest data point (like -∞)
+    */
+  case Bottom
+
+  /**
+    * A single data point in the finite range of this domain
+    */
+  case Point[P: DiscreteValue](p: P) extends DiscreteDomain1D[P]
+
+  /**
+    * Larger than largest data point (like +∞)
+    */
+  case Top
+
+  override def toString: String = this match
+    case Bottom   => "-∞"
+    case Point(t) => t.toString
+    case Top      => "+∞"
+
+  override def toCodeLikeString: String = this match
+    case Bottom   => "Bottom"
+    case Point(t) => s"Point($t)"
+    case Top      => "Top"
+
+/**
   * Companion for the one-dimensional domain used in defining and operating on a discrete intervals.
   */
 object DiscreteDomain1D:
@@ -110,40 +147,3 @@ object DiscreteDomain1D:
     * default parameters).
     */
   given [T](using DiscreteValue[T]): Conversion[T, DiscreteDomain1D[T]] = Point(_)
-
-/**
-  * Domain used in defining and operating on a discrete interval. It describes specific discrete data points as well as
-  * the special "`Bottom`" and "`Top`" cases which conceptually lie below and above the finite range of data points
-  * (logically below and above `minValue` and `maxValue` respectively). This also gives us a way to accommodate having a
-  * predecessor or successor on a boundary, i.e., `maxValue.successor == Top` and `minValue.predecessor == Bottom`. Note
-  * this allows predecessor and successor to be closed, where `Top.successor == Top.predecessor == Top`, and
-  * `Bottom.predecessor == Bottom.successor == Bottom`.
-  *
-  * @tparam T
-  *   expected to be a discrete value (i.e., `DiscreteValue[T]` should be given).
-  */
-enum DiscreteDomain1D[+T] extends DimensionalBase.DomainLike[DiscreteDomain1D[T]]:
-  /**
-    * Smaller than smallest data point (like -∞)
-    */
-  case Bottom
-
-  /**
-    * A single data point in the finite range of this domain
-    */
-  case Point[P: DiscreteValue](p: P) extends DiscreteDomain1D[P]
-
-  /**
-    * Larger than largest data point (like +∞)
-    */
-  case Top
-
-  override def toString: String = this match
-    case Bottom   => "-∞"
-    case Point(t) => t.toString
-    case Top      => "+∞"
-
-  override def toCodeLikeString: String = this match
-    case Bottom   => "Bottom"
-    case Point(t) => s"Point($t)"
-    case Top      => "Top"

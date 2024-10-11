@@ -55,6 +55,18 @@ trait BoxLike[C <: CoordinateLike[C], Self <: BoxLike[C, Self]]:
     */
   def intersection(other: Self): Option[Self]
 
+  /**
+    * Construct a new boxed payload from this box
+    *
+    * @param payload
+    *   the payload
+    * @tparam A
+    *   the payload type
+    * @return
+    *   a new boxed payload
+    */
+  infix def ->[A](payload: A): BoxedPayloadLike[A, C, Self, _]
+
   override def toString: String = s"[$minPoint..$maxPoint]"
 
 /** @inheritdoc */
@@ -70,6 +82,8 @@ case class Box1D(minPoint: Coordinate1D, maxPoint: Coordinate1D) extends BoxLike
     then Some(Box1D(minPoint.projectAfter(other.minPoint), maxPoint.projectBefore(other.maxPoint)))
     else None
 
+  override infix def ->[A](payload: A): BoxedPayload1D[A] = BoxedPayload1D(this, payload)
+
   /**
     * One of the two bisections of this box
     */
@@ -79,16 +93,6 @@ case class Box1D(minPoint: Coordinate1D, maxPoint: Coordinate1D) extends BoxLike
     * One of the two bisections of this box
     */
   def right: Box1D = Box1D(midPoint, maxPoint)
-
-  /**
-    * Construct a new boxed payload from this box
-    * @param payload
-    * @tparam A
-    *   the payload type
-    * @return
-    *   a new boxed payload
-    */
-  infix def ->[A](value: A): BoxedPayload1D[A] = BoxedPayload1D(this, value)
 
 /** @inheritdoc */
 case class Box2D(minPoint: Coordinate2D, maxPoint: Coordinate2D) extends BoxLike[Coordinate2D, Box2D]:
@@ -104,6 +108,8 @@ case class Box2D(minPoint: Coordinate2D, maxPoint: Coordinate2D) extends BoxLike
     if intersects(other)
     then Some(Box2D(minPoint.projectAfter(other.minPoint), maxPoint.projectBefore(other.maxPoint)))
     else None
+
+  override infix def ->[A](payload: A): BoxedPayload2D[A] = BoxedPayload2D(this, payload)
 
   /**
     * One of the four quadrants of this box
@@ -125,16 +131,6 @@ case class Box2D(minPoint: Coordinate2D, maxPoint: Coordinate2D) extends BoxLike
     */
   def rightUpper: Box2D = Box2D(midPoint, maxPoint)
 
-  /**
-    * Construct a new boxed payload from this box
-    * @param payload
-    * @tparam A
-    *   the payload type
-    * @return
-    *   a new boxed payload
-    */
-  infix def ->[A](payload: A): BoxedPayload2D[A] = BoxedPayload2D(this, payload)
-
 /** @inheritdoc */
 case class Box3D(minPoint: Coordinate3D, maxPoint: Coordinate3D) extends BoxLike[Coordinate3D, Box3D]:
   override def contains(other: Box3D): Boolean =
@@ -151,6 +147,8 @@ case class Box3D(minPoint: Coordinate3D, maxPoint: Coordinate3D) extends BoxLike
     if intersects(other)
     then Some(Box3D(minPoint.projectAfter(other.minPoint), maxPoint.projectBefore(other.maxPoint)))
     else None
+
+  override infix def ->[A](value: A): BoxedPayload3D[A] = BoxedPayload3D(this, value)
 
   /**
     * One of the eight octants of this box
@@ -191,14 +189,3 @@ case class Box3D(minPoint: Coordinate3D, maxPoint: Coordinate3D) extends BoxLike
     * One of the eight octants of this box
     */
   def rightUpperFront: Box3D = Box3D(midPoint, maxPoint)
-
-  /**
-    * Construct a new boxed payload from this box
-    *
-    * @param payload
-    * @tparam A
-    *   the payload type
-    * @return
-    *   a new boxed payload
-    */
-  infix def ->[A](value: A): BoxedPayload3D[A] = BoxedPayload3D(this, value)
