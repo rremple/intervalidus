@@ -16,7 +16,7 @@
 <div class="cover">
  <div class="doc">
   <p>Like <a href="DataIn1D.html">DataIn1D</a>, data here have different values in different discrete intervals. But here data values vary in two dimensions. For example, one may want to represent when the data are valid in time and over certain versions simultaneously.</p>
-  <p>We can capture the dependency between various values and related two-dimensional intervals cohesively in this structure rather than in separate data structures using distributed (and potentially inconsistent) logic. This is especially important for managing mutation, which can be a bit complex in two dimensions. Note that visualizing two dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there is a simple Visualize tool provided (in the test package... though maybe this should be its own separate subproject).</p>
+  <p>We can capture the dependency between various values and related two-dimensional intervals cohesively in this structure rather than in separate data structures using distributed (and potentially inconsistent) logic. This is especially important for managing mutation, which can be a bit complex in two dimensions. Note that visualizing two-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there is a simple Visualize tool provided (in the test package... though maybe this should be its own separate subproject).</p>
  </div>
  <section id="attributes">
   <h2 class="h500">Type parameters</h2>
@@ -1723,11 +1723,11 @@ node10 -> node5;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns a the value if a single, unbounded valid value. Otherwise throws an exception.</p>
+             <p>Returns the value if a single, unbounded valid value, otherwise throws an exception.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns a the value if a single, unbounded valid value. Otherwise throws an exception.</p>
+              <p>Returns the value if a single, unbounded valid value, otherwise throws an exception.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -1972,11 +1972,11 @@ node10 -> node5;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns a Some value if a single, unbounded valid value. Otherwise returns None.</p>
+             <p>Returns Some value if a single, unbounded valid value, otherwise returns None.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns a Some value if a single, unbounded valid value. Otherwise returns None.</p>
+              <p>Returns Some value if a single, unbounded valid value, otherwise returns None.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">

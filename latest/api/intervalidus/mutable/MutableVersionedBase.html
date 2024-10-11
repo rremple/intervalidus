@@ -164,6 +164,36 @@ node8 -> node0;
          <button class="icon-button show-content expand"></button>
          <h4 class="groupHeader h200">Inherited types</h4>
         </div>
+        <div class="documentableElement" id="PublicSelf-0" data-f-inherited="DimensionalVersionedBase">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">type </span></span><a href="MutableVersionedBase.html#PublicSelf-0" t="n" class="documentableName ">PublicSelf</a><span t="k"> &lt;: </span><a href="../DimensionalBase.html" t="t">DimensionalBase</a>[<span t="t">V</span>, <span t="t">D</span>, <span t="t">I</span>, <span t="t">ValidData</span>, <a href="../DimensionalVersionedBase.html#PublicSelf-0" t="t">PublicSelf</a>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="../DimensionalVersionedBase.html#PublicSelf-0">DimensionalVersionedBase</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="UnderlyingImmutable-0" data-f-inherited="DimensionalVersionedBase">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -224,36 +254,6 @@ node8 -> node0;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="UnversionedSelf-0" data-f-inherited="DimensionalVersionedBase">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">type </span></span><a href="MutableVersionedBase.html#UnversionedSelf-0" t="n" class="documentableName ">UnversionedSelf</a><span t="k"> &lt;: </span><a href="../DimensionalBase.html" t="t">DimensionalBase</a>[<span t="t">V</span>, <span t="t">D</span>, <span t="t">I</span>, <span t="t">ValidData</span>, <a href="../DimensionalVersionedBase.html#UnversionedSelf-0" t="t">UnversionedSelf</a>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="cover">
-             <div class="doc"></div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <a href="../DimensionalVersionedBase.html#UnversionedSelf-0">DimensionalVersionedBase</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
        </div>
       </section>
      </div>
@@ -296,7 +296,7 @@ node8 -> node0;
                interval
               </dt>
               <dd class="body-medium">
-               <p>interval in which all changes (upserts and deletes) are approved</p>
+               <p>interval in which all changes (updates and deletes) are approved</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -1561,7 +1561,7 @@ node8 -> node0;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MutableVersionedBase.html#getSelectedData-25c" t="n" class="documentableName ">getSelectedData</a>(<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">versionSelection</span>: <a href="../DimensionalVersionedBase$$VersionSelection.html" t="t">VersionSelection</a>): <a href="../DimensionalVersionedBase.html#UnversionedSelf-0" t="t">UnversionedSelf</a><span t="k"> &amp; </span><a href="../immutable/ImmutableBase.html" t="t">ImmutableBase</a>[<span t="t">V</span>, <span t="t">D</span>, <span t="t">I</span>, <span t="t">ValidData</span>, <span t="k">_</span>]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MutableVersionedBase.html#getSelectedData-25c" t="n" class="documentableName ">getSelectedData</a>(<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">versionSelection</span>: <a href="../DimensionalVersionedBase$$VersionSelection.html" t="t">VersionSelection</a>): <a href="../DimensionalVersionedBase.html#PublicSelf-0" t="t">PublicSelf</a><span t="k"> &amp; </span><a href="../immutable/ImmutableBase.html" t="t">ImmutableBase</a>[<span t="t">V</span>, <span t="t">D</span>, <span t="t">I</span>, <span t="t">ValidData</span>, <span t="k">_</span>]
            </div>
           </div>
          </div>
@@ -1611,7 +1611,7 @@ node8 -> node0;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MutableVersionedBase.html#getSelectedDataMutable-5d7" t="n" class="documentableName ">getSelectedDataMutable</a>(<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">versionSelection</span>: <a href="../DimensionalVersionedBase$$VersionSelection.html" t="t">VersionSelection</a>): <a href="../DimensionalVersionedBase.html#UnversionedSelf-0" t="t">UnversionedSelf</a><span t="k"> &amp; </span><a href="MutableBase.html" t="t">MutableBase</a>[<span t="t">V</span>, <span t="t">D</span>, <span t="t">I</span>, <span t="t">ValidData</span>, <span t="k">_</span>]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MutableVersionedBase.html#getSelectedDataMutable-5d7" t="n" class="documentableName ">getSelectedDataMutable</a>(<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">versionSelection</span>: <a href="../DimensionalVersionedBase$$VersionSelection.html" t="t">VersionSelection</a>): <a href="../DimensionalVersionedBase.html#PublicSelf-0" t="t">PublicSelf</a><span t="k"> &amp; </span><a href="MutableBase.html" t="t">MutableBase</a>[<span t="t">V</span>, <span t="t">D</span>, <span t="t">I</span>, <span t="t">ValidData</span>, <span t="k">_</span>]
            </div>
           </div>
          </div>

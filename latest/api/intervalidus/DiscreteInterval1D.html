@@ -213,7 +213,7 @@ node7 -> node2;
               <ol>
                <li>this interval is a subset of that one, so once it is excluded, nothing remains.</li>
                <li>that either lies outside of this or has a simple edge intersection (only contains the start or the end, but not both), and a single interval remains.</li>
-               <li>that interval is a proper subset of this one, containing neither the start or the end of this, so this interval gets split, and two intervals remain.</li>
+               <li>that interval is a proper subset of this one, containing neither the start nor the end of this, so this interval gets split, and two intervals remain.</li>
               </ol>
              </div>
              <h2 class="h200">Value parameters</h2>
@@ -254,11 +254,11 @@ node7 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>If this interval has a bounded end, returns the interval starting after this one with an unbounded end. Otherwise returns none. Can be thought of as a right complement.</p>
+             <p>If this interval has a bounded end, returns the interval starting after this one with an unbounded end, otherwise returns None. Can be thought of as a right complement.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>If this interval has a bounded end, returns the interval starting after this one with an unbounded end. Otherwise returns none. Can be thought of as a right complement.</p>
+              <p>If this interval has a bounded end, returns the interval starting after this one with an unbounded end, otherwise returns None. Can be thought of as a right complement.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -347,11 +347,11 @@ node7 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>If this interval has a bounded start, returns the interval ending before this one with an unbounded start. Otherwise returns none. Can be thought of as a right complement.</p>
+             <p>If this interval has a bounded start, returns the interval ending before this one with an unbounded start, otherwise returns None. Can be thought of as a right complement.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>If this interval has a bounded start, returns the interval ending before this one with an unbounded start. Otherwise returns none. Can be thought of as a right complement.</p>
+              <p>If this interval has a bounded start, returns the interval ending before this one with an unbounded start, otherwise returns None. Can be thought of as a right complement.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -597,7 +597,7 @@ node7 -> node2;
               <ol>
                <li>this interval is a subset of that one, so once it is excluded, nothing remains. Remainder.None is returned.</li>
                <li>that either lies outside of this or has a simple edge intersection (only contains the start or the end, but not both), and a single interval remains. Remainder.Single is returned.</li>
-               <li>that interval is a proper subset of this one, containing neither the start or the end of this, so this interval gets split, and two intervals remain. Remainder.Split is returned</li>
+               <li>that interval is a proper subset of this one, containing neither the start nor the end of this, so this interval gets split, and two intervals remain. Remainder.Split is returned</li>
               </ol>
              </div>
              <h2 class="h200">Value parameters</h2>
@@ -902,11 +902,11 @@ node7 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns true only if there this interval is to the left of that interval, and there is no gap between them.</p>
+             <p>Returns true only if this interval is to the left of that interval, and there is no gap between them.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns true only if there this interval is to the left of that interval, and there is no gap between them.</p>
+              <p>Returns true only if this interval is to the left of that interval, and there is no gap between them.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -939,11 +939,11 @@ node7 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns true only if there this interval is to the right of that interval, and there is no gap between them.</p>
+             <p>Returns true only if this interval is to the right of that interval, and there is no gap between them.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns true only if there this interval is to the right of that interval, and there is no gap between them.</p>
+              <p>Returns true only if this interval is to the right of that interval, and there is no gap between them.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">

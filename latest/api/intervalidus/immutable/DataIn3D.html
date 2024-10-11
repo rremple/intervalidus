@@ -1855,11 +1855,11 @@ node10 -> node5;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns a the value if a single, unbounded valid value. Otherwise throws an exception.</p>
+             <p>Returns the value if a single, unbounded valid value, otherwise throws an exception.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns a the value if a single, unbounded valid value. Otherwise throws an exception.</p>
+              <p>Returns the value if a single, unbounded valid value, otherwise throws an exception.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -2134,11 +2134,11 @@ node10 -> node5;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns a Some value if a single, unbounded valid value. Otherwise returns None.</p>
+             <p>Returns Some value if a single, unbounded valid value, otherwise returns None.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns a Some value if a single, unbounded valid value. Otherwise returns None.</p>
+              <p>Returns Some value if a single, unbounded valid value, otherwise returns None.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -2860,7 +2860,7 @@ node10 -> node5;
             <div class="cover">
              <div class="doc">
               <p>Remove, and possibly update, valid values on the target interval. If there are values valid on portions of the interval, those values have their interval adjusted (e.g., shortened, shifted, split) accordingly. The logic of remove and update are similar, and this method supports both.</p>
-              <p>More specifically, this gets even more complicated because there are three dimensions. Exclusions in one dimension can have three remainders: none (simple), single (partial), and split. But three dimensional exclusions have these same three remainders in each dimension, so there are a total of 3 x 3 x 9 = 27 remainder cases. But there are symmetric partners for many of them, so actually there are only 5!/(2! x 3!) = 10 unique cases:</p>
+              <p>More specifically, this gets even more complicated because there are three dimensions. Exclusions in one dimension can have three remainders: none (simple), single (partial), and split. But three-dimensional exclusions have these same three remainders in each dimension, so there are a total of 3 x 3 x 9 = 27 remainder cases. But there are symmetric partners for many of them, so actually there are only 5!/(2! x 3!) = 10 unique cases:</p>
               <ol>
                <li>simple = none + none + none (1 case)</li>
                <li>corner = single + single + single (1 case)</li>

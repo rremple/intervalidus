@@ -12,7 +12,7 @@
 </div>
 <div class="cover">
  <div class="doc">
-  <p>Interface is similar to <a href="DataIn2DBase.html">DataIn2DBase</a>, but it operates on an underlying <a href="mutable/DataIn3D.html">mutable.DataIn3D</a> using an integer-valued vertical dimension to version data. One use case (as defined in DataTimeboundVersioned) would be that R = LocalDate, so data values may vary in terms of both version and time. Most methods require some generic version selection criteria rather than specific integer intervals, therefore this does not extend <a href="DimensionalBase.html">DimensionalBase</a>.</p>
+  <p>Interface is similar to <a href="DataIn2DBase.html">DataIn2DBase</a>, but it operates on an underlying <a href="mutable/DataIn3D.html">mutable.DataIn3D</a> using an integer-valued vertical dimension to version data. One use case would be that R1 and R2 = LocalDate, so data values may vary in terms of both version and two dimensions of time. Most methods require some generic version selection criteria rather than specific integer intervals, therefore this does not extend <a href="DimensionalBase.html">DimensionalBase</a>.</p>
   <p>The "current" version is managed as state (a var). Versioning also separates notions of approved vs. unapproved data (unapproved data are pushed up to start at version maxValue).</p>
   <p>When getting data, by default, we return "current" version data (a.k.a., approved). When updating data, by default, we don't rewrite history, so mutations start with the "current" version too. Note that updates starting with "current" will update unapproved changes as well (since intervalFrom goes to the Top).</p>
  </div>
@@ -157,6 +157,15 @@ node8 -> node0;
          <button class="icon-button show-content expand"></button>
          <h4 class="groupHeader h200">Types</h4>
         </div>
+        <div class="documentableElement" id="PublicSelf-0" data-f-keywords="override">
+         <div class="documentableElement-expander">
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">type </span></span><a href="DataIn2DVersionedBase.html#PublicSelf-0" t="n" class="documentableName ">PublicSelf</a> = <a href="DataIn2DBase.html" t="t">DataIn2DBase</a>[<span t="t">V</span>, <span t="t">R1</span>, <span t="t">R2</span>]
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="UnderlyingImmutable-0" data-f-keywords="override">
          <div class="documentableElement-expander">
           <div class="header monospace mono-medium">
@@ -171,15 +180,6 @@ node8 -> node0;
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">type </span></span><a href="DataIn2DVersionedBase.html#UnderlyingMutable-0" t="n" class="documentableName ">UnderlyingMutable</a> = <a href="mutable/DataIn3D.html" t="t">DataIn3D</a>[<span t="t">V</span>, <span t="t">R1</span>, <span t="t">R2</span>, <span data-unresolved-link="" t="t">Int</span>]
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="UnversionedSelf-0" data-f-keywords="override">
-         <div class="documentableElement-expander">
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">type </span></span><a href="DataIn2DVersionedBase.html#UnversionedSelf-0" t="n" class="documentableName ">UnversionedSelf</a> = <a href="DataIn2DBase.html" t="t">DataIn2DBase</a>[<span t="t">V</span>, <span t="t">R1</span>, <span t="t">R2</span>]
            </div>
           </div>
          </div>
