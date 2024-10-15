@@ -311,11 +311,11 @@ trait DimensionalBase[
     dataByStartAsc.addOne(data.key -> data)
     dataByValue.addOne(data.value -> data)
     experimental.control("noSearchTree")(
-      experimental = {
+      experimentalResult = {
         // assert(!dataByStartDesc.isDefinedAt(data.key))
         dataByStartDesc.addOne(data.key -> data)
       },
-      nonExperimental = dataInSearchTreeAdd(data)
+      nonExperimentalResult = dataInSearchTreeAdd(data)
     )
 
   /**
@@ -331,11 +331,11 @@ trait DimensionalBase[
     dataByValue.addOne(data.value -> data)
     dataByStartAsc.update(data.key, data)
     experimental.control("noSearchTree")(
-      experimental = {
+      experimentalResult = {
         // assert(dataByStartDesc.isDefinedAt(data.key))
         dataByStartDesc.update(data.key, data)
       },
-      nonExperimental = {
+      nonExperimentalResult = {
         dataInSearchTreeRemove(oldData)
         dataInSearchTreeAdd(data)
       }
@@ -353,11 +353,11 @@ trait DimensionalBase[
     val previousAsc = dataByStartAsc.remove(key)
     // assert(previousDesc.isDefined)
     experimental.control("noSearchTree")(
-      experimental = {
+      experimentalResult = {
         val previousDesc = dataByStartDesc.remove(key)
         // assert(previousAsc.isDefined)
       },
-      nonExperimental = dataInSearchTreeRemove(oldData)
+      nonExperimentalResult = dataInSearchTreeRemove(oldData)
     )
 
   /**
@@ -375,11 +375,11 @@ trait DimensionalBase[
     dataByValue.clear()
     dataByValue.addAll(data.map(d => d.value -> d))
     experimental.control("noSearchTree")(
-      experimental = {
+      experimentalResult = {
         dataByStartDesc.clear()
         dataByStartDesc.addAll(dataByStartAsc)
       },
-      nonExperimental = {
+      nonExperimentalResult = {
         dataInSearchTreeClear()
         dataInSearchTreeAddAll(data)
       }
@@ -422,12 +422,12 @@ trait DimensionalBase[
     */
   def getAt(domainIndex: D): Option[V] =
     experimental.control("noSearchTree")(
-      experimental = dataByStartDesc // Using reverse-key order allows us nearly O(1) for hits
+      experimentalResult = dataByStartDesc // Using reverse-key order allows us nearly O(1) for hits
         .valuesIteratorFrom(domainIndex) // (starting at or before the index)
         .filter(_.interval.end >= domainIndex) // but misses are still slow - this slightly improves miss performance
         .collectFirst:
           case d if d.interval.contains(domainIndex) => d.value,
-      nonExperimental = dataInSearchTreeGetByDomain(domainIndex).map(_.value)
+      nonExperimentalResult = dataInSearchTreeGetByDomain(domainIndex).map(_.value)
     )
 
   /**

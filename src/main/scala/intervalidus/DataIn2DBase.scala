@@ -76,9 +76,9 @@ trait DataIn2DBaseObject:
 
     val dataByStartDesc: mutable.TreeMap[DiscreteDomain2D[R1, R2], ValidData2D[V, R1, R2]] =
       experimental.control("noSearchTree")(
-        experimental =
+        experimentalResult =
           mutable.TreeMap.from(dataByStartAsc.iterator)(summon[Ordering[DiscreteDomain2D[R1, R2]]].reverse),
-        nonExperimental = mutable.TreeMap()(summon[Ordering[DiscreteDomain2D[R1, R2]]].reverse) // not used
+        nonExperimentalResult = mutable.TreeMap()(summon[Ordering[DiscreteDomain2D[R1, R2]]].reverse) // not used
       )
 
     val dataByValue: MultiDictSorted[V, ValidData2D[V, R1, R2]] =
@@ -91,8 +91,8 @@ trait DataIn2DBaseObject:
 
     val dataInSearchTree: BoxQuadtree[ValidData2D[V, R1, R2]] =
       experimental.control("noSearchTree")(
-        experimental = BoxQuadtree[ValidData2D[V, R1, R2]](boundary),
-        nonExperimental = BoxQuadtree.from[ValidData2D[V, R1, R2]](boundary, initialData.map(_.asBoxedPayload))
+        experimentalResult = BoxQuadtree[ValidData2D[V, R1, R2]](boundary),
+        nonExperimentalResult = BoxQuadtree.from[ValidData2D[V, R1, R2]](boundary, initialData.map(_.asBoxedPayload))
       )
 
     (dataByStartAsc, dataByStartDesc, dataByValue, dataInSearchTree)
@@ -127,8 +127,8 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
   def dataInSearchTree: BoxQuadtree[ValidData2D[V, R1, R2]]
 
   experimental.control("requireDisjoint")(
-    nonExperimental = (),
-    experimental = require(DiscreteInterval2D.isDisjoint(getAll.map(_.interval)))
+    nonExperimentalResult = (),
+    experimentalResult = require(DiscreteInterval2D.isDisjoint(getAll.map(_.interval)))
   )
 
   override protected def newValidData(value: V, interval: DiscreteInterval2D[R1, R2]): ValidData2D[V, R1, R2] =
@@ -320,8 +320,8 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
     horizontalIndex: DiscreteDomain1D[R1]
   ): Iterable[ValidData1D[V, R2]] =
     val candidates = experimental.control("noSearchTree")(
-      experimental = getAll,
-      nonExperimental = dataInSearchTreeGet(DiscreteInterval1D.intervalAt(horizontalIndex) x unbounded[R2])
+      experimentalResult = getAll,
+      nonExperimentalResult = dataInSearchTreeGet(DiscreteInterval1D.intervalAt(horizontalIndex) x unbounded[R2])
     )
     candidates.collect:
       case ValidData2D(value, interval) if horizontalIndex ∈ interval.horizontal =>
@@ -331,8 +331,8 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
     verticalIndex: DiscreteDomain1D[R2]
   ): Iterable[ValidData1D[V, R1]] =
     val candidates = experimental.control("noSearchTree")(
-      experimental = getAll,
-      nonExperimental = dataInSearchTreeGet(unbounded[R1] x DiscreteInterval1D.intervalAt(verticalIndex))
+      experimentalResult = getAll,
+      nonExperimentalResult = dataInSearchTreeGet(unbounded[R1] x DiscreteInterval1D.intervalAt(verticalIndex))
     )
     candidates.collect:
       case ValidData2D(value, interval) if verticalIndex ∈ interval.vertical =>
@@ -388,10 +388,14 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
     targetInterval: DiscreteInterval2D[R1, R2],
     newValueOption: Option[V]
   ): Unit = experimental.control("bruteForceUpdate")(
-    nonExperimental = updateOrRemoveOptimized(targetInterval, newValueOption),
-    experimental = updateOrRemoveBruteForce(targetInterval, newValueOption)
+    nonExperimentalResult = updateOrRemoveOptimized(targetInterval, newValueOption),
+    experimentalResult = updateOrRemoveBruteForce(targetInterval, newValueOption)
   )
 
+  /*
+   * The normal, faster (1.4 - 1.9 times faster), but more complex implementation.
+   * Considers each case separately.
+   */
   private def updateOrRemoveOptimized(
     targetInterval: DiscreteInterval2D[R1, R2],
     newValueOption: Option[V]
@@ -587,8 +591,10 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
 
     potentiallyAffectedValues.foreach(compressInPlace)
 
-  // On second thought... less efficient, but simpler and gets the job done!
-  // TODO: Experimental: benchmark the difference
+  /*
+   * The simpler but slower and less efficient implementation.
+   * Benchmarks show this makes the remove operation 1.4 to 1.9 times slower.
+   */
   private def updateOrRemoveBruteForce(
     targetInterval: DiscreteInterval2D[R1, R2],
     newValueOption: Option[V]
@@ -648,12 +654,12 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
 
   override def getIntersecting(interval: DiscreteInterval2D[R1, R2]): Iterable[ValidData2D[V, R1, R2]] =
     experimental.control("noSearchTree")(
-      experimental = getAll.filter(_.interval intersects interval),
-      nonExperimental = dataInSearchTreeGet(interval).filter(_.interval intersects interval)
+      experimentalResult = getAll.filter(_.interval intersects interval),
+      nonExperimentalResult = dataInSearchTreeGet(interval).filter(_.interval intersects interval)
     )
 
   override infix def intersects(interval: DiscreteInterval2D[R1, R2]): Boolean =
     experimental.control("noSearchTree")(
-      experimental = getAll.exists(_.interval intersects interval),
-      nonExperimental = dataInSearchTreeIntersects(interval)
+      experimentalResult = getAll.exists(_.interval intersects interval),
+      nonExperimentalResult = dataInSearchTreeIntersects(interval)
     )

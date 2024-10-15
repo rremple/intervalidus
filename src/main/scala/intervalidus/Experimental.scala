@@ -67,9 +67,9 @@ object Experimental:
       *
       * @param feature
       *   name of the experimental feature
-      * @param nonExperimental
+      * @param nonExperimentalResult
       *   result of non-experimental variant
-      * @param experimental
+      * @param experimentalResult
       *   result of experimental variant
       * @tparam T
       *   result type
@@ -79,16 +79,16 @@ object Experimental:
     def control[T](
       feature: String
     )(
-      nonExperimental: => T,
-      experimental: => T
+      nonExperimentalResult: => T,
+      experimentalResult: => T
     ): T =
       if enabledExperimental(feature)
       then
         if enabledExperimental("printExperimental") then println(s"experimental: $feature enabled")
-        experimental
+        experimentalResult
       else
         if enabledExperimental("printExperimental") then println(s"non-experimental: $feature disabled")
-        nonExperimental
+        nonExperimentalResult
 
     /**
       * If the experimental feature is not enabled, return the non-experimental result. If it is enabled, compare the
@@ -97,9 +97,9 @@ object Experimental:
       *
       * @param feature
       *   name of the experimental feature
-      * @param nonExperimental
+      * @param nonExperimentalResult
       *   result of non-experimental variant
-      * @param experimental
+      * @param experimentalResult
       *   result of experimental variant
       * @param onFailure
       *   when non-experimental and experimental do not match, this function is applied to the results (may log/throw,
@@ -112,8 +112,8 @@ object Experimental:
     def parallelCheck[T](
       feature: String
     )(
-      nonExperimental: => T,
-      experimental: => T
+      nonExperimentalResult: => T,
+      experimentalResult: => T
     )(
       onFailure: (T, T) => T = (_: T, _: T) => throw new Exception("Experiment failed")
     ): T =
@@ -121,12 +121,12 @@ object Experimental:
       then
         if enabledExperimental("printExperimental") then
           println(s"experimental: $feature enabled (with parallel check)")
-        if experimental == nonExperimental then experimental
+        if experimentalResult == nonExperimentalResult then experimentalResult
         else
           println(s"Experiment $feature failed")
-          println(s"Non-Experimental result: $nonExperimental")
-          println(s"Experimental result: $experimental")
-          onFailure(nonExperimental, experimental)
+          println(s"Non-Experimental result: $nonExperimentalResult")
+          println(s"Experimental result: $experimentalResult")
+          onFailure(nonExperimentalResult, experimentalResult)
       else
         if enabledExperimental("printExperimental") then println(s"non-experimental: $feature disabled")
-        nonExperimental
+        nonExperimentalResult

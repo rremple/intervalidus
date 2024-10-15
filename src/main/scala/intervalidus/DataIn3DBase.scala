@@ -91,9 +91,9 @@ trait DataIn3DBaseObject:
 
     val dataByStartDesc: mutable.TreeMap[DiscreteDomain3D[R1, R2, R3], ValidData3D[V, R1, R2, R3]] =
       experimental.control("noSearchTree")(
-        experimental =
+        experimentalResult =
           mutable.TreeMap.from(dataByStartAsc.iterator)(summon[Ordering[DiscreteDomain3D[R1, R2, R3]]].reverse),
-        nonExperimental = mutable.TreeMap()(summon[Ordering[DiscreteDomain3D[R1, R2, R3]]].reverse) // not used
+        nonExperimentalResult = mutable.TreeMap()(summon[Ordering[DiscreteDomain3D[R1, R2, R3]]].reverse) // not used
       )
 
     val dataByValue: MultiDictSorted[V, ValidData3D[V, R1, R2, R3]] =
@@ -113,8 +113,8 @@ trait DataIn3DBaseObject:
 
     val dataInSearchTree: BoxOctree[ValidData3D[V, R1, R2, R3]] =
       experimental.control("noSearchTree")(
-        experimental = BoxOctree[ValidData3D[V, R1, R2, R3]](boundary), // not used
-        nonExperimental = BoxOctree.from[ValidData3D[V, R1, R2, R3]](boundary, initialData.map(_.asBoxedPayload))
+        experimentalResult = BoxOctree[ValidData3D[V, R1, R2, R3]](boundary), // not used
+        nonExperimentalResult = BoxOctree.from[ValidData3D[V, R1, R2, R3]](boundary, initialData.map(_.asBoxedPayload))
       )
 
     (dataByStartAsc, dataByStartDesc, dataByValue, dataInSearchTree)
@@ -152,8 +152,8 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
   def dataInSearchTree: BoxOctree[ValidData3D[V, R1, R2, R3]]
 
   experimental.control("requireDisjoint")(
-    nonExperimental = (),
-    experimental = require(DiscreteInterval3D.isDisjoint(getAll.map(_.interval)))
+    nonExperimentalResult = (),
+    experimentalResult = require(DiscreteInterval3D.isDisjoint(getAll.map(_.interval)))
   )
 
   override protected def newValidData(value: V, interval: DiscreteInterval3D[R1, R2, R3]): ValidData3D[V, R1, R2, R3] =
@@ -373,8 +373,8 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
     horizontalIndex: DiscreteDomain1D[R1]
   ): Iterable[ValidData2D[V, R2, R3]] =
     val candidates = experimental.control("noSearchTree")(
-      experimental = getAll,
-      nonExperimental = dataInSearchTreeGet(
+      experimentalResult = getAll,
+      nonExperimentalResult = dataInSearchTreeGet(
         DiscreteInterval1D.intervalAt(horizontalIndex) x unbounded[R2] x unbounded[R3]
       )
     )
@@ -386,8 +386,8 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
     verticalIndex: DiscreteDomain1D[R2]
   ): Iterable[ValidData2D[V, R1, R3]] =
     val candidates = experimental.control("noSearchTree")(
-      experimental = getAll,
-      nonExperimental = dataInSearchTreeGet(
+      experimentalResult = getAll,
+      nonExperimentalResult = dataInSearchTreeGet(
         unbounded[R1] x DiscreteInterval1D.intervalAt(verticalIndex) x unbounded[R3]
       )
     )
@@ -399,8 +399,8 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
     depthIndex: DiscreteDomain1D[R3]
   ): Iterable[ValidData2D[V, R1, R2]] =
     val candidates = experimental.control("noSearchTree")(
-      experimental = getAll,
-      nonExperimental = dataInSearchTreeGet(
+      experimentalResult = getAll,
+      nonExperimentalResult = dataInSearchTreeGet(
         unbounded[R1] x unbounded[R2] x DiscreteInterval1D.intervalAt(depthIndex)
       )
     )
@@ -464,10 +464,14 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
     targetInterval: DiscreteInterval3D[R1, R2, R3],
     newValueOption: Option[V]
   ): Unit = experimental.control("bruteForceUpdate")(
-    nonExperimental = updateOrRemoveOptimized(targetInterval, newValueOption),
-    experimental = updateOrRemoveBruteForce(targetInterval, newValueOption)
+    nonExperimentalResult = updateOrRemoveOptimized(targetInterval, newValueOption),
+    experimentalResult = updateOrRemoveBruteForce(targetInterval, newValueOption)
   )
 
+  /*
+   * The normal, way faster (2.8 - 4.5 times faster), but way more complex implementation.
+   * Considers each case separately.
+   */
   private def updateOrRemoveOptimized(
     targetInterval: DiscreteInterval3D[R1, R2, R3],
     newValueOption: Option[V]
@@ -1028,8 +1032,10 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
           bite(remainingDepth, belowRemaining, aboveRemaining, _.depth, _.withDepth(_), _.withVertical(_))
     potentiallyAffectedValues.foreach(compressInPlace)
 
-  // On second thought... less efficient, but simpler and gets the job done!
-  // TODO: Experimental: benchmark the difference
+  /*
+   * The simpler but slower and less efficient implementation.
+   * Benchmarks show this makes the remove operation 2.8 to 4.5 times slower.
+   */
   private def updateOrRemoveBruteForce(
     targetInterval: DiscreteInterval3D[R1, R2, R3],
     newValueOption: Option[V]
@@ -1091,15 +1097,15 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
 
   override def getIntersecting(interval: DiscreteInterval3D[R1, R2, R3]): Iterable[ValidData3D[V, R1, R2, R3]] =
     experimental.control("noSearchTree")(
-      experimental = dataByStartDesc // Using reverse-key order allows us O(1) in 1D and nearly O(1) in 2D
+      experimentalResult = dataByStartDesc // Using reverse-key order allows us O(1) in 1D and nearly O(1) in 2D
         .valuesIteratorFrom(interval.end) // starting at or before the interval end
         .filter(_.interval intersects interval)
         .toList,
-      nonExperimental = dataInSearchTreeGet(interval).filter(_.interval intersects interval).toList
+      nonExperimentalResult = dataInSearchTreeGet(interval).filter(_.interval intersects interval).toList
     )
 
   override infix def intersects(interval: DiscreteInterval3D[R1, R2, R3]): Boolean =
     experimental.control("noSearchTree")(
-      experimental = getAll.exists(_.interval intersects interval),
-      nonExperimental = dataInSearchTreeIntersects(interval)
+      experimentalResult = getAll.exists(_.interval intersects interval),
+      nonExperimentalResult = dataInSearchTreeIntersects(interval)
     )

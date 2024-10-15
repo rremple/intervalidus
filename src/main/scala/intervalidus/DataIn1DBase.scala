@@ -67,8 +67,9 @@ trait DataIn1DBaseObject:
 
     val dataByStartDesc: mutable.TreeMap[DiscreteDomain1D[R], ValidData1D[V, R]] =
       experimental.control("noSearchTree")(
-        experimental = mutable.TreeMap.from(dataByStartAsc.iterator)(summon[Ordering[DiscreteDomain1D[R]]].reverse),
-        nonExperimental = mutable.TreeMap()(summon[Ordering[DiscreteDomain1D[R]]].reverse) // not used
+        experimentalResult =
+          mutable.TreeMap.from(dataByStartAsc.iterator)(summon[Ordering[DiscreteDomain1D[R]]].reverse),
+        nonExperimentalResult = mutable.TreeMap()(summon[Ordering[DiscreteDomain1D[R]]].reverse) // not used
       )
 
     val dataByValue: MultiDictSorted[V, ValidData1D[V, R]] =
@@ -79,8 +80,8 @@ trait DataIn1DBaseObject:
     val boundary = Box1D(minPoint, maxPoint)
     val dataInSearchTree: BoxBtree[ValidData1D[V, R]] =
       experimental.control("noSearchTree")(
-        experimental = BoxBtree[ValidData1D[V, R]](boundary), // not used
-        nonExperimental = BoxBtree.from[ValidData1D[V, R]](boundary, initialData.map(_.asBoxedPayload))
+        experimentalResult = BoxBtree[ValidData1D[V, R]](boundary), // not used
+        nonExperimentalResult = BoxBtree.from[ValidData1D[V, R]](boundary, initialData.map(_.asBoxedPayload))
       )
 
     (dataByStartAsc, dataByStartDesc, dataByValue, dataInSearchTree)
@@ -103,8 +104,8 @@ trait DataIn1DBase[V, R: DiscreteValue](using experimental: Experimental)
   def dataInSearchTree: BoxBtree[ValidData1D[V, R]]
 
   experimental.control("requireDisjoint")(
-    nonExperimental = (),
-    experimental = require(DiscreteInterval1D.isDisjoint(getAll.map(_.interval)))
+    nonExperimentalResult = (),
+    experimentalResult = require(DiscreteInterval1D.isDisjoint(getAll.map(_.interval)))
   )
 
   override protected def newValidData(value: V, interval: DiscreteInterval1D[R]): ValidData1D[V, R] =
@@ -290,14 +291,14 @@ trait DataIn1DBase[V, R: DiscreteValue](using experimental: Experimental)
 
   override def getIntersecting(interval: DiscreteInterval1D[R]): Iterable[ValidData1D[V, R]] =
     experimental.control("noSearchTree")(
-      experimental = getAll.filter(_.interval intersects interval),
-      nonExperimental = dataInSearchTreeGet(interval).filter(_.interval intersects interval)
+      experimentalResult = getAll.filter(_.interval intersects interval),
+      nonExperimentalResult = dataInSearchTreeGet(interval).filter(_.interval intersects interval)
     )
 
   override infix def intersects(interval: DiscreteInterval1D[R]): Boolean =
     experimental.control("noSearchTree")(
-      experimental = getAll.exists(_.interval intersects interval),
-      nonExperimental = dataInSearchTreeIntersects(interval)
+      experimentalResult = getAll.exists(_.interval intersects interval),
+      nonExperimentalResult = dataInSearchTreeIntersects(interval)
     )
 
   override def domain: Iterable[DiscreteInterval1D[R]] = DiscreteInterval1D.compress(getAll.map(_.interval))
