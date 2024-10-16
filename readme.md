@@ -19,7 +19,7 @@ types that come with the Java/Scala standard libraries and other popular librari
 types, various collections, etc.) is great. But the notion of how to express the conditions under which data are valid
 (not to be confused with validating data), although it comes up in project after project, is generally left as an
 application design consideration. But it is such a common pattern, it is odd that there isn’t some more direct support
-for validity as well as representation.
+in libraries for representing validity as a kind of collection.
 
 For example, what is valid may depend on time. Say that on December 25<sup>th</sup> a user signs up for a basic tier of
 service effective January 1<sup>st</sup>. Then, on March 15<sup>th</sup>, they upgrade to the premium service tier
@@ -33,7 +33,7 @@ over time. (Here we use +∞ to represent no planned termination, or what is som
 | 3/15  | Basic: 1/1 – 3/31; Premium: 4/1 – +∞   |
 | 6/28  | Basic: 1/1 – 3/31; Premium: 4/1 – 6/30 |
 
-Intervalidus provides composable data structures -- both one-dimensional and two-dimensional, both mutable and
+Intervalidus provides composable data structures -- one-, two-, and three-dimensional, both mutable and
 immutable -- to address storage and management of data like this. For more information, see the
 [full API documentation](https://rremple.github.io/intervalidus/latest/api/intervalidus)
 
@@ -188,7 +188,7 @@ A discrete value is a type class, and there are implementations given for the fo
 - `BigInteger`
 
 But if you have your own type with these properties, you can certainly give an implementation of the type class for that
-type and use it in the definition of one-dimensional or two-dimensional intervals. For example, these intervals use 
+type and use it in the definition of one-, two-, or three-dimensional intervals. For example, these intervals use 
 colors instead of dates or numbers:
 ```scala
 import intervalidus.DiscreteInterval1D.*
@@ -209,6 +209,8 @@ given DiscreteValue[Color] with
     if x == maxValue then None else Some(Color.fromOrdinal(x.ordinal + 1))
 
   override def compare(lhs: Color, rhs: Color): Int = lhs.ordinal.compareTo(rhs.ordinal)
+  
+  override def orderedHashOf(x: T): Double = x.ordinal
 
 val color1d = DataIn1D
   .of(intervalTo(Color.Green) -> "Red, Yellow, Green")
@@ -239,8 +241,8 @@ Below is the class diagram for the core bits of Intervalidus
 (three-dimensional is not shown, but it is very similar to two-dimensional):
 ![core class diagram](/doc/intervalidus-core.svg)
 
-As described above, `DataIn1DVersioned` leverages the core classes to provide specific functionality you might want when
-versioning data (such as approval). Below is the class diagram for it:
+As described above, `DataIn1DVersioned` and `DataIn2DVersioned` leverage the core classes to provide specific
+functionality you might want when versioning data (such as approval). Below is the class diagram for them:
 ![versioned class diagram](/doc/intervalidus-versioned.svg)
 
 Lastly, the definitions and implementations of methods across mutable/immutable and one-/two-/three-dimensional 
