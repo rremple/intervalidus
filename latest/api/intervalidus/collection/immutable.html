@@ -1210,10 +1210,12 @@
           <div>
            <div class="originInfo"></div>
            <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>An immutable multimap where multiple values can be associated with the same key. Similar to <code>SortedMultiDict</code> in <code>scala-collection-contrib</code>, but this returns values in order (values are stored in a sorted set). Also, this only implements a small subset of methods needed in this project.</p>
+            </div>
             <div class="cover">
              <div class="doc">
-              <invalid inheritdoc annotation>
-              </invalid>
+              <p>An immutable multimap where multiple values can be associated with the same key. Similar to <code>SortedMultiDict</code> in <code>scala-collection-contrib</code>, but this returns values in order (values are stored in a sorted set). Also, this only implements a small subset of methods needed in this project.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -1221,13 +1223,13 @@
                K
               </dt>
               <dd class="body-medium">
-               <p>the key type.</p>
+               <p>key type</p>
               </dd>
               <dt class="body-small">
                V
               </dt>
               <dd class="body-medium">
-               <p>the value type.</p>
+               <p>value type, must have an Ordering[V] given</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>

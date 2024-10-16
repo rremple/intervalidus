@@ -15,8 +15,7 @@
 </div>
 <div class="cover">
  <div class="doc">
-  <invalid inheritdoc annotation>
-  </invalid>
+  <p>A mutable multimap where multiple values can be associated with the same key. Similar to <code>SortedMultiDict</code> in <code>scala-collection-contrib</code>, but this returns values in order (values are stored in a sorted set). Also, this only implements a small subset of methods needed in this project.</p>
  </div>
  <section id="attributes">
   <h2 class="h500">Type parameters</h2>
@@ -25,13 +24,13 @@
     K
    </dt>
    <dd class="body-medium">
-    <p>the key type.</p>
+    <p>key type</p>
    </dd>
    <dt class="body-small">
     V
    </dt>
    <dd class="body-medium">
-    <p>the value type.</p>
+    <p>value type, must have an Ordering[V] given</p>
    </dd>
   </dl>
   <h2 class="h500">Attributes</h2>
