@@ -51,8 +51,8 @@ object DataIn2DVersioned extends DataIn2DVersionedBaseObject:
   * @tparam R2
   *   the type of discrete value used in the vertical discrete interval assigned to each value
   * @param initialData
-  *   (optional) a collection of valid data in two dimensions (the depth dimension is the version) to start with -- note
-  *   that two-dimensional intervals must be disjoint
+  *   (optional) a collection of valid data in three dimensions (the depth dimension is the version) to start with --
+  *   note that three-dimensional intervals must be disjoint
   * @param initialVersion
   *   (optional) the version to start with, typically zero
   * @param withCurrentVersion

@@ -1,12 +1,14 @@
 package intervalidus.mutable
 
 import intervalidus.*
-import intervalidus.collection.mutable.{BoxOctree, MultiDictSorted}
+import intervalidus.collection.mutable.{BoxOctree, MultiMapSorted}
 import intervalidus.immutable.DataIn3D as DataIn3DImmutable
 
 import scala.collection.mutable
 
-/** @inheritdoc */
+/**
+  * Constructs data in three-dimensional intervals.
+  */
 object DataIn3D extends DataIn3DBaseObject:
   override def of[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](
     data: ValidData3D[V, R1, R2, R3]
@@ -43,7 +45,7 @@ object DataIn3D extends DataIn3DBaseObject:
 class DataIn3D[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue] private (
   override val dataByStartAsc: mutable.TreeMap[DiscreteDomain3D[R1, R2, R3], ValidData3D[V, R1, R2, R3]],
   override val dataByStartDesc: mutable.TreeMap[DiscreteDomain3D[R1, R2, R3], ValidData3D[V, R1, R2, R3]],
-  override val dataByValue: MultiDictSorted[V, ValidData3D[V, R1, R2, R3]],
+  override val dataByValue: MultiMapSorted[V, ValidData3D[V, R1, R2, R3]],
   override val dataInSearchTree: BoxOctree[ValidData3D[V, R1, R2, R3]]
 )(using Experimental)
   extends DataIn3DBase[V, R1, R2, R3]

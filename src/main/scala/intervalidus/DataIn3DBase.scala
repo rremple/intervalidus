@@ -1,7 +1,7 @@
 package intervalidus
 
 import intervalidus.DiscreteInterval1D.{interval, unbounded}
-import intervalidus.collection.mutable.{BoxOctree, MultiDictSorted}
+import intervalidus.collection.mutable.{BoxOctree, MultiMapSorted}
 import intervalidus.collection.{Box3D, BoxedPayload, Coordinate3D}
 
 import scala.annotation.tailrec
@@ -83,7 +83,7 @@ trait DataIn3DBaseObject:
   ): (
     mutable.TreeMap[DiscreteDomain3D[R1, R2, R3], ValidData3D[V, R1, R2, R3]],
     mutable.TreeMap[DiscreteDomain3D[R1, R2, R3], ValidData3D[V, R1, R2, R3]],
-    MultiDictSorted[V, ValidData3D[V, R1, R2, R3]],
+    MultiMapSorted[V, ValidData3D[V, R1, R2, R3]],
     BoxOctree[ValidData3D[V, R1, R2, R3]]
   ) =
     val dataByStartAsc: mutable.TreeMap[DiscreteDomain3D[R1, R2, R3], ValidData3D[V, R1, R2, R3]] =
@@ -96,8 +96,8 @@ trait DataIn3DBaseObject:
         nonExperimentalResult = mutable.TreeMap()(summon[Ordering[DiscreteDomain3D[R1, R2, R3]]].reverse) // not used
       )
 
-    val dataByValue: MultiDictSorted[V, ValidData3D[V, R1, R2, R3]] =
-      collection.mutable.MultiDictSorted.from(initialData.map(v => v.value -> v))
+    val dataByValue: MultiMapSorted[V, ValidData3D[V, R1, R2, R3]] =
+      collection.mutable.MultiMapSorted.from(initialData.map(v => v.value -> v))
 
     val minPoint = Coordinate3D(
       discreteValue1.minValue.orderedHashValue,
@@ -153,7 +153,7 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
 
   experimental.control("requireDisjoint")(
     nonExperimentalResult = (),
-    experimentalResult = require(DiscreteInterval3D.isDisjoint(getAll.map(_.interval)))
+    experimentalResult = require(DiscreteInterval3D.isDisjoint(getAll.map(_.interval)), "data must be disjoint")
   )
 
   override protected def newValidData(value: V, interval: DiscreteInterval3D[R1, R2, R3]): ValidData3D[V, R1, R2, R3] =

@@ -1,7 +1,7 @@
 package intervalidus
 
 import intervalidus.collection.*
-import intervalidus.collection.mutable.MultiDictSorted
+import intervalidus.collection.mutable.MultiMapSorted
 
 import scala.math.Ordering.Implicits.infixOrderingOps
 
@@ -217,7 +217,7 @@ trait DimensionalBase[
     * itself as the key (for faster compression, which is done by value). The ValidData are stored in a sorted set, so
     * they are retrieved in key order, making compression operations repeatable.
     */
-  protected def dataByValue: MultiDictSorted[V, ValidData]
+  protected def dataByValue: MultiMapSorted[V, ValidData]
 
   /*
    * Because the type parameters are a bit wonky, the search tree is instantiated in the subclass, and accessed here

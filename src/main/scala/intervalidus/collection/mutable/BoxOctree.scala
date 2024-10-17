@@ -2,7 +2,9 @@ package intervalidus.collection.mutable
 
 import intervalidus.collection.*
 
-/** @inheritdoc */
+/**
+  * Constructors for companion mutable box tree.
+  */
 object BoxOctree extends MutableBoxTreeObjectLike[Coordinate3D, Box3D]:
   type BoxedPayloadType[A] = BoxedPayload3D[A]
   type SelfType[A] = BoxOctree[A]
@@ -21,7 +23,6 @@ object BoxOctree extends MutableBoxTreeObjectLike[Coordinate3D, Box3D]:
 sealed trait BoxOctree[A] extends MutableBoxTreeLike[A, Coordinate3D, Box3D, BoxedPayload3D[A], BoxOctree[A]]
 
 /**
-  * @inheritdoc
   * A leaf holds a list of data (up to capacity) for a particular subtree.
   */
 class BoxOctreeLeaf[A](val boundary: Box3D, val depth: Int, val capacity: Int, val depthLimit: Int)
@@ -34,7 +35,6 @@ class BoxOctreeLeaf[A](val boundary: Box3D, val depth: Int, val capacity: Int, v
     newLeaf
 
 /**
-  * @inheritdoc
   * A branch divides the management of data into multiple subtrees -- no data are stored on the branch itself.
   */
 class BoxOctreeBranch[A](val boundary: Box3D, val depth: Int, val capacity: Int, val depthLimit: Int)

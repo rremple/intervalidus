@@ -1,7 +1,7 @@
 package intervalidus
 
 import intervalidus.DiscreteInterval1D.interval
-import intervalidus.collection.mutable.{BoxBtree, MultiDictSorted}
+import intervalidus.collection.mutable.{BoxBtree, MultiMapSorted}
 import intervalidus.collection.{Box1D, BoxedPayload, Coordinate1D}
 
 import scala.collection.mutable
@@ -59,7 +59,7 @@ trait DataIn1DBaseObject:
   )(using experimental: Experimental, discreteValue: DiscreteValue[R]): (
     mutable.TreeMap[DiscreteDomain1D[R], ValidData1D[V, R]],
     mutable.TreeMap[DiscreteDomain1D[R], ValidData1D[V, R]],
-    MultiDictSorted[V, ValidData1D[V, R]],
+    MultiMapSorted[V, ValidData1D[V, R]],
     BoxBtree[ValidData1D[V, R]]
   ) =
     val dataByStartAsc: mutable.TreeMap[DiscreteDomain1D[R], ValidData1D[V, R]] =
@@ -72,8 +72,8 @@ trait DataIn1DBaseObject:
         nonExperimentalResult = mutable.TreeMap()(summon[Ordering[DiscreteDomain1D[R]]].reverse) // not used
       )
 
-    val dataByValue: MultiDictSorted[V, ValidData1D[V, R]] =
-      collection.mutable.MultiDictSorted.from(initialData.map(v => v.value -> v))
+    val dataByValue: MultiMapSorted[V, ValidData1D[V, R]] =
+      collection.mutable.MultiMapSorted.from(initialData.map(v => v.value -> v))
 
     val minPoint = Coordinate1D(discreteValue.minValue.orderedHashValue)
     val maxPoint = Coordinate1D(discreteValue.maxValue.orderedHashValue)
@@ -105,7 +105,7 @@ trait DataIn1DBase[V, R: DiscreteValue](using experimental: Experimental)
 
   experimental.control("requireDisjoint")(
     nonExperimentalResult = (),
-    experimentalResult = require(DiscreteInterval1D.isDisjoint(getAll.map(_.interval)))
+    experimentalResult = require(DiscreteInterval1D.isDisjoint(getAll.map(_.interval)), "data must be disjoint")
   )
 
   override protected def newValidData(value: V, interval: DiscreteInterval1D[R]): ValidData1D[V, R] =

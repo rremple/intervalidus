@@ -1,7 +1,9 @@
 package intervalidus.collection.immutable
 import intervalidus.collection.*
 
-/** @inheritdoc */
+/**
+  * Constructors for companion immutable box tree.
+  */
 object BoxBtree extends ImmutableBoxTreeObjectLike[Coordinate1D, Box1D]:
   type BoxedPayloadType[A] = BoxedPayload1D[A]
   type SelfType[A] = BoxBtree[A]
@@ -22,7 +24,6 @@ sealed trait BoxBtree[A] extends ImmutableBoxTreeLike[A, Coordinate1D, Box1D, Bo
     ds.iterator.foldLeft(this: BoxBtree[A])(_.addOne(_))
 
 /**
-  * @inheritdoc
   * A leaf holds a list of data (up to capacity) for a particular subtree.
   */
 class BoxBtreeLeaf[A] private (
@@ -45,7 +46,6 @@ class BoxBtreeLeaf[A] private (
     BoxBtreeBranch(boundary, depth, capacity, depthLimit)
 
 /**
-  * @inheritdoc
   * A branch divides the management of data into multiple subtrees -- no data are stored on the branch itself.
   */
 class BoxBtreeBranch[A] private (

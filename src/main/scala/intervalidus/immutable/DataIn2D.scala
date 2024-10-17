@@ -1,12 +1,14 @@
 package intervalidus.immutable
 
 import intervalidus.*
-import intervalidus.collection.mutable.{BoxQuadtree, MultiDictSorted}
+import intervalidus.collection.mutable.{BoxQuadtree, MultiMapSorted}
 import intervalidus.mutable.DataIn2D as DataIn2DMutable
 
 import scala.collection.mutable
 
-/** @inheritdoc */
+/**
+  * Constructs data in two-dimensional intervals.
+  */
 object DataIn2D extends DataIn2DBaseObject:
   override def of[V, R1: DiscreteValue, R2: DiscreteValue](
     data: ValidData2D[V, R1, R2]
@@ -43,7 +45,7 @@ object DataIn2D extends DataIn2DBaseObject:
 class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue] private (
   override val dataByStartAsc: mutable.TreeMap[DiscreteDomain2D[R1, R2], ValidData2D[V, R1, R2]],
   override val dataByStartDesc: mutable.TreeMap[DiscreteDomain2D[R1, R2], ValidData2D[V, R1, R2]],
-  override val dataByValue: MultiDictSorted[V, ValidData2D[V, R1, R2]],
+  override val dataByValue: MultiMapSorted[V, ValidData2D[V, R1, R2]],
   override val dataInSearchTree: BoxQuadtree[ValidData2D[V, R1, R2]]
 )(using Experimental)
   extends DataIn2DBase[V, R1, R2]

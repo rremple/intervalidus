@@ -1,12 +1,14 @@
 package intervalidus.mutable
 
 import intervalidus.*
-import intervalidus.collection.mutable.{BoxBtree, MultiDictSorted}
+import intervalidus.collection.mutable.{BoxBtree, MultiMapSorted}
 import intervalidus.immutable.DataIn1D as DataIn1DImmutable
 
 import scala.collection.mutable
 
-/** @inheritdoc */
+/**
+  * Constructs data in one-dimensional intervals.
+  */
 object DataIn1D extends DataIn1DBaseObject:
   override def of[V, R: DiscreteValue](
     data: ValidData1D[V, R]
@@ -36,7 +38,7 @@ object DataIn1D extends DataIn1DBaseObject:
 class DataIn1D[V, R: DiscreteValue] private (
   override val dataByStartAsc: mutable.TreeMap[DiscreteDomain1D[R], ValidData1D[V, R]],
   override val dataByStartDesc: mutable.TreeMap[DiscreteDomain1D[R], ValidData1D[V, R]],
-  override val dataByValue: MultiDictSorted[V, ValidData1D[V, R]],
+  override val dataByValue: MultiMapSorted[V, ValidData1D[V, R]],
   override val dataInSearchTree: BoxBtree[ValidData1D[V, R]]
 )(using Experimental)
   extends DataIn1DBase[V, R]

@@ -1,6 +1,6 @@
 package intervalidus.collection.immutable
 
-import intervalidus.collection.MultiDictSortedBase
+import intervalidus.collection.MultiMapSortedLike
 
 import scala.collection.immutable
 import scala.collection.immutable.SortedSet
@@ -8,17 +8,17 @@ import scala.collection.immutable.SortedSet
 /**
   * Constructors for immutable multimaps.
   */
-object MultiDictSorted:
+object MultiMapSorted:
   /**
     * Constructs a new, empty multimap.
     * @tparam K
     *   the key type.
     * @tparam V
-    *   the value type.
+    *   value type (uses `Ordering[V]`)
     * @return
     *   a new multimap
     */
-  def apply[K, V: Ordering](): MultiDictSorted[K, V] = new MultiDictSorted(
+  def apply[K, V: Ordering](): MultiMapSorted[K, V] = new MultiMapSorted(
     Map[K, SortedSet[V]]().withDefaultValue(SortedSet.empty)
   )
 
@@ -29,13 +29,13 @@ object MultiDictSorted:
     * @tparam K
     *   the key type.
     * @tparam V
-    *   the value type.
+    *   value type (uses `Ordering[V]`)
     * @return
     *   a new multimap
     */
-  def from[K, V: Ordering](elems: Iterable[(K, V)]): MultiDictSorted[K, V] =
+  def from[K, V: Ordering](elems: Iterable[(K, V)]): MultiMapSorted[K, V] =
     val dict = elems.groupMap(_._1)(_._2).map((k, vs) => k -> SortedSet.from(vs)).withDefaultValue(SortedSet.empty)
-    new MultiDictSorted[K, V](dict)
+    new MultiMapSorted[K, V](dict)
 
 /**
   * An immutable multimap where multiple values can be associated with the same key. Similar to `SortedMultiDict` in
@@ -45,11 +45,11 @@ object MultiDictSorted:
   * @tparam K
   *   key type
   * @tparam V
-  *   value type, must have an Ordering[V] given
+  *   value type (uses `Ordering[V]`)
   */
-class MultiDictSorted[K, V: Ordering] private (dict: Map[K, SortedSet[V]]) extends MultiDictSortedBase[K, V](dict):
+class MultiMapSorted[K, V: Ordering] private (dict: Map[K, SortedSet[V]]) extends MultiMapSortedLike[K, V](dict):
 
-  override def clone(): MultiDictSorted[K, V] = new MultiDictSorted[K, V](dict)
+  override def clone(): MultiMapSorted[K, V] = new MultiMapSorted[K, V](dict)
 
   /**
     * Associate a value with a key.
@@ -58,7 +58,7 @@ class MultiDictSorted[K, V: Ordering] private (dict: Map[K, SortedSet[V]]) exten
     * @return
     *   a new multimap that includes the new association
     */
-  def addOne(elem: (K, V)): MultiDictSorted[K, V] = new MultiDictSorted(
+  def addOne(elem: (K, V)): MultiMapSorted[K, V] = new MultiMapSorted(
     dict.updated(elem._1, dict(elem._1) + elem._2)
   )
 
@@ -69,7 +69,7 @@ class MultiDictSorted[K, V: Ordering] private (dict: Map[K, SortedSet[V]]) exten
     * @return
     *   a new multimap that excludes the association
     */
-  def subtractOne(elem: (K, V)): MultiDictSorted[K, V] = new MultiDictSorted(
+  def subtractOne(elem: (K, V)): MultiMapSorted[K, V] = new MultiMapSorted(
     dict.updated(elem._1, dict(elem._1) - elem._2)
   )
 
@@ -80,9 +80,9 @@ class MultiDictSorted[K, V: Ordering] private (dict: Map[K, SortedSet[V]]) exten
     * @return
     *   a new multimap that includes the new associations
     */
-  def addAll(elems: Iterable[(K, V)]): MultiDictSorted[K, V] = new MultiDictSorted(
-    elems.foldLeft(dict): (updatedDict, elem) =>
-      updatedDict.updated(elem._1, updatedDict(elem._1) + elem._2)
+  def addAll(elems: Iterable[(K, V)]): MultiMapSorted[K, V] = new MultiMapSorted(
+    elems.foldLeft(dict): (updatedMap, elem) =>
+      updatedMap.updated(elem._1, updatedMap(elem._1) + elem._2)
   )
 
   /**
@@ -90,4 +90,4 @@ class MultiDictSorted[K, V: Ordering] private (dict: Map[K, SortedSet[V]]) exten
     * @return
     *   a new multimap with no key-value associations.
     */
-  def clear: MultiDictSorted[K, V] = MultiDictSorted()
+  def clear: MultiMapSorted[K, V] = MultiMapSorted()
