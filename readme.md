@@ -119,6 +119,7 @@ Since decoding the `toString` output of `DataIn2D` can get complicated as more i
 (in the test package) called `Visualize` that can assist with debugging and testing tasks. It uses 2D graphics to render
 the horizontal and vertical dimensions more clearly. For example, `Visualize(plan2d)` displays the following, which is a
 bit easier to decipher:
+
 ![2D data visualization](/doc/intervalidus-visualize.png)
 
 One might query this structure to find what was known about expected August effective tiers at various sampled dates in
@@ -239,10 +240,12 @@ underlying `DataIn3D` structure.
 
 Below is the class diagram for the core bits of Intervalidus
 (three-dimensional is not shown, but it is very similar to two-dimensional):
+
 ![core class diagram](/doc/intervalidus-core.svg)
 
 As described above, `DataIn1DVersioned` and `DataIn2DVersioned` leverage the core classes to provide specific
 functionality you might want when versioning data (such as approval). Below is the class diagram for them:
+
 ![versioned class diagram](/doc/intervalidus-versioned.svg)
 
 Lastly, the definitions and implementations of methods across mutable/immutable and one-/two-/three-dimensional 
@@ -250,5 +253,92 @@ variants have been made as generic as possible to avoid repetitive code/scaladoc
 harder to navigate to these methods. The following (rather unorthodox) diagram shows where to find each method in a
 kind of Venn-like way, where overlaps indicate a definition (and documentation) is in the lower trait with the
 implementation in the higher, inheriting trait/class
-(three-dimensional is not shown, but it is very similar to two-dimensional).:
+(three-dimensional is not shown, but it is very similar to two-dimensional):
+
 ![trait stack diagram](/doc/intervalidus-trait-stack.svg)
+
+## Internals and extras
+
+Both the mutable and immutable variants of `DataIn#` (where `#` is `1D`, `2D`, and `3D`) use three mutable data
+structures internally for managing state, two of which are custom:
+
+- A mutable `TreeMap` ordered by the start of each interval. This allows for fast in-order retrieval in methods like
+  `getAll`, and is essential for deterministic results in methods like `foldLeft` that use `getAll`.
+
+- A mutable multimap that associates each value with all the intervals in which that value is valid, ordered by the
+  start of each interval. This speeds up operations like `compress`, which improves performance for all mutation
+  operations that use `compress`. Intervalidus uses its own compact implementation of a `MultiMapSorted` (based on
+  standard library `Map` and `SortedSet`) which is somewhat similar to `SortedMultiDict` in `scala-collection-contrib`,
+  but returns the _values_ in order, not the _keys_. Having values in order is essential for deterministic results from
+  `compress` and all mutation operations relying on `compress`. Only the mutable variant is used internally, but an
+  immutable variant is also provided.
+
+- A "box search tree" -- in either a B-tree, quadtree, or octree form, depending on the dimension -- that supports quick
+  retrieval by interval. Box search trees manage boxed data structures in multidimensional double space. Unlike classic
+  spacial search trees (used in collision detection and the like), these data structures manage "boxes" rather than
+  individual points, where boxes are split and stored in all applicable subtrees of the data structure as subtrees are
+  split. Intervalildus uses the ordered hashes defined on discrete domain components of intervals to approximate all
+  discrete domain intervals as boxes in double space, and then manages valid data associated with these boxes in the box
+  search tree. This not only results in dramatically faster retrieval (e.g., `getAt` and `getIntersecting`), since many
+  mutation operations use intersection retrieval in their own logic, they are made dramatically faster as well. Only the
+  mutable variant is used internally, but an immutable variant is also provided.
+
+Although the custom multimap and box search tree data structures were built for internal use, they may be useful outside
+the Intervalidus context. As described above, there are both immutable and mutable variants of each data structure, as
+shown in the following diagram:
+
+![box search tree and multimap diagram](/doc/intervalidus-box-tree-multimap.svg)
+
+Note that box search trees are tunable via environment variables.
+
+- The default capacity of leaf nodes is 256, which was found to be optimal in micro-benchmarks. This can be overridden
+  by setting environment the variable `INTERVALIDUS_TREE_NODE_CAPACITY`.
+
+- The default depth limit of trees is 32, which was found to be optimal in micro-benchmarks. This can be overridden by
+  setting environment variable `INTERVALIDUS_TREE_DEPTH_LIMIT`.
+
+Lastly, there is a context parameter component used to enable/disable experimental features (a.k.a., feature flagging)
+called `Experimental`. The default implementation given disables all experimental features. But one can enable something
+experimental simply by giving an alternative implementation of `Experimental` when the structure is constructed.
+
+E.g., consider the requirement for intervals to be disjoint (i.e., non-overlapping) in all valid data. All mutation
+operations (e.g. `set`) maintain this invariant automatically, but one could still construct a structure incorrectly
+with data that are not disjoint to start (which will cause Intervalidus to be weirdly unpredictable). Or maybe
+Intervalidus has a bug, and some mutation operation isn't maintaining the invariant. Although constantly checking for
+disjointedness is a huge performance burden -- especially for immutable structures and/or higher-dimensional
+structures -- it may be worth doing during initial development and testing. So there is an experimental feature called
+**"requireDisjoint"** that, if set, will validate the disjointedness of all data with every construction.
+
+```scala
+import intervalidus.immutable.DataIn1D
+import intervalidus.DiscreteInterval1D.*
+import LocalDate.of as date
+
+given Experimental = Experimental("requireDisjoint")
+
+val plan1d = DataIn1D(
+  Seq(
+    intervalFrom(date(2024, 4, 1)) -> "Premium",
+    intervalFrom(date(2024, 1, 1)) -> "Basic" // <-- wrong, throws an IllegalArgumentException: requirement failed: data must be disjoint
+    // interval(date(2024, 1, 1), date(2024, 3, 31)) -> "Basic" // <-- right, does not throw
+  )
+)
+```
+
+Other experimental features that can be toggled are:
+
+- **"printExperimental"** This feature simply prints a line when an experimental feature is/isn't being used. Useful if
+  there is uncertainty around if the context parameter is being set and passed along correctly in the correct scope.
+
+- **"noSearchTree"** Before adding support for higher-dimensional data, Intervalidus used a second reversed `TreeMap`
+  for interval retrieval of 1D data. Because of performance issues in higher dimensions, this was replaced with the "box
+  search tree" described above. Enabling this feature reverts Intervalidus to use the old `TreeMap` instead. This could
+  actually help performance in some limited circumstances, e.g., if all the structures being used are one-dimensional.
+  So it may be useful to toggle when micro-benchmarking the client app.
+
+- **"bruteForceUpdate"** It was easy to specify all the cases directly for removing the intersection of an interval with
+  all existing intervals in one dimension: there are only a few cases. In two dimensions it got more complicated, and
+  even more so in three dimensions. There is a simpler brute force approach (code is about 10x shorter in 3D!) that
+  eliminates all this complexity. Unfortunately it runs a 2x - 5x slower in micro-benchmarks. It is unlikely this
+  feature would be useful to anyone except an Intervalidus committer trying to close this performance gap -- it would be
+  really nice if the shorter code was also the faster code!

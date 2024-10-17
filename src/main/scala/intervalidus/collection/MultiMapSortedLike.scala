@@ -10,9 +10,9 @@ import scala.collection.immutable.SortedSet
   * @tparam K
   *   key type
   * @tparam V
-  *   value type, must have an Ordering[V] given
+  *   value type (uses `Ordering[V]`)
   */
-trait MultiDictSortedBase[K, V: Ordering](dict: collection.Map[K, SortedSet[V]]):
+trait MultiMapSortedLike[K, V: Ordering](dict: collection.Map[K, SortedSet[V]]):
 
   /**
     * Retrieves all the values associated with the given key.

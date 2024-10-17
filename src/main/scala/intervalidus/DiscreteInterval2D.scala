@@ -407,7 +407,7 @@ object DiscreteInterval2D:
     intervals: Iterable[DiscreteInterval2D[T1, T2]]
   ): Boolean = !intervals.exists: r =>
     intervals
-      .filter(_.horizontal.start <= r.horizontal.start) // by symmetry
+      .filter(_.start <= r.start) // by symmetry
       .filterNot(_ equiv r)
       .exists(_ intersects r)
 

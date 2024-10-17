@@ -1,6 +1,6 @@
 package intervalidus.collection.mutable
 
-import intervalidus.collection.MultiDictSortedBase
+import intervalidus.collection.MultiMapSortedLike
 
 import scala.collection.mutable
 import scala.collection.immutable.SortedSet
@@ -8,17 +8,17 @@ import scala.collection.immutable.SortedSet
 /**
   * Constructors for mutable multimaps.
   */
-object MultiDictSorted:
+object MultiMapSorted:
   /**
     * Constructs a new, empty multimap.
     * @tparam K
     *   the key type.
     * @tparam V
-    *   the value type.
+    *   value type (uses `Ordering[V]`)
     * @return
     *   a new multimap
     */
-  def apply[K, V: Ordering](): MultiDictSorted[K, V] = new MultiDictSorted[K, V](
+  def apply[K, V: Ordering](): MultiMapSorted[K, V] = new MultiMapSorted[K, V](
     mutable.Map[K, SortedSet[V]]().withDefaultValue(SortedSet.empty)
   )
 
@@ -29,14 +29,14 @@ object MultiDictSorted:
     * @tparam K
     *   the key type.
     * @tparam V
-    *   the value type.
+    *   value type (uses `Ordering[V]`)
     * @return
     *   a new multimap
     */
-  def from[K, V: Ordering](elems: Iterable[(K, V)]): MultiDictSorted[K, V] =
+  def from[K, V: Ordering](elems: Iterable[(K, V)]): MultiMapSorted[K, V] =
     val elements = elems.groupMap(_._1)(_._2).map((k, vs) => k -> SortedSet.from(vs))
     val dict = mutable.Map.from(elements).withDefaultValue(SortedSet.empty)
-    new MultiDictSorted[K, V](dict)
+    new MultiMapSorted[K, V](dict)
 
 /**
   * A mutable multimap where multiple values can be associated with the same key. Similar to `SortedMultiDict` in
@@ -46,12 +46,12 @@ object MultiDictSorted:
   * @tparam K
   *   key type
   * @tparam V
-  *   value type, must have an Ordering[V] given
+  *   value type (uses `Ordering[V]`)
   */
-class MultiDictSorted[K, V: Ordering] private (dict: mutable.Map[K, SortedSet[V]])
-  extends MultiDictSortedBase[K, V](dict):
+class MultiMapSorted[K, V: Ordering] private (dict: mutable.Map[K, SortedSet[V]])
+  extends MultiMapSortedLike[K, V](dict):
 
-  override def clone(): MultiDictSorted[K, V] = new MultiDictSorted[K, V](dict.clone())
+  override def clone(): MultiMapSorted[K, V] = new MultiMapSorted[K, V](dict.clone())
 
   /**
     * Associate a value with a key.
