@@ -15,9 +15,9 @@
   <p>Intervalidus's main traits, classes, and other members, including:</p>
   <ul>
    <li>Type classes for common discrete values.</li>
-   <li>Foundational case classes and enums for one/two-dimensional discrete domains, intervals, diff actions, and valid data.</li>
-   <li>Both general and one/two-dimensional specific base traits for dimensional data (both mutable and immutable).</li>
-   <li>A base trait for versioned dimensional data in one dimension.</li>
+   <li>Foundational case classes and enums for one-, two-, and three-dimensional discrete domains, intervals, diff actions, and valid data.</li>
+   <li>Both general and dimension-specific base traits for dimensional data (both mutable and immutable).</li>
+   <li>A base traits for versioned dimensional data.</li>
   </ul>
  </div>
  <section id="attributes">
@@ -55,13 +55,13 @@
           <div class="originInfo"></div>
           <div class="memberDocumentation">
            <div class="documentableBrief doc">
-            <p>Intervalidus's custom data structures for optimizing 1d, 2d, and 3d interval retrieval. Meant for internal use, but use them if they are useful. There are both immutable and mutable versions of each data structure, but only the mutable versions are used (for performance reasons).</p>
+            <p>Intervalidus's custom data structures for optimizing 1d, 2d, and 3d interval retrieval. Built for internal use, but use them if they are useful. There are both immutable and mutable versions of each data structure, but only the mutable versions are used (for performance reasons).</p>
            </div>
            <div class="cover">
             <div class="doc">
-             <p>Intervalidus's custom data structures for optimizing 1d, 2d, and 3d interval retrieval. Meant for internal use, but use them if they are useful. There are both immutable and mutable versions of each data structure, but only the mutable versions are used (for performance reasons).</p>
+             <p>Intervalidus's custom data structures for optimizing 1d, 2d, and 3d interval retrieval. Built for internal use, but use them if they are useful. There are both immutable and mutable versions of each data structure, but only the mutable versions are used (for performance reasons).</p>
              <ul>
-              <li>Box trees manage boxed data structures in multidimensional double space (B-trees, quadtrees, and octrees, depending on the dimension). They hold boxes rather than individual points, where boxes are split to fit into the subtrees of the data structure. Intervalildus uses the ordered hashes defined on the discrete domain components of intervals to approximate all intervals as boxes in double space, and manages valid data associated with these boxes in a box trees, resulting in dramatically faster intersection retrieval (in most cases).</li>
+              <li>Box trees manage boxed data structures in multidimensional double space (B-trees, quadtrees, and octrees, depending on the dimension). They hold boxes rather than individual points, where boxes are split to fit into the subtrees of the data structure. Intervalidus uses the ordered hashes defined on the discrete domain components of intervals to approximate all intervals as boxes in double space, and manages valid data associated with these boxes in a box trees, resulting in dramatically faster intersection retrieval (in most cases).</li>
               <li>Multi-dictionaries (a.k.a., multimaps) allow multiple values to be associated with the same key. Intervalidus uses multi-dictionaries to store the association of each valid value with all the intervals where it is valid. This allows value-driven functions like compression to operate on a smaller subset of valid values and be substantially faster.</li>
              </ul>
             </div>
@@ -94,8 +94,8 @@
              <p>Intervalidus's main traits and classes for defining immutable dimensional data, including:</p>
              <ul>
               <li>A base trait for all immutable dimensional data.</li>
-              <li>Classes for defining immutable data in one and two dimensions</li>
-              <li>Class for defining immutable versioned data in one dimension</li>
+              <li>Classes for defining immutable data in one, two, and three dimensions</li>
+              <li>Class for defining immutable versioned data in one and two dimensions</li>
              </ul>
             </div>
             <h2 class="h200">Attributes</h2>
@@ -127,8 +127,8 @@
              <p>Intervalidus's main traits and classes for defining mutable dimensional data, including:</p>
              <ul>
               <li>A base trait for all mutable dimensional data.</li>
-              <li>Classes for defining mutable data in one and two dimensions</li>
-              <li>Class for defining mutable versioned data in one dimension</li>
+              <li>Classes for defining mutable data in one, two, and three dimensions</li>
+              <li>Class for defining mutable versioned data in one and two dimensions</li>
              </ul>
             </div>
             <h2 class="h200">Attributes</h2>
