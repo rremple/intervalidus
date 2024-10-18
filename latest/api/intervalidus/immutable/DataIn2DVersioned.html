@@ -459,101 +459,6 @@ node10 -> node5;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="compress-fffff5cd" data-f-keywords="override">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="DataIn2DVersioned.html#compress-fffff5cd" t="n" class="documentableName ">compress</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">value</span>: <span t="t">V</span>): <a href="DataIn2DVersioned.html" t="t">DataIn2DVersioned</a>[<span t="t">V</span>, <span t="t">R1</span>, <span t="t">R2</span>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Compress out adjacent intervals with the same value</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Compress out adjacent intervals with the same value</p>
-             </div>
-             <h2 class="h200">Value parameters</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               value
-              </dt>
-              <dd class="body-medium">
-               <p>value to be evaluate</p>
-              </dd>
-             </dl>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Returns
-              </dt>
-              <dd class="body-medium">
-               <p>a new, updated structure.</p>
-              </dd>
-              <dt class="body-small">
-               Definition Classes
-              </dt>
-              <dd class="body-medium">
-               <div>
-                <a href="ImmutableVersionedBase.html">ImmutableVersionedBase</a>
-               </div>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="compressAll-fffffb3a" data-f-keywords="override">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="DataIn2DVersioned.html#compressAll-fffffb3a" t="n" class="documentableName ">compressAll</a>(<span t="k"></span>): <a href="DataIn2DVersioned.html" t="t">DataIn2DVersioned</a>[<span t="t">V</span>, <span t="t">R1</span>, <span t="t">R2</span>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Compress out adjacent intervals with the same value for all values (Shouldn't ever need to do this.)</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Compress out adjacent intervals with the same value for all values (Shouldn't ever need to do this.)</p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Returns
-              </dt>
-              <dd class="body-medium">
-               <p>a new, updated structure.</p>
-              </dd>
-              <dt class="body-small">
-               Definition Classes
-              </dt>
-              <dd class="body-medium">
-               <div>
-                <a href="ImmutableVersionedBase.html">ImmutableVersionedBase</a>
-               </div>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
         <div class="documentableElement" id="copy-0" data-f-keywords="override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -890,49 +795,6 @@ node10 -> node5;
               </dt>
               <dd class="body-medium">
                <p>a new structure with the same current version resulting from applying the provided function f to each element of this structure.</p>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="recompressAll-fffffb3a" data-f-keywords="override">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="DataIn2DVersioned.html#recompressAll-fffffb3a" t="n" class="documentableName ">recompressAll</a>(<span t="k"></span>): <a href="DataIn2DVersioned.html" t="t">DataIn2DVersioned</a>[<span t="t">V</span>, <span t="t">R1</span>, <span t="t">R2</span>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Compress out adjacent intervals with the same value for all values after decompressing everything, resulting in a unique physical representation. Does not use a version selection context -- operates on full underlying 2D structure. (Shouldn't ever need to do this.)</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Compress out adjacent intervals with the same value for all values after decompressing everything, resulting in a unique physical representation. Does not use a version selection context -- operates on full underlying 2D structure. (Shouldn't ever need to do this.)</p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Returns
-              </dt>
-              <dd class="body-medium">
-               <p>a new, updated structure.</p>
-              </dd>
-              <dt class="body-small">
-               Definition Classes
-              </dt>
-              <dd class="body-medium">
-               <div>
-                <a href="ImmutableVersionedBase.html">ImmutableVersionedBase</a>
-               </div>
               </dd>
              </dl>
             </div>
@@ -1486,6 +1348,97 @@ node10 -> node5;
               </dt>
               <dd class="body-medium">
                <span data-unresolved-link="">Function1</span>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="compress-fffff48f" data-f-inherited="ImmutableVersionedBase">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DataIn2DVersioned.html#compress-fffff48f" t="n" class="documentableName ">compress</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">value</span>: <span t="t">V</span>): <a href="DataIn2DVersioned.html" t="t">DataIn2DVersioned</a>[<span t="t">V</span>, <span t="t">R1</span>, <span t="t">R2</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Compress out adjacent intervals with the same value</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Compress out adjacent intervals with the same value</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               value
+              </dt>
+              <dd class="body-medium">
+               <p>value to be evaluate</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>a new, updated structure.</p>
+              </dd>
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="ImmutableVersionedBase.html#compress-fffff48f">ImmutableVersionedBase</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="compressAll-b42" data-f-inherited="ImmutableVersionedBase">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DataIn2DVersioned.html#compressAll-b42" t="n" class="documentableName ">compressAll</a>(<span t="k"></span>): <a href="DataIn2DVersioned.html" t="t">DataIn2DVersioned</a>[<span t="t">V</span>, <span t="t">R1</span>, <span t="t">R2</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Compress out adjacent intervals with the same value for all values (Shouldn't ever need to do this.)</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Compress out adjacent intervals with the same value for all values (Shouldn't ever need to do this.)</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>a new, updated structure.</p>
+              </dd>
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="ImmutableVersionedBase.html#compressAll-b42">ImmutableVersionedBase</a>
               </dd>
              </dl>
             </div>
@@ -2366,6 +2319,47 @@ node10 -> node5;
               </dt>
               <dd class="body-medium">
                <a href="../DataIn2DVersionedBase.html#publicValidData-aaf">DataIn2DVersionedBase</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="recompressAll-b42" data-f-inherited="ImmutableVersionedBase">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DataIn2DVersioned.html#recompressAll-b42" t="n" class="documentableName ">recompressAll</a>(<span t="k"></span>): <a href="DataIn2DVersioned.html" t="t">DataIn2DVersioned</a>[<span t="t">V</span>, <span t="t">R1</span>, <span t="t">R2</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Compress out adjacent intervals with the same value for all values after decompressing everything, resulting in a unique physical representation. Does not use a version selection context -- operates on full underlying 2D structure. (Shouldn't ever need to do this.)</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Compress out adjacent intervals with the same value for all values after decompressing everything, resulting in a unique physical representation. Does not use a version selection context -- operates on full underlying 2D structure. (Shouldn't ever need to do this.)</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>a new, updated structure.</p>
+              </dd>
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="ImmutableVersionedBase.html#recompressAll-b42">ImmutableVersionedBase</a>
               </dd>
              </dl>
             </div>

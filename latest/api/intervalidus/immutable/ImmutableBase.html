@@ -160,35 +160,6 @@ node9 -> node0;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="recompressAll-937">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ImmutableBase.html#recompressAll-937" t="n" class="documentableName ">recompressAll</a>(<span t="k"></span>): <span t="t">Self</span>
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Unlike in 1D, there is no unique compression in 2D and 3D. For example {[1..5], [1..2]} + {[1..2], [3..4]} could also be represented physically as {[1..2], [1..4]} + {[3..5], [1..2]}.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Unlike in 1D, there is no unique compression in 2D and 3D. For example {[1..5], [1..2]} + {[1..2], [3..4]} could also be represented physically as {[1..2], [1..4]} + {[3..5], [1..2]}.</p>
-              <p>This method decompresses data so there is a unique arrangement of "atomic" intervals. In the above example, that would be the following "atomic" intervals: {[1..2], [1..2]} + {[3..5], [1..2]} + {[1..2], [3..4]}. Then it recompresses the data, which results in a unique physical representation. It may be useful when comparing two structures to see if they are logically equivalent even if, physically, they differ in how they are compressed.</p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small"></dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
        </div>
       </section>
       <section id="Concrete-methods">
@@ -315,6 +286,35 @@ node9 -> node0;
                <p>a new structure consisting of all elements that satisfy the provided predicate p.</p>
               </dd>
              </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="recompressAll-937">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ImmutableBase.html#recompressAll-937" t="n" class="documentableName ">recompressAll</a>(<span t="k"></span>): <span t="t">Self</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Unlike in 1D, there is no unique compression in 2D and 3D. For example {[1..5], [1..2]} + {[1..2], [3..4]} could also be represented physically as {[1..2], [1..4]} + {[3..5], [1..2]}.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Unlike in 1D, there is no unique compression in 2D and 3D. For example {[1..5], [1..2]} + {[1..2], [3..4]} could also be represented physically as {[1..2], [1..4]} + {[3..5], [1..2]}.</p>
+              <p>This method decompresses data so there is a unique arrangement of "atomic" intervals. In the above example, that would be the following "atomic" intervals: {[1..2], [1..2]} + {[3..5], [1..2]} + {[1..2], [3..4]}. Then it recompresses the data, which results in a unique physical representation. It may be useful when comparing two structures to see if they are logically equivalent even if, physically, they differ in how they are compressed.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
             </div>
            </div>
           </div>

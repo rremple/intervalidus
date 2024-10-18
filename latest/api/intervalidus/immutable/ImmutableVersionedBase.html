@@ -392,85 +392,6 @@ node8 -> node0;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="compress-fffff48f">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ImmutableVersionedBase.html#compress-fffff48f" t="n" class="documentableName ">compress</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">value</span>: <span t="t">V</span>): <span t="t">Self</span>
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Compress out adjacent intervals with the same value</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Compress out adjacent intervals with the same value</p>
-             </div>
-             <h2 class="h200">Value parameters</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               value
-              </dt>
-              <dd class="body-medium">
-               <p>value to be evaluate</p>
-              </dd>
-             </dl>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Returns
-              </dt>
-              <dd class="body-medium">
-               <p>a new, updated structure.</p>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="compressAll-b42">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ImmutableVersionedBase.html#compressAll-b42" t="n" class="documentableName ">compressAll</a>(<span t="k"></span>): <span t="t">Self</span>
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Compress out adjacent intervals with the same value for all values (Shouldn't ever need to do this.)</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Compress out adjacent intervals with the same value for all values (Shouldn't ever need to do this.)</p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Returns
-              </dt>
-              <dd class="body-medium">
-               <p>a new, updated structure.</p>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
         <div class="documentableElement" id="copy-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -594,41 +515,6 @@ node8 -> node0;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="recompressAll-b42">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ImmutableVersionedBase.html#recompressAll-b42" t="n" class="documentableName ">recompressAll</a>(<span t="k"></span>): <span t="t">Self</span>
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Compress out adjacent intervals with the same value for all values after decompressing everything, resulting in a unique physical representation. Does not use a version selection context -- operates on full underlying 2D structure. (Shouldn't ever need to do this.)</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Compress out adjacent intervals with the same value for all values after decompressing everything, resulting in a unique physical representation. Does not use a version selection context -- operates on full underlying 2D structure. (Shouldn't ever need to do this.)</p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Returns
-              </dt>
-              <dd class="body-medium">
-               <p>a new, updated structure.</p>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
         <div class="documentableElement" id="resetToVersion-a62">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -724,6 +610,120 @@ node8 -> node0;
         <div class="documentableList-expander">
          <button class="icon-button show-content expand"></button>
          <h4 class="groupHeader h200">Concrete methods</h4>
+        </div>
+        <div class="documentableElement" id="compress-fffff48f">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ImmutableVersionedBase.html#compress-fffff48f" t="n" class="documentableName ">compress</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">value</span>: <span t="t">V</span>): <span t="t">Self</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Compress out adjacent intervals with the same value</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Compress out adjacent intervals with the same value</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               value
+              </dt>
+              <dd class="body-medium">
+               <p>value to be evaluate</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>a new, updated structure.</p>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="compressAll-b42">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ImmutableVersionedBase.html#compressAll-b42" t="n" class="documentableName ">compressAll</a>(<span t="k"></span>): <span t="t">Self</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Compress out adjacent intervals with the same value for all values (Shouldn't ever need to do this.)</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Compress out adjacent intervals with the same value for all values (Shouldn't ever need to do this.)</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>a new, updated structure.</p>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="recompressAll-b42">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ImmutableVersionedBase.html#recompressAll-b42" t="n" class="documentableName ">recompressAll</a>(<span t="k"></span>): <span t="t">Self</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Compress out adjacent intervals with the same value for all values after decompressing everything, resulting in a unique physical representation. Does not use a version selection context -- operates on full underlying 2D structure. (Shouldn't ever need to do this.)</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Compress out adjacent intervals with the same value for all values after decompressing everything, resulting in a unique physical representation. Does not use a version selection context -- operates on full underlying 2D structure. (Shouldn't ever need to do this.)</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>a new, updated structure.</p>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
         </div>
         <div class="documentableElement" id="remove-f95">
          <div class="documentableElement-expander">
