@@ -284,16 +284,4 @@ trait DataIn1DBase[V, R: DiscreteValue](using experimental: Experimental)
 
     newValueOption.foreach(compressInPlace)
 
-  override def getIntersecting(interval: DiscreteInterval1D[R]): Iterable[ValidData1D[V, R]] =
-    experimental.control("noSearchTree")(
-      experimentalResult = getAll.filter(_.interval intersects interval),
-      nonExperimentalResult = dataInSearchTreeGet(interval).filter(_.interval intersects interval)
-    )
-
-  override infix def intersects(interval: DiscreteInterval1D[R]): Boolean =
-    experimental.control("noSearchTree")(
-      experimentalResult = getAll.exists(_.interval intersects interval),
-      nonExperimentalResult = dataInSearchTreeIntersects(interval)
-    )
-
   override def domain: Iterable[DiscreteInterval1D[R]] = DiscreteInterval1D.compress(getAll.map(_.interval))

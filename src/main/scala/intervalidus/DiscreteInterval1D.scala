@@ -27,17 +27,7 @@ case class DiscreteInterval1D[T: DiscreteValue](
 
   def asBox: Box1D = Box1D(start.asCoordinate, end.asCoordinate)
 
-  /**
-    * Construct new valid data from this interval.
-    *
-    * @param value
-    *   the value in the valid data
-    * @tparam V
-    *   the value type
-    * @return
-    *   valid data in this interval
-    */
-  infix def withValue[V](value: V): ValidData1D[V, T] = ValidData1D(value, this)
+  override infix def withValue[V](value: V): ValidData1D[V, T] = ValidData1D(value, this)
 
   override infix def contains(domainElement: DiscreteDomain1D[T]): Boolean =
     start <= domainElement && domainElement <= end
@@ -60,6 +50,37 @@ case class DiscreteInterval1D[T: DiscreteValue](
           if prevRemaining.start equiv prevRemaining.end then None
           else Some(prevRemaining.startingAfter(prevRemaining.start))
         Some(prevRemaining.start, nextRemaining)
+
+  override infix def isAdjacentTo(that: DiscreteInterval1D[T]): Boolean =
+    (this isLeftAdjacentTo that) || (this isRightAdjacentTo that)
+
+  override infix def hasSameStartAs(that: DiscreteInterval1D[T]): Boolean = this.start equiv that.start
+
+  override infix def hasSameEndAs(that: DiscreteInterval1D[T]): Boolean = this.end equiv that.end
+
+  override infix def intersects(that: DiscreteInterval1D[T]): Boolean = this.start <= that.end && that.start <= this.end
+
+  override infix def intersectionWith(that: DiscreteInterval1D[T]): Option[DiscreteInterval1D[T]] =
+    if !(this intersects that) then None
+    else Some(DiscreteInterval1D(this.start max that.start, this.end min that.end))
+
+  override infix def joinedWith(that: DiscreteInterval1D[T]): DiscreteInterval1D[T] =
+    DiscreteInterval1D(this.start min that.start, this.end max that.end)
+
+  override infix def equiv(that: DiscreteInterval1D[T]): Boolean =
+    (this hasSameStartAs that) && (this hasSameEndAs that)
+
+  override infix def contains(that: DiscreteInterval1D[T]): Boolean = start <= that.start && that.end <= end
+
+  override infix def isSubsetOf(that: DiscreteInterval1D[T]): Boolean = that contains this
+
+  override def after: Option[DiscreteInterval1D[T]] = end.successor match
+    case Top          => None
+    case endSuccessor => Some(intervalFrom(endSuccessor))
+
+  override def before: Option[DiscreteInterval1D[T]] = start.predecessor match
+    case Bottom           => None
+    case startPredecessor => Some(intervalTo(startPredecessor))
 
   // Use mathematical interval notation -- default.
   override def toString: String =
@@ -151,51 +172,6 @@ case class DiscreteInterval1D[T: DiscreteValue](
     */
   infix def isRightAdjacentTo(that: DiscreteInterval1D[T]): Boolean = that isLeftAdjacentTo this
 
-  /**
-    * Returns true only if there is no gap between this and that.
-    *
-    * @param that
-    *   the interval to test for adjacency.
-    */
-  infix def isAdjacentTo(that: DiscreteInterval1D[T]): Boolean =
-    (this isLeftAdjacentTo that) || (this isRightAdjacentTo that)
-
-  /**
-    * Returns true only if this and that have the same start.
-    *
-    * @param that
-    *   the interval to test.
-    */
-  infix def hasSameStartAs(that: DiscreteInterval1D[T]): Boolean = this.start equiv that.start
-
-  /**
-    * Returns true only if this and that have the same end.
-    *
-    * @param that
-    *   the interval to test.
-    */
-  infix def hasSameEndAs(that: DiscreteInterval1D[T]): Boolean = this.end equiv that.end
-
-  /**
-    * Returns true only if this and that have elements of the domain in common (not disjoint).
-    *
-    * @param that
-    *   the interval to test.
-    */
-  infix def intersects(that: DiscreteInterval1D[T]): Boolean = this.start <= that.end && that.start <= this.end
-
-  /**
-    * Finds the intersection between this and that.
-    *
-    * @param that
-    *   the interval to intersect.
-    * @return
-    *   some interval representing the intersection if there is one, and none otherwise.
-    */
-  infix def intersectionWith(that: DiscreteInterval1D[T]): Option[DiscreteInterval1D[T]] =
-    if !(this intersects that) then None
-    else Some(DiscreteInterval1D(this.start max that.start, this.end min that.end))
-
   import DiscreteInterval1D.Remainder
 
   /**
@@ -240,49 +216,6 @@ case class DiscreteInterval1D[T: DiscreteValue](
     else Some(DiscreteInterval1D((this.end min that.end).successor, (this.start max that.start).predecessor))
 
   /**
-    * A kind of union between this and that interval. Includes the domain of both this and that plus any gap that may
-    * exist between them. So it is a proper union in the cases where this and that intersect or are adjacent, and a bit
-    * more than that otherwise.
-    *
-    * @param that
-    *   the interval to join.
-    * @return
-    *   the smallest interval including both this and that.
-    */
-  infix def joinedWith(that: DiscreteInterval1D[T]): DiscreteInterval1D[T] =
-    DiscreteInterval1D(this.start min that.start, this.end max that.end)
-
-  /**
-    * Test for equivalence by comparing the start and end of this and that.
-    *
-    * @param that
-    *   the interval to test.
-    * @return
-    *   true only if this and that have the same start and end.
-    */
-  infix def equiv(that: DiscreteInterval1D[T]): Boolean = (this hasSameStartAs that) && (this hasSameEndAs that)
-
-  /**
-    * Tests if that is a subset (proper or improper) of this.
-    *
-    * @param that
-    *   the interval to test.
-    * @return
-    *   true if that is a subset of this.
-    */
-  infix def contains(that: DiscreteInterval1D[T]): Boolean = start <= that.start && that.end <= end
-
-  /**
-    * Tests if this is a subset (proper or improper) of that.
-    *
-    * @param that
-    *   the interval to test.
-    * @return
-    *   true if this is a subset of that.
-    */
-  infix def isSubsetOf(that: DiscreteInterval1D[T]): Boolean = that contains this
-
-  /**
     * Cross this interval with that interval to arrive at a new two-dimensional interval.
     * @param that
     *   a one-dimensional interval to be used in the vertical dimension
@@ -295,49 +228,9 @@ case class DiscreteInterval1D[T: DiscreteValue](
   infix def x[T2: DiscreteValue](that: DiscreteInterval1D[T2]): DiscreteInterval2D[T, T2] =
     DiscreteInterval2D(this, that)
 
-  /**
-    * If this interval has a bounded end, returns the interval starting after this one with an unbounded end, otherwise
-    * returns None. Can be thought of as a right complement.
-    */
-  def after: Option[DiscreteInterval1D[T]] = end.successor match
-    case Top          => None
-    case endSuccessor => Some(intervalFrom(endSuccessor))
-
-  /**
-    * If this interval has a bounded start, returns the interval ending before this one with an unbounded start,
-    * otherwise returns None. Can be thought of as a right complement.
-    */
-  def before: Option[DiscreteInterval1D[T]] = start.predecessor match
-    case Bottom           => None
-    case startPredecessor => Some(intervalTo(startPredecessor))
-
   // equivalent symbolic method names
 
-  /**
-    * Same as [[withValue]]
-    *
-    * Construct new valid data from this interval.
-    *
-    * @param value
-    *   the value in the valid data
-    * @tparam V
-    *   the value type
-    * @return
-    *   valid data in this interval
-    */
-  infix def ->[V](value: V): ValidData1D[V, T] = withValue(value)
-
-  /**
-    * Same as [[intersectionWith]].
-    *
-    * Finds the intersection between this and that.
-    *
-    * @param that
-    *   the interval to intersect.
-    * @return
-    *   some interval representing the intersection if there is one, and none otherwise.
-    */
-  def ∩(that: DiscreteInterval1D[T]): Option[DiscreteInterval1D[T]] = this intersectionWith that
+  override infix def ->[V](value: V): ValidData1D[V, T] = withValue(value)
 
   /**
     * Same as [[excluding]].
@@ -356,32 +249,6 @@ case class DiscreteInterval1D[T: DiscreteValue](
     *   described above.
     */
   def \(that: DiscreteInterval1D[T]): Remainder[DiscreteInterval1D[T]] = this excluding that
-
-  /**
-    * Same as [[joinedWith]].
-    *
-    * A kind of union between this and that interval. Includes the domain of both this and that plus any gap that may
-    * exist between them. So it is a proper union in the cases where this and that intersect or are adjacent, and a bit
-    * more than that otherwise.
-    *
-    * @param that
-    *   the interval to join.
-    * @return
-    *   the smallest interval including both this and that.
-    */
-  def ∪(that: DiscreteInterval1D[T]): DiscreteInterval1D[T] = this joinedWith that
-
-  /**
-    * Same as [[isSubsetOf]].
-    *
-    * Tests if this is a subset (proper or improper) of that.
-    *
-    * @param that
-    *   the interval to test.
-    * @return
-    *   true if this is a subset of that.
-    */
-  def ⊆(that: DiscreteInterval1D[T]): Boolean = this isSubsetOf that
 
 /**
   * Companion for the one-dimensional interval used in defining and operating on a valid data.

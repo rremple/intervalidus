@@ -633,15 +633,3 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
         addValidData(excludedSubinterval -> newValue)
 
     potentiallyAffectedValues.foreach(compressInPlace)
-
-  override def getIntersecting(interval: DiscreteInterval2D[R1, R2]): Iterable[ValidData2D[V, R1, R2]] =
-    experimental.control("noSearchTree")(
-      experimentalResult = getAll.filter(_.interval intersects interval),
-      nonExperimentalResult = dataInSearchTreeGet(interval).filter(_.interval intersects interval)
-    )
-
-  override infix def intersects(interval: DiscreteInterval2D[R1, R2]): Boolean =
-    experimental.control("noSearchTree")(
-      experimentalResult = getAll.exists(_.interval intersects interval),
-      nonExperimentalResult = dataInSearchTreeIntersects(interval)
-    )

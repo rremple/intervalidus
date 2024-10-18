@@ -24,17 +24,7 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
 
   def asBox: Box2D = Box2D(start.asCoordinate, end.asCoordinate)
 
-  /**
-    * Construct new valid data from this interval.
-    *
-    * @param value
-    *   the value in the valid data
-    * @tparam V
-    *   the value type
-    * @return
-    *   valid data in this interval
-    */
-  infix def withValue[V](value: V): ValidData2D[V, T1, T2] = ValidData2D(value, this)
+  override infix def withValue[V](value: V): ValidData2D[V, T1, T2] = ValidData2D(value, this)
 
   override val start: DiscreteDomain2D[T1, T2] = horizontal.start x vertical.start
 
@@ -50,6 +40,46 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
       horizontalPoint <- horizontal.points
       verticalPoint <- vertical.points
     yield horizontalPoint x verticalPoint
+
+  override infix def isAdjacentTo(that: DiscreteInterval2D[T1, T2]): Boolean =
+    (this isLeftAdjacentTo that) || (this isRightAdjacentTo that) ||
+      (this isLowerAdjacentTo that) || (this isUpperAdjacentTo that)
+
+  override infix def hasSameStartAs(that: DiscreteInterval2D[T1, T2]): Boolean =
+    (horizontal hasSameStartAs that.horizontal) &&
+      (vertical hasSameStartAs that.vertical)
+
+  override infix def hasSameEndAs(that: DiscreteInterval2D[T1, T2]): Boolean =
+    (horizontal hasSameEndAs that.horizontal) &&
+      (vertical hasSameEndAs that.vertical)
+
+  override infix def intersects(that: DiscreteInterval2D[T1, T2]): Boolean =
+    (this.horizontal intersects that.horizontal) && (this.vertical intersects that.vertical)
+
+  override infix def intersectionWith(that: DiscreteInterval2D[T1, T2]): Option[DiscreteInterval2D[T1, T2]] =
+    for
+      horizontalIntersection <- horizontal intersectionWith that.horizontal
+      verticalIntersection <- vertical intersectionWith that.vertical
+    yield horizontalIntersection x verticalIntersection
+
+  override infix def joinedWith(that: DiscreteInterval2D[T1, T2]): DiscreteInterval2D[T1, T2] =
+    (this.horizontal joinedWith that.horizontal) x (this.vertical joinedWith that.vertical)
+
+  override infix def equiv(that: DiscreteInterval2D[T1, T2]): Boolean =
+    (this.horizontal equiv that.horizontal) && (this.vertical equiv that.vertical)
+
+  override infix def contains(that: DiscreteInterval2D[T1, T2]): Boolean =
+    (this.horizontal contains that.horizontal) && (this.vertical contains that.vertical)
+
+  override infix def isSubsetOf(that: DiscreteInterval2D[T1, T2]): Boolean = that contains this
+
+  override def after: Option[DiscreteInterval2D[T1, T2]] = (horizontal.after, vertical.after) match
+    case (Some(horizontalAfter), Some(verticalAfter)) => Some(DiscreteInterval2D(horizontalAfter, verticalAfter))
+    case _                                            => None
+
+  override def before: Option[DiscreteInterval2D[T1, T2]] = (horizontal.before, vertical.before) match
+    case (Some(horizontalBefore), Some(verticalBefore)) => Some(DiscreteInterval2D(horizontalBefore, verticalBefore))
+    case _                                              => None
 
   override def toString: String = s"{$horizontal, $vertical}"
 
@@ -129,59 +159,6 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
     */
   infix def isRightAdjacentTo(that: DiscreteInterval2D[T1, T2]): Boolean = that isLeftAdjacentTo this
 
-  /**
-    * Returns true only if there is no gap between this and that.
-    *
-    * @param that
-    *   the interval to test for adjacency.
-    */
-  infix def isAdjacentTo(that: DiscreteInterval2D[T1, T2]): Boolean =
-    (this isLeftAdjacentTo that) || (this isRightAdjacentTo that) ||
-      (this isLowerAdjacentTo that) || (this isUpperAdjacentTo that)
-
-  /**
-    * Returns true only if this and that have the same start.
-    *
-    * @param that
-    *   the interval to test.
-    */
-  infix def hasSameStartAs(that: DiscreteInterval2D[T1, T2]): Boolean =
-    (horizontal hasSameStartAs that.horizontal) &&
-      (vertical hasSameStartAs that.vertical)
-
-  /**
-    * Returns true only if this and that have the same end.
-    *
-    * @param that
-    *   the interval to test.
-    */
-  infix def hasSameEndAs(that: DiscreteInterval2D[T1, T2]): Boolean =
-    (horizontal hasSameEndAs that.horizontal) &&
-      (vertical hasSameEndAs that.vertical)
-
-  /**
-    * Returns true only if this and that have elements of the domain in common (not disjoint).
-    *
-    * @param that
-    *   the interval to test.
-    */
-  infix def intersects(that: DiscreteInterval2D[T1, T2]): Boolean =
-    (this.horizontal intersects that.horizontal) && (this.vertical intersects that.vertical)
-
-  /**
-    * Finds the intersection between this and that.
-    *
-    * @param that
-    *   the interval to intersect.
-    * @return
-    *   some interval representing the intersection if there is one, and none otherwise.
-    */
-  infix def intersectionWith(that: DiscreteInterval2D[T1, T2]): Option[DiscreteInterval2D[T1, T2]] =
-    for
-      horizontalIntersection <- horizontal intersectionWith that.horizontal
-      verticalIntersection <- vertical intersectionWith that.vertical
-    yield horizontalIntersection x verticalIntersection
-
   import DiscreteInterval1D.Remainder
 
   /**
@@ -198,51 +175,6 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
     (this.horizontal excluding that.horizontal, this.vertical excluding that.vertical)
 
   /**
-    * A kind of union between this and that interval. Includes the domain of both this and that plus any gaps that may
-    * exist between them. So it is a proper union in the cases where this and that are adjacent, and a bit more than
-    * that otherwise.
-    *
-    * @param that
-    *   the interval to join.
-    * @return
-    *   the smallest interval including both this and that.
-    */
-  infix def joinedWith(that: DiscreteInterval2D[T1, T2]): DiscreteInterval2D[T1, T2] =
-    (this.horizontal joinedWith that.horizontal) x (this.vertical joinedWith that.vertical)
-
-  /**
-    * Test for equivalence by comparing the horizontal and vertical intervals of this and that.
-    *
-    * @param that
-    *   the interval to test.
-    * @return
-    *   true only if this and that have the same start and end.
-    */
-  infix def equiv(that: DiscreteInterval2D[T1, T2]): Boolean =
-    (this.horizontal equiv that.horizontal) && (this.vertical equiv that.vertical)
-
-  /**
-    * Tests if that is a subset (proper or improper) of this.
-    *
-    * @param that
-    *   the interval to test.
-    * @return
-    *   true if that is a subset of this.
-    */
-  infix def contains(that: DiscreteInterval2D[T1, T2]): Boolean =
-    (this.horizontal contains that.horizontal) && (this.vertical contains that.vertical)
-
-  /**
-    * Tests if this is a subset (proper or improper) of that.
-    *
-    * @param that
-    *   the interval to test.
-    * @return
-    *   true if this is a subset of that.
-    */
-  infix def isSubsetOf(that: DiscreteInterval2D[T1, T2]): Boolean = that contains this
-
-  /**
     * Cross this interval with that interval to arrive at a new three-dimensional interval.
     * @param that
     *   a one-dimensional interval to be used in the depth dimension
@@ -256,53 +188,13 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
     DiscreteInterval3D(this.horizontal, this.vertical, that)
 
   /**
-    * If there are intervals after both the horizontal and vertical components, returns the interval after this one in
-    * both dimensions, otherwise returns None. Does not include adjacent intervals above and to the right.
-    */
-  def after: Option[DiscreteInterval2D[T1, T2]] = (horizontal.after, vertical.after) match
-    case (Some(horizontalAfter), Some(verticalAfter)) => Some(DiscreteInterval2D(horizontalAfter, verticalAfter))
-    case _                                            => None
-
-  /**
-    * If there are intervals before both the horizontal and vertical components, returns the interval before this one in
-    * both dimensions, otherwise returns None. Does not include adjacent intervals below and to the left.
-    */
-  def before: Option[DiscreteInterval2D[T1, T2]] = (horizontal.before, vertical.before) match
-    case (Some(horizontalBefore), Some(verticalBefore)) => Some(DiscreteInterval2D(horizontalBefore, verticalBefore))
-    case _                                              => None
-
-  /**
     * Flips this interval by swapping the vertical and horizontal components with one another.
     */
   def flip: DiscreteInterval2D[T2, T1] = vertical x horizontal
 
   // equivalent symbolic method names
 
-  /**
-    * Same as [[withValue]]
-    *
-    * Construct new valid data from this interval.
-    *
-    * @param value
-    *   the value in the valid data
-    * @tparam V
-    *   the value type
-    * @return
-    *   valid data in this interval
-    */
-  infix def ->[V](value: V): ValidData2D[V, T1, T2] = withValue(value)
-
-  /**
-    * Same as [[intersectionWith]].
-    *
-    * Finds the intersection between this and that.
-    *
-    * @param that
-    *   the interval to intersect.
-    * @return
-    *   some interval representing the intersection if there is one, and none otherwise.
-    */
-  def ∩(that: DiscreteInterval2D[T1, T2]): Option[DiscreteInterval2D[T1, T2]] = this intersectionWith that
+  override infix def ->[V](value: V): ValidData2D[V, T1, T2] = withValue(value)
 
   /**
     * Same as [[excluding]].
@@ -317,32 +209,6 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
   def \(
     that: DiscreteInterval2D[T1, T2]
   ): (Remainder[DiscreteInterval1D[T1]], Remainder[DiscreteInterval1D[T2]]) = this excluding that
-
-  /**
-    * Same as [[joinedWith]].
-    *
-    * A kind of union between this and that interval. Includes the domain of both this and that plus any gaps that may
-    * exist between them. So it is a proper union in the cases where this and that are adjacent, and a bit more than
-    * that otherwise.
-    *
-    * @param that
-    *   the interval to join.
-    * @return
-    *   the smallest interval including both this and that.
-    */
-  def ∪(that: DiscreteInterval2D[T1, T2]): DiscreteInterval2D[T1, T2] = this joinedWith that
-
-  /**
-    * Same as [[isSubsetOf]].
-    *
-    * Tests if this is a subset (proper or improper) of that.
-    *
-    * @param that
-    *   the interval to test.
-    * @return
-    *   true if this is a subset of that.
-    */
-  def ⊆(that: DiscreteInterval2D[T1, T2]): Boolean = this isSubsetOf that
 
 /**
   * Companion for the two-dimensional interval used in defining and operating on a valid data.

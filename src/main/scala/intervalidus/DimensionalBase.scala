@@ -49,6 +49,18 @@ object DimensionalBase:
     def toCodeLikeString: String
 
     /**
+      * Construct new valid data from this interval.
+      *
+      * @param value
+      *   the value in the valid data
+      * @tparam V
+      *   the value type
+      * @return
+      *   valid data in this interval
+      */
+    infix def withValue[V](value: V): DataLike[V, D, Self, _]
+
+    /**
       * Tests if this interval contains a specific element of the domain.
       *
       * @param domainIndex
@@ -67,6 +79,156 @@ object DimensionalBase:
       * Returns individual discrete domain points in this interval.
       */
     def points: Iterable[D]
+
+    /**
+      * Returns true only if there is no gap between this and that.
+      *
+      * @param that
+      *   the interval to test for adjacency.
+      */
+    infix def isAdjacentTo(that: Self): Boolean
+
+    /**
+      * Returns true only if this and that have the same start.
+      *
+      * @param that
+      *   the interval to test.
+      */
+    infix def hasSameStartAs(that: Self): Boolean
+
+    /**
+      * Returns true only if this and that have the same end.
+      *
+      * @param that
+      *   the interval to test.
+      */
+    infix def hasSameEndAs(that: Self): Boolean
+
+    /**
+      * Returns true only if this and that have elements of the domain in common (not disjoint).
+      *
+      * @param that
+      *   the interval to test.
+      */
+    infix def intersects(that: Self): Boolean
+
+    /**
+      * Finds the intersection between this and that.
+      *
+      * @param that
+      *   the interval to intersect.
+      * @return
+      *   some interval representing the intersection if there is one, and none otherwise.
+      */
+    infix def intersectionWith(that: Self): Option[Self]
+
+    /**
+      * A kind of union between this and that interval. Includes the domain of both this and that plus any gaps that may
+      * exist between them. So it is a proper union in the cases where this and that are adjacent, and a bit more than
+      * that otherwise.
+      *
+      * @param that
+      *   the interval to join.
+      * @return
+      *   the smallest interval including both this and that.
+      */
+    infix def joinedWith(that: Self): Self
+
+    /**
+      * Test for equivalence by comparing all interval components of this and that.
+      *
+      * @param that
+      *   the interval to test.
+      * @return
+      *   true only if this and that have the same start and end.
+      */
+    infix def equiv(that: Self): Boolean
+
+    /**
+      * Tests if that is a subset (proper or improper) of this.
+      *
+      * @param that
+      *   the interval to test.
+      * @return
+      *   true if that is a subset of this.
+      */
+    infix def contains(that: Self): Boolean
+
+    /**
+      * Tests if this is a subset (proper or improper) of that.
+      *
+      * @param that
+      *   the interval to test.
+      * @return
+      *   true if this is a subset of that.
+      */
+    infix def isSubsetOf(that: Self): Boolean
+
+    /**
+      * If there are intervals after each interval component (i.e., none of them end at Top), returns the interval after
+      * this one in all dimensions, otherwise returns None.
+      */
+    def after: Option[Self]
+
+    /**
+      * If there are intervals before each interval component (i.e., none of them start at Bottom), returns the interval
+      * before this one in all dimensions, otherwise returns None.
+      */
+    def before: Option[Self]
+
+    // equivalent symbolic method names
+
+    /**
+      * Same as [[withValue]]
+      *
+      * Construct new valid data from this interval.
+      *
+      * @param value
+      *   the value in the valid data
+      * @tparam V
+      *   the value type
+      * @return
+      *   valid data in this interval
+      */
+    infix def ->[V](value: V): DataLike[V, D, Self, _]
+
+    /**
+      * Same as [[intersectionWith]].
+      *
+      * Finds the intersection between this and that.
+      *
+      * @param that
+      *   the interval to intersect.
+      * @return
+      *   some interval representing the intersection if there is one, and none otherwise.
+      */
+    def ∩(that: Self): Option[Self] = this intersectionWith that
+
+    /**
+      * Same as [[joinedWith]].
+      *
+      * A kind of union between this and that interval. Includes the domain of both this and that plus any gaps that may
+      * exist between them. So it is a proper union in the cases where this and that are adjacent, and a bit more than
+      * that otherwise.
+      *
+      * @param that
+      *   the interval to join.
+      * @return
+      *   the smallest interval including both this and that.
+      */
+    def ∪(that: Self): Self = this joinedWith that
+
+    /**
+      * Same as [[isSubsetOf]].
+      *
+      * Tests if this is a subset (proper or improper) of that.
+      *
+      * @param that
+      *   the interval to test.
+      * @return
+      *   true if this is a subset of that.
+      */
+    def ⊆(that: Self): Boolean = this isSubsetOf that
 
   /**
     * A value that is valid in some discrete interval. This defines a partial function where all domain elements that
@@ -286,26 +448,6 @@ trait DimensionalBase[
   def domain: Iterable[I]
 
   /**
-    * Returns all data that are valid on some or all of the provided interval.
-    *
-    * @param interval
-    *   the interval to check.
-    * @return
-    *   all data that are valid on some or all of the interval (some intersection).
-    */
-  def getIntersecting(interval: I): Iterable[ValidData]
-
-  /**
-    * Are there values that are valid on some or all of the provided interval?
-    *
-    * @param interval
-    *   the interval to check.
-    * @return
-    *   true if there are values that are valid somewhere on the interval.
-    */
-  infix def intersects(interval: I): Boolean
-
-  /**
     * Returns this as a mutable structure.
     */
   def toMutable: Self
@@ -316,6 +458,34 @@ trait DimensionalBase[
   def toImmutable: Self
 
   // ---------- Implemented here based on the above ----------
+
+  /**
+    * Returns all data that are valid on some or all of the provided interval.
+    *
+    * @param interval
+    *   the interval to check.
+    * @return
+    *   all data that are valid on some or all of the interval (some intersection).
+    */
+  def getIntersecting(interval: I): Iterable[ValidData] =
+    experimental.control("noSearchTree")(
+      experimentalResult = getAll.filter(_.interval intersects interval),
+      nonExperimentalResult = dataInSearchTreeGet(interval).filter(_.interval intersects interval)
+    )
+
+  /**
+    * Are there values that are valid on some or all of the provided interval?
+    *
+    * @param interval
+    *   the interval to check.
+    * @return
+    *   true if there are values that are valid somewhere on the interval.
+    */
+  infix def intersects(interval: I): Boolean =
+    experimental.control("noSearchTree")(
+      experimentalResult = getAll.exists(_.interval intersects interval),
+      nonExperimentalResult = dataInSearchTreeIntersects(interval)
+    )
 
   /**
     * Internal mutator to add, where there is no existing overlapping data.

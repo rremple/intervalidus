@@ -1088,18 +1088,3 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
         addValidData(excludedSubinterval -> newValue)
 
     potentiallyAffectedValues.foreach(compressInPlace)
-
-  override def getIntersecting(interval: DiscreteInterval3D[R1, R2, R3]): Iterable[ValidData3D[V, R1, R2, R3]] =
-    experimental.control("noSearchTree")(
-      experimentalResult = dataByStartDesc // Using reverse-key order allows us O(1) in 1D and nearly O(1) in 2D
-        .valuesIteratorFrom(interval.end) // starting at or before the interval end
-        .filter(_.interval intersects interval)
-        .toList,
-      nonExperimentalResult = dataInSearchTreeGet(interval).filter(_.interval intersects interval).toList
-    )
-
-  override infix def intersects(interval: DiscreteInterval3D[R1, R2, R3]): Boolean =
-    experimental.control("noSearchTree")(
-      experimentalResult = getAll.exists(_.interval intersects interval),
-      nonExperimentalResult = dataInSearchTreeIntersects(interval)
-    )

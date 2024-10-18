@@ -27,17 +27,7 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
 
   def asBox: Box3D = Box3D(start.asCoordinate, end.asCoordinate)
 
-  /**
-    * Construct new valid data from this interval.
-    *
-    * @param value
-    *   the value in the valid data
-    * @tparam V
-    *   the value type
-    * @return
-    *   valid data in this interval
-    */
-  infix def withValue[V](value: V): ValidData3D[V, T1, T2, T3] = ValidData3D(value, this)
+  override infix def withValue[V](value: V): ValidData3D[V, T1, T2, T3] = ValidData3D(value, this)
 
   override val start: DiscreteDomain3D[T1, T2, T3] = horizontal.start x vertical.start x depth.start
 
@@ -57,6 +47,60 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
       verticalPoint <- vertical.points
       depthPoint <- depth.points
     yield horizontalPoint x verticalPoint x depthPoint
+
+  override infix def isAdjacentTo(that: DiscreteInterval3D[T1, T2, T3]): Boolean =
+    (this isLeftAdjacentTo that) || (this isRightAdjacentTo that) ||
+      (this isLowerAdjacentTo that) || (this isUpperAdjacentTo that) ||
+      (this isBackAdjacentTo that) || (this isFrontAdjacentTo that)
+
+  override infix def hasSameStartAs(that: DiscreteInterval3D[T1, T2, T3]): Boolean =
+    (horizontal hasSameStartAs that.horizontal) &&
+      (vertical hasSameStartAs that.vertical) &&
+      (depth hasSameStartAs that.depth)
+
+  override infix def hasSameEndAs(that: DiscreteInterval3D[T1, T2, T3]): Boolean =
+    (horizontal hasSameEndAs that.horizontal) &&
+      (vertical hasSameEndAs that.vertical) &&
+      (depth hasSameEndAs that.depth)
+
+  override infix def intersects(that: DiscreteInterval3D[T1, T2, T3]): Boolean =
+    (this.horizontal intersects that.horizontal) &&
+      (this.vertical intersects that.vertical) &&
+      (this.depth intersects that.depth)
+
+  override infix def intersectionWith(that: DiscreteInterval3D[T1, T2, T3]): Option[DiscreteInterval3D[T1, T2, T3]] =
+    for
+      horizontalIntersection <- horizontal intersectionWith that.horizontal
+      verticalIntersection <- vertical intersectionWith that.vertical
+      depthIntersection <- depth intersectionWith that.depth
+    yield horizontalIntersection x verticalIntersection x depthIntersection
+
+  override infix def joinedWith(that: DiscreteInterval3D[T1, T2, T3]): DiscreteInterval3D[T1, T2, T3] =
+    (this.horizontal joinedWith that.horizontal) x
+      (this.vertical joinedWith that.vertical) x
+      (this.depth joinedWith that.depth)
+
+  override infix def equiv(that: DiscreteInterval3D[T1, T2, T3]): Boolean =
+    (this.horizontal equiv that.horizontal) && (this.vertical equiv that.vertical) && (this.depth equiv that.depth)
+
+  override infix def contains(that: DiscreteInterval3D[T1, T2, T3]): Boolean =
+    (this.horizontal contains that.horizontal) &&
+      (this.vertical contains that.vertical) &&
+      (this.depth contains that.depth)
+
+  override infix def isSubsetOf(that: DiscreteInterval3D[T1, T2, T3]): Boolean = that contains this
+
+  override def after: Option[DiscreteInterval3D[T1, T2, T3]] = (horizontal.after, vertical.after, depth.after) match
+    case (Some(horizontalAfter), Some(verticalAfter), Some(depthAfter)) =>
+      Some(DiscreteInterval3D(horizontalAfter, verticalAfter, depthAfter))
+    case _ =>
+      None
+
+  override def before: Option[DiscreteInterval3D[T1, T2, T3]] = (horizontal.before, vertical.before, depth.before) match
+    case (Some(horizontalBefore), Some(verticalBefore), Some(depthBefore)) =>
+      Some(DiscreteInterval3D(horizontalBefore, verticalBefore, depthBefore))
+    case _ =>
+      None
 
   override def toString: String = s"{$horizontal, $vertical, $depth}"
 
@@ -183,65 +227,6 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
     */
   infix def isFrontAdjacentTo(that: DiscreteInterval3D[T1, T2, T3]): Boolean = that isBackAdjacentTo this
 
-  /**
-    * Returns true only if there is no gap between this and that.
-    *
-    * @param that
-    *   the interval to test for adjacency.
-    */
-  infix def isAdjacentTo(that: DiscreteInterval3D[T1, T2, T3]): Boolean =
-    (this isLeftAdjacentTo that) || (this isRightAdjacentTo that) ||
-      (this isLowerAdjacentTo that) || (this isUpperAdjacentTo that) ||
-      (this isBackAdjacentTo that) || (this isFrontAdjacentTo that)
-
-  /**
-    * Returns true only if this and that have the same start.
-    *
-    * @param that
-    *   the interval to test.
-    */
-  infix def hasSameStartAs(that: DiscreteInterval3D[T1, T2, T3]): Boolean =
-    (horizontal hasSameStartAs that.horizontal) &&
-      (vertical hasSameStartAs that.vertical) &&
-      (depth hasSameStartAs that.depth)
-
-  /**
-    * Returns true only if this and that have the same end.
-    *
-    * @param that
-    *   the interval to test.
-    */
-  infix def hasSameEndAs(that: DiscreteInterval3D[T1, T2, T3]): Boolean =
-    (horizontal hasSameEndAs that.horizontal) &&
-      (vertical hasSameEndAs that.vertical) &&
-      (depth hasSameEndAs that.depth)
-
-  /**
-    * Returns true only if this and that have elements of the domain in common (not disjoint).
-    *
-    * @param that
-    *   the interval to test.
-    */
-  infix def intersects(that: DiscreteInterval3D[T1, T2, T3]): Boolean =
-    (this.horizontal intersects that.horizontal) &&
-      (this.vertical intersects that.vertical) &&
-      (this.depth intersects that.depth)
-
-  /**
-    * Finds the intersection between this and that.
-    *
-    * @param that
-    *   the interval to intersect.
-    * @return
-    *   some interval representing the intersection if there is one, and none otherwise.
-    */
-  infix def intersectionWith(that: DiscreteInterval3D[T1, T2, T3]): Option[DiscreteInterval3D[T1, T2, T3]] =
-    for
-      horizontalIntersection <- horizontal intersectionWith that.horizontal
-      verticalIntersection <- vertical intersectionWith that.vertical
-      depthIntersection <- depth intersectionWith that.depth
-    yield horizontalIntersection x verticalIntersection x depthIntersection
-
   import DiscreteInterval1D.Remainder
 
   /**
@@ -256,76 +241,6 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
     that: DiscreteInterval3D[T1, T2, T3]
   ): (Remainder[DiscreteInterval1D[T1]], Remainder[DiscreteInterval1D[T2]], Remainder[DiscreteInterval1D[T3]]) =
     (this.horizontal excluding that.horizontal, this.vertical excluding that.vertical, this.depth excluding that.depth)
-
-  /**
-    * A kind of union between this and that interval. Includes the domain of both this and that plus any gaps that may
-    * exist between them. So it is a proper union in the cases where this and that are adjacent, and a bit more than
-    * that otherwise.
-    *
-    * @param that
-    *   the interval to join.
-    * @return
-    *   the smallest interval including both this and that.
-    */
-  infix def joinedWith(that: DiscreteInterval3D[T1, T2, T3]): DiscreteInterval3D[T1, T2, T3] =
-    (this.horizontal joinedWith that.horizontal) x
-      (this.vertical joinedWith that.vertical) x
-      (this.depth joinedWith that.depth)
-
-  /**
-    * Test for equivalence by comparing the horizontal and vertical intervals of this and that.
-    *
-    * @param that
-    *   the interval to test.
-    * @return
-    *   true only if this and that have the same start and end.
-    */
-  infix def equiv(that: DiscreteInterval3D[T1, T2, T3]): Boolean =
-    (this.horizontal equiv that.horizontal) && (this.vertical equiv that.vertical) && (this.depth equiv that.depth)
-
-  /**
-    * Tests if that is a subset (proper or improper) of this.
-    *
-    * @param that
-    *   the interval to test.
-    * @return
-    *   true if that is a subset of this.
-    */
-  infix def contains(that: DiscreteInterval3D[T1, T2, T3]): Boolean =
-    (this.horizontal contains that.horizontal) &&
-      (this.vertical contains that.vertical) &&
-      (this.depth contains that.depth)
-
-  /**
-    * Tests if this is a subset (proper or improper) of that.
-    *
-    * @param that
-    *   the interval to test.
-    * @return
-    *   true if this is a subset of that.
-    */
-  infix def isSubsetOf(that: DiscreteInterval3D[T1, T2, T3]): Boolean = that contains this
-
-  /**
-    * If there are intervals after the horizontal, vertical, and depth components, returns the interval after this one
-    * in three dimensions, otherwise returns None. Does not include adjacent intervals behind, above, and to the right.
-    */
-  def after: Option[DiscreteInterval3D[T1, T2, T3]] = (horizontal.after, vertical.after, depth.after) match
-    case (Some(horizontalAfter), Some(verticalAfter), Some(depthAfter)) =>
-      Some(DiscreteInterval3D(horizontalAfter, verticalAfter, depthAfter))
-    case _ =>
-      None
-
-  /**
-    * If there are intervals before the horizontal, vertical, and depth components, returns the interval before this one
-    * in three dimensions, otherwise returns None. Does not include adjacent intervals in front of, below and to the
-    * left.
-    */
-  def before: Option[DiscreteInterval3D[T1, T2, T3]] = (horizontal.before, vertical.before, depth.before) match
-    case (Some(horizontalBefore), Some(verticalBefore), Some(depthBefore)) =>
-      Some(DiscreteInterval3D(horizontalBefore, verticalBefore, depthBefore))
-    case _ =>
-      None
 
   /**
     * Flips this interval by swapping the vertical and horizontal components with one another and keeping the depth
@@ -347,31 +262,7 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
 
   // equivalent symbolic method names
 
-  /**
-    * Same as [[withValue]]
-    *
-    * Construct new valid data from this interval.
-    *
-    * @param value
-    *   the value in the valid data
-    * @tparam V
-    *   the value type
-    * @return
-    *   valid data in this interval
-    */
-  infix def ->[V](value: V): ValidData3D[V, T1, T2, T3] = withValue(value)
-
-  /**
-    * Same as [[intersectionWith]].
-    *
-    * Finds the intersection between this and that.
-    *
-    * @param that
-    *   the interval to intersect.
-    * @return
-    *   some interval representing the intersection if there is one, and none otherwise.
-    */
-  def ∩(that: DiscreteInterval3D[T1, T2, T3]): Option[DiscreteInterval3D[T1, T2, T3]] = this intersectionWith that
+  override infix def ->[V](value: V): ValidData3D[V, T1, T2, T3] = withValue(value)
 
   /**
     * Same as [[excluding]].
@@ -387,32 +278,6 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
     that: DiscreteInterval3D[T1, T2, T3]
   ): (Remainder[DiscreteInterval1D[T1]], Remainder[DiscreteInterval1D[T2]], Remainder[DiscreteInterval1D[T3]]) =
     this excluding that
-
-  /**
-    * Same as [[joinedWith]].
-    *
-    * A kind of union between this and that interval. Includes the domain of both this and that plus any gaps that may
-    * exist between them. So it is a proper union in the cases where this and that are adjacent, and a bit more than
-    * that otherwise.
-    *
-    * @param that
-    *   the interval to join.
-    * @return
-    *   the smallest interval including both this and that.
-    */
-  def ∪(that: DiscreteInterval3D[T1, T2, T3]): DiscreteInterval3D[T1, T2, T3] = this joinedWith that
-
-  /**
-    * Same as [[isSubsetOf]].
-    *
-    * Tests if this is a subset (proper or improper) of that.
-    *
-    * @param that
-    *   the interval to test.
-    * @return
-    *   true if this is a subset of that.
-    */
-  def ⊆(that: DiscreteInterval3D[T1, T2, T3]): Boolean = this isSubsetOf that
 
 /**
   * Companion for the three-dimensional interval used in defining and operating on a valid data.
