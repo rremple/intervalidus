@@ -53,8 +53,6 @@ class DataIn1D[V, R: DiscreteValue] private (
     f(result)
     result
 
-  override def recompressAll(): DataIn1D[V, R] = this // nothing to do in 1D
-
   /**
     * Applies a sequence of diff actions to this structure.
     *

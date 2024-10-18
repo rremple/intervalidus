@@ -68,10 +68,6 @@ class DataIn1D[V, R: DiscreteValue] private (
     */
   def syncWith(that: DataIn1D[V, R]): Unit = applyDiffActions(that.diffActionsFrom(this))
 
-  // ---------- Implement methods from MutableBase ----------
-
-  override def recompressAll(): Unit = () // nothing to do in 1D
-
   // ---------- Implement methods from DimensionalBase ----------
 
   override def copy: DataIn1D[V, R] =

@@ -178,15 +178,6 @@ trait DataIn1DBase[V, R: DiscreteValue](using experimental: Experimental)
     dataToSortBy = _.interval.end
   )
 
-  /**
-    * Internal method, to compress in place. Structure is parameterized to support both mutable and immutable
-    * compression. (Immutable compression acts on a copy.) Assumes caller does synchronization (if needed).
-    *
-    * @param value
-    *   value to evaluate
-    * @return
-    *   this structure once compressed (not a copy)
-    */
   override protected def compressInPlace(value: V): Unit =
     dataByValue
       .get(value)
@@ -199,6 +190,10 @@ trait DataIn1DBase[V, R: DiscreteValue](using experimental: Experimental)
         case (_, right) =>
           Some(right)
     ()
+
+  override protected def recompressInPlace(): Unit =
+    // no decompressing to do in 1D
+    dataByValue.keySet.foreach(compressInPlace)
 
   /**
     * Constructs a sequence of diff actions that, if applied to the old structure, would synchronize it with this one.

@@ -81,10 +81,6 @@ class DataIn3D[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue] priva
     */
   def syncWith(that: DataIn3D[V, R1, R2, R3]): Unit = applyDiffActions(that.diffActionsFrom(this))
 
-  // ---------- Implement methods from MutableBase ----------
-
-  override def recompressAll(): Unit = recompressInPlace()
-
   // ---------- Implement methods from DimensionalBase ----------
 
   override def copy: DataIn3D[V, R1, R2, R3] =

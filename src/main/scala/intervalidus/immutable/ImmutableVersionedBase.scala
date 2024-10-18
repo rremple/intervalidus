@@ -124,14 +124,14 @@ trait ImmutableVersionedBase[
     * @return
     *   a new, updated structure.
     */
-  def compress(value: V): Self
+  def compress(value: V): Self = copyAndModify(_.underlying.compress(value))
 
   /**
     * Compress out adjacent intervals with the same value for all values (Shouldn't ever need to do this.)
     * @return
     *   a new, updated structure.
     */
-  def compressAll(): Self
+  def compressAll(): Self = copyAndModify(_.underlying.compressAll())
 
   /**
     * Compress out adjacent intervals with the same value for all values after decompressing everything, resulting in a
@@ -140,7 +140,7 @@ trait ImmutableVersionedBase[
     * @return
     *   a new, updated structure.
     */
-  def recompressAll(): Self
+  def recompressAll(): Self = copyAndModify(_.underlying.recompressAll())
 
   // ---------- Implement methods similar to those in DimensionalBase, but with version selection ----------
 

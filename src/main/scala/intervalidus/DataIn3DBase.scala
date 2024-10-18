@@ -336,13 +336,7 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
 
     compressRecursively()
 
-  /**
-    * Unlike in 1D, there is no unique compression in 2D and 3D. This method decompresses data so there is a unique
-    * arrangement of "atomic" intervals. Then it recompresses the data, which results in a unique physical
-    * representation. It may be useful when comparing two structures to see if they are logically equivalent even if,
-    * physically, they differ in how they are compressed.
-    */
-  protected def recompressInPlace(): Unit = synchronized:
+  override protected def recompressInPlace(): Unit = synchronized:
     // decompress
     val atomicData = for
       atomicInterval <- DiscreteInterval3D.uniqueIntervals(getAll.map(_.interval))

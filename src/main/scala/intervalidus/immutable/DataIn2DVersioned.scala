@@ -155,12 +155,6 @@ class DataIn2DVersioned[V, R1: DiscreteValue, R2: DiscreteValue](
     Some(currentVersion)
   )
 
-  override def compress(value: V): DataIn2DVersioned[V, R1, R2] = copyAndModify(_.underlying.compress(value))
-
-  override def compressAll(): DataIn2DVersioned[V, R1, R2] = copyAndModify(_.underlying.compressAll())
-
-  override def recompressAll(): DataIn2DVersioned[V, R1, R2] = copyAndModify(_.underlying.recompressAll())
-
   // ---------- Implement methods from DataIn2DVersionedBase ----------
 
   override def zip[B](that: DataIn2DVersionedBase[B, R1, R2]): DataIn2DVersioned[(V, B), R1, R2] =

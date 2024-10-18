@@ -66,8 +66,6 @@ class DataIn3D[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue] priva
     f(result)
     result
 
-  override def recompressAll(): DataIn3D[V, R1, R2, R3] = copyAndModify(_.recompressInPlace())
-
   /**
     * Applies a sequence of diff actions to this structure.
     *

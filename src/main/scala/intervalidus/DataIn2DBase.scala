@@ -234,15 +234,6 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
     dataToSortBy = _.interval.vertical.end
   )
 
-  /**
-    * Internal method, to compress in place. Assumes caller does synchronization (if needed). Assumes underlying data
-    * are disjoint, so no need to address intersections.
-    *
-    * @param value
-    *   value to evaluate
-    * @return
-    *   this structure once compressed (not a copy)
-    */
   override protected def compressInPlace(value: V): Unit =
     /*
      * Each mutation gives rise to other compression possibilities. And applying a compression action can invalidate
@@ -280,16 +271,7 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
 
     compressRecursively()
 
-  /**
-    * Unlike in 1D, there is no unique compression in 2D. For example {[1..5], [1..2]} + {[1..2], [3..4]} could also be
-    * represented physically as {[1..2], [1..4]} + {[3..5], [1..2]}.
-    *
-    * This method decompresses data so there is a unique arrangement of "atomic" intervals. In the above example, that
-    * would be the following "atomic" intervals: {[1..2], [1..2]} + {[3..5], [1..2]} + {[1..2], [3..4]}. Then it
-    * recompresses the data, which results in a unique physical representation. It may be useful when comparing two
-    * structures to see if they are logically equivalent even if, physically, they differ in how they are compressed.
-    */
-  protected def recompressInPlace(): Unit = synchronized:
+  override protected def recompressInPlace(): Unit = synchronized:
     // decompress
     val atomicData = for
       atomicInterval <- DiscreteInterval2D.uniqueIntervals(getAll.map(_.interval))

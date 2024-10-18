@@ -40,7 +40,7 @@ trait ImmutableBase[
     * recompresses the data, which results in a unique physical representation. It may be useful when comparing two
     * structures to see if they are logically equivalent even if, physically, they differ in how they are compressed.
     */
-  def recompressAll(): Self
+  def recompressAll(): Self = copyAndModify(_.recompressInPlace())
 
   // ---------- Implement methods from DimensionalBase ----------
 

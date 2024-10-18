@@ -81,10 +81,6 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue] private (
     */
   def syncWith(that: DataIn2D[V, R1, R2]): Unit = applyDiffActions(that.diffActionsFrom(this))
 
-  // ---------- Implement methods from MutableBase ----------
-
-  override def recompressAll(): Unit = recompressInPlace()
-
   // ---------- Implement methods from DimensionalBase ----------
 
   override def copy: DataIn2D[V, R1, R2] =

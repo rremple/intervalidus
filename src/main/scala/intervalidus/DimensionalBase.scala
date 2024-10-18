@@ -209,6 +209,9 @@ trait DimensionalBase[
   /**
     * Internal shadow data structure where all the interval-bounded data are also stored, but using the interval key in
     * reverse order (for much quicker range lookups -- validated in microbenchmarks).
+    *
+    * @deprecated
+    *   Only populated when using legacy behavior accessible through experimental feature 'noSearchTree'
     */
   protected def dataByStartDesc: scala.collection.mutable.TreeMap[D, ValidData]
 
@@ -244,9 +247,10 @@ trait DimensionalBase[
   protected def updateOrRemove(targetInterval: I, newValueOption: Option[V]): Unit
 
   /**
-    * Internal method, to compress in place. Structure is parameterized to support both mutable and immutable
-    * compression. (Immutable compression acts on a copy.) Assumes caller does synchronization (if needed). Assumes
-    * underlying data are disjoint, so no need to address intersections.
+    * Internal method, to compress in place.
+    *
+    * Assumes caller does synchronization (if needed). Assumes underlying data are disjoint, so no need to address
+    * intersections.
     *
     * @param value
     *   value to be evaluate
@@ -254,6 +258,19 @@ trait DimensionalBase[
     *   this structure once compressed (not a copy)
     */
   protected def compressInPlace(value: V): Unit
+
+  /**
+    * Internal method, to recompress in place.
+    *
+    * Unlike in 1D, there is no unique compression in 2D and 3D. For example {[1..5], [1..2]} + {[1..2], [3..4]} could
+    * also be represented physically as {[1..2], [1..4]} + {[3..5], [1..2]}.
+    *
+    * This method decompresses data so there is a unique arrangement of "atomic" intervals. In the above example, that
+    * would be the following "atomic" intervals: {[1..2], [1..2]} + {[3..5], [1..2]} + {[1..2], [3..4]}. Then it
+    * recompresses the data, which results in a unique physical representation. It may be useful when comparing two
+    * structures to see if they are logically equivalent even if, physically, they differ in how they are compressed.
+    */
+  protected def recompressInPlace(): Unit
 
   /**
     * Creates a copy.

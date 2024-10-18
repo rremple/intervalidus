@@ -66,8 +66,6 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue] private (
     f(result)
     result
 
-  override def recompressAll(): DataIn2D[V, R1, R2] = copyAndModify(_.recompressInPlace())
-
   /**
     * Applies a sequence of diff actions to this structure.
     *

@@ -135,7 +135,8 @@ trait MutableBase[
     * recompresses the data, which results in a unique physical representation. It may be useful when comparing two
     * structures to see if they are logically equivalent even if, physically, they differ in how they are compressed.
     */
-  def recompressAll(): Unit
+  def recompressAll(): Unit = synchronized:
+    recompressInPlace()
 
   /**
     * Applies a function to all valid data. Data are mutated in place.
