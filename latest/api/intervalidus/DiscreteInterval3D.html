@@ -246,12 +246,12 @@ node7 -> node2;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="after-0">
+        <div class="documentableElement" id="after-0" data-f-keywords="override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval3D.html#after-0" t="n" class="documentableName ">after</a>: <span data-unresolved-link="" t="t">Option</span>[<a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]]
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval3D.html#after-0" t="n" class="documentableName ">after</a>: <span data-unresolved-link="" t="t">Option</span>[<a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]]
            </div>
           </div>
          </div>
@@ -268,7 +268,16 @@ node7 -> node2;
               <p>If there are intervals after the horizontal, vertical, and depth components, returns the interval after this one in three dimensions, otherwise returns None. Does not include adjacent intervals behind, above, and to the right.</p>
              </div>
              <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small"></dl>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <a href="DimensionalBase$$IntervalLike.html">IntervalLike</a>
+               </div>
+              </dd>
+             </dl>
             </div>
            </div>
           </div>
@@ -283,12 +292,12 @@ node7 -> node2;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="before-0">
+        <div class="documentableElement" id="before-0" data-f-keywords="override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval3D.html#before-0" t="n" class="documentableName ">before</a>: <span data-unresolved-link="" t="t">Option</span>[<a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]]
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval3D.html#before-0" t="n" class="documentableName ">before</a>: <span data-unresolved-link="" t="t">Option</span>[<a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]]
            </div>
           </div>
          </div>
@@ -305,7 +314,16 @@ node7 -> node2;
               <p>If there are intervals before the horizontal, vertical, and depth components, returns the interval before this one in three dimensions, otherwise returns None. Does not include adjacent intervals in front of, below and to the left.</p>
              </div>
              <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small"></dl>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <a href="DimensionalBase$$IntervalLike.html">IntervalLike</a>
+               </div>
+              </dd>
+             </dl>
             </div>
            </div>
           </div>
@@ -363,12 +381,12 @@ node7 -> node2;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="contains-721" data-f-keywords="infix">
+        <div class="documentableElement" id="contains-721" data-f-keywords="infix,override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"><span t="k">infix </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval3D.html#contains-721" t="n" class="documentableName ">contains</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]): <span data-unresolved-link="" t="t">Boolean</span>
+            <span class="modifiers"><span t="k">infix override </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval3D.html#contains-721" t="n" class="documentableName ">contains</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]): <span data-unresolved-link="" t="t">Boolean</span>
            </div>
           </div>
          </div>
@@ -401,18 +419,26 @@ node7 -> node2;
               <dd class="body-medium">
                <p>true if that is a subset of this.</p>
               </dd>
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <a href="DimensionalBase$$IntervalLike.html">IntervalLike</a>
+               </div>
+              </dd>
              </dl>
             </div>
            </div>
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="equiv-721" data-f-keywords="infix">
+        <div class="documentableElement" id="equiv-721" data-f-keywords="infix,override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"><span t="k">infix </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval3D.html#equiv-721" t="n" class="documentableName ">equiv</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]): <span data-unresolved-link="" t="t">Boolean</span>
+            <span class="modifiers"><span t="k">infix override </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval3D.html#equiv-721" t="n" class="documentableName ">equiv</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]): <span data-unresolved-link="" t="t">Boolean</span>
            </div>
           </div>
          </div>
@@ -444,6 +470,14 @@ node7 -> node2;
               </dt>
               <dd class="body-medium">
                <p>true only if this and that have the same start and end.</p>
+              </dd>
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <a href="DimensionalBase$$IntervalLike.html">IntervalLike</a>
+               </div>
               </dd>
              </dl>
             </div>
@@ -579,12 +613,12 @@ node7 -> node2;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="hasSameEndAs-721" data-f-keywords="infix">
+        <div class="documentableElement" id="hasSameEndAs-721" data-f-keywords="infix,override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"><span t="k">infix </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval3D.html#hasSameEndAs-721" t="n" class="documentableName ">hasSameEndAs</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]): <span data-unresolved-link="" t="t">Boolean</span>
+            <span class="modifiers"><span t="k">infix override </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval3D.html#hasSameEndAs-721" t="n" class="documentableName ">hasSameEndAs</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]): <span data-unresolved-link="" t="t">Boolean</span>
            </div>
           </div>
          </div>
@@ -610,18 +644,27 @@ node7 -> node2;
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small"></dl>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <a href="DimensionalBase$$IntervalLike.html">IntervalLike</a>
+               </div>
+              </dd>
+             </dl>
             </div>
            </div>
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="hasSameStartAs-721" data-f-keywords="infix">
+        <div class="documentableElement" id="hasSameStartAs-721" data-f-keywords="infix,override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"><span t="k">infix </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval3D.html#hasSameStartAs-721" t="n" class="documentableName ">hasSameStartAs</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]): <span data-unresolved-link="" t="t">Boolean</span>
+            <span class="modifiers"><span t="k">infix override </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval3D.html#hasSameStartAs-721" t="n" class="documentableName ">hasSameStartAs</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]): <span data-unresolved-link="" t="t">Boolean</span>
            </div>
           </div>
          </div>
@@ -647,18 +690,27 @@ node7 -> node2;
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small"></dl>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <a href="DimensionalBase$$IntervalLike.html">IntervalLike</a>
+               </div>
+              </dd>
+             </dl>
             </div>
            </div>
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="intersectionWith-a5c" data-f-keywords="infix">
+        <div class="documentableElement" id="intersectionWith-a5c" data-f-keywords="infix,override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"><span t="k">infix </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval3D.html#intersectionWith-a5c" t="n" class="documentableName ">intersectionWith</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]): <span data-unresolved-link="" t="t">Option</span>[<a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]]
+            <span class="modifiers"><span t="k">infix override </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval3D.html#intersectionWith-a5c" t="n" class="documentableName ">intersectionWith</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]): <span data-unresolved-link="" t="t">Option</span>[<a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]]
            </div>
           </div>
          </div>
@@ -691,18 +743,26 @@ node7 -> node2;
               <dd class="body-medium">
                <p>some interval representing the intersection if there is one, and none otherwise.</p>
               </dd>
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <a href="DimensionalBase$$IntervalLike.html">IntervalLike</a>
+               </div>
+              </dd>
              </dl>
             </div>
            </div>
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="intersects-721" data-f-keywords="infix">
+        <div class="documentableElement" id="intersects-721" data-f-keywords="infix,override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"><span t="k">infix </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval3D.html#intersects-721" t="n" class="documentableName ">intersects</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]): <span data-unresolved-link="" t="t">Boolean</span>
+            <span class="modifiers"><span t="k">infix override </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval3D.html#intersects-721" t="n" class="documentableName ">intersects</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]): <span data-unresolved-link="" t="t">Boolean</span>
            </div>
           </div>
          </div>
@@ -728,18 +788,27 @@ node7 -> node2;
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small"></dl>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <a href="DimensionalBase$$IntervalLike.html">IntervalLike</a>
+               </div>
+              </dd>
+             </dl>
             </div>
            </div>
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="isAdjacentTo-721" data-f-keywords="infix">
+        <div class="documentableElement" id="isAdjacentTo-721" data-f-keywords="infix,override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"><span t="k">infix </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval3D.html#isAdjacentTo-721" t="n" class="documentableName ">isAdjacentTo</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]): <span data-unresolved-link="" t="t">Boolean</span>
+            <span class="modifiers"><span t="k">infix override </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval3D.html#isAdjacentTo-721" t="n" class="documentableName ">isAdjacentTo</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]): <span data-unresolved-link="" t="t">Boolean</span>
            </div>
           </div>
          </div>
@@ -765,7 +834,16 @@ node7 -> node2;
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small"></dl>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <a href="DimensionalBase$$IntervalLike.html">IntervalLike</a>
+               </div>
+              </dd>
+             </dl>
             </div>
            </div>
           </div>
@@ -956,12 +1034,12 @@ node7 -> node2;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="isSubsetOf-721" data-f-keywords="infix">
+        <div class="documentableElement" id="isSubsetOf-721" data-f-keywords="infix,override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"><span t="k">infix </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval3D.html#isSubsetOf-721" t="n" class="documentableName ">isSubsetOf</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]): <span data-unresolved-link="" t="t">Boolean</span>
+            <span class="modifiers"><span t="k">infix override </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval3D.html#isSubsetOf-721" t="n" class="documentableName ">isSubsetOf</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]): <span data-unresolved-link="" t="t">Boolean</span>
            </div>
           </div>
          </div>
@@ -993,6 +1071,14 @@ node7 -> node2;
               </dt>
               <dd class="body-medium">
                <p>true if this is a subset of that.</p>
+              </dd>
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <a href="DimensionalBase$$IntervalLike.html">IntervalLike</a>
+               </div>
               </dd>
              </dl>
             </div>
@@ -1074,12 +1160,12 @@ node7 -> node2;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="joinedWith-c20" data-f-keywords="infix">
+        <div class="documentableElement" id="joinedWith-c20" data-f-keywords="infix,override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"><span t="k">infix </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval3D.html#joinedWith-c20" t="n" class="documentableName ">joinedWith</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]): <a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]
+            <span class="modifiers"><span t="k">infix override </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval3D.html#joinedWith-c20" t="n" class="documentableName ">joinedWith</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]): <a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]
            </div>
           </div>
          </div>
@@ -1111,6 +1197,14 @@ node7 -> node2;
               </dt>
               <dd class="body-medium">
                <p>the smallest interval including both this and that.</p>
+              </dd>
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <a href="DimensionalBase$$IntervalLike.html">IntervalLike</a>
+               </div>
               </dd>
              </dl>
             </div>
@@ -1511,141 +1605,6 @@ node7 -> node2;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="∩-a5c">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval3D.html#∩-a5c" t="n" class="documentableName ">∩</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]): <span data-unresolved-link="" t="t">Option</span>[<a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Same as <a href="DiscreteInterval3D.html#intersectionWith-a5c">intersectionWith</a>.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Same as <a href="DiscreteInterval3D.html#intersectionWith-a5c">intersectionWith</a>.</p>
-              <p>Finds the intersection between this and that.</p>
-             </div>
-             <h2 class="h200">Value parameters</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               that
-              </dt>
-              <dd class="body-medium">
-               <p>the interval to intersect.</p>
-              </dd>
-             </dl>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Returns
-              </dt>
-              <dd class="body-medium">
-               <p>some interval representing the intersection if there is one, and none otherwise.</p>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="∪-c20">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval3D.html#∪-c20" t="n" class="documentableName ">∪</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]): <a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Same as <a href="DiscreteInterval3D.html#joinedWith-c20">joinedWith</a>.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Same as <a href="DiscreteInterval3D.html#joinedWith-c20">joinedWith</a>.</p>
-              <p>A kind of union between this and that interval. Includes the domain of both this and that plus any gaps that may exist between them. So it is a proper union in the cases where this and that are adjacent, and a bit more than that otherwise.</p>
-             </div>
-             <h2 class="h200">Value parameters</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               that
-              </dt>
-              <dd class="body-medium">
-               <p>the interval to join.</p>
-              </dd>
-             </dl>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Returns
-              </dt>
-              <dd class="body-medium">
-               <p>the smallest interval including both this and that.</p>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="⊆-721">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval3D.html#⊆-721" t="n" class="documentableName ">⊆</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]): <span data-unresolved-link="" t="t">Boolean</span>
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Same as <a href="DiscreteInterval3D.html#isSubsetOf-721">isSubsetOf</a>.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Same as <a href="DiscreteInterval3D.html#isSubsetOf-721">isSubsetOf</a>.</p>
-              <p>Tests if this is a subset (proper or improper) of that.</p>
-             </div>
-             <h2 class="h200">Value parameters</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               that
-              </dt>
-              <dd class="body-medium">
-               <p>the interval to test.</p>
-              </dd>
-             </dl>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Returns
-              </dt>
-              <dd class="body-medium">
-               <p>true if this is a subset of that.</p>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
        </div>
       </section>
       <section id="Inherited-methods">
@@ -1707,6 +1666,159 @@ node7 -> node2;
               </dt>
               <dd class="body-medium">
                <span data-unresolved-link="">Product</span>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="∩-215" data-f-inherited="IntervalLike">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval3D.html#∩-215" t="n" class="documentableName ">∩</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]): <span data-unresolved-link="" t="t">Option</span>[<a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Same as <a href="DimensionalBase$$IntervalLike.html#intersectionWith-215">intersectionWith</a>.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Same as <a href="DimensionalBase$$IntervalLike.html#intersectionWith-215">intersectionWith</a>.</p>
+              <p>Finds the intersection between this and that.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               that
+              </dt>
+              <dd class="body-medium">
+               <p>the interval to intersect.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>some interval representing the intersection if there is one, and none otherwise.</p>
+              </dd>
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="DimensionalBase$$IntervalLike.html#∩-215">IntervalLike</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="∪-1b0" data-f-inherited="IntervalLike">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval3D.html#∪-1b0" t="n" class="documentableName ">∪</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]): <a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Same as <a href="DimensionalBase$$IntervalLike.html#joinedWith-1b0">joinedWith</a>.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Same as <a href="DimensionalBase$$IntervalLike.html#joinedWith-1b0">joinedWith</a>.</p>
+              <p>A kind of union between this and that interval. Includes the domain of both this and that plus any gaps that may exist between them. So it is a proper union in the cases where this and that are adjacent, and a bit more than that otherwise.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               that
+              </dt>
+              <dd class="body-medium">
+               <p>the interval to join.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>the smallest interval including both this and that.</p>
+              </dd>
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="DimensionalBase$$IntervalLike.html#∪-1b0">IntervalLike</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="⊆-fffff688" data-f-inherited="IntervalLike">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval3D.html#⊆-fffff688" t="n" class="documentableName ">⊆</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">T1</span>, <span t="t">T2</span>, <span t="t">T3</span>]): <span data-unresolved-link="" t="t">Boolean</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Same as <a href="DimensionalBase$$IntervalLike.html#isSubsetOf-fffff688">isSubsetOf</a>.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Same as <a href="DimensionalBase$$IntervalLike.html#isSubsetOf-fffff688">isSubsetOf</a>.</p>
+              <p>Tests if this is a subset (proper or improper) of that.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               that
+              </dt>
+              <dd class="body-medium">
+               <p>the interval to test.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>true if this is a subset of that.</p>
+              </dd>
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="DimensionalBase$$IntervalLike.html#⊆-fffff688">IntervalLike</a>
               </dd>
              </dl>
             </div>

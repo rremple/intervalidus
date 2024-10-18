@@ -115,6 +115,62 @@ node6 -> node0;
          <button class="icon-button show-content expand"></button>
          <h4 class="groupHeader h200">Abstract methods</h4>
         </div>
+        <div class="documentableElement" id="after-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DimensionalBase$$IntervalLike.html#after-0" t="n" class="documentableName ">after</a>: <span data-unresolved-link="" t="t">Option</span>[<span t="t">Self</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>If there are intervals after the horizontal, vertical, and depth components, returns the interval after this one in three dimensions, otherwise returns None. Does not include adjacent intervals behind, above, and to the right.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>If there are intervals after the horizontal, vertical, and depth components, returns the interval after this one in three dimensions, otherwise returns None. Does not include adjacent intervals behind, above, and to the right.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="before-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DimensionalBase$$IntervalLike.html#before-0" t="n" class="documentableName ">before</a>: <span data-unresolved-link="" t="t">Option</span>[<span t="t">Self</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>If there are intervals before the horizontal, vertical, and depth components, returns the interval before this one in three dimensions, otherwise returns None. Does not include adjacent intervals in front of, below and to the left.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>If there are intervals before the horizontal, vertical, and depth components, returns the interval before this one in three dimensions, otherwise returns None. Does not include adjacent intervals in front of, below and to the left.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="contains-d69" data-f-keywords="infix">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -159,6 +215,50 @@ node6 -> node0;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="contains-fffff688" data-f-keywords="infix">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">infix </span></span><span class="kind"><span t="k">def </span></span><a href="DimensionalBase$$IntervalLike.html#contains-fffff688" t="n" class="documentableName ">contains</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <span t="t">Self</span>): <span data-unresolved-link="" t="t">Boolean</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Tests if that is a subset (proper or improper) of this.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Tests if that is a subset (proper or improper) of this.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               that
+              </dt>
+              <dd class="body-medium">
+               <p>the interval to test.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>true if that is a subset of this.</p>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="end-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -187,6 +287,286 @@ node6 -> node0;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="equiv-fffff688" data-f-keywords="infix">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">infix </span></span><span class="kind"><span t="k">def </span></span><a href="DimensionalBase$$IntervalLike.html#equiv-fffff688" t="n" class="documentableName ">equiv</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <span t="t">Self</span>): <span data-unresolved-link="" t="t">Boolean</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Test for equivalence by comparing the horizontal and vertical intervals of this and that.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Test for equivalence by comparing the horizontal and vertical intervals of this and that.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               that
+              </dt>
+              <dd class="body-medium">
+               <p>the interval to test.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>true only if this and that have the same start and end.</p>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="hasSameEndAs-fffff688" data-f-keywords="infix">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">infix </span></span><span class="kind"><span t="k">def </span></span><a href="DimensionalBase$$IntervalLike.html#hasSameEndAs-fffff688" t="n" class="documentableName ">hasSameEndAs</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <span t="t">Self</span>): <span data-unresolved-link="" t="t">Boolean</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Returns true only if this and that have the same end.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Returns true only if this and that have the same end.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               that
+              </dt>
+              <dd class="body-medium">
+               <p>the interval to test.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="hasSameStartAs-fffff688" data-f-keywords="infix">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">infix </span></span><span class="kind"><span t="k">def </span></span><a href="DimensionalBase$$IntervalLike.html#hasSameStartAs-fffff688" t="n" class="documentableName ">hasSameStartAs</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <span t="t">Self</span>): <span data-unresolved-link="" t="t">Boolean</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Returns true only if this and that have the same start.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Returns true only if this and that have the same start.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               that
+              </dt>
+              <dd class="body-medium">
+               <p>the interval to test.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="intersectionWith-215" data-f-keywords="infix">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">infix </span></span><span class="kind"><span t="k">def </span></span><a href="DimensionalBase$$IntervalLike.html#intersectionWith-215" t="n" class="documentableName ">intersectionWith</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <span t="t">Self</span>): <span data-unresolved-link="" t="t">Option</span>[<span t="t">Self</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Finds the intersection between this and that.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Finds the intersection between this and that.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               that
+              </dt>
+              <dd class="body-medium">
+               <p>the interval to intersect.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>some interval representing the intersection if there is one, and none otherwise.</p>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="intersects-fffff688" data-f-keywords="infix">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">infix </span></span><span class="kind"><span t="k">def </span></span><a href="DimensionalBase$$IntervalLike.html#intersects-fffff688" t="n" class="documentableName ">intersects</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <span t="t">Self</span>): <span data-unresolved-link="" t="t">Boolean</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Returns true only if this and that have elements of the domain in common (not disjoint).</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Returns true only if this and that have elements of the domain in common (not disjoint).</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               that
+              </dt>
+              <dd class="body-medium">
+               <p>the interval to test.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="isAdjacentTo-fffff688" data-f-keywords="infix">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">infix </span></span><span class="kind"><span t="k">def </span></span><a href="DimensionalBase$$IntervalLike.html#isAdjacentTo-fffff688" t="n" class="documentableName ">isAdjacentTo</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <span t="t">Self</span>): <span data-unresolved-link="" t="t">Boolean</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Returns true only if there is no gap between this and that.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Returns true only if there is no gap between this and that.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               that
+              </dt>
+              <dd class="body-medium">
+               <p>the interval to test for adjacency.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="isSubsetOf-fffff688" data-f-keywords="infix">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">infix </span></span><span class="kind"><span t="k">def </span></span><a href="DimensionalBase$$IntervalLike.html#isSubsetOf-fffff688" t="n" class="documentableName ">isSubsetOf</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <span t="t">Self</span>): <span data-unresolved-link="" t="t">Boolean</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Tests if this is a subset (proper or improper) of that.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Tests if this is a subset (proper or improper) of that.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               that
+              </dt>
+              <dd class="body-medium">
+               <p>the interval to test.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>true if this is a subset of that.</p>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="isUnbounded-0" data-f-keywords="infix">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -210,6 +590,50 @@ node6 -> node0;
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="joinedWith-1b0" data-f-keywords="infix">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">infix </span></span><span class="kind"><span t="k">def </span></span><a href="DimensionalBase$$IntervalLike.html#joinedWith-1b0" t="n" class="documentableName ">joinedWith</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <span t="t">Self</span>): <span t="t">Self</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>A kind of union between this and that interval. Includes the domain of both this and that plus any gaps that may exist between them. So it is a proper union in the cases where this and that are adjacent, and a bit more than that otherwise.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>A kind of union between this and that interval. Includes the domain of both this and that plus any gaps that may exist between them. So it is a proper union in the cases where this and that are adjacent, and a bit more than that otherwise.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               that
+              </dt>
+              <dd class="body-medium">
+               <p>the interval to join.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>the smallest interval including both this and that.</p>
+              </dd>
+             </dl>
             </div>
            </div>
           </div>
@@ -301,9 +725,152 @@ node6 -> node0;
         </div>
        </div>
       </section>
+      <section id="Concrete-methods">
+       <div class="documentableList expand">
+        <div class="documentableList-expander">
+         <button class="icon-button show-content expand"></button>
+         <h4 class="groupHeader h200">Concrete methods</h4>
+        </div>
+        <div class="documentableElement" id="∩-215">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DimensionalBase$$IntervalLike.html#∩-215" t="n" class="documentableName ">∩</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <span t="t">Self</span>): <span data-unresolved-link="" t="t">Option</span>[<span t="t">Self</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Same as <a href="DimensionalBase$$IntervalLike.html#intersectionWith-215">intersectionWith</a>.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Same as <a href="DimensionalBase$$IntervalLike.html#intersectionWith-215">intersectionWith</a>.</p>
+              <p>Finds the intersection between this and that.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               that
+              </dt>
+              <dd class="body-medium">
+               <p>the interval to intersect.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>some interval representing the intersection if there is one, and none otherwise.</p>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="∪-1b0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DimensionalBase$$IntervalLike.html#∪-1b0" t="n" class="documentableName ">∪</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <span t="t">Self</span>): <span t="t">Self</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Same as <a href="DimensionalBase$$IntervalLike.html#joinedWith-1b0">joinedWith</a>.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Same as <a href="DimensionalBase$$IntervalLike.html#joinedWith-1b0">joinedWith</a>.</p>
+              <p>A kind of union between this and that interval. Includes the domain of both this and that plus any gaps that may exist between them. So it is a proper union in the cases where this and that are adjacent, and a bit more than that otherwise.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               that
+              </dt>
+              <dd class="body-medium">
+               <p>the interval to join.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>the smallest interval including both this and that.</p>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="⊆-fffff688">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DimensionalBase$$IntervalLike.html#⊆-fffff688" t="n" class="documentableName ">⊆</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <span t="t">Self</span>): <span data-unresolved-link="" t="t">Boolean</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Same as <a href="DimensionalBase$$IntervalLike.html#isSubsetOf-fffff688">isSubsetOf</a>.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Same as <a href="DimensionalBase$$IntervalLike.html#isSubsetOf-fffff688">isSubsetOf</a>.</p>
+              <p>Tests if this is a subset (proper or improper) of that.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               that
+              </dt>
+              <dd class="body-medium">
+               <p>the interval to test.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>true if this is a subset of that.</p>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+       </div>
+      </section>
      </div>
     </section>
    </div>
   </div>
  </div>
-</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Type parameters</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Value-members">Value members</a><ul><li><a href="#Abstract-methods">Abstract methods</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
+</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Type parameters</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Value-members">Value members</a><ul><li><a href="#Abstract-methods">Abstract methods</a></li><li><a href="#Concrete-methods">Concrete methods</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
