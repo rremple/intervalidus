@@ -178,3 +178,38 @@ object DiscreteValue:
     override lazy val maxValue: BigInteger = BigInteger.valueOf(2).pow(Int.MaxValue - 1).add(BigInteger.valueOf(-1))
 
     override lazy val minValue: BigInteger = maxValue.negate
+
+  /**
+    * Constructs a type class from a non-empty, distinct sequence of values. Useful when representing enums as discrete
+    * values, for example:
+    * {{{
+    *   enum Color:
+    *     case Red, Yellow, Green, Cyan, Blue, Magenta
+    *   given DiscreteValue[Color] = DiscreteValue.fromSeq(Color.values)
+    * }}}
+    *
+    * @param values
+    *   a non-empty, distinct sequence of values
+    * @tparam E
+    *   type for this discrete value
+    * @return
+    *   a new discrete value type class for [[E]]
+    */
+  def fromSeq[E](
+    values: IndexedSeq[E]
+  ): DiscreteValue[E] = new DiscreteValue[E]:
+    require(values.nonEmpty && values == values.distinct, "values must be non-empty and distinct")
+
+    override val minValue: E = values.head
+
+    override val maxValue: E = values.last
+
+    override def predecessorOf(x: E): Option[E] =
+      if x == minValue then None else Some(values(values.indexOf(x) - 1))
+
+    override def successorOf(x: E): Option[E] =
+      if x == maxValue then None else Some(values(values.indexOf(x) + 1))
+
+    override def compare(lhs: E, rhs: E): Int = values.indexOf(lhs).compareTo(values.indexOf(rhs))
+
+    override def orderedHashOf(x: E): Double = values.indexOf(x).toDouble

@@ -1,5 +1,6 @@
 package intervalidus
 
+import org.scalatest.compatible.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 
 import java.time.LocalDate
@@ -57,6 +58,73 @@ class DiscreteValueTest extends AnyFunSuite:
 
     assertResult("Point(3) x Bottom")((point(3) x Bottom).toCodeLikeString)
     assertResult("Point(3) x Bottom x Top")((point(3) x Bottom x Top).toCodeLikeString)
+
+  test("Ops on Enum and Enum Domain"):
+    // Can't be empty
+    assertThrows[IllegalArgumentException]:
+      val _ = DiscreteValue.fromSeq(IndexedSeq())
+
+    // Must be distinct
+    assertThrows[IllegalArgumentException]:
+      val _ = DiscreteValue.fromSeq(IndexedSeq(1, 2, 1))
+
+    enum Color:
+      case Red, Yellow, Green, Cyan, Blue, Magenta
+    given discreteColor: DiscreteValue[Color] = DiscreteValue.fromSeq(Color.values)
+
+    import Color.*
+    import DiscreteDomain1D.*
+
+    def point(v: Color): DiscreteDomain1D[Color] = Point(v)
+
+    def top: DiscreteDomain1D[Color] = Top
+
+    def bottom: DiscreteDomain1D[Color] = Bottom
+
+    // For some reason ScalaTest is intervening here and applying its own comparison and getting the wrong answer.
+    // So we wrap these assertions to prevent its tinkering...
+    def assertCompare(b: => Boolean): Assertion = assert(b)
+
+    assert(Yellow.predecessorValue equiv Some(Red))
+    assert(Red.predecessorValue equiv None)
+    assert(Blue.successorValue equiv Some(Magenta))
+    assert(Magenta.successorValue equiv None)
+    assert(Cyan equiv Cyan)
+    assertCompare(Cyan <= Cyan)
+    assertCompare(Cyan >= Cyan)
+    assertCompare(Red < Blue)
+    assertCompare(Blue > Red)
+
+    assert(point(Cyan).successor equiv point(Blue))
+    assert(point(Cyan).predecessor equiv point(Green))
+    assert(point(discreteColor.maxValue).successor equiv top)
+    assert(point(discreteColor.minValue).predecessor equiv bottom)
+    assert(bottom.predecessor equiv bottom)
+    assert(bottom.successor equiv bottom)
+    assert(top.predecessor equiv top)
+    assert(top.successor equiv top)
+    assert(point(Cyan) equiv point(Cyan))
+
+    assertCompare(point(Cyan) <= point(Cyan))
+    assertCompare(point(Cyan) >= point(Cyan))
+    assertCompare(point(Red) < point(Blue))
+    assertCompare(point(Blue) > point(Red))
+    assertCompare(bottom < point(Blue))
+    assertCompare(point(Blue) < top)
+    assertCompare(bottom < top)
+    assertCompare(bottom <= top)
+    assertCompare(!(bottom > bottom))
+    assertCompare(!(bottom equiv top))
+
+    assertCompare(point(Cyan).orderedHash == point(Cyan).orderedHash)
+    assertCompare(point(Red).orderedHash <= point(Blue).orderedHash)
+    assertCompare(bottom.orderedHash <= point(Blue).orderedHash)
+    assertCompare(point(Blue).orderedHash <= top.orderedHash)
+    assertCompare(bottom.orderedHash <= top.orderedHash)
+    assertCompare(bottom.orderedHash <= top.orderedHash)
+
+    assertResult("Point(Cyan) x Bottom")((point(Cyan) x Bottom).toCodeLikeString)
+    assertResult("Point(Cyan) x Bottom x Top")((point(Cyan) x Bottom x Top).toCodeLikeString)
 
   test("Ops on Longs"):
     import DiscreteValue.LongDiscreteValue
