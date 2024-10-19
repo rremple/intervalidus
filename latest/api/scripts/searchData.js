@@ -664,6 +664,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"intervalidus","t":"intervalidu
 {"l":"intervalidus/DiscreteValue$.html#IntDiscreteValue-0","e":false,"i":"","n":"IntDiscreteValue","t":"IntDiscreteValue: IntDiscreteValue","d":"intervalidus.DiscreteValue","k":"given","x":""},
 {"l":"intervalidus/DiscreteValue$.html#LocalDateDiscreteValue-0","e":false,"i":"","n":"LocalDateDiscreteValue","t":"LocalDateDiscreteValue: LocalDateDiscreteValue","d":"intervalidus.DiscreteValue","k":"given","x":""},
 {"l":"intervalidus/DiscreteValue$.html#LongDiscreteValue-0","e":false,"i":"","n":"LongDiscreteValue","t":"LongDiscreteValue: LongDiscreteValue","d":"intervalidus.DiscreteValue","k":"given","x":""},
+{"l":"intervalidus/DiscreteValue$.html#fromSeq-4b9","e":false,"i":"","n":"fromSeq","t":"fromSeq[E](values: IndexedSeq[E]): DiscreteValue[E]","d":"intervalidus.DiscreteValue","k":"def","x":""},
 {"l":"intervalidus/DiscreteValue$$BigIntegerDiscreteValue$.html#","e":false,"i":"","n":"BigIntegerDiscreteValue","t":"BigIntegerDiscreteValue extends DiscreteValue[BigInteger]","d":"intervalidus.DiscreteValue","k":"object","x":""},
 {"l":"intervalidus/DiscreteValue$$BigIntegerDiscreteValue$.html#maxValue-0","e":false,"i":"","n":"maxValue","t":"maxValue: BigInteger","d":"intervalidus.DiscreteValue.BigIntegerDiscreteValue","k":"val","x":""},
 {"l":"intervalidus/DiscreteValue$$BigIntegerDiscreteValue$.html#minValue-0","e":false,"i":"","n":"minValue","t":"minValue: BigInteger","d":"intervalidus.DiscreteValue.BigIntegerDiscreteValue","k":"val","x":""},
