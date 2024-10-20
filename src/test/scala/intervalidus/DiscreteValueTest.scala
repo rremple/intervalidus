@@ -70,7 +70,7 @@ class DiscreteValueTest extends AnyFunSuite:
 
     enum Color:
       case Red, Yellow, Green, Cyan, Blue, Magenta
-    given discreteColor: DiscreteValue[Color] = DiscreteValue.fromSeq(Color.values)
+    given discreteColor: DiscreteValue[Color] = DiscreteValue.fromSeq(Color.values.toIndexedSeq)
 
     import Color.*
     import DiscreteDomain1D.*

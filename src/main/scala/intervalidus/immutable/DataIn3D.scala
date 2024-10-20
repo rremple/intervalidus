@@ -154,12 +154,6 @@ class DataIn3D[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue] priva
   override def copy: DataIn3D[V, R1, R2, R3] =
     new DataIn3D(dataByStartAsc.clone(), dataByStartDesc.clone(), dataByValue.clone(), dataInSearchTree.copy)
 
-  override def domain: Iterable[DiscreteInterval3D[R1, R2, R3]] =
-    // leverage compression logic by setting all the values as being the same thing
-    val r = mapValues(_ => ())
-    r.recompressInPlace()
-    r.getAll.map(_.interval)
-
   // ---------- Implement methods from DataIn3DBase ----------
 
   override def zip[B](that: DataIn3DBase[B, R1, R2, R3]): DataIn3D[(V, B), R1, R2, R3] = DataIn3D(zipData(that))

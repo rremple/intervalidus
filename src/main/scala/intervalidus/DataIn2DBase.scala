@@ -282,6 +282,9 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
     // recompress
     dataByValue.keySet.foreach(compressInPlace)
 
+  override def domain: Iterable[DiscreteInterval2D[R1, R2]] =
+    DiscreteInterval2D.compress(DiscreteInterval2D.uniqueIntervals(getAll.map(_.interval)).filter(intersects))
+
   /**
     * Constructs a sequence of diff actions that, if applied to the old structure, would synchronize it with this one.
     *

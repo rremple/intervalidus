@@ -347,6 +347,9 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
     // recompress
     dataByValue.keySet.foreach(compressInPlace)
 
+  override def domain: Iterable[DiscreteInterval3D[R1, R2, R3]] =
+    DiscreteInterval3D.compress(DiscreteInterval3D.uniqueIntervals(getAll.map(_.interval)).filter(intersects))
+
   /**
     * Constructs a sequence of diff actions that, if applied to the old structure, would synchronize it with this one.
     *

@@ -2,6 +2,8 @@ package intervalidus
 
 import intervalidus.collection.Box3D
 
+import scala.annotation.tailrec
+import scala.collection.immutable.TreeMap
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 /**
@@ -289,6 +291,54 @@ object DiscreteInterval3D:
     */
   def unbounded[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue]: DiscreteInterval3D[T1, T2, T3] =
     DiscreteInterval1D.unbounded[T1] x DiscreteInterval1D.unbounded[T2] x DiscreteInterval1D.unbounded[T3]
+
+  /**
+    * Compresses a collection of intervals by joining all adjacent and intersecting intervals.
+    *
+    * @param intervals
+    *   a collection of intervals.
+    * @tparam T1
+    *   a discrete value type for this interval's horizontal domain.
+    * @tparam T2
+    *   a discrete value type for this interval's vertical domain.
+    * @tparam T3
+    *   a discrete value type for this interval's depth domain.
+    * @return
+    *   a new (possibly smaller) collection of intervals covering the same domain as the input.
+    */
+  def compress[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue](
+    intervals: Iterable[DiscreteInterval3D[T1, T2, T3]]
+  ): Iterable[DiscreteInterval3D[T1, T2, T3]] =
+    /*
+     * Each mutation gives rise to other compression possibilities. And applying a compression action
+     * can invalidate the remainder of the actions (e.g., three-in-a-row). Unlike in one dimension, there
+     * is no safe order to fold over to avoid these issues. So, instead, we evaluate every entry with every
+     * other entry, get the first compression action, apply it, and recurse until there aren't anymore actions to apply.
+     */
+    @tailrec
+    def compressRecursively(
+      intervalByStart: TreeMap[DiscreteDomain3D[T1, T2, T3], DiscreteInterval3D[T1, T2, T3]]
+    ): Iterable[DiscreteInterval3D[T1, T2, T3]] =
+      val maybeUpdate = intervalByStart.values
+        .map: r =>
+          def rightKey = r.start.copy(horizontalIndex = r.horizontal.end.successor)
+          def upperKey = r.start.copy(verticalIndex = r.vertical.end.successor)
+          def frontKey = r.start.copy(depthIndex = r.depth.end.successor)
+          def rightAdjacent = intervalByStart.get(rightKey).filter(_ isRightAdjacentTo r)
+          def upperAdjacent = intervalByStart.get(upperKey).filter(_ isUpperAdjacentTo r)
+          def frontAdjacent = intervalByStart.get(frontKey).filter(_ isFrontAdjacentTo r)
+          rightAdjacent // preferred
+            .orElse(upperAdjacent) // next preferred
+            .orElse(frontAdjacent)
+            .map: s =>
+              () => intervalByStart.removed(s.start).updated(r.start, r ∪ s)
+        .collectFirst:
+          case Some(updated) => updated
+      maybeUpdate match
+        case None         => intervalByStart.values // done
+        case Some(update) => compressRecursively(update())
+
+    compressRecursively(TreeMap.from(intervals.map(i => i.start -> i)))
 
   /**
     * Returns an interval that starts and ends at the same value.

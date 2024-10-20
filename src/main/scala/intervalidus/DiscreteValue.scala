@@ -193,7 +193,7 @@ object DiscreteValue:
     * @tparam E
     *   type for this discrete value
     * @return
-    *   a new discrete value type class for [[E]]
+    *   a new discrete value type class for `E`
     */
   def fromSeq[E](
     values: IndexedSeq[E]

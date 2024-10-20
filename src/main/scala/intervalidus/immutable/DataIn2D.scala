@@ -153,12 +153,6 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue] private (
   override def copy: DataIn2D[V, R1, R2] =
     new DataIn2D(dataByStartAsc.clone(), dataByStartDesc.clone(), dataByValue.clone(), dataInSearchTree.copy)
 
-  override def domain: Iterable[DiscreteInterval2D[R1, R2]] =
-    // leverage compression logic by setting all the values as being the same thing
-    val r = mapValues(_ => ())
-    r.recompressInPlace()
-    r.getAll.map(_.interval)
-
   // ---------- Implement methods from DataIn2DBase ----------
 
   override def zip[B](that: DataIn2DBase[B, R1, R2]): DataIn2D[(V, B), R1, R2] = DataIn2D(zipData(that))
