@@ -112,9 +112,11 @@ trait DataIn2DVersionedBase[V, R1: DiscreteValue, R2: DiscreteValue](
     DiscreteDomain2D[R1, R2],
     DiscreteInterval2D[R1, R2],
     ValidData2D[V, R1, R2],
+    DiffAction2D[V, R1, R2],
     DiscreteDomain3D[R1, R2, Int],
     DiscreteInterval3D[R1, R2, Int],
     ValidData3D[V, R1, R2, Int],
+    DiffAction3D[V, R1, R2, Int],
     DataIn2DVersionedBase[V, R1, R2]
   ]:
 

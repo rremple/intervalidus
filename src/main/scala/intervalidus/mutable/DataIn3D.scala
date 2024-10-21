@@ -54,6 +54,7 @@ class DataIn3D[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue] priva
     DiscreteDomain3D[R1, R2, R3],
     DiscreteInterval3D[R1, R2, R3],
     ValidData3D[V, R1, R2, R3],
+    DiffAction3D[V, R1, R2, R3],
     DataIn3D[V, R1, R2, R3]
   ]:
 
@@ -61,30 +62,20 @@ class DataIn3D[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue] priva
 
   override def toMutable: DataIn3D[V, R1, R2, R3] = this
 
-  /**
-    * Applies a sequence of diff actions to this structure.
-    *
-    * @param diffActions
-    *   actions to be applied.
-    */
-  def applyDiffActions(diffActions: Iterable[DiffAction3D[V, R1, R2, R3]]): Unit = synchronized:
+  // ---------- Implement methods from DimensionalBase ----------
+
+  override def copy: DataIn3D[V, R1, R2, R3] =
+    new DataIn3D(dataByStartAsc.clone(), dataByStartDesc.clone(), dataByValue.clone(), dataInSearchTree.copy)
+
+  // ---------- Implement methods from MutableBase ----------
+
+  override def applyDiffActions(diffActions: Iterable[DiffAction3D[V, R1, R2, R3]]): Unit = synchronized:
     diffActions.foreach:
       case DiffAction3D.Create(data) => addValidData(data)
       case DiffAction3D.Update(data) => updateValidData(data)
       case DiffAction3D.Delete(key)  => removeValidDataByKey(key)
 
-  /**
-    * Synchronizes this with another structure by getting and applying the applicable diff actions.
-    *
-    * @param that
-    *   the structure with which this will be synchronized.
-    */
-  def syncWith(that: DataIn3D[V, R1, R2, R3]): Unit = applyDiffActions(that.diffActionsFrom(this))
-
-  // ---------- Implement methods from DimensionalBase ----------
-
-  override def copy: DataIn3D[V, R1, R2, R3] =
-    new DataIn3D(dataByStartAsc.clone(), dataByStartDesc.clone(), dataByValue.clone(), dataInSearchTree.copy)
+  override def syncWith(that: DataIn3D[V, R1, R2, R3]): Unit = applyDiffActions(that.diffActionsFrom(this))
 
   // ---------- Implement methods from DataIn3DBase ----------
 

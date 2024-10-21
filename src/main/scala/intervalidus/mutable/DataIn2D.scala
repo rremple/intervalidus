@@ -54,6 +54,7 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue] private (
     DiscreteDomain2D[R1, R2],
     DiscreteInterval2D[R1, R2],
     ValidData2D[V, R1, R2],
+    DiffAction2D[V, R1, R2],
     DataIn2D[V, R1, R2]
   ]:
 
@@ -61,30 +62,20 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue] private (
 
   override def toMutable: DataIn2D[V, R1, R2] = this
 
-  /**
-    * Applies a sequence of diff actions to this structure.
-    *
-    * @param diffActions
-    *   actions to be applied.
-    */
-  def applyDiffActions(diffActions: Iterable[DiffAction2D[V, R1, R2]]): Unit = synchronized:
+  // ---------- Implement methods from DimensionalBase ----------
+
+  override def copy: DataIn2D[V, R1, R2] =
+    new DataIn2D(dataByStartAsc.clone(), dataByStartDesc.clone(), dataByValue.clone(), dataInSearchTree.copy)
+
+  // ---------- Implement methods from MutableBase ----------
+
+  override def applyDiffActions(diffActions: Iterable[DiffAction2D[V, R1, R2]]): Unit = synchronized:
     diffActions.foreach:
       case DiffAction2D.Create(data) => addValidData(data)
       case DiffAction2D.Update(data) => updateValidData(data)
       case DiffAction2D.Delete(key)  => removeValidDataByKey(key)
 
-  /**
-    * Synchronizes this with another structure by getting and applying the applicable diff actions.
-    *
-    * @param that
-    *   the structure with which this will be synchronized.
-    */
-  def syncWith(that: DataIn2D[V, R1, R2]): Unit = applyDiffActions(that.diffActionsFrom(this))
-
-  // ---------- Implement methods from DimensionalBase ----------
-
-  override def copy: DataIn2D[V, R1, R2] =
-    new DataIn2D(dataByStartAsc.clone(), dataByStartDesc.clone(), dataByValue.clone(), dataInSearchTree.copy)
+  override def syncWith(that: DataIn2D[V, R1, R2]): Unit = applyDiffActions(that.diffActionsFrom(this))
 
   // ---------- Implement methods from DataIn2DBase ----------
 

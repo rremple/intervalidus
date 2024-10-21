@@ -282,7 +282,30 @@ object DimensionalBase:
 
     override def isDefinedAt(d: D): Boolean = interval contains d
 
-import DimensionalBase.{DataLike, DomainLike, IntervalLike}
+  /**
+    * Create/update/delete actions (like CQRS mutation commands). Used when extrapolating or applying event source-style
+    * information. Note that this is not an event-sourced data structure, and history of mutations are not maintained.
+    *
+    * @tparam V
+    *   the type of the value managed as data (the codomain).
+    * @tparam D
+    *   the type of discrete domain used in the discrete interval assigned to each value (the domain).
+    * @tparam I
+    *   the type of discrete interval in which the value is valid.
+    * @tparam ValidData
+    *   the valid data type. Must be `DataLike` based on V, D, and I.
+    * @tparam Self
+    *   F-bounded self type.
+    */
+  trait DiffActionLike[
+    V,
+    D <: DomainLike[D],
+    I <: IntervalLike[D, I],
+    ValidData <: DataLike[V, D, I, ValidData],
+    Self <: DiffActionLike[V, D, I, ValidData, Self]
+  ]
+
+import DimensionalBase.{DataLike, DiffActionLike, DomainLike, IntervalLike}
 
 /**
   * Base for all dimensional data, both mutable and immutable, both 1D and 2D.
@@ -303,7 +326,8 @@ trait DimensionalBase[
   D <: DomainLike[D]: Ordering,
   I <: IntervalLike[D, I],
   ValidData <: DataLike[V, D, I, ValidData],
-  Self <: DimensionalBase[V, D, I, ValidData, Self]
+  DiffAction <: DiffActionLike[V, D, I, ValidData, DiffAction],
+  Self <: DimensionalBase[V, D, I, ValidData, DiffAction, Self]
 ](using
   experimental: Experimental
 ) extends PartialFunction[D, V]:

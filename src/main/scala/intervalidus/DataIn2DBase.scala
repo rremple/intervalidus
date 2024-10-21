@@ -121,6 +121,7 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
     DiscreteDomain2D[R1, R2],
     DiscreteInterval2D[R1, R2],
     ValidData2D[V, R1, R2],
+    DiffAction2D[V, R1, R2],
     DataIn2DBase[V, R1, R2]
   ]:
 

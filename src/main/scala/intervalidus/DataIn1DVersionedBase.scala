@@ -104,9 +104,11 @@ trait DataIn1DVersionedBase[V, R: DiscreteValue](
     DiscreteDomain1D[R],
     DiscreteInterval1D[R],
     ValidData1D[V, R],
+    DiffAction1D[V, R],
     DiscreteDomain2D[R, Int],
     DiscreteInterval2D[R, Int],
     ValidData2D[V, R, Int],
+    DiffAction2D[V, R, Int],
     DataIn1DVersionedBase[V, R]
   ]:
 

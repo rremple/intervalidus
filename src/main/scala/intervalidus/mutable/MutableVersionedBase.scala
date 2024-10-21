@@ -1,6 +1,6 @@
 package intervalidus.mutable
 
-import intervalidus.DimensionalBase.{DataLike, DomainLike, IntervalLike}
+import intervalidus.DimensionalBase.{DataLike, DiffActionLike, DomainLike, IntervalLike}
 import intervalidus.DimensionalVersionedBase
 import intervalidus.DimensionalVersionedBase.{VersionDomain, VersionSelection}
 
@@ -33,11 +33,13 @@ trait MutableVersionedBase[
   D <: DomainLike[D],
   I <: IntervalLike[D, I],
   ValidData <: DataLike[V, D, I, ValidData],
+  DiffAction <: DiffActionLike[V, D, I, ValidData, DiffAction],
   D2 <: DomainLike[D2]: Ordering,
   I2 <: IntervalLike[D2, I2],
   ValidData2 <: DataLike[V, D2, I2, ValidData2],
-  Self <: MutableVersionedBase[V, D, I, ValidData, D2, I2, ValidData2, Self]
-] extends DimensionalVersionedBase[V, D, I, ValidData, D2, I2, ValidData2, _]:
+  DiffAction2 <: DiffActionLike[V, D2, I2, ValidData2, DiffAction2],
+  Self <: MutableVersionedBase[V, D, I, ValidData, DiffAction, D2, I2, ValidData2, DiffAction2, Self]
+] extends DimensionalVersionedBase[V, D, I, ValidData, DiffAction, D2, I2, ValidData2, DiffAction2, _]:
 
   // ---------- To be implemented by inheritor ----------
 
@@ -83,6 +85,24 @@ trait MutableVersionedBase[
     *   interval in which all changes (updates and deletes) are approved
     */
   def approveAll(interval: I): Unit
+
+  /**
+    * Applies a sequence of diff actions to this structure. Does not use a version selection context -- operates on full
+    * underlying structure.
+    *
+    * @param diffActions
+    *   actions to be applied.
+    */
+  def applyDiffActions(diffActions: Iterable[DiffAction2]): Unit
+
+  /**
+    * Synchronizes this with another structure by getting and applying the applicable diff actions. Does not use a
+    * version selection context -- operates on full underlying structure.
+    *
+    * @param that
+    *   the structure with which this will be synchronized.
+    */
+  def syncWith(that: Self): Unit
 
   /**
     * Compress out adjacent intervals with the same value. Does not use a version selection context -- operates on full

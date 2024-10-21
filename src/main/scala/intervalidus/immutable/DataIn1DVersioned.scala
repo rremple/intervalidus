@@ -67,9 +67,11 @@ class DataIn1DVersioned[V, R: DiscreteValue](
     DiscreteDomain1D[R],
     DiscreteInterval1D[R],
     ValidData1D[V, R],
+    DiffAction1D[V, R],
     DiscreteDomain2D[R, Int],
     DiscreteInterval2D[R, Int],
     ValidData2D[V, R, Int],
+    DiffAction2D[V, R, Int],
     DataIn1DVersioned[V, R]
   ]:
 
@@ -152,6 +154,12 @@ class DataIn1DVersioned[V, R: DiscreteValue](
     Some(currentVersion)
   )
 
+  override def applyDiffActions(diffActions: Iterable[DiffAction2D[V, R, Int]]): DataIn1DVersioned[V, R] =
+    copyAndModify(_.underlying.applyDiffActions(diffActions))
+
+  override def syncWith(that: DataIn1DVersioned[V, R]): DataIn1DVersioned[V, R] =
+    applyDiffActions(that.diffActionsFrom(this))
+
   // ---------- Implement methods from DataIn1DVersionedBase ----------
 
   override def zip[B](that: DataIn1DVersionedBase[B, R]): DataIn1DVersioned[(V, B), R] =
@@ -169,26 +177,6 @@ class DataIn1DVersioned[V, R: DiscreteValue](
     )
 
   // --- API methods unique to this "versioned" variant
-
-  /**
-    * Applies a sequence of 2D diff actions to this structure. Does not use a version selection context -- operates on
-    * full underlying 2D structure.
-    *
-    * @param diffActions
-    *   actions to be applied.
-    */
-  def applyDiffActions(diffActions: Iterable[DiffAction2D[V, R, Int]]): DataIn1DVersioned[V, R] =
-    copyAndModify(_.underlying.applyDiffActions(diffActions))
-
-  /**
-    * Synchronizes this with another structure by getting and applying the applicable diff actions. Does not use a
-    * version selection context -- operates on full underlying 2D structure.
-    *
-    * @param that
-    *   the structure with which this will be synchronized.
-    */
-  def syncWith(that: DataIn1DVersioned[V, R]): DataIn1DVersioned[V, R] =
-    applyDiffActions(that.diffActionsFrom(this))
 
   /**
     * Applies a function to all valid data. Both the valid data value and interval types can be changed in the mapping.

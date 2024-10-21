@@ -1,7 +1,7 @@
 package intervalidus.immutable
 
 import intervalidus.DimensionalBase
-import intervalidus.DimensionalBase.{DataLike, DomainLike, IntervalLike}
+import intervalidus.DimensionalBase.{DataLike, DiffActionLike, DomainLike, IntervalLike}
 
 /**
   * Base for all immutable dimensional data.
@@ -22,8 +22,9 @@ trait ImmutableBase[
   D <: DomainLike[D],
   I <: IntervalLike[D, I],
   ValidData <: DataLike[V, D, I, ValidData],
-  Self <: ImmutableBase[V, D, I, ValidData, Self]
-] extends DimensionalBase[V, D, I, ValidData, _]:
+  DiffAction <: DiffActionLike[V, D, I, ValidData, DiffAction],
+  Self <: ImmutableBase[V, D, I, ValidData, DiffAction, Self]
+] extends DimensionalBase[V, D, I, ValidData, DiffAction, _]:
   // Unlike MutableBase, we have to extend DimensionalBase here rather than reference it as the self type because
   // the results of copyAndModify operations need access to protected methods in that trait
 
@@ -41,6 +42,22 @@ trait ImmutableBase[
     * structures to see if they are logically equivalent even if, physically, they differ in how they are compressed.
     */
   def recompressAll(): Self = copyAndModify(_.recompressInPlace())
+
+  /**
+    * Applies a sequence of diff actions to this structure.
+    *
+    * @param diffActions
+    *   actions to be applied.
+    */
+  def applyDiffActions(diffActions: Iterable[DiffAction]): Self
+
+  /**
+    * Synchronizes this with another structure by getting and applying the applicable diff actions.
+    *
+    * @param that
+    *   the structure with which this will be synchronized.
+    */
+  def syncWith(that: Self): Self
 
   // ---------- Implement methods from DimensionalBase ----------
 

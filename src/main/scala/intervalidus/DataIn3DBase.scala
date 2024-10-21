@@ -146,6 +146,7 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
     DiscreteDomain3D[R1, R2, R3],
     DiscreteInterval3D[R1, R2, R3],
     ValidData3D[V, R1, R2, R3],
+    DiffAction3D[V, R1, R2, R3],
     DataIn3DBase[V, R1, R2, R3]
   ]:
 

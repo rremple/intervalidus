@@ -1,5 +1,7 @@
 package intervalidus
 
+import intervalidus.DimensionalBase.DiffActionLike
+
 import scala.language.implicitConversions
 
 /**
@@ -67,10 +69,12 @@ trait DimensionalVersionedBase[
   D <: DomainLike[D]: Ordering,
   I <: IntervalLike[D, I],
   ValidData <: DataLike[V, D, I, ValidData],
+  DiffAction <: DiffActionLike[V, D, I, ValidData, DiffAction],
   D2 <: DomainLike[D2]: Ordering,
   I2 <: IntervalLike[D2, I2],
   ValidData2 <: DataLike[V, D2, I2, ValidData2],
-  Self <: DimensionalVersionedBase[V, D, I, ValidData, D2, I2, ValidData2, Self]
+  DiffAction2 <: DiffActionLike[V, D2, I2, ValidData2, DiffAction2],
+  Self <: DimensionalVersionedBase[V, D, I, ValidData, DiffAction, D2, I2, ValidData2, DiffAction2, Self]
 ](using
   Experimental
 ) extends PartialFunction[D2, V]:
@@ -79,19 +83,35 @@ trait DimensionalVersionedBase[
 
   // ---------- To be implemented by inheritor ----------
 
-  type PublicSelf <: DimensionalBase[V, D, I, ValidData, PublicSelf]
-  type UnderlyingMutable <: mutable.MutableBase[V, D2, I2, ValidData2, UnderlyingMutable] with DimensionalBase[
+  type PublicSelf <: DimensionalBase[V, D, I, ValidData, DiffAction, PublicSelf]
+  type UnderlyingMutable <: mutable.MutableBase[
     V,
     D2,
     I2,
     ValidData2,
+    DiffAction2,
+    UnderlyingMutable
+  ] with DimensionalBase[
+    V,
+    D2,
+    I2,
+    ValidData2,
+    DiffAction2,
     _
   ]
-  type UnderlyingImmutable <: immutable.ImmutableBase[V, D2, I2, ValidData2, UnderlyingImmutable] with DimensionalBase[
+  type UnderlyingImmutable <: immutable.ImmutableBase[
     V,
     D2,
     I2,
     ValidData2,
+    DiffAction2,
+    UnderlyingImmutable
+  ] with DimensionalBase[
+    V,
+    D2,
+    I2,
+    ValidData2,
+    DiffAction2,
     _
   ]
 
@@ -131,12 +151,12 @@ trait DimensionalVersionedBase[
   /**
     * Returns this as a mutable structure.
     */
-  def toMutable: Self // TODO? with mutable.MutableBase[V, D, I, ValidData, _]
+  def toMutable: Self
 
   /**
     * Returns this as an immutable structure.
     */
-  def toImmutable: Self // TODO? with immutable.ImmutableBase[V, D, I, ValidData, _]
+  def toImmutable: Self
 
   /**
     * Returns the current version
@@ -157,7 +177,7 @@ trait DimensionalVersionedBase[
     */
   def getSelectedDataMutable(using
     versionSelection: VersionSelection
-  ): PublicSelf with mutable.MutableBase[V, D, I, ValidData, _]
+  ): PublicSelf with mutable.MutableBase[V, D, I, ValidData, DiffAction, _]
 
   /**
     * Based on the given version selection context, gets all the data (compressed, immutable).
@@ -169,7 +189,7 @@ trait DimensionalVersionedBase[
     */
   def getSelectedData(using
     versionSelection: VersionSelection
-  ): PublicSelf with immutable.ImmutableBase[V, D, I, ValidData, _]
+  ): PublicSelf with immutable.ImmutableBase[V, D, I, ValidData, DiffAction, _]
 
   // ---------- Implement methods not similar to those in DimensionalBase ----------
 

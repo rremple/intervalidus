@@ -99,7 +99,14 @@ trait DataIn1DBaseObject:
   */
 // Base for all 1D data, both mutable and immutable
 trait DataIn1DBase[V, R: DiscreteValue](using experimental: Experimental)
-  extends DimensionalBase[V, DiscreteDomain1D[R], DiscreteInterval1D[R], ValidData1D[V, R], DataIn1DBase[V, R]]:
+  extends DimensionalBase[
+    V,
+    DiscreteDomain1D[R],
+    DiscreteInterval1D[R],
+    ValidData1D[V, R],
+    DiffAction1D[V, R],
+    DataIn1DBase[V, R]
+  ]:
 
   def dataInSearchTree: BoxBtree[ValidData1D[V, R]]
 

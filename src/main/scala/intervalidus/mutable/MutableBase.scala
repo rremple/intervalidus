@@ -1,7 +1,7 @@
 package intervalidus.mutable
 
 import intervalidus.DimensionalBase
-import intervalidus.DimensionalBase.{DataLike, DomainLike, IntervalLike}
+import intervalidus.DimensionalBase.{DataLike, DiffActionLike, DomainLike, IntervalLike}
 
 /**
   * Base for all mutable dimensional data.
@@ -22,7 +22,8 @@ trait MutableBase[
   D <: DomainLike[D],
   I <: IntervalLike[D, I],
   ValidData <: DataLike[V, D, I, ValidData],
-  Self <: MutableBase[V, D, I, ValidData, Self] with DimensionalBase[V, D, I, ValidData, _]
+  DiffAction <: DiffActionLike[V, D, I, ValidData, DiffAction],
+  Self <: MutableBase[V, D, I, ValidData, DiffAction, Self] with DimensionalBase[V, D, I, ValidData, DiffAction, _]
 ]:
   self: Self =>
 
@@ -137,6 +138,22 @@ trait MutableBase[
     */
   def recompressAll(): Unit = synchronized:
     recompressInPlace()
+
+  /**
+    * Applies a sequence of diff actions to this structure.
+    *
+    * @param diffActions
+    *   actions to be applied.
+    */
+  def applyDiffActions(diffActions: Iterable[DiffAction]): Unit
+
+  /**
+    * Synchronizes this with another structure by getting and applying the applicable diff actions.
+    *
+    * @param that
+    *   the structure with which this will be synchronized.
+    */
+  def syncWith(that: Self): Unit
 
   /**
     * Applies a function to all valid data. Data are mutated in place.
