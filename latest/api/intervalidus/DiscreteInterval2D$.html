@@ -157,6 +157,119 @@ node3 -> node2;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="compressGeneric-fffffeae">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval2D$.html#compressGeneric-fffffeae" t="n" class="documentableName ">compressGeneric</a>[<span t="k"></span><span data-unresolved-link="" t="t">C</span>, <span t="k"></span><span data-unresolved-link="" t="t">S</span>, <span t="k"></span><span data-unresolved-link="" t="t">D</span>, <span t="k"></span><span data-unresolved-link="" t="t">R</span>, <span t="k"></span><span data-unresolved-link="" t="t">T1</span> : <a href="DiscreteValue.html" t="t">DiscreteValue</a>, <span t="k"></span><span data-unresolved-link="" t="t">T2</span> : <a href="DiscreteValue.html" t="t">DiscreteValue</a>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">initialState</span>: <span t="t">S</span>, <span t="k"></span><span data-unresolved-link="" t="n">result</span>: <span t="t">S</span><span t="k"> =&gt; </span><span t="t">R</span>, <span t="k"></span><span data-unresolved-link="" t="n">dataIterable</span>: <span t="t">S</span><span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Iterable</span>[<span t="t">D</span>], <span t="k"></span><span data-unresolved-link="" t="n">interval</span>: <span t="t">D</span><span t="k"> =&gt; </span><a href="DiscreteInterval2D.html" t="t">DiscreteInterval2D</a>[<span t="t">T1</span>, <span t="t">T2</span>], <span t="k"></span><span data-unresolved-link="" t="n">valueMatch</span>: (<span t="t">D</span>, <span t="t">D</span>)<span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">lookup</span>: (<span t="t">S</span>, <a href="DiscreteDomain2D.html" t="t">DiscreteDomain2D</a>[<span t="t">T1</span>, <span t="t">T2</span>])<span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Option</span>[<span t="t">D</span>], <span t="k"></span><span data-unresolved-link="" t="n">compressAdjacent</span>: (<span t="t">D</span>, <span t="t">D</span>, <span t="t">S</span>)<span t="k"> =&gt; </span><span t="t">S</span>): <span data-unresolved-link="" t="t">R</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Generic compression algorithm used by both <code>compress</code> and <code>Data3DBase.compressInPlace</code>.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Generic compression algorithm used by both <code>compress</code> and <code>Data3DBase.compressInPlace</code>.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               D
+              </dt>
+              <dd class="body-medium">
+               <p>the data type</p>
+              </dd>
+              <dt class="body-small">
+               R
+              </dt>
+              <dd class="body-medium">
+               <p>the result type</p>
+              </dd>
+              <dt class="body-small">
+               S
+              </dt>
+              <dd class="body-medium">
+               <p>the state type</p>
+              </dd>
+              <dt class="body-small">
+               T1
+              </dt>
+              <dd class="body-medium">
+               <p>a discrete value type for this interval's horizontal domain.</p>
+              </dd>
+              <dt class="body-small">
+               T2
+              </dt>
+              <dd class="body-medium">
+               <p>a discrete value type for this interval's vertical domain.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               compressAdjacent
+              </dt>
+              <dd class="body-medium">
+               <p>based on the current state, applies a compression action to two adjacent data elements resulting in a new state</p>
+              </dd>
+              <dt class="body-small">
+               dataIterable
+              </dt>
+              <dd class="body-medium">
+               <p>based on current state, extracts the data iterable</p>
+              </dd>
+              <dt class="body-small">
+               initialState
+              </dt>
+              <dd class="body-medium">
+               <p>initial state</p>
+              </dd>
+              <dt class="body-small">
+               interval
+              </dt>
+              <dd class="body-medium">
+               <p>extracts the interval from the data</p>
+              </dd>
+              <dt class="body-small">
+               lookup
+              </dt>
+              <dd class="body-medium">
+               <p>based on the current state, looks up data in by domain</p>
+              </dd>
+              <dt class="body-small">
+               result
+              </dt>
+              <dd class="body-medium">
+               <p>extracts the result from the final state</p>
+              </dd>
+              <dt class="body-small">
+               valueMatch
+              </dt>
+              <dd class="body-medium">
+               <p>checks if the values of two data elements match</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>a result extracted from the final state</p>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="intervalAt-fffffd03">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
