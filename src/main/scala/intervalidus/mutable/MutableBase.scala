@@ -138,6 +138,15 @@ trait MutableBase[
   def recompressAll(): Unit = synchronized:
     recompressInPlace()
 
+
+  /**
+    * Synchronizes this with another structure by getting and applying the applicable diff actions.
+    *
+    * @param that
+    *   the structure with which this will be synchronized.
+    */
+  def syncWith(that: Self): Unit
+
   /**
     * Applies a function to all valid data. Data are mutated in place.
     *

@@ -60,18 +60,14 @@ class DataIn1D[V, R: DiscreteValue] private (
       case DiffAction1D.Update(data) => updateValidData(data)
       case DiffAction1D.Delete(key)  => removeValidDataByKey(key)
 
-  /**
-    * Synchronizes this with another structure by getting and applying the applicable diff actions.
-    *
-    * @param that
-    *   the structure with which this will be synchronized.
-    */
-  def syncWith(that: DataIn1D[V, R]): Unit = applyDiffActions(that.diffActionsFrom(this))
-
   // ---------- Implement methods from DimensionalBase ----------
 
   override def copy: DataIn1D[V, R] =
     new DataIn1D(dataByStartAsc.clone(), dataByStartDesc.clone(), dataByValue.clone(), dataInSearchTree.copy)
+
+  // ---------- Implement methods from MutableBase ----------
+
+  override def syncWith(that: DataIn1D[V, R]): Unit = applyDiffActions(that.diffActionsFrom(this))
 
   // ---------- Implement methods from Dimensional1DBase ----------
 

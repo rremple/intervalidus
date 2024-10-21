@@ -79,14 +79,6 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue] private (
       case DiffAction2D.Delete(key)  => result.removeValidDataByKey(key)
 
   /**
-    * Synchronizes this with another structure by getting and applying the applicable diff actions.
-    *
-    * @param that
-    *   the structure with which this will be synchronized.
-    */
-  def syncWith(that: DataIn2D[V, R1, R2]): DataIn2D[V, R1, R2] = applyDiffActions(that.diffActionsFrom(this))
-
-  /**
     * Applies a function to all valid data. Both the valid data value and interval types can be changed in the mapping.
     *
     * @param f
@@ -152,6 +144,10 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue] private (
 
   override def copy: DataIn2D[V, R1, R2] =
     new DataIn2D(dataByStartAsc.clone(), dataByStartDesc.clone(), dataByValue.clone(), dataInSearchTree.copy)
+
+  // ---------- Implement methods from ImmutableBase ----------
+
+  override def syncWith(that: DataIn2D[V, R1, R2]): DataIn2D[V, R1, R2] = applyDiffActions(that.diffActionsFrom(this))
 
   // ---------- Implement methods from DataIn2DBase ----------
 

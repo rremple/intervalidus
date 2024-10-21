@@ -155,6 +155,9 @@ class DataIn2DVersioned[V, R1: DiscreteValue, R2: DiscreteValue](
     Some(currentVersion)
   )
 
+  override def syncWith(that: DataIn2DVersioned[V, R1, R2]): DataIn2DVersioned[V, R1, R2] =
+    applyDiffActions(that.diffActionsFrom(this))
+
   // ---------- Implement methods from DataIn2DVersionedBase ----------
 
   override def zip[B](that: DataIn2DVersionedBase[B, R1, R2]): DataIn2DVersioned[(V, B), R1, R2] =
@@ -186,16 +189,6 @@ class DataIn2DVersioned[V, R1: DiscreteValue, R2: DiscreteValue](
     */
   def applyDiffActions(diffActions: Iterable[DiffAction3D[V, R1, R2, Int]]): DataIn2DVersioned[V, R1, R2] =
     copyAndModify(_.underlying.applyDiffActions(diffActions))
-
-  /**
-    * Synchronizes this with another structure by getting and applying the applicable diff actions. Does not use a
-    * version selection context -- operates on full underlying 3D structure.
-    *
-    * @param that
-    *   the structure with which this will be synchronized.
-    */
-  def syncWith(that: DataIn2DVersioned[V, R1, R2]): DataIn2DVersioned[V, R1, R2] =
-    applyDiffActions(that.diffActionsFrom(this))
 
   /**
     * Applies a function to all valid data. Both the valid data value and interval types can be changed in the mapping.

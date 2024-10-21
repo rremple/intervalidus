@@ -117,6 +117,15 @@ trait ImmutableVersionedBase[
   def filter(p: ValidData2 => Boolean): Self
 
   /**
+    * Synchronizes this with another structure by getting and applying the applicable diff actions. Does not use a
+    * version selection context -- operates on full underlying structure.
+    *
+    * @param that
+    * the structure with which this will be synchronized.
+    */
+  def syncWith(that: Self): Self
+
+  /**
     * Compress out adjacent intervals with the same value
     *
     * @param value

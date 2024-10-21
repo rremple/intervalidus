@@ -129,6 +129,8 @@ class DataIn1DVersioned[V, R: DiscreteValue](
       .flatMap(publicValidData(_).interval intersectionWith interval)
       .foreach(remove(_)(using VersionSelection.Current))
 
+  override def syncWith(that: DataIn1DVersioned[V, R]): Unit = applyDiffActions(that.diffActionsFrom(this))
+
   // ---------- Implement methods from DataIn1DVersionedBase ----------
 
   override def zip[B](that: DataIn1DVersionedBase[B, R]): DataIn1DVersioned[(V, B), R] =
@@ -159,12 +161,3 @@ class DataIn1DVersioned[V, R: DiscreteValue](
     */
   def applyDiffActions(diffActions: Iterable[DiffAction2D[V, R, Int]]): Unit =
     underlying.applyDiffActions(diffActions)
-
-  /**
-    * Synchronizes this with another structure by getting and applying the applicable diff actions. Does not use a
-    * version selection context -- operates on full underlying 2D structure.
-    *
-    * @param that
-    *   the structure with which this will be synchronized.
-    */
-  def syncWith(that: DataIn1DVersioned[V, R]): Unit = applyDiffActions(that.diffActionsFrom(this))
