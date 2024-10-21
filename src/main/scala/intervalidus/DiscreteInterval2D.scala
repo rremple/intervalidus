@@ -224,6 +224,74 @@ object DiscreteInterval2D:
     DiscreteInterval1D.unbounded[T1] x DiscreteInterval1D.unbounded[T2]
 
   /**
+    * Generic compression algorithm used by both `compress` and `Data3DBase.compressInPlace`.
+    *
+    * @param initialState
+    *   initial state
+    * @param result
+    *   extracts the result from the final state
+    * @param dataIterable
+    *   based on current state, extracts the data iterable
+    * @param interval
+    *   extracts the interval from the data
+    * @param valueMatch
+    *   checks if the values of two data elements match
+    * @param lookup
+    *   based on the current state, looks up data by domain
+    * @param compressAdjacent
+    *   based on the current state, applies a compression action to two adjacent data elements resulting in a new state
+    * @tparam S
+    *   the state type
+    * @tparam D
+    *   the data type
+    * @tparam R
+    *   the result type
+    * @tparam T1
+    *   a discrete value type for this interval's horizontal domain.
+    * @tparam T2
+    *   a discrete value type for this interval's vertical domain.
+    * @return
+    *   a result extracted from the final state
+    */
+  def compressGeneric[C, S, D, R, T1: DiscreteValue, T2: DiscreteValue](
+    initialState: S,
+    result: S => R,
+    dataIterable: S => Iterable[D],
+    interval: D => DiscreteInterval2D[T1, T2],
+    valueMatch: (D, D) => Boolean,
+    lookup: (S, DiscreteDomain2D[T1, T2]) => Option[D],
+    compressAdjacent: (D, D, S) => S
+  ): R =
+    /*
+     * Each mutation gives rise to other compression possibilities. And applying a compression action
+     * can invalidate the remainder of the actions (e.g., three-in-a-row). Unlike in one dimension, there
+     * is no safe order to fold over to avoid these issues. So, instead, we evaluate every entry with every
+     * other entry, get the first compression action, apply it, and recurse until there aren't anymore actions to apply.
+     */
+    @tailrec
+    def compressRecursively(state: S): R =
+      val maybeUpdate = dataIterable(state)
+        .map: r =>
+          val key = interval(r).start
+          def rightKey = key.copy(horizontalIndex = interval(r).horizontal.end.successor)
+          def upperKey = key.copy(verticalIndex = interval(r).vertical.end.successor)
+          def rightAdjacent =
+            lookup(state, rightKey).filter(s => valueMatch(r, s) && (interval(s) isRightAdjacentTo interval(r)))
+          def upperAdjacent =
+            lookup(state, upperKey).filter(s => valueMatch(r, s) && (interval(s) isUpperAdjacentTo interval(r)))
+          rightAdjacent // preferred
+            .orElse(upperAdjacent) // next preferred
+            .map: s =>
+              () => compressAdjacent(r, s, state)
+        .collectFirst:
+          case Some(updated) => updated
+      maybeUpdate match
+        case None              => result(state) // done
+        case Some(updateState) => compressRecursively(updateState())
+
+    compressRecursively(initialState)
+
+  /**
     * Compresses a collection of intervals by joining all adjacent and intersecting intervals.
     *
     * @param intervals
@@ -237,34 +305,15 @@ object DiscreteInterval2D:
     */
   def compress[T1: DiscreteValue, T2: DiscreteValue](
     intervals: Iterable[DiscreteInterval2D[T1, T2]]
-  ): Iterable[DiscreteInterval2D[T1, T2]] =
-    /*
-     * Each mutation gives rise to other compression possibilities. And applying a compression action can invalidate
-     * the remainder of the actions (e.g., three-in-a-row). Unlike in one dimension, there is no safe order to fold
-     * over to avoid these issues. So, instead, we evaluate every entry with every other entry, get the first
-     * compression action, apply it, and recurse until there aren't anymore actions to apply.
-     */
-    @tailrec
-    def compressRecursively(
-      intervalByStart: TreeMap[DiscreteDomain2D[T1, T2], DiscreteInterval2D[T1, T2]]
-    ): Iterable[DiscreteInterval2D[T1, T2]] =
-      val maybeUpdate = intervalByStart.values
-        .map: r =>
-          def rightKey = r.start.copy(horizontalIndex = r.horizontal.end.successor)
-          def upperKey = r.start.copy(verticalIndex = r.vertical.end.successor)
-          def rightAdjacent = intervalByStart.get(rightKey).filter(_ isRightAdjacentTo r)
-          def upperAdjacent = intervalByStart.get(upperKey).filter(_ isUpperAdjacentTo r)
-          rightAdjacent // preferred
-            .orElse(upperAdjacent)
-            .map: s =>
-              () => intervalByStart.removed(s.start).updated(r.start, r ∪ s)
-        .collectFirst:
-          case Some(updated) => updated
-      maybeUpdate match
-        case None         => intervalByStart.values // done
-        case Some(update) => compressRecursively(update())
-
-    compressRecursively(TreeMap.from(intervals.map(i => i.start -> i)))
+  ): Iterable[DiscreteInterval2D[T1, T2]] = compressGeneric(
+    initialState = TreeMap.from(intervals.map(i => i.start -> i)), // intervals by start
+    result = _.values,
+    dataIterable = _.values,
+    interval = identity, // data are just intervals
+    valueMatch = (_, _) => true, // no value to match
+    lookup = _.get(_),
+    compressAdjacent = (r, s, state) => state.removed(s.start).updated(r.start, r ∪ s)
+  )
 
   /**
     * Returns an interval that starts and ends at the same value.

@@ -234,42 +234,18 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
     dataToSortBy = _.interval.vertical.end
   )
 
-  override protected def compressInPlace(value: V): Unit =
-    /*
-     * Each mutation gives rise to other compression possibilities. And applying a compression action can invalidate
-     * the remainder of the actions (e.g., three-in-a-row). Unlike in one dimension, there is no safe order to fold
-     * over to avoid these issues. So, instead, we evaluate every entry with every other entry, get the first
-     * compression action, apply it, and recurse until there aren't anymore actions to apply.
-     */
-    @tailrec
-    def compressRecursively(): Unit =
-      val firstActions = dataByValue
-        .get(value)
-        .map: r =>
-          def rightKey = r.key.copy(horizontalIndex = r.interval.horizontal.end.successor)
-          def upperKey = r.key.copy(verticalIndex = r.interval.vertical.end.successor)
-          def rightAdjacent = dataByStartAsc
-            .get(rightKey)
-            .filter(s => s.value == value && (s.interval isRightAdjacentTo r.interval))
-          def upperAdjacent = dataByStartAsc
-            .get(upperKey)
-            .filter(s => s.value == value && (s.interval isUpperAdjacentTo r.interval))
-          rightAdjacent // preferred
-            .orElse(upperAdjacent)
-            .map: s =>
-              Seq(
-                () => removeValidData(s),
-                () => updateValidData(r.interval ∪ s.interval -> value)
-              )
-        .collectFirst:
-          case Some(actions) => actions
-      firstActions match
-        case None => ()
-        case Some(actions) =>
-          actions.foreach(_.apply())
-          compressRecursively()
-
-    compressRecursively()
+  override protected def compressInPlace(value: V): Unit = DiscreteInterval2D.compressGeneric(
+    initialState = (), // no state -- updates applied in place
+    result = identity, // no result -- updates applied in place
+    dataIterable = _ => dataByValue.get(value),
+    interval = _.interval,
+    valueMatch = _.value == _.value,
+    lookup = (_, start) => dataByStartAsc.get(start),
+    compressAdjacent = (r, s, intervalByStart) => {
+      removeValidData(s)
+      updateValidData(r.interval ∪ s.interval -> value)
+    }
+  )
 
   override protected def recompressInPlace(): Unit = synchronized:
     // decompress
