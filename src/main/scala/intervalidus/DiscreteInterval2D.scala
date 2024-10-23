@@ -22,7 +22,7 @@ import scala.math.Ordering.Implicits.infixOrderingOps
 case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
   horizontal: DiscreteInterval1D[T1],
   vertical: DiscreteInterval1D[T2]
-) extends DimensionalBase.IntervalLike[DiscreteDomain2D[T1, T2], DiscreteInterval2D[T1, T2]]:
+) extends DiscreteIntervalLike[DiscreteDomain2D[T1, T2], DiscreteInterval2D[T1, T2]]:
 
   def asBox: Box2D = Box2D(start.asCoordinate, end.asCoordinate)
 

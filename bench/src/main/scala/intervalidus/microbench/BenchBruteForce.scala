@@ -1,7 +1,6 @@
 package intervalidus.microbench
 
 import intervalidus.*
-import intervalidus.DimensionalBase.{DataLike, DomainLike, IntervalLike}
 import org.openjdk.jmh.annotations.*
 
 import java.util.concurrent.TimeUnit
@@ -67,10 +66,11 @@ object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature
     value = 1
   )
   abstract class GenericMutableBench[
-    D <: DomainLike[D],
-    I <: IntervalLike[D, I],
-    ValidData <: DataLike[String, D, I, ValidData],
-    DimData <: mutable.MutableBase[String, D, I, ValidData, DimData] & DimensionalBase[String, D, I, ValidData, _]
+    D <: DiscreteDomainLike[D],
+    I <: DiscreteIntervalLike[D, I],
+    ValidData <: ValidDataLike[String, D, I, ValidData],
+    DiffAction <: DiffActionLike[String, D, I, ValidData, DiffAction],
+    DimData <: mutable.MutableBase[String, D, I, ValidData, DiffAction, DimData] & DimensionalBase[String, D, I, ValidData, DiffAction, _]
   ](
     intervalRange: Int,
     data: Vector[ValidData],
@@ -111,6 +111,7 @@ object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature
       DiscreteDomain1D[Int],
       DiscreteInterval1D[Int],
       ValidData1D[String, Int],
+      DiffAction1D[String, Int],
       mutable.DataIn1D[String, Int]
     ](intervalRange, data, baselineData, featuredData, randDomain1d, randInterval1d, randValue1d, randValue1dWithKey):
 
@@ -125,7 +126,8 @@ object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature
   ) extends GenericMutableBench[
       DiscreteDomain2D[Int, Int],
       DiscreteInterval2D[Int, Int],
-      ValidData2D[String, Int, Int],
+      ValidData2D[String, Int, Int], 
+      DiffAction2D[String, Int, Int],
       mutable.DataIn2D[String, Int, Int]
     ](intervalRange, data, baselineData, featuredData, randDomain2d, randInterval2d, randValue2d, randValue2dWithKey):
 
@@ -142,6 +144,7 @@ object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature
       DiscreteDomain3D[Int, Int, Int],
       DiscreteInterval3D[Int, Int, Int],
       ValidData3D[String, Int, Int, Int],
+      DiffAction3D[String, Int, Int, Int],
       mutable.DataIn3D[String, Int, Int, Int]
     ](intervalRange, data, baselineData, featuredData, randDomain3d, randInterval3d, randValue3d, randValue3dWithKey):
 
@@ -161,10 +164,11 @@ object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature
     value = 1
   )
   abstract class GenericImmutableBench[
-    D <: DomainLike[D],
-    I <: IntervalLike[D, I],
-    ValidData <: DataLike[String, D, I, ValidData],
-    DimData <: immutable.ImmutableBase[String, D, I, ValidData, DimData]
+    D <: DiscreteDomainLike[D],
+    I <: DiscreteIntervalLike[D, I],
+    ValidData <: ValidDataLike[String, D, I, ValidData],
+    DiffAction <: DiffActionLike[String, D, I, ValidData, DiffAction], 
+    DimData <: immutable.ImmutableBase[String, D, I, ValidData, DiffAction, DimData]
   ](
     intervalRange: Int,
     data: Vector[ValidData],
@@ -204,7 +208,8 @@ object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature
   ) extends GenericImmutableBench[
       DiscreteDomain1D[Int],
       DiscreteInterval1D[Int],
-      ValidData1D[String, Int],
+      ValidData1D[String, Int], 
+      DiffAction1D[String, Int],
       immutable.DataIn1D[String, Int]
     ](intervalRange, data, baselineData, featuredData, randDomain1d, randInterval1d, randValue1d, randValue1dWithKey):
 
@@ -220,6 +225,7 @@ object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature
       DiscreteDomain2D[Int, Int],
       DiscreteInterval2D[Int, Int],
       ValidData2D[String, Int, Int],
+      DiffAction2D[String, Int, Int],
       immutable.DataIn2D[String, Int, Int]
     ](intervalRange, data, baselineData, featuredData, randDomain2d, randInterval2d, randValue2d, randValue2dWithKey):
 
@@ -236,6 +242,7 @@ object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature
       DiscreteDomain3D[Int, Int, Int],
       DiscreteInterval3D[Int, Int, Int],
       ValidData3D[String, Int, Int, Int],
+      DiffAction3D[String, Int, Int, Int],
       immutable.DataIn3D[String, Int, Int, Int]
     ](intervalRange, data, baselineData, featuredData, randDomain3d, randInterval3d, randValue3d, randValue3dWithKey):
 

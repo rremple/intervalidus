@@ -22,7 +22,7 @@ import scala.math.Ordering.Implicits.infixOrderingOps
 case class DiscreteInterval1D[T: DiscreteValue](
   start: DiscreteDomain1D[T],
   end: DiscreteDomain1D[T]
-) extends DimensionalBase.IntervalLike[DiscreteDomain1D[T], DiscreteInterval1D[T]]:
+) extends DiscreteIntervalLike[DiscreteDomain1D[T], DiscreteInterval1D[T]]:
   require(start <= end, s"Interval $this invalid")
 
   def asBox: Box1D = Box1D(start.asCoordinate, end.asCoordinate)

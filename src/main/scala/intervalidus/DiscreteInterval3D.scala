@@ -25,7 +25,7 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
   horizontal: DiscreteInterval1D[T1],
   vertical: DiscreteInterval1D[T2],
   depth: DiscreteInterval1D[T3]
-) extends DimensionalBase.IntervalLike[DiscreteDomain3D[T1, T2, T3], DiscreteInterval3D[T1, T2, T3]]:
+) extends DiscreteIntervalLike[DiscreteDomain3D[T1, T2, T3], DiscreteInterval3D[T1, T2, T3]]:
 
   def asBox: Box3D = Box3D(start.asCoordinate, end.asCoordinate)
 

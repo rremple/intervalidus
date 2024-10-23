@@ -22,7 +22,7 @@ import intervalidus.collection.BoxedPayload3D
 case class ValidData3D[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](
   value: V,
   interval: DiscreteInterval3D[R1, R2, R3]
-) extends DimensionalBase.DataLike[
+) extends ValidDataLike[
     V,
     DiscreteDomain3D[R1, R2, R3],
     DiscreteInterval3D[R1, R2, R3],

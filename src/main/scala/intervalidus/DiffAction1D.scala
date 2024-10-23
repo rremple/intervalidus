@@ -10,7 +10,7 @@ package intervalidus
   *   the type of discrete value used in the discrete interval assigned to each value.
   */
 enum DiffAction1D[V, R]
-  extends DimensionalBase.DiffActionLike[
+  extends DiffActionLike[
     V,
     DiscreteDomain1D[R],
     DiscreteInterval1D[R],

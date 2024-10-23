@@ -15,7 +15,7 @@ import scala.language.implicitConversions
   * @tparam T
   *   expected to be a discrete value (i.e., `DiscreteValue[T]` should be given).
   */
-enum DiscreteDomain1D[+T] extends DimensionalBase.DomainLike[DiscreteDomain1D[T]]:
+enum DiscreteDomain1D[+T] extends DiscreteDomainLike[DiscreteDomain1D[T]]:
   /**
     * Smaller than smallest data point (like -∞)
     */

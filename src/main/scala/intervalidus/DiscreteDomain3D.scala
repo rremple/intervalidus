@@ -24,7 +24,7 @@ case class DiscreteDomain3D[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteVa
   horizontalIndex: DiscreteDomain1D[T1],
   verticalIndex: DiscreteDomain1D[T2],
   depthIndex: DiscreteDomain1D[T3]
-) extends DimensionalBase.DomainLike[DiscreteDomain3D[T1, T2, T3]]:
+) extends DiscreteDomainLike[DiscreteDomain3D[T1, T2, T3]]:
   def asCoordinate: Coordinate3D =
     Coordinate3D(horizontalIndex.orderedHash, verticalIndex.orderedHash, depthIndex.orderedHash)
 

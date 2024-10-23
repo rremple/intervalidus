@@ -19,7 +19,7 @@ import scala.language.implicitConversions
 case class DiscreteDomain2D[T1: DiscreteValue, T2: DiscreteValue](
   horizontalIndex: DiscreteDomain1D[T1],
   verticalIndex: DiscreteDomain1D[T2]
-) extends DimensionalBase.DomainLike[DiscreteDomain2D[T1, T2]]:
+) extends DiscreteDomainLike[DiscreteDomain2D[T1, T2]]:
   def asCoordinate: Coordinate2D =
     Coordinate2D(horizontalIndex.orderedHash, verticalIndex.orderedHash)
 

@@ -1,8 +1,7 @@
 package intervalidus.immutable
 
-import intervalidus.DimensionalVersionedBase
+import intervalidus.*
 import intervalidus.DimensionalVersionedBase.{VersionDomain, VersionSelection}
-import intervalidus.DimensionalBase.{DataLike, DiffActionLike, DomainLike, IntervalLike}
 
 /**
   * Base for all immutable dimensional data.
@@ -28,13 +27,13 @@ import intervalidus.DimensionalBase.{DataLike, DiffActionLike, DomainLike, Inter
   */
 trait ImmutableVersionedBase[
   V,
-  D <: DomainLike[D],
-  I <: IntervalLike[D, I],
-  ValidData <: DataLike[V, D, I, ValidData],
+  D <: DiscreteDomainLike[D],
+  I <: DiscreteIntervalLike[D, I],
+  ValidData <: ValidDataLike[V, D, I, ValidData],
   DiffAction <: DiffActionLike[V, D, I, ValidData, DiffAction],
-  D2 <: DomainLike[D2]: Ordering,
-  I2 <: IntervalLike[D2, I2],
-  ValidData2 <: DataLike[V, D2, I2, ValidData2],
+  D2 <: DiscreteDomainLike[D2]: Ordering,
+  I2 <: DiscreteIntervalLike[D2, I2],
+  ValidData2 <: ValidDataLike[V, D2, I2, ValidData2],
   DiffAction2 <: DiffActionLike[V, D2, I2, ValidData2, DiffAction2],
   Self <: ImmutableVersionedBase[V, D, I, ValidData, DiffAction, D2, I2, ValidData2, DiffAction2, Self]
 ] extends DimensionalVersionedBase[V, D, I, ValidData, DiffAction, D2, I2, ValidData2, DiffAction2, _]:

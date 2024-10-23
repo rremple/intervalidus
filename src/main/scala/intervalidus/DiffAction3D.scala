@@ -14,7 +14,7 @@ package intervalidus
   *   the type of discrete value used in the depth interval assigned to each value.
   */
 enum DiffAction3D[V, R1, R2, R3]
-  extends DimensionalBase.DiffActionLike[
+  extends DiffActionLike[
     V,
     DiscreteDomain3D[R1, R2, R3],
     DiscreteInterval3D[R1, R2, R3],

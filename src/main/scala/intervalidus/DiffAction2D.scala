@@ -12,7 +12,7 @@ package intervalidus
   *   the type of discrete value used in the vertical interval assigned to each value.
   */
 enum DiffAction2D[V, R1, R2]
-  extends DimensionalBase.DiffActionLike[
+  extends DiffActionLike[
     V,
     DiscreteDomain2D[R1, R2],
     DiscreteInterval2D[R1, R2],

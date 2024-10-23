@@ -4,7 +4,6 @@ import intervalidus.DiscreteInterval1D.{interval, intervalAt, unbounded}
 import intervalidus.collection.*
 import intervalidus.collection.mutable.{BoxQuadtree, MultiMapSorted}
 
-import scala.annotation.tailrec
 import scala.collection.mutable
 
 /**

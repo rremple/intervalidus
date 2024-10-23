@@ -18,7 +18,7 @@ import intervalidus.collection.BoxedPayload1D
 case class ValidData1D[V, R: DiscreteValue](
   value: V,
   interval: DiscreteInterval1D[R]
-) extends DimensionalBase.DataLike[V, DiscreteDomain1D[R], DiscreteInterval1D[R], ValidData1D[V, R]]:
+) extends ValidDataLike[V, DiscreteDomain1D[R], DiscreteInterval1D[R], ValidData1D[V, R]]:
   def asBoxedPayload: BoxedPayload1D[ValidData1D[V, R]] =
     BoxedPayload1D(interval.asBox, this)
 

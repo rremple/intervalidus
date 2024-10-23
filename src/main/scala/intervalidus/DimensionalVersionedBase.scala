@@ -1,7 +1,5 @@
 package intervalidus
 
-import intervalidus.DimensionalBase.DiffActionLike
-
 import scala.language.implicitConversions
 
 /**
@@ -39,8 +37,6 @@ object DimensionalVersionedBase:
       */
     def apply(version: VersionDomain): VersionSelection = VersionSelection.Specific(version)
 
-import DimensionalBase.{DataLike, DomainLike, IntervalLike}
-
 /**
   * Base for all versioned dimensional data, both mutable and immutable, both 1D and 2D (with underlying data in both 2D
   * and 3D).
@@ -66,13 +62,13 @@ import DimensionalBase.{DataLike, DomainLike, IntervalLike}
   */
 trait DimensionalVersionedBase[
   V,
-  D <: DomainLike[D]: Ordering,
-  I <: IntervalLike[D, I],
-  ValidData <: DataLike[V, D, I, ValidData],
+  D <: DiscreteDomainLike[D]: Ordering,
+  I <: DiscreteIntervalLike[D, I],
+  ValidData <: ValidDataLike[V, D, I, ValidData],
   DiffAction <: DiffActionLike[V, D, I, ValidData, DiffAction],
-  D2 <: DomainLike[D2]: Ordering,
-  I2 <: IntervalLike[D2, I2],
-  ValidData2 <: DataLike[V, D2, I2, ValidData2],
+  D2 <: DiscreteDomainLike[D2]: Ordering,
+  I2 <: DiscreteIntervalLike[D2, I2],
+  ValidData2 <: ValidDataLike[V, D2, I2, ValidData2],
   DiffAction2 <: DiffActionLike[V, D2, I2, ValidData2, DiffAction2],
   Self <: DimensionalVersionedBase[V, D, I, ValidData, DiffAction, D2, I2, ValidData2, DiffAction2, Self]
 ](using
