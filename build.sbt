@@ -9,7 +9,7 @@ def commonSettings = Seq(
   libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.19" % Test
 )
 
-lazy val root = (project in file("."))
+lazy val core = project
   .enablePlugins(GhpagesPlugin, SiteScaladocPlugin)
   .settings(commonSettings)
   .settings(
@@ -19,7 +19,7 @@ lazy val root = (project in file("."))
   )
 
 lazy val `intervalidus-weepickle` = (project in file("json/weepickle"))
-  .dependsOn(root)
+  .dependsOn(core)
   .settings(commonSettings)
   .settings(
     name := "intervalidus-weepickle",
@@ -27,7 +27,7 @@ lazy val `intervalidus-weepickle` = (project in file("json/weepickle"))
   )
 
 lazy val `intervalidus-upickle` = (project in file("json/upickle"))
-  .dependsOn(root)
+  .dependsOn(core)
   .settings(commonSettings)
   .settings(
     name := "intervalidus-upickle",
@@ -36,7 +36,7 @@ lazy val `intervalidus-upickle` = (project in file("json/upickle"))
 
 lazy val bench = project
   .enablePlugins(JmhPlugin)
-  .dependsOn(root)
+  .dependsOn(core)
   .settings(
     publish / skip := true,
     Compile / packageDoc / publishArtifact := false,

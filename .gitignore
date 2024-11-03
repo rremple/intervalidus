@@ -3,4 +3,4 @@
 target/
 project/project/target/
 project/target/
-src/test/scala/intervalidus/Main.scala
+core/src/test/scala/intervalidus/Main.scala

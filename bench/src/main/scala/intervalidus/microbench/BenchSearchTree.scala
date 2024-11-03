@@ -27,7 +27,8 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
     I <: DiscreteIntervalLike[D, I],
     ValidData <: ValidDataLike[String, D, I, ValidData],
     DiffAction <: DiffActionLike[String, D, I, ValidData, DiffAction],
-    DimData <: mutable.MutableBase[String, D, I, ValidData, DiffAction, DimData] & DimensionalBase[String, D, I, ValidData, DiffAction, _]
+    DimData <: mutable.MutableBase[String, D, I, ValidData, DiffAction, DimData] &
+      DimensionalBase[String, D, I, ValidData, DiffAction, _]
   ](
     intervalRange: Int,
     data: Vector[ValidData],
@@ -227,7 +228,7 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
     D <: DiscreteDomainLike[D],
     I <: DiscreteIntervalLike[D, I],
     ValidData <: ValidDataLike[String, D, I, ValidData],
-    DiffAction <: DiffActionLike[String, D, I, ValidData, DiffAction], 
+    DiffAction <: DiffActionLike[String, D, I, ValidData, DiffAction],
     DimData <: immutable.ImmutableBase[String, D, I, ValidData, DiffAction, DimData]
   ](
     intervalRange: Int,

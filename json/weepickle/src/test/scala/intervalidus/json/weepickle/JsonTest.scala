@@ -249,7 +249,7 @@ class JsonTest extends AnyFunSuite with Matchers:
         ""","vertical":{"start":"Bottom","end":{"point":0}}""" +
         ""","depth":{"start":"Bottom","end":"Top"}""" +
         "}}" +
-      """,{"value":"Goodbye"""" +
+        """,{"value":"Goodbye"""" +
         ""","interval":{"horizontal":{"start":{"point":1},"end":"Top"}""" +
         ""","vertical":{"start":{"point":1},"end":"Top"}""" +
         ""","depth":{"start":"Bottom","end":{"point":0}}""" +

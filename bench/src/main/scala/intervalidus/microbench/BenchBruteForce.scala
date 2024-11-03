@@ -70,7 +70,8 @@ object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature
     I <: DiscreteIntervalLike[D, I],
     ValidData <: ValidDataLike[String, D, I, ValidData],
     DiffAction <: DiffActionLike[String, D, I, ValidData, DiffAction],
-    DimData <: mutable.MutableBase[String, D, I, ValidData, DiffAction, DimData] & DimensionalBase[String, D, I, ValidData, DiffAction, _]
+    DimData <: mutable.MutableBase[String, D, I, ValidData, DiffAction, DimData] &
+      DimensionalBase[String, D, I, ValidData, DiffAction, _]
   ](
     intervalRange: Int,
     data: Vector[ValidData],
@@ -126,7 +127,7 @@ object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature
   ) extends GenericMutableBench[
       DiscreteDomain2D[Int, Int],
       DiscreteInterval2D[Int, Int],
-      ValidData2D[String, Int, Int], 
+      ValidData2D[String, Int, Int],
       DiffAction2D[String, Int, Int],
       mutable.DataIn2D[String, Int, Int]
     ](intervalRange, data, baselineData, featuredData, randDomain2d, randInterval2d, randValue2d, randValue2dWithKey):
@@ -167,7 +168,7 @@ object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature
     D <: DiscreteDomainLike[D],
     I <: DiscreteIntervalLike[D, I],
     ValidData <: ValidDataLike[String, D, I, ValidData],
-    DiffAction <: DiffActionLike[String, D, I, ValidData, DiffAction], 
+    DiffAction <: DiffActionLike[String, D, I, ValidData, DiffAction],
     DimData <: immutable.ImmutableBase[String, D, I, ValidData, DiffAction, DimData]
   ](
     intervalRange: Int,
@@ -208,7 +209,7 @@ object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature
   ) extends GenericImmutableBench[
       DiscreteDomain1D[Int],
       DiscreteInterval1D[Int],
-      ValidData1D[String, Int], 
+      ValidData1D[String, Int],
       DiffAction1D[String, Int],
       immutable.DataIn1D[String, Int]
     ](intervalRange, data, baselineData, featuredData, randDomain1d, randInterval1d, randValue1d, randValue1dWithKey):

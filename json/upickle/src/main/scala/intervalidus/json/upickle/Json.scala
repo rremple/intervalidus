@@ -33,7 +33,6 @@ object Json:
         }
       )
 
-
   given [T1: DiscreteValue, T2: DiscreteValue](using
     ReadWriter[DiscreteDomain1D[T1]],
     ReadWriter[DiscreteDomain1D[T2]]
