@@ -179,6 +179,16 @@ trait DimensionalBase[
     */
   def toImmutable: Self
 
+  /**
+    * Constructs a sequence of diff actions that, if applied to the old structure, would synchronize it with this one.
+    *
+    * @param old
+    *   the old structure from which we are comparing.
+    * @return
+    *   a sequence of diff actions that would synchronize it with this.
+    */
+  def diffActionsFrom(old: Self): Iterable[DiffAction]
+
   // ---------- Implemented here based on the above ----------
 
   /**

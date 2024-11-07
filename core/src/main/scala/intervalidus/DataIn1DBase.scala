@@ -108,7 +108,7 @@ trait DataIn1DBase[V, R: DiscreteValue](using experimental: Experimental)
     DataIn1DBase[V, R]
   ]:
 
-  def dataInSearchTree: BoxBtree[ValidData1D[V, R]]
+  protected def dataInSearchTree: BoxBtree[ValidData1D[V, R]]
 
   experimental.control("requireDisjoint")(
     nonExperimentalResult = (),
@@ -202,15 +202,9 @@ trait DataIn1DBase[V, R: DiscreteValue](using experimental: Experimental)
     // no decompressing to do in 1D
     dataByValue.keySet.foreach(compressInPlace)
 
-  /**
-    * Constructs a sequence of diff actions that, if applied to the old structure, would synchronize it with this one.
-    *
-    * @param old
-    *   the old structure from which we are comparing.
-    * @return
-    *   a sequence of diff actions that would synchronize it with this.
-    */
-  def diffActionsFrom(old: DataIn1DBase[V, R]): Iterable[DiffAction1D[V, R]] =
+  // ---------- Implement methods from DimensionalBase ----------
+
+  override def diffActionsFrom(old: DataIn1DBase[V, R]): Iterable[DiffAction1D[V, R]] =
     (dataByStartAsc.keys.toSet ++ old.dataByStartAsc.keys).toList.sorted.flatMap: key =>
       (old.dataByStartAsc.get(key), dataByStartAsc.get(key)) match
         case (Some(oldData), Some(newData)) if oldData != newData => Some(DiffAction1D.Update(newData))
@@ -218,7 +212,7 @@ trait DataIn1DBase[V, R: DiscreteValue](using experimental: Experimental)
         case (Some(oldData), None)                                => Some(DiffAction1D.Delete(oldData.key))
         case _                                                    => None
 
-  // ---------- Implement methods from DimensionalBase ----------
+  override def domain: Iterable[DiscreteInterval1D[R]] = DiscreteInterval1D.compress(getAll.map(_.interval))
 
   override protected def dataInSearchTreeAdd(data: ValidData1D[V, R]): Unit =
     dataInSearchTree.addOne(data.asBoxedPayload)
@@ -254,7 +248,7 @@ trait DataIn1DBase[V, R: DiscreteValue](using experimental: Experimental)
     * @param newValueOption
     *   when defined, the value to be stored as part of an update
     */
-  protected override def updateOrRemove(
+  override protected def updateOrRemove(
     targetInterval: DiscreteInterval1D[R],
     newValueOption: Option[V]
   ): Unit = synchronized:
@@ -290,5 +284,3 @@ trait DataIn1DBase[V, R: DiscreteValue](using experimental: Experimental)
           addValidData(rightRemaining -> overlap.value)
 
     newValueOption.foreach(compressInPlace)
-
-  override def domain: Iterable[DiscreteInterval1D[R]] = DiscreteInterval1D.compress(getAll.map(_.interval))

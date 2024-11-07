@@ -150,7 +150,7 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
     DataIn3DBase[V, R1, R2, R3]
   ]:
 
-  def dataInSearchTree: BoxOctree[ValidData3D[V, R1, R2, R3]]
+  protected def dataInSearchTree: BoxOctree[ValidData3D[V, R1, R2, R3]]
 
   experimental.control("requireDisjoint")(
     nonExperimentalResult = (),
@@ -194,6 +194,45 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
             case (Some(v), None)    => Some((v, thatElem))
             case (None, Some(b))    => Some((thisElem, b))
           valuePair.map(subInterval -> _)
+
+  protected def getByHorizontalIndexData(
+    horizontalIndex: DiscreteDomain1D[R1]
+  ): Iterable[ValidData2D[V, R2, R3]] =
+    val candidates = experimental.control("noSearchTree")(
+      experimentalResult = getAll,
+      nonExperimentalResult = dataInSearchTreeGet(
+        DiscreteInterval1D.intervalAt(horizontalIndex) x unbounded[R2] x unbounded[R3]
+      )
+    )
+    candidates.collect:
+      case ValidData3D(value, interval) if horizontalIndex ∈ interval.horizontal =>
+        (interval.vertical x interval.depth) -> value
+
+  protected def getByVerticalIndexData(
+    verticalIndex: DiscreteDomain1D[R2]
+  ): Iterable[ValidData2D[V, R1, R3]] =
+    val candidates = experimental.control("noSearchTree")(
+      experimentalResult = getAll,
+      nonExperimentalResult = dataInSearchTreeGet(
+        unbounded[R1] x DiscreteInterval1D.intervalAt(verticalIndex) x unbounded[R3]
+      )
+    )
+    candidates.collect:
+      case ValidData3D(value, interval) if verticalIndex ∈ interval.vertical =>
+        (interval.horizontal x interval.depth) -> value
+
+  protected def getByDepthIndexData(
+    depthIndex: DiscreteDomain1D[R3]
+  ): Iterable[ValidData2D[V, R1, R2]] =
+    val candidates = experimental.control("noSearchTree")(
+      experimentalResult = getAll,
+      nonExperimentalResult = dataInSearchTreeGet(
+        unbounded[R1] x unbounded[R2] x DiscreteInterval1D.intervalAt(depthIndex)
+      )
+    )
+    candidates.collect:
+      case ValidData3D(value, interval) if depthIndex ∈ interval.depth =>
+        (interval.horizontal x interval.vertical) -> value
 
   /**
     * Returns a new structure formed from this structure and another structure by combining the corresponding elements
@@ -285,6 +324,19 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
     dataToSortBy = _.interval.vertical.end
   )
 
+  // ---------- Implement methods from DimensionalBase ----------
+
+  override def domain: Iterable[DiscreteInterval3D[R1, R2, R3]] =
+    DiscreteInterval3D.compress(DiscreteInterval3D.uniqueIntervals(getAll.map(_.interval)).filter(intersects))
+
+  override def diffActionsFrom(old: DataIn3DBase[V, R1, R2, R3]): Iterable[DiffAction3D[V, R1, R2, R3]] =
+    (dataByStartAsc.keys.toSet ++ old.dataByStartAsc.keys).toList.sorted.flatMap: key =>
+      (old.dataByStartAsc.get(key), dataByStartAsc.get(key)) match
+        case (Some(oldData), Some(newData)) if oldData != newData => Some(DiffAction3D.Update(newData))
+        case (None, Some(newData))                                => Some(DiffAction3D.Create(newData))
+        case (Some(oldData), None)                                => Some(DiffAction3D.Delete(oldData.key))
+        case _                                                    => None
+
   override protected def compressInPlace(value: V): Unit = DiscreteInterval3D.compressGeneric(
     initialState = (), // no state -- updates applied in place
     result = identity, // no result -- updates applied in place
@@ -308,66 +360,6 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
 
     // recompress
     dataByValue.keySet.foreach(compressInPlace)
-
-  override def domain: Iterable[DiscreteInterval3D[R1, R2, R3]] =
-    DiscreteInterval3D.compress(DiscreteInterval3D.uniqueIntervals(getAll.map(_.interval)).filter(intersects))
-
-  /**
-    * Constructs a sequence of diff actions that, if applied to the old structure, would synchronize it with this one.
-    *
-    * @param old
-    *   the old structure from which we are comparing.
-    * @return
-    *   a sequence of diff actions that would synchronize it with this.
-    */
-  def diffActionsFrom(old: DataIn3DBase[V, R1, R2, R3]): Iterable[DiffAction3D[V, R1, R2, R3]] =
-    (dataByStartAsc.keys.toSet ++ old.dataByStartAsc.keys).toList.sorted.flatMap: key =>
-      (old.dataByStartAsc.get(key), dataByStartAsc.get(key)) match
-        case (Some(oldData), Some(newData)) if oldData != newData => Some(DiffAction3D.Update(newData))
-        case (None, Some(newData))                                => Some(DiffAction3D.Create(newData))
-        case (Some(oldData), None)                                => Some(DiffAction3D.Delete(oldData.key))
-        case _                                                    => None
-
-  protected def getByHorizontalIndexData(
-    horizontalIndex: DiscreteDomain1D[R1]
-  ): Iterable[ValidData2D[V, R2, R3]] =
-    val candidates = experimental.control("noSearchTree")(
-      experimentalResult = getAll,
-      nonExperimentalResult = dataInSearchTreeGet(
-        DiscreteInterval1D.intervalAt(horizontalIndex) x unbounded[R2] x unbounded[R3]
-      )
-    )
-    candidates.collect:
-      case ValidData3D(value, interval) if horizontalIndex ∈ interval.horizontal =>
-        (interval.vertical x interval.depth) -> value
-
-  protected def getByVerticalIndexData(
-    verticalIndex: DiscreteDomain1D[R2]
-  ): Iterable[ValidData2D[V, R1, R3]] =
-    val candidates = experimental.control("noSearchTree")(
-      experimentalResult = getAll,
-      nonExperimentalResult = dataInSearchTreeGet(
-        unbounded[R1] x DiscreteInterval1D.intervalAt(verticalIndex) x unbounded[R3]
-      )
-    )
-    candidates.collect:
-      case ValidData3D(value, interval) if verticalIndex ∈ interval.vertical =>
-        (interval.horizontal x interval.depth) -> value
-
-  protected def getByDepthIndexData(
-    depthIndex: DiscreteDomain1D[R3]
-  ): Iterable[ValidData2D[V, R1, R2]] =
-    val candidates = experimental.control("noSearchTree")(
-      experimentalResult = getAll,
-      nonExperimentalResult = dataInSearchTreeGet(
-        unbounded[R1] x unbounded[R2] x DiscreteInterval1D.intervalAt(depthIndex)
-      )
-    )
-    candidates.collect:
-      case ValidData3D(value, interval) if depthIndex ∈ interval.depth =>
-        (interval.horizontal x interval.vertical) -> value
-
-  // ---------- Implement methods from DimensionalBase ----------
 
   override protected def dataInSearchTreeAdd(data: ValidData3D[V, R1, R2, R3]): Unit =
     dataInSearchTree.addOne(data.asBoxedPayload)
@@ -419,7 +411,7 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
     * @param newValueOption
     *   when defined, the value to be stored as part of an update
     */
-  protected override def updateOrRemove(
+  override protected def updateOrRemove(
     targetInterval: DiscreteInterval3D[R1, R2, R3],
     newValueOption: Option[V]
   ): Unit = experimental.control("bruteForceUpdate")(
