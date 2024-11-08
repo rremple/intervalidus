@@ -292,10 +292,10 @@ shown in the following diagram:
 Note that box search trees are tunable via environment variables.
 
 - The default capacity of leaf nodes is 256, which was found to be optimal in micro-benchmarks. This can be overridden
-  by setting environment the variable `INTERVALIDUS_TREE_NODE_CAPACITY`.
+  by setting the environment variable `INTERVALIDUS_TREE_NODE_CAPACITY`.
 
 - The default depth limit of trees is 32, which was found to be optimal in micro-benchmarks. This can be overridden by
-  setting environment variable `INTERVALIDUS_TREE_DEPTH_LIMIT`.
+  setting the environment variable `INTERVALIDUS_TREE_DEPTH_LIMIT`.
 
 Lastly, there is a context parameter component used to enable/disable experimental features (a.k.a., feature flagging)
 called `Experimental`. The default implementation given disables all experimental features. But one can enable something
