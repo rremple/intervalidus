@@ -4,7 +4,6 @@ import intervalidus.DiscreteInterval1D.{interval, unbounded}
 import intervalidus.collection.mutable.{BoxOctree, MultiMapSorted}
 import intervalidus.collection.{Box3D, BoxedPayload, Coordinate3D}
 
-import scala.annotation.tailrec
 import scala.collection.mutable
 
 /**
@@ -87,7 +86,7 @@ trait DataIn3DBaseObject:
     BoxOctree[ValidData3D[V, R1, R2, R3]]
   ) =
     val dataByStartAsc: mutable.TreeMap[DiscreteDomain3D[R1, R2, R3], ValidData3D[V, R1, R2, R3]] =
-      mutable.TreeMap.from(initialData.map(v => v.key -> v))
+      mutable.TreeMap.from(initialData.map(_.withKey))
 
     val dataByStartDesc: mutable.TreeMap[DiscreteDomain3D[R1, R2, R3], ValidData3D[V, R1, R2, R3]] =
       experimental.control("noSearchTree")(
@@ -334,7 +333,7 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
       (old.dataByStartAsc.get(key), dataByStartAsc.get(key)) match
         case (Some(oldData), Some(newData)) if oldData != newData => Some(DiffAction3D.Update(newData))
         case (None, Some(newData))                                => Some(DiffAction3D.Create(newData))
-        case (Some(oldData), None)                                => Some(DiffAction3D.Delete(oldData.key))
+        case (Some(oldData), None)                                => Some(DiffAction3D.Delete(oldData.interval.start))
         case _                                                    => None
 
   override protected def compressInPlace(value: V): Unit = DiscreteInterval3D.compressGeneric(
@@ -1020,7 +1019,7 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
         val excluded = excludeOverlapRemainder1D(extractFromOverlap, remainder)
         remainder match
           case Remainder.None                                 => Seq(excluded)
-          case Remainder.Single(remaining)                    => Seq(remaining, excluded).sortBy(_.start)
+          case Remainder.Single(remaining)                    => Seq(remaining, excluded).sorted
           case Remainder.Split(leftRemaining, rightRemaining) => Seq(leftRemaining, excluded, rightRemaining)
 
       val (horizontalRemainder, verticalRemainder, depthRemainder) = overlap.interval \ targetInterval

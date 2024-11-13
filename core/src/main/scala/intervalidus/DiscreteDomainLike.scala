@@ -6,6 +6,7 @@ package intervalidus
   *   F-bounded self type.
   */
 trait DiscreteDomainLike[+Self <: DiscreteDomainLike[Self]]:
+  this: Self =>
 
   /**
     * Alternative to toString for something that looks more like code

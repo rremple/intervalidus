@@ -13,6 +13,8 @@ package intervalidus.collection
   *   F-bounded self type
   */
 trait BoxedPayloadLike[A, C <: CoordinateLike[C], B <: BoxLike[C, B], Self <: BoxedPayloadLike[A, C, B, Self]]:
+  this: Self =>
+
   /**
     * Container of the payload in a coordinate space.
     */

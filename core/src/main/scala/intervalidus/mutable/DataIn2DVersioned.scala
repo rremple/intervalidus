@@ -2,11 +2,10 @@ package intervalidus.mutable
 
 import intervalidus.*
 import intervalidus.immutable.DataIn2DVersioned as DataIn2DVersionedImmutable
+import intervalidus.DimensionalVersionedBase.{VersionDomain, VersionSelection}
 
 import scala.language.implicitConversions
 import scala.math.Ordering.Implicits.infixOrderingOps
-
-import intervalidus.DimensionalVersionedBase.{VersionDomain, VersionSelection}
 
 /** @inheritdoc */
 object DataIn2DVersioned extends DataIn2DVersionedBaseObject:
@@ -123,22 +122,14 @@ class DataIn2DVersioned[V, R1: DiscreteValue, R2: DiscreteValue](
     compressAll()
     setCurrentVersion(initialVersion)
 
-  override def approveAll(interval: DiscreteInterval2D[R1, R2]): Unit = synchronized:
-    underlying
-      .getIntersecting(interval x VersionSelection.Unapproved.intervalFrom)
-      .filter(versionInterval(_).start equiv unapprovedStartVersion) // only unapproved
-      .map(publicValidData) // as 2D
-      .foreach(approve)
-    underlying
-      .getIntersecting(interval x VersionSelection.Current.intervalFrom)
-      .filter(versionInterval(_).end equiv unapprovedStartVersion.predecessor) // only related to unapproved removes
-      .flatMap(publicValidData(_).interval intersectionWith interval)
-      .foreach(remove(_)(using VersionSelection.Current))
+  override def flatMap(f: ValidData3D[V, R1, R2, Int] => DataIn2DVersioned[V, R1, R2]): Unit =
+    underlying.flatMap(f(_).underlying)
 
   override def applyDiffActions(diffActions: Iterable[DiffAction3D[V, R1, R2, Int]]): Unit =
     underlying.applyDiffActions(diffActions)
 
-  override def syncWith(that: DataIn2DVersioned[V, R1, R2]): Unit = applyDiffActions(that.diffActionsFrom(this))
+  override def syncWith(that: DataIn2DVersioned[V, R1, R2]): Unit =
+    applyDiffActions(that.diffActionsFrom(this))
 
   // ---------- Implement methods from DataIn2DVersionedBase ----------
 
@@ -159,6 +150,3 @@ class DataIn2DVersioned[V, R1: DiscreteValue, R2: DiscreteValue](
       initialVersion,
       Some(currentVersion)
     )
-
-  override def flatMap(f: ValidData3D[V, R1, R2, Int] => DataIn2DVersioned[V, R1, R2]): Unit =
-    underlying.flatMap(f(_).underlying)

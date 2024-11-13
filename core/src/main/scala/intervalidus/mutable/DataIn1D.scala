@@ -51,14 +51,15 @@ class DataIn1D[V, R: DiscreteValue] private (
     DataIn1D[V, R]
   ]:
 
-  override def toImmutable: DataIn1DImmutable[V, R] = DataIn1DImmutable(getAll)
+  // ---------- Implement methods from DataIn1DBase ----------
 
-  override def toMutable: DataIn1D[V, R] = this
+  override def zip[B](that: DataIn1DBase[B, R]): DataIn1D[(V, B), R] = DataIn1D(zipData(that))
 
-  // ---------- Implement methods from DimensionalBase ----------
-
-  override def copy: DataIn1D[V, R] =
-    new DataIn1D(dataByStartAsc.clone(), dataByStartDesc.clone(), dataByValue.clone(), dataInSearchTree.copy)
+  override def zipAll[B](
+    that: DataIn1DBase[B, R],
+    thisElem: V,
+    thatElem: B
+  ): DataIn1D[(V, B), R] = DataIn1D(zipAllData(that, thisElem, thatElem))
 
   // ---------- Implement methods from MutableBase ----------
 
@@ -70,12 +71,11 @@ class DataIn1D[V, R: DiscreteValue] private (
 
   override def syncWith(that: DataIn1D[V, R]): Unit = applyDiffActions(that.diffActionsFrom(this))
 
-  // ---------- Implement methods from Dimensional1DBase ----------
+  // ---------- Implement methods from DimensionalBase ----------
 
-  override def zip[B](that: DataIn1DBase[B, R]): DataIn1D[(V, B), R] = DataIn1D(zipData(that))
+  override def copy: DataIn1D[V, R] =
+    new DataIn1D(dataByStartAsc.clone(), dataByStartDesc.clone(), dataByValue.clone(), dataInSearchTree.copy)
 
-  override def zipAll[B](
-    that: DataIn1DBase[B, R],
-    thisElem: V,
-    thatElem: B
-  ): DataIn1D[(V, B), R] = DataIn1D(zipAllData(that, thisElem, thatElem))
+  override def toMutable: DataIn1D[V, R] = this
+
+  override def toImmutable: DataIn1DImmutable[V, R] = DataIn1DImmutable(getAll)

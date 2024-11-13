@@ -51,15 +51,6 @@ class DataIn1D[V, R: DiscreteValue] private (
     DataIn1D[V, R]
   ]:
 
-  override def toMutable: DataIn1DMutable[V, R] = DataIn1DMutable(getAll)
-
-  override def toImmutable: DataIn1D[V, R] = this
-
-  override protected def copyAndModify(f: DataIn1D[V, R] => Unit): DataIn1D[V, R] =
-    val result = copy
-    f(result)
-    result
-
   /**
     * Applies a function to all valid data. Both the valid data value and interval types can be changed in the mapping.
     *
@@ -112,7 +103,7 @@ class DataIn1D[V, R: DiscreteValue] private (
     getAll.flatMap(f(_).getAll)
   ).compressAll()
 
-  // ---------- Implement methods from Dimensional1DBase ----------
+  // ---------- Implement methods from DataIn1DBase ----------
 
   override def zip[B](that: DataIn1DBase[B, R]): DataIn1D[(V, B), R] = DataIn1D(zipData(that))
 
@@ -124,15 +115,25 @@ class DataIn1D[V, R: DiscreteValue] private (
 
   // ---------- Implement methods from ImmutableBase ----------
 
+  override protected def copyAndModify(f: DataIn1D[V, R] => Unit): DataIn1D[V, R] =
+    val result = copy
+    f(result)
+    result
+
   override def applyDiffActions(diffActions: Iterable[DiffAction1D[V, R]]): DataIn1D[V, R] = copyAndModify: result =>
     diffActions.foreach:
       case DiffAction1D.Create(data) => result.addValidData(data)
       case DiffAction1D.Update(data) => result.updateValidData(data)
       case DiffAction1D.Delete(key)  => result.removeValidDataByKey(key)
 
-  override def syncWith(that: DataIn1D[V, R]): DataIn1D[V, R] = applyDiffActions(that.diffActionsFrom(this))
+  override def syncWith(that: DataIn1D[V, R]): DataIn1D[V, R] =
+    applyDiffActions(that.diffActionsFrom(this))
 
   // ---------- Implement methods from DimensionalBase ----------
 
   override def copy: DataIn1D[V, R] =
     new DataIn1D(dataByStartAsc.clone(), dataByStartDesc.clone(), dataByValue.clone(), dataInSearchTree.copy)
+
+  override def toMutable: DataIn1DMutable[V, R] = DataIn1DMutable(getAll)
+
+  override def toImmutable: DataIn1D[V, R] = this

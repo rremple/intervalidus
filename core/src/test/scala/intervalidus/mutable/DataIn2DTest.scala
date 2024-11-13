@@ -33,8 +33,8 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
       case Some(intersection) => intersection
       case None               => fail("Test failed, no intersection with the rectangle")
 
-    val removeExpected = removeExpectedUnsorted.toList.sortBy(_.key)
-    val updateExpected = (removeExpectedUnsorted :+ (expectedUpdateInterval -> updateValue)).toList.sortBy(_.key)
+    val removeExpected = removeExpectedUnsorted.toList.sorted
+    val updateExpected = (removeExpectedUnsorted :+ (expectedUpdateInterval -> updateValue)).toList.sorted
     removeFixture.remove(removeOrUpdateInterval)
     removeFixture.recompressAll()
     updateFixture.update(removeOrUpdateInterval -> updateValue)

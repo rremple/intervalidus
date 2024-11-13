@@ -58,15 +58,6 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue] private (
     DataIn2D[V, R1, R2]
   ]:
 
-  override def toMutable: DataIn2DMutable[V, R1, R2] = DataIn2DMutable(getAll)
-
-  override def toImmutable: DataIn2D[V, R1, R2] = this
-
-  override protected def copyAndModify(f: DataIn2D[V, R1, R2] => Unit): DataIn2D[V, R1, R2] =
-    val result = copy
-    f(result)
-    result
-
   /**
     * Applies a function to all valid data. Both the valid data value and interval types can be changed in the mapping.
     *
@@ -129,22 +120,6 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue] private (
     getAll.flatMap(f(_).getAll)
   ).compressAll()
 
-  // ---------- Implement methods from DimensionalBase ----------
-
-  override def copy: DataIn2D[V, R1, R2] =
-    new DataIn2D(dataByStartAsc.clone(), dataByStartDesc.clone(), dataByValue.clone(), dataInSearchTree.copy)
-
-  // ---------- Implement methods from ImmutableBase ----------
-
-  override def applyDiffActions(diffActions: Iterable[DiffAction2D[V, R1, R2]]): DataIn2D[V, R1, R2] =
-    copyAndModify: result =>
-      diffActions.foreach:
-        case DiffAction2D.Create(data) => result.addValidData(data)
-        case DiffAction2D.Update(data) => result.updateValidData(data)
-        case DiffAction2D.Delete(key)  => result.removeValidDataByKey(key)
-
-  override def syncWith(that: DataIn2D[V, R1, R2]): DataIn2D[V, R1, R2] = applyDiffActions(that.diffActionsFrom(this))
-
   // ---------- Implement methods from DataIn2DBase ----------
 
   override def zip[B](that: DataIn2DBase[B, R1, R2]): DataIn2D[(V, B), R1, R2] = DataIn2D(zipData(that))
@@ -157,10 +132,34 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue] private (
 
   override def flip: DataIn2D[V, R2, R1] = map(d => d.copy(interval = d.interval.flip))
 
-  override def getByHorizontalIndex(horizontalIndex: DiscreteDomain1D[R1]): DataIn1D[V, R2] = DataIn1D[V, R2](
-    getByHorizontalIndexData(horizontalIndex)
-  )
+  override def getByHorizontalIndex(horizontalIndex: DiscreteDomain1D[R1]): DataIn1D[V, R2] =
+    DataIn1D[V, R2](getByHorizontalIndexData(horizontalIndex))
 
-  override def getByVerticalIndex(verticalIndex: DiscreteDomain1D[R2]): DataIn1D[V, R1] = DataIn1D[V, R1](
-    getByVerticalIndexData(verticalIndex)
-  )
+  override def getByVerticalIndex(verticalIndex: DiscreteDomain1D[R2]): DataIn1D[V, R1] =
+    DataIn1D[V, R1](getByVerticalIndexData(verticalIndex))
+
+  // ---------- Implement methods from ImmutableBase ----------
+
+  override protected def copyAndModify(f: DataIn2D[V, R1, R2] => Unit): DataIn2D[V, R1, R2] =
+    val result = copy
+    f(result)
+    result
+
+  override def applyDiffActions(diffActions: Iterable[DiffAction2D[V, R1, R2]]): DataIn2D[V, R1, R2] =
+    copyAndModify: result =>
+      diffActions.foreach:
+        case DiffAction2D.Create(data) => result.addValidData(data)
+        case DiffAction2D.Update(data) => result.updateValidData(data)
+        case DiffAction2D.Delete(key)  => result.removeValidDataByKey(key)
+
+  override def syncWith(that: DataIn2D[V, R1, R2]): DataIn2D[V, R1, R2] =
+    applyDiffActions(that.diffActionsFrom(this))
+
+  // ---------- Implement methods from DimensionalBase ----------
+
+  override def copy: DataIn2D[V, R1, R2] =
+    new DataIn2D(dataByStartAsc.clone(), dataByStartDesc.clone(), dataByValue.clone(), dataInSearchTree.copy)
+
+  override def toMutable: DataIn2DMutable[V, R1, R2] = DataIn2DMutable(getAll)
+
+  override def toImmutable: DataIn2D[V, R1, R2] = this

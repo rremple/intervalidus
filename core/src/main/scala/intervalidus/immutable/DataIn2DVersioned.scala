@@ -80,13 +80,13 @@ class DataIn2DVersioned[V, R1: DiscreteValue, R2: DiscreteValue](
 
   // ---------- Implement methods from DimensionalVersionedBase ----------
 
+  override def toImmutable: DataIn2DVersioned[V, R1, R2] = this
+
   override def toMutable: DataIn2DVersionedMutable[V, R1, R2] = DataIn2DVersionedMutable(
     underlying.getAll,
     initialVersion,
     Some(currentVersion)
   )
-
-  override def toImmutable: DataIn2DVersioned[V, R1, R2] = this
 
   // ---------- Implement methods from ImmutableVersionedBase ----------
 
@@ -127,38 +127,11 @@ class DataIn2DVersioned[V, R1: DiscreteValue, R2: DiscreteValue](
   override def collapseVersionHistory(using VersionSelection): DataIn2DVersioned[V, R1, R2] =
     DataIn2DVersioned.from(getAll, initialVersion)
 
-  override def approve(data: ValidData2D[V, R1, R2]): Option[DataIn2DVersioned[V, R1, R2]] =
-    val allUnapproved = underlying
-      .getIntersecting(data.interval x VersionSelection.Unapproved.intervalFrom)
-      .filter(versionInterval(_).start equiv unapprovedStartVersion) // only unapproved
-    allUnapproved.headOption match
-      case Some(d) if publicValidData(d) == data =>
-        Some(set(data)(using VersionSelection.Current))
-      case _ =>
-        None
-
-  override def approveAll(interval: DiscreteInterval2D[R1, R2]): DataIn2DVersioned[V, R1, R2] =
-    val approved = underlying
-      .getIntersecting(interval x VersionSelection.Unapproved.intervalFrom)
-      .filter(versionInterval(_).start equiv unapprovedStartVersion) // only unapproved
-      .map(publicValidData)
-      .foldLeft(this): (prev, d) =>
-        prev.approve(d).getOrElse(prev)
-    approved.underlying
-      .getIntersecting(interval x VersionSelection.Current.intervalFrom)
-      .filter(versionInterval(_).end equiv unapprovedStartVersion.predecessor) // only related to unapproved removes
-      .flatMap(publicValidData(_).interval intersectionWith interval)
-      .foldLeft(approved): (prev, i) =>
-        prev.remove(i)(using VersionSelection.Current)
-
   override def filter(p: ValidData3D[V, R1, R2, Int] => Boolean): DataIn2DVersioned[V, R1, R2] = DataIn2DVersioned(
     underlying.getAll.filter(p),
     initialVersion,
     Some(currentVersion)
   )
-
-  override def applyDiffActions(diffActions: Iterable[DiffAction3D[V, R1, R2, Int]]): DataIn2DVersioned[V, R1, R2] =
-    copyAndModify(_.underlying.applyDiffActions(diffActions))
 
   override def syncWith(that: DataIn2DVersioned[V, R1, R2]): DataIn2DVersioned[V, R1, R2] =
     applyDiffActions(that.diffActionsFrom(this))

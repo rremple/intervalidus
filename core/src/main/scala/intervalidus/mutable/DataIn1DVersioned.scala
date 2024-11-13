@@ -119,22 +119,11 @@ class DataIn1DVersioned[V, R: DiscreteValue](
     compressAll()
     setCurrentVersion(initialVersion)
 
-  override def approveAll(interval: DiscreteInterval1D[R]): Unit = synchronized:
-    underlying
-      .getIntersecting(underlyingIntervalWithVersion(interval, VersionSelection.Unapproved.intervalFrom))
-      .filter(versionInterval(_).start equiv unapprovedStartVersion) // only unapproved
-      .map(publicValidData) // as 1D
-      .foreach(approve)
-    underlying
-      .getIntersecting(underlyingIntervalWithVersion(interval, VersionSelection.Current.intervalFrom))
-      .filter(versionInterval(_).end equiv unapprovedStartVersion.predecessor) // only related to unapproved removes
-      .flatMap(publicValidData(_).interval intersectionWith interval)
-      .foreach(remove(_)(using VersionSelection.Current))
+  override def flatMap(f: ValidData2D[V, R, Int] => DataIn1DVersioned[V, R]): Unit =
+    underlying.flatMap(f(_).underlying)
 
-  override def applyDiffActions(diffActions: Iterable[DiffAction2D[V, R, Int]]): Unit =
-    underlying.applyDiffActions(diffActions)
-
-  override def syncWith(that: DataIn1DVersioned[V, R]): Unit = applyDiffActions(that.diffActionsFrom(this))
+  override def syncWith(that: DataIn1DVersioned[V, R]): Unit =
+    applyDiffActions(that.diffActionsFrom(this))
 
   // ---------- Implement methods from DataIn1DVersionedBase ----------
 
@@ -151,8 +140,3 @@ class DataIn1DVersioned[V, R: DiscreteValue](
       initialVersion,
       Some(currentVersion)
     )
-
-  override def flatMap(f: ValidData2D[V, R, Int] => DataIn1DVersioned[V, R]): Unit =
-    underlying.flatMap(f(_).underlying)
-
-  // --- API methods unique to this "versioned" variant

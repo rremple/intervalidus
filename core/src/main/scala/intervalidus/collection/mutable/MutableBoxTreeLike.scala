@@ -23,6 +23,8 @@ trait MutableBoxTreeLike[
   P <: BoxedPayloadLike[A, C, B, P],
   Self <: MutableBoxTreeLike[A, C, B, P, Self]
 ] extends BoxTreeLike[A, C, B, P, Self]:
+  this: Self =>
+
   /**
     * Inserts/updates boxed data into the tree.
     * @param d
@@ -69,6 +71,7 @@ trait MutableBoxTreeLeafLike[
   P <: BoxedPayloadLike[A, C, B, P],
   SuperSelf <: MutableBoxTreeLike[A, C, B, P, SuperSelf]
 ] extends MutableBoxTreeLike[A, C, B, P, SuperSelf]:
+  this: SuperSelf =>
 
   // state
   var data: List[P] = List.empty
@@ -102,6 +105,7 @@ trait MutableBoxTreeBranchLike[
   P <: BoxedPayloadLike[A, C, B, P],
   SuperSelf <: MutableBoxTreeLike[A, C, B, P, SuperSelf]
 ] extends MutableBoxTreeLike[A, C, B, P, SuperSelf]:
+  this: SuperSelf =>
 
   // manage subtree state
   protected def subtreeBoundaries: Vector[B]

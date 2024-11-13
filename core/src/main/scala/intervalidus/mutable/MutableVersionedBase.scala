@@ -37,8 +37,10 @@ trait MutableVersionedBase[
   I2 <: DiscreteIntervalLike[D2, I2],
   ValidData2 <: ValidDataLike[V, D2, I2, ValidData2],
   DiffAction2 <: DiffActionLike[V, D2, I2, ValidData2, DiffAction2],
-  Self <: MutableVersionedBase[V, D, I, ValidData, DiffAction, D2, I2, ValidData2, DiffAction2, Self]
-] extends DimensionalVersionedBase[V, D, I, ValidData, DiffAction, D2, I2, ValidData2, DiffAction2, _]:
+  Self <: MutableVersionedBase[V, D, I, ValidData, DiffAction, D2, I2, ValidData2, DiffAction2, Self] &
+    DimensionalVersionedBase[V, D, I, ValidData, DiffAction, D2, I2, ValidData2, DiffAction2, ?]
+]:
+  this: Self =>
 
   // ---------- To be implemented by inheritor ----------
 
@@ -78,21 +80,14 @@ trait MutableVersionedBase[
   def collapseVersionHistory(using versionSelection: VersionSelection): Unit
 
   /**
-    * Useful when approving everything in a range, including empty space (i.e., an unapproved removal)
-    *
-    * @param interval
-    *   interval in which all changes (updates and deletes) are approved
-    */
-  def approveAll(interval: I): Unit
-
-  /**
     * Applies a sequence of diff actions to this structure. Does not use a version selection context -- operates on full
     * underlying structure.
     *
     * @param diffActions
     *   actions to be applied.
     */
-  def applyDiffActions(diffActions: Iterable[DiffAction2]): Unit
+  def applyDiffActions(diffActions: Iterable[DiffAction2]): Unit =
+    underlying.applyDiffActions(diffActions)
 
   /**
     * Synchronizes this with another structure by getting and applying the applicable diff actions. Does not use a
@@ -145,6 +140,24 @@ trait MutableVersionedBase[
         true
       case other =>
         false
+
+  /**
+    * Useful when approving everything in a range, including empty space (i.e., an unapproved removal)
+    *
+    * @param interval
+    *   interval in which all changes (updates and deletes) are approved
+    */
+  def approveAll(interval: I): Unit =
+    underlying
+      .getIntersecting(underlyingIntervalWithVersion(interval, VersionSelection.Unapproved.intervalFrom))
+      .filter(versionInterval(_).start equiv unapprovedStartVersion) // only unapproved
+      .map(publicValidData)
+      .foreach(approve)
+    underlying
+      .getIntersecting(underlyingIntervalWithVersion(interval, VersionSelection.Current.intervalFrom))
+      .filter(versionInterval(_).end equiv unapprovedStartVersion.predecessor) // only related to unapproved removes
+      .flatMap(publicValidData(_).interval intersectionWith interval)
+      .foreach(remove(_)(using VersionSelection.Current))
 
   /**
     * Set new valid data. Note that any data previously valid in this interval and the given version selection context

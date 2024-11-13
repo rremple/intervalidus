@@ -37,8 +37,8 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors:
       case Some(intersection) => intersection
       case None               => fail("Test failed, no intersection with the fixture interval")
 
-    val removeExpected = removeExpectedUnsorted.toList.sortBy(_.key)
-    val updateExpected = (removeExpectedUnsorted :+ (expectedUpdateInterval -> updateValue)).toList.sortBy(_.key)
+    val removeExpected = removeExpectedUnsorted.toList.sorted
+    val updateExpected = (removeExpectedUnsorted :+ (expectedUpdateInterval -> updateValue)).toList.sorted
     val removeFixture = fixture.remove(removeOrUpdateInterval)
     val updateFixture = fixture.update(removeOrUpdateInterval -> updateValue)
     assertResult(removeExpected)(removeFixture.getAll.toList)

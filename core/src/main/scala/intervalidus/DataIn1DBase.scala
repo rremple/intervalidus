@@ -63,7 +63,7 @@ trait DataIn1DBaseObject:
     BoxBtree[ValidData1D[V, R]]
   ) =
     val dataByStartAsc: mutable.TreeMap[DiscreteDomain1D[R], ValidData1D[V, R]] =
-      mutable.TreeMap.from(initialData.map(v => v.key -> v))
+      mutable.TreeMap.from(initialData.map(_.withKey))
 
     val dataByStartDesc: mutable.TreeMap[DiscreteDomain1D[R], ValidData1D[V, R]] =
       experimental.control("noSearchTree")(
@@ -209,7 +209,7 @@ trait DataIn1DBase[V, R: DiscreteValue](using experimental: Experimental)
       (old.dataByStartAsc.get(key), dataByStartAsc.get(key)) match
         case (Some(oldData), Some(newData)) if oldData != newData => Some(DiffAction1D.Update(newData))
         case (None, Some(newData))                                => Some(DiffAction1D.Create(newData))
-        case (Some(oldData), None)                                => Some(DiffAction1D.Delete(oldData.key))
+        case (Some(oldData), None)                                => Some(DiffAction1D.Delete(oldData.interval.start))
         case _                                                    => None
 
   override def domain: Iterable[DiscreteInterval1D[R]] = DiscreteInterval1D.compress(getAll.map(_.interval))

@@ -71,7 +71,7 @@ trait DataIn2DBaseObject:
     BoxQuadtree[ValidData2D[V, R1, R2]]
   ) =
     val dataByStartAsc: mutable.TreeMap[DiscreteDomain2D[R1, R2], ValidData2D[V, R1, R2]] =
-      mutable.TreeMap.from(initialData.map(v => v.key -> v))
+      mutable.TreeMap.from(initialData.map(_.withKey))
 
     val dataByStartDesc: mutable.TreeMap[DiscreteDomain2D[R1, R2], ValidData2D[V, R1, R2]] =
       experimental.control("noSearchTree")(
@@ -266,7 +266,7 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
       (old.dataByStartAsc.get(key), dataByStartAsc.get(key)) match
         case (Some(oldData), Some(newData)) if oldData != newData => Some(DiffAction2D.Update(newData))
         case (None, Some(newData))                                => Some(DiffAction2D.Create(newData))
-        case (Some(oldData), None)                                => Some(DiffAction2D.Delete(oldData.key))
+        case (Some(oldData), None)                                => Some(DiffAction2D.Delete(oldData.interval.start))
         case _                                                    => None
 
   override protected def compressInPlace(value: V): Unit = DiscreteInterval2D.compressGeneric(
@@ -581,7 +581,7 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
         val excluded = excludeOverlapRemainder1D(extractFromOverlap, remainder)
         remainder match
           case Remainder.None                                 => Seq(excluded)
-          case Remainder.Single(remaining)                    => Seq(remaining, excluded).sortBy(_.start)
+          case Remainder.Single(remaining)                    => Seq(remaining, excluded).sorted
           case Remainder.Split(leftRemaining, rightRemaining) => Seq(leftRemaining, excluded, rightRemaining)
 
       val (horizontalRemainder, verticalRemainder) = overlap.interval \ targetInterval

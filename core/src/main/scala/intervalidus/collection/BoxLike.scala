@@ -5,6 +5,8 @@ package intervalidus.collection
   * or could be a valid region associated with data.
   */
 trait BoxLike[C <: CoordinateLike[C], Self <: BoxLike[C, Self]]:
+  this: Self =>
+
   /**
     * Coordinate of the minimum corner of the box (left/lower/back/etc., depending on dimension)
     */
@@ -65,7 +67,7 @@ trait BoxLike[C <: CoordinateLike[C], Self <: BoxLike[C, Self]]:
     * @return
     *   a new boxed payload
     */
-  infix def ->[A](payload: A): BoxedPayloadLike[A, C, Self, _]
+  infix def ->[A](payload: A): BoxedPayloadLike[A, C, Self, ?]
 
   override def toString: String = s"[$minPoint..$maxPoint]"
 

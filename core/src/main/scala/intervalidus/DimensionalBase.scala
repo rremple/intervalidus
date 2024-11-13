@@ -226,33 +226,33 @@ trait DimensionalBase[
     *   valid data to add.
     */
   protected def addValidData(data: ValidData): Unit =
-    // assert(!dataByStartAsc.isDefinedAt(data.key))
-    dataByStartAsc.addOne(data.key -> data)
+    // assert(!dataByStartAsc.isDefinedAt(data.interval.start))
+    dataByStartAsc.addOne(data.withKey)
     dataByValue.addOne(data.value -> data)
     experimental.control("noSearchTree")(
       experimentalResult = {
-        // assert(!dataByStartDesc.isDefinedAt(data.key))
-        dataByStartDesc.addOne(data.key -> data)
+        // assert(!dataByStartDesc.isDefinedAt(data.interval.start))
+        dataByStartDesc.addOne(data.withKey)
       },
       nonExperimentalResult = dataInSearchTreeAdd(data)
     )
 
   /**
-    * Internal mutator to update, where a value with v.key already exists.
+    * Internal mutator to update, where a value with v.interval.start already exists.
     *
     * @param data
     *   valid data to update.
     */
   protected def updateValidData(data: ValidData): Unit =
-    // assert(dataByStartAsc.isDefinedAt(data.key))
-    val oldData = dataByStartAsc(data.key)
+    // assert(dataByStartAsc.isDefinedAt(data.interval.start))
+    val oldData = dataByStartAsc(data.interval.start)
     dataByValue.subtractOne(oldData.value -> oldData)
     dataByValue.addOne(data.value -> data)
-    dataByStartAsc.update(data.key, data)
+    dataByStartAsc.update(data.interval.start, data)
     experimental.control("noSearchTree")(
       experimentalResult = {
-        // assert(dataByStartDesc.isDefinedAt(data.key))
-        dataByStartDesc.update(data.key, data)
+        // assert(dataByStartDesc.isDefinedAt(data.interval.start))
+        dataByStartDesc.update(data.interval.start, data)
       },
       nonExperimentalResult = {
         dataInSearchTreeRemove(oldData)
@@ -267,7 +267,7 @@ trait DimensionalBase[
     *   valid data to remove.
     */
   protected def removeValidData(oldData: ValidData): Unit =
-    val key = oldData.key
+    val key = oldData.interval.start
     dataByValue.subtractOne(oldData.value -> oldData)
     val previousAsc = dataByStartAsc.remove(key)
     // assert(previousDesc.isDefined)
@@ -290,7 +290,7 @@ trait DimensionalBase[
 
   protected def replaceValidData(data: Iterable[ValidData]): Unit =
     dataByStartAsc.clear()
-    dataByStartAsc.addAll(data.map(d => d.key -> d))
+    dataByStartAsc.addAll(data.map(_.withKey))
     dataByValue.clear()
     dataByValue.addAll(data.map(d => d.value -> d))
     experimental.control("noSearchTree")(

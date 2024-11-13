@@ -293,6 +293,15 @@ object DiscreteInterval3D:
     DiscreteInterval1D.unbounded[T1] x DiscreteInterval1D.unbounded[T2] x DiscreteInterval1D.unbounded[T3]
 
   /**
+    * Intervals are ordered by start
+    */
+  given [T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue](using
+    domainOrder: Ordering[DiscreteDomain3D[T1, T2, T3]]
+  ): Ordering[DiscreteInterval3D[T1, T2, T3]] with
+    override def compare(x: DiscreteInterval3D[T1, T2, T3], y: DiscreteInterval3D[T1, T2, T3]): Int =
+      domainOrder.compare(x.start, y.start)
+
+  /**
     * Generic compression algorithm used by both `compress` and `Data3DBase.compressInPlace`.
     *
     * @param initialState

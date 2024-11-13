@@ -71,7 +71,7 @@ object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature
     ValidData <: ValidDataLike[String, D, I, ValidData],
     DiffAction <: DiffActionLike[String, D, I, ValidData, DiffAction],
     DimData <: mutable.MutableBase[String, D, I, ValidData, DiffAction, DimData] &
-      DimensionalBase[String, D, I, ValidData, DiffAction, _]
+      DimensionalBase[String, D, I, ValidData, DiffAction, ?]
   ](
     intervalRange: Int,
     data: Vector[ValidData],

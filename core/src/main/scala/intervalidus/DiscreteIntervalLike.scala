@@ -9,6 +9,8 @@ package intervalidus
   *   F-bounded self type.
   */
 trait DiscreteIntervalLike[D <: DiscreteDomainLike[D]: Ordering, Self <: DiscreteIntervalLike[D, Self]]:
+  this: Self =>
+
   /**
     * The "infimum", i.e., the lower/left/behind boundary of the interval (inclusive). When stored in a collection, this
     * aspect of the interval can be used as the key. (E.g., the start of a 1D interval, the lower/left corner of a 2D
@@ -37,7 +39,7 @@ trait DiscreteIntervalLike[D <: DiscreteDomainLike[D]: Ordering, Self <: Discret
     * @return
     *   valid data in this interval
     */
-  infix def withValue[V](value: V): ValidDataLike[V, D, Self, _]
+  infix def withValue[V](value: V): ValidDataLike[V, D, Self, ?]
 
   /**
     * Tests if this interval contains a specific element of the domain.
@@ -169,7 +171,7 @@ trait DiscreteIntervalLike[D <: DiscreteDomainLike[D]: Ordering, Self <: Discret
     * @return
     *   valid data in this interval
     */
-  infix def ->[V](value: V): ValidDataLike[V, D, Self, _]
+  infix def ->[V](value: V): ValidDataLike[V, D, Self, ?]
 
   /**
     * Same as [[intersectionWith]].

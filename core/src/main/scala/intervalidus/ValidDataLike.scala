@@ -20,6 +20,8 @@ trait ValidDataLike[V, D <: DiscreteDomainLike[D], I <: DiscreteIntervalLike[D, 
   Self
 ]]
   extends PartialFunction[D, V]:
+  this: Self =>
+
   /**
     * The value valid in this interval
     */
@@ -44,13 +46,12 @@ trait ValidDataLike[V, D <: DiscreteDomainLike[D], I <: DiscreteIntervalLike[D, 
     }"
 
   /**
-    * When stored in a collection, this aspect of the data can be used as the key. (E.g., the start of the corresponding
-    * 1D interval).
+    * When stored in a collection, the start of the corresponding interval is the key.
     *
     * @return
-    *   a domain-like key
+    *   a tuple of the domain-like key with this valid data
     */
-  def key: D = interval.start
+  def withKey: (D, Self) = interval.start -> this
 
   override def apply(domainIndex: D): V =
     if isDefinedAt(domainIndex) then value else throw new Exception(s"Not defined at $domainIndex")

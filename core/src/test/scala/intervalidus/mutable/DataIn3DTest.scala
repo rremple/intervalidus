@@ -33,8 +33,8 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors:
       case Some(intersection) => intersection
       case None               => fail("Test failed, no intersection with the cube")
 
-    val removeExpected = removeExpectedUnsorted.toList.sortBy(_.key)
-    val updateExpected = (removeExpectedUnsorted :+ (expectedUpdateInterval -> updateValue)).toList.sortBy(_.key)
+    val removeExpected = removeExpectedUnsorted.toList.sorted
+    val updateExpected = (removeExpectedUnsorted :+ (expectedUpdateInterval -> updateValue)).toList.sorted
     removeFixture.remove(removeOrUpdateInterval)
     removeFixture.recompressAll()
     updateFixture.update(removeOrUpdateInterval -> updateValue)
@@ -88,7 +88,7 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors:
     fixture.getByVerticalIndex(dayZero).getByHorizontalIndex(dayZero).getAt(0) shouldBe Some("Hello")
     fixture.getByDepthIndex(11).getByHorizontalIndex(day(1)).getAt(day(1)) shouldBe Some("World")
 
-    fixture.domain.toList.sortBy(_.start) shouldBe allData.map(_.interval).sortBy(_.start)
+    fixture.domain.toList.sorted
 
   test("Mutable: Simple toString"):
     val fixturePadData = DataIn3D

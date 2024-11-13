@@ -3,6 +3,8 @@ package intervalidus.immutable
 import intervalidus.*
 import intervalidus.DimensionalVersionedBase.{VersionDomain, VersionSelection}
 
+import scala.math.Ordering.Implicits.infixOrderingOps
+
 /**
   * Base for all immutable dimensional data.
   *
@@ -36,8 +38,8 @@ trait ImmutableVersionedBase[
   ValidData2 <: ValidDataLike[V, D2, I2, ValidData2],
   DiffAction2 <: DiffActionLike[V, D2, I2, ValidData2, DiffAction2],
   Self <: ImmutableVersionedBase[V, D, I, ValidData, DiffAction, D2, I2, ValidData2, DiffAction2, Self]
-] extends DimensionalVersionedBase[V, D, I, ValidData, DiffAction, D2, I2, ValidData2, DiffAction2, _]:
-
+] extends DimensionalVersionedBase[V, D, I, ValidData, DiffAction, D2, I2, ValidData2, DiffAction2, ?]:
+  this: Self =>
   // ---------- To be implemented by inheritor ----------
 
   protected def copyAndModify(f: Self => Unit): Self
@@ -86,26 +88,6 @@ trait ImmutableVersionedBase[
   def collapseVersionHistory(using VersionSelection): Self
 
   /**
-    * Special case where we change the version interval in a constrained way.
-    *
-    * @param data
-    *   currently unapproved data to approved
-    * @return
-    *   some new structure if unapproved version was found and approved, none otherwise
-    */
-  def approve(data: ValidData): Option[Self]
-
-  /**
-    * Useful when approving everything in a range, including empty space (i.e., an unapproved removal)
-    *
-    * @param interval
-    *   interval in which all changes (updates and deletes) are approved
-    * @return
-    *   a new structure with all unapproved changes approved.
-    */
-  def approveAll(interval: I): Self
-
-  /**
     * Selects all elements which satisfy a predicate. Does not use a version selection context -- the predicate is
     * applied to the underlying data, so it can operate on the underlying version information as well as the valid
     * interval/value.
@@ -118,15 +100,6 @@ trait ImmutableVersionedBase[
   def filter(p: ValidData2 => Boolean): Self
 
   /**
-    * Applies a sequence of diff actions to this structure. Does not use a version selection context -- operates on full
-    * underlying structure.
-    *
-    * @param diffActions
-    *   actions to be applied.
-    */
-  def applyDiffActions(diffActions: Iterable[DiffAction2]): Self
-
-  /**
     * Synchronizes this with another structure by getting and applying the applicable diff actions. Does not use a
     * version selection context -- operates on full underlying structure.
     *
@@ -134,6 +107,58 @@ trait ImmutableVersionedBase[
     *   the structure with which this will be synchronized.
     */
   def syncWith(that: Self): Self
+
+  // ---------- Implemented methods based on the above definitions ----------
+
+  /**
+    * Special case where we change the version interval in a constrained way.
+    *
+    * @param data
+    *   currently unapproved data to approved
+    * @return
+    *   some new structure if unapproved version was found and approved, none otherwise
+    */
+  def approve(data: ValidData): Option[Self] =
+    val allUnapproved = underlying
+      .getIntersecting(underlyingIntervalWithVersion(data.interval, VersionSelection.Unapproved.intervalFrom))
+      .filter(versionInterval(_).start equiv unapprovedStartVersion) // only unapproved
+    allUnapproved.headOption match
+      case Some(d) if publicValidData(d) == data =>
+        Some(set(data)(using VersionSelection.Current))
+      case _ =>
+        None
+
+  /**
+    * Useful when approving everything in a range, including empty space (i.e., an unapproved removal)
+    *
+    * @param interval
+    *   interval in which all changes (updates and deletes) are approved
+    * @return
+    *   a new structure with all unapproved changes approved.
+    */
+  def approveAll(interval: I): Self =
+    val approved = underlying
+      .getIntersecting(underlyingIntervalWithVersion(interval, VersionSelection.Unapproved.intervalFrom))
+      .filter(versionInterval(_).start equiv unapprovedStartVersion) // only unapproved
+      .map(publicValidData)
+      .foldLeft(this): (prev, d) =>
+        prev.approve(d).getOrElse(prev)
+    approved.underlying
+      .getIntersecting(underlyingIntervalWithVersion(interval, VersionSelection.Current.intervalFrom))
+      .filter(versionInterval(_).end equiv unapprovedStartVersion.predecessor) // only related to unapproved removes
+      .flatMap(publicValidData(_).interval intersectionWith interval)
+      .foldLeft(approved): (prev, i) =>
+        prev.remove(i)(using VersionSelection.Current)
+
+  /**
+    * Applies a sequence of diff actions to this structure. Does not use a version selection context -- operates on full
+    * underlying structure.
+    *
+    * @param diffActions
+    *   actions to be applied.
+    */
+  def applyDiffActions(diffActions: Iterable[DiffAction2]): Self =
+    copyAndModify(_.underlying.applyDiffActions(diffActions))
 
   /**
     * Compress out adjacent intervals with the same value

@@ -28,7 +28,8 @@ case class ValidData2D[V, R1: DiscreteValue, R2: DiscreteValue](
   * Companion for valid data in two dimensions.
   */
 object ValidData2D:
-  import scala.math.Ordered.orderingToOrdered
-  given [V, R1: DiscreteValue, R2: DiscreteValue]: Ordering[ValidData2D[V, R1, R2]] with
+  given [V, R1: DiscreteValue, R2: DiscreteValue](using
+    intervalOrder: Ordering[DiscreteInterval2D[R1, R2]]
+  ): Ordering[ValidData2D[V, R1, R2]] with
     override def compare(x: ValidData2D[V, R1, R2], y: ValidData2D[V, R1, R2]): Int =
-      x.key.compareTo(y.key)
+      intervalOrder.compare(x.interval, y.interval)

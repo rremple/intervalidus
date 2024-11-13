@@ -58,15 +58,6 @@ class DataIn3D[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue] priva
     DataIn3D[V, R1, R2, R3]
   ]:
 
-  override def toMutable: DataIn3DMutable[V, R1, R2, R3] = DataIn3DMutable(getAll)
-
-  override def toImmutable: DataIn3D[V, R1, R2, R3] = this
-
-  override protected def copyAndModify(f: DataIn3D[V, R1, R2, R3] => Unit): DataIn3D[V, R1, R2, R3] =
-    val result = copy
-    f(result)
-    result
-
   /**
     * Applies a function to all valid data. Both the valid data value and interval types can be changed in the mapping.
     *
@@ -129,24 +120,6 @@ class DataIn3D[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue] priva
     getAll.flatMap(f(_).getAll)
   ).compressAll()
 
-  // ---------- Implement methods from DimensionalBase ----------
-
-  override def copy: DataIn3D[V, R1, R2, R3] =
-    new DataIn3D(dataByStartAsc.clone(), dataByStartDesc.clone(), dataByValue.clone(), dataInSearchTree.copy)
-
-  // ---------- Implement methods from ImmutableBase ----------
-
-  override def applyDiffActions(diffActions: Iterable[DiffAction3D[V, R1, R2, R3]]): DataIn3D[V, R1, R2, R3] =
-    copyAndModify: result =>
-      diffActions.foreach:
-        case DiffAction3D.Create(data) => result.addValidData(data)
-        case DiffAction3D.Update(data) => result.updateValidData(data)
-        case DiffAction3D.Delete(key)  => result.removeValidDataByKey(key)
-
-  override def syncWith(that: DataIn3D[V, R1, R2, R3]): DataIn3D[V, R1, R2, R3] = applyDiffActions(
-    that.diffActionsFrom(this)
-  )
-
   // ---------- Implement methods from DataIn3DBase ----------
 
   override def zip[B](that: DataIn3DBase[B, R1, R2, R3]): DataIn3D[(V, B), R1, R2, R3] = DataIn3D(zipData(that))
@@ -166,14 +139,37 @@ class DataIn3D[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue] priva
   override def flipAboutDepth: DataIn3D[V, R2, R1, R3] =
     map(d => d.copy(interval = d.interval.flipAboutDepth))
 
-  override def getByHorizontalIndex(horizontalIndex: DiscreteDomain1D[R1]): DataIn2D[V, R2, R3] = DataIn2D[V, R2, R3](
-    getByHorizontalIndexData(horizontalIndex)
-  )
+  override def getByHorizontalIndex(horizontalIndex: DiscreteDomain1D[R1]): DataIn2D[V, R2, R3] =
+    DataIn2D[V, R2, R3](getByHorizontalIndexData(horizontalIndex))
 
-  override def getByVerticalIndex(verticalIndex: DiscreteDomain1D[R2]): DataIn2D[V, R1, R3] = DataIn2D[V, R1, R3](
-    getByVerticalIndexData(verticalIndex)
-  )
+  override def getByVerticalIndex(verticalIndex: DiscreteDomain1D[R2]): DataIn2D[V, R1, R3] =
+    DataIn2D[V, R1, R3](getByVerticalIndexData(verticalIndex))
 
-  override def getByDepthIndex(depthIndex: DiscreteDomain1D[R3]): DataIn2D[V, R1, R2] = DataIn2D[V, R1, R2](
-    getByDepthIndexData(depthIndex)
-  )
+  override def getByDepthIndex(depthIndex: DiscreteDomain1D[R3]): DataIn2D[V, R1, R2] =
+    DataIn2D[V, R1, R2](getByDepthIndexData(depthIndex))
+
+  // ---------- Implement methods from ImmutableBase ----------
+
+  override protected def copyAndModify(f: DataIn3D[V, R1, R2, R3] => Unit): DataIn3D[V, R1, R2, R3] =
+    val result = copy
+    f(result)
+    result
+
+  override def applyDiffActions(diffActions: Iterable[DiffAction3D[V, R1, R2, R3]]): DataIn3D[V, R1, R2, R3] =
+    copyAndModify: result =>
+      diffActions.foreach:
+        case DiffAction3D.Create(data) => result.addValidData(data)
+        case DiffAction3D.Update(data) => result.updateValidData(data)
+        case DiffAction3D.Delete(key)  => result.removeValidDataByKey(key)
+
+  override def syncWith(that: DataIn3D[V, R1, R2, R3]): DataIn3D[V, R1, R2, R3] =
+    applyDiffActions(that.diffActionsFrom(this))
+
+  // ---------- Implement methods from DimensionalBase ----------
+
+  override def copy: DataIn3D[V, R1, R2, R3] =
+    new DataIn3D(dataByStartAsc.clone(), dataByStartDesc.clone(), dataByValue.clone(), dataInSearchTree.copy)
+
+  override def toMutable: DataIn3DMutable[V, R1, R2, R3] = DataIn3DMutable(getAll)
+
+  override def toImmutable: DataIn3D[V, R1, R2, R3] = this

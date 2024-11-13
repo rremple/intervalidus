@@ -224,6 +224,15 @@ object DiscreteInterval2D:
     DiscreteInterval1D.unbounded[T1] x DiscreteInterval1D.unbounded[T2]
 
   /**
+    * Intervals are ordered by start
+    */
+  given [T1: DiscreteValue, T2: DiscreteValue](using
+    domainOrder: Ordering[DiscreteDomain2D[T1, T2]]
+  ): Ordering[DiscreteInterval2D[T1, T2]] with
+    override def compare(x: DiscreteInterval2D[T1, T2], y: DiscreteInterval2D[T1, T2]): Int =
+      domainOrder.compare(x.start, y.start)
+
+  /**
     * Generic compression algorithm used by both `compress` and `Data3DBase.compressInPlace`.
     *
     * @param initialState

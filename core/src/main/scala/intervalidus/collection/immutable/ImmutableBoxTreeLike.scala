@@ -23,6 +23,8 @@ trait ImmutableBoxTreeLike[
   P <: BoxedPayloadLike[A, C, B, P],
   Self <: ImmutableBoxTreeLike[A, C, B, P, Self]
 ] extends BoxTreeLike[A, C, B, P, Self]:
+  this: Self =>
+
   /**
     * Inserts/updates boxed data into the tree.
     * @param d
@@ -67,6 +69,8 @@ trait ImmutableBoxTreeLeafLike[
   P <: BoxedPayloadLike[A, C, B, P],
   SuperSelf <: ImmutableBoxTreeLike[A, C, B, P, SuperSelf]
 ] extends ImmutableBoxTreeLike[A, C, B, P, SuperSelf]:
+  this: SuperSelf =>
+
   // create new instances with the same boundary, depth, capacity, and depthLimit
   protected def newLeaf(data: List[P]): SuperSelf
   protected def newBranch: SuperSelf
@@ -104,6 +108,7 @@ trait ImmutableBoxTreeBranchLike[
   P <: BoxedPayloadLike[A, C, B, P],
   SuperSelf <: ImmutableBoxTreeLike[A, C, B, P, SuperSelf]
 ] extends ImmutableBoxTreeLike[A, C, B, P, SuperSelf]:
+  this: SuperSelf =>
 
   // manage subtree state
   protected def subtreeBoundaries: Vector[B]

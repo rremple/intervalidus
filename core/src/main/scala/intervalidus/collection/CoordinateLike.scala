@@ -7,6 +7,8 @@ package intervalidus.collection
   *   F-bounded self type
   */
 trait CoordinateLike[Self <: CoordinateLike[Self]]:
+  this: Self =>
+
   /**
     * Returns the point where each dimension is the min of this and the other point. It will be less than or equal to
     * the other point in every dimension.

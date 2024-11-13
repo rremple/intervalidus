@@ -1,7 +1,6 @@
 package intervalidus.json.weepickle
 
 import com.rallyhealth.weejson.v1.{Obj, Arr, Str, Value}
-import com.rallyhealth.weejson.v1.jackson.{FromJson, ToPrettyJson}
 import com.rallyhealth.weepickle.v1.WeePickle.*
 import intervalidus.*
 

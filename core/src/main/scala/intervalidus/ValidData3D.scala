@@ -35,7 +35,8 @@ case class ValidData3D[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValu
   * Companion for valid data in three dimensions.
   */
 object ValidData3D:
-  import scala.math.Ordered.orderingToOrdered
-  given [V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue]: Ordering[ValidData3D[V, R1, R2, R3]] with
+  given [V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](using
+    intervalOrder: Ordering[DiscreteInterval3D[R1, R2, R3]]
+  ): Ordering[ValidData3D[V, R1, R2, R3]] with
     override def compare(x: ValidData3D[V, R1, R2, R3], y: ValidData3D[V, R1, R2, R3]): Int =
-      x.key.compareTo(y.key)
+      intervalOrder.compare(x.interval, y.interval)

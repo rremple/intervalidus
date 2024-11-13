@@ -299,6 +299,13 @@ object DiscreteInterval1D:
     */
   def unbounded[T: DiscreteValue]: DiscreteInterval1D[T] = apply(Bottom, Top)
 
+  /**
+    * Intervals are ordered by start
+    */
+  given [T: DiscreteValue](using domainOrder: Ordering[DiscreteDomain1D[T]]): Ordering[DiscreteInterval1D[T]] with
+    override def compare(x: DiscreteInterval1D[T], y: DiscreteInterval1D[T]): Int =
+      domainOrder.compare(x.start, y.start)
+
   /*
    * These methods operate on collections of intervals.
    */
@@ -366,7 +373,7 @@ object DiscreteInterval1D:
     *   a new collection of intervals sorted by the key.
     */
   def sort[T: DiscreteValue](intervals: Iterable[DiscreteInterval1D[T]]): Iterable[DiscreteInterval1D[T]] =
-    intervals.toList.sortBy(_.start)
+    intervals.toList.sorted
 
   /**
     * Finds all intervals, including all overlaps and gaps between intervals, as intervals. Inputs may be overlapping.

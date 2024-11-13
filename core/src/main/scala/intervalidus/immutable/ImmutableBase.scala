@@ -23,7 +23,8 @@ trait ImmutableBase[
   ValidData <: ValidDataLike[V, D, I, ValidData],
   DiffAction <: DiffActionLike[V, D, I, ValidData, DiffAction],
   Self <: ImmutableBase[V, D, I, ValidData, DiffAction, Self]
-] extends DimensionalBase[V, D, I, ValidData, DiffAction, _]:
+] extends DimensionalBase[V, D, I, ValidData, DiffAction, ?]:
+  this: Self =>
   // Unlike MutableBase, we have to extend DimensionalBase here rather than reference it as the self type because
   // the results of copyAndModify operations need access to protected methods in that trait
 

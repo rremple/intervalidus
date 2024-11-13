@@ -33,6 +33,8 @@ trait BoxTreeLike[
   P <: BoxedPayloadLike[A, C, B, P],
   Self <: BoxTreeLike[A, C, B, P, Self]
 ]:
+  this: Self =>
+
   /**
     * Make a copy of this tree.
     * @return

@@ -58,25 +58,6 @@ class DataIn3D[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue] priva
     DataIn3D[V, R1, R2, R3]
   ]:
 
-  override def toImmutable: DataIn3DImmutable[V, R1, R2, R3] = DataIn3DImmutable(getAll)
-
-  override def toMutable: DataIn3D[V, R1, R2, R3] = this
-
-  // ---------- Implement methods from DimensionalBase ----------
-
-  override def copy: DataIn3D[V, R1, R2, R3] =
-    new DataIn3D(dataByStartAsc.clone(), dataByStartDesc.clone(), dataByValue.clone(), dataInSearchTree.copy)
-
-  // ---------- Implement methods from MutableBase ----------
-
-  override def applyDiffActions(diffActions: Iterable[DiffAction3D[V, R1, R2, R3]]): Unit = synchronized:
-    diffActions.foreach:
-      case DiffAction3D.Create(data) => addValidData(data)
-      case DiffAction3D.Update(data) => updateValidData(data)
-      case DiffAction3D.Delete(key)  => removeValidDataByKey(key)
-
-  override def syncWith(that: DataIn3D[V, R1, R2, R3]): Unit = applyDiffActions(that.diffActionsFrom(this))
-
   // ---------- Implement methods from DataIn3DBase ----------
 
   override def zip[B](that: DataIn3DBase[B, R1, R2, R3]): DataIn3D[(V, B), R1, R2, R3] = DataIn3D(zipData(that))
@@ -104,3 +85,23 @@ class DataIn3D[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue] priva
 
   override def getByDepthIndex(depthIndex: DiscreteDomain1D[R3]): DataIn2D[V, R1, R2] =
     DataIn2D[V, R1, R2](getByDepthIndexData(depthIndex))
+
+  // ---------- Implement methods from MutableBase ----------
+
+  override def applyDiffActions(diffActions: Iterable[DiffAction3D[V, R1, R2, R3]]): Unit = synchronized:
+    diffActions.foreach:
+      case DiffAction3D.Create(data) => addValidData(data)
+      case DiffAction3D.Update(data) => updateValidData(data)
+      case DiffAction3D.Delete(key)  => removeValidDataByKey(key)
+
+  override def syncWith(that: DataIn3D[V, R1, R2, R3]): Unit =
+    applyDiffActions(that.diffActionsFrom(this))
+
+  // ---------- Implement methods from DimensionalBase ----------
+
+  override def copy: DataIn3D[V, R1, R2, R3] =
+    new DataIn3D(dataByStartAsc.clone(), dataByStartDesc.clone(), dataByValue.clone(), dataInSearchTree.copy)
+
+  override def toMutable: DataIn3D[V, R1, R2, R3] = this
+
+  override def toImmutable: DataIn3DImmutable[V, R1, R2, R3] = DataIn3DImmutable(getAll)

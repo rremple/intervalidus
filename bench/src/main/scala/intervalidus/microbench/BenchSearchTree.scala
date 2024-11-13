@@ -28,7 +28,7 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
     ValidData <: ValidDataLike[String, D, I, ValidData],
     DiffAction <: DiffActionLike[String, D, I, ValidData, DiffAction],
     DimData <: mutable.MutableBase[String, D, I, ValidData, DiffAction, DimData] &
-      DimensionalBase[String, D, I, ValidData, DiffAction, _]
+      DimensionalBase[String, D, I, ValidData, DiffAction, ?]
   ](
     intervalRange: Int,
     data: Vector[ValidData],
@@ -80,7 +80,7 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
     @Benchmark
     def baselineReplaceByKey: Unit =
       val existing = useExisting()
-      baselineData.replaceByKey(existing.key, randValueWithKey(existing))
+      baselineData.replaceByKey(existing.interval.start, randValueWithKey(existing))
 
     //// Featured
 
@@ -113,7 +113,7 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
     @Benchmark
     def featuredReplaceByKey: Unit =
       val existing = useExisting()
-      featuredData.replaceByKey(existing.key, randValueWithKey(existing))
+      featuredData.replaceByKey(existing.interval.start, randValueWithKey(existing))
 
   abstract class GenericMutable1dBench(
     intervalRange: Int,
@@ -281,7 +281,7 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
     @Benchmark
     def baselineReplaceByKey: DimData =
       val existing = useExisting()
-      baselineData.replaceByKey(existing.key, randValueWithKey(existing))
+      baselineData.replaceByKey(existing.interval.start, randValueWithKey(existing))
 
     //// Featured
 
@@ -315,7 +315,7 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
     @Benchmark
     def featuredReplaceByKey: DimData =
       val existing = useExisting()
-      featuredData.replaceByKey(existing.key, randValueWithKey(existing))
+      featuredData.replaceByKey(existing.interval.start, randValueWithKey(existing))
 
   abstract class GenericImmutable1dBench(
     intervalRange: Int,

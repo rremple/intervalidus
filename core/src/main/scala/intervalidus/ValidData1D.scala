@@ -29,7 +29,8 @@ case class ValidData1D[V, R: DiscreteValue](
   * Companion for valid data in one dimension.
   */
 object ValidData1D:
-  import scala.math.Ordered.orderingToOrdered
-  given [V, R: DiscreteValue]: Ordering[ValidData1D[V, R]] with
+  given [V, R: DiscreteValue](using
+    intervalOrder: Ordering[DiscreteInterval1D[R]]
+  ): Ordering[ValidData1D[V, R]] with
     override def compare(x: ValidData1D[V, R], y: ValidData1D[V, R]): Int =
-      x.key.compareTo(y.key)
+      intervalOrder.compare(x.interval, y.interval)

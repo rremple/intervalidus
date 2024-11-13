@@ -87,14 +87,15 @@ trait DimensionalVersionedBase[
     ValidData2,
     DiffAction2,
     UnderlyingMutable
-  ] with DimensionalBase[
-    V,
-    D2,
-    I2,
-    ValidData2,
-    DiffAction2,
-    _
-  ]
+  ] &
+    DimensionalBase[
+      V,
+      D2,
+      I2,
+      ValidData2,
+      DiffAction2,
+      _
+    ]
   type UnderlyingImmutable <: immutable.ImmutableBase[
     V,
     D2,
@@ -102,14 +103,15 @@ trait DimensionalVersionedBase[
     ValidData2,
     DiffAction2,
     UnderlyingImmutable
-  ] with DimensionalBase[
-    V,
-    D2,
-    I2,
-    ValidData2,
-    DiffAction2,
-    _
-  ]
+  ] &
+    DimensionalBase[
+      V,
+      D2,
+      I2,
+      ValidData2,
+      DiffAction2,
+      _
+    ]
 
   // Underlying n+1 dimensional representation of versioned n dimensional data (mutable)
   protected def underlying: UnderlyingMutable
@@ -173,7 +175,7 @@ trait DimensionalVersionedBase[
     */
   def getSelectedDataMutable(using
     versionSelection: VersionSelection
-  ): PublicSelf with mutable.MutableBase[V, D, I, ValidData, DiffAction, _]
+  ): PublicSelf & mutable.MutableBase[V, D, I, ValidData, DiffAction, ?]
 
   /**
     * Based on the given version selection context, gets all the data (compressed, immutable).
@@ -185,7 +187,7 @@ trait DimensionalVersionedBase[
     */
   def getSelectedData(using
     versionSelection: VersionSelection
-  ): PublicSelf with immutable.ImmutableBase[V, D, I, ValidData, DiffAction, _]
+  ): PublicSelf & immutable.ImmutableBase[V, D, I, ValidData, DiffAction, ?]
 
   // ---------- Implement methods not similar to those in DimensionalBase ----------
 

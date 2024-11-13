@@ -22,9 +22,9 @@ trait MutableBase[
   I <: DiscreteIntervalLike[D, I],
   ValidData <: ValidDataLike[V, D, I, ValidData],
   DiffAction <: DiffActionLike[V, D, I, ValidData, DiffAction],
-  Self <: MutableBase[V, D, I, ValidData, DiffAction, Self] with DimensionalBase[V, D, I, ValidData, DiffAction, _]
+  Self <: MutableBase[V, D, I, ValidData, DiffAction, Self] & DimensionalBase[V, D, I, ValidData, DiffAction, ?]
 ]:
-  self: Self =>
+  this: Self =>
 
   // ---------- Implement methods from DimensionalBase ----------
 
