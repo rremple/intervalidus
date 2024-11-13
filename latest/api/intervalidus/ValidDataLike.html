@@ -117,6 +117,17 @@ node8 -> node0;
      </div><span></span>
     </div>
    </dd>
+   <dt class="body-small">
+    Self type
+   </dt>
+   <dd class="body-medium">
+    <div class="mono-small-block supertypes">
+     <span></span>
+     <div>
+      <span t="t">Self</span>
+     </div>
+    </div>
+   </dd>
   </dl>
  </section>
 </div>
@@ -267,41 +278,6 @@ node8 -> node0;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="key-0">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ValidDataLike.html#key-0" t="n" class="documentableName ">key</a>: <span t="t">D</span>
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>When stored in a collection, this aspect of the data can be used as the key. (E.g., the start of the corresponding 1D interval).</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>When stored in a collection, this aspect of the data can be used as the key. (E.g., the start of the corresponding 1D interval).</p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Returns
-              </dt>
-              <dd class="body-medium">
-               <p>a domain-like key</p>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
         <div class="documentableElement" id="qualifiedInterval-0" data-f-visibility="protected">
          <div class="documentableElement-expander">
           <div class="header monospace mono-medium">
@@ -376,6 +352,41 @@ node8 -> node0;
                <div>
                 <span data-unresolved-link="">Function1</span> -&gt; <span data-unresolved-link="">Any</span>
                </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="withKey-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ValidDataLike.html#withKey-0" t="n" class="documentableName ">withKey</a>: (<span t="t">D</span>, <span t="t">Self</span>)
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>When stored in a collection, the start of the corresponding interval is the key.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>When stored in a collection, the start of the corresponding interval is the key.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>a tuple of the domain-like key with this valid data</p>
               </dd>
              </dl>
             </div>

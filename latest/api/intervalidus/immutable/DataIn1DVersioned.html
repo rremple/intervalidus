@@ -269,156 +269,6 @@ node10 -> node5;
          <button class="icon-button show-content expand"></button>
          <h4 class="groupHeader h200">Concrete methods</h4>
         </div>
-        <div class="documentableElement" id="applyDiffActions-3b3" data-f-keywords="override">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="DataIn1DVersioned.html#applyDiffActions-3b3" t="n" class="documentableName ">applyDiffActions</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">diffActions</span>: <span data-unresolved-link="" t="t">Iterable</span>[<a href="../DiffAction2D.html" t="t">DiffAction2D</a>[<span t="t">V</span>, <span t="t">R</span>, <span data-unresolved-link="" t="t">Int</span>]]): <a href="DataIn1DVersioned.html" t="t">DataIn1DVersioned</a>[<span t="t">V</span>, <span t="t">R</span>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Applies a sequence of diff actions to this structure. Does not use a version selection context -- operates on full underlying structure.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Applies a sequence of diff actions to this structure. Does not use a version selection context -- operates on full underlying structure.</p>
-             </div>
-             <h2 class="h200">Value parameters</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               diffActions
-              </dt>
-              <dd class="body-medium">
-               <p>actions to be applied.</p>
-              </dd>
-             </dl>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Definition Classes
-              </dt>
-              <dd class="body-medium">
-               <div>
-                <a href="ImmutableVersionedBase.html">ImmutableVersionedBase</a>
-               </div>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="approve-fffff066" data-f-keywords="override">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="DataIn1DVersioned.html#approve-fffff066" t="n" class="documentableName ">approve</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">data</span>: <a href="../ValidData1D.html" t="t">ValidData1D</a>[<span t="t">V</span>, <span t="t">R</span>]): <span data-unresolved-link="" t="t">Option</span>[<a href="DataIn1DVersioned.html" t="t">DataIn1DVersioned</a>[<span t="t">V</span>, <span t="t">R</span>]]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Special case where we change the version interval in a constrained way.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Special case where we change the version interval in a constrained way.</p>
-             </div>
-             <h2 class="h200">Value parameters</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               data
-              </dt>
-              <dd class="body-medium">
-               <p>currently unapproved data to approved</p>
-              </dd>
-             </dl>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Returns
-              </dt>
-              <dd class="body-medium">
-               <p>some new structure if unapproved version was found and approved, none otherwise</p>
-              </dd>
-              <dt class="body-small">
-               Definition Classes
-              </dt>
-              <dd class="body-medium">
-               <div>
-                <a href="ImmutableVersionedBase.html">ImmutableVersionedBase</a>
-               </div>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="approveAll-fffffdda" data-f-keywords="override">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="DataIn1DVersioned.html#approveAll-fffffdda" t="n" class="documentableName ">approveAll</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">interval</span>: <a href="../DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">R</span>]): <a href="DataIn1DVersioned.html" t="t">DataIn1DVersioned</a>[<span t="t">V</span>, <span t="t">R</span>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Useful when approving everything in a range, including empty space (i.e., an unapproved removal)</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Useful when approving everything in a range, including empty space (i.e., an unapproved removal)</p>
-             </div>
-             <h2 class="h200">Value parameters</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               interval
-              </dt>
-              <dd class="body-medium">
-               <p>interval in which all changes (updates and deletes) are approved</p>
-              </dd>
-             </dl>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Returns
-              </dt>
-              <dd class="body-medium">
-               <p>a new structure with all unapproved changes approved.</p>
-              </dd>
-              <dt class="body-small">
-               Definition Classes
-              </dt>
-              <dd class="body-medium">
-               <div>
-                <a href="ImmutableVersionedBase.html">ImmutableVersionedBase</a>
-               </div>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
         <div class="documentableElement" id="collapseVersionHistory-71e" data-f-keywords="override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -1265,6 +1115,50 @@ node10 -> node5;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="applyDiffActions-448" data-f-inherited="ImmutableVersionedBase">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DataIn1DVersioned.html#applyDiffActions-448" t="n" class="documentableName ">applyDiffActions</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">diffActions</span>: <span data-unresolved-link="" t="t">Iterable</span>[<a href="../DiffAction2D.html" t="t">DiffAction2D</a>[<span t="t">V</span>, <span t="t">R</span>, <span data-unresolved-link="" t="t">Int</span>]]): <a href="DataIn1DVersioned.html" t="t">DataIn1DVersioned</a>[<span t="t">V</span>, <span t="t">R</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Applies a sequence of diff actions to this structure. Does not use a version selection context -- operates on full underlying structure.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Applies a sequence of diff actions to this structure. Does not use a version selection context -- operates on full underlying structure.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               diffActions
+              </dt>
+              <dd class="body-medium">
+               <p>actions to be applied.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="ImmutableVersionedBase.html#applyDiffActions-448">ImmutableVersionedBase</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="applyOrElse-fffffdbf" data-f-inherited="PartialFunction">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -1288,6 +1182,106 @@ node10 -> node5;
               </dt>
               <dd class="body-medium">
                <span data-unresolved-link="">PartialFunction</span>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="approve-26a" data-f-inherited="ImmutableVersionedBase">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DataIn1DVersioned.html#approve-26a" t="n" class="documentableName ">approve</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">data</span>: <a href="../ValidData1D.html" t="t">ValidData1D</a>[<span t="t">V</span>, <span t="t">R</span>]): <span data-unresolved-link="" t="t">Option</span>[<a href="DataIn1DVersioned.html" t="t">DataIn1DVersioned</a>[<span t="t">V</span>, <span t="t">R</span>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Special case where we change the version interval in a constrained way.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Special case where we change the version interval in a constrained way.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               data
+              </dt>
+              <dd class="body-medium">
+               <p>currently unapproved data to approved</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>some new structure if unapproved version was found and approved, none otherwise</p>
+              </dd>
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="ImmutableVersionedBase.html#approve-26a">ImmutableVersionedBase</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="approveAll-6fd" data-f-inherited="ImmutableVersionedBase">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DataIn1DVersioned.html#approveAll-6fd" t="n" class="documentableName ">approveAll</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">interval</span>: <a href="../DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">R</span>]): <a href="DataIn1DVersioned.html" t="t">DataIn1DVersioned</a>[<span t="t">V</span>, <span t="t">R</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Useful when approving everything in a range, including empty space (i.e., an unapproved removal)</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Useful when approving everything in a range, including empty space (i.e., an unapproved removal)</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               interval
+              </dt>
+              <dd class="body-medium">
+               <p>interval in which all changes (updates and deletes) are approved</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>a new structure with all unapproved changes approved.</p>
+              </dd>
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="ImmutableVersionedBase.html#approveAll-6fd">ImmutableVersionedBase</a>
               </dd>
              </dl>
             </div>

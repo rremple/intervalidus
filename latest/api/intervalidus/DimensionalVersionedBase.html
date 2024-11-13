@@ -94,11 +94,10 @@ node5 [id=node5, label="<span style=\"color: #FFFFFF;\">class <span t=\"t\">D2</
 node6 [id=node6, label="<span style=\"color: #FFFFFF;\">trait <a href=\"immutable/ImmutableVersionedBase.html\" t=\"n\">ImmutableVersionedBase</a>[<span t=\"t\">V</span>, <span t=\"t\">D</span>, <span t=\"t\">I</span>, <span t=\"t\">ValidData</span>, <span t=\"t\">DiffAction</span>, <span t=\"t\">D2</span>, <span t=\"t\">I2</span>, <span t=\"t\">ValidData2</span>, <span t=\"t\">DiffAction2</span>, <span t=\"t\">Self</span>]</span>", class="trait vertex"];
 node7 [id=node7, label="<span style=\"color: #FFFFFF;\">class <a href=\"immutable/DataIn1DVersioned.html\" t=\"n\">DataIn1DVersioned</a>[<span t=\"t\">V</span>, <span t=\"t\">R</span>]</span>", class="class vertex"];
 node8 [id=node8, label="<span style=\"color: #FFFFFF;\">class <a href=\"immutable/DataIn2DVersioned.html\" t=\"n\">DataIn2DVersioned</a>[<span t=\"t\">V</span>, <span t=\"t\">R1</span>, <span t=\"t\">R2</span>]</span>", class="class vertex"];
-node9 [id=node9, label="<span style=\"color: #FFFFFF;\">trait <a href=\"mutable/MutableVersionedBase.html\" t=\"n\">MutableVersionedBase</a>[<span t=\"t\">V</span>, <span t=\"t\">D</span>, <span t=\"t\">I</span>, <span t=\"t\">ValidData</span>, <span t=\"t\">DiffAction</span>, <span t=\"t\">D2</span>, <span t=\"t\">I2</span>, <span t=\"t\">ValidData2</span>, <span t=\"t\">DiffAction2</span>, <span t=\"t\">Self</span>]</span>", class="trait vertex"];
+node9 [id=node9, label="<span style=\"color: #FFFFFF;\">trait <a href=\"DataIn1DVersionedBase.html\" t=\"n\">DataIn1DVersionedBase</a>[<span t=\"t\">V</span>, <span t=\"t\">R</span>]</span>", class="trait vertex"];
 node10 [id=node10, label="<span style=\"color: #FFFFFF;\">class <a href=\"mutable/DataIn1DVersioned.html\" t=\"n\">DataIn1DVersioned</a>[<span t=\"t\">V</span>, <span t=\"t\">R</span>]</span>", class="class vertex"];
-node11 [id=node11, label="<span style=\"color: #FFFFFF;\">class <a href=\"mutable/DataIn2DVersioned.html\" t=\"n\">DataIn2DVersioned</a>[<span t=\"t\">V</span>, <span t=\"t\">R1</span>, <span t=\"t\">R2</span>]</span>", class="class vertex"];
-node12 [id=node12, label="<span style=\"color: #FFFFFF;\">trait <a href=\"DataIn1DVersionedBase.html\" t=\"n\">DataIn1DVersionedBase</a>[<span t=\"t\">V</span>, <span t=\"t\">R</span>]</span>", class="trait vertex"];
-node13 [id=node13, label="<span style=\"color: #FFFFFF;\">trait <a href=\"DataIn2DVersionedBase.html\" t=\"n\">DataIn2DVersionedBase</a>[<span t=\"t\">V</span>, <span t=\"t\">R1</span>, <span t=\"t\">R2</span>]</span>", class="trait vertex"];
+node11 [id=node11, label="<span style=\"color: #FFFFFF;\">trait <a href=\"DataIn2DVersionedBase.html\" t=\"n\">DataIn2DVersionedBase</a>[<span t=\"t\">V</span>, <span t=\"t\">R1</span>, <span t=\"t\">R2</span>]</span>", class="trait vertex"];
+node12 [id=node12, label="<span style=\"color: #FFFFFF;\">class <a href=\"mutable/DataIn2DVersioned.html\" t=\"n\">DataIn2DVersioned</a>[<span t=\"t\">V</span>, <span t=\"t\">R1</span>, <span t=\"t\">R2</span>]</span>", class="class vertex"];
 
 
  node0 -> node1;
@@ -113,14 +112,11 @@ node6 -> node0;
 node7 -> node6;
 node8 -> node6;
 node9 -> node0;
+node7 -> node9;
 node10 -> node9;
-node11 -> node9;
-node12 -> node0;
-node7 -> node12;
-node10 -> node12;
-node13 -> node0;
-node8 -> node13;
-node11 -> node13;
+node11 -> node0;
+node8 -> node11;
+node12 -> node11;
 
 }
 </script>
@@ -163,19 +159,16 @@ node11 -> node13;
       class <a href="immutable/DataIn2DVersioned.html" t="n">DataIn2DVersioned</a>[<span t="t">V</span>, <span t="t">R1</span>, <span t="t">R2</span>]
      </div>
      <div>
-      trait <a href="mutable/MutableVersionedBase.html" t="n">MutableVersionedBase</a>[<span t="t">V</span>, <span t="t">D</span>, <span t="t">I</span>, <span t="t">ValidData</span>, <span t="t">DiffAction</span>, <span t="t">D2</span>, <span t="t">I2</span>, <span t="t">ValidData2</span>, <span t="t">DiffAction2</span>, <span t="t">Self</span>]
+      trait <a href="DataIn1DVersionedBase.html" t="n">DataIn1DVersionedBase</a>[<span t="t">V</span>, <span t="t">R</span>]
      </div>
      <div>
       class <a href="mutable/DataIn1DVersioned.html" t="n">DataIn1DVersioned</a>[<span t="t">V</span>, <span t="t">R</span>]
      </div>
      <div>
-      class <a href="mutable/DataIn2DVersioned.html" t="n">DataIn2DVersioned</a>[<span t="t">V</span>, <span t="t">R1</span>, <span t="t">R2</span>]
-     </div>
-     <div>
-      trait <a href="DataIn1DVersionedBase.html" t="n">DataIn1DVersionedBase</a>[<span t="t">V</span>, <span t="t">R</span>]
-     </div>
-     <div>
       trait <a href="DataIn2DVersionedBase.html" t="n">DataIn2DVersionedBase</a>[<span t="t">V</span>, <span t="t">R1</span>, <span t="t">R2</span>]
+     </div>
+     <div>
+      class <a href="mutable/DataIn2DVersioned.html" t="n">DataIn2DVersioned</a>[<span t="t">V</span>, <span t="t">R1</span>, <span t="t">R2</span>]
      </div><span class="show-all-code show-content text-button h100">Show all</span>
     </div>
    </dd>
