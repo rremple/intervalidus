@@ -106,7 +106,7 @@ case class DiscreteInterval1D[T: DiscreteValue](
       case (Point(s), Top)                => s"intervalFrom(${codeFor(s)})"
       case (Point(s), Point(e)) if s == e => s"intervalAt(${codeFor(s)})"
       case (Point(s), Point(e))           => s"interval(${codeFor(s)}, ${codeFor(e)})"
-      case (s, e)                         => s"interval($s, $e)"
+      case (s, e)                         => s"interval(${s.toCodeLikeString}, ${e.toCodeLikeString})"
 
   /**
     * Returns a new interval starting at the provided value.

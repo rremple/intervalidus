@@ -55,6 +55,14 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
     interval(0, 1).toCodeLikeString shouldBe "interval(0, 1)"
     unbounded[Int].toCodeLikeString shouldBe "unbounded"
 
+    intervalFrom(LocalDate.of(2025,1,10)).toCodeLikeString shouldBe "intervalFrom(LocalDate.of(2025,1,10))"
+    intervalTo(LocalDate.of(2025,1,10)).toCodeLikeString shouldBe "intervalTo(LocalDate.of(2025,1,10))"
+    intervalAt(LocalDate.of(2025,1,10)).toCodeLikeString shouldBe "intervalAt(LocalDate.of(2025,1,10))"
+    interval(LocalDate.of(2025,1,10), LocalDate.of(2025,1,11)).toCodeLikeString shouldBe
+      "interval(LocalDate.of(2025,1,10), LocalDate.of(2025,1,11))"
+    unbounded[LocalDate].toCodeLikeString shouldBe "unbounded"
+    interval[LocalDate](Top, Top).toCodeLikeString shouldBe "interval(Top, Top)"
+
   test("Int 2D interval adjacency, etc."):
     val now = LocalDate.now
     val d: DiscreteInterval2D[LocalDate, Int] = intervalTo(now) x intervalFrom(0)
