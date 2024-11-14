@@ -8,11 +8,13 @@ import intervalidus.*
   * @tparam V
   *   the value type for valid data.
   * @tparam D
-  *   the domain type for intervals. Must be `DomainLike` and have an `Ordering`.
+  *   the domain type for intervals. Must be [[DiscreteDomainLike]].
   * @tparam I
-  *   the interval type, based on the domain type. Must be `IntervalLike` based on D.
+  *   the interval type, based on the domain type. Must be [[DiscreteIntervalLike]] based on [[D]].
   * @tparam ValidData
-  *   the valid data type. Must be `DataLike` based on V, D, and I.
+  *   the valid data type. Must be [[ValidDataLike]] based on [[V]], [[D]], and [[I]].
+  * @tparam DiffAction
+  *   the diff action type. Must be [[DiffActionLike]] based on [[V]], [[D]], and [[I]].
   * @tparam Self
   *   F-bounded self type.
   */
@@ -25,6 +27,24 @@ trait MutableBase[
   Self <: MutableBase[V, D, I, ValidData, DiffAction, Self] & DimensionalBase[V, D, I, ValidData, DiffAction, ?]
 ]:
   this: Self =>
+
+  // ---------- To be implemented by inheritor ----------
+
+  /**
+    * Applies a sequence of diff actions to this structure.
+    *
+    * @param diffActions
+    *   actions to be applied.
+    */
+  def applyDiffActions(diffActions: Iterable[DiffAction]): Unit
+
+  /**
+    * Synchronizes this with another structure by getting and applying the applicable diff actions.
+    *
+    * @param that
+    *   the structure with which this will be synchronized.
+    */
+  def syncWith(that: Self): Unit
 
   // ---------- Implement methods from DimensionalBase ----------
 
@@ -70,7 +90,8 @@ trait MutableBase[
     * @param data
     *   the new value existing data in the interval should take on
     */
-  def update(data: ValidData): Unit = updateOrRemove(data.interval, Some(data.value))
+  def update(data: ValidData): Unit =
+    updateOrRemove(data.interval, Some(data.value))
 
   /**
     * Remove the old data and replace it with the new data. The new data value and interval can be different. Data with
@@ -139,28 +160,10 @@ trait MutableBase[
     recompressInPlace()
 
   /**
-    * Applies a sequence of diff actions to this structure.
-    *
-    * @param diffActions
-    *   actions to be applied.
-    */
-  def applyDiffActions(diffActions: Iterable[DiffAction]): Unit
-
-  /**
-    * Synchronizes this with another structure by getting and applying the applicable diff actions.
-    *
-    * @param that
-    *   the structure with which this will be synchronized.
-    */
-  def syncWith(that: Self): Unit
-
-  /**
     * Applies a function to all valid data. Data are mutated in place.
     *
     * @param f
     *   the function to apply to each valid data element.
-    * @throws IllegalArgumentException
-    *   if the mapping function results in invalid data (e.g., introduces overlaps).
     */
   def map(f: ValidData => ValidData): Unit = synchronized:
     replaceValidData(getAll.map(f))
@@ -183,8 +186,6 @@ trait MutableBase[
     *
     * @param f
     *   the function to apply to each valid data element which results in a new structure.
-    * @throws IllegalArgumentException
-    *   if the mapping function results in invalid data (e.g., introduces overlaps).
     */
   def flatMap(f: ValidData => Self): Unit = synchronized:
     replaceValidData(getAll.flatMap(f(_).getAll))

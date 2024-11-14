@@ -11,14 +11,14 @@ import scala.collection.mutable
   */
 trait DataIn1DBaseObject:
   /**
-    * Shorthand constructor for a single initial value that is valid in a particular interval domain.
+    * Shorthand constructor for a single initial value that is valid in a particular interval.
     *
     * @tparam V
     *   the type of the value managed as data.
     * @tparam R
     *   the type of discrete value used in the discrete interval assigned to each value.
     * @param data
-    *   value in interval to start with.
+    *   valid data to start with.
     * @return
     *   [[DataIn1DBase]] structure with a single valid value.
     */
@@ -41,10 +41,10 @@ trait DataIn1DBaseObject:
   def of[V, R: DiscreteValue](value: V)(using Experimental): DataIn1DBase[V, R]
 
   /**
-    * Constructor for a multiple (or no) initial values that are valid in the various intervals.
+    * Constructor for multiple (or no) initial values that are valid in the various intervals.
     *
     * @param initialData
-    *   (optional) a collection of valid data to start with -- intervals must be disjoint.
+    *   a collection of valid data to start with -- intervals must be disjoint.
     * @tparam V
     *   the type of the value managed as data.
     * @tparam R
@@ -227,7 +227,10 @@ trait DataIn1DBase[V, R: DiscreteValue](using experimental: Experimental)
     dataInSearchTree.addAll(data.map(_.asBoxedPayload))
 
   override protected def dataInSearchTreeGet(interval: DiscreteInterval1D[R]): Iterable[ValidData1D[V, R]] =
-    BoxedPayload.deduplicate(dataInSearchTree.get(interval.asBox)).map(_.payload)
+    BoxedPayload
+      .deduplicate(dataInSearchTree.get(interval.asBox))
+      .map(_.payload)
+      .filter(_.interval intersects interval)
 
   override protected def dataInSearchTreeGetByDomain(domainIndex: DiscreteDomain1D[R]): Option[ValidData1D[V, R]] =
     dataInSearchTree
@@ -244,9 +247,9 @@ trait DataIn1DBase[V, R: DiscreteValue](using experimental: Experimental)
     * Both have to deal with exclusions, which can have three cases: simple, partial, and split.
     *
     * @param targetInterval
-    *   the new value existing data in the interval should take on
+    *   the interval where any valid values are updated or removed.
     * @param newValueOption
-    *   when defined, the value to be stored as part of an update
+    *   when defined, the value to be stored as part of an update.
     */
   override protected def updateOrRemove(
     targetInterval: DiscreteInterval1D[R],

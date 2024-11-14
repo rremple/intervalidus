@@ -31,17 +31,17 @@ object DataIn1DVersioned extends DataIn1DVersionedBaseObject:
   )
 
 /**
-  * Interface is similar to [[DataIn1D]], but it operates on an underlying [[DataIn2D]] using an integer-valued
-  * interval2 to version data. One use case would be that R = LocalDate, so data values may vary in terms of both
-  * version and date. Most methods require some generic version selection criteria rather than specific integer
-  * intervals.
+  * Interface is similar to [[DataIn1D]], but it operates on an underlying [[mutable.DataIn2D]] using an integer-valued
+  * vertical dimension to version data. One use case would be that R = LocalDate, so data values may vary in terms of
+  * both version and time. Most methods require some generic version selection criteria rather than specific integer
+  * intervals, therefore this does not extend [[DimensionalBase]].
   *
   * The "current" version is managed as state (a var). Versioning also separates notions of approved vs. unapproved data
   * (unapproved data are pushed up to start at version maxValue).
   *
   * When getting data, by default, we return "current" version data (a.k.a., approved). When updating data, by default,
   * we don't rewrite history, so mutations start with the "current" version too. Note that updates starting with
-  * "current" will update unapproved changes as well (since intervalFrom goes to the Top)
+  * "current" will update unapproved changes as well (since intervalFrom goes to the Top).
   *
   * @tparam V
   *   the type of the value managed as data
@@ -165,8 +165,6 @@ class DataIn1DVersioned[V, R: DiscreteValue](
     * @return
     *   a new structure with the same current version resulting from applying the provided function f to each element of
     *   this structure.
-    * @throws IllegalArgumentException
-    *   if the mapping function results in invalid data (e.g., introduces overlaps).
     */
   def map[B, S: DiscreteValue](f: ValidData2D[V, R, Int] => ValidData2D[B, S, Int]): DataIn1DVersioned[B, S] =
     DataIn1DVersioned(
@@ -178,7 +176,7 @@ class DataIn1DVersioned[V, R: DiscreteValue](
   /**
     * Applies a function to all valid data values. Only the valid data value type can be changed in the mapping. Does
     * not use a version selection context -- the function is applied to the underlying 2D data, so it maps all values in
-    * all versions. To only map values meeting specific version criteria, use [[map]] instead
+    * all versions. To only map values meeting specific version criteria, use [[map]] instead.
     *
     * @param f
     *   the function to apply to the value part of each valid data element.
@@ -208,8 +206,6 @@ class DataIn1DVersioned[V, R: DiscreteValue](
     * @return
     *   a new structure with the same current version resulting from applying the provided function f to each element of
     *   this structure and concatenating the results.
-    * @throws IllegalArgumentException
-    *   if the mapping function results in invalid data (e.g., introduces overlaps).
     */
   def flatMap[B, S: DiscreteValue](f: ValidData2D[V, R, Int] => DataIn1DVersioned[B, S]): DataIn1DVersioned[B, S] =
     DataIn1DVersioned(

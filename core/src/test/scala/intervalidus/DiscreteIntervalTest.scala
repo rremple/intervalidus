@@ -297,7 +297,6 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
     )
     val intervals1 = intervalsUnsorted1.sorted
 
-    sort(intervalsUnsorted1) shouldBe intervals1
     assert(isDisjoint(intervals1))
     assert(!isCompressible[Int](Nil))
     assert(isCompressible(intervals1))
@@ -312,7 +311,7 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
     compress(intervals1) shouldBe List(unbounded[Int])
     compress(intervals1.filterNot(_.start equiv 1)) shouldBe List(intervalTo(0), intervalFrom(11))
     assert(isDisjoint(intervals1.filterNot(_.start equiv 1)))
-    assert(!isDisjoint(sort(intervalsUnsorted1 :+ interval(5, 15))))
+    assert(!isDisjoint((intervalsUnsorted1 :+ interval(5, 15)).sorted))
 
     uniqueIntervals[Int](Nil) shouldBe Nil
 

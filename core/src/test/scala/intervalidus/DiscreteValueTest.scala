@@ -284,6 +284,6 @@ class DiscreteValueTest extends AnyFunSuite:
     assert(point(maxValue).successor equiv top)
     assert(point(minValue).predecessor equiv bottom)
 
-    assertResult("Point(2024-05-31) x Point(2024-06-03) x Point(2024-06-04)")(
+    assertResult("Point(LocalDate.of(2024,5,31)) x Point(LocalDate.of(2024,6,3)) x Point(LocalDate.of(2024,6,4))")(
       (Point(date0) x Point(date3) x Point(date4)).toCodeLikeString
     )

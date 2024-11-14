@@ -62,8 +62,6 @@ class DataIn1D[V, R: DiscreteValue] private (
     *   the valid data interval type of the returned structure.
     * @return
     *   a new structure resulting from applying the provided function f to each element of this structure.
-    * @throws IllegalArgumentException
-    *   if the mapping function results in invalid data (e.g., introduces overlaps).
     */
   def map[B, S: DiscreteValue](f: ValidData1D[V, R] => ValidData1D[B, S]): DataIn1D[B, S] = DataIn1D(
     getAll.map(f)
@@ -96,8 +94,6 @@ class DataIn1D[V, R: DiscreteValue] private (
     * @return
     *   a new structure resulting from applying the provided function f to each element of this structure and
     *   concatenating the results.
-    * @throws IllegalArgumentException
-    *   if the mapping function results in invalid data (e.g., introduces overlaps).
     */
   def flatMap[B, S: DiscreteValue](f: ValidData1D[V, R] => DataIn1D[B, S]): DataIn1D[B, S] = DataIn1D(
     getAll.flatMap(f(_).getAll)

@@ -11,7 +11,7 @@ import scala.collection.mutable
   */
 trait DataIn3DBaseObject:
   /**
-    * Shorthand constructor for a single initial value that is valid in a particular interval domain.
+    * Shorthand constructor for a single initial value that is valid in a particular interval.
     *
     * @tparam V
     *   the type of the value managed as data.
@@ -51,10 +51,10 @@ trait DataIn3DBaseObject:
   )(using experimental: Experimental): DataIn3DBase[V, R1, R2, R3]
 
   /**
-    * Constructor for a multiple (or no) initial values that are valid in the various intervals.
+    * Constructor for multiple (or no) initial values that are valid in the various intervals.
     *
     * @param initialData
-    *   (optional) a collection of valid data to start with -- intervals must be disjoint.
+    *   a collection of valid data to start with -- intervals must be disjoint.
     * @tparam V
     *   the type of the value managed as data.
     * @tparam R1
@@ -119,9 +119,9 @@ trait DataIn3DBaseObject:
     (dataByStartAsc, dataByStartDesc, dataByValue, dataInSearchTree)
 
 /**
-  * Like [[DataIn1DBase]], data here have different values in different discrete intervals. But here data values vary in
-  * three dimensions. For example, one may want to represent when the data are valid in two dimensions of time plus over
-  * certain versions simultaneously.
+  * Like [[DataIn1DBase]] and [[DataIn2DBase]], data here have different values in different discrete intervals. But
+  * here data values vary in three dimensions. For example, one may want to represent when data are valid in two
+  * dimensions of time and over certain versions simultaneously.
   *
   * We can capture the dependency between various values and related three-dimensional intervals cohesively in this
   * structure rather than in separate data structures using distributed (and potentially inconsistent) logic. This is
@@ -285,32 +285,32 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
   def flipAboutDepth: DataIn3DBase[V, R2, R1, R3]
 
   /**
-    * Project as 2-dimensional data based on a horizontal domain element
+    * Project as two-dimensional data based on a horizontal domain element
     *
     * @param horizontalIndex
     *   the horizontal domain element
     * @return
-    *   a 2-dimensional projection
+    *   a two-dimensional projection
     */
   def getByHorizontalIndex(horizontalIndex: DiscreteDomain1D[R1]): DataIn2DBase[V, R2, R3]
 
   /**
-    * Project as 2-dimensional data based on a vertical domain element
+    * Project as two-dimensional data based on a vertical domain element
     *
     * @param verticalIndex
     *   the vertical domain element
     * @return
-    *   a 2-dimensional projection
+    *   a two-dimensional projection
     */
   def getByVerticalIndex(verticalIndex: DiscreteDomain1D[R2]): DataIn2DBase[V, R1, R3]
 
   /**
-    * Project as 2-dimensional data based on a depth domain element
+    * Project as two-dimensional data based on a depth domain element
     *
     * @param depthIndex
     *   the depth domain element
     * @return
-    *   a 2-dimensional projection
+    *   a two-dimensional projection
     */
   def getByDepthIndex(depthIndex: DiscreteDomain1D[R3]): DataIn2DBase[V, R1, R2]
 
@@ -375,7 +375,10 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
   override protected def dataInSearchTreeGet(
     interval: DiscreteInterval3D[R1, R2, R3]
   ): Iterable[ValidData3D[V, R1, R2, R3]] =
-    BoxedPayload.deduplicate(dataInSearchTree.get(interval.asBox)).map(_.payload)
+    BoxedPayload
+      .deduplicate(dataInSearchTree.get(interval.asBox))
+      .map(_.payload)
+      .filter(_.interval intersects interval)
 
   override protected def dataInSearchTreeGetByDomain(
     domainIndex: DiscreteDomain3D[R1, R2, R3]
@@ -393,7 +396,7 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
     *
     * More specifically, this gets even more complicated because there are three dimensions. Exclusions in one dimension
     * can have three remainders: none (simple), single (partial), and split. But three-dimensional exclusions have these
-    * same three remainders in each dimension, so there are a total of 3 x 3 x 9 = 27 remainder cases. But there are
+    * same three remainders in each dimension, so there are a total of 3 x 3 x 3 = 27 remainder cases. But there are
     * symmetric partners for many of them, so actually there are only 5!/(2! x 3!) = 10 unique cases:
     *   1. simple = none + none + none (1 case)
     *   1. corner = single + single + single (1 case)
@@ -406,7 +409,7 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
     *   1. divot = split + split + single (3 symmetric cases)
     *   1. bite = split + single + none (6 symmetric cases)
     * @param targetInterval
-    *   the interval where any valid values are removed/updated.
+    *   the interval where any valid values are updated or removed.
     * @param newValueOption
     *   when defined, the value to be stored as part of an update
     */

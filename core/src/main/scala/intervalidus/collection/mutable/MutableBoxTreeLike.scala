@@ -3,7 +3,7 @@ package intervalidus.collection.mutable
 import intervalidus.collection.{BoxLike, BoxTreeLike, BoxTreeObjectLike, BoxedPayloadLike, CoordinateLike}
 
 /**
-  * Mutable box tree base type.
+  * Mutable box tree base type. Mutation operations are applied in place.
   *
   * @tparam A
   *   payload type
@@ -158,7 +158,7 @@ trait MutableBoxTreeBranchLike[
   // updateSubtrees(subtreeBoundaries.map(newLeaf(_, depth + 1))) // truncate structure
 
 /**
-  * Constructors for companion mutable box tree.
+  * Constructors and types for mutable box trees.
   *
   * @tparam C
   *   F-bounded coordinate type

@@ -6,24 +6,27 @@ import intervalidus.DimensionalVersionedBase.{VersionDomain, VersionSelection}
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 /**
-  * Base for all immutable dimensional data.
+  * Base for all immutable dimensional versioned data.
   *
   * @tparam V
   *   the value type for valid data.
   * @tparam D
-  *   the domain type for intervals in the public interface. Must be `DomainLike` and have an `Ordering`.
+  *   the domain type for intervals in the public interface. Must be [[DiscreteDomainLike]].
   * @tparam I
-  *   the interval type in the public interface. Must be `IntervalLike` based on [[D]].
+  *   the interval type in the public interface. Must be [[DiscreteIntervalLike]] based on [[D]].
   * @tparam ValidData
-  *   the valid data type in the public interface. Must be `DataLike` based on [[V]], [[D]], and [[I]].
+  *   the valid data type in the public interface. Must be [[ValidDataLike]] based on [[V]], [[D]], and [[I]].
+  * @tparam DiffAction
+  *   the diff action type. Must be [[DiffActionLike]] based on [[V]], [[D]], and [[I]].
   * @tparam D2
-  *   the domain type for intervals used in the underlying data. Must be `DomainLike` and have an `Ordering`, and should
-  *   be one dimension higher than [[D]], where the last dimension is `Int`.
+  *   the domain type for intervals used in the underlying data. Must be [[DiscreteDomainLike]] and should be one
+  *   dimension higher than [[D]], where the last dimension is `Int`.
   * @tparam I2
-  *   the interval type of the underlying data. Must be `IntervalLike` based on [[D2]], and should be one dimension
-  *   higher than [[I]], where the last dimension is `Int`.
+  *   the interval type of the underlying data. Must be [[DiscreteIntervalLike]] based on [[D2]].
   * @tparam ValidData2
-  *   the valid data type of the underlying data. Must be `DataLike` based on [[V]], [[D2]], and [[I2]].
+  *   the valid data type of the underlying data. Must be [[ValidDataLike]] based on [[V]], [[D2]], and [[I2]].
+  * @tparam DiffAction2
+  *   the diff action type of the underlying data. Must be [[DiffActionLike]] based on [[V]], [[D2]], and [[I2]].
   * @tparam Self
   *   F-bounded self type.
   */
@@ -33,13 +36,15 @@ trait ImmutableVersionedBase[
   I <: DiscreteIntervalLike[D, I],
   ValidData <: ValidDataLike[V, D, I, ValidData],
   DiffAction <: DiffActionLike[V, D, I, ValidData, DiffAction],
-  D2 <: DiscreteDomainLike[D2]: Ordering,
+  D2 <: DiscreteDomainLike[D2],
   I2 <: DiscreteIntervalLike[D2, I2],
   ValidData2 <: ValidDataLike[V, D2, I2, ValidData2],
   DiffAction2 <: DiffActionLike[V, D2, I2, ValidData2, DiffAction2],
   Self <: ImmutableVersionedBase[V, D, I, ValidData, DiffAction, D2, I2, ValidData2, DiffAction2, Self]
+  // & DimensionalVersionedBase[V, D, I, ValidData, DiffAction, D2, I2, ValidData2, DiffAction2, ?] // bug?
 ] extends DimensionalVersionedBase[V, D, I, ValidData, DiffAction, D2, I2, ValidData2, DiffAction2, ?]:
   this: Self =>
+
   // ---------- To be implemented by inheritor ----------
 
   protected def copyAndModify(f: Self => Unit): Self
@@ -88,6 +93,15 @@ trait ImmutableVersionedBase[
   def collapseVersionHistory(using VersionSelection): Self
 
   /**
+    * Synchronizes this with another structure by getting and applying the applicable diff actions. Does not use a
+    * version selection context -- operates on full underlying structure.
+    *
+    * @param that
+    *   the structure with which this will be synchronized.
+    */
+  def syncWith(that: Self): Self
+
+  /**
     * Selects all elements which satisfy a predicate. Does not use a version selection context -- the predicate is
     * applied to the underlying data, so it can operate on the underlying version information as well as the valid
     * interval/value.
@@ -99,15 +113,6 @@ trait ImmutableVersionedBase[
     */
   def filter(p: ValidData2 => Boolean): Self
 
-  /**
-    * Synchronizes this with another structure by getting and applying the applicable diff actions. Does not use a
-    * version selection context -- operates on full underlying structure.
-    *
-    * @param that
-    *   the structure with which this will be synchronized.
-    */
-  def syncWith(that: Self): Self
-
   // ---------- Implemented methods based on the above definitions ----------
 
   /**
@@ -116,7 +121,7 @@ trait ImmutableVersionedBase[
     * @param data
     *   currently unapproved data to approved
     * @return
-    *   some new structure if unapproved version was found and approved, none otherwise
+    *   some new structure if unapproved version was found and approved, None otherwise
     */
   def approve(data: ValidData): Option[Self] =
     val allUnapproved = underlying
@@ -134,7 +139,7 @@ trait ImmutableVersionedBase[
     * @param interval
     *   interval in which all changes (updates and deletes) are approved
     * @return
-    *   a new structure with all unapproved changes approved.
+    *   a new structure with all unapproved changes approved in the interval.
     */
   def approveAll(interval: I): Self =
     val approved = underlying
@@ -161,10 +166,10 @@ trait ImmutableVersionedBase[
     copyAndModify(_.underlying.applyDiffActions(diffActions))
 
   /**
-    * Compress out adjacent intervals with the same value
+    * Compress out adjacent intervals with the same value.
     *
     * @param value
-    *   value to be evaluate
+    *   value for which valid data will be compressed.
     * @return
     *   a new, updated structure.
     */
@@ -247,7 +252,8 @@ trait ImmutableVersionedBase[
 
 //TODO: these may be problematic/misunderstood in the versioned space, so leaving them out for now.
 //  /**
-//    * Remove the old data and replace it with the new data. The new data value and interval can be different. Data with
+//    * Remove the old data and replace it with the new data. The new data value and interval can be different. Data
+//    with
 //    * overlaps with the new data interval are adjusted accordingly.
 //    *
 //    * @param oldData
@@ -263,7 +269,8 @@ trait ImmutableVersionedBase[
 //    copyAndModify(_.underlying.replace(underlyingValidData(oldData), underlyingValidData(newData)))
 //
 //  /**
-//    * Remove the old data and replace it with the new data. The new data value and interval can be different. Data with
+//    * Remove the old data and replace it with the new data. The new data value and interval can be different. Data
+//    with
 //    * overlaps with the new data interval are adjusted accordingly.
 //    *
 //    * @param key

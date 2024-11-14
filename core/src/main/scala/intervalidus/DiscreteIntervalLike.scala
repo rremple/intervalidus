@@ -8,18 +8,18 @@ package intervalidus
   * @tparam Self
   *   F-bounded self type.
   */
-trait DiscreteIntervalLike[D <: DiscreteDomainLike[D]: Ordering, Self <: DiscreteIntervalLike[D, Self]]:
+trait DiscreteIntervalLike[D <: DiscreteDomainLike[D], Self <: DiscreteIntervalLike[D, Self]]:
   this: Self =>
 
   /**
-    * The "infimum", i.e., the lower/left/behind boundary of the interval (inclusive). When stored in a collection, this
+    * The "infimum", i.e., the left/lower/back boundary of the interval (inclusive). When stored in a collection, this
     * aspect of the interval can be used as the key. (E.g., the start of a 1D interval, the lower/left corner of a 2D
     * interval).
     */
   def start: D
 
   /**
-    * The "supremum", i.e., the upper/right/front boundary of the interval (inclusive). Must be greater than or equal to
+    * The "supremum", i.e., the right/upper/front boundary of the interval (inclusive). Must be greater than or equal to
     * the start.
     */
   def end: D
@@ -47,12 +47,12 @@ trait DiscreteIntervalLike[D <: DiscreteDomainLike[D]: Ordering, Self <: Discret
     * @param domainIndex
     *   domain element to test.
     * @return
-    *   true only if the domain element is contained in this interval.
+    *   true if the domain element is contained in this interval.
     */
   infix def contains(domainIndex: D): Boolean
 
   /**
-    * Returns true only if there is no fixed start or end - spans the entire domain.
+    * Tests if there is no fixed start or end - spans the entire domain.
     */
   infix def isUnbounded: Boolean
 
@@ -62,7 +62,7 @@ trait DiscreteIntervalLike[D <: DiscreteDomainLike[D]: Ordering, Self <: Discret
   def points: Iterable[D]
 
   /**
-    * Returns true only if there is no gap between this and that.
+    * Tests if there is no gap between this and that.
     *
     * @param that
     *   the interval to test for adjacency.
@@ -70,7 +70,7 @@ trait DiscreteIntervalLike[D <: DiscreteDomainLike[D]: Ordering, Self <: Discret
   infix def isAdjacentTo(that: Self): Boolean
 
   /**
-    * Returns true only if this and that have the same start.
+    * Tests if this and that have the same start.
     *
     * @param that
     *   the interval to test.
@@ -78,7 +78,7 @@ trait DiscreteIntervalLike[D <: DiscreteDomainLike[D]: Ordering, Self <: Discret
   infix def hasSameStartAs(that: Self): Boolean
 
   /**
-    * Returns true only if this and that have the same end.
+    * Tests if this and that have the same end.
     *
     * @param that
     *   the interval to test.
@@ -86,7 +86,7 @@ trait DiscreteIntervalLike[D <: DiscreteDomainLike[D]: Ordering, Self <: Discret
   infix def hasSameEndAs(that: Self): Boolean
 
   /**
-    * Returns true only if this and that have elements of the domain in common (not disjoint).
+    * Tests if this and that have elements of the domain in common (not disjoint).
     *
     * @param that
     *   the interval to test.
@@ -99,7 +99,7 @@ trait DiscreteIntervalLike[D <: DiscreteDomainLike[D]: Ordering, Self <: Discret
     * @param that
     *   the interval to intersect.
     * @return
-    *   some interval representing the intersection if there is one, and none otherwise.
+    *   some interval representing the intersection if there is one, and None otherwise.
     */
   infix def intersectionWith(that: Self): Option[Self]
 
@@ -121,7 +121,7 @@ trait DiscreteIntervalLike[D <: DiscreteDomainLike[D]: Ordering, Self <: Discret
     * @param that
     *   the interval to test.
     * @return
-    *   true only if this and that have the same start and end.
+    *   true if this and that have the same start and end.
     */
   infix def equiv(that: Self): Boolean
 
@@ -181,7 +181,7 @@ trait DiscreteIntervalLike[D <: DiscreteDomainLike[D]: Ordering, Self <: Discret
     * @param that
     *   the interval to intersect.
     * @return
-    *   some interval representing the intersection if there is one, and none otherwise.
+    *   some interval representing the intersection if there is one, and None otherwise.
     */
   def ∩(that: Self): Option[Self] = this intersectionWith that
 

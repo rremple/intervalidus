@@ -3,7 +3,7 @@ package intervalidus.collection.mutable
 import intervalidus.collection.*
 
 /**
-  * Constructors for companion mutable box tree.
+  * Constructors and types for mutable box quadtrees.
   */
 object BoxOctree extends MutableBoxTreeObjectLike[Coordinate3D, Box3D]:
   type BoxedPayloadType[A] = BoxedPayload3D[A]
@@ -15,7 +15,7 @@ object BoxOctree extends MutableBoxTreeObjectLike[Coordinate3D, Box3D]:
   ): BoxOctree[A] = BoxOctreeBranch[A](boundary, 0, capacity, depthLimit)
 
 /**
-  * Immutable box tree in three dimensions, see [[https://en.wikipedia.org/wiki/Octree]].
+  * Mutable box tree in three dimensions, see [[https://en.wikipedia.org/wiki/Octree]].
   *
   * @tparam A
   *   payload type

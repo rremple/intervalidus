@@ -29,6 +29,9 @@ case class ValidData1D[V, R: DiscreteValue](
   * Companion for valid data in one dimension.
   */
 object ValidData1D:
+  /**
+    * Valid data are ordered using interval ordering
+    */
   given [V, R: DiscreteValue](using
     intervalOrder: Ordering[DiscreteInterval1D[R]]
   ): Ordering[ValidData1D[V, R]] with

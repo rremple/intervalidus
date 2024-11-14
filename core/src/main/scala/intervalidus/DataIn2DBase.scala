@@ -11,7 +11,7 @@ import scala.collection.mutable
   */
 trait DataIn2DBaseObject:
   /**
-    * Shorthand constructor for a single initial value that is valid in a particular interval domain.
+    * Shorthand constructor for a single initial value that is valid in a particular interval.
     *
     * @tparam V
     *   the type of the value managed as data.
@@ -45,10 +45,10 @@ trait DataIn2DBaseObject:
   def of[V, R1: DiscreteValue, R2: DiscreteValue](value: V)(using Experimental): DataIn2DBase[V, R1, R2]
 
   /**
-    * Constructor for a multiple (or no) initial values that are valid in the various intervals.
+    * Constructor for multiple (or no) initial values that are valid in the various intervals.
     *
     * @param initialData
-    *   (optional) a collection of valid data to start with -- intervals must be disjoint.
+    *   a collection of valid data to start with -- intervals must be disjoint.
     * @tparam V
     *   the type of the value managed as data.
     * @tparam R1
@@ -98,8 +98,8 @@ trait DataIn2DBaseObject:
 
 /**
   * Like [[DataIn1DBase]], data here have different values in different discrete intervals. But here data values vary in
-  * two dimensions. For example, one may want to represent when the data are valid in time and over certain versions
-  * simultaneously.
+  * two dimensions. For example, one may want to represent when the data are valid in time and over certain versions, or
+  * in two dimensions of time, simultaneously.
   *
   * We can capture the dependency between various values and related two-dimensional intervals cohesively in this
   * structure rather than in separate data structures using distributed (and potentially inconsistent) logic. This is
@@ -228,22 +228,22 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
   def flip: DataIn2DBase[V, R2, R1]
 
   /**
-    * Project as 1-dimensional data based on a horizontal domain element
+    * Project as one-dimensional data based on a horizontal domain element
     *
     * @param horizontalIndex
     *   the horizontal domain element
     * @return
-    *   a 1-dimensional projection
+    *   a one-dimensional projection
     */
   def getByHorizontalIndex(horizontalIndex: DiscreteDomain1D[R1]): DataIn1DBase[V, R2]
 
   /**
-    * Project as 1-dimensional data based on a vertical domain element
+    * Project as one-dimensional data based on a vertical domain element
     *
     * @param verticalIndex
     *   the vertical domain element
     * @return
-    *   a 1-dimensional projection
+    *   a one-dimensional projection
     */
   def getByVerticalIndex(verticalIndex: DiscreteDomain1D[R2]): DataIn1DBase[V, R1]
 
@@ -306,7 +306,10 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
     dataInSearchTree.addAll(data.map(_.asBoxedPayload))
 
   override protected def dataInSearchTreeGet(interval: DiscreteInterval2D[R1, R2]): Iterable[ValidData2D[V, R1, R2]] =
-    BoxedPayload.deduplicate(dataInSearchTree.get(interval.asBox)).map(_.payload)
+    BoxedPayload
+      .deduplicate(dataInSearchTree.get(interval.asBox))
+      .map(_.payload)
+      .filter(_.interval intersects interval)
 
   override protected def dataInSearchTreeGetByDomain(
     domainIndex: DiscreteDomain2D[R1, R2]
@@ -333,7 +336,7 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
     *   1. slice = none + split or split + none (2 of 9)
     *   1. bite = single + split or split + single (2 of 9)
     * @param targetInterval
-    *   the interval where any valid values are removed/updated.
+    *   the interval where any valid values are updated or removed.
     * @param newValueOption
     *   when defined, the value to be stored as part of an update
     */

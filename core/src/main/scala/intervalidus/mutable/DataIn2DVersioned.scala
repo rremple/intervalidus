@@ -32,17 +32,17 @@ object DataIn2DVersioned extends DataIn2DVersionedBaseObject:
   )
 
 /**
-  * Interface is similar to [[DataIn2D]], but it operates on an underlying [[DataIn3D]] using an integer-valued
-  * interval2 to version data. One use case would be that R = LocalDate, so data values may vary in terms of both
-  * version and date. Most methods require some generic version selection criteria rather than specific integer
-  * intervals.
+  * Interface is similar to [[DataIn2D]], but it operates on an underlying [[mutable.DataIn3D]] using an integer-valued
+  * vertical dimension to version data. One use case would be that R1 and R2 = LocalDate, so data values may vary in
+  * terms of both version and two dimensions of time. Most methods require some generic version selection criteria
+  * rather than specific integer intervals, therefore this does not extend [[DimensionalBase]].
   *
   * The "current" version is managed as state (a var). Versioning also separates notions of approved vs. unapproved data
   * (unapproved data are pushed up to start at version maxValue).
   *
   * When getting data, by default, we return "current" version data (a.k.a., approved). When updating data, by default,
   * we don't rewrite history, so mutations start with the "current" version too. Note that updates starting with
-  * "current" will update unapproved changes as well (since intervalFrom goes to the Top)
+  * "current" will update unapproved changes as well (since intervalFrom goes to the Top).
   *
   * @tparam V
   *   the type of the value managed as data

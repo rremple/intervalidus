@@ -76,7 +76,7 @@ case class DiscreteDomain3D[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteVa
   def ∈(interval: DiscreteInterval3D[T1, T2, T3]): Boolean = this belongsTo interval
 
 /**
-  * Companion for the three-dimensional domain used in defining and operating on a discrete intervals.
+  * Companion for the three-dimensional domain used in defining and operating on discrete intervals.
   */
 object DiscreteDomain3D:
   /**

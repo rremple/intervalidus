@@ -2,6 +2,7 @@ package intervalidus
 
 import intervalidus.collection.Coordinate1D
 
+import java.time.LocalDate
 import scala.language.implicitConversions
 
 /**
@@ -36,10 +37,14 @@ enum DiscreteDomain1D[+T] extends DiscreteDomainLike[DiscreteDomain1D[T]]:
     case Point(t) => t.toString
     case Top      => "+∞"
 
-  override def toCodeLikeString: String = this match
-    case Bottom   => "Bottom"
-    case Point(t) => s"Point($t)"
-    case Top      => "Top"
+  override def toCodeLikeString: String =
+    def codeFor(value: T): String = value match
+      case d: LocalDate => s"LocalDate.of(${d.getYear},${d.getMonthValue},${d.getDayOfMonth})"
+      case _            => value.toString
+    this match
+      case Bottom   => "Bottom"
+      case Point(t) => s"Point(${codeFor(t)})"
+      case Top      => "Top"
 
 /*
 Weirdly, the extension methods have to be declared at the top level rather than in the DiscreteDomain1D object or the
@@ -107,7 +112,7 @@ extension [T: DiscreteValue](domain1d: DiscreteDomain1D[T])
     * Cross this domain element with that domain element to arrive at a new two-dimensional domain element.
     *
     * @param that
-    *   a one-dimensional domain element to be used in the vertical dimension.
+    *   a one-dimensional domain element to be used as the vertical dimension.
     * @tparam T2
     *   discrete value type for that domain.
     * @return
@@ -131,7 +136,7 @@ extension [T: DiscreteValue](domain1d: DiscreteDomain1D[T])
   def ∈(interval: DiscreteInterval1D[T]): Boolean = domain1d belongsTo interval
 
 /**
-  * Companion for the one-dimensional domain used in defining and operating on a discrete intervals.
+  * Companion for the one-dimensional domain used in defining and operating on discrete intervals.
   */
 object DiscreteDomain1D:
 

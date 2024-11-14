@@ -28,6 +28,9 @@ case class ValidData2D[V, R1: DiscreteValue, R2: DiscreteValue](
   * Companion for valid data in two dimensions.
   */
 object ValidData2D:
+  /**
+    * Valid data are ordered using interval ordering
+    */
   given [V, R1: DiscreteValue, R2: DiscreteValue](using
     intervalOrder: Ordering[DiscreteInterval2D[R1, R2]]
   ): Ordering[ValidData2D[V, R1, R2]] with

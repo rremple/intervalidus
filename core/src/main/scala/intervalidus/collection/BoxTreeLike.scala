@@ -9,11 +9,12 @@ package intervalidus.collection
   * successor/predecessor functions and not functions requiring distance calculations, e.g., midpoint) to improve
   * performance of data structures in one-, two-, and three-dimensional discrete domain space.
   *
-  * In particular, it makes querying faster for box intersections. The cost is that duplicates can be returned (since
-  * boxes can be split). Benchmarks have shown 14x-70x improvement in throughput of random `DataIn2D.set` and 12x-142x
-  * improvement in `DataIn2D.intersects` operations (depending on number and size of the intervals used), so clearly the
-  * speed benefit outweighs the cost of deduplicating results (at least in two dimensions). The mutable version was also
-  * faster than the immutable version, but only slightly (less than 5%).
+  * In particular, it makes querying faster for box intersections. However, duplicates can be returned (since boxes can
+  * be split) as well as false positives (since ordered hashes of discrete values can have collisions). Benchmarks have
+  * shown 10x-70x improvement in throughput of random `DataIn2D.set` and 10x-140x improvement in `DataIn2D.intersects`
+  * operations (depending on number and size of the intervals used), so clearly the speed benefit outweighs the cost of
+  * deduplicating results (at least in two dimensions). The mutable version was also faster than the immutable version,
+  * but only slightly (less than 5%).
   *
   * @tparam A
   *   payload type

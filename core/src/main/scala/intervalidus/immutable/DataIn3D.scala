@@ -26,12 +26,15 @@ object DataIn3D extends DataIn3DBaseObject:
 
 /**
   * Like [[DataIn1D]] and [[DataIn2D]], data here have different values in different discrete intervals. But here data
-  * values vary in three dimensions. For example, one may want to represent when the data are valid in two dimensions of
+  * values vary in three dimensions. For example, one may want to represent when data are valid in two dimensions of
   * time and over certain versions simultaneously.
   *
   * We can capture the dependency between various values and related three-dimensional intervals cohesively in this
   * structure rather than in separate data structures using distributed (and potentially inconsistent) logic. This is
-  * especially important for managing mutation, which can be a bit complex in three dimensions.
+  * especially important for managing mutation, which can be a bit complex in three dimensions. Note that visualizing
+  * three-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there
+  * is a simple 2D Visualize tool provided where you can visualize 2D slices of the 3D structure (in the test package...
+  * though maybe this should be its own separate subproject).
   *
   * @tparam V
   *   the type of the value managed as data.
@@ -71,8 +74,6 @@ class DataIn3D[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue] priva
     *   the valid data vertical interval type of the returned structure.
     * @return
     *   a new structure resulting from applying the provided function f to each element of this structure.
-    * @throws IllegalArgumentException
-    *   if the mapping function results in invalid data (e.g., introduces overlaps).
     */
   def map[B, S1: DiscreteValue, S2: DiscreteValue, S3: DiscreteValue](
     f: ValidData3D[V, R1, R2, R3] => ValidData3D[B, S1, S2, S3]
@@ -111,8 +112,6 @@ class DataIn3D[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue] priva
     * @return
     *   a new structure resulting from applying the provided function f to each element of this structure and
     *   concatenating the results.
-    * @throws IllegalArgumentException
-    *   if the mapping function results in invalid data (e.g., introduces overlaps).
     */
   def flatMap[B, S1: DiscreteValue, S2: DiscreteValue, S3: DiscreteValue](
     f: ValidData3D[V, R1, R2, R3] => DataIn3D[B, S1, S2, S3]

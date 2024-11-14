@@ -41,7 +41,7 @@ case class DiscreteDomain2D[T1: DiscreteValue, T2: DiscreteValue](
     * Cross this domain element with that domain element to arrive at a new three-dimensional domain element.
     *
     * @param that
-    *   a one-dimensional domain element to be used in the depth dimension.
+    *   a one-dimensional domain element to be used as the depth dimension.
     * @tparam T3
     *   discrete value type for that domain.
     * @return
@@ -71,7 +71,7 @@ case class DiscreteDomain2D[T1: DiscreteValue, T2: DiscreteValue](
   def ∈(interval: DiscreteInterval2D[T1, T2]): Boolean = this belongsTo interval
 
 /**
-  * Companion for the two-dimensional domain used in defining and operating on a discrete intervals.
+  * Companion for the two-dimensional domain used in defining and operating on discrete intervals.
   */
 object DiscreteDomain2D:
   /**

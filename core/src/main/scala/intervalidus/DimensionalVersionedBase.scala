@@ -38,35 +38,38 @@ object DimensionalVersionedBase:
     def apply(version: VersionDomain): VersionSelection = VersionSelection.Specific(version)
 
 /**
-  * Base for all versioned dimensional data, both mutable and immutable, both 1D and 2D (with underlying data in both 2D
-  * and 3D).
+  * Base for all versioned dimensional data, both mutable and immutable, both 1D and 2D (with underlying data in 2D and
+  * 3D respectively).
   *
   * @tparam V
   *   the value type for valid data.
   * @tparam D
-  *   the domain type for intervals in the public interface. Must be `DomainLike` and have an `Ordering`.
+  *   the domain type for intervals in the public interface. Must be [[DiscreteDomainLike]].
   * @tparam I
-  *   the interval type in the public interface. Must be `IntervalLike` based on [[D]].
+  *   the interval type in the public interface. Must be [[DiscreteIntervalLike]] based on [[D]].
   * @tparam ValidData
-  *   the valid data type in the public interface. Must be `DataLike` based on [[V]], [[D]], and [[I]].
+  *   the valid data type in the public interface. Must be [[ValidDataLike]] based on [[V]], [[D]], and [[I]].
+  * @tparam DiffAction
+  *   the diff action type. Must be [[DiffActionLike]] based on [[V]], [[D]], and [[I]].
   * @tparam D2
-  *   the domain type for intervals used in the underlying data. Must be `DomainLike` and have an `Ordering`, and should
-  *   be one dimension higher than [[D]], where the last dimension is `Int`.
+  *   the domain type for intervals used in the underlying data. Must be [[DiscreteDomainLike]] and should be one
+  *   dimension higher than [[D]], where the last dimension is `Int`.
   * @tparam I2
-  *   the interval type of the underlying data. Must be `IntervalLike` based on [[D2]], and should be one dimension
-  *   higher than [[I]], where the last dimension is `Int`.
+  *   the interval type of the underlying data. Must be [[DiscreteIntervalLike]] based on [[D2]].
   * @tparam ValidData2
-  *   the valid data type of the underlying data. Must be `DataLike` based on [[V]], [[D2]], and [[I2]].
+  *   the valid data type of the underlying data. Must be [[ValidDataLike]] based on [[V]], [[D2]], and [[I2]].
+  * @tparam DiffAction2
+  *   the diff action type of the underlying data. Must be [[DiffActionLike]] based on [[V]], [[D2]], and [[I2]].
   * @tparam Self
   *   F-bounded self type.
   */
 trait DimensionalVersionedBase[
   V,
-  D <: DiscreteDomainLike[D]: Ordering,
+  D <: DiscreteDomainLike[D],
   I <: DiscreteIntervalLike[D, I],
   ValidData <: ValidDataLike[V, D, I, ValidData],
   DiffAction <: DiffActionLike[V, D, I, ValidData, DiffAction],
-  D2 <: DiscreteDomainLike[D2]: Ordering,
+  D2 <: DiscreteDomainLike[D2],
   I2 <: DiscreteIntervalLike[D2, I2],
   ValidData2 <: ValidDataLike[V, D2, I2, ValidData2],
   DiffAction2 <: DiffActionLike[V, D2, I2, ValidData2, DiffAction2],
@@ -80,38 +83,10 @@ trait DimensionalVersionedBase[
   // ---------- To be implemented by inheritor ----------
 
   type PublicSelf <: DimensionalBase[V, D, I, ValidData, DiffAction, PublicSelf]
-  type UnderlyingMutable <: mutable.MutableBase[
-    V,
-    D2,
-    I2,
-    ValidData2,
-    DiffAction2,
-    UnderlyingMutable
-  ] &
-    DimensionalBase[
-      V,
-      D2,
-      I2,
-      ValidData2,
-      DiffAction2,
-      _
-    ]
-  type UnderlyingImmutable <: immutable.ImmutableBase[
-    V,
-    D2,
-    I2,
-    ValidData2,
-    DiffAction2,
-    UnderlyingImmutable
-  ] &
-    DimensionalBase[
-      V,
-      D2,
-      I2,
-      ValidData2,
-      DiffAction2,
-      _
-    ]
+  type UnderlyingMutable <: mutable.MutableBase[V, D2, I2, ValidData2, DiffAction2, UnderlyingMutable] &
+    DimensionalBase[V, D2, I2, ValidData2, DiffAction2, _]
+  type UnderlyingImmutable <: immutable.ImmutableBase[V, D2, I2, ValidData2, DiffAction2, UnderlyingImmutable] &
+    DimensionalBase[V, D2, I2, ValidData2, DiffAction2, _]
 
   // Underlying n+1 dimensional representation of versioned n dimensional data (mutable)
   protected def underlying: UnderlyingMutable
@@ -149,12 +124,13 @@ trait DimensionalVersionedBase[
   /**
     * Returns this as a mutable structure.
     */
-  def toMutable: Self
+  def toMutable: Self & mutable.MutableVersionedBase[V, D, I, ValidData, DiffAction, D2, I2, ValidData2, DiffAction2, ?]
 
   /**
     * Returns this as an immutable structure.
     */
   def toImmutable: Self
+  // & immutable.ImmutableVersionedBase[V, D, I, ValidData, DiffAction, D2, I2, ValidData2, DiffAction2, ?] // bug?
 
   /**
     * Returns the current version
@@ -162,32 +138,26 @@ trait DimensionalVersionedBase[
   def getCurrentVersion: VersionDomain
 
   /**
-    * Based on the given version selection context, gets all the data (uncompressed, mutable).
+    * Given some version selection context, gets all the data (uncompressed, mutable).
     *
     * Useful when you don't need the overhead of creating an immutable structure and compressing the data, e.g., if just
     * doing a `getAt` after version selection, which will give the same answer compressed or uncompressed, mutable or
     * immutable.
     *
-    * @param versionSelection
-    *   version selection context for this operation.
     * @return
     *   new, uncompressed, mutable structure meeting version selection criteria.
     */
   def getSelectedDataMutable(using
-    versionSelection: VersionSelection
+    VersionSelection
   ): PublicSelf & mutable.MutableBase[V, D, I, ValidData, DiffAction, ?]
 
   /**
-    * Based on the given version selection context, gets all the data (compressed, immutable).
+    * Given some version selection context, gets all the data (compressed, immutable).
     *
-    * @param versionSelection
-    *   version selection context for this operation.
     * @return
     *   new, compressed, immutable structure meeting version selection criteria.
     */
-  def getSelectedData(using
-    versionSelection: VersionSelection
-  ): PublicSelf & immutable.ImmutableBase[V, D, I, ValidData, DiffAction, ?]
+  def getSelectedData(using VersionSelection): PublicSelf & immutable.ImmutableBase[V, D, I, ValidData, DiffAction, ?]
 
   // ---------- Implement methods not similar to those in DimensionalBase ----------
 
@@ -230,8 +200,9 @@ trait DimensionalVersionedBase[
   // ---------- Implement methods like those in DimensionalBase ----------
 
   /**
-    * Returns true when there are no valid data in this structure meeting the version selection criteria, otherwise
-    * false.
+    * Tests if there are no valid data in this structure given some version selection criteria.
+    * @return
+    *   true if there are no valid data, false otherwise.
     */
   def isEmpty(using VersionSelection): Boolean = getSelectedDataMutable.isEmpty
 
@@ -262,9 +233,8 @@ trait DimensionalVersionedBase[
   def getAll(using VersionSelection): Iterable[ValidData] = getSelectedData.getAll
 
   /**
-    * Returns a value that is valid in the specified interval domain element given some version selection context. That
-    * is, where the specified domain element is a member of some valid data interval. If no such valid data exists,
-    * returns None.
+    * Returns a value that is valid at the specified domain element given some version selection context. That is, where
+    * the specified domain element is a member of some valid data interval. If no such valid data exists, returns None.
     *
     * @param domain
     *   the domain element where data may be valid. Note that the domain element can be a specific data point or the
@@ -276,7 +246,7 @@ trait DimensionalVersionedBase[
     underlying.getAt(underlyingDomain(domain))
 
   /**
-    * Is a value defined at a part of the domain given some version selection context.
+    * Checks if a value is valid at the domain element given some version selection context.
     *
     * @param key
     *   the domain element to test.

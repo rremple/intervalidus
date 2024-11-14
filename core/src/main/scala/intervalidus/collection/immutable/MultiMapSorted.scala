@@ -38,9 +38,7 @@ object MultiMapSorted:
     new MultiMapSorted[K, V](dict)
 
 /**
-  * An immutable multimap where multiple values can be associated with the same key. Similar to `SortedMultiDict` in
-  * `scala-collection-contrib`, but this returns values in order (values are stored in a sorted set). Also, this only
-  * implements a small subset of methods needed in this project.
+  * @inheritdoc
   *
   * @tparam K
   *   key type

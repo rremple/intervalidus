@@ -26,8 +26,8 @@ object DataIn2D extends DataIn2DBaseObject:
 
 /**
   * Like [[DataIn1D]], data here have different values in different discrete intervals. But here data values vary in two
-  * dimensions. For example, one may want to represent when the data are valid in time and over certain versions
-  * simultaneously.
+  * dimensions. For example, one may want to represent when the data are valid in time and over certain versions, or in
+  * two dimensions of time, simultaneously.
   *
   * We can capture the dependency between various values and related two-dimensional intervals cohesively in this
   * structure rather than in separate data structures using distributed (and potentially inconsistent) logic. This is

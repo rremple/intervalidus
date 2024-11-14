@@ -2,17 +2,18 @@ package intervalidus
 
 /**
   * Template for a type class with operations on a discrete value. A discrete value is
-  *   1. finite, with a max and min value (think Int with its MaxValue and MinValue)
+  *   1. finite, with a max and min value (think `Int` with its `MaxValue` and `MinValue` methods)
   *   1. totally ordered (this type class extends the [[Ordering]] type class, requiring a compare method).
-  *   1. have predecessor and successor functions, which are properly defined on x: max < x < min.
+  *   1. have predecessor and successor functions, which are properly defined on `x: max < x < min`.
+  *   1. mappable to a similarly-ordered double space (potentially with collisions)
   *
   * Having predecessors and successors defined this way avoids issues where the natural successor functions of the
-  * underlying types behave unexpectedly/inconsistently on the boundaries, e.g., how Int.MaxValue + 1 and Int.MinValue -
-  * 1 silently wrap around to each other, vs. how both LocalDate.MAX.plusDays(1) and LocalDate.MIN.minusDays(1) throw a
-  * DateTimeException.
+  * underlying types behave unexpectedly/inconsistently on the boundaries, e.g., how `Int.MaxValue + 1` and
+  * `Int.MinValue - 1` silently wrap around to each other, vs. how both `LocalDate.MAX.plusDays(1)` and
+  * `LocalDate.MIN.minusDays(1)` throw a `DateTimeException`.
   *
   * @tparam T
-  *   a value that has discrete value behavior (e.g., Int)
+  *   a value that has discrete value behavior (e.g., `Int`)
   */
 trait DiscreteValue[T] extends Ordering[T]:
   /**
@@ -36,9 +37,12 @@ trait DiscreteValue[T] extends Ordering[T]:
   def predecessorOf(x: T): Option[T]
 
   /**
-    * A special totally-ordered hash of a discrete value used for mapping intervals to B/Quad/Oc box trees. If x1 < x2
-    * (i.e., there are some number of successorOf functions that can be applied to x1 to reach x2), then
-    * doubleHashOf(x1) ≤ doubleHashOf(x2).
+    * A special totally-ordered hash of a discrete value used for mapping intervals to B/Quad/Oc box trees in double
+    * space. If `x1 < x2` (i.e., there are some number of `successorOf` functions that can be applied to `x1` to reach
+    * `x2`), then `orderedHashOf(x1) ≤ orderedHashOf(x2)`.
+    * @note
+    *   having equal `orderedHashOf` results for different inputs is allowed, but represents a hash collision. If the
+    *   `orderedHashOf` method has too many collisions, the performance of B/Quad/Oc box trees will suffer.
     */
   def orderedHashOf(x: T): Double
 
@@ -54,7 +58,12 @@ trait DiscreteValue[T] extends Ordering[T]:
     def predecessorValue: Option[T] = predecessorOf(lhs)
 
     /**
-      * Totally-ordered hash of this discrete value.
+      * The ordered hash of this discrete value, used for mapping intervals to B/Quad/Oc box trees in double space. If
+      * `x1 < x2`, then `orderedHashOf(x1) ≤ orderedHashOf(x2)`.
+      * @note
+      *   having equal `orderedHashOf` results for different inputs is allowed, but represents a hash collision. If the
+      *   `orderedHashOf` method has too many collisions, the performance of the B/Quad/Oc box trees using them will
+      *   suffer.
       */
     def orderedHashValue: Double = orderedHashOf(lhs)
 
@@ -158,11 +167,11 @@ object DiscreteValue:
     * Type class for big integers as discrete values.
     *
     * @note
-    *   per https://docs.oracle.com/javase/8/docs/api/java/math/BigInteger.html "BigInteger constructors and operations
-    *   throw ArithmeticException when the result is out of the supported range of -2^Integer.MAX_VALUE^ (exclusive) to
-    *   +2^Integer.MAX_VALUE^ (exclusive)." However, on the practical side of things, this number is so large that just
-    *   rendering it as a string can easily cause OOM in the string builder! So maybe override this and pick your own
-    *   "biggest" BigInteger based on how you plan to use it rather than this "theoretically" biggest one...
+    *   per [[https://docs.oracle.com/javase/8/docs/api/java/math/BigInteger.html]] "BigInteger constructors and
+    *   operations throw ArithmeticException when the result is out of the supported range of -2^Integer.MAX_VALUE^
+    *   (exclusive) to +2^Integer.MAX_VALUE^ (exclusive)." However, on the practical side of things, this number is so
+    *   large that just rendering it as a string can easily cause OOM in the string builder! So maybe override this and
+    *   pick your own "biggest" BigInteger based on how you plan to use it rather than this theoretically biggest one...
     */
   given BigIntegerDiscreteValue: DiscreteValue[BigInteger] with
     override def compare(lhs: BigInteger, rhs: BigInteger): Int = lhs.compareTo(rhs)

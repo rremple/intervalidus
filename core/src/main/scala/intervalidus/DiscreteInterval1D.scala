@@ -4,6 +4,7 @@ import intervalidus.DiscreteDomain1D.{Bottom, Point, Top}
 import intervalidus.DiscreteInterval1D.{interval, intervalFrom, intervalTo}
 import intervalidus.collection.Box1D
 
+import java.time.LocalDate
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 /**
@@ -12,12 +13,12 @@ import scala.math.Ordering.Implicits.infixOrderingOps
   *
   * @tparam T
   *   a discrete value type for this interval's domain (e.g., Int, LocalDate) -- boundaries of the interval are defined
-  *   in terms of DiscreteDomain1D[T] given the type class DiscreteValue[T].
+  *   in terms of `DiscreteDomain1D[T]` given the type class `DiscreteValue[T]`.
   * @param start
-  *   the "infimum", i.e., the lower/left boundary of the interval (inclusive)
+  *   the "infimum", i.e., the left (or below or back, depending on context) boundary of the interval (inclusive)
   * @param end
-  *   the "supremum", i.e., the upper/right boundary of the interval (inclusive) -- must be greater than or equal to the
-  *   start
+  *   the "supremum", i.e., the right (or above or front, depending on context) boundary of the interval (inclusive) --
+  *   must be greater than or equal to the start
   */
 case class DiscreteInterval1D[T: DiscreteValue](
   start: DiscreteDomain1D[T],
@@ -95,12 +96,17 @@ case class DiscreteInterval1D[T: DiscreteValue](
     s"$leftBrace$start..$end$rightBrace"
 
   // Use method-like interval notation -- useful when constructing tests.
-  override def toCodeLikeString: String = (start, end) match
-    case (Bottom, Top)                  => "unbounded"
-    case (Bottom, Point(e))             => s"intervalTo($e)"
-    case (Point(s), Top)                => s"intervalFrom($s)"
-    case (Point(s), Point(e)) if s == e => s"intervalAt($s)"
-    case (s, e)                         => s"interval($s, $e)"
+  override def toCodeLikeString: String =
+    def codeFor(value: T): String = value match
+      case d: LocalDate => s"LocalDate.of(${d.getYear},${d.getMonthValue},${d.getDayOfMonth})"
+      case _            => value.toString
+    (start, end) match
+      case (Bottom, Top)                  => "unbounded"
+      case (Bottom, Point(e))             => s"intervalTo(${codeFor(e)})"
+      case (Point(s), Top)                => s"intervalFrom(${codeFor(s)})"
+      case (Point(s), Point(e)) if s == e => s"intervalAt(${codeFor(s)})"
+      case (Point(s), Point(e))           => s"interval(${codeFor(s)}, ${codeFor(e)})"
+      case (s, e)                         => s"interval($s, $e)"
 
   /**
     * Returns a new interval starting at the provided value.
@@ -157,7 +163,7 @@ case class DiscreteInterval1D[T: DiscreteValue](
   def toTop: DiscreteInterval1D[T] = endingWith(Top)
 
   /**
-    * Returns true only if this interval is to the left of that interval, and there is no gap between them.
+    * Tests if this interval is to the left of that interval and there is no gap between them.
     *
     * @param that
     *   the interval to test for adjacency.
@@ -165,7 +171,7 @@ case class DiscreteInterval1D[T: DiscreteValue](
   infix def isLeftAdjacentTo(that: DiscreteInterval1D[T]): Boolean = this.end.successor equiv that.start
 
   /**
-    * Returns true only if this interval is to the right of that interval, and there is no gap between them.
+    * Tests if this interval is to the right of that interval and there is no gap between them.
     *
     * @param that
     *   the interval to test for adjacency.
@@ -208,7 +214,7 @@ case class DiscreteInterval1D[T: DiscreteValue](
     * @param that
     *   the interval to evaluate.
     * @return
-    *   some interval representing the gap between this and that if one exists, otherwise none.
+    *   some interval representing the gap between this and that if one exists, and None otherwise.
     */
   infix def gapWith(that: DiscreteInterval1D[T]): Option[DiscreteInterval1D[T]] =
     if this intersects that then None
@@ -236,22 +242,21 @@ case class DiscreteInterval1D[T: DiscreteValue](
     * Same as [[excluding]].
     *
     * Excludes that interval from this one. There are three possible outcomes:
-    *   1. this interval is a subset of that one, so once it is excluded, nothing remains.
+    *   1. this interval is a subset of that one, so once it is excluded, nothing remains. Remainder.None is returned.
     *   1. that either lies outside of this or has a simple edge intersection (only contains the start or the end, but
-    *      not both), and a single interval remains.
+    *      not both), and a single interval remains. Remainder.Single is returned.
     *   1. that interval is a proper subset of this one, containing neither the start nor the end of this, so this
-    *      interval gets split, and two intervals remain.
+    *      interval gets split, and two intervals remain. Remainder.Split is returned
     *
     * @param that
     *   the interval to exclude.
     * @return
-    *   The remainder after exclusion. Either `None`, `Some(_, None)`, or `Some(_, Some(_))` based on the outcome
-    *   described above.
+    *   The remainder after exclusion.
     */
   def \(that: DiscreteInterval1D[T]): Remainder[DiscreteInterval1D[T]] = this excluding that
 
 /**
-  * Companion for the one-dimensional interval used in defining and operating on a valid data.
+  * Companion for the one-dimensional interval used in defining and operating on valid data.
   */
 object DiscreteInterval1D:
   // used in return type of excluding
@@ -265,12 +270,12 @@ object DiscreteInterval1D:
    */
 
   /**
-    * Returns an interval from the input value that is unbounded on the top/right.
+    * Returns an interval from the input value that is unbounded on the right.
     */
   def intervalFrom[T: DiscreteValue](s: DiscreteDomain1D[T]): DiscreteInterval1D[T] = apply(s, Top)
 
   /**
-    * Returns an interval to the input value that is unbounded on the bottom/left.
+    * Returns an interval to the input value that is unbounded on the left.
     */
   def intervalTo[T: DiscreteValue](e: DiscreteDomain1D[T]): DiscreteInterval1D[T] = apply(Bottom, e)
 
@@ -295,7 +300,7 @@ object DiscreteInterval1D:
     )
 
   /**
-    * Returns an interval unbounded on both the left/bottom and right/top.
+    * Returns an interval unbounded on both the left and right.
     */
   def unbounded[T: DiscreteValue]: DiscreteInterval1D[T] = apply(Bottom, Top)
 
@@ -363,19 +368,6 @@ object DiscreteInterval1D:
       .forall((left, right) => !(left intersects right))
 
   /**
-    * Sort a collection of intervals by the interval key (i.e., start).
-    *
-    * @param intervals
-    *   collection of intervals
-    * @tparam T
-    *   a discrete value type for this interval's domain.
-    * @return
-    *   a new collection of intervals sorted by the key.
-    */
-  def sort[T: DiscreteValue](intervals: Iterable[DiscreteInterval1D[T]]): Iterable[DiscreteInterval1D[T]] =
-    intervals.toList.sorted
-
-  /**
     * Finds all intervals, including all overlaps and gaps between intervals, as intervals. Inputs may be overlapping.
     * The result is disjoint and covers the span of the input intervals.
     *
@@ -409,6 +401,6 @@ object DiscreteInterval1D:
       case ((priorEnd, acc), next) =>
         val nextAcc =
           if next.start.predecessor equiv priorEnd then acc
-          else apply(priorEnd.successor, next.start.predecessor) :: acc
+          else interval(priorEnd.successor, next.start.predecessor) :: acc
         (next.end, nextAcc)
     (if lastEnd.successor equiv Top then result else apply(lastEnd.successor, Top) :: result).reverse

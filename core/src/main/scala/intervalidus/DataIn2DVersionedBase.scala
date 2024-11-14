@@ -5,7 +5,7 @@ import scala.language.implicitConversions
 import DimensionalVersionedBase.{VersionDomain, VersionSelection}
 
 /**
-  * Constructs data in one-dimensional intervals that are also versioned (hidden second dimension).
+  * Constructs data in two-dimensional intervals that are also versioned (hidden third dimension).
   */
 trait DataIn2DVersionedBaseObject:
   /**
@@ -43,7 +43,7 @@ trait DataIn2DVersionedBaseObject:
     * @param value
     *   value to start with
     * @param initialVersion
-    *   (optional) the version to start with, typically (and by default) zero
+    *   the version to start with, typically zero
     * @return
     *   DataIn2DVersioned structure with a single valid value
     */
@@ -53,7 +53,7 @@ trait DataIn2DVersionedBaseObject:
   )(using Experimental): DataIn2DVersionedBase[V, R1, R2]
 
   /**
-    * Shorthand constructor for a collection of initial valid values starting at the initial version.
+    * Shorthand constructor for a collection of initial two-dimensional valid values starting at the initial version.
     *
     * @tparam V
     *   the type of the value managed as data
@@ -64,7 +64,7 @@ trait DataIn2DVersionedBaseObject:
     * @param initialData
     *   valid data to start with
     * @param initialVersion
-    *   (optional) the version to start with, typically (and by default) zero
+    *   the version to start with, typically zero
     * @return
     *   DataIn2DVersioned structure with the provided initial values
     */
@@ -93,14 +93,13 @@ trait DataIn2DVersionedBaseObject:
   * @tparam R2
   *   the type of discrete value used in the vertical discrete interval assigned to each value
   * @param initialData
-  *   (optional) a collection of valid data in two dimensions (the vertical dimension is the version) to start with --
-  *   note that two-dimensional intervals must be disjoint
+  *   a collection of valid data in three dimensions (the depth dimension is the version) to start with -- note that
+  *   three-dimensional intervals must be disjoint
   * @param initialVersion
-  *   (optional) the version to start with, typically zero. (Could, for example, use `IntDiscreteValue.minValue` instead
-  *   of zero to extend the version range.)
+  *   the version to start with, typically zero. (Could, for example, use `IntDiscreteValue.minValue` instead of zero to
+  *   extend the version range.)
   * @param withCurrentVersion
-  *   (optional) the version to use as current if different form the initial version, e.g., when making a copy,
-  *   typically None
+  *   the version to use as current if different form the initial version, e.g., when making a copy, typically None
   */
 trait DataIn2DVersionedBase[V, R1: DiscreteValue, R2: DiscreteValue](
   initialData: Iterable[ValidData3D[V, R1, R2, Int]],

@@ -7,7 +7,7 @@ import scala.collection.immutable.TreeMap
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 /**
-  * A two-dimensional interval over a contiguous set of discrete values in T1 and T2. See
+  * A three-dimensional interval over a contiguous set of discrete values in `T1`, `T2`, and `T3`. See
   * [[https://en.wikipedia.org/wiki/Interval_(mathematics)]] for more information.
   *
   * @param horizontal
@@ -15,7 +15,7 @@ import scala.math.Ordering.Implicits.infixOrderingOps
   * @param vertical
   *   the ordinate interval: the vertical Y-axis (from lower to upper)
   * @param depth
-  *   the third dimension interval: the (right-handed) depth Z-axis (behind to in front)
+  *   the third dimension interval: the (right-handed) depth Z-axis (from back to front)
   * @tparam T1
   *   a discrete value type for this interval's horizontal domain
   * @tparam T2
@@ -170,8 +170,8 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
     withDepth(update(this.depth))
 
   /**
-    * Returns true only if this interval is below that interval, there is no vertical gap between them, and their
-    * horizontal and depth intervals are equivalent.
+    * Tests if this interval is below that interval, there is no vertical gap between them, and their horizontal and
+    * depth intervals are equivalent.
     *
     * @param that
     *   the interval to test for adjacency.
@@ -181,8 +181,8 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
       (this.horizontal equiv that.horizontal) && (this.depth equiv that.depth)
 
   /**
-    * Returns true only if this interval is to the left of that interval, and there is no gap between them, and their
-    * vertical intervals are equivalent.
+    * Tests if this interval is to the left of that interval, and there is no gap between them, and their vertical and
+    * depth intervals are equivalent.
     *
     * @param that
     *   the interval to test for adjacency.
@@ -192,8 +192,8 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
       (this.vertical equiv that.vertical) && (this.depth equiv that.depth)
 
   /**
-    * Returns true only if this interval is in back of (behind) that interval, and there is no gap between them, and
-    * their vertical and horizontal intervals are equivalent.
+    * Tests if this interval is in back of (behind) that interval, and there is no gap between them, and their vertical
+    * and horizontal intervals are equivalent.
     *
     * @param that
     *   the interval to test for adjacency.
@@ -203,8 +203,8 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
       (this.vertical equiv that.vertical) && (this.horizontal equiv that.horizontal)
 
   /**
-    * Returns true only if this interval is above that interval, there is no vertical gap between them, and their
-    * horizontal and depth intervals are equivalent.
+    * Tests if this interval is above that interval, there is no vertical gap between them, and their horizontal and
+    * depth intervals are equivalent.
     *
     * @param that
     *   the interval to test for adjacency.
@@ -212,8 +212,8 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
   infix def isUpperAdjacentTo(that: DiscreteInterval3D[T1, T2, T3]): Boolean = that isLowerAdjacentTo this
 
   /**
-    * Returns true only if this interval is to the right of that interval, and there is no gap between them, and their
-    * vertical and depth intervals are equivalent.
+    * Tests if this interval is to the right of that interval, and there is no gap between them, and their vertical and
+    * depth intervals are equivalent.
     *
     * @param that
     *   the interval to test for adjacency.
@@ -221,8 +221,8 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
   infix def isRightAdjacentTo(that: DiscreteInterval3D[T1, T2, T3]): Boolean = that isLeftAdjacentTo this
 
   /**
-    * Returns true only if this interval is in front of that interval, and there is no gap between them, and their
-    * vertical and horizontal intervals are equivalent.
+    * Tests if this interval is in front of that interval, and there is no gap between them, and their vertical and
+    * horizontal intervals are equivalent.
     *
     * @param that
     *   the interval to test for adjacency.
@@ -269,7 +269,7 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
   /**
     * Same as [[excluding]].
     *
-    * Excludes that interval from this one. The horizontal and vertical results are returned as a pair
+    * Excludes that interval from this one. The horizontal, vertical, and depth results are returned as a tuple.
     *
     * @param that
     *   the interval to exclude.
@@ -282,12 +282,12 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
     this excluding that
 
 /**
-  * Companion for the three-dimensional interval used in defining and operating on a valid data.
+  * Companion for the three-dimensional interval used in defining and operating on valid data.
   */
 object DiscreteInterval3D:
 
   /**
-    * Returns an interval unbounded in both dimensions.
+    * Returns an interval unbounded in all dimensions.
     */
   def unbounded[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue]: DiscreteInterval3D[T1, T2, T3] =
     DiscreteInterval1D.unbounded[T1] x DiscreteInterval1D.unbounded[T2] x DiscreteInterval1D.unbounded[T3]
@@ -376,7 +376,7 @@ object DiscreteInterval3D:
     compressRecursively(initialState)
 
   /**
-    * Compresses a collection of intervals by joining all adjacent and intersecting intervals.
+    * Compresses a collection of intervals by joining all adjacent intervals.
     *
     * @param intervals
     *   a collection of intervals.
@@ -417,7 +417,7 @@ object DiscreteInterval3D:
    */
 
   /**
-    * Checks if the collection of two-dimensional intervals is compressible. That is, are there any intervals that are
+    * Checks if the collection of three-dimensional intervals is compressible. That is, are there any intervals that are
     * adjacent to, or intersecting with, their neighbors in one dimension while being equivalent to the same neighbor in
     * the other dimension. Because there is no natural order to find all compressible neighbors, all pairs of intervals
     * are considered.
@@ -442,10 +442,10 @@ object DiscreteInterval3D:
         .filter: d =>
           !(d equiv r)
         .exists: d =>
-          (d intersects r) || (d isLeftAdjacentTo r) || (d isLowerAdjacentTo r) || (d isBackAdjacentTo r)
+          (d isLeftAdjacentTo r) || (d isLowerAdjacentTo r) || (d isBackAdjacentTo r) || (d intersects r)
 
   /**
-    * Returns true if there are no intersections between intervals in the collection.
+    * Tests if there are no intersections between intervals in the collection.
     *
     * @param intervals
     *   a collection of two-dimensional intervals.

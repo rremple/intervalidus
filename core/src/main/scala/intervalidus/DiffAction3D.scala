@@ -2,7 +2,9 @@ package intervalidus
 
 /**
   * Create/update/delete actions (like CQRS mutation commands). Used when extrapolating or applying event source-style
-  * information. Note that this is not an event-sourced data structure, and history of mutations are not maintained.
+  * information.
+  * @note
+  *   intervalidus does not have event-sourced data structures, and history of mutations are not maintained.
   *
   * @tparam V
   *   the type of the value managed as data (not used in Delete).

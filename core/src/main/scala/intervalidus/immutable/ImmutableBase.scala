@@ -8,11 +8,13 @@ import intervalidus.*
   * @tparam V
   *   the value type for valid data.
   * @tparam D
-  *   the domain type for intervals. Must be `DomainLike` and have an `Ordering`.
+  *   the domain type for intervals. Must be [[DiscreteDomainLike]].
   * @tparam I
-  *   the interval type, based on the domain type. Must be `IntervalLike` based on D.
+  *   the interval type, based on the domain type. Must be [[DiscreteIntervalLike]] based on [[D]].
   * @tparam ValidData
-  *   the valid data type. Must be `DataLike` based on V, D, and I.
+  *   the valid data type. Must be [[ValidDataLike]] based on [[V]], [[D]], and [[I]].
+  * @tparam DiffAction
+  *   the diff action type. Must be [[DiffActionLike]] based on [[V]], [[D]], and [[I]].
   * @tparam Self
   *   F-bounded self type.
   */
@@ -157,7 +159,7 @@ trait ImmutableBase[
     copyAndModify(_.updateOrRemove(interval, None))
 
   /**
-    * Compress out adjacent intervals with the same value
+    * Compress out adjacent intervals with the same value.
     *
     * @param value
     *   value to be evaluate

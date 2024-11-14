@@ -35,6 +35,9 @@ case class ValidData3D[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValu
   * Companion for valid data in three dimensions.
   */
 object ValidData3D:
+  /**
+    * Valid data are ordered using interval ordering
+    */
   given [V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](using
     intervalOrder: Ordering[DiscreteInterval3D[R1, R2, R3]]
   ): Ordering[ValidData3D[V, R1, R2, R3]] with

@@ -48,7 +48,7 @@ object Experimental:
   def allExcept(features: String*): Experimental = features.foldLeft(all)(_.updated(_, false))
 
   // by default, experimental features are turned off
-  given Experimental = Experimental.none // ("printExperimental")
+  given Experimental = Experimental.none
 
   extension (enabledExperimental: Experimental)
     /**

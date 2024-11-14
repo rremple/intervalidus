@@ -26,8 +26,8 @@ object DataIn2D extends DataIn2DBaseObject:
 
 /**
   * Like [[DataIn1D]], data here have different values in different discrete intervals. But here data values vary in two
-  * dimensions. For example, one may want to represent when the data are valid in time and over certain versions
-  * simultaneously.
+  * dimensions. For example, one may want to represent when the data are valid in time and over certain versions, or in
+  * two dimensions of time, simultaneously.
   *
   * We can capture the dependency between various values and related two-dimensional intervals cohesively in this
   * structure rather than in separate data structures using distributed (and potentially inconsistent) logic. This is
@@ -71,8 +71,6 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue] private (
     *   the valid data vertical interval type of the returned structure.
     * @return
     *   a new structure resulting from applying the provided function f to each element of this structure.
-    * @throws IllegalArgumentException
-    *   if the mapping function results in invalid data (e.g., introduces overlaps).
     */
   def map[B, S1: DiscreteValue, S2: DiscreteValue](
     f: ValidData2D[V, R1, R2] => ValidData2D[B, S1, S2]
@@ -111,8 +109,6 @@ class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue] private (
     * @return
     *   a new structure resulting from applying the provided function f to each element of this structure and
     *   concatenating the results.
-    * @throws IllegalArgumentException
-    *   if the mapping function results in invalid data (e.g., introduces overlaps).
     */
   def flatMap[B, S1: DiscreteValue, S2: DiscreteValue](
     f: ValidData2D[V, R1, R2] => DataIn2D[B, S1, S2]

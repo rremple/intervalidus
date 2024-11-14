@@ -11,11 +11,13 @@ import scala.math.Ordering.Implicits.infixOrderingOps
   * @tparam V
   *   the value type for valid data.
   * @tparam D
-  *   the domain type for intervals. Must be `DomainLike` and have an `Ordering`.
+  *   the domain type for intervals. Must be [[DiscreteDomainLike]] and have an [[Ordering]].
   * @tparam I
-  *   the interval type, based on the domain type. Must be `IntervalLike` based on D.
+  *   the interval type, based on the domain type. Must be [[DiscreteIntervalLike]] based on [[D]].
+  * @tparam DiffAction
+  *   the diff action type. Must be [[DiffActionLike]] based on [[V]], [[D]], and [[I]].
   * @tparam ValidData
-  *   the valid data type. Must be `DataLike` based on V, D, and I.
+  *   the valid data type. Must be [[ValidDataLike]] based on [[V]], [[D]], and [[I]].
   * @tparam Self
   *   F-bounded self type.
   */
@@ -92,10 +94,10 @@ trait DimensionalBase[
 
   /**
     * Internal shadow data structure where all the interval-bounded data are also stored, but using the interval key in
-    * reverse order (for much quicker range lookups -- validated in microbenchmarks).
+    * reverse order (for much quicker range lookups -- validated in 1D microbenchmarks).
     *
     * @deprecated
-    *   Only populated when using legacy behavior accessible through experimental feature 'noSearchTree'
+    *   Only populated when legacy behavior is enabled through experimental feature 'noSearchTree'
     */
   protected def dataByStartDesc: scala.collection.mutable.TreeMap[D, ValidData]
 
@@ -124,9 +126,9 @@ trait DimensionalBase[
     * remove and update are similar, and this method supports both.
     *
     * @param targetInterval
-    *   the new value existing data in the interval should take on
+    *   the interval where any valid values are updated or removed.
     * @param newValueOption
-    *   when defined, the value to be stored as part of an update
+    *   when defined, the value to be stored as part of an update.
     */
   protected def updateOrRemove(targetInterval: I, newValueOption: Option[V]): Unit
 
@@ -146,7 +148,7 @@ trait DimensionalBase[
   /**
     * Internal method, to recompress in place.
     *
-    * Unlike in 1D, there is no unique compression in 2D and 3D. For example {[1..5], [1..2]} + {[1..2], [3..4]} could
+    * Unlike in 1D, there are no unique compressions in 2D and 3D. For example {[1..5], [1..2]} + {[1..2], [3..4]} could
     * also be represented physically as {[1..2], [1..4]} + {[3..5], [1..2]}.
     *
     * This method decompresses data so there is a unique arrangement of "atomic" intervals. In the above example, that
@@ -172,12 +174,12 @@ trait DimensionalBase[
   /**
     * Returns this as a mutable structure.
     */
-  def toMutable: Self
+  def toMutable: Self & intervalidus.mutable.MutableBase[V, D, I, ValidData, DiffAction, ?]
 
   /**
     * Returns this as an immutable structure.
     */
-  def toImmutable: Self
+  def toImmutable: Self & intervalidus.immutable.ImmutableBase[V, D, I, ValidData, DiffAction, ?]
 
   /**
     * Constructs a sequence of diff actions that, if applied to the old structure, would synchronize it with this one.
@@ -202,7 +204,7 @@ trait DimensionalBase[
   def getIntersecting(interval: I): Iterable[ValidData] =
     experimental.control("noSearchTree")(
       experimentalResult = getAll.filter(_.interval intersects interval),
-      nonExperimentalResult = dataInSearchTreeGet(interval).filter(_.interval intersects interval)
+      nonExperimentalResult = dataInSearchTreeGet(interval)
     )
 
   /**
@@ -313,7 +315,7 @@ trait DimensionalBase[
   )
 
   /**
-    * Returns the value if a single, unbounded valid value, otherwise throws an exception.
+    * Returns the value if a single, unbounded valid value exists, otherwise throws an exception.
     *
     * @throws NoSuchElementException
     *   if there isn't any valid data, or valid data are bounded (i.e., take on different values in different
@@ -330,12 +332,12 @@ trait DimensionalBase[
   def getOption: Option[V] = getAll.headOption.filter(_.interval.isUnbounded).map(_.value)
 
   /**
-    * Returns a value that is valid in the specified interval domain element. That is, where the specified domain
-    * element is a member of some valid data interval. If no such valid data exists, returns None.
+    * Returns a value that is valid at the specified domain element. That is, where the specified domain element is a
+    * member of some valid data interval. If no such valid data exists, returns None.
     *
     * @param domainIndex
-    *   the domain element where data may be valid. Note that the domain element can be a specific data point or the
-    *   special notions of "bottom" or "top" of the domain.
+    *   the domain element where data may be valid. The domain element can be a specific data point or the special
+    *   notions of "bottom" or "top" of the domain.
     * @return
     *   Some value if valid at the specified domain element, otherwise None.
     */
@@ -350,7 +352,9 @@ trait DimensionalBase[
     )
 
   /**
-    * Returns true when there are no valid data in this structure, otherwise false.
+    * Tests if there are no valid data in this structure.
+    * @return
+    *   true if there are no valid data, false otherwise.
     */
   def isEmpty: Boolean = dataByStartAsc.isEmpty
 

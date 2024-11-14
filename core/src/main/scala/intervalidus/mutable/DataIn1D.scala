@@ -69,7 +69,8 @@ class DataIn1D[V, R: DiscreteValue] private (
       case DiffAction1D.Update(data) => updateValidData(data)
       case DiffAction1D.Delete(key)  => removeValidDataByKey(key)
 
-  override def syncWith(that: DataIn1D[V, R]): Unit = applyDiffActions(that.diffActionsFrom(this))
+  override def syncWith(that: DataIn1D[V, R]): Unit =
+    applyDiffActions(that.diffActionsFrom(this))
 
   // ---------- Implement methods from DimensionalBase ----------
 

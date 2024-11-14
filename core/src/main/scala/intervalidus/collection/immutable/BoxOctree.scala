@@ -2,7 +2,7 @@ package intervalidus.collection.immutable
 import intervalidus.collection.*
 
 /**
-  * Constructors for companion immutable box tree.
+  * Constructors and types for immutable box octrees.
   */
 object BoxOctree extends ImmutableBoxTreeObjectLike[Coordinate3D, Box3D]:
   type BoxedPayloadType[A] = BoxedPayload3D[A]

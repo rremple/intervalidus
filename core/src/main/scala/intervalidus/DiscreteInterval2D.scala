@@ -7,7 +7,7 @@ import scala.collection.immutable.TreeMap
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 /**
-  * A two-dimensional interval over a contiguous set of discrete values in T1 and T2. See
+  * A two-dimensional interval over a contiguous set of discrete values in `T1` and `T2`. See
   * [[https://en.wikipedia.org/wiki/Interval_(mathematics)]] for more information.
   *
   * @param horizontal
@@ -124,8 +124,8 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
     withVertical(update(this.vertical))
 
   /**
-    * Returns true only if this interval is below that interval, there is no vertical gap between them, and their
-    * horizontal intervals are equivalent.
+    * Tests if this interval is below that interval, there is no vertical gap between them, and their horizontal
+    * intervals are equivalent.
     *
     * @param that
     *   the interval to test for adjacency.
@@ -134,8 +134,8 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
     (this.vertical.end.successor equiv that.vertical.start) && (this.horizontal equiv that.horizontal)
 
   /**
-    * Returns true only if this interval is to the left of that interval, and there is no gap between them, and their
-    * vertical intervals are equivalent.
+    * Tests if this interval is to the left of that interval, and there is no gap between them, and their vertical
+    * intervals are equivalent.
     *
     * @param that
     *   the interval to test for adjacency.
@@ -144,8 +144,8 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
     (this.horizontal.end.successor equiv that.horizontal.start) && (this.vertical equiv that.vertical)
 
   /**
-    * Returns true only if this interval is above that interval, there is no vertical gap between them, and their
-    * horizontal intervals are equivalent.
+    * Tests if this interval is above that interval, there is no vertical gap between them, and their horizontal
+    * intervals are equivalent.
     *
     * @param that
     *   the interval to test for adjacency.
@@ -153,8 +153,8 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
   infix def isUpperAdjacentTo(that: DiscreteInterval2D[T1, T2]): Boolean = that isLowerAdjacentTo this
 
   /**
-    * Returns true only if this interval is to the right of that interval, and there is no gap between them, and their
-    * vertical intervals are equivalent.
+    * Tests if this interval is to the right of that interval, and there is no gap between them, and their vertical
+    * intervals are equivalent.
     *
     * @param that
     *   the interval to test for adjacency.
@@ -164,12 +164,12 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
   import DiscreteInterval1D.Remainder
 
   /**
-    * Excludes that interval from this one. The horizontal and vertical results are returned as a pair
+    * Excludes that interval from this one. The horizontal and vertical results are returned as a pair of remainders.
     *
     * @param that
     *   the interval to exclude.
     * @return
-    *   The remainder in each dimension after exclusion.
+    *   The remainders in each dimension after exclusion.
     */
   infix def excluding(
     that: DiscreteInterval2D[T1, T2]
@@ -201,19 +201,19 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
   /**
     * Same as [[excluding]].
     *
-    * Excludes that interval from this one. The horizontal and vertical results are returned as a pair
+    * Excludes that interval from this one. The horizontal and vertical results are returned as a pair of remainders.
     *
     * @param that
     *   the interval to exclude.
     * @return
-    *   The remainder in each dimension after exclusion.
+    *   The remainders in each dimension after exclusion.
     */
   def \(
     that: DiscreteInterval2D[T1, T2]
   ): (Remainder[DiscreteInterval1D[T1]], Remainder[DiscreteInterval1D[T2]]) = this excluding that
 
 /**
-  * Companion for the two-dimensional interval used in defining and operating on a valid data.
+  * Companion for the two-dimensional interval used in defining and operating on valid data.
   */
 object DiscreteInterval2D:
 
@@ -301,10 +301,10 @@ object DiscreteInterval2D:
     compressRecursively(initialState)
 
   /**
-    * Compresses a collection of intervals by joining all adjacent and intersecting intervals.
+    * Compresses a collection of intervals by joining all adjacent intervals.
     *
     * @param intervals
-    *   a collection of intervals.
+    *   a collection of disjoint intervals.
     * @tparam T1
     *   a discrete value type for this interval's horizontal domain.
     * @tparam T2
@@ -337,15 +337,15 @@ object DiscreteInterval2D:
   /**
     * Checks if the collection of two-dimensional intervals is compressible. That is, are there any intervals that are
     * adjacent to, or intersecting with, their neighbors in one dimension while being equivalent to the same neighbor in
-    * the other dimension. Because there is no natural order to find all compressible neighbors, all pairs of intervals
-    * are considered.
+    * the other dimension. Because there is no natural order to find all adjacent neighbors, all pairs of intervals are
+    * considered.
     *
     * @param intervals
-    *   a collection of two-dimensional intervals -- must be ordered by start.
+    *   a collection of two-dimensional intervals.
     * @tparam T1
-    *   a discrete value type for this interval's horizontal domain.
+    *   a discrete value type for the horizontal interval domain.
     * @tparam T2
-    *   a discrete value type for this interval's vertical domain.
+    *   a discrete value type for the vertical interval domain.
     * @return
     *   true if the collection is compressible, false otherwise.
     */
@@ -358,10 +358,10 @@ object DiscreteInterval2D:
         .filter: d =>
           !(d equiv r)
         .exists: d =>
-          (d intersects r) || (d isLeftAdjacentTo r) || (d isLowerAdjacentTo r)
+          (d isLeftAdjacentTo r) || (d isLowerAdjacentTo r) || (d intersects r)
 
   /**
-    * Returns true if there are no intersections between intervals in the collection.
+    * Tests if there are no intersections between intervals in the collection.
     *
     * @param intervals
     *   a collection of two-dimensional intervals.

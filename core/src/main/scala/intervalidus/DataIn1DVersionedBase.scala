@@ -9,15 +9,15 @@ import DimensionalVersionedBase.{VersionDomain, VersionSelection}
   */
 trait DataIn1DVersionedBaseObject:
   /**
-    * Shorthand constructor for a single initial value that is valid in a specific discrete interval starting at the
-    * initial version.
+    * Shorthand constructor for a single initial value that is valid in a specific one-dimensional discrete interval
+    * starting at the initial version.
     *
     * @tparam V
     *   the type of the value managed as data
     * @tparam R
     *   the type of discrete value used in the discrete interval assigned to each value
     * @param data
-    *   data to start with
+    *   valid data to start with
     * @param initialVersion
     *   the version to start with, typically zero
     * @return
@@ -29,8 +29,8 @@ trait DataIn1DVersionedBaseObject:
   )(using Experimental): DataIn1DVersionedBase[V, R]
 
   /**
-    * Shorthand constructor for a single initial value that is valid in the full discrete interval starting at the
-    * initial version.
+    * Shorthand constructor for a single initial value that is valid in the full interval domain starting at the initial
+    * version.
     *
     * @tparam V
     *   the type of the value managed as data
@@ -39,7 +39,7 @@ trait DataIn1DVersionedBaseObject:
     * @param value
     *   value to start with
     * @param initialVersion
-    *   (optional) the version to start with, typically (and by default) zero
+    *   the version to start with, typically zero
     * @return
     *   DataIn1DVersioned structure with a single valid value
     */
@@ -49,7 +49,7 @@ trait DataIn1DVersionedBaseObject:
   )(using Experimental): DataIn1DVersionedBase[V, R]
 
   /**
-    * Shorthand constructor for a collection of initial valid values starting at the initial version.
+    * Shorthand constructor for a collection of initial one-dimensional valid values starting at the initial version.
     *
     * @tparam V
     *   the type of the value managed as data
@@ -58,7 +58,7 @@ trait DataIn1DVersionedBaseObject:
     * @param initialData
     *   valid data to start with
     * @param initialVersion
-    *   (optional) the version to start with, typically (and by default) zero
+    *   the version to start with, typically zero
     * @return
     *   DataIn1DVersioned structure with the provided initial values
     */
@@ -83,16 +83,15 @@ trait DataIn1DVersionedBaseObject:
   * @tparam V
   *   the type of the value managed as data
   * @tparam R
-  *   the type of discrete value used in the discrete interval assigned to each value
+  *   the type of discrete value used in the discrete interval assigned to each valid value
   * @param initialData
-  *   (optional) a collection of valid data in two dimensions (the vertical dimension is the version) to start with --
-  *   note that two-dimensional intervals must be disjoint
+  *   a collection of valid data in two dimensions (the vertical dimension is the version) to start with -- note that
+  *   two-dimensional intervals must be disjoint
   * @param initialVersion
-  *   (optional) the version to start with, typically zero. (Could, for example, use `IntDiscreteValue.minValue` instead
-  *   of zero to extend the version range.)
+  *   the version to start with, typically zero. (Could, for example, use `IntDiscreteValue.minValue` instead of zero to
+  *   extend the version range.)
   * @param withCurrentVersion
-  *   (optional) the version to use as current if different form the initial version, e.g., when making a copy,
-  *   typically None
+  *   the version to use as current if different form the initial version, e.g., when making a copy, typically None
   */
 trait DataIn1DVersionedBase[V, R: DiscreteValue](
   initialData: Iterable[ValidData2D[V, R, Int]],

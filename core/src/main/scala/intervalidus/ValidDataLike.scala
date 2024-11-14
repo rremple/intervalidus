@@ -1,5 +1,7 @@
 package intervalidus
 
+import java.time.LocalDate
+
 /**
   * A value that is valid in some discrete interval. This defines a partial function where all domain elements that are
   * part of the interval map to the specified value.
@@ -13,22 +15,21 @@ package intervalidus
   * @tparam Self
   *   F-bounded self type.
   */
-trait ValidDataLike[V, D <: DiscreteDomainLike[D], I <: DiscreteIntervalLike[D, I], Self <: ValidDataLike[
+trait ValidDataLike[
   V,
-  D,
-  I,
-  Self
-]]
-  extends PartialFunction[D, V]:
+  D <: DiscreteDomainLike[D],
+  I <: DiscreteIntervalLike[D, I],
+  Self <: ValidDataLike[V, D, I, Self]
+] extends PartialFunction[D, V]:
   this: Self =>
 
   /**
-    * The value valid in this interval
+    * The value valid in this interval.
     */
   def value: V
 
   /**
-    * The interval in which the value is valid
+    * The interval in which the value is valid.
     */
   def interval: I
 
@@ -38,10 +39,10 @@ trait ValidDataLike[V, D <: DiscreteDomainLike[D], I <: DiscreteIntervalLike[D, 
   protected def qualifiedInterval: String = s"(${interval.toCodeLikeString})"
 
   /**
-    * Alternative to toString for something that looks more like code
+    * Alternative to toString for something that looks more like code.
     */
   def toCodeLikeString: String = s"$qualifiedInterval -> ${value match
-      case _: String => s"\"$value\""
+      case s: String => s"\"$s\""
       case _         => value.toString
     }"
 

@@ -6,24 +6,27 @@ import intervalidus.DimensionalVersionedBase.{VersionDomain, VersionSelection}
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 /**
-  * Base for all mutable dimensional data.
+  * Base for all mutable dimensional versioned data.
   *
   * @tparam V
   *   the value type for valid data.
   * @tparam D
-  *   the domain type for intervals in the public interface. Must be `DomainLike` and have an `Ordering`.
+  *   the domain type for intervals in the public interface. Must be [[DiscreteDomainLike]].
   * @tparam I
-  *   the interval type in the public interface. Must be `IntervalLike` based on [[D]].
+  *   the interval type in the public interface. Must be [[DiscreteIntervalLike]] based on [[D]].
   * @tparam ValidData
-  *   the valid data type in the public interface. Must be `DataLike` based on [[V]], [[D]], and [[I]].
+  *   the valid data type in the public interface. Must be [[ValidDataLike]] based on [[V]], [[D]], and [[I]].
+  * @tparam DiffAction
+  *   the diff action type. Must be [[DiffActionLike]] based on [[V]], [[D]], and [[I]].
   * @tparam D2
-  *   the domain type for intervals used in the underlying data. Must be `DomainLike` and have an `Ordering`, and should
-  *   be one dimension higher than [[D]], where the last dimension is `Int`.
+  *   the domain type for intervals used in the underlying data. Must be [[DiscreteDomainLike]] and should be one
+  *   dimension higher than [[D]], where the last dimension is `Int`.
   * @tparam I2
-  *   the interval type of the underlying data. Must be `IntervalLike` based on [[D2]], and should be one dimension
-  *   higher than [[I]], where the last dimension is `Int`.
+  *   the interval type of the underlying data. Must be [[DiscreteIntervalLike]] based on [[D2]].
   * @tparam ValidData2
-  *   the valid data type of the underlying data. Must be `DataLike` based on [[V]], [[D2]], and [[I2]].
+  *   the valid data type of the underlying data. Must be [[ValidDataLike]] based on [[V]], [[D2]], and [[I2]].
+  * @tparam DiffAction2
+  *   the diff action type of the underlying data. Must be [[DiffActionLike]] based on [[V]], [[D2]], and [[I2]].
   * @tparam Self
   *   F-bounded self type.
   */
@@ -33,7 +36,7 @@ trait MutableVersionedBase[
   I <: DiscreteIntervalLike[D, I],
   ValidData <: ValidDataLike[V, D, I, ValidData],
   DiffAction <: DiffActionLike[V, D, I, ValidData, DiffAction],
-  D2 <: DiscreteDomainLike[D2]: Ordering,
+  D2 <: DiscreteDomainLike[D2],
   I2 <: DiscreteIntervalLike[D2, I2],
   ValidData2 <: ValidDataLike[V, D2, I2, ValidData2],
   DiffAction2 <: DiffActionLike[V, D2, I2, ValidData2, DiffAction2],
@@ -80,16 +83,6 @@ trait MutableVersionedBase[
   def collapseVersionHistory(using versionSelection: VersionSelection): Unit
 
   /**
-    * Applies a sequence of diff actions to this structure. Does not use a version selection context -- operates on full
-    * underlying structure.
-    *
-    * @param diffActions
-    *   actions to be applied.
-    */
-  def applyDiffActions(diffActions: Iterable[DiffAction2]): Unit =
-    underlying.applyDiffActions(diffActions)
-
-  /**
     * Synchronizes this with another structure by getting and applying the applicable diff actions. Does not use a
     * version selection context -- operates on full underlying structure.
     *
@@ -98,29 +91,7 @@ trait MutableVersionedBase[
     */
   def syncWith(that: Self): Unit
 
-  /**
-    * Compress out adjacent intervals with the same value. Does not use a version selection context -- operates on full
-    * underlying 2D structure.
-    *
-    * @param value
-    *   value for which valid data will be compressed.
-    */
-  def compress(value: V): Unit = underlying.compress(value)
-
-  /**
-    * Compress out adjacent intervals with the same value for all values. Does not use a version selection context -- *
-    * operates on full underlying 2D structure. (Shouldn't ever need to do this.)
-    */
-  def compressAll(): Unit = underlying.compressAll()
-
-  // ---------- Implement methods similar to those in DimensionalBase, but with version selection ----------
-
-  /**
-    * Compress out adjacent intervals with the same value for all values after decompressing everything, resulting in a
-    * unique physical representation. Does not use a version selection context -- operates on full underlying 2D
-    * structure. (Shouldn't ever need to do this.)
-    */
-  def recompressAll(): Unit = underlying.recompressAll()
+  // ---------- Implemented methods based on the above definitions ----------
 
   /**
     * Special case where we change the version interval in a constrained way.
@@ -158,6 +129,38 @@ trait MutableVersionedBase[
       .filter(versionInterval(_).end equiv unapprovedStartVersion.predecessor) // only related to unapproved removes
       .flatMap(publicValidData(_).interval intersectionWith interval)
       .foreach(remove(_)(using VersionSelection.Current))
+
+  /**
+    * Applies a sequence of diff actions to this structure. Does not use a version selection context -- operates on full
+    * underlying structure.
+    *
+    * @param diffActions
+    *   actions to be applied.
+    */
+  def applyDiffActions(diffActions: Iterable[DiffAction2]): Unit =
+    underlying.applyDiffActions(diffActions)
+
+  /**
+    * Compress out adjacent intervals with the same value.
+    *
+    * @param value
+    *   value for which valid data will be compressed.
+    */
+  def compress(value: V): Unit = underlying.compress(value)
+
+  /**
+    * Compress out adjacent intervals with the same value for all values. (Shouldn't ever need to do this.)
+    */
+  def compressAll(): Unit = underlying.compressAll()
+
+  /**
+    * Compress out adjacent intervals with the same value for all values after decompressing everything, resulting in a
+    * unique physical representation. Does not use a version selection context -- operates on full underlying 2D
+    * structure. (Shouldn't ever need to do this.)
+    */
+  def recompressAll(): Unit = underlying.recompressAll()
+
+  // ---------- Implement methods similar to those in DimensionalBase, but many with version selection ----------
 
   /**
     * Set new valid data. Note that any data previously valid in this interval and the given version selection context
@@ -227,8 +230,6 @@ trait MutableVersionedBase[
     *
     * @param f
     *   the function to apply to each valid data element.
-    * @throws IllegalArgumentException
-    *   if the mapping function results in invalid data (e.g., introduces overlaps).
     */
   def map(f: ValidData2 => ValidData2): Unit = underlying.map(f)
 
@@ -252,14 +253,13 @@ trait MutableVersionedBase[
     *
     * @param f
     *   the function to apply to each valid data element which results in a new structure.
-    * @throws IllegalArgumentException
-    *   if the mapping function results in invalid data (e.g., introduces overlaps).
     */
   def flatMap(f: ValidData2 => Self): Unit
 
 //TODO: these may be problematic/misunderstood in the versioned space, so leaving them out for now.
 //  /**
-//    * Remove the old data and replace it with the new data. The new data value and interval can be different. Data with
+//    * Remove the old data and replace it with the new data. The new data value and interval can be different. Data
+//    with
 //    * overlaps with the new data interval are adjusted accordingly.
 //    *
 //    * @param oldData
@@ -273,7 +273,8 @@ trait MutableVersionedBase[
 //    underlying.replace(underlyingValidData(oldData), underlyingValidData(newData))
 //
 //  /**
-//    * Remove the old data and replace it with the new data. The new data value and interval can be different. Data with
+//    * Remove the old data and replace it with the new data. The new data value and interval can be different. Data
+//    with
 //    * overlaps with the new data interval are adjusted accordingly.
 //    *
 //    * @param key

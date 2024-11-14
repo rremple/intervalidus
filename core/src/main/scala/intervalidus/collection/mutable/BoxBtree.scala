@@ -3,7 +3,7 @@ package intervalidus.collection.mutable
 import intervalidus.collection.*
 
 /**
-  * Constructors for companion mutable box tree.
+  * Constructors and types for mutable box B-trees.
   */
 object BoxBtree extends MutableBoxTreeObjectLike[Coordinate1D, Box1D]:
   type BoxedPayloadType[A] = BoxedPayload1D[A]
