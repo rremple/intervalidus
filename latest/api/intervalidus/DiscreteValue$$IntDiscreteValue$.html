@@ -1089,14 +1089,24 @@ node5 -> node9;
             <div class="originInfo"></div>
             <div class="memberDocumentation">
              <div class="documentableBrief doc">
-              <p>Totally-ordered hash of this discrete value.</p>
+              <p>The ordered hash of this discrete value, used for mapping intervals to B/Quad/Oc box trees in double space. If <code>x1 &lt; x2</code>, then <code>orderedHashOf(x1) ≤ orderedHashOf(x2)</code>.</p>
              </div>
              <div class="cover">
               <div class="doc">
-               <p>Totally-ordered hash of this discrete value.</p>
+               <p>The ordered hash of this discrete value, used for mapping intervals to B/Quad/Oc box trees in double space. If <code>x1 &lt; x2</code>, then <code>orderedHashOf(x1) ≤ orderedHashOf(x2)</code>.</p>
               </div>
               <h2 class="h200">Attributes</h2>
               <dl class="attributes attributes-small">
+               <dt class="body-small">
+                Note
+               </dt>
+               <dd class="body-medium">
+                <div>
+                 <div>
+                  <p>having equal <code>orderedHashOf</code> results for different inputs is allowed, but represents a hash collision. If the <code>orderedHashOf</code> method has too many collisions, the performance of the B/Quad/Oc box trees using them will suffer.</p>
+                 </div>
+                </div>
+               </dd>
                <dt class="body-small">
                 Inherited from:
                </dt>

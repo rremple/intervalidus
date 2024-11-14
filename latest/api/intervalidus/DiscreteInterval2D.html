@@ -15,7 +15,7 @@
 </div>
 <div class="cover">
  <div class="doc">
-  <p>A two-dimensional interval over a contiguous set of discrete values in T1 and T2. See <a href="https://en.wikipedia.org/wiki/Interval_(mathematics)">https://en.wikipedia.org/wiki/Interval_(mathematics)</a> for more information.</p>
+  <p>A two-dimensional interval over a contiguous set of discrete values in <code>T1</code> and <code>T2</code>. See <a href="https://en.wikipedia.org/wiki/Interval_(mathematics)">https://en.wikipedia.org/wiki/Interval_(mathematics)</a> for more information.</p>
  </div>
  <section id="attributes">
   <h2 class="h500">Type parameters</h2>
@@ -223,7 +223,7 @@ node7 -> node2;
             <div class="cover">
              <div class="doc">
               <p>Same as <a href="DiscreteInterval2D.html#excluding-fffff9b2">excluding</a>.</p>
-              <p>Excludes that interval from this one. The horizontal and vertical results are returned as a pair</p>
+              <p>Excludes that interval from this one. The horizontal and vertical results are returned as a pair of remainders.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -240,7 +240,7 @@ node7 -> node2;
                Returns
               </dt>
               <dd class="body-medium">
-               <p>The remainder in each dimension after exclusion.</p>
+               <p>The remainders in each dimension after exclusion.</p>
               </dd>
              </dl>
             </div>
@@ -367,7 +367,7 @@ node7 -> node2;
                Returns
               </dt>
               <dd class="body-medium">
-               <p>true only if the domain element is contained in this interval.</p>
+               <p>true if the domain element is contained in this interval.</p>
               </dd>
               <dt class="body-small">
                Definition Classes
@@ -471,7 +471,7 @@ node7 -> node2;
                Returns
               </dt>
               <dd class="body-medium">
-               <p>true only if this and that have the same start and end.</p>
+               <p>true if this and that have the same start and end.</p>
               </dd>
               <dt class="body-small">
                Definition Classes
@@ -502,11 +502,11 @@ node7 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Excludes that interval from this one. The horizontal and vertical results are returned as a pair</p>
+             <p>Excludes that interval from this one. The horizontal and vertical results are returned as a pair of remainders.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Excludes that interval from this one. The horizontal and vertical results are returned as a pair</p>
+              <p>Excludes that interval from this one. The horizontal and vertical results are returned as a pair of remainders.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -523,7 +523,7 @@ node7 -> node2;
                Returns
               </dt>
               <dd class="body-medium">
-               <p>The remainder in each dimension after exclusion.</p>
+               <p>The remainders in each dimension after exclusion.</p>
               </dd>
              </dl>
             </div>
@@ -574,11 +574,11 @@ node7 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns true only if this and that have the same end.</p>
+             <p>Tests if this and that have the same end.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns true only if this and that have the same end.</p>
+              <p>Tests if this and that have the same end.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -620,11 +620,11 @@ node7 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns true only if this and that have the same start.</p>
+             <p>Tests if this and that have the same start.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns true only if this and that have the same start.</p>
+              <p>Tests if this and that have the same start.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -687,7 +687,7 @@ node7 -> node2;
                Returns
               </dt>
               <dd class="body-medium">
-               <p>some interval representing the intersection if there is one, and none otherwise.</p>
+               <p>some interval representing the intersection if there is one, and None otherwise.</p>
               </dd>
               <dt class="body-small">
                Definition Classes
@@ -718,11 +718,11 @@ node7 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns true only if this and that have elements of the domain in common (not disjoint).</p>
+             <p>Tests if this and that have elements of the domain in common (not disjoint).</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns true only if this and that have elements of the domain in common (not disjoint).</p>
+              <p>Tests if this and that have elements of the domain in common (not disjoint).</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -764,11 +764,11 @@ node7 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns true only if there is no gap between this and that.</p>
+             <p>Tests if there is no gap between this and that.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns true only if there is no gap between this and that.</p>
+              <p>Tests if there is no gap between this and that.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -810,11 +810,11 @@ node7 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns true only if this interval is to the left of that interval, and there is no gap between them, and their vertical intervals are equivalent.</p>
+             <p>Tests if this interval is to the left of that interval, and there is no gap between them, and their vertical intervals are equivalent.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns true only if this interval is to the left of that interval, and there is no gap between them, and their vertical intervals are equivalent.</p>
+              <p>Tests if this interval is to the left of that interval, and there is no gap between them, and their vertical intervals are equivalent.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -847,11 +847,11 @@ node7 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns true only if this interval is below that interval, there is no vertical gap between them, and their horizontal intervals are equivalent.</p>
+             <p>Tests if this interval is below that interval, there is no vertical gap between them, and their horizontal intervals are equivalent.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns true only if this interval is below that interval, there is no vertical gap between them, and their horizontal intervals are equivalent.</p>
+              <p>Tests if this interval is below that interval, there is no vertical gap between them, and their horizontal intervals are equivalent.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -884,11 +884,11 @@ node7 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns true only if this interval is to the right of that interval, and there is no gap between them, and their vertical intervals are equivalent.</p>
+             <p>Tests if this interval is to the right of that interval, and there is no gap between them, and their vertical intervals are equivalent.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns true only if this interval is to the right of that interval, and there is no gap between them, and their vertical intervals are equivalent.</p>
+              <p>Tests if this interval is to the right of that interval, and there is no gap between them, and their vertical intervals are equivalent.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -973,11 +973,11 @@ node7 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns true only if there is no fixed start or end - spans the entire domain.</p>
+             <p>Tests if there is no fixed start or end - spans the entire domain.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns true only if there is no fixed start or end - spans the entire domain.</p>
+              <p>Tests if there is no fixed start or end - spans the entire domain.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -1010,11 +1010,11 @@ node7 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns true only if this interval is above that interval, there is no vertical gap between them, and their horizontal intervals are equivalent.</p>
+             <p>Tests if this interval is above that interval, there is no vertical gap between them, and their horizontal intervals are equivalent.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns true only if this interval is above that interval, there is no vertical gap between them, and their horizontal intervals are equivalent.</p>
+              <p>Tests if this interval is above that interval, there is no vertical gap between them, and their horizontal intervals are equivalent.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -1569,7 +1569,7 @@ node7 -> node2;
                Returns
               </dt>
               <dd class="body-medium">
-               <p>some interval representing the intersection if there is one, and none otherwise.</p>
+               <p>some interval representing the intersection if there is one, and None otherwise.</p>
               </dd>
               <dt class="body-small">
                Inherited from:
@@ -1708,11 +1708,11 @@ node7 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>The "supremum", i.e., the upper/right/front boundary of the interval (inclusive). Must be greater than or equal to the start.</p>
+             <p>The "supremum", i.e., the right/upper/front boundary of the interval (inclusive). Must be greater than or equal to the start.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>The "supremum", i.e., the upper/right/front boundary of the interval (inclusive). Must be greater than or equal to the start.</p>
+              <p>The "supremum", i.e., the right/upper/front boundary of the interval (inclusive). Must be greater than or equal to the start.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -1736,11 +1736,11 @@ node7 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>The "infimum", i.e., the lower/left/behind boundary of the interval (inclusive). When stored in a collection, this aspect of the interval can be used as the key. (E.g., the start of a 1D interval, the lower/left corner of a 2D interval).</p>
+             <p>The "infimum", i.e., the left/lower/back boundary of the interval (inclusive). When stored in a collection, this aspect of the interval can be used as the key. (E.g., the start of a 1D interval, the lower/left corner of a 2D interval).</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>The "infimum", i.e., the lower/left/behind boundary of the interval (inclusive). When stored in a collection, this aspect of the interval can be used as the key. (E.g., the start of a 1D interval, the lower/left corner of a 2D interval).</p>
+              <p>The "infimum", i.e., the left/lower/back boundary of the interval (inclusive). When stored in a collection, this aspect of the interval can be used as the key. (E.g., the start of a 1D interval, the lower/left corner of a 2D interval).</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>

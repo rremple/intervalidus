@@ -44,19 +44,19 @@
     initialData
    </dt>
    <dd class="body-medium">
-    <p>(optional) a collection of valid data in two dimensions (the vertical dimension is the version) to start with -- note that two-dimensional intervals must be disjoint</p>
+    <p>a collection of valid data in three dimensions (the depth dimension is the version) to start with -- note that three-dimensional intervals must be disjoint</p>
    </dd>
    <dt class="body-small">
     initialVersion
    </dt>
    <dd class="body-medium">
-    <p>(optional) the version to start with, typically zero. (Could, for example, use <code>IntDiscreteValue.minValue</code> instead of zero to extend the version range.)</p>
+    <p>the version to start with, typically zero. (Could, for example, use <code>IntDiscreteValue.minValue</code> instead of zero to extend the version range.)</p>
    </dd>
    <dt class="body-small">
     withCurrentVersion
    </dt>
    <dd class="body-medium">
-    <p>(optional) the version to use as current if different form the initial version, e.g., when making a copy, typically None</p>
+    <p>the version to use as current if different form the initial version, e.g., when making a copy, typically None</p>
    </dd>
   </dl>
   <h2 class="h500">Attributes</h2>
@@ -456,21 +456,12 @@ node8 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Based on the given version selection context, gets all the data (compressed, immutable).</p>
+             <p>Given some version selection context, gets all the data (compressed, immutable).</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Based on the given version selection context, gets all the data (compressed, immutable).</p>
+              <p>Given some version selection context, gets all the data (compressed, immutable).</p>
              </div>
-             <h2 class="h200">Value parameters</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               versionSelection
-              </dt>
-              <dd class="body-medium">
-               <p>version selection context for this operation.</p>
-              </dd>
-             </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
@@ -508,22 +499,13 @@ node8 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Based on the given version selection context, gets all the data (uncompressed, mutable).</p>
+             <p>Given some version selection context, gets all the data (uncompressed, mutable).</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Based on the given version selection context, gets all the data (uncompressed, mutable).</p>
+              <p>Given some version selection context, gets all the data (uncompressed, mutable).</p>
               <p>Useful when you don't need the overhead of creating an immutable structure and compressing the data, e.g., if just doing a <code>getAt</code> after version selection, which will give the same answer compressed or uncompressed, mutable or immutable.</p>
              </div>
-             <h2 class="h200">Value parameters</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               versionSelection
-              </dt>
-              <dd class="body-medium">
-               <p>version selection context for this operation.</p>
-              </dd>
-             </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
@@ -1244,11 +1226,11 @@ node8 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns a value that is valid in the specified interval domain element given some version selection context. That is, where the specified domain element is a member of some valid data interval. If no such valid data exists, returns None.</p>
+             <p>Returns a value that is valid at the specified domain element given some version selection context. That is, where the specified domain element is a member of some valid data interval. If no such valid data exists, returns None.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns a value that is valid in the specified interval domain element given some version selection context. That is, where the specified domain element is a member of some valid data interval. If no such valid data exists, returns None.</p>
+              <p>Returns a value that is valid at the specified domain element given some version selection context. That is, where the specified domain element is a member of some valid data interval. If no such valid data exists, returns None.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -1467,14 +1449,20 @@ node8 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns true when there are no valid data in this structure meeting the version selection criteria, otherwise false.</p>
+             <p>Tests if there are no valid data in this structure given some version selection criteria.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns true when there are no valid data in this structure meeting the version selection criteria, otherwise false.</p>
+              <p>Tests if there are no valid data in this structure given some version selection criteria.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>true if there are no valid data, false otherwise.</p>
+              </dd>
               <dt class="body-small">
                Inherited from:
               </dt>
@@ -1502,11 +1490,11 @@ node8 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Is a value defined at a part of the domain given some version selection context.</p>
+             <p>Checks if a value is valid at the domain element given some version selection context.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Is a value defined at a part of the domain given some version selection context.</p>
+              <p>Checks if a value is valid at the domain element given some version selection context.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -1667,7 +1655,7 @@ node8 -> node0;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DataIn2DVersionedBase.html#toMutable-0" t="n" class="documentableName ">toMutable</a>: <a href="DataIn2DVersionedBase.html" t="t">DataIn2DVersionedBase</a>[<span t="t">V</span>, <span t="t">R1</span>, <span t="t">R2</span>]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DataIn2DVersionedBase.html#toMutable-0" t="n" class="documentableName ">toMutable</a>: <a href="DataIn2DVersionedBase.html" t="t">DataIn2DVersionedBase</a>[<span t="t">V</span>, <span t="t">R1</span>, <span t="t">R2</span>]<span t="k"> &amp; </span><a href="mutable/MutableVersionedBase.html" t="t">MutableVersionedBase</a>[<span t="t">V</span>, <a href="DiscreteDomain2D.html" t="t">DiscreteDomain2D</a>[<span t="t">R1</span>, <span t="t">R2</span>], <a href="DiscreteInterval2D.html" t="t">DiscreteInterval2D</a>[<span t="t">R1</span>, <span t="t">R2</span>], <a href="ValidData2D.html" t="t">ValidData2D</a>[<span t="t">V</span>, <span t="t">R1</span>, <span t="t">R2</span>], <a href="DiffAction2D.html" t="t">DiffAction2D</a>[<span t="t">V</span>, <span t="t">R1</span>, <span t="t">R2</span>], <a href="DiscreteDomain3D.html" t="t">DiscreteDomain3D</a>[<span t="t">R1</span>, <span t="t">R2</span>, <span data-unresolved-link="" t="t">Int</span>], <a href="DiscreteInterval3D.html" t="t">DiscreteInterval3D</a>[<span t="t">R1</span>, <span t="t">R2</span>, <span data-unresolved-link="" t="t">Int</span>], <a href="ValidData3D.html" t="t">ValidData3D</a>[<span t="t">V</span>, <span t="t">R1</span>, <span t="t">R2</span>, <span data-unresolved-link="" t="t">Int</span>], <a href="DiffAction3D.html" t="t">DiffAction3D</a>[<span t="t">V</span>, <span t="t">R1</span>, <span t="t">R2</span>, <span data-unresolved-link="" t="t">Int</span>], <span t="k">_</span>]
            </div>
           </div>
          </div>

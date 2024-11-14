@@ -17,11 +17,12 @@
  <div class="doc">
   <p>Template for a type class with operations on a discrete value. A discrete value is</p>
   <ol>
-   <li>finite, with a max and min value (think Int with its MaxValue and MinValue)</li>
+   <li>finite, with a max and min value (think <code>Int</code> with its <code>MaxValue</code> and <code>MinValue</code> methods)</li>
    <li>totally ordered (this type class extends the <span data-unresolved-link="">Ordering</span> type class, requiring a compare method).</li>
-   <li>have predecessor and successor functions, which are properly defined on x: max &lt; x &lt; min.</li>
+   <li>have predecessor and successor functions, which are properly defined on <code>x: max &lt; x &lt; min</code>.</li>
+   <li>mappable to a similarly-ordered double space (potentially with collisions)</li>
   </ol>
-  <p>Having predecessors and successors defined this way avoids issues where the natural successor functions of the underlying types behave unexpectedly/inconsistently on the boundaries, e.g., how Int.MaxValue + 1 and Int.MinValue - 1 silently wrap around to each other, vs. how both LocalDate.MAX.plusDays(1) and LocalDate.MIN.minusDays(1) throw a DateTimeException.</p>
+  <p>Having predecessors and successors defined this way avoids issues where the natural successor functions of the underlying types behave unexpectedly/inconsistently on the boundaries, e.g., how <code>Int.MaxValue + 1</code> and <code>Int.MinValue - 1</code> silently wrap around to each other, vs. how both <code>LocalDate.MAX.plusDays(1)</code> and <code>LocalDate.MIN.minusDays(1)</code> throw a <code>DateTimeException</code>.</p>
  </div>
  <section id="attributes">
   <h2 class="h500">Type parameters</h2>
@@ -30,7 +31,7 @@
     T
    </dt>
    <dd class="body-medium">
-    <p>a value that has discrete value behavior (e.g., Int)</p>
+    <p>a value that has discrete value behavior (e.g., <code>Int</code>)</p>
    </dd>
   </dl>
   <h2 class="h500">Attributes</h2>
@@ -292,14 +293,25 @@ node12 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>A special totally-ordered hash of a discrete value used for mapping intervals to B/Quad/Oc box trees. If x1 &lt; x2 (i.e., there are some number of successorOf functions that can be applied to x1 to reach x2), then doubleHashOf(x1) ≤ doubleHashOf(x2).</p>
+             <p>A special totally-ordered hash of a discrete value used for mapping intervals to B/Quad/Oc box trees in double space. If <code>x1 &lt; x2</code> (i.e., there are some number of <code>successorOf</code> functions that can be applied to <code>x1</code> to reach <code>x2</code>), then <code>orderedHashOf(x1) ≤ orderedHashOf(x2)</code>.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>A special totally-ordered hash of a discrete value used for mapping intervals to B/Quad/Oc box trees. If x1 &lt; x2 (i.e., there are some number of successorOf functions that can be applied to x1 to reach x2), then doubleHashOf(x1) ≤ doubleHashOf(x2).</p>
+              <p>A special totally-ordered hash of a discrete value used for mapping intervals to B/Quad/Oc box trees in double space. If <code>x1 &lt; x2</code> (i.e., there are some number of <code>successorOf</code> functions that can be applied to <code>x1</code> to reach <code>x2</code>), then <code>orderedHashOf(x1) ≤ orderedHashOf(x2)</code>.</p>
              </div>
              <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small"></dl>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Note
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <div>
+                 <p>having equal <code>orderedHashOf</code> results for different inputs is allowed, but represents a hash collision. If the <code>orderedHashOf</code> method has too many collisions, the performance of B/Quad/Oc box trees will suffer.</p>
+                </div>
+               </div>
+              </dd>
+             </dl>
             </div>
            </div>
           </div>
@@ -1079,14 +1091,25 @@ node12 -> node0;
             <div class="originInfo"></div>
             <div class="memberDocumentation">
              <div class="documentableBrief doc">
-              <p>Totally-ordered hash of this discrete value.</p>
+              <p>The ordered hash of this discrete value, used for mapping intervals to B/Quad/Oc box trees in double space. If <code>x1 &lt; x2</code>, then <code>orderedHashOf(x1) ≤ orderedHashOf(x2)</code>.</p>
              </div>
              <div class="cover">
               <div class="doc">
-               <p>Totally-ordered hash of this discrete value.</p>
+               <p>The ordered hash of this discrete value, used for mapping intervals to B/Quad/Oc box trees in double space. If <code>x1 &lt; x2</code>, then <code>orderedHashOf(x1) ≤ orderedHashOf(x2)</code>.</p>
               </div>
               <h2 class="h200">Attributes</h2>
-              <dl class="attributes attributes-small"></dl>
+              <dl class="attributes attributes-small">
+               <dt class="body-small">
+                Note
+               </dt>
+               <dd class="body-medium">
+                <div>
+                 <div>
+                  <p>having equal <code>orderedHashOf</code> results for different inputs is allowed, but represents a hash collision. If the <code>orderedHashOf</code> method has too many collisions, the performance of the B/Quad/Oc box trees using them will suffer.</p>
+                 </div>
+                </div>
+               </dd>
+              </dl>
              </div>
             </div>
            </div>

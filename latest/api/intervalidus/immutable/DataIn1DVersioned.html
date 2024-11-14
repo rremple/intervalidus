@@ -15,9 +15,9 @@
 </div>
 <div class="cover">
  <div class="doc">
-  <p>Interface is similar to <a href="DataIn1D.html">DataIn1D</a>, but it operates on an underlying <a href="DataIn2D.html">DataIn2D</a> using an integer-valued interval2 to version data. One use case would be that R = LocalDate, so data values may vary in terms of both version and date. Most methods require some generic version selection criteria rather than specific integer intervals.</p>
+  <p>Interface is similar to <a href="DataIn1D.html">DataIn1D</a>, but it operates on an underlying <a href="../mutable/DataIn2D.html">mutable.DataIn2D</a> using an integer-valued vertical dimension to version data. One use case would be that R = LocalDate, so data values may vary in terms of both version and time. Most methods require some generic version selection criteria rather than specific integer intervals, therefore this does not extend <a href="../DimensionalBase.html">DimensionalBase</a>.</p>
   <p>The "current" version is managed as state (a var). Versioning also separates notions of approved vs. unapproved data (unapproved data are pushed up to start at version maxValue).</p>
-  <p>When getting data, by default, we return "current" version data (a.k.a., approved). When updating data, by default, we don't rewrite history, so mutations start with the "current" version too. Note that updates starting with "current" will update unapproved changes as well (since intervalFrom goes to the Top)</p>
+  <p>When getting data, by default, we return "current" version data (a.k.a., approved). When updating data, by default, we don't rewrite history, so mutations start with the "current" version too. Note that updates starting with "current" will update unapproved changes as well (since intervalFrom goes to the Top).</p>
  </div>
  <section id="attributes">
   <h2 class="h500">Type parameters</h2>
@@ -460,17 +460,6 @@ node10 -> node5;
               <dd class="body-medium">
                <p>a new structure with the same current version resulting from applying the provided function f to each element of this structure and concatenating the results.</p>
               </dd>
-              <dt class="body-small">
-               Throws
-              </dt>
-              <dd class="body-medium">
-               <div>
-                <div>
-                 <span data-unresolved-link="">IllegalArgumentException</span>
-                 <p>if the mapping function results in invalid data (e.g., introduces overlaps).</p>
-                </div>
-               </div>
-              </dd>
              </dl>
             </div>
            </div>
@@ -573,17 +562,6 @@ node10 -> node5;
               <dd class="body-medium">
                <p>a new structure with the same current version resulting from applying the provided function f to each element of this structure.</p>
               </dd>
-              <dt class="body-small">
-               Throws
-              </dt>
-              <dd class="body-medium">
-               <div>
-                <div>
-                 <span data-unresolved-link="">IllegalArgumentException</span>
-                 <p>if the mapping function results in invalid data (e.g., introduces overlaps).</p>
-                </div>
-               </div>
-              </dd>
              </dl>
             </div>
            </div>
@@ -605,11 +583,11 @@ node10 -> node5;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Applies a function to all valid data values. Only the valid data value type can be changed in the mapping. Does not use a version selection context -- the function is applied to the underlying 2D data, so it maps all values in all versions. To only map values meeting specific version criteria, use <a href="DataIn1DVersioned.html#map-fffff600">map</a> instead</p>
+             <p>Applies a function to all valid data values. Only the valid data value type can be changed in the mapping. Does not use a version selection context -- the function is applied to the underlying 2D data, so it maps all values in all versions. To only map values meeting specific version criteria, use <a href="DataIn1DVersioned.html#map-fffff600">map</a> instead.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Applies a function to all valid data values. Only the valid data value type can be changed in the mapping. Does not use a version selection context -- the function is applied to the underlying 2D data, so it maps all values in all versions. To only map values meeting specific version criteria, use <a href="DataIn1DVersioned.html#map-fffff600">map</a> instead</p>
+              <p>Applies a function to all valid data values. Only the valid data value type can be changed in the mapping. Does not use a version selection context -- the function is applied to the underlying 2D data, so it maps all values in all versions. To only map values meeting specific version criteria, use <a href="DataIn1DVersioned.html#map-fffff600">map</a> instead.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -1225,7 +1203,7 @@ node10 -> node5;
                Returns
               </dt>
               <dd class="body-medium">
-               <p>some new structure if unapproved version was found and approved, none otherwise</p>
+               <p>some new structure if unapproved version was found and approved, None otherwise</p>
               </dd>
               <dt class="body-small">
                Inherited from:
@@ -1275,7 +1253,7 @@ node10 -> node5;
                Returns
               </dt>
               <dd class="body-medium">
-               <p>a new structure with all unapproved changes approved.</p>
+               <p>a new structure with all unapproved changes approved in the interval.</p>
               </dd>
               <dt class="body-small">
                Inherited from:
@@ -1364,11 +1342,11 @@ node10 -> node5;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Compress out adjacent intervals with the same value</p>
+             <p>Compress out adjacent intervals with the same value.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Compress out adjacent intervals with the same value</p>
+              <p>Compress out adjacent intervals with the same value.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -1376,7 +1354,7 @@ node10 -> node5;
                value
               </dt>
               <dd class="body-medium">
-               <p>value to be evaluate</p>
+               <p>value for which valid data will be compressed.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -1728,11 +1706,11 @@ node10 -> node5;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns a value that is valid in the specified interval domain element given some version selection context. That is, where the specified domain element is a member of some valid data interval. If no such valid data exists, returns None.</p>
+             <p>Returns a value that is valid at the specified domain element given some version selection context. That is, where the specified domain element is a member of some valid data interval. If no such valid data exists, returns None.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns a value that is valid in the specified interval domain element given some version selection context. That is, where the specified domain element is a member of some valid data interval. If no such valid data exists, returns None.</p>
+              <p>Returns a value that is valid at the specified domain element given some version selection context. That is, where the specified domain element is a member of some valid data interval. If no such valid data exists, returns None.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -1947,21 +1925,12 @@ node10 -> node5;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Based on the given version selection context, gets all the data (compressed, immutable).</p>
+             <p>Given some version selection context, gets all the data (compressed, immutable).</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Based on the given version selection context, gets all the data (compressed, immutable).</p>
+              <p>Given some version selection context, gets all the data (compressed, immutable).</p>
              </div>
-             <h2 class="h200">Value parameters</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               versionSelection
-              </dt>
-              <dd class="body-medium">
-               <p>version selection context for this operation.</p>
-              </dd>
-             </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
@@ -2005,22 +1974,13 @@ node10 -> node5;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Based on the given version selection context, gets all the data (uncompressed, mutable).</p>
+             <p>Given some version selection context, gets all the data (uncompressed, mutable).</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Based on the given version selection context, gets all the data (uncompressed, mutable).</p>
+              <p>Given some version selection context, gets all the data (uncompressed, mutable).</p>
               <p>Useful when you don't need the overhead of creating an immutable structure and compressing the data, e.g., if just doing a <code>getAt</code> after version selection, which will give the same answer compressed or uncompressed, mutable or immutable.</p>
              </div>
-             <h2 class="h200">Value parameters</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               versionSelection
-              </dt>
-              <dd class="body-medium">
-               <p>version selection context for this operation.</p>
-              </dd>
-             </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
@@ -2152,14 +2112,20 @@ node10 -> node5;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns true when there are no valid data in this structure meeting the version selection criteria, otherwise false.</p>
+             <p>Tests if there are no valid data in this structure given some version selection criteria.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns true when there are no valid data in this structure meeting the version selection criteria, otherwise false.</p>
+              <p>Tests if there are no valid data in this structure given some version selection criteria.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>true if there are no valid data, false otherwise.</p>
+              </dd>
               <dt class="body-small">
                Inherited from:
               </dt>
@@ -2187,11 +2153,11 @@ node10 -> node5;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Is a value defined at a part of the domain given some version selection context.</p>
+             <p>Checks if a value is valid at the domain element given some version selection context.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Is a value defined at a part of the domain given some version selection context.</p>
+              <p>Checks if a value is valid at the domain element given some version selection context.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">

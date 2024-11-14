@@ -24,7 +24,7 @@
     T
    </dt>
    <dd class="body-medium">
-    <p>a discrete value type for this interval's domain (e.g., Int, LocalDate) -- boundaries of the interval are defined in terms of DiscreteDomain1D[T] given the type class DiscreteValue[T].</p>
+    <p>a discrete value type for this interval's domain (e.g., Int, LocalDate) -- boundaries of the interval are defined in terms of <code>DiscreteDomain1D[T]</code> given the type class <code>DiscreteValue[T]</code>.</p>
    </dd>
   </dl>
   <h2 class="h500">Value parameters</h2>
@@ -33,13 +33,13 @@
     end
    </dt>
    <dd class="body-medium">
-    <p>the "supremum", i.e., the upper/right boundary of the interval (inclusive) -- must be greater than or equal to the start</p>
+    <p>the "supremum", i.e., the right (or above or front, depending on context) boundary of the interval (inclusive) -- must be greater than or equal to the start</p>
    </dd>
    <dt class="body-small">
     start
    </dt>
    <dd class="body-medium">
-    <p>the "infimum", i.e., the lower/left boundary of the interval (inclusive)</p>
+    <p>the "infimum", i.e., the left (or below or back, depending on context) boundary of the interval (inclusive)</p>
    </dd>
   </dl>
   <h2 class="h500">Attributes</h2>
@@ -219,9 +219,9 @@ node7 -> node2;
               <p>Same as <a href="DiscreteInterval1D.html#excluding-fffff0db">excluding</a>.</p>
               <p>Excludes that interval from this one. There are three possible outcomes:</p>
               <ol>
-               <li>this interval is a subset of that one, so once it is excluded, nothing remains.</li>
-               <li>that either lies outside of this or has a simple edge intersection (only contains the start or the end, but not both), and a single interval remains.</li>
-               <li>that interval is a proper subset of this one, containing neither the start nor the end of this, so this interval gets split, and two intervals remain.</li>
+               <li>this interval is a subset of that one, so once it is excluded, nothing remains. Remainder.None is returned.</li>
+               <li>that either lies outside of this or has a simple edge intersection (only contains the start or the end, but not both), and a single interval remains. Remainder.Single is returned.</li>
+               <li>that interval is a proper subset of this one, containing neither the start nor the end of this, so this interval gets split, and two intervals remain. Remainder.Split is returned</li>
               </ol>
              </div>
              <h2 class="h200">Value parameters</h2>
@@ -239,7 +239,7 @@ node7 -> node2;
                Returns
               </dt>
               <dd class="body-medium">
-               <p>The remainder after exclusion. Either <code>None</code>, <code>Some(_, None)</code>, or <code>Some(_, Some(_))</code> based on the outcome described above.</p>
+               <p>The remainder after exclusion.</p>
               </dd>
              </dl>
             </div>
@@ -422,7 +422,7 @@ node7 -> node2;
                Returns
               </dt>
               <dd class="body-medium">
-               <p>true only if the domain element is contained in this interval.</p>
+               <p>true if the domain element is contained in this interval.</p>
               </dd>
               <dt class="body-small">
                Definition Classes
@@ -600,7 +600,7 @@ node7 -> node2;
                Returns
               </dt>
               <dd class="body-medium">
-               <p>true only if this and that have the same start and end.</p>
+               <p>true if this and that have the same start and end.</p>
               </dd>
               <dt class="body-small">
                Definition Classes
@@ -729,7 +729,7 @@ node7 -> node2;
                Returns
               </dt>
               <dd class="body-medium">
-               <p>some interval representing the gap between this and that if one exists, otherwise none.</p>
+               <p>some interval representing the gap between this and that if one exists, and None otherwise.</p>
               </dd>
              </dl>
             </div>
@@ -752,11 +752,11 @@ node7 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns true only if this and that have the same end.</p>
+             <p>Tests if this and that have the same end.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns true only if this and that have the same end.</p>
+              <p>Tests if this and that have the same end.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -798,11 +798,11 @@ node7 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns true only if this and that have the same start.</p>
+             <p>Tests if this and that have the same start.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns true only if this and that have the same start.</p>
+              <p>Tests if this and that have the same start.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -865,7 +865,7 @@ node7 -> node2;
                Returns
               </dt>
               <dd class="body-medium">
-               <p>some interval representing the intersection if there is one, and none otherwise.</p>
+               <p>some interval representing the intersection if there is one, and None otherwise.</p>
               </dd>
               <dt class="body-small">
                Definition Classes
@@ -896,11 +896,11 @@ node7 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns true only if this and that have elements of the domain in common (not disjoint).</p>
+             <p>Tests if this and that have elements of the domain in common (not disjoint).</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns true only if this and that have elements of the domain in common (not disjoint).</p>
+              <p>Tests if this and that have elements of the domain in common (not disjoint).</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -942,11 +942,11 @@ node7 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns true only if there is no gap between this and that.</p>
+             <p>Tests if there is no gap between this and that.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns true only if there is no gap between this and that.</p>
+              <p>Tests if there is no gap between this and that.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -988,11 +988,11 @@ node7 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns true only if this interval is to the left of that interval, and there is no gap between them.</p>
+             <p>Tests if this interval is to the left of that interval and there is no gap between them.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns true only if this interval is to the left of that interval, and there is no gap between them.</p>
+              <p>Tests if this interval is to the left of that interval and there is no gap between them.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -1025,11 +1025,11 @@ node7 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns true only if this interval is to the right of that interval, and there is no gap between them.</p>
+             <p>Tests if this interval is to the right of that interval and there is no gap between them.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns true only if this interval is to the right of that interval, and there is no gap between them.</p>
+              <p>Tests if this interval is to the right of that interval and there is no gap between them.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -1114,11 +1114,11 @@ node7 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns true only if there is no fixed start or end - spans the entire domain.</p>
+             <p>Tests if there is no fixed start or end - spans the entire domain.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns true only if there is no fixed start or end - spans the entire domain.</p>
+              <p>Tests if there is no fixed start or end - spans the entire domain.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -1627,7 +1627,7 @@ node7 -> node2;
                Returns
               </dt>
               <dd class="body-medium">
-               <p>some interval representing the intersection if there is one, and none otherwise.</p>
+               <p>some interval representing the intersection if there is one, and None otherwise.</p>
               </dd>
               <dt class="body-small">
                Inherited from:

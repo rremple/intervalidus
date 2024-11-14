@@ -15,8 +15,8 @@
   <p>Intervalidus's main traits and classes for defining mutable dimensional data, including:</p>
   <ul>
    <li>Base traits for all mutable dimensional data, and all mutable versioned dimensional data.</li>
-   <li>Classes for defining mutable data in one, two, and three dimensions</li>
-   <li>Class for defining mutable versioned data in one and two dimensions</li>
+   <li>Classes defining mutable data in one, two, and three dimensions</li>
+   <li>Classes defining mutable versioned data in one and two dimensions</li>
   </ul>
  </div>
  <section id="attributes">
@@ -267,13 +267,13 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Interface is similar to <a href="mutable/DataIn1D.html">DataIn1D</a>, but it operates on an underlying <a href="mutable/DataIn2D.html">DataIn2D</a> using an integer-valued interval2 to version data. One use case would be that R = LocalDate, so data values may vary in terms of both version and date. Most methods require some generic version selection criteria rather than specific integer intervals.</p>
+             <p>Interface is similar to <a href="mutable/DataIn1D.html">DataIn1D</a>, but it operates on an underlying <a href="mutable/DataIn2D.html">mutable.DataIn2D</a> using an integer-valued vertical dimension to version data. One use case would be that R = LocalDate, so data values may vary in terms of both version and time. Most methods require some generic version selection criteria rather than specific integer intervals, therefore this does not extend <a href="DimensionalBase.html">DimensionalBase</a>.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Interface is similar to <a href="mutable/DataIn1D.html">DataIn1D</a>, but it operates on an underlying <a href="mutable/DataIn2D.html">DataIn2D</a> using an integer-valued interval2 to version data. One use case would be that R = LocalDate, so data values may vary in terms of both version and date. Most methods require some generic version selection criteria rather than specific integer intervals.</p>
+              <p>Interface is similar to <a href="mutable/DataIn1D.html">DataIn1D</a>, but it operates on an underlying <a href="mutable/DataIn2D.html">mutable.DataIn2D</a> using an integer-valued vertical dimension to version data. One use case would be that R = LocalDate, so data values may vary in terms of both version and time. Most methods require some generic version selection criteria rather than specific integer intervals, therefore this does not extend <a href="DimensionalBase.html">DimensionalBase</a>.</p>
               <p>The "current" version is managed as state (a var). Versioning also separates notions of approved vs. unapproved data (unapproved data are pushed up to start at version maxValue).</p>
-              <p>When getting data, by default, we return "current" version data (a.k.a., approved). When updating data, by default, we don't rewrite history, so mutations start with the "current" version too. Note that updates starting with "current" will update unapproved changes as well (since intervalFrom goes to the Top)</p>
+              <p>When getting data, by default, we return "current" version data (a.k.a., approved). When updating data, by default, we don't rewrite history, so mutations start with the "current" version too. Note that updates starting with "current" will update unapproved changes as well (since intervalFrom goes to the Top).</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -436,11 +436,11 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Like <a href="mutable/DataIn1D.html">DataIn1D</a>, data here have different values in different discrete intervals. But here data values vary in two dimensions. For example, one may want to represent when the data are valid in time and over certain versions simultaneously.</p>
+             <p>Like <a href="mutable/DataIn1D.html">DataIn1D</a>, data here have different values in different discrete intervals. But here data values vary in two dimensions. For example, one may want to represent when the data are valid in time and over certain versions, or in two dimensions of time, simultaneously.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Like <a href="mutable/DataIn1D.html">DataIn1D</a>, data here have different values in different discrete intervals. But here data values vary in two dimensions. For example, one may want to represent when the data are valid in time and over certain versions simultaneously.</p>
+              <p>Like <a href="mutable/DataIn1D.html">DataIn1D</a>, data here have different values in different discrete intervals. But here data values vary in two dimensions. For example, one may want to represent when the data are valid in time and over certain versions, or in two dimensions of time, simultaneously.</p>
               <p>We can capture the dependency between various values and related two-dimensional intervals cohesively in this structure rather than in separate data structures using distributed (and potentially inconsistent) logic. This is especially important for managing mutation, which can be a bit complex in two dimensions. Note that visualizing two-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there is a simple Visualize tool provided (in the test package... though maybe this should be its own separate subproject).</p>
              </div>
              <h2 class="h200">Type parameters</h2>
@@ -587,13 +587,13 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Interface is similar to <a href="mutable/DataIn2D.html">DataIn2D</a>, but it operates on an underlying <a href="mutable/DataIn3D.html">DataIn3D</a> using an integer-valued interval2 to version data. One use case would be that R = LocalDate, so data values may vary in terms of both version and date. Most methods require some generic version selection criteria rather than specific integer intervals.</p>
+             <p>Interface is similar to <a href="mutable/DataIn2D.html">DataIn2D</a>, but it operates on an underlying <a href="mutable/DataIn3D.html">mutable.DataIn3D</a> using an integer-valued vertical dimension to version data. One use case would be that R1 and R2 = LocalDate, so data values may vary in terms of both version and two dimensions of time. Most methods require some generic version selection criteria rather than specific integer intervals, therefore this does not extend <a href="DimensionalBase.html">DimensionalBase</a>.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Interface is similar to <a href="mutable/DataIn2D.html">DataIn2D</a>, but it operates on an underlying <a href="mutable/DataIn3D.html">DataIn3D</a> using an integer-valued interval2 to version data. One use case would be that R = LocalDate, so data values may vary in terms of both version and date. Most methods require some generic version selection criteria rather than specific integer intervals.</p>
+              <p>Interface is similar to <a href="mutable/DataIn2D.html">DataIn2D</a>, but it operates on an underlying <a href="mutable/DataIn3D.html">mutable.DataIn3D</a> using an integer-valued vertical dimension to version data. One use case would be that R1 and R2 = LocalDate, so data values may vary in terms of both version and two dimensions of time. Most methods require some generic version selection criteria rather than specific integer intervals, therefore this does not extend <a href="DimensionalBase.html">DimensionalBase</a>.</p>
               <p>The "current" version is managed as state (a var). Versioning also separates notions of approved vs. unapproved data (unapproved data are pushed up to start at version maxValue).</p>
-              <p>When getting data, by default, we return "current" version data (a.k.a., approved). When updating data, by default, we don't rewrite history, so mutations start with the "current" version too. Note that updates starting with "current" will update unapproved changes as well (since intervalFrom goes to the Top)</p>
+              <p>When getting data, by default, we return "current" version data (a.k.a., approved). When updating data, by default, we don't rewrite history, so mutations start with the "current" version too. Note that updates starting with "current" will update unapproved changes as well (since intervalFrom goes to the Top).</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -762,12 +762,12 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Like <a href="mutable/DataIn1D.html">DataIn1D</a> and <a href="mutable/DataIn2D.html">DataIn2D</a>, data here have different values in different discrete intervals. But here data values vary in three dimensions. For example, one may want to represent when the data are valid in two dimensions of time and over certain versions simultaneously.</p>
+             <p>Like <a href="mutable/DataIn1D.html">DataIn1D</a> and <a href="mutable/DataIn2D.html">DataIn2D</a>, data here have different values in different discrete intervals. But here data values vary in three dimensions. For example, one may want to represent when data are valid in two dimensions of time and over certain versions simultaneously.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Like <a href="mutable/DataIn1D.html">DataIn1D</a> and <a href="mutable/DataIn2D.html">DataIn2D</a>, data here have different values in different discrete intervals. But here data values vary in three dimensions. For example, one may want to represent when the data are valid in two dimensions of time and over certain versions simultaneously.</p>
-              <p>We can capture the dependency between various values and related three-dimensional intervals cohesively in this structure rather than in separate data structures using distributed (and potentially inconsistent) logic. This is especially important for managing mutation, which can be a bit complex in three dimensions.</p>
+              <p>Like <a href="mutable/DataIn1D.html">DataIn1D</a> and <a href="mutable/DataIn2D.html">DataIn2D</a>, data here have different values in different discrete intervals. But here data values vary in three dimensions. For example, one may want to represent when data are valid in two dimensions of time and over certain versions simultaneously.</p>
+              <p>We can capture the dependency between various values and related three-dimensional intervals cohesively in this structure rather than in separate data structures using distributed (and potentially inconsistent) logic. This is especially important for managing mutation, which can be a bit complex in three dimensions. Note that visualizing three-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there is a simple 2D Visualize tool provided where you can visualize 2D slices of the 3D structure (in the test package... though maybe this should be its own separate subproject).</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -868,13 +868,19 @@
                D
               </dt>
               <dd class="body-medium">
-               <p>the domain type for intervals. Must be <code>DomainLike</code> and have an <code>Ordering</code>.</p>
+               <p>the domain type for intervals. Must be <a href="DiscreteDomainLike.html">DiscreteDomainLike</a>.</p>
+              </dd>
+              <dt class="body-small">
+               DiffAction
+              </dt>
+              <dd class="body-medium">
+               <p>the diff action type. Must be <a href="DiffActionLike.html">DiffActionLike</a> based on <span data-unresolved-link="">V</span>, <span data-unresolved-link="">D</span>, and <span data-unresolved-link="">I</span>.</p>
               </dd>
               <dt class="body-small">
                I
               </dt>
               <dd class="body-medium">
-               <p>the interval type, based on the domain type. Must be <code>IntervalLike</code> based on D.</p>
+               <p>the interval type, based on the domain type. Must be <a href="DiscreteIntervalLike.html">DiscreteIntervalLike</a> based on <span data-unresolved-link="">D</span>.</p>
               </dd>
               <dt class="body-small">
                Self
@@ -892,7 +898,7 @@
                ValidData
               </dt>
               <dd class="body-medium">
-               <p>the valid data type. Must be <code>DataLike</code> based on V, D, and I.</p>
+               <p>the valid data type. Must be <a href="ValidDataLike.html">ValidDataLike</a> based on <span data-unresolved-link="">V</span>, <span data-unresolved-link="">D</span>, and <span data-unresolved-link="">I</span>.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -951,7 +957,7 @@
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="mutable/MutableVersionedBase.html" t="n" class="documentableName ">MutableVersionedBase</a>[<span t="k"></span><span data-unresolved-link="" t="t">V</span>, <span t="k"></span><span data-unresolved-link="" t="t">D</span><span t="k"> &lt;: </span><a href="DiscreteDomainLike.html" t="t">DiscreteDomainLike</a>[<span t="t">D</span>], <span t="k"></span><span data-unresolved-link="" t="t">I</span><span t="k"> &lt;: </span><a href="DiscreteIntervalLike.html" t="t">DiscreteIntervalLike</a>[<span t="t">D</span>, <span t="t">I</span>], <span t="k"></span><span data-unresolved-link="" t="t">ValidData</span><span t="k"> &lt;: </span><a href="ValidDataLike.html" t="t">ValidDataLike</a>[<span t="t">V</span>, <span t="t">D</span>, <span t="t">I</span>, <span t="t">ValidData</span>], <span t="k"></span><span data-unresolved-link="" t="t">DiffAction</span><span t="k"> &lt;: </span><a href="DiffActionLike.html" t="t">DiffActionLike</a>[<span t="t">V</span>, <span t="t">D</span>, <span t="t">I</span>, <span t="t">ValidData</span>, <span t="t">DiffAction</span>], <span t="k"></span><span data-unresolved-link="" t="t">D2</span><span t="k"> &lt;: </span><a href="DiscreteDomainLike.html" t="t">DiscreteDomainLike</a>[<span t="t">D2</span>], <span t="k"></span><span data-unresolved-link="" t="t">I2</span><span t="k"> &lt;: </span><a href="DiscreteIntervalLike.html" t="t">DiscreteIntervalLike</a>[<span t="t">D2</span>, <span t="t">I2</span>], <span t="k"></span><span data-unresolved-link="" t="t">ValidData2</span><span t="k"> &lt;: </span><a href="ValidDataLike.html" t="t">ValidDataLike</a>[<span t="t">V</span>, <span t="t">D2</span>, <span t="t">I2</span>, <span t="t">ValidData2</span>], <span t="k"></span><span data-unresolved-link="" t="t">DiffAction2</span><span t="k"> &lt;: </span><a href="DiffActionLike.html" t="t">DiffActionLike</a>[<span t="t">V</span>, <span t="t">D2</span>, <span t="t">I2</span>, <span t="t">ValidData2</span>, <span t="t">DiffAction2</span>], <span t="k"></span><span data-unresolved-link="" t="t">Self</span><span t="k"> &lt;: </span><a href="mutable/MutableVersionedBase.html" t="t">MutableVersionedBase</a>[<span t="t">V</span>, <span t="t">D</span>, <span t="t">I</span>, <span t="t">ValidData</span>, <span t="t">DiffAction</span>, <span t="t">D2</span>, <span t="t">I2</span>, <span t="t">ValidData2</span>, <span t="t">DiffAction2</span>, <span t="t">Self</span>]<span t="k"> &amp; </span><a href="DimensionalVersionedBase.html" t="t">DimensionalVersionedBase</a>[<span t="t">V</span>, <span t="t">D</span>, <span t="t">I</span>, <span t="t">ValidData</span>, <span t="t">DiffAction</span>, <span t="t">D2</span>, <span t="t">I2</span>, <span t="t">ValidData2</span>, <span t="t">DiffAction2</span>, <span t="k">_</span>]](<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">evidence$1</span>: <span data-unresolved-link="" t="t">Ordering</span>[<span data-unresolved-link="" t="t">D2</span>])
+            <span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="mutable/MutableVersionedBase.html" t="n" class="documentableName ">MutableVersionedBase</a>[<span t="k"></span><span data-unresolved-link="" t="t">V</span>, <span t="k"></span><span data-unresolved-link="" t="t">D</span><span t="k"> &lt;: </span><a href="DiscreteDomainLike.html" t="t">DiscreteDomainLike</a>[<span t="t">D</span>], <span t="k"></span><span data-unresolved-link="" t="t">I</span><span t="k"> &lt;: </span><a href="DiscreteIntervalLike.html" t="t">DiscreteIntervalLike</a>[<span t="t">D</span>, <span t="t">I</span>], <span t="k"></span><span data-unresolved-link="" t="t">ValidData</span><span t="k"> &lt;: </span><a href="ValidDataLike.html" t="t">ValidDataLike</a>[<span t="t">V</span>, <span t="t">D</span>, <span t="t">I</span>, <span t="t">ValidData</span>], <span t="k"></span><span data-unresolved-link="" t="t">DiffAction</span><span t="k"> &lt;: </span><a href="DiffActionLike.html" t="t">DiffActionLike</a>[<span t="t">V</span>, <span t="t">D</span>, <span t="t">I</span>, <span t="t">ValidData</span>, <span t="t">DiffAction</span>], <span t="k"></span><span data-unresolved-link="" t="t">D2</span><span t="k"> &lt;: </span><a href="DiscreteDomainLike.html" t="t">DiscreteDomainLike</a>[<span t="t">D2</span>], <span t="k"></span><span data-unresolved-link="" t="t">I2</span><span t="k"> &lt;: </span><a href="DiscreteIntervalLike.html" t="t">DiscreteIntervalLike</a>[<span t="t">D2</span>, <span t="t">I2</span>], <span t="k"></span><span data-unresolved-link="" t="t">ValidData2</span><span t="k"> &lt;: </span><a href="ValidDataLike.html" t="t">ValidDataLike</a>[<span t="t">V</span>, <span t="t">D2</span>, <span t="t">I2</span>, <span t="t">ValidData2</span>], <span t="k"></span><span data-unresolved-link="" t="t">DiffAction2</span><span t="k"> &lt;: </span><a href="DiffActionLike.html" t="t">DiffActionLike</a>[<span t="t">V</span>, <span t="t">D2</span>, <span t="t">I2</span>, <span t="t">ValidData2</span>, <span t="t">DiffAction2</span>], <span t="k"></span><span data-unresolved-link="" t="t">Self</span><span t="k"> &lt;: </span><a href="mutable/MutableVersionedBase.html" t="t">MutableVersionedBase</a>[<span t="t">V</span>, <span t="t">D</span>, <span t="t">I</span>, <span t="t">ValidData</span>, <span t="t">DiffAction</span>, <span t="t">D2</span>, <span t="t">I2</span>, <span t="t">ValidData2</span>, <span t="t">DiffAction2</span>, <span t="t">Self</span>]<span t="k"> &amp; </span><a href="DimensionalVersionedBase.html" t="t">DimensionalVersionedBase</a>[<span t="t">V</span>, <span t="t">D</span>, <span t="t">I</span>, <span t="t">ValidData</span>, <span t="t">DiffAction</span>, <span t="t">D2</span>, <span t="t">I2</span>, <span t="t">ValidData2</span>, <span t="t">DiffAction2</span>, <span t="k">_</span>]](<span t="k"></span>)
            </div>
           </div>
          </div>
@@ -961,11 +967,11 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Base for all mutable dimensional data.</p>
+             <p>Base for all mutable dimensional versioned data.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Base for all mutable dimensional data.</p>
+              <p>Base for all mutable dimensional versioned data.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -973,25 +979,37 @@
                D
               </dt>
               <dd class="body-medium">
-               <p>the domain type for intervals in the public interface. Must be <code>DomainLike</code> and have an <code>Ordering</code>.</p>
+               <p>the domain type for intervals in the public interface. Must be <a href="DiscreteDomainLike.html">DiscreteDomainLike</a>.</p>
               </dd>
               <dt class="body-small">
                D2
               </dt>
               <dd class="body-medium">
-               <p>the domain type for intervals used in the underlying data. Must be <code>DomainLike</code> and have an <code>Ordering</code>, and should be one dimension higher than <span data-unresolved-link="">D</span>, where the last dimension is <code>Int</code>.</p>
+               <p>the domain type for intervals used in the underlying data. Must be <a href="DiscreteDomainLike.html">DiscreteDomainLike</a> and should be one dimension higher than <span data-unresolved-link="">D</span>, where the last dimension is <code>Int</code>.</p>
+              </dd>
+              <dt class="body-small">
+               DiffAction
+              </dt>
+              <dd class="body-medium">
+               <p>the diff action type. Must be <a href="DiffActionLike.html">DiffActionLike</a> based on <span data-unresolved-link="">V</span>, <span data-unresolved-link="">D</span>, and <span data-unresolved-link="">I</span>.</p>
+              </dd>
+              <dt class="body-small">
+               DiffAction2
+              </dt>
+              <dd class="body-medium">
+               <p>the diff action type of the underlying data. Must be <a href="DiffActionLike.html">DiffActionLike</a> based on <span data-unresolved-link="">V</span>, <span data-unresolved-link="">D2</span>, and <span data-unresolved-link="">I2</span>.</p>
               </dd>
               <dt class="body-small">
                I
               </dt>
               <dd class="body-medium">
-               <p>the interval type in the public interface. Must be <code>IntervalLike</code> based on <span data-unresolved-link="">D</span>.</p>
+               <p>the interval type in the public interface. Must be <a href="DiscreteIntervalLike.html">DiscreteIntervalLike</a> based on <span data-unresolved-link="">D</span>.</p>
               </dd>
               <dt class="body-small">
                I2
               </dt>
               <dd class="body-medium">
-               <p>the interval type of the underlying data. Must be <code>IntervalLike</code> based on <span data-unresolved-link="">D2</span>, and should be one dimension higher than <span data-unresolved-link="">I</span>, where the last dimension is <code>Int</code>.</p>
+               <p>the interval type of the underlying data. Must be <a href="DiscreteIntervalLike.html">DiscreteIntervalLike</a> based on <span data-unresolved-link="">D2</span>.</p>
               </dd>
               <dt class="body-small">
                Self
@@ -1009,13 +1027,13 @@
                ValidData
               </dt>
               <dd class="body-medium">
-               <p>the valid data type in the public interface. Must be <code>DataLike</code> based on <span data-unresolved-link="">V</span>, <span data-unresolved-link="">D</span>, and <span data-unresolved-link="">I</span>.</p>
+               <p>the valid data type in the public interface. Must be <a href="ValidDataLike.html">ValidDataLike</a> based on <span data-unresolved-link="">V</span>, <span data-unresolved-link="">D</span>, and <span data-unresolved-link="">I</span>.</p>
               </dd>
               <dt class="body-small">
                ValidData2
               </dt>
               <dd class="body-medium">
-               <p>the valid data type of the underlying data. Must be <code>DataLike</code> based on <span data-unresolved-link="">V</span>, <span data-unresolved-link="">D2</span>, and <span data-unresolved-link="">I2</span>.</p>
+               <p>the valid data type of the underlying data. Must be <a href="ValidDataLike.html">ValidDataLike</a> based on <span data-unresolved-link="">V</span>, <span data-unresolved-link="">D2</span>, and <span data-unresolved-link="">I2</span>.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>

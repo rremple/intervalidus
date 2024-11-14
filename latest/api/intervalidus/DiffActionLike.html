@@ -12,7 +12,7 @@
 </div>
 <div class="cover">
  <div class="doc">
-  <p>Create/update/delete actions (like CQRS mutation commands). Used when extrapolating or applying event source-style information. Note that this is not an event-sourced data structure, and history of mutations are not maintained.</p>
+  <p>Create/update/delete actions (like CQRS mutation commands). Used when extrapolating or applying event source-style information.</p>
  </div>
  <section id="attributes">
   <h2 class="h500">Type parameters</h2>
@@ -21,13 +21,13 @@
     D
    </dt>
    <dd class="body-medium">
-    <p>the type of discrete domain used in the discrete interval assigned to each value (the domain).</p>
+    <p>the domain type for intervals. Must be <a href="DiscreteDomainLike.html">DiscreteDomainLike</a> and have an <span data-unresolved-link="">Ordering</span>.</p>
    </dd>
    <dt class="body-small">
     I
    </dt>
    <dd class="body-medium">
-    <p>the type of discrete interval in which the value is valid.</p>
+    <p>the interval type, based on the domain type. Must be <a href="DiscreteIntervalLike.html">DiscreteIntervalLike</a> based on <span data-unresolved-link="">D</span>.</p>
    </dd>
    <dt class="body-small">
     Self
@@ -45,11 +45,21 @@
     ValidData
    </dt>
    <dd class="body-medium">
-    <p>the valid data type. Must be <code>DataLike</code> based on V, D, and I.</p>
+    <p>the valid data type. Must be <a href="ValidDataLike.html">ValidDataLike</a> based on <span data-unresolved-link="">V</span>, <span data-unresolved-link="">D</span>, and <span data-unresolved-link="">I</span>.</p>
    </dd>
   </dl>
   <h2 class="h500">Attributes</h2>
   <dl class="attributes">
+   <dt class="body-small">
+    Note
+   </dt>
+   <dd class="body-medium">
+    <div>
+     <div>
+      <p>intervalidus does not have event-sourced data structures, and history of mutations are not maintained.</p>
+     </div>
+    </div>
+   </dd>
    <dt class="body-small">
     Graph
    </dt>

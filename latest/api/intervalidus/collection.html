@@ -12,10 +12,10 @@
 </div>
 <div class="cover">
  <div class="doc">
-  <p>Intervalidus's custom data structures for optimizing 1d, 2d, and 3d interval retrieval. Built for internal use, but use them if they are useful. There are both immutable and mutable versions of each data structure, but only the mutable versions are used (for performance reasons).</p>
+  <p>Intervalidus's custom data structures for optimizing one-, two-, and three-dimensional interval retrieval. Built for internal use, but use them if they are useful. There are both immutable and mutable versions of each data structure, but only the mutable versions are used internally (for performance reasons).</p>
   <ul>
-   <li>Box trees manage boxed data structures in multidimensional double space (B-trees, quadtrees, and octrees, depending on the dimension). They hold boxes rather than individual points, where boxes are split to fit into the subtrees of the data structure. Intervalidus uses the ordered hashes defined on the discrete domain components of intervals to approximate all intervals as boxes in double space, and manages valid data associated with these boxes in a box trees, resulting in dramatically faster intersection retrieval (in most cases).</li>
-   <li>Multi-dictionaries (a.k.a., multimaps) allow multiple values to be associated with the same key. Intervalidus uses multi-dictionaries to store the association of each valid value with all the intervals where it is valid. This allows value-driven functions like compression to operate on a smaller subset of valid values and be substantially faster.</li>
+   <li>Box trees manage boxed data structures in multidimensional double space (B-trees, quadtrees, and octrees, depending on the dimension). They hold boxes rather than individual points, where boxes are split to fit into the subtrees of the data structure. Intervalidus uses the ordered hashes defined on the discrete domain components of intervals to approximate all intervals as boxes in double space, and manages valid data associated with these boxes in box trees, resulting in dramatically faster intersection retrieval (in most cases).</li>
+   <li>Multimaps (a.k.a., multi-dictionaries) allow multiple values to be associated with the same key. Intervalidus uses multimaps to store the association of each valid value with all the intervals where it is valid. This allows value-driven functions like compression to operate on a smaller subset of valid values and to be substantially faster.</li>
   </ul>
  </div>
  <section id="attributes">
@@ -328,7 +328,7 @@
              <div class="doc">
               <p>Collection that manages boxed data structures in multidimensional double space. This tree hold boxes rather than individual points. Boxes are split to fit into the subtrees of the data structures (B-trees, quadtrees, or octrees, depending on the dimension).</p>
               <p>These collections leverage the ordered hash functions on discrete domain components (which only support successor/predecessor functions and not functions requiring distance calculations, e.g., midpoint) to improve performance of data structures in one-, two-, and three-dimensional discrete domain space.</p>
-              <p>In particular, it makes querying faster for box intersections. The cost is that duplicates can be returned (since boxes can be split). Benchmarks have shown 14x-70x improvement in throughput of random <code>DataIn2D.set</code> and 12x-142x improvement in <code>DataIn2D.intersects</code> operations (depending on number and size of the intervals used), so clearly the speed benefit outweighs the cost of deduplicating results (at least in two dimensions). The mutable version was also faster than the immutable version, but only slightly (less than 5%).</p>
+              <p>In particular, it makes querying faster for box intersections. However, duplicates can be returned (since boxes can be split) as well as false positives (since ordered hashes of discrete values can have collisions). Benchmarks have shown 10x-70x improvement in throughput of random <code>DataIn2D.set</code> and 10x-140x improvement in <code>DataIn2D.intersects</code> operations (depending on number and size of the intervals used), so clearly the speed benefit outweighs the cost of deduplicating results (at least in two dimensions). The mutable version was also faster than the immutable version, but only slightly (less than 5%).</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -1212,11 +1212,11 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>A multimap where multiple values can be associated with the same key. Similar to <code>SortedMultiDict</code> in <code>scala-collection-contrib</code>, but this returns values in order (values are stored in a sorted set). Also, this only implements a small subset of methods needed in this project.</p>
+             <p>A multimap where multiple values can be associated with the same key. Similar to <code>SortedMultiDict</code> in <code>scala-collection-contrib</code>, but this returns values in order (values are stored in a sorted set), not keys. Also, this only implements a small subset of methods needed in this project.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>A multimap where multiple values can be associated with the same key. Similar to <code>SortedMultiDict</code> in <code>scala-collection-contrib</code>, but this returns values in order (values are stored in a sorted set). Also, this only implements a small subset of methods needed in this project.</p>
+              <p>A multimap where multiple values can be associated with the same key. Similar to <code>SortedMultiDict</code> in <code>scala-collection-contrib</code>, but this returns values in order (values are stored in a sorted set), not keys. Also, this only implements a small subset of methods needed in this project.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">

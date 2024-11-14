@@ -21,13 +21,19 @@
     D
    </dt>
    <dd class="body-medium">
-    <p>the domain type for intervals. Must be <code>DomainLike</code> and have an <code>Ordering</code>.</p>
+    <p>the domain type for intervals. Must be <a href="../DiscreteDomainLike.html">DiscreteDomainLike</a>.</p>
+   </dd>
+   <dt class="body-small">
+    DiffAction
+   </dt>
+   <dd class="body-medium">
+    <p>the diff action type. Must be <a href="../DiffActionLike.html">DiffActionLike</a> based on <span data-unresolved-link="">V</span>, <span data-unresolved-link="">D</span>, and <span data-unresolved-link="">I</span>.</p>
    </dd>
    <dt class="body-small">
     I
    </dt>
    <dd class="body-medium">
-    <p>the interval type, based on the domain type. Must be <code>IntervalLike</code> based on D.</p>
+    <p>the interval type, based on the domain type. Must be <a href="../DiscreteIntervalLike.html">DiscreteIntervalLike</a> based on <span data-unresolved-link="">D</span>.</p>
    </dd>
    <dt class="body-small">
     Self
@@ -45,7 +51,7 @@
     ValidData
    </dt>
    <dd class="body-medium">
-    <p>the valid data type. Must be <code>DataLike</code> based on V, D, and I.</p>
+    <p>the valid data type. Must be <a href="../ValidDataLike.html">ValidDataLike</a> based on <span data-unresolved-link="">V</span>, <span data-unresolved-link="">D</span>, and <span data-unresolved-link="">I</span>.</p>
    </dd>
   </dl>
   <h2 class="h500">Attributes</h2>
@@ -268,11 +274,11 @@ node9 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Compress out adjacent intervals with the same value</p>
+             <p>Compress out adjacent intervals with the same value.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Compress out adjacent intervals with the same value</p>
+              <p>Compress out adjacent intervals with the same value.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -1071,11 +1077,11 @@ node9 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Internal shadow data structure where all the interval-bounded data are also stored, but using the interval key in reverse order (for much quicker range lookups -- validated in microbenchmarks).</p>
+             <p>Internal shadow data structure where all the interval-bounded data are also stored, but using the interval key in reverse order (for much quicker range lookups -- validated in 1D microbenchmarks).</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Internal shadow data structure where all the interval-bounded data are also stored, but using the interval key in reverse order (for much quicker range lookups -- validated in microbenchmarks).</p>
+              <p>Internal shadow data structure where all the interval-bounded data are also stored, but using the interval key in reverse order (for much quicker range lookups -- validated in 1D microbenchmarks).</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -1531,11 +1537,11 @@ node9 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns the value if a single, unbounded valid value, otherwise throws an exception.</p>
+             <p>Returns the value if a single, unbounded valid value exists, otherwise throws an exception.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns the value if a single, unbounded valid value, otherwise throws an exception.</p>
+              <p>Returns the value if a single, unbounded valid value exists, otherwise throws an exception.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -1612,11 +1618,11 @@ node9 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns a value that is valid in the specified interval domain element. That is, where the specified domain element is a member of some valid data interval. If no such valid data exists, returns None.</p>
+             <p>Returns a value that is valid at the specified domain element. That is, where the specified domain element is a member of some valid data interval. If no such valid data exists, returns None.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns a value that is valid in the specified interval domain element. That is, where the specified domain element is a member of some valid data interval. If no such valid data exists, returns None.</p>
+              <p>Returns a value that is valid at the specified domain element. That is, where the specified domain element is a member of some valid data interval. If no such valid data exists, returns None.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -1624,7 +1630,7 @@ node9 -> node0;
                domainIndex
               </dt>
               <dd class="body-medium">
-               <p>the domain element where data may be valid. Note that the domain element can be a specific data point or the special notions of "bottom" or "top" of the domain.</p>
+               <p>the domain element where data may be valid. The domain element can be a specific data point or the special notions of "bottom" or "top" of the domain.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -1835,14 +1841,20 @@ node9 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns true when there are no valid data in this structure, otherwise false.</p>
+             <p>Tests if there are no valid data in this structure.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns true when there are no valid data in this structure, otherwise false.</p>
+              <p>Tests if there are no valid data in this structure.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>true if there are no valid data, false otherwise.</p>
+              </dd>
               <dt class="body-small">
                Inherited from:
               </dt>
@@ -1965,7 +1977,7 @@ node9 -> node0;
             <div class="cover">
              <div class="doc">
               <p>Internal method, to recompress in place.</p>
-              <p>Unlike in 1D, there is no unique compression in 2D and 3D. For example {[1..5], [1..2]} + {[1..2], [3..4]} could also be represented physically as {[1..2], [1..4]} + {[3..5], [1..2]}.</p>
+              <p>Unlike in 1D, there are no unique compressions in 2D and 3D. For example {[1..5], [1..2]} + {[1..2], [3..4]} could also be represented physically as {[1..2], [1..4]} + {[3..5], [1..2]}.</p>
               <p>This method decompresses data so there is a unique arrangement of "atomic" intervals. In the above example, that would be the following "atomic" intervals: {[1..2], [1..2]} + {[3..5], [1..2]} + {[1..2], [3..4]}. Then it recompresses the data, which results in a unique physical representation. It may be useful when comparing two structures to see if they are logically equivalent even if, physically, they differ in how they are compressed.</p>
              </div>
              <h2 class="h200">Attributes</h2>
@@ -2135,7 +2147,7 @@ node9 -> node0;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ImmutableBase.html#toImmutable-0" t="n" class="documentableName ">toImmutable</a>:
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ImmutableBase.html#toImmutable-0" t="n" class="documentableName ">toImmutable</a>: <span t="k"> &amp; </span><a href="ImmutableBase.html" t="t">ImmutableBase</a>[<span t="t">V</span>, <span t="t">D</span>, <span t="t">I</span>, <span t="t">ValidData</span>, <span t="t">DiffAction</span>, <span t="k">_</span>]
            </div>
           </div>
          </div>
@@ -2170,7 +2182,7 @@ node9 -> node0;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ImmutableBase.html#toMutable-0" t="n" class="documentableName ">toMutable</a>:
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ImmutableBase.html#toMutable-0" t="n" class="documentableName ">toMutable</a>: <span t="k"> &amp; </span><a href="../mutable/MutableBase.html" t="t">MutableBase</a>[<span t="t">V</span>, <span t="t">D</span>, <span t="t">I</span>, <span t="t">ValidData</span>, <span t="t">DiffAction</span>, <span t="k">_</span>]
            </div>
           </div>
          </div>
@@ -2337,13 +2349,13 @@ node9 -> node0;
                newValueOption
               </dt>
               <dd class="body-medium">
-               <p>when defined, the value to be stored as part of an update</p>
+               <p>when defined, the value to be stored as part of an update.</p>
               </dd>
               <dt class="body-small">
                targetInterval
               </dt>
               <dd class="body-medium">
-               <p>the new value existing data in the interval should take on</p>
+               <p>the interval where any valid values are updated or removed.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>

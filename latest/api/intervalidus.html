@@ -55,14 +55,14 @@
           <div class="originInfo"></div>
           <div class="memberDocumentation">
            <div class="documentableBrief doc">
-            <p>Intervalidus's custom data structures for optimizing 1d, 2d, and 3d interval retrieval. Built for internal use, but use them if they are useful. There are both immutable and mutable versions of each data structure, but only the mutable versions are used (for performance reasons).</p>
+            <p>Intervalidus's custom data structures for optimizing one-, two-, and three-dimensional interval retrieval. Built for internal use, but use them if they are useful. There are both immutable and mutable versions of each data structure, but only the mutable versions are used internally (for performance reasons).</p>
            </div>
            <div class="cover">
             <div class="doc">
-             <p>Intervalidus's custom data structures for optimizing 1d, 2d, and 3d interval retrieval. Built for internal use, but use them if they are useful. There are both immutable and mutable versions of each data structure, but only the mutable versions are used (for performance reasons).</p>
+             <p>Intervalidus's custom data structures for optimizing one-, two-, and three-dimensional interval retrieval. Built for internal use, but use them if they are useful. There are both immutable and mutable versions of each data structure, but only the mutable versions are used internally (for performance reasons).</p>
              <ul>
-              <li>Box trees manage boxed data structures in multidimensional double space (B-trees, quadtrees, and octrees, depending on the dimension). They hold boxes rather than individual points, where boxes are split to fit into the subtrees of the data structure. Intervalidus uses the ordered hashes defined on the discrete domain components of intervals to approximate all intervals as boxes in double space, and manages valid data associated with these boxes in a box trees, resulting in dramatically faster intersection retrieval (in most cases).</li>
-              <li>Multi-dictionaries (a.k.a., multimaps) allow multiple values to be associated with the same key. Intervalidus uses multi-dictionaries to store the association of each valid value with all the intervals where it is valid. This allows value-driven functions like compression to operate on a smaller subset of valid values and be substantially faster.</li>
+              <li>Box trees manage boxed data structures in multidimensional double space (B-trees, quadtrees, and octrees, depending on the dimension). They hold boxes rather than individual points, where boxes are split to fit into the subtrees of the data structure. Intervalidus uses the ordered hashes defined on the discrete domain components of intervals to approximate all intervals as boxes in double space, and manages valid data associated with these boxes in box trees, resulting in dramatically faster intersection retrieval (in most cases).</li>
+              <li>Multimaps (a.k.a., multi-dictionaries) allow multiple values to be associated with the same key. Intervalidus uses multimaps to store the association of each valid value with all the intervals where it is valid. This allows value-driven functions like compression to operate on a smaller subset of valid values and to be substantially faster.</li>
              </ul>
             </div>
             <h2 class="h200">Attributes</h2>
@@ -94,8 +94,8 @@
              <p>Intervalidus's main traits and classes for defining immutable dimensional data, including:</p>
              <ul>
               <li>Base traits for all immutable dimensional data, and all immutable versioned dimensional data.</li>
-              <li>Classes for defining immutable data in one, two, and three dimensions</li>
-              <li>Class for defining immutable versioned data in one and two dimensions</li>
+              <li>Classes defining immutable data in one, two, and three dimensions</li>
+              <li>Classes defining immutable versioned data in one and two dimensions</li>
              </ul>
             </div>
             <h2 class="h200">Attributes</h2>
@@ -127,8 +127,8 @@
              <p>Intervalidus's main traits and classes for defining mutable dimensional data, including:</p>
              <ul>
               <li>Base traits for all mutable dimensional data, and all mutable versioned dimensional data.</li>
-              <li>Classes for defining mutable data in one, two, and three dimensions</li>
-              <li>Class for defining mutable versioned data in one and two dimensions</li>
+              <li>Classes defining mutable data in one, two, and three dimensions</li>
+              <li>Classes defining mutable versioned data in one and two dimensions</li>
              </ul>
             </div>
             <h2 class="h200">Attributes</h2>
@@ -321,7 +321,7 @@
                R
               </dt>
               <dd class="body-medium">
-               <p>the type of discrete value used in the discrete interval assigned to each value</p>
+               <p>the type of discrete value used in the discrete interval assigned to each valid value</p>
               </dd>
               <dt class="body-small">
                V
@@ -336,19 +336,19 @@
                initialData
               </dt>
               <dd class="body-medium">
-               <p>(optional) a collection of valid data in two dimensions (the vertical dimension is the version) to start with -- note that two-dimensional intervals must be disjoint</p>
+               <p>a collection of valid data in two dimensions (the vertical dimension is the version) to start with -- note that two-dimensional intervals must be disjoint</p>
               </dd>
               <dt class="body-small">
                initialVersion
               </dt>
               <dd class="body-medium">
-               <p>(optional) the version to start with, typically zero. (Could, for example, use <code>IntDiscreteValue.minValue</code> instead of zero to extend the version range.)</p>
+               <p>the version to start with, typically zero. (Could, for example, use <code>IntDiscreteValue.minValue</code> instead of zero to extend the version range.)</p>
               </dd>
               <dt class="body-small">
                withCurrentVersion
               </dt>
               <dd class="body-medium">
-               <p>(optional) the version to use as current if different form the initial version, e.g., when making a copy, typically None</p>
+               <p>the version to use as current if different form the initial version, e.g., when making a copy, typically None</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -470,11 +470,11 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Like <a href="intervalidus/DataIn1DBase.html">DataIn1DBase</a>, data here have different values in different discrete intervals. But here data values vary in two dimensions. For example, one may want to represent when the data are valid in time and over certain versions simultaneously.</p>
+             <p>Like <a href="intervalidus/DataIn1DBase.html">DataIn1DBase</a>, data here have different values in different discrete intervals. But here data values vary in two dimensions. For example, one may want to represent when the data are valid in time and over certain versions, or in two dimensions of time, simultaneously.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Like <a href="intervalidus/DataIn1DBase.html">DataIn1DBase</a>, data here have different values in different discrete intervals. But here data values vary in two dimensions. For example, one may want to represent when the data are valid in time and over certain versions simultaneously.</p>
+              <p>Like <a href="intervalidus/DataIn1DBase.html">DataIn1DBase</a>, data here have different values in different discrete intervals. But here data values vary in two dimensions. For example, one may want to represent when the data are valid in time and over certain versions, or in two dimensions of time, simultaneously.</p>
               <p>We can capture the dependency between various values and related two-dimensional intervals cohesively in this structure rather than in separate data structures using distributed (and potentially inconsistent) logic. This is especially important for managing mutation, which can be a bit complex in two dimensions. Note that visualizing two-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there is a simple Visualize tool provided (in the test package... though maybe this should be its own separate subproject).</p>
              </div>
              <h2 class="h200">Type parameters</h2>
@@ -652,19 +652,19 @@
                initialData
               </dt>
               <dd class="body-medium">
-               <p>(optional) a collection of valid data in two dimensions (the vertical dimension is the version) to start with -- note that two-dimensional intervals must be disjoint</p>
+               <p>a collection of valid data in three dimensions (the depth dimension is the version) to start with -- note that three-dimensional intervals must be disjoint</p>
               </dd>
               <dt class="body-small">
                initialVersion
               </dt>
               <dd class="body-medium">
-               <p>(optional) the version to start with, typically zero. (Could, for example, use <code>IntDiscreteValue.minValue</code> instead of zero to extend the version range.)</p>
+               <p>the version to start with, typically zero. (Could, for example, use <code>IntDiscreteValue.minValue</code> instead of zero to extend the version range.)</p>
               </dd>
               <dt class="body-small">
                withCurrentVersion
               </dt>
               <dd class="body-medium">
-               <p>(optional) the version to use as current if different form the initial version, e.g., when making a copy, typically None</p>
+               <p>the version to use as current if different form the initial version, e.g., when making a copy, typically None</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -728,11 +728,11 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Constructs data in one-dimensional intervals that are also versioned (hidden second dimension).</p>
+             <p>Constructs data in two-dimensional intervals that are also versioned (hidden third dimension).</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Constructs data in one-dimensional intervals that are also versioned (hidden second dimension).</p>
+              <p>Constructs data in two-dimensional intervals that are also versioned (hidden third dimension).</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -786,11 +786,11 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Like <a href="intervalidus/DataIn1DBase.html">DataIn1DBase</a>, data here have different values in different discrete intervals. But here data values vary in three dimensions. For example, one may want to represent when the data are valid in two dimensions of time plus over certain versions simultaneously.</p>
+             <p>Like <a href="intervalidus/DataIn1DBase.html">DataIn1DBase</a> and <a href="intervalidus/DataIn2DBase.html">DataIn2DBase</a>, data here have different values in different discrete intervals. But here data values vary in three dimensions. For example, one may want to represent when data are valid in two dimensions of time and over certain versions simultaneously.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Like <a href="intervalidus/DataIn1DBase.html">DataIn1DBase</a>, data here have different values in different discrete intervals. But here data values vary in three dimensions. For example, one may want to represent when the data are valid in two dimensions of time plus over certain versions simultaneously.</p>
+              <p>Like <a href="intervalidus/DataIn1DBase.html">DataIn1DBase</a> and <a href="intervalidus/DataIn2DBase.html">DataIn2DBase</a>, data here have different values in different discrete intervals. But here data values vary in three dimensions. For example, one may want to represent when data are valid in two dimensions of time and over certain versions simultaneously.</p>
               <p>We can capture the dependency between various values and related three-dimensional intervals cohesively in this structure rather than in separate data structures using distributed (and potentially inconsistent) logic. This is especially important for managing mutation, which can be a bit complex in three dimensions. Note that visualizing three-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there is a simple 2D Visualize tool provided where you can visualize 2D slices of the 3D structure (in the test package... though maybe this should be its own separate subproject).</p>
              </div>
              <h2 class="h200">Type parameters</h2>
@@ -939,11 +939,11 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Create/update/delete actions (like CQRS mutation commands). Used when extrapolating or applying event source-style information. Note that this is not an event-sourced data structure, and history of mutations are not maintained.</p>
+             <p>Create/update/delete actions (like CQRS mutation commands). Used when extrapolating or applying event source-style information.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Create/update/delete actions (like CQRS mutation commands). Used when extrapolating or applying event source-style information. Note that this is not an event-sourced data structure, and history of mutations are not maintained.</p>
+              <p>Create/update/delete actions (like CQRS mutation commands). Used when extrapolating or applying event source-style information.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -962,6 +962,16 @@
              </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Note
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <div>
+                 <p>intervalidus does not have event-sourced data structures, and history of mutations are not maintained.</p>
+                </div>
+               </div>
+              </dd>
               <dt class="body-small">
                Supertypes
               </dt>
@@ -1014,11 +1024,11 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Create/update/delete actions (like CQRS mutation commands). Used when extrapolating or applying event source-style information. Note that this is not an event-sourced data structure, and history of mutations are not maintained.</p>
+             <p>Create/update/delete actions (like CQRS mutation commands). Used when extrapolating or applying event source-style information.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Create/update/delete actions (like CQRS mutation commands). Used when extrapolating or applying event source-style information. Note that this is not an event-sourced data structure, and history of mutations are not maintained.</p>
+              <p>Create/update/delete actions (like CQRS mutation commands). Used when extrapolating or applying event source-style information.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -1043,6 +1053,16 @@
              </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Note
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <div>
+                 <p>intervalidus does not have event-sourced data structures, and history of mutations are not maintained.</p>
+                </div>
+               </div>
+              </dd>
               <dt class="body-small">
                Supertypes
               </dt>
@@ -1095,11 +1115,11 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Create/update/delete actions (like CQRS mutation commands). Used when extrapolating or applying event source-style information. Note that this is not an event-sourced data structure, and history of mutations are not maintained.</p>
+             <p>Create/update/delete actions (like CQRS mutation commands). Used when extrapolating or applying event source-style information.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Create/update/delete actions (like CQRS mutation commands). Used when extrapolating or applying event source-style information. Note that this is not an event-sourced data structure, and history of mutations are not maintained.</p>
+              <p>Create/update/delete actions (like CQRS mutation commands). Used when extrapolating or applying event source-style information.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -1130,6 +1150,16 @@
              </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Note
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <div>
+                 <p>intervalidus does not have event-sourced data structures, and history of mutations are not maintained.</p>
+                </div>
+               </div>
+              </dd>
               <dt class="body-small">
                Supertypes
               </dt>
@@ -1182,11 +1212,11 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Create/update/delete actions (like CQRS mutation commands). Used when extrapolating or applying event source-style information. Note that this is not an event-sourced data structure, and history of mutations are not maintained.</p>
+             <p>Create/update/delete actions (like CQRS mutation commands). Used when extrapolating or applying event source-style information.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Create/update/delete actions (like CQRS mutation commands). Used when extrapolating or applying event source-style information. Note that this is not an event-sourced data structure, and history of mutations are not maintained.</p>
+              <p>Create/update/delete actions (like CQRS mutation commands). Used when extrapolating or applying event source-style information.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -1194,13 +1224,13 @@
                D
               </dt>
               <dd class="body-medium">
-               <p>the type of discrete domain used in the discrete interval assigned to each value (the domain).</p>
+               <p>the domain type for intervals. Must be <a href="intervalidus/DiscreteDomainLike.html">DiscreteDomainLike</a> and have an <span data-unresolved-link="">Ordering</span>.</p>
               </dd>
               <dt class="body-small">
                I
               </dt>
               <dd class="body-medium">
-               <p>the type of discrete interval in which the value is valid.</p>
+               <p>the interval type, based on the domain type. Must be <a href="intervalidus/DiscreteIntervalLike.html">DiscreteIntervalLike</a> based on <span data-unresolved-link="">D</span>.</p>
               </dd>
               <dt class="body-small">
                Self
@@ -1218,11 +1248,21 @@
                ValidData
               </dt>
               <dd class="body-medium">
-               <p>the valid data type. Must be <code>DataLike</code> based on V, D, and I.</p>
+               <p>the valid data type. Must be <a href="intervalidus/ValidDataLike.html">ValidDataLike</a> based on <span data-unresolved-link="">V</span>, <span data-unresolved-link="">D</span>, and <span data-unresolved-link="">I</span>.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Note
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <div>
+                 <p>intervalidus does not have event-sourced data structures, and history of mutations are not maintained.</p>
+                </div>
+               </div>
+              </dd>
               <dt class="body-small">
                Supertypes
               </dt>
@@ -1288,13 +1328,19 @@
                D
               </dt>
               <dd class="body-medium">
-               <p>the domain type for intervals. Must be <code>DomainLike</code> and have an <code>Ordering</code>.</p>
+               <p>the domain type for intervals. Must be <a href="intervalidus/DiscreteDomainLike.html">DiscreteDomainLike</a> and have an <span data-unresolved-link="">Ordering</span>.</p>
+              </dd>
+              <dt class="body-small">
+               DiffAction
+              </dt>
+              <dd class="body-medium">
+               <p>the diff action type. Must be <a href="intervalidus/DiffActionLike.html">DiffActionLike</a> based on <span data-unresolved-link="">V</span>, <span data-unresolved-link="">D</span>, and <span data-unresolved-link="">I</span>.</p>
               </dd>
               <dt class="body-small">
                I
               </dt>
               <dd class="body-medium">
-               <p>the interval type, based on the domain type. Must be <code>IntervalLike</code> based on D.</p>
+               <p>the interval type, based on the domain type. Must be <a href="intervalidus/DiscreteIntervalLike.html">DiscreteIntervalLike</a> based on <span data-unresolved-link="">D</span>.</p>
               </dd>
               <dt class="body-small">
                Self
@@ -1312,7 +1358,7 @@
                ValidData
               </dt>
               <dd class="body-medium">
-               <p>the valid data type. Must be <code>DataLike</code> based on V, D, and I.</p>
+               <p>the valid data type. Must be <a href="intervalidus/ValidDataLike.html">ValidDataLike</a> based on <span data-unresolved-link="">V</span>, <span data-unresolved-link="">D</span>, and <span data-unresolved-link="">I</span>.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -1449,7 +1495,7 @@
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="intervalidus/DimensionalVersionedBase.html" t="n" class="documentableName ">DimensionalVersionedBase</a>[<span t="k"></span><span data-unresolved-link="" t="t">V</span>, <span t="k"></span><span data-unresolved-link="" t="t">D</span><span t="k"> &lt;: </span><a href="intervalidus/DiscreteDomainLike.html" t="t">DiscreteDomainLike</a>[<span t="t">D</span>], <span t="k"></span><span data-unresolved-link="" t="t">I</span><span t="k"> &lt;: </span><a href="intervalidus/DiscreteIntervalLike.html" t="t">DiscreteIntervalLike</a>[<span t="t">D</span>, <span t="t">I</span>], <span t="k"></span><span data-unresolved-link="" t="t">ValidData</span><span t="k"> &lt;: </span><a href="intervalidus/ValidDataLike.html" t="t">ValidDataLike</a>[<span t="t">V</span>, <span t="t">D</span>, <span t="t">I</span>, <span t="t">ValidData</span>], <span t="k"></span><span data-unresolved-link="" t="t">DiffAction</span><span t="k"> &lt;: </span><a href="intervalidus/DiffActionLike.html" t="t">DiffActionLike</a>[<span t="t">V</span>, <span t="t">D</span>, <span t="t">I</span>, <span t="t">ValidData</span>, <span t="t">DiffAction</span>], <span t="k"></span><span data-unresolved-link="" t="t">D2</span><span t="k"> &lt;: </span><a href="intervalidus/DiscreteDomainLike.html" t="t">DiscreteDomainLike</a>[<span t="t">D2</span>], <span t="k"></span><span data-unresolved-link="" t="t">I2</span><span t="k"> &lt;: </span><a href="intervalidus/DiscreteIntervalLike.html" t="t">DiscreteIntervalLike</a>[<span t="t">D2</span>, <span t="t">I2</span>], <span t="k"></span><span data-unresolved-link="" t="t">ValidData2</span><span t="k"> &lt;: </span><a href="intervalidus/ValidDataLike.html" t="t">ValidDataLike</a>[<span t="t">V</span>, <span t="t">D2</span>, <span t="t">I2</span>, <span t="t">ValidData2</span>], <span t="k"></span><span data-unresolved-link="" t="t">DiffAction2</span><span t="k"> &lt;: </span><a href="intervalidus/DiffActionLike.html" t="t">DiffActionLike</a>[<span t="t">V</span>, <span t="t">D2</span>, <span t="t">I2</span>, <span t="t">ValidData2</span>, <span t="t">DiffAction2</span>], <span t="k"></span><span data-unresolved-link="" t="t">Self</span><span t="k"> &lt;: </span><a href="intervalidus/DimensionalVersionedBase.html" t="t">DimensionalVersionedBase</a>[<span t="t">V</span>, <span t="t">D</span>, <span t="t">I</span>, <span t="t">ValidData</span>, <span t="t">DiffAction</span>, <span t="t">D2</span>, <span t="t">I2</span>, <span t="t">ValidData2</span>, <span t="t">DiffAction2</span>, <span t="t">Self</span>]](<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">evidence$1</span>: <span data-unresolved-link="" t="t">Ordering</span>[<span data-unresolved-link="" t="t">D</span>], <span t="k"></span><span data-unresolved-link="" t="n">evidence$2</span>: <span data-unresolved-link="" t="t">Ordering</span>[<span data-unresolved-link="" t="t">D2</span>], <span t="k"></span><span data-unresolved-link="" t="n">x$1</span>: <a href="intervalidus.html#Experimental-0" t="t">Experimental</a>)<span t="k"> extends </span><span data-unresolved-link="" t="t">PartialFunction</span>[<span t="t">D2</span>, <span t="t">V</span>]</span><span class="signature-long"></span>
+            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="intervalidus/DimensionalVersionedBase.html" t="n" class="documentableName ">DimensionalVersionedBase</a>[<span t="k"></span><span data-unresolved-link="" t="t">V</span>, <span t="k"></span><span data-unresolved-link="" t="t">D</span><span t="k"> &lt;: </span><a href="intervalidus/DiscreteDomainLike.html" t="t">DiscreteDomainLike</a>[<span t="t">D</span>], <span t="k"></span><span data-unresolved-link="" t="t">I</span><span t="k"> &lt;: </span><a href="intervalidus/DiscreteIntervalLike.html" t="t">DiscreteIntervalLike</a>[<span t="t">D</span>, <span t="t">I</span>], <span t="k"></span><span data-unresolved-link="" t="t">ValidData</span><span t="k"> &lt;: </span><a href="intervalidus/ValidDataLike.html" t="t">ValidDataLike</a>[<span t="t">V</span>, <span t="t">D</span>, <span t="t">I</span>, <span t="t">ValidData</span>], <span t="k"></span><span data-unresolved-link="" t="t">DiffAction</span><span t="k"> &lt;: </span><a href="intervalidus/DiffActionLike.html" t="t">DiffActionLike</a>[<span t="t">V</span>, <span t="t">D</span>, <span t="t">I</span>, <span t="t">ValidData</span>, <span t="t">DiffAction</span>], <span t="k"></span><span data-unresolved-link="" t="t">D2</span><span t="k"> &lt;: </span><a href="intervalidus/DiscreteDomainLike.html" t="t">DiscreteDomainLike</a>[<span t="t">D2</span>], <span t="k"></span><span data-unresolved-link="" t="t">I2</span><span t="k"> &lt;: </span><a href="intervalidus/DiscreteIntervalLike.html" t="t">DiscreteIntervalLike</a>[<span t="t">D2</span>, <span t="t">I2</span>], <span t="k"></span><span data-unresolved-link="" t="t">ValidData2</span><span t="k"> &lt;: </span><a href="intervalidus/ValidDataLike.html" t="t">ValidDataLike</a>[<span t="t">V</span>, <span t="t">D2</span>, <span t="t">I2</span>, <span t="t">ValidData2</span>], <span t="k"></span><span data-unresolved-link="" t="t">DiffAction2</span><span t="k"> &lt;: </span><a href="intervalidus/DiffActionLike.html" t="t">DiffActionLike</a>[<span t="t">V</span>, <span t="t">D2</span>, <span t="t">I2</span>, <span t="t">ValidData2</span>, <span t="t">DiffAction2</span>], <span t="k"></span><span data-unresolved-link="" t="t">Self</span><span t="k"> &lt;: </span><a href="intervalidus/DimensionalVersionedBase.html" t="t">DimensionalVersionedBase</a>[<span t="t">V</span>, <span t="t">D</span>, <span t="t">I</span>, <span t="t">ValidData</span>, <span t="t">DiffAction</span>, <span t="t">D2</span>, <span t="t">I2</span>, <span t="t">ValidData2</span>, <span t="t">DiffAction2</span>, <span t="t">Self</span>]](<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">x$1</span>: <a href="intervalidus.html#Experimental-0" t="t">Experimental</a>)<span t="k"> extends </span><span data-unresolved-link="" t="t">PartialFunction</span>[<span t="t">D2</span>, <span t="t">V</span>]</span><span class="signature-long"></span>
            </div>
           </div>
          </div>
@@ -1459,11 +1505,11 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Base for all versioned dimensional data, both mutable and immutable, both 1D and 2D (with underlying data in both 2D and 3D).</p>
+             <p>Base for all versioned dimensional data, both mutable and immutable, both 1D and 2D (with underlying data in 2D and 3D respectively).</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Base for all versioned dimensional data, both mutable and immutable, both 1D and 2D (with underlying data in both 2D and 3D).</p>
+              <p>Base for all versioned dimensional data, both mutable and immutable, both 1D and 2D (with underlying data in 2D and 3D respectively).</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -1471,25 +1517,37 @@
                D
               </dt>
               <dd class="body-medium">
-               <p>the domain type for intervals in the public interface. Must be <code>DomainLike</code> and have an <code>Ordering</code>.</p>
+               <p>the domain type for intervals in the public interface. Must be <a href="intervalidus/DiscreteDomainLike.html">DiscreteDomainLike</a>.</p>
               </dd>
               <dt class="body-small">
                D2
               </dt>
               <dd class="body-medium">
-               <p>the domain type for intervals used in the underlying data. Must be <code>DomainLike</code> and have an <code>Ordering</code>, and should be one dimension higher than <span data-unresolved-link="">D</span>, where the last dimension is <code>Int</code>.</p>
+               <p>the domain type for intervals used in the underlying data. Must be <a href="intervalidus/DiscreteDomainLike.html">DiscreteDomainLike</a> and should be one dimension higher than <span data-unresolved-link="">D</span>, where the last dimension is <code>Int</code>.</p>
+              </dd>
+              <dt class="body-small">
+               DiffAction
+              </dt>
+              <dd class="body-medium">
+               <p>the diff action type. Must be <a href="intervalidus/DiffActionLike.html">DiffActionLike</a> based on <span data-unresolved-link="">V</span>, <span data-unresolved-link="">D</span>, and <span data-unresolved-link="">I</span>.</p>
+              </dd>
+              <dt class="body-small">
+               DiffAction2
+              </dt>
+              <dd class="body-medium">
+               <p>the diff action type of the underlying data. Must be <a href="intervalidus/DiffActionLike.html">DiffActionLike</a> based on <span data-unresolved-link="">V</span>, <span data-unresolved-link="">D2</span>, and <span data-unresolved-link="">I2</span>.</p>
               </dd>
               <dt class="body-small">
                I
               </dt>
               <dd class="body-medium">
-               <p>the interval type in the public interface. Must be <code>IntervalLike</code> based on <span data-unresolved-link="">D</span>.</p>
+               <p>the interval type in the public interface. Must be <a href="intervalidus/DiscreteIntervalLike.html">DiscreteIntervalLike</a> based on <span data-unresolved-link="">D</span>.</p>
               </dd>
               <dt class="body-small">
                I2
               </dt>
               <dd class="body-medium">
-               <p>the interval type of the underlying data. Must be <code>IntervalLike</code> based on <span data-unresolved-link="">D2</span>, and should be one dimension higher than <span data-unresolved-link="">I</span>, where the last dimension is <code>Int</code>.</p>
+               <p>the interval type of the underlying data. Must be <a href="intervalidus/DiscreteIntervalLike.html">DiscreteIntervalLike</a> based on <span data-unresolved-link="">D2</span>.</p>
               </dd>
               <dt class="body-small">
                Self
@@ -1507,13 +1565,13 @@
                ValidData
               </dt>
               <dd class="body-medium">
-               <p>the valid data type in the public interface. Must be <code>DataLike</code> based on <span data-unresolved-link="">V</span>, <span data-unresolved-link="">D</span>, and <span data-unresolved-link="">I</span>.</p>
+               <p>the valid data type in the public interface. Must be <a href="intervalidus/ValidDataLike.html">ValidDataLike</a> based on <span data-unresolved-link="">V</span>, <span data-unresolved-link="">D</span>, and <span data-unresolved-link="">I</span>.</p>
               </dd>
               <dt class="body-small">
                ValidData2
               </dt>
               <dd class="body-medium">
-               <p>the valid data type of the underlying data. Must be <code>DataLike</code> based on <span data-unresolved-link="">V</span>, <span data-unresolved-link="">D2</span>, and <span data-unresolved-link="">I2</span>.</p>
+               <p>the valid data type of the underlying data. Must be <a href="intervalidus/ValidDataLike.html">ValidDataLike</a> based on <span data-unresolved-link="">V</span>, <span data-unresolved-link="">D2</span>, and <span data-unresolved-link="">I2</span>.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -1680,11 +1738,11 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Companion for the one-dimensional domain used in defining and operating on a discrete intervals.</p>
+             <p>Companion for the one-dimensional domain used in defining and operating on discrete intervals.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Companion for the one-dimensional domain used in defining and operating on a discrete intervals.</p>
+              <p>Companion for the one-dimensional domain used in defining and operating on discrete intervals.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -1835,11 +1893,11 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Companion for the two-dimensional domain used in defining and operating on a discrete intervals.</p>
+             <p>Companion for the two-dimensional domain used in defining and operating on discrete intervals.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Companion for the two-dimensional domain used in defining and operating on a discrete intervals.</p>
+              <p>Companion for the two-dimensional domain used in defining and operating on discrete intervals.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -2002,11 +2060,11 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Companion for the three-dimensional domain used in defining and operating on a discrete intervals.</p>
+             <p>Companion for the three-dimensional domain used in defining and operating on discrete intervals.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Companion for the three-dimensional domain used in defining and operating on a discrete intervals.</p>
+              <p>Companion for the three-dimensional domain used in defining and operating on discrete intervals.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -2160,7 +2218,7 @@
                T
               </dt>
               <dd class="body-medium">
-               <p>a discrete value type for this interval's domain (e.g., Int, LocalDate) -- boundaries of the interval are defined in terms of DiscreteDomain1D[T] given the type class DiscreteValue[T].</p>
+               <p>a discrete value type for this interval's domain (e.g., Int, LocalDate) -- boundaries of the interval are defined in terms of <code>DiscreteDomain1D[T]</code> given the type class <code>DiscreteValue[T]</code>.</p>
               </dd>
              </dl>
              <h2 class="h200">Value parameters</h2>
@@ -2169,13 +2227,13 @@
                end
               </dt>
               <dd class="body-medium">
-               <p>the "supremum", i.e., the upper/right boundary of the interval (inclusive) -- must be greater than or equal to the start</p>
+               <p>the "supremum", i.e., the right (or above or front, depending on context) boundary of the interval (inclusive) -- must be greater than or equal to the start</p>
               </dd>
               <dt class="body-small">
                start
               </dt>
               <dd class="body-medium">
-               <p>the "infimum", i.e., the lower/left boundary of the interval (inclusive)</p>
+               <p>the "infimum", i.e., the left (or below or back, depending on context) boundary of the interval (inclusive)</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -2235,11 +2293,11 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Companion for the one-dimensional interval used in defining and operating on a valid data.</p>
+             <p>Companion for the one-dimensional interval used in defining and operating on valid data.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Companion for the one-dimensional interval used in defining and operating on a valid data.</p>
+              <p>Companion for the one-dimensional interval used in defining and operating on valid data.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -2297,11 +2355,11 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>A two-dimensional interval over a contiguous set of discrete values in T1 and T2. See <a href="https://en.wikipedia.org/wiki/Interval_(mathematics)">https://en.wikipedia.org/wiki/Interval_(mathematics)</a> for more information.</p>
+             <p>A two-dimensional interval over a contiguous set of discrete values in <code>T1</code> and <code>T2</code>. See <a href="https://en.wikipedia.org/wiki/Interval_(mathematics)">https://en.wikipedia.org/wiki/Interval_(mathematics)</a> for more information.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>A two-dimensional interval over a contiguous set of discrete values in T1 and T2. See <a href="https://en.wikipedia.org/wiki/Interval_(mathematics)">https://en.wikipedia.org/wiki/Interval_(mathematics)</a> for more information.</p>
+              <p>A two-dimensional interval over a contiguous set of discrete values in <code>T1</code> and <code>T2</code>. See <a href="https://en.wikipedia.org/wiki/Interval_(mathematics)">https://en.wikipedia.org/wiki/Interval_(mathematics)</a> for more information.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -2390,11 +2448,11 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Companion for the two-dimensional interval used in defining and operating on a valid data.</p>
+             <p>Companion for the two-dimensional interval used in defining and operating on valid data.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Companion for the two-dimensional interval used in defining and operating on a valid data.</p>
+              <p>Companion for the two-dimensional interval used in defining and operating on valid data.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -2452,11 +2510,11 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>A two-dimensional interval over a contiguous set of discrete values in T1 and T2. See <a href="https://en.wikipedia.org/wiki/Interval_(mathematics)">https://en.wikipedia.org/wiki/Interval_(mathematics)</a> for more information.</p>
+             <p>A three-dimensional interval over a contiguous set of discrete values in <code>T1</code>, <code>T2</code>, and <code>T3</code>. See <a href="https://en.wikipedia.org/wiki/Interval_(mathematics)">https://en.wikipedia.org/wiki/Interval_(mathematics)</a> for more information.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>A two-dimensional interval over a contiguous set of discrete values in T1 and T2. See <a href="https://en.wikipedia.org/wiki/Interval_(mathematics)">https://en.wikipedia.org/wiki/Interval_(mathematics)</a> for more information.</p>
+              <p>A three-dimensional interval over a contiguous set of discrete values in <code>T1</code>, <code>T2</code>, and <code>T3</code>. See <a href="https://en.wikipedia.org/wiki/Interval_(mathematics)">https://en.wikipedia.org/wiki/Interval_(mathematics)</a> for more information.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -2479,7 +2537,7 @@
                depth
               </dt>
               <dd class="body-medium">
-               <p>the third dimension interval: the (right-handed) depth Z-axis (behind to in front)</p>
+               <p>the third dimension interval: the (right-handed) depth Z-axis (from back to front)</p>
               </dd>
               <dt class="body-small">
                horizontal
@@ -2551,11 +2609,11 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Companion for the three-dimensional interval used in defining and operating on a valid data.</p>
+             <p>Companion for the three-dimensional interval used in defining and operating on valid data.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Companion for the three-dimensional interval used in defining and operating on a valid data.</p>
+              <p>Companion for the three-dimensional interval used in defining and operating on valid data.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -2706,11 +2764,12 @@
              <div class="doc">
               <p>Template for a type class with operations on a discrete value. A discrete value is</p>
               <ol>
-               <li>finite, with a max and min value (think Int with its MaxValue and MinValue)</li>
+               <li>finite, with a max and min value (think <code>Int</code> with its <code>MaxValue</code> and <code>MinValue</code> methods)</li>
                <li>totally ordered (this type class extends the <span data-unresolved-link="">Ordering</span> type class, requiring a compare method).</li>
-               <li>have predecessor and successor functions, which are properly defined on x: max &lt; x &lt; min.</li>
+               <li>have predecessor and successor functions, which are properly defined on <code>x: max &lt; x &lt; min</code>.</li>
+               <li>mappable to a similarly-ordered double space (potentially with collisions)</li>
               </ol>
-              <p>Having predecessors and successors defined this way avoids issues where the natural successor functions of the underlying types behave unexpectedly/inconsistently on the boundaries, e.g., how Int.MaxValue + 1 and Int.MinValue - 1 silently wrap around to each other, vs. how both LocalDate.MAX.plusDays(1) and LocalDate.MIN.minusDays(1) throw a DateTimeException.</p>
+              <p>Having predecessors and successors defined this way avoids issues where the natural successor functions of the underlying types behave unexpectedly/inconsistently on the boundaries, e.g., how <code>Int.MaxValue + 1</code> and <code>Int.MinValue - 1</code> silently wrap around to each other, vs. how both <code>LocalDate.MAX.plusDays(1)</code> and <code>LocalDate.MIN.minusDays(1)</code> throw a <code>DateTimeException</code>.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -2718,7 +2777,7 @@
                T
               </dt>
               <dd class="body-medium">
-               <p>a value that has discrete value behavior (e.g., Int)</p>
+               <p>a value that has discrete value behavior (e.g., <code>Int</code>)</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -3409,7 +3468,7 @@
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="intervalidus/ValidDataLike.html" t="n" class="documentableName ">ValidDataLike</a>[<span t="k"></span><span data-unresolved-link="" t="t">V</span>, <span t="k"></span><span data-unresolved-link="" t="t">D</span><span t="k"> &lt;: </span><a href="intervalidus/DiscreteDomainLike.html" t="t">DiscreteDomainLike</a>[<span t="t">D</span>], <span t="k"></span><span data-unresolved-link="" t="t">I</span><span t="k"> &lt;: </span><a href="intervalidus/DiscreteIntervalLike.html" t="t">DiscreteIntervalLike</a>[<span t="t">D</span>, <span t="t">I</span>], <span t="k"></span><span data-unresolved-link="" t="t">Self</span><span t="k"> &lt;: </span><a href="intervalidus/ValidDataLike.html" t="t">ValidDataLike</a>[<span t="t">V</span>, <span t="t">D</span>, <span t="t">I</span>, <span t="t">Self</span>]]<span t="k"> extends </span><span data-unresolved-link="" t="t">PartialFunction</span>[<span t="t">D</span>, <span t="t">V</span>]</span><span class="signature-long"></span>
+            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="intervalidus/ValidDataLike.html" t="n" class="documentableName ">ValidDataLike</a>[<span t="k"></span><span data-unresolved-link="" t="t">V</span>, <span t="k"></span><span data-unresolved-link="" t="t">D</span><span t="k"> &lt;: </span><a href="intervalidus/DiscreteDomainLike.html" t="t">DiscreteDomainLike</a>[<span t="t">D</span>], <span t="k"></span><span data-unresolved-link="" t="t">I</span><span t="k"> &lt;: </span><a href="intervalidus/DiscreteIntervalLike.html" t="t">DiscreteIntervalLike</a>[<span t="t">D</span>, <span t="t">I</span>], <span t="k"></span><span data-unresolved-link="" t="t">Self</span><span t="k"> &lt;: </span><a href="intervalidus/ValidDataLike.html" t="t">ValidDataLike</a>[<span t="t">V</span>, <span t="t">D</span>, <span t="t">I</span>, <span t="t">Self</span>]](<span t="k"></span>)<span t="k"> extends </span><span data-unresolved-link="" t="t">PartialFunction</span>[<span t="t">D</span>, <span t="t">V</span>]</span><span class="signature-long"></span>
            </div>
           </div>
          </div>
