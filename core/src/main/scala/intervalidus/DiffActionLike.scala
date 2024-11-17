@@ -23,4 +23,10 @@ trait DiffActionLike[
   I <: DiscreteIntervalLike[D, I],
   ValidData <: ValidDataLike[V, D, I, ValidData],
   Self <: DiffActionLike[V, D, I, ValidData, Self]
-]
+]:
+  this: Self =>
+
+  /**
+    * Alternative to toString for something that looks more like code
+    */
+  def toCodeLikeString: String

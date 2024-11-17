@@ -1,5 +1,7 @@
 package intervalidus
 
+import intervalidus.collection.BoxedPayloadLike
+
 import java.time.LocalDate
 
 /**
@@ -23,6 +25,16 @@ trait ValidDataLike[
 ] extends PartialFunction[D, V]:
   this: Self =>
 
+  type BoxedPayloadType <: BoxedPayloadLike[Self, ?, ?, BoxedPayloadType]
+
+  /**
+    * Approximate this valid data as a boxed payload in double space based on the domain ordered hash.
+    *
+    * @return
+    *   a new boxed payload that can be managed in a box tree
+    */
+  def asBoxedPayload: BoxedPayloadType
+
   /**
     * The value valid in this interval.
     */
@@ -35,7 +47,7 @@ trait ValidDataLike[
 
   override def toString: String = s"$interval -> $value"
 
-  // by default, put the interval in parens to x function works
+  // by default, put the interval in parens so the x function works in 2D and 3D
   protected def qualifiedInterval: String = s"(${interval.toCodeLikeString})"
 
   /**

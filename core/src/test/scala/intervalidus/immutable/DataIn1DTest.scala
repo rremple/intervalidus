@@ -147,6 +147,14 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors:
       Delete(20),
       Delete(26)
     )
+    actionsFrom2To4.toList.map(_.toCodeLikeString) shouldBe List(
+      "DiffAction1D.Create(intervalTo(4) -> \"Hey\")",
+      "DiffAction1D.Delete(Point(0))",
+      "DiffAction1D.Update(intervalFrom(16) -> \"World\")",
+      "DiffAction1D.Delete(Point(20))",
+      "DiffAction1D.Delete(Point(26))"
+    )
+
     val actionsFrom4To6 = f6.diffActionsFrom(f4)
     actionsFrom4To6.toList shouldBe List(
       Update(intervalTo(0) -> "Hey"),

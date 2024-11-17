@@ -67,6 +67,12 @@ import DiscreteDomain1D.{Bottom, Point, Top}
   * directly in the enum definition (because, there, `T` must be covariant to accommodate `Bottom` and `Top`).
   */
 extension [T: DiscreteValue](domain1d: DiscreteDomain1D[T])
+  /**
+    * Approximate this domain element as a coordinate in double space based on the domain ordered hash.
+    *
+    * @return
+    *   a new coordinate for boxes managed in box trees
+    */
   def asCoordinate: Coordinate1D =
     Coordinate1D(domain1d.orderedHash)
 

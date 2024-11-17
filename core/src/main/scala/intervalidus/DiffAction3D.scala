@@ -26,3 +26,9 @@ enum DiffAction3D[V, R1, R2, R3]
   case Create(validData: ValidData3D[V, R1, R2, R3])
   case Update(validData: ValidData3D[V, R1, R2, R3])
   case Delete(key: DiscreteDomain3D[R1, R2, R3])
+
+  override def toCodeLikeString: String =
+    this match
+      case Create(validData) => s"DiffAction3D.Create(${validData.toCodeLikeString})"
+      case Update(validData) => s"DiffAction3D.Update(${validData.toCodeLikeString})"
+      case Delete(key)       => s"DiffAction3D.Delete(${key.toCodeLikeString})"

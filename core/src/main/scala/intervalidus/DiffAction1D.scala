@@ -22,3 +22,9 @@ enum DiffAction1D[V, R]
   case Create(validData: ValidData1D[V, R])
   case Update(validData: ValidData1D[V, R])
   case Delete(key: DiscreteDomain1D[R])
+
+  override def toCodeLikeString: String =
+    this match
+      case Create(validData) => s"DiffAction1D.Create(${validData.toCodeLikeString})"
+      case Update(validData) => s"DiffAction1D.Update(${validData.toCodeLikeString})"
+      case Delete(key)       => s"DiffAction1D.Delete(${key.toCodeLikeString})"

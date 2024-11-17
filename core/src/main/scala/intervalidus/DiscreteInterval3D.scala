@@ -27,7 +27,13 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
   depth: DiscreteInterval1D[T3]
 ) extends DiscreteIntervalLike[DiscreteDomain3D[T1, T2, T3], DiscreteInterval3D[T1, T2, T3]]:
 
-  def asBox: Box3D = Box3D(start.asCoordinate, end.asCoordinate)
+  import DiscreteInterval1D.Remainder
+
+  override type BoxType = Box3D
+  override type ExclusionRemainder =
+    (Remainder[DiscreteInterval1D[T1]], Remainder[DiscreteInterval1D[T2]], Remainder[DiscreteInterval1D[T3]])
+
+  override def asBox: BoxType = Box3D(start.asCoordinate, end.asCoordinate)
 
   override infix def withValue[V](value: V): ValidData3D[V, T1, T2, T3] = ValidData3D(value, this)
 
@@ -103,6 +109,50 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
       Some(DiscreteInterval3D(horizontalBefore, verticalBefore, depthBefore))
     case _ =>
       None
+
+  override def startingWith(newStart: DiscreteDomain3D[T1, T2, T3]): DiscreteInterval3D[T1, T2, T3] =
+    horizontal.startingWith(newStart.horizontalIndex) x
+      vertical.startingWith(newStart.verticalIndex) x
+      depth.startingWith(newStart.depthIndex)
+
+  override def startingAfter(newStartPredecessor: DiscreteDomain3D[T1, T2, T3]): DiscreteInterval3D[T1, T2, T3] =
+    startingWith(
+      newStartPredecessor.horizontalIndex.successor x
+        newStartPredecessor.verticalIndex.successor x
+        newStartPredecessor.depthIndex.successor
+    )
+
+  override def fromBottom: DiscreteInterval3D[T1, T2, T3] =
+    startingWith(DiscreteDomain1D.Bottom x DiscreteDomain1D.Bottom x DiscreteDomain1D.Bottom)
+
+  override def endingWith(newEnd: DiscreteDomain3D[T1, T2, T3]): DiscreteInterval3D[T1, T2, T3] =
+    horizontal.endingWith(newEnd.horizontalIndex) x
+      vertical.endingWith(newEnd.verticalIndex) x
+      depth.endingWith(newEnd.depthIndex)
+
+  override def endingBefore(newEndSuccessor: DiscreteDomain3D[T1, T2, T3]): DiscreteInterval3D[T1, T2, T3] =
+    endingWith(
+      newEndSuccessor.horizontalIndex.predecessor x
+        newEndSuccessor.verticalIndex.predecessor x
+        newEndSuccessor.depthIndex.predecessor
+    )
+
+  override def toTop: DiscreteInterval3D[T1, T2, T3] =
+    endingWith(DiscreteDomain1D.Top x DiscreteDomain1D.Top x DiscreteDomain1D.Top)
+
+  override infix def isLeftAdjacentTo(that: DiscreteInterval3D[T1, T2, T3]): Boolean =
+    (this.horizontal.end.successor equiv that.horizontal.start) &&
+      (this.vertical equiv that.vertical) && (this.depth equiv that.depth)
+
+  override infix def excluding(that: DiscreteInterval3D[T1, T2, T3]): ExclusionRemainder =
+    (this.horizontal excluding that.horizontal, this.vertical excluding that.vertical, this.depth excluding that.depth)
+
+  override infix def gapWith(that: DiscreteInterval3D[T1, T2, T3]): Option[DiscreteInterval3D[T1, T2, T3]] =
+    for
+      horizontalGap <- horizontal gapWith that.horizontal
+      verticalGap <- vertical gapWith that.vertical
+      depthGap <- depth gapWith that.depth
+    yield horizontalGap x verticalGap x depthGap
 
   override def toString: String = s"{$horizontal, $vertical, $depth}"
 
@@ -181,17 +231,6 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
       (this.horizontal equiv that.horizontal) && (this.depth equiv that.depth)
 
   /**
-    * Tests if this interval is to the left of that interval, and there is no gap between them, and their vertical and
-    * depth intervals are equivalent.
-    *
-    * @param that
-    *   the interval to test for adjacency.
-    */
-  infix def isLeftAdjacentTo(that: DiscreteInterval3D[T1, T2, T3]): Boolean =
-    (this.horizontal.end.successor equiv that.horizontal.start) &&
-      (this.vertical equiv that.vertical) && (this.depth equiv that.depth)
-
-  /**
     * Tests if this interval is in back of (behind) that interval, and there is no gap between them, and their vertical
     * and horizontal intervals are equivalent.
     *
@@ -212,15 +251,6 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
   infix def isUpperAdjacentTo(that: DiscreteInterval3D[T1, T2, T3]): Boolean = that isLowerAdjacentTo this
 
   /**
-    * Tests if this interval is to the right of that interval, and there is no gap between them, and their vertical and
-    * depth intervals are equivalent.
-    *
-    * @param that
-    *   the interval to test for adjacency.
-    */
-  infix def isRightAdjacentTo(that: DiscreteInterval3D[T1, T2, T3]): Boolean = that isLeftAdjacentTo this
-
-  /**
     * Tests if this interval is in front of that interval, and there is no gap between them, and their vertical and
     * horizontal intervals are equivalent.
     *
@@ -228,21 +258,6 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
     *   the interval to test for adjacency.
     */
   infix def isFrontAdjacentTo(that: DiscreteInterval3D[T1, T2, T3]): Boolean = that isBackAdjacentTo this
-
-  import DiscreteInterval1D.Remainder
-
-  /**
-    * Excludes that interval from this one. The horizontal, vertical, and depth results are returned as a tuple.
-    *
-    * @param that
-    *   the interval to exclude.
-    * @return
-    *   The remainder in each dimension after exclusion.
-    */
-  infix def excluding(
-    that: DiscreteInterval3D[T1, T2, T3]
-  ): (Remainder[DiscreteInterval1D[T1]], Remainder[DiscreteInterval1D[T2]], Remainder[DiscreteInterval1D[T3]]) =
-    (this.horizontal excluding that.horizontal, this.vertical excluding that.vertical, this.depth excluding that.depth)
 
   /**
     * Flips this interval by swapping the vertical and horizontal components with one another and keeping the depth
@@ -265,21 +280,6 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
   // equivalent symbolic method names
 
   override infix def ->[V](value: V): ValidData3D[V, T1, T2, T3] = withValue(value)
-
-  /**
-    * Same as [[excluding]].
-    *
-    * Excludes that interval from this one. The horizontal, vertical, and depth results are returned as a tuple.
-    *
-    * @param that
-    *   the interval to exclude.
-    * @return
-    *   The remainder in each dimension after exclusion.
-    */
-  def \(
-    that: DiscreteInterval3D[T1, T2, T3]
-  ): (Remainder[DiscreteInterval1D[T1]], Remainder[DiscreteInterval1D[T2]], Remainder[DiscreteInterval1D[T3]]) =
-    this excluding that
 
 /**
   * Companion for the three-dimensional interval used in defining and operating on valid data.

@@ -19,8 +19,9 @@ case class ValidData1D[V, R: DiscreteValue](
   value: V,
   interval: DiscreteInterval1D[R]
 ) extends ValidDataLike[V, DiscreteDomain1D[R], DiscreteInterval1D[R], ValidData1D[V, R]]:
-  def asBoxedPayload: BoxedPayload1D[ValidData1D[V, R]] =
-    BoxedPayload1D(interval.asBox, this)
+  override type BoxedPayloadType = BoxedPayload1D[ValidData1D[V, R]]
+
+  override def asBoxedPayload: BoxedPayloadType = BoxedPayload1D(interval.asBox, this)
 
   // no crossing, so no parens required
   override protected def qualifiedInterval: String = s"${interval.toCodeLikeString}"

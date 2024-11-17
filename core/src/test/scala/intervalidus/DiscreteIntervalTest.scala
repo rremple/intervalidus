@@ -55,10 +55,10 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
     interval(0, 1).toCodeLikeString shouldBe "interval(0, 1)"
     unbounded[Int].toCodeLikeString shouldBe "unbounded"
 
-    intervalFrom(LocalDate.of(2025,1,10)).toCodeLikeString shouldBe "intervalFrom(LocalDate.of(2025,1,10))"
-    intervalTo(LocalDate.of(2025,1,10)).toCodeLikeString shouldBe "intervalTo(LocalDate.of(2025,1,10))"
-    intervalAt(LocalDate.of(2025,1,10)).toCodeLikeString shouldBe "intervalAt(LocalDate.of(2025,1,10))"
-    interval(LocalDate.of(2025,1,10), LocalDate.of(2025,1,11)).toCodeLikeString shouldBe
+    intervalFrom(LocalDate.of(2025, 1, 10)).toCodeLikeString shouldBe "intervalFrom(LocalDate.of(2025,1,10))"
+    intervalTo(LocalDate.of(2025, 1, 10)).toCodeLikeString shouldBe "intervalTo(LocalDate.of(2025,1,10))"
+    intervalAt(LocalDate.of(2025, 1, 10)).toCodeLikeString shouldBe "intervalAt(LocalDate.of(2025,1,10))"
+    interval(LocalDate.of(2025, 1, 10), LocalDate.of(2025, 1, 11)).toCodeLikeString shouldBe
       "interval(LocalDate.of(2025,1,10), LocalDate.of(2025,1,11))"
     unbounded[LocalDate].toCodeLikeString shouldBe "unbounded"
     interval[LocalDate](Top, Top).toCodeLikeString shouldBe "interval(Top, Top)"
@@ -134,6 +134,18 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
     assert(interval2d(1, 2, 3, 4) hasSameEndAs interval2dTo(2, 4))
     (intervalFrom(0) x intervalTo(0)).toCodeLikeString shouldBe
       "intervalFrom(0) x intervalTo(0)"
+
+    interval2d(1, 2, 3, 4).fromBottom shouldBe interval2dTo(2, 4)
+    interval2d(1, 2, 3, 4).toTop shouldBe interval2dFrom(1, 3)
+    interval2d(1, 2, 3, 4).startingWith(0, 0) shouldBe interval2d(0, 2, 0, 4)
+    interval2d(1, 2, 3, 4).startingAfter(1, 1) shouldBe interval2d(2, 2, 2, 4)
+    interval2d(1, 2, 3, 4).endingWith(5, 5) shouldBe interval2d(1, 5, 3, 5)
+    interval2d(1, 2, 3, 4).endingBefore(7, 7) shouldBe interval2d(1, 6, 3, 6)
+    interval2d(1, 2, 3, 4).atStart shouldBe interval2d(1, 1, 3, 3)
+    interval2d(1, 2, 3, 4).atEnd shouldBe interval2d(2, 2, 4, 4)
+    interval2d(1, 2, 3, 4).gapWith(interval2d(5, 6, 7, 8)) shouldBe Some(interval2d(3, 4, 5, 6))
+    // even though neither adjacent nor intersecting in 2D, no gap in _all_ dimensions
+    interval2d(1, 2, 3, 4).gapWith(interval2d(5, 6, 5, 6)) shouldBe None
 
   test("Int 3D interval adjacency, etc."):
     val now = LocalDate.now
@@ -228,6 +240,18 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
     assertResult(interval3d(0, 2, 3, 4, 5, 6))(interval3d(1, 2, 3, 4, 5, 6).withHorizontalUpdate(_.startingWith(0)))
     assertResult(interval3d(1, 2, 0, 4, 5, 6))(interval3d(1, 2, 3, 4, 5, 6).withVerticalUpdate(_.startingWith(0)))
     assertResult(interval3d(1, 2, 3, 4, 0, 6))(interval3d(1, 2, 3, 4, 5, 6).withDepthUpdate(_.startingWith(0)))
+
+    interval3d(1, 2, 3, 4, 5, 6).fromBottom shouldBe interval3dTo(2, 4, 6)
+    interval3d(1, 2, 3, 4, 5, 6).toTop shouldBe interval3dFrom(1, 3, 5)
+    interval3d(1, 2, 3, 4, 5, 6).startingWith(0, 0, 0) shouldBe interval3d(0, 2, 0, 4, 0, 6)
+    interval3d(1, 2, 3, 4, 5, 6).startingAfter(1, 1, 1) shouldBe interval3d(2, 2, 2, 4, 2, 6)
+    interval3d(1, 2, 3, 4, 5, 6).endingWith(5, 5, 5) shouldBe interval3d(1, 5, 3, 5, 5, 5)
+    interval3d(1, 2, 3, 4, 5, 6).endingBefore(7, 7, 7) shouldBe interval3d(1, 6, 3, 6, 5, 6)
+    interval3d(1, 2, 3, 4, 5, 6).atStart shouldBe interval3d(1, 1, 3, 3, 5, 5)
+    interval3d(1, 2, 3, 4, 5, 6).atEnd shouldBe interval3d(2, 2, 4, 4, 6, 6)
+    interval3d(1, 2, 3, 4, 5, 6).gapWith(interval3d(5, 6, 7, 8, 9, 10)) shouldBe Some(interval3d(3, 4, 5, 6, 7, 8))
+    // even though neither adjacent nor intersecting in 3D, no gap in _all_ dimensions
+    interval3d(1, 2, 3, 4, 5, 6).gapWith(interval3d(5, 6, 5, 6, 8, 9)) shouldBe None
 
   test("Int interval intersections"):
     assert(!(interval(3, 4) intersects interval(1, 2)))

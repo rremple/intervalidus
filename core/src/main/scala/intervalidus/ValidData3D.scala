@@ -28,8 +28,9 @@ case class ValidData3D[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValu
     DiscreteInterval3D[R1, R2, R3],
     ValidData3D[V, R1, R2, R3]
   ]:
-  def asBoxedPayload: BoxedPayload3D[ValidData3D[V, R1, R2, R3]] =
-    BoxedPayload3D(interval.asBox, this)
+  override type BoxedPayloadType = BoxedPayload3D[ValidData3D[V, R1, R2, R3]]
+
+  override def asBoxedPayload: BoxedPayloadType = BoxedPayload3D(interval.asBox, this)
 
 /**
   * Companion for valid data in three dimensions.

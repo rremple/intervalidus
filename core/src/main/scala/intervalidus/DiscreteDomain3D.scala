@@ -25,6 +25,13 @@ case class DiscreteDomain3D[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteVa
   verticalIndex: DiscreteDomain1D[T2],
   depthIndex: DiscreteDomain1D[T3]
 ) extends DiscreteDomainLike[DiscreteDomain3D[T1, T2, T3]]:
+
+  /**
+    * Approximate this domain element as a coordinate in double space based on the domain ordered hash.
+    *
+    * @return
+    *   a new coordinate for boxes managed in box trees
+    */
   def asCoordinate: Coordinate3D =
     Coordinate3D(horizontalIndex.orderedHash, verticalIndex.orderedHash, depthIndex.orderedHash)
 

@@ -24,7 +24,12 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
   vertical: DiscreteInterval1D[T2]
 ) extends DiscreteIntervalLike[DiscreteDomain2D[T1, T2], DiscreteInterval2D[T1, T2]]:
 
-  def asBox: Box2D = Box2D(start.asCoordinate, end.asCoordinate)
+  import DiscreteInterval1D.Remainder
+
+  override type BoxType = Box2D
+  override type ExclusionRemainder = (Remainder[DiscreteInterval1D[T1]], Remainder[DiscreteInterval1D[T2]])
+
+  override def asBox: BoxType = Box2D(start.asCoordinate, end.asCoordinate)
 
   override infix def withValue[V](value: V): ValidData2D[V, T1, T2] = ValidData2D(value, this)
 
@@ -83,6 +88,36 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
     case (Some(horizontalBefore), Some(verticalBefore)) => Some(DiscreteInterval2D(horizontalBefore, verticalBefore))
     case _                                              => None
 
+  override def startingWith(newStart: DiscreteDomain2D[T1, T2]): DiscreteInterval2D[T1, T2] =
+    horizontal.startingWith(newStart.horizontalIndex) x vertical.startingWith(newStart.verticalIndex)
+
+  override def startingAfter(newStartPredecessor: DiscreteDomain2D[T1, T2]): DiscreteInterval2D[T1, T2] =
+    startingWith(newStartPredecessor.horizontalIndex.successor x newStartPredecessor.verticalIndex.successor)
+
+  override def fromBottom: DiscreteInterval2D[T1, T2] =
+    startingWith(DiscreteDomain1D.Bottom x DiscreteDomain1D.Bottom)
+
+  override def endingWith(newEnd: DiscreteDomain2D[T1, T2]): DiscreteInterval2D[T1, T2] =
+    horizontal.endingWith(newEnd.horizontalIndex) x vertical.endingWith(newEnd.verticalIndex)
+
+  override def endingBefore(newEndSuccessor: DiscreteDomain2D[T1, T2]): DiscreteInterval2D[T1, T2] =
+    endingWith(newEndSuccessor.horizontalIndex.predecessor x newEndSuccessor.verticalIndex.predecessor)
+
+  override def toTop: DiscreteInterval2D[T1, T2] =
+    endingWith(DiscreteDomain1D.Top x DiscreteDomain1D.Top)
+
+  override infix def isLeftAdjacentTo(that: DiscreteInterval2D[T1, T2]): Boolean =
+    (this.horizontal.end.successor equiv that.horizontal.start) && (this.vertical equiv that.vertical)
+
+  override infix def excluding(that: DiscreteInterval2D[T1, T2]): ExclusionRemainder =
+    (this.horizontal excluding that.horizontal, this.vertical excluding that.vertical)
+
+  override infix def gapWith(that: DiscreteInterval2D[T1, T2]): Option[DiscreteInterval2D[T1, T2]] =
+    for
+      horizontalGap <- horizontal gapWith that.horizontal
+      verticalGap <- vertical gapWith that.vertical
+    yield horizontalGap x verticalGap
+
   override def toString: String = s"{$horizontal, $vertical}"
 
   override def toCodeLikeString: String = s"${horizontal.toCodeLikeString} x ${vertical.toCodeLikeString}"
@@ -134,16 +169,6 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
     (this.vertical.end.successor equiv that.vertical.start) && (this.horizontal equiv that.horizontal)
 
   /**
-    * Tests if this interval is to the left of that interval, and there is no gap between them, and their vertical
-    * intervals are equivalent.
-    *
-    * @param that
-    *   the interval to test for adjacency.
-    */
-  infix def isLeftAdjacentTo(that: DiscreteInterval2D[T1, T2]): Boolean =
-    (this.horizontal.end.successor equiv that.horizontal.start) && (this.vertical equiv that.vertical)
-
-  /**
     * Tests if this interval is above that interval, there is no vertical gap between them, and their horizontal
     * intervals are equivalent.
     *
@@ -151,30 +176,6 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
     *   the interval to test for adjacency.
     */
   infix def isUpperAdjacentTo(that: DiscreteInterval2D[T1, T2]): Boolean = that isLowerAdjacentTo this
-
-  /**
-    * Tests if this interval is to the right of that interval, and there is no gap between them, and their vertical
-    * intervals are equivalent.
-    *
-    * @param that
-    *   the interval to test for adjacency.
-    */
-  infix def isRightAdjacentTo(that: DiscreteInterval2D[T1, T2]): Boolean = that isLeftAdjacentTo this
-
-  import DiscreteInterval1D.Remainder
-
-  /**
-    * Excludes that interval from this one. The horizontal and vertical results are returned as a pair of remainders.
-    *
-    * @param that
-    *   the interval to exclude.
-    * @return
-    *   The remainders in each dimension after exclusion.
-    */
-  infix def excluding(
-    that: DiscreteInterval2D[T1, T2]
-  ): (Remainder[DiscreteInterval1D[T1]], Remainder[DiscreteInterval1D[T2]]) =
-    (this.horizontal excluding that.horizontal, this.vertical excluding that.vertical)
 
   /**
     * Cross this interval with that interval to arrive at a new three-dimensional interval.
@@ -197,20 +198,6 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
   // equivalent symbolic method names
 
   override infix def ->[V](value: V): ValidData2D[V, T1, T2] = withValue(value)
-
-  /**
-    * Same as [[excluding]].
-    *
-    * Excludes that interval from this one. The horizontal and vertical results are returned as a pair of remainders.
-    *
-    * @param that
-    *   the interval to exclude.
-    * @return
-    *   The remainders in each dimension after exclusion.
-    */
-  def \(
-    that: DiscreteInterval2D[T1, T2]
-  ): (Remainder[DiscreteInterval1D[T1]], Remainder[DiscreteInterval1D[T2]]) = this excluding that
 
 /**
   * Companion for the two-dimensional interval used in defining and operating on valid data.

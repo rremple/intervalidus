@@ -174,6 +174,14 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
       Delete(DiscreteDomain2D[Int, Int](Bottom, 20)),
       Delete(DiscreteDomain2D[Int, Int](Bottom, 26))
     )
+    actionsFrom2To4.toList.map(_.toCodeLikeString) shouldBe List(
+      "DiffAction2D.Create((unbounded x intervalTo(4)) -> \"Hey\")",
+      "DiffAction2D.Delete(Bottom x Point(0))",
+      "DiffAction2D.Update((unbounded x intervalFrom(16)) -> \"World\")",
+      "DiffAction2D.Delete(Bottom x Point(20))",
+      "DiffAction2D.Delete(Bottom x Point(26))"
+    )
+
     val actionsFrom4To6 = copyFixture6.diffActionsFrom(copyFixture4)
     actionsFrom4To6.toList shouldBe List(
       Update(vertical2D(intervalTo(0)) -> "Hey"),

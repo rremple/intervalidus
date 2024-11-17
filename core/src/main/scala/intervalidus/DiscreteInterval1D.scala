@@ -26,7 +26,12 @@ case class DiscreteInterval1D[T: DiscreteValue](
 ) extends DiscreteIntervalLike[DiscreteDomain1D[T], DiscreteInterval1D[T]]:
   require(start <= end, s"Interval $this invalid")
 
-  def asBox: Box1D = Box1D(start.asCoordinate, end.asCoordinate)
+  import DiscreteInterval1D.Remainder
+
+  override type BoxType = Box1D
+  override type ExclusionRemainder = Remainder[DiscreteInterval1D[T]]
+
+  override def asBox: BoxType = Box1D(start.asCoordinate, end.asCoordinate)
 
   override infix def withValue[V](value: V): ValidData1D[V, T] = ValidData1D(value, this)
 
@@ -108,77 +113,21 @@ case class DiscreteInterval1D[T: DiscreteValue](
       case (Point(s), Point(e))           => s"interval(${codeFor(s)}, ${codeFor(e)})"
       case (s, e)                         => s"interval(${s.toCodeLikeString}, ${e.toCodeLikeString})"
 
-  /**
-    * Returns a new interval starting at the provided value.
-    *
-    * @param newStart
-    *   the start of the new interval
-    */
-  def startingWith(newStart: DiscreteDomain1D[T]): DiscreteInterval1D[T] = copy(start = newStart)
+  override def startingWith(newStart: DiscreteDomain1D[T]): DiscreteInterval1D[T] = copy(start = newStart)
 
-  /**
-    * Returns a new interval starting at the successor of the provided value.
-    *
-    * @param newStartPredecessor
-    *   the predecessor of the start of the new interval
-    */
-  def startingAfter(newStartPredecessor: DiscreteDomain1D[T]): DiscreteInterval1D[T] =
+  override def startingAfter(newStartPredecessor: DiscreteDomain1D[T]): DiscreteInterval1D[T] =
     startingWith(newStartPredecessor.successor)
 
-  /**
-    * Returns a new singleton interval containing only the end of this interval.
-    */
-  def atEnd: DiscreteInterval1D[T] = startingWith(end)
+  override def fromBottom: DiscreteInterval1D[T] = startingWith(Bottom)
 
-  /**
-    * Returns a new interval with the same end as this interval but with an unbounded start.
-    */
-  def fromBottom: DiscreteInterval1D[T] = startingWith(Bottom)
+  override def endingWith(newEnd: DiscreteDomain1D[T]): DiscreteInterval1D[T] = copy(end = newEnd)
 
-  /**
-    * Returns a new interval ending at the provided value.
-    *
-    * @param newEnd
-    *   the end of the new interval
-    */
-  def endingWith(newEnd: DiscreteDomain1D[T]): DiscreteInterval1D[T] = copy(end = newEnd)
-
-  /**
-    * Returns a new interval ending at the predecessor of the provided value.
-    *
-    * @param newEndSuccessor
-    *   the successor of the end of the new interval
-    */
-  def endingBefore(newEndSuccessor: DiscreteDomain1D[T]): DiscreteInterval1D[T] =
+  override def endingBefore(newEndSuccessor: DiscreteDomain1D[T]): DiscreteInterval1D[T] =
     endingWith(newEndSuccessor.predecessor)
 
-  /**
-    * Returns a new singleton interval containing only the start of this interval.
-    */
-  def atStart: DiscreteInterval1D[T] = endingWith(start)
+  override def toTop: DiscreteInterval1D[T] = endingWith(Top)
 
-  /**
-    * Returns a new interval with the same start as this interval but with an unbounded end.
-    */
-  def toTop: DiscreteInterval1D[T] = endingWith(Top)
-
-  /**
-    * Tests if this interval is to the left of that interval and there is no gap between them.
-    *
-    * @param that
-    *   the interval to test for adjacency.
-    */
-  infix def isLeftAdjacentTo(that: DiscreteInterval1D[T]): Boolean = this.end.successor equiv that.start
-
-  /**
-    * Tests if this interval is to the right of that interval and there is no gap between them.
-    *
-    * @param that
-    *   the interval to test for adjacency.
-    */
-  infix def isRightAdjacentTo(that: DiscreteInterval1D[T]): Boolean = that isLeftAdjacentTo this
-
-  import DiscreteInterval1D.Remainder
+  override infix def isLeftAdjacentTo(that: DiscreteInterval1D[T]): Boolean = this.end.successor equiv that.start
 
   /**
     * Excludes that interval from this one. There are three possible outcomes:
@@ -193,7 +142,7 @@ case class DiscreteInterval1D[T: DiscreteValue](
     * @return
     *   The remainder after exclusion.
     */
-  infix def excluding(that: DiscreteInterval1D[T]): Remainder[DiscreteInterval1D[T]] =
+  override infix def excluding(that: DiscreteInterval1D[T]): ExclusionRemainder =
     this intersectionWith that match
       case None => // no intersection, nothing to exclude
         Remainder.Single(this)
@@ -208,15 +157,7 @@ case class DiscreteInterval1D[T: DiscreteValue](
           case _ => // common start and end -- nothing remains
             Remainder.None
 
-  /**
-    * Returns gap between this and that interval, if one exists.
-    *
-    * @param that
-    *   the interval to evaluate.
-    * @return
-    *   some interval representing the gap between this and that if one exists, and None otherwise.
-    */
-  infix def gapWith(that: DiscreteInterval1D[T]): Option[DiscreteInterval1D[T]] =
+  override infix def gapWith(that: DiscreteInterval1D[T]): Option[DiscreteInterval1D[T]] =
     if this intersects that then None
     else if this isAdjacentTo that then None
     else Some(DiscreteInterval1D((this.end min that.end).successor, (this.start max that.start).predecessor))
@@ -237,23 +178,6 @@ case class DiscreteInterval1D[T: DiscreteValue](
   // equivalent symbolic method names
 
   override infix def ->[V](value: V): ValidData1D[V, T] = withValue(value)
-
-  /**
-    * Same as [[excluding]].
-    *
-    * Excludes that interval from this one. There are three possible outcomes:
-    *   1. this interval is a subset of that one, so once it is excluded, nothing remains. Remainder.None is returned.
-    *   1. that either lies outside of this or has a simple edge intersection (only contains the start or the end, but
-    *      not both), and a single interval remains. Remainder.Single is returned.
-    *   1. that interval is a proper subset of this one, containing neither the start nor the end of this, so this
-    *      interval gets split, and two intervals remain. Remainder.Split is returned
-    *
-    * @param that
-    *   the interval to exclude.
-    * @return
-    *   The remainder after exclusion.
-    */
-  def \(that: DiscreteInterval1D[T]): Remainder[DiscreteInterval1D[T]] = this excluding that
 
 /**
   * Companion for the one-dimensional interval used in defining and operating on valid data.

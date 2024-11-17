@@ -20,6 +20,12 @@ case class DiscreteDomain2D[T1: DiscreteValue, T2: DiscreteValue](
   horizontalIndex: DiscreteDomain1D[T1],
   verticalIndex: DiscreteDomain1D[T2]
 ) extends DiscreteDomainLike[DiscreteDomain2D[T1, T2]]:
+  /**
+    * Approximate this domain element as a coordinate in double space based on the domain ordered hash.
+    *
+    * @return
+    *   a new coordinate for boxes managed in box trees
+    */
   def asCoordinate: Coordinate2D =
     Coordinate2D(horizontalIndex.orderedHash, verticalIndex.orderedHash)
 

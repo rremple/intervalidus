@@ -1,5 +1,8 @@
 package intervalidus
 
+import intervalidus.DiscreteDomain1D.Bottom
+import intervalidus.collection.{BoxLike, CoordinateLike}
+
 /**
   * An interval over a contiguous set of ordered elements of a discrete domain.
   *
@@ -10,6 +13,17 @@ package intervalidus
   */
 trait DiscreteIntervalLike[D <: DiscreteDomainLike[D], Self <: DiscreteIntervalLike[D, Self]]:
   this: Self =>
+
+  type ExclusionRemainder
+  type BoxType <: BoxLike[?, BoxType]
+
+  /**
+    * Approximate this interval as a box in double space based on the domain ordered hash.
+    *
+    * @return
+    *   a new box that can be managed in a box tree
+    */
+  def asBox: BoxType
 
   /**
     * The "infimum", i.e., the left/lower/back boundary of the interval (inclusive). When stored in a collection, this
@@ -157,7 +171,77 @@ trait DiscreteIntervalLike[D <: DiscreteDomainLike[D], Self <: DiscreteIntervalL
     */
   def before: Option[Self]
 
-  // equivalent symbolic method names
+  /**
+    * Returns a new interval starting at the provided value.
+    *
+    * @param newStart
+    *   the start of the new interval
+    */
+  def startingWith(newStart: D): Self
+
+  /**
+    * Returns a new interval starting at the successor of the provided value.
+    *
+    * @param newStartPredecessor
+    *   the predecessor of the start of the new interval
+    */
+  def startingAfter(newStartPredecessor: D): Self
+
+  /**
+    * Returns a new interval with the same end as this interval but with an unbounded start.
+    */
+  def fromBottom: Self
+
+  /**
+    * Returns a new interval ending at the provided value.
+    *
+    * @param newEnd
+    *   the end of the new interval
+    */
+  def endingWith(newEnd: D): Self
+
+  /**
+    * Returns a new interval ending at the predecessor of the provided value.
+    *
+    * @param newEndSuccessor
+    *   the successor of the end of the new interval
+    */
+  def endingBefore(newEndSuccessor: D): Self
+
+  /**
+    * Returns a new interval with the same start as this interval but with an unbounded end.
+    */
+  def toTop: Self
+
+  /**
+    * Tests if this interval is to the left of that interval and there is no gap between them.
+    *
+    * @param that
+    *   the interval to test for adjacency.
+    */
+  infix def isLeftAdjacentTo(that: Self): Boolean
+
+  /**
+    * Excludes that interval from this one.
+    *
+    * @param that
+    *   the interval to exclude.
+    * @return
+    *   The remainder in each dimension after exclusion.
+    */
+  infix def excluding(that: Self): ExclusionRemainder
+
+  /**
+    * Returns gap between this and that interval, if one exists.
+    *
+    * @param that
+    *   the interval to evaluate.
+    * @return
+    *   if one exists, some interval representing the gap between this and that in all dimensions, and None otherwise.
+    */
+  infix def gapWith(that: Self): Option[Self]
+
+  // this equivalent symbolic method must be implemented by the inheritor to fill in type wildcard
 
   /**
     * Same as [[withValue]]
@@ -172,6 +256,26 @@ trait DiscreteIntervalLike[D <: DiscreteDomainLike[D], Self <: DiscreteIntervalL
     *   valid data in this interval
     */
   infix def ->[V](value: V): ValidDataLike[V, D, Self, ?]
+
+  // equivalent symbolic method names and other implementations
+
+  /**
+    * Tests if this interval is to the right of that interval and there is no gap between them.
+    *
+    * @param that
+    *   the interval to test for adjacency.
+    */
+  infix def isRightAdjacentTo(that: Self): Boolean = that isLeftAdjacentTo this
+
+  /**
+    * Returns a new singleton interval containing only the end of this interval.
+    */
+  def atEnd: Self = startingWith(end)
+
+  /**
+    * Returns a new singleton interval containing only the start of this interval.
+    */
+  def atStart: Self = endingWith(start)
 
   /**
     * Same as [[intersectionWith]].
@@ -210,3 +314,15 @@ trait DiscreteIntervalLike[D <: DiscreteDomainLike[D], Self <: DiscreteIntervalL
     *   true if this is a subset of that.
     */
   def ⊆(that: Self): Boolean = this isSubsetOf that
+
+  /**
+    * Same as [[excluding]].
+    *
+    * Excludes that interval from this one. The horizontal, vertical, and depth results are returned as a tuple.
+    *
+    * @param that
+    *   the interval to exclude.
+    * @return
+    *   The remainder in each dimension after exclusion.
+    */
+  def \(that: Self): ExclusionRemainder = this excluding that

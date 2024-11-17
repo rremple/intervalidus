@@ -213,6 +213,14 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors:
       Delete(DiscreteDomain3D[Int, Int, Int](Bottom, Bottom, 20)),
       Delete(DiscreteDomain3D[Int, Int, Int](Bottom, Bottom, 26))
     )
+    actionsFrom2To4.toList.map(_.toCodeLikeString) shouldBe List(
+      "DiffAction3D.Create((unbounded x unbounded x intervalTo(4)) -> \"Hey\")",
+      "DiffAction3D.Delete(Bottom x Bottom x Point(0))",
+      "DiffAction3D.Update((unbounded x unbounded x intervalFrom(16)) -> \"World\")",
+      "DiffAction3D.Delete(Bottom x Bottom x Point(20))",
+      "DiffAction3D.Delete(Bottom x Bottom x Point(26))"
+    )
+
     val actionsFrom4To6 = copyFixture6.diffActionsFrom(copyFixture4)
     actionsFrom4To6.toList shouldBe List(
       Update((unboundedDate x unboundedDate x intervalTo(0)) -> "Hey"),
