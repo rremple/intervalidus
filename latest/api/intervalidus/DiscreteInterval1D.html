@@ -124,6 +124,39 @@ node7 -> node2;
  <div class="membersList expand">
   <div class="tabs">
    <div class="contents">
+    <section id="Type-members">
+     <div data-togglable="Type members" class="tab expand">
+      <div class="member-group-header">
+       <h3 data-togglable="Type members" class="h400">Type members</h3>
+      </div>
+      <section id="Types">
+       <div class="documentableList expand">
+        <div class="documentableList-expander">
+         <button class="icon-button show-content expand"></button>
+         <h4 class="groupHeader h200">Types</h4>
+        </div>
+        <div class="documentableElement" id="BoxType-0" data-f-keywords="override">
+         <div class="documentableElement-expander">
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">type </span></span><a href="DiscreteInterval1D.html#BoxType-0" t="n" class="documentableName ">BoxType</a> = <a href="collection/Box1D.html" t="t">Box1D</a>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="ExclusionRemainder-0" data-f-keywords="override">
+         <div class="documentableElement-expander">
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">type </span></span><a href="DiscreteInterval1D.html#ExclusionRemainder-0" t="n" class="documentableName ">ExclusionRemainder</a> = <a href="DiscreteInterval1D$$Remainder.html" t="t">Remainder</a>[<a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>]]
+           </div>
+          </div>
+         </div>
+        </div>
+       </div>
+      </section>
+     </div>
+    </section>
     <section id="Value-members">
      <div data-togglable="Value members" class="tab expand">
       <div class="member-group-header">
@@ -197,56 +230,6 @@ node7 -> node2;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="\-fffff0db">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval1D.html#\-fffff0db" t="n" class="documentableName ">\</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>]): <a href="DiscreteInterval1D$$Remainder.html" t="t">Remainder</a>[<a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>]]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Same as <a href="DiscreteInterval1D.html#excluding-fffff0db">excluding</a>.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Same as <a href="DiscreteInterval1D.html#excluding-fffff0db">excluding</a>.</p>
-              <p>Excludes that interval from this one. There are three possible outcomes:</p>
-              <ol>
-               <li>this interval is a subset of that one, so once it is excluded, nothing remains. Remainder.None is returned.</li>
-               <li>that either lies outside of this or has a simple edge intersection (only contains the start or the end, but not both), and a single interval remains. Remainder.Single is returned.</li>
-               <li>that interval is a proper subset of this one, containing neither the start nor the end of this, so this interval gets split, and two intervals remain. Remainder.Split is returned</li>
-              </ol>
-             </div>
-             <h2 class="h200">Value parameters</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               that
-              </dt>
-              <dd class="body-medium">
-               <p>the interval to exclude.</p>
-              </dd>
-             </dl>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Returns
-              </dt>
-              <dd class="body-medium">
-               <p>The remainder after exclusion.</p>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
         <div class="documentableElement" id="after-0" data-f-keywords="override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -284,21 +267,12 @@ node7 -> node2;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="asBox-0">
-         <div class="documentableElement-expander">
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval1D.html#asBox-0" t="n" class="documentableName ">asBox</a>: <a href="collection/Box1D.html" t="t">Box1D</a>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="atEnd-0">
+        <div class="documentableElement" id="asBox-0" data-f-keywords="override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval1D.html#atEnd-0" t="n" class="documentableName ">atEnd</a>: <a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>]
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval1D.html#asBox-0" t="n" class="documentableName ">asBox</a>: <a href="DiscreteInterval1D.html#BoxType-0" t="t">BoxType</a>
            </div>
           </div>
          </div>
@@ -308,42 +282,29 @@ node7 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns a new singleton interval containing only the end of this interval.</p>
+             <p>Approximate this interval as a box in double space based on the domain ordered hash.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns a new singleton interval containing only the end of this interval.</p>
+              <p>Approximate this interval as a box in double space based on the domain ordered hash.</p>
              </div>
              <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small"></dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="atStart-0">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval1D.html#atStart-0" t="n" class="documentableName ">atStart</a>: <a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Returns a new singleton interval containing only the start of this interval.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Returns a new singleton interval containing only the start of this interval.</p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small"></dl>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>a new box that can be managed in a box tree</p>
+              </dd>
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <a href="DiscreteIntervalLike.html">DiscreteIntervalLike</a>
+               </div>
+              </dd>
+             </dl>
             </div>
            </div>
           </div>
@@ -490,12 +451,12 @@ node7 -> node2;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="endingBefore-fffff181">
+        <div class="documentableElement" id="endingBefore-fffff181" data-f-keywords="override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval1D.html#endingBefore-fffff181" t="n" class="documentableName ">endingBefore</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">newEndSuccessor</span>: <a href="DiscreteDomain1D.html" t="t">DiscreteDomain1D</a>[<span t="t">T</span>]): <a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>]
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval1D.html#endingBefore-fffff181" t="n" class="documentableName ">endingBefore</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">newEndSuccessor</span>: <a href="DiscreteDomain1D.html" t="t">DiscreteDomain1D</a>[<span t="t">T</span>]): <a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>]
            </div>
           </div>
          </div>
@@ -521,18 +482,27 @@ node7 -> node2;
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small"></dl>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <a href="DiscreteIntervalLike.html">DiscreteIntervalLike</a>
+               </div>
+              </dd>
+             </dl>
             </div>
            </div>
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="endingWith-fffff181">
+        <div class="documentableElement" id="endingWith-fffff181" data-f-keywords="override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval1D.html#endingWith-fffff181" t="n" class="documentableName ">endingWith</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">newEnd</span>: <a href="DiscreteDomain1D.html" t="t">DiscreteDomain1D</a>[<span t="t">T</span>]): <a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>]
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval1D.html#endingWith-fffff181" t="n" class="documentableName ">endingWith</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">newEnd</span>: <a href="DiscreteDomain1D.html" t="t">DiscreteDomain1D</a>[<span t="t">T</span>]): <a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>]
            </div>
           </div>
          </div>
@@ -558,7 +528,16 @@ node7 -> node2;
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small"></dl>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <a href="DiscreteIntervalLike.html">DiscreteIntervalLike</a>
+               </div>
+              </dd>
+             </dl>
             </div>
            </div>
           </div>
@@ -616,12 +595,12 @@ node7 -> node2;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="excluding-fffff0db" data-f-keywords="infix">
+        <div class="documentableElement" id="excluding-fffff0db" data-f-keywords="infix,override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"><span t="k">infix </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval1D.html#excluding-fffff0db" t="n" class="documentableName ">excluding</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>]): <a href="DiscreteInterval1D$$Remainder.html" t="t">Remainder</a>[<a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>]]
+            <span class="modifiers"><span t="k">infix override </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval1D.html#excluding-fffff0db" t="n" class="documentableName ">excluding</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>]): <a href="DiscreteInterval1D.html#ExclusionRemainder-0" t="t">ExclusionRemainder</a>
            </div>
           </div>
          </div>
@@ -659,18 +638,26 @@ node7 -> node2;
               <dd class="body-medium">
                <p>The remainder after exclusion.</p>
               </dd>
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <a href="DiscreteIntervalLike.html">DiscreteIntervalLike</a>
+               </div>
+              </dd>
              </dl>
             </div>
            </div>
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="fromBottom-0">
+        <div class="documentableElement" id="fromBottom-0" data-f-keywords="override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval1D.html#fromBottom-0" t="n" class="documentableName ">fromBottom</a>: <a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>]
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval1D.html#fromBottom-0" t="n" class="documentableName ">fromBottom</a>: <a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>]
            </div>
           </div>
          </div>
@@ -687,18 +674,27 @@ node7 -> node2;
               <p>Returns a new interval with the same end as this interval but with an unbounded start.</p>
              </div>
              <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small"></dl>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <a href="DiscreteIntervalLike.html">DiscreteIntervalLike</a>
+               </div>
+              </dd>
+             </dl>
             </div>
            </div>
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="gapWith-fffff71e" data-f-keywords="infix">
+        <div class="documentableElement" id="gapWith-fffff71e" data-f-keywords="infix,override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"><span t="k">infix </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval1D.html#gapWith-fffff71e" t="n" class="documentableName ">gapWith</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>]): <span data-unresolved-link="" t="t">Option</span>[<a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>]]
+            <span class="modifiers"><span t="k">infix override </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval1D.html#gapWith-fffff71e" t="n" class="documentableName ">gapWith</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>]): <span data-unresolved-link="" t="t">Option</span>[<a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>]]
            </div>
           </div>
          </div>
@@ -729,7 +725,15 @@ node7 -> node2;
                Returns
               </dt>
               <dd class="body-medium">
-               <p>some interval representing the gap between this and that if one exists, and None otherwise.</p>
+               <p>if one exists, some interval representing the gap between this and that in all dimensions, and None otherwise.</p>
+              </dd>
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <a href="DiscreteIntervalLike.html">DiscreteIntervalLike</a>
+               </div>
               </dd>
              </dl>
             </div>
@@ -973,12 +977,12 @@ node7 -> node2;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="isLeftAdjacentTo-fffff29f" data-f-keywords="infix">
+        <div class="documentableElement" id="isLeftAdjacentTo-fffff29f" data-f-keywords="infix,override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"><span t="k">infix </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval1D.html#isLeftAdjacentTo-fffff29f" t="n" class="documentableName ">isLeftAdjacentTo</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>]): <span data-unresolved-link="" t="t">Boolean</span>
+            <span class="modifiers"><span t="k">infix override </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval1D.html#isLeftAdjacentTo-fffff29f" t="n" class="documentableName ">isLeftAdjacentTo</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>]): <span data-unresolved-link="" t="t">Boolean</span>
            </div>
           </div>
          </div>
@@ -1004,44 +1008,16 @@ node7 -> node2;
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small"></dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="isRightAdjacentTo-fffff29f" data-f-keywords="infix">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"><span t="k">infix </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval1D.html#isRightAdjacentTo-fffff29f" t="n" class="documentableName ">isRightAdjacentTo</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>]): <span data-unresolved-link="" t="t">Boolean</span>
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Tests if this interval is to the right of that interval and there is no gap between them.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Tests if this interval is to the right of that interval and there is no gap between them.</p>
-             </div>
-             <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
-               that
+               Definition Classes
               </dt>
               <dd class="body-medium">
-               <p>the interval to test for adjacency.</p>
+               <div>
+                <a href="DiscreteIntervalLike.html">DiscreteIntervalLike</a>
+               </div>
               </dd>
              </dl>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small"></dl>
             </div>
            </div>
           </div>
@@ -1225,12 +1201,12 @@ node7 -> node2;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="startingAfter-fffff181">
+        <div class="documentableElement" id="startingAfter-fffff181" data-f-keywords="override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval1D.html#startingAfter-fffff181" t="n" class="documentableName ">startingAfter</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">newStartPredecessor</span>: <a href="DiscreteDomain1D.html" t="t">DiscreteDomain1D</a>[<span t="t">T</span>]): <a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>]
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval1D.html#startingAfter-fffff181" t="n" class="documentableName ">startingAfter</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">newStartPredecessor</span>: <a href="DiscreteDomain1D.html" t="t">DiscreteDomain1D</a>[<span t="t">T</span>]): <a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>]
            </div>
           </div>
          </div>
@@ -1256,18 +1232,27 @@ node7 -> node2;
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small"></dl>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <a href="DiscreteIntervalLike.html">DiscreteIntervalLike</a>
+               </div>
+              </dd>
+             </dl>
             </div>
            </div>
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="startingWith-fffff181">
+        <div class="documentableElement" id="startingWith-fffff181" data-f-keywords="override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval1D.html#startingWith-fffff181" t="n" class="documentableName ">startingWith</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">newStart</span>: <a href="DiscreteDomain1D.html" t="t">DiscreteDomain1D</a>[<span t="t">T</span>]): <a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>]
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval1D.html#startingWith-fffff181" t="n" class="documentableName ">startingWith</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">newStart</span>: <a href="DiscreteDomain1D.html" t="t">DiscreteDomain1D</a>[<span t="t">T</span>]): <a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>]
            </div>
           </div>
          </div>
@@ -1293,7 +1278,16 @@ node7 -> node2;
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small"></dl>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <a href="DiscreteIntervalLike.html">DiscreteIntervalLike</a>
+               </div>
+              </dd>
+             </dl>
             </div>
            </div>
           </div>
@@ -1380,12 +1374,12 @@ node7 -> node2;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="toTop-0">
+        <div class="documentableElement" id="toTop-0" data-f-keywords="override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval1D.html#toTop-0" t="n" class="documentableName ">toTop</a>: <a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>]
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval1D.html#toTop-0" t="n" class="documentableName ">toTop</a>: <a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>]
            </div>
           </div>
          </div>
@@ -1402,7 +1396,16 @@ node7 -> node2;
               <p>Returns a new interval with the same start as this interval but with an unbounded end.</p>
              </div>
              <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small"></dl>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <a href="DiscreteIntervalLike.html">DiscreteIntervalLike</a>
+               </div>
+              </dd>
+             </dl>
             </div>
            </div>
           </div>
@@ -1529,6 +1532,171 @@ node7 -> node2;
         <div class="documentableList-expander">
          <button class="icon-button show-content expand"></button>
          <h4 class="groupHeader h200">Inherited methods</h4>
+        </div>
+        <div class="documentableElement" id="\-fffff3f8" data-f-inherited="DiscreteIntervalLike">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval1D.html#\-fffff3f8" t="n" class="documentableName ">\</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>]): <a href="DiscreteIntervalLike.html#ExclusionRemainder-0" t="t">ExclusionRemainder</a>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Same as <a href="DiscreteIntervalLike.html#excluding-fffff3f8">excluding</a>.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Same as <a href="DiscreteIntervalLike.html#excluding-fffff3f8">excluding</a>.</p>
+              <p>Excludes that interval from this one. The horizontal, vertical, and depth results are returned as a tuple.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               that
+              </dt>
+              <dd class="body-medium">
+               <p>the interval to exclude.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>The remainder in each dimension after exclusion.</p>
+              </dd>
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="DiscreteIntervalLike.html#\-fffff3f8">DiscreteIntervalLike</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="atEnd-0" data-f-inherited="DiscreteIntervalLike">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval1D.html#atEnd-0" t="n" class="documentableName ">atEnd</a>: <a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Returns a new singleton interval containing only the end of this interval.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Returns a new singleton interval containing only the end of this interval.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="DiscreteIntervalLike.html#atEnd-0">DiscreteIntervalLike</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="atStart-0" data-f-inherited="DiscreteIntervalLike">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval1D.html#atStart-0" t="n" class="documentableName ">atStart</a>: <a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Returns a new singleton interval containing only the start of this interval.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Returns a new singleton interval containing only the start of this interval.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="DiscreteIntervalLike.html#atStart-0">DiscreteIntervalLike</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="isRightAdjacentTo-f1b" data-f-keywords="infix" data-f-inherited="DiscreteIntervalLike">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">infix </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval1D.html#isRightAdjacentTo-f1b" t="n" class="documentableName ">isRightAdjacentTo</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>]): <span data-unresolved-link="" t="t">Boolean</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Tests if this interval is to the right of that interval and there is no gap between them.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Tests if this interval is to the right of that interval and there is no gap between them.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               that
+              </dt>
+              <dd class="body-medium">
+               <p>the interval to test for adjacency.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="DiscreteIntervalLike.html#isRightAdjacentTo-f1b">DiscreteIntervalLike</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
         </div>
         <div class="documentableElement" id="productElementNames-0" data-f-inherited="Product">
          <div class="documentableElement-expander">
@@ -1750,4 +1918,4 @@ node7 -> node2;
    </div>
   </div>
  </div>
-</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Type parameters</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Value-members">Value members</a><ul><li><a href="#Concrete-methods">Concrete methods</a></li><li><a href="#Inherited-methods">Inherited methods</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
+</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Type parameters</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Type-members">Type members</a><ul><li><a href="#Types">Types</a></li></ul></li><li><a href="#Value-members">Value members</a><ul><li><a href="#Concrete-methods">Concrete methods</a></li><li><a href="#Inherited-methods">Inherited methods</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>

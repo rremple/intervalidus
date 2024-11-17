@@ -115,6 +115,39 @@ node6 -> node0;
  <div class="membersList expand">
   <div class="tabs">
    <div class="contents">
+    <section id="Type-members">
+     <div data-togglable="Type members" class="tab expand">
+      <div class="member-group-header">
+       <h3 data-togglable="Type members" class="h400">Type members</h3>
+      </div>
+      <section id="Types">
+       <div class="documentableList expand">
+        <div class="documentableList-expander">
+         <button class="icon-button show-content expand"></button>
+         <h4 class="groupHeader h200">Types</h4>
+        </div>
+        <div class="documentableElement" id="BoxType-0">
+         <div class="documentableElement-expander">
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">type </span></span><a href="DiscreteIntervalLike.html#BoxType-0" t="n" class="documentableName ">BoxType</a><span t="k"> &lt;: </span><a href="collection/BoxLike.html" t="t">BoxLike</a>[<span t="k">_</span>, <a href="DiscreteIntervalLike.html#BoxType-0" t="t">BoxType</a>]
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="ExclusionRemainder-0">
+         <div class="documentableElement-expander">
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">type </span></span><a href="DiscreteIntervalLike.html#ExclusionRemainder-0" t="n" class="documentableName ">ExclusionRemainder</a>
+           </div>
+          </div>
+         </div>
+        </div>
+       </div>
+      </section>
+     </div>
+    </section>
     <section id="Value-members">
      <div data-togglable="Value members" class="tab expand">
       <div class="member-group-header">
@@ -203,6 +236,41 @@ node6 -> node0;
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="asBox-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteIntervalLike.html#asBox-0" t="n" class="documentableName ">asBox</a>: <a href="DiscreteIntervalLike.html#BoxType-0" t="t">BoxType</a>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Approximate this interval as a box in double space based on the domain ordered hash.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Approximate this interval as a box in double space based on the domain ordered hash.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>a new box that can be managed in a box tree</p>
+              </dd>
+             </dl>
             </div>
            </div>
           </div>
@@ -352,6 +420,80 @@ node6 -> node0;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="endingBefore-5c1">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteIntervalLike.html#endingBefore-5c1" t="n" class="documentableName ">endingBefore</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">newEndSuccessor</span>: <span t="t">D</span>): <span t="t">Self</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Returns a new interval ending at the predecessor of the provided value.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Returns a new interval ending at the predecessor of the provided value.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               newEndSuccessor
+              </dt>
+              <dd class="body-medium">
+               <p>the successor of the end of the new interval</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="endingWith-5c1">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteIntervalLike.html#endingWith-5c1" t="n" class="documentableName ">endingWith</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">newEnd</span>: <span t="t">D</span>): <span t="t">Self</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Returns a new interval ending at the provided value.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Returns a new interval ending at the provided value.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               newEnd
+              </dt>
+              <dd class="body-medium">
+               <p>the end of the new interval</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="equiv-f1b" data-f-keywords="infix">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -389,6 +531,122 @@ node6 -> node0;
               </dt>
               <dd class="body-medium">
                <p>true if this and that have the same start and end.</p>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="excluding-fffff3f8" data-f-keywords="infix">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">infix </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteIntervalLike.html#excluding-fffff3f8" t="n" class="documentableName ">excluding</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <span t="t">Self</span>): <a href="DiscreteIntervalLike.html#ExclusionRemainder-0" t="t">ExclusionRemainder</a>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Excludes that interval from this one.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Excludes that interval from this one.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               that
+              </dt>
+              <dd class="body-medium">
+               <p>the interval to exclude.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>The remainder in each dimension after exclusion.</p>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="fromBottom-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteIntervalLike.html#fromBottom-0" t="n" class="documentableName ">fromBottom</a>: <span t="t">Self</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Returns a new interval with the same end as this interval but with an unbounded start.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Returns a new interval with the same end as this interval but with an unbounded start.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="gapWith-b22" data-f-keywords="infix">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">infix </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteIntervalLike.html#gapWith-b22" t="n" class="documentableName ">gapWith</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <span t="t">Self</span>): <span data-unresolved-link="" t="t">Option</span>[<span t="t">Self</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Returns gap between this and that interval, if one exists.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Returns gap between this and that interval, if one exists.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               that
+              </dt>
+              <dd class="body-medium">
+               <p>the interval to evaluate.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>if one exists, some interval representing the gap between this and that in all dimensions, and None otherwise.</p>
               </dd>
              </dl>
             </div>
@@ -588,6 +846,43 @@ node6 -> node0;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="isLeftAdjacentTo-f1b" data-f-keywords="infix">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">infix </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteIntervalLike.html#isLeftAdjacentTo-f1b" t="n" class="documentableName ">isLeftAdjacentTo</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <span t="t">Self</span>): <span data-unresolved-link="" t="t">Boolean</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Tests if this interval is to the left of that interval and there is no gap between them.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Tests if this interval is to the left of that interval and there is no gap between them.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               that
+              </dt>
+              <dd class="body-medium">
+               <p>the interval to test for adjacency.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="isSubsetOf-f1b" data-f-keywords="infix">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -760,6 +1055,80 @@ node6 -> node0;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="startingAfter-5c1">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteIntervalLike.html#startingAfter-5c1" t="n" class="documentableName ">startingAfter</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">newStartPredecessor</span>: <span t="t">D</span>): <span t="t">Self</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Returns a new interval starting at the successor of the provided value.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Returns a new interval starting at the successor of the provided value.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               newStartPredecessor
+              </dt>
+              <dd class="body-medium">
+               <p>the predecessor of the start of the new interval</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="startingWith-5c1">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteIntervalLike.html#startingWith-5c1" t="n" class="documentableName ">startingWith</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">newStart</span>: <span t="t">D</span>): <span t="t">Self</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Returns a new interval starting at the provided value.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Returns a new interval starting at the provided value.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               newStart
+              </dt>
+              <dd class="body-medium">
+               <p>the start of the new interval</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="toCodeLikeString-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -780,6 +1149,34 @@ node6 -> node0;
             <div class="cover">
              <div class="doc">
               <p>Alternative to toString for something that looks more like code</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="toTop-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteIntervalLike.html#toTop-0" t="n" class="documentableName ">toTop</a>: <span t="t">Self</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Returns a new interval with the same start as this interval but with an unbounded end.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Returns a new interval with the same start as this interval but with an unbounded end.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -848,6 +1245,144 @@ node6 -> node0;
         <div class="documentableList-expander">
          <button class="icon-button show-content expand"></button>
          <h4 class="groupHeader h200">Concrete methods</h4>
+        </div>
+        <div class="documentableElement" id="\-fffff3f8">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteIntervalLike.html#\-fffff3f8" t="n" class="documentableName ">\</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <span t="t">Self</span>): <a href="DiscreteIntervalLike.html#ExclusionRemainder-0" t="t">ExclusionRemainder</a>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Same as <a href="DiscreteIntervalLike.html#excluding-fffff3f8">excluding</a>.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Same as <a href="DiscreteIntervalLike.html#excluding-fffff3f8">excluding</a>.</p>
+              <p>Excludes that interval from this one. The horizontal, vertical, and depth results are returned as a tuple.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               that
+              </dt>
+              <dd class="body-medium">
+               <p>the interval to exclude.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>The remainder in each dimension after exclusion.</p>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="atEnd-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteIntervalLike.html#atEnd-0" t="n" class="documentableName ">atEnd</a>: <span t="t">Self</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Returns a new singleton interval containing only the end of this interval.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Returns a new singleton interval containing only the end of this interval.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="atStart-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteIntervalLike.html#atStart-0" t="n" class="documentableName ">atStart</a>: <span t="t">Self</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Returns a new singleton interval containing only the start of this interval.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Returns a new singleton interval containing only the start of this interval.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="isRightAdjacentTo-f1b" data-f-keywords="infix">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">infix </span></span><span class="kind"><span t="k">def </span></span><a href="DiscreteIntervalLike.html#isRightAdjacentTo-f1b" t="n" class="documentableName ">isRightAdjacentTo</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <span t="t">Self</span>): <span data-unresolved-link="" t="t">Boolean</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Tests if this interval is to the right of that interval and there is no gap between them.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Tests if this interval is to the right of that interval and there is no gap between them.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               that
+              </dt>
+              <dd class="body-medium">
+               <p>the interval to test for adjacency.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
         </div>
         <div class="documentableElement" id="∩-b22">
          <div class="documentableElement-expander">
@@ -991,4 +1526,4 @@ node6 -> node0;
    </div>
   </div>
  </div>
-</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Type parameters</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Value-members">Value members</a><ul><li><a href="#Abstract-methods">Abstract methods</a></li><li><a href="#Concrete-methods">Concrete methods</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
+</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Type parameters</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Type-members">Type members</a><ul><li><a href="#Types">Types</a></li></ul></li><li><a href="#Value-members">Value members</a><ul><li><a href="#Abstract-methods">Abstract methods</a></li><li><a href="#Concrete-methods">Concrete methods</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
