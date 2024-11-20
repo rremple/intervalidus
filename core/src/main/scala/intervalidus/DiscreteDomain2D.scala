@@ -31,6 +31,8 @@ case class DiscreteDomain2D[T1: DiscreteValue, T2: DiscreteValue](
 
   override def toString: String = s"{$horizontalIndex, $verticalIndex}"
 
+  override def isUnbounded: Boolean = horizontalIndex.isUnbounded && verticalIndex.isUnbounded
+
   override def toCodeLikeString: String = s"${horizontalIndex.toCodeLikeString} x ${verticalIndex.toCodeLikeString}"
 
   /**

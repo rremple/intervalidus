@@ -46,9 +46,6 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
       (this.vertical contains domainElement.verticalIndex) &&
       (this.depth contains domainElement.depthIndex)
 
-  override infix def isUnbounded: Boolean =
-    this.horizontal.isUnbounded && this.vertical.isUnbounded && this.depth.isUnbounded
-
   override def points: Iterable[DiscreteDomain3D[T1, T2, T3]] =
     for
       horizontalPoint <- horizontal.points
@@ -60,16 +57,6 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
     (this isLeftAdjacentTo that) || (this isRightAdjacentTo that) ||
       (this isLowerAdjacentTo that) || (this isUpperAdjacentTo that) ||
       (this isBackAdjacentTo that) || (this isFrontAdjacentTo that)
-
-  override infix def hasSameStartAs(that: DiscreteInterval3D[T1, T2, T3]): Boolean =
-    (horizontal hasSameStartAs that.horizontal) &&
-      (vertical hasSameStartAs that.vertical) &&
-      (depth hasSameStartAs that.depth)
-
-  override infix def hasSameEndAs(that: DiscreteInterval3D[T1, T2, T3]): Boolean =
-    (horizontal hasSameEndAs that.horizontal) &&
-      (vertical hasSameEndAs that.vertical) &&
-      (depth hasSameEndAs that.depth)
 
   override infix def intersects(that: DiscreteInterval3D[T1, T2, T3]): Boolean =
     (this.horizontal intersects that.horizontal) &&
@@ -88,15 +75,10 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
       (this.vertical joinedWith that.vertical) x
       (this.depth joinedWith that.depth)
 
-  override infix def equiv(that: DiscreteInterval3D[T1, T2, T3]): Boolean =
-    (this.horizontal equiv that.horizontal) && (this.vertical equiv that.vertical) && (this.depth equiv that.depth)
-
   override infix def contains(that: DiscreteInterval3D[T1, T2, T3]): Boolean =
     (this.horizontal contains that.horizontal) &&
       (this.vertical contains that.vertical) &&
       (this.depth contains that.depth)
-
-  override infix def isSubsetOf(that: DiscreteInterval3D[T1, T2, T3]): Boolean = that contains this
 
   override def after: Option[DiscreteInterval3D[T1, T2, T3]] = (horizontal.after, vertical.after, depth.after) match
     case (Some(horizontalAfter), Some(verticalAfter), Some(depthAfter)) =>

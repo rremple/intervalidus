@@ -2,6 +2,8 @@ package intervalidus
 
 import intervalidus.collection.BoxLike
 
+import scala.math.Ordering.Implicits.infixOrderingOps
+
 /**
   * An interval over a contiguous set of ordered elements of a discrete domain.
   *
@@ -10,7 +12,7 @@ import intervalidus.collection.BoxLike
   * @tparam Self
   *   F-bounded self type.
   */
-trait DiscreteIntervalLike[D <: DiscreteDomainLike[D], Self <: DiscreteIntervalLike[D, Self]]:
+trait DiscreteIntervalLike[D <: DiscreteDomainLike[D]: Ordering, Self <: DiscreteIntervalLike[D, Self]: Ordering]:
   this: Self =>
 
   type ExclusionRemainder
@@ -65,11 +67,6 @@ trait DiscreteIntervalLike[D <: DiscreteDomainLike[D], Self <: DiscreteIntervalL
   infix def contains(domainIndex: D): Boolean
 
   /**
-    * Tests if there is no fixed start or end - spans the entire domain.
-    */
-  infix def isUnbounded: Boolean
-
-  /**
     * Returns individual discrete domain points in this interval.
     */
   def points: Iterable[D]
@@ -81,22 +78,6 @@ trait DiscreteIntervalLike[D <: DiscreteDomainLike[D], Self <: DiscreteIntervalL
     *   the interval to test for adjacency.
     */
   infix def isAdjacentTo(that: Self): Boolean
-
-  /**
-    * Tests if this and that have the same start.
-    *
-    * @param that
-    *   the interval to test.
-    */
-  infix def hasSameStartAs(that: Self): Boolean
-
-  /**
-    * Tests if this and that have the same end.
-    *
-    * @param that
-    *   the interval to test.
-    */
-  infix def hasSameEndAs(that: Self): Boolean
 
   /**
     * Tests if this and that have elements of the domain in common (not disjoint).
@@ -129,16 +110,6 @@ trait DiscreteIntervalLike[D <: DiscreteDomainLike[D], Self <: DiscreteIntervalL
   infix def joinedWith(that: Self): Self
 
   /**
-    * Test for equivalence by comparing all interval components of this and that.
-    *
-    * @param that
-    *   the interval to test.
-    * @return
-    *   true if this and that have the same start and end.
-    */
-  infix def equiv(that: Self): Boolean
-
-  /**
     * Tests if that is a subset (proper or improper) of this.
     *
     * @param that
@@ -147,16 +118,6 @@ trait DiscreteIntervalLike[D <: DiscreteDomainLike[D], Self <: DiscreteIntervalL
     *   true if that is a subset of this.
     */
   infix def contains(that: Self): Boolean
-
-  /**
-    * Tests if this is a subset (proper or improper) of that.
-    *
-    * @param that
-    *   the interval to test.
-    * @return
-    *   true if this is a subset of that.
-    */
-  infix def isSubsetOf(that: Self): Boolean
 
   /**
     * If there are intervals after each interval component (i.e., none of them end at Top), returns the interval after
@@ -257,6 +218,47 @@ trait DiscreteIntervalLike[D <: DiscreteDomainLike[D], Self <: DiscreteIntervalL
   infix def ->[V](value: V): ValidDataLike[V, D, Self, ?]
 
   // equivalent symbolic method names and other implementations
+
+  /**
+    * Tests if there is no fixed start or end - spans the entire domain.
+    */
+  def isUnbounded: Boolean = start.isUnbounded && end.isUnbounded
+
+  /**
+    * Tests if this and that have the same start.
+    *
+    * @param that
+    *   the interval to test.
+    */
+  infix def hasSameStartAs(that: Self): Boolean = start equiv that.start
+
+  /**
+    * Tests if this and that have the same end.
+    *
+    * @param that
+    *   the interval to test.
+    */
+  infix def hasSameEndAs(that: Self): Boolean = end equiv that.end
+
+  /**
+    * Test for equivalence by comparing all interval components of this and that.
+    *
+    * @param that
+    *   the interval to test.
+    * @return
+    *   true if this and that have the same start and end.
+    */
+  infix def equiv(that: Self): Boolean = (start equiv that.start) && (end equiv that.end)
+
+  /**
+    * Tests if this is a subset (proper or improper) of that.
+    *
+    * @param that
+    *   the interval to test.
+    * @return
+    *   true if this is a subset of that.
+    */
+  infix def isSubsetOf(that: Self): Boolean = that contains this
 
   /**
     * Tests if this interval is to the right of that interval and there is no gap between them.

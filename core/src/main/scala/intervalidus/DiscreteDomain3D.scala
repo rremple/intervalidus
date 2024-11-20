@@ -37,6 +37,8 @@ case class DiscreteDomain3D[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteVa
 
   override def toString: String = s"{$horizontalIndex, $verticalIndex, $depthIndex}"
 
+  override def isUnbounded: Boolean = horizontalIndex.isUnbounded && verticalIndex.isUnbounded & depthIndex.isUnbounded
+
   override def toCodeLikeString: String =
     s"${horizontalIndex.toCodeLikeString} x ${verticalIndex.toCodeLikeString} x ${depthIndex.toCodeLikeString}"
 

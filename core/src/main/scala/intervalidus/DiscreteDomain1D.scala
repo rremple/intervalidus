@@ -37,6 +37,10 @@ enum DiscreteDomain1D[+T] extends DiscreteDomainLike[DiscreteDomain1D[T]]:
     case Point(t) => t.toString
     case Top      => "+∞"
 
+  override def isUnbounded: Boolean = this match
+    case Point(_) => false
+    case _        => true
+
   override def toCodeLikeString: String =
     def codeFor(value: T): String = value match
       case d: LocalDate => s"LocalDate.of(${d.getYear},${d.getMonthValue},${d.getDayOfMonth})"

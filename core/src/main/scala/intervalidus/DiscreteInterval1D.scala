@@ -38,8 +38,6 @@ case class DiscreteInterval1D[T: DiscreteValue](
   override infix def contains(domainElement: DiscreteDomain1D[T]): Boolean =
     start <= domainElement && domainElement <= end
 
-  override infix def isUnbounded: Boolean = (this.start equiv Bottom) && (this.end equiv Top)
-
   override def points: Iterable[DiscreteDomain1D[T]] =
     val discreteValue = summon[DiscreteValue[T]]
 
@@ -60,10 +58,6 @@ case class DiscreteInterval1D[T: DiscreteValue](
   override infix def isAdjacentTo(that: DiscreteInterval1D[T]): Boolean =
     (this isLeftAdjacentTo that) || (this isRightAdjacentTo that)
 
-  override infix def hasSameStartAs(that: DiscreteInterval1D[T]): Boolean = this.start equiv that.start
-
-  override infix def hasSameEndAs(that: DiscreteInterval1D[T]): Boolean = this.end equiv that.end
-
   override infix def intersects(that: DiscreteInterval1D[T]): Boolean = this.start <= that.end && that.start <= this.end
 
   override infix def intersectionWith(that: DiscreteInterval1D[T]): Option[DiscreteInterval1D[T]] =
@@ -73,12 +67,7 @@ case class DiscreteInterval1D[T: DiscreteValue](
   override infix def joinedWith(that: DiscreteInterval1D[T]): DiscreteInterval1D[T] =
     DiscreteInterval1D(this.start min that.start, this.end max that.end)
 
-  override infix def equiv(that: DiscreteInterval1D[T]): Boolean =
-    (this hasSameStartAs that) && (this hasSameEndAs that)
-
   override infix def contains(that: DiscreteInterval1D[T]): Boolean = start <= that.start && that.end <= end
-
-  override infix def isSubsetOf(that: DiscreteInterval1D[T]): Boolean = that contains this
 
   override def after: Option[DiscreteInterval1D[T]] = end.successor match
     case Top          => None

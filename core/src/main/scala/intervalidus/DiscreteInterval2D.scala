@@ -40,8 +40,6 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
   override infix def contains(domainElement: DiscreteDomain2D[T1, T2]): Boolean =
     (this.horizontal contains domainElement.horizontalIndex) && (this.vertical contains domainElement.verticalIndex)
 
-  override infix def isUnbounded: Boolean = this.horizontal.isUnbounded && this.vertical.isUnbounded
-
   override def points: Iterable[DiscreteDomain2D[T1, T2]] =
     for
       horizontalPoint <- horizontal.points
@@ -51,14 +49,6 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
   override infix def isAdjacentTo(that: DiscreteInterval2D[T1, T2]): Boolean =
     (this isLeftAdjacentTo that) || (this isRightAdjacentTo that) ||
       (this isLowerAdjacentTo that) || (this isUpperAdjacentTo that)
-
-  override infix def hasSameStartAs(that: DiscreteInterval2D[T1, T2]): Boolean =
-    (horizontal hasSameStartAs that.horizontal) &&
-      (vertical hasSameStartAs that.vertical)
-
-  override infix def hasSameEndAs(that: DiscreteInterval2D[T1, T2]): Boolean =
-    (horizontal hasSameEndAs that.horizontal) &&
-      (vertical hasSameEndAs that.vertical)
 
   override infix def intersects(that: DiscreteInterval2D[T1, T2]): Boolean =
     (this.horizontal intersects that.horizontal) && (this.vertical intersects that.vertical)
@@ -72,13 +62,8 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
   override infix def joinedWith(that: DiscreteInterval2D[T1, T2]): DiscreteInterval2D[T1, T2] =
     (this.horizontal joinedWith that.horizontal) x (this.vertical joinedWith that.vertical)
 
-  override infix def equiv(that: DiscreteInterval2D[T1, T2]): Boolean =
-    (this.horizontal equiv that.horizontal) && (this.vertical equiv that.vertical)
-
   override infix def contains(that: DiscreteInterval2D[T1, T2]): Boolean =
     (this.horizontal contains that.horizontal) && (this.vertical contains that.vertical)
-
-  override infix def isSubsetOf(that: DiscreteInterval2D[T1, T2]): Boolean = that contains this
 
   override def after: Option[DiscreteInterval2D[T1, T2]] = (horizontal.after, vertical.after) match
     case (Some(horizontalAfter), Some(verticalAfter)) => Some(DiscreteInterval2D(horizontalAfter, verticalAfter))
