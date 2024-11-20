@@ -1,7 +1,6 @@
 package intervalidus
 
-import intervalidus.DiscreteDomain1D.Bottom
-import intervalidus.collection.{BoxLike, CoordinateLike}
+import intervalidus.collection.BoxLike
 
 /**
   * An interval over a contiguous set of ordered elements of a discrete domain.

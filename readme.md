@@ -257,6 +257,11 @@ implementation in the higher, inheriting trait/class
 
 ![trait stack diagram](/doc/intervalidus-trait-stack.svg)
 
+And the definitions and implementations of methods across the common structural elements have been made similarly
+generic:
+
+![trait stack structural diagram](/doc/intervalidus-trait-stack-structural.svg)
+
 ## Internals and extras
 
 Both the mutable and immutable variants of `DataIn#` (where `#` is `1D`, `2D`, and `3D`) use three mutable data
@@ -339,6 +344,6 @@ Other experimental features that can be toggled are:
 - **"bruteForceUpdate"** It was easy to specify all the cases directly for removing the intersection of an interval with
   all existing intervals in one dimension: there are only a few cases. In two dimensions it got more complicated, and
   even more so in three dimensions. There is a simpler brute force approach (code is about 10x shorter in 3D!) that
-  eliminates all this complexity. Unfortunately it runs a 2x - 5x slower in micro-benchmarks. It is unlikely this
+  eliminates all this complexity. Unfortunately it runs 2x - 5x slower in micro-benchmarks. It is unlikely this
   feature would be useful to anyone except an Intervalidus committer trying to close this performance gap -- it would be
   really nice if the shorter code was also the faster code!

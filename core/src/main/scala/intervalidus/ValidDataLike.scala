@@ -2,8 +2,6 @@ package intervalidus
 
 import intervalidus.collection.BoxedPayloadLike
 
-import java.time.LocalDate
-
 /**
   * A value that is valid in some discrete interval. This defines a partial function where all domain elements that are
   * part of the interval map to the specified value.
