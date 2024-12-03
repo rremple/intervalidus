@@ -9,7 +9,7 @@ import scala.collection.mutable
 /**
   * Constructs data in two-dimensional intervals.
   */
-trait DataIn2DBaseObject:
+trait DataIn2DBaseObject extends DataIn2DConstructorParams:
   /**
     * Shorthand constructor for a single initial value that is valid in a particular interval.
     *
@@ -62,6 +62,7 @@ trait DataIn2DBaseObject:
     Experimental
   ): DataIn2DBase[V, R1, R2]
 
+trait DataIn2DConstructorParams:
   protected def constructorParams[V, R1, R2](
     initialData: Iterable[ValidData2D[V, R1, R2]]
   )(using experimental: Experimental, discreteValue1: DiscreteValue[R1], discreteValue2: DiscreteValue[R2]): (
@@ -337,15 +338,15 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
     *   1. bite = single + split or split + single (2 of 9)
     * @param targetInterval
     *   the interval where any valid values are updated or removed.
-    * @param newValueOption
-    *   when defined, the value to be stored as part of an update
+    * @param updateValue
+    *   maps a current value to some updated value, or None if the value should be removed.
     */
   override protected def updateOrRemove(
     targetInterval: DiscreteInterval2D[R1, R2],
-    newValueOption: Option[V]
+    updateValue: V => Option[V]
   ): Unit = experimental.control("bruteForceUpdate")(
-    nonExperimentalResult = updateOrRemoveOptimized(targetInterval, newValueOption),
-    experimentalResult = updateOrRemoveBruteForce(targetInterval, newValueOption)
+    nonExperimentalResult = updateOrRemoveOptimized(targetInterval, updateValue),
+    experimentalResult = updateOrRemoveBruteForce(targetInterval, updateValue)
   )
 
   /*
@@ -354,7 +355,7 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
    */
   private def updateOrRemoveOptimized(
     targetInterval: DiscreteInterval2D[R1, R2],
-    newValueOption: Option[V]
+    updateValue: V => Option[V]
   ): Unit = synchronized:
     import DiscreteInterval1D.Remainder
 
@@ -375,9 +376,10 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
 
     val intersecting = getIntersecting(targetInterval)
     // These values will be targets for compression later
-    val potentiallyAffectedValues = intersecting.map(_.value).toSet ++ newValueOption
+    val potentiallyAffectedValues = intersecting.map(_.value).toSet ++ intersecting.map(_.value).flatMap(updateValue)
 
     intersecting.foreach: overlap =>
+      val newValueOption = updateValue(overlap.value)
 
       /*
        * These methods are generic by dimension to accommodate symmetric operations without code duplication.
@@ -553,14 +555,15 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
    */
   private def updateOrRemoveBruteForce(
     targetInterval: DiscreteInterval2D[R1, R2],
-    newValueOption: Option[V]
+    updateValue: V => Option[V]
   ): Unit = synchronized:
     import DiscreteInterval1D.Remainder
 
     val intersecting = getIntersecting(targetInterval)
-    val potentiallyAffectedValues = intersecting.map(_.value).toSet ++ newValueOption
+    val potentiallyAffectedValues = intersecting.map(_.value).toSet ++ intersecting.map(_.value).flatMap(updateValue)
 
     intersecting.foreach: overlap =>
+      val newValueOption = updateValue(overlap.value)
 
       def excludeOverlapRemainder1D[T: DiscreteValue](
         extractFromOverlap: DiscreteInterval2D[R1, R2] => DiscreteInterval1D[T],
@@ -607,3 +610,12 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
         addValidData(excludedSubinterval -> newValue)
 
     potentiallyAffectedValues.foreach(compressInPlace)
+
+  override protected def fillInPlace[B <: V](interval: DiscreteInterval2D[R1, R2], value: B): Unit = synchronized:
+    val intersectingIntervals = getIntersecting(interval).map(_.interval)
+    DiscreteInterval2D
+      .uniqueIntervals(intersectingIntervals.toSeq :+ interval)
+      .filterNot(intersects)
+      .map(_ -> value)
+      .foreach(addValidData)
+    compressInPlace(value)

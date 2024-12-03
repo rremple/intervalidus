@@ -202,6 +202,17 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors:
 
     val copyFixture6 = fixture.copy
 
+    fixture.fill(DiscreteInterval3D.unbounded -> "Filled")
+    val expectedFilled = List(
+      (unboundedDate x unboundedDate x intervalTo(0)) -> "Hey",
+      (intervalTo(day(0)) x unboundedDate x interval(1, 4)) -> "Hey",
+      (unboundedDate x unboundedDate x interval(5, 15)) -> "Filled",
+      (intervalTo(day(0)) x unboundedDate x intervalFrom(16)) -> "World",
+      (intervalFrom(day(1)) x unboundedDate x interval(1, 4)) -> "Filled",
+      (intervalFrom(day(1)) x unboundedDate x intervalFrom(16)) -> "Filled"
+    )
+    fixture.getAll.toList shouldBe expectedFilled
+
     import DiffAction3D.*
     import DiscreteDomain1D.{Bottom, Point}
 

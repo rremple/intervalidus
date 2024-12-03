@@ -120,6 +120,10 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     val expectedData6 = testData("Hey" -> intervalTo(0))
     fixture6.getAll.toList shouldBe expectedData6
 
+    val fixture7 = fixture6.fill(DiscreteInterval1D.unbounded -> "Filled")
+    val expectedFilled = testData("Hey" -> intervalTo(0), "Filled" -> intervalFrom(1))
+    fixture7.getAll.toList shouldBe expectedFilled
+
     import DiffAction2D.*
 
     val actionsFrom2To4 = fixture4.diffActionsFrom(fixture2)

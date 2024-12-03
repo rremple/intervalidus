@@ -148,33 +148,33 @@ these methods.
 
 These query methods provide various data, difference, and Boolean results:
 
-- `get` / `getAll` / `getAt` / `getIntersecting`
-- `domain`
+- `get` / `getOption` / `getAt` / `getAll` / `getIntersecting`
+- `intersects`
 - `foldLeft`
 - `isEmpty`
-- `intersects`
+- `domain`
 - `diffActionsFrom`
 
 These methods return a new structure:
 
 - `copy` / `toImmutable` / `toMutable`
 - `zip` / `zipAll`
-- `getByHorizontalIndex` / `getByVerticalIndex` (only available on 2D and 3D)
-- `getByDepthIndex` (only available on 3D)
 - `flip` (only available on 2D)
 - `flipAboutHorizontal` / `flipAboutVertical` / `flipAboutDepth` /  (only available on 3D)
+- `getByHorizontalIndex` / `getByVerticalIndex` (only available on 2D and 3D)
+- `getByDepthIndex` (only available on 3D)
 
 These mutation methods return a new structure when using immutable and `Unit` when using mutable:
 
 - `remove`
 - `replace` / `replaceByKey`
 - `set` / `setIfNoConflict`
-- `update`
+- `update` / `fill`
+- `compress` / `compressAll` / `recompressAll`
 - `filter`
 - `map` / `mapValues`
 - `flatMap`
 - `applyDiffActions` / `syncWith`
-- `compress` / `compressAll` / `recompressAll`
 
 ## Using and Extending
 
@@ -229,12 +229,20 @@ This prints the following:
                                           | Blue, Magenta      |
 ```
 
-You can also extend through composition. For example `DataIn1DVersioned` mimics the `DataIn1D` API but uses an
+You can extend through composition. For example `DataIn1DVersioned` mimics the `DataIn1D` API but uses an
 underlying `DataIn2D` structure with an integer vertical dimension to create a versioned data structure. The "current"
 version is tracked as internal state and methods accept version selection as a context parameter, with "current" as the
-default version selection applied. Also, a notion of approval is supported by specifying a specific future version for 
-anything unapproved. Similarly, there is a `DataIn2DVersioned` mimicking the `DataIn2D` API using an 
+default version selection applied. Also, a notion of approval is supported by specifying a specific future version for
+anything unapproved. Similarly, there is a `DataIn2DVersioned` mimicking the `DataIn2D` API using an
 underlying `DataIn3D` structure.
+
+You can also extend through object-oriented inheritance. For example `DataIn1DMulti`, `DataIn2DMulti`, and
+`DataIn3DMulti` extend the underlying class hierarchy of normal 1D, 2D, and 3D structures to provide multimap-like
+capabilities. The inherited components store and operate on sets of values rather than individual values, which allows
+multiple values to be valid in the same interval. When queried, values are returned as sets. There are also `add` and
+`remove` methods which allow mutation of individual values across intervals, and a `merge` method for combining two
+structures (conceptually similar to `zip`, but operating on individual values, and more appropriate for these multiple
+values structures).
 
 ## Software Structure
 

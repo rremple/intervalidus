@@ -83,7 +83,7 @@ trait ImmutableBase[
     *   a new, updated structure.
     */
   def set(newData: ValidData): Self = copyAndModify: result =>
-    result.updateOrRemove(newData.interval, None)
+    result.updateOrRemove(newData.interval, _ => None)
     result.addValidData(newData)
     result.compressInPlace(newData.value)
 
@@ -113,7 +113,7 @@ trait ImmutableBase[
     *   a new, updated structure.
     */
   def update(data: ValidData): Self =
-    copyAndModify(_.updateOrRemove(data.interval, Some(data.value)))
+    copyAndModify(_.updateOrRemove(data.interval, _ => Some(data.value)))
 
   /**
     * Remove the old data and replace it with the new data. The new data value and interval can be different. Data with
@@ -128,7 +128,7 @@ trait ImmutableBase[
     */
   def replace(oldData: ValidData, newData: ValidData): Self = copyAndModify: result =>
     result.removeValidData(oldData)
-    result.updateOrRemove(newData.interval, None)
+    result.updateOrRemove(newData.interval, _ => None)
     result.addValidData(newData)
     result.compressInPlace(newData.value)
 
@@ -156,13 +156,13 @@ trait ImmutableBase[
     *   a new, updated structure.
     */
   def remove(interval: I): Self =
-    copyAndModify(_.updateOrRemove(interval, None))
+    copyAndModify(_.updateOrRemove(interval, _ => None))
 
   /**
     * Compress out adjacent intervals with the same value.
     *
     * @param value
-    *   value to be evaluate
+    *   value to be evaluated
     * @return
     *   a new, updated structure.
     */
@@ -177,3 +177,14 @@ trait ImmutableBase[
     */
   def compressAll(): Self = copyAndModify: result =>
     dataByValue.keySet.foreach(result.compressInPlace)
+
+  /**
+    * Adds a value as valid in portions of the interval where there aren't already valid values.
+    *
+    * @param data
+    *   value to make valid in any validity gaps found in the interval
+    * @return
+    *   a new, updated structure.
+    */
+  def fill(data: ValidData): Self = copyAndModify: result =>
+    result.fillInPlace(data.interval, data.value)

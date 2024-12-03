@@ -9,7 +9,7 @@ import scala.collection.mutable
 /**
   * Constructs data in three-dimensional intervals.
   */
-trait DataIn3DBaseObject:
+trait DataIn3DBaseObject extends DataIn3DConstructorParams:
   /**
     * Shorthand constructor for a single initial value that is valid in a particular interval.
     *
@@ -72,6 +72,7 @@ trait DataIn3DBaseObject:
     Experimental
   ): DataIn3DBase[V, R1, R2, R3]
 
+trait DataIn3DConstructorParams:
   protected def constructorParams[V, R1, R2, R3](
     initialData: Iterable[ValidData3D[V, R1, R2, R3]]
   )(using
@@ -410,15 +411,15 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
     *   1. bite = split + single + none (6 symmetric cases)
     * @param targetInterval
     *   the interval where any valid values are updated or removed.
-    * @param newValueOption
-    *   when defined, the value to be stored as part of an update
+    * @param updateValue
+    *   maps a current value to some updated value, or None if the value should be removed.
     */
   override protected def updateOrRemove(
     targetInterval: DiscreteInterval3D[R1, R2, R3],
-    newValueOption: Option[V]
+    updateValue: V => Option[V]
   ): Unit = experimental.control("bruteForceUpdate")(
-    nonExperimentalResult = updateOrRemoveOptimized(targetInterval, newValueOption),
-    experimentalResult = updateOrRemoveBruteForce(targetInterval, newValueOption)
+    nonExperimentalResult = updateOrRemoveOptimized(targetInterval, updateValue),
+    experimentalResult = updateOrRemoveBruteForce(targetInterval, updateValue)
   )
 
   /*
@@ -427,7 +428,7 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
    */
   private def updateOrRemoveOptimized(
     targetInterval: DiscreteInterval3D[R1, R2, R3],
-    newValueOption: Option[V]
+    updateValue: V => Option[V]
   ): Unit = synchronized:
     import DiscreteInterval1D.Remainder
 
@@ -448,9 +449,10 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
 
     val intersecting = getIntersecting(targetInterval)
     // These values will be targets for compression later
-    val potentiallyAffectedValues = intersecting.map(_.value).toSet ++ newValueOption
+    val potentiallyAffectedValues = intersecting.map(_.value).toSet ++ intersecting.map(_.value).flatMap(updateValue)
 
     intersecting.foreach: overlap =>
+      val newValueOption = updateValue(overlap.value)
 
       /*
        * These methods are generic by dimension to accommodate symmetric operations without code duplication.
@@ -991,14 +993,15 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
    */
   private def updateOrRemoveBruteForce(
     targetInterval: DiscreteInterval3D[R1, R2, R3],
-    newValueOption: Option[V]
+    updateValue: V => Option[V]
   ): Unit = synchronized:
     import DiscreteInterval1D.Remainder
 
     val intersecting = getIntersecting(targetInterval)
-    val potentiallyAffectedValues = intersecting.map(_.value).toSet ++ newValueOption
+    val potentiallyAffectedValues = intersecting.map(_.value).toSet ++ intersecting.map(_.value).flatMap(updateValue)
 
     intersecting.foreach: overlap =>
+      val newValueOption = updateValue(overlap.value)
 
       def excludeOverlapRemainder1D[T: DiscreteValue](
         extractFromOverlap: DiscreteInterval3D[R1, R2, R3] => DiscreteInterval1D[T],
@@ -1047,3 +1050,12 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
         addValidData(excludedSubinterval -> newValue)
 
     potentiallyAffectedValues.foreach(compressInPlace)
+
+  override protected def fillInPlace[B <: V](interval: DiscreteInterval3D[R1, R2, R3], value: B): Unit = synchronized:
+    val intersectingIntervals = getIntersecting(interval).map(_.interval)
+    DiscreteInterval3D
+      .uniqueIntervals(intersectingIntervals.toSeq :+ interval)
+      .filterNot(intersects)
+      .map(_ -> value)
+      .foreach(addValidData)
+    compressInPlace(value)

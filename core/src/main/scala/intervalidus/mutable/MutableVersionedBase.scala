@@ -206,10 +206,17 @@ trait MutableVersionedBase[
     * @param versionSelection
     *   version used for updating data -- default is the current version.
     */
-  def update(
-    data: ValidData
-  )(using versionSelection: VersionSelection): Unit =
+  def update(data: ValidData)(using versionSelection: VersionSelection): Unit =
     underlying.update(underlyingValidData(data))
+
+  /**
+    * Adds a value as valid in an interval and the given version selection context wherever no values are valid.
+    *
+    * @param data
+    *   value to make valid in any validity gaps found in the interval
+    */
+  def fill(data: ValidData)(using versionSelection: VersionSelection): Unit =
+    underlying.fill(underlyingValidData(data))
 
   /**
     * Updates structure to only include elements which satisfy a predicate. Data are mutated in place.

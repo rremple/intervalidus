@@ -137,6 +137,10 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors:
     val expectedData6 = testData("Hey" -> intervalTo(0))
     f6.getAll.toList shouldBe expectedData6
 
+    val f7 = f6.fill(DiscreteInterval1D.unbounded -> "Filled")
+    val expectedFilled = testData("Hey" -> intervalTo(0), "Filled" -> intervalFrom(1))
+    f7.getAll.toList shouldBe expectedFilled
+
     import DiffAction1D.*
 
     val actionsFrom2To4 = f4.diffActionsFrom(f2)

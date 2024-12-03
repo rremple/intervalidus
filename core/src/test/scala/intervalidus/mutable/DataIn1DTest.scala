@@ -122,6 +122,10 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors:
 
     val copyFixture6 = fixture.copy
 
+    fixture.fill(DiscreteInterval1D.unbounded -> "Filled")
+    val expectedFilled = testData("Hey" -> intervalTo(0), "Filled" -> intervalFrom(1))
+    fixture.getAll.toList shouldBe expectedFilled
+
     import DiffAction1D.*
 
     val actionsFrom2To4 = copyFixture4.diffActionsFrom(copyFixture2)

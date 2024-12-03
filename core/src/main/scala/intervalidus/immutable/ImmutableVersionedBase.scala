@@ -245,10 +245,20 @@ trait ImmutableVersionedBase[
     * @return
     *   a new, updated structure.
     */
-  def update(
-    data: ValidData
-  )(using versionSelection: VersionSelection): Self =
+  def update(data: ValidData)(using versionSelection: VersionSelection): Self =
     copyAndModify(_.underlying.update(underlyingValidData(data)))
+
+  /**
+    * Given the version selection context, adds a value as valid in portions of the interval where there aren't already
+    * valid values.
+    *
+    * @param data
+    *   value to make valid in any validity gaps found in the interval
+    * @return
+    *   a new, updated structure.
+    */
+  def fill(data: ValidData)(using versionSelection: VersionSelection): Self =
+    copyAndModify(_.underlying.fill(underlyingValidData(data)))
 
 //TODO: these may be problematic/misunderstood in the versioned space, so leaving them out for now.
 //  /**

@@ -161,6 +161,17 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors:
     )
     fixture6.getAll.toList shouldBe expectedData6
 
+    val fixture7 = fixture6.fill(DiscreteInterval2D.unbounded -> "Filled")
+    val expectedFilled = testData(
+      ("Hey", unbounded, intervalTo(0)),
+      ("Hey", intervalTo(day(0)), interval(1, 4)),
+      ("Filled", unbounded, interval(5, 15)),
+      ("World", intervalTo(day(0)), intervalFrom(16)),
+      ("Filled", intervalFrom(day(1)), interval(1, 4)),
+      ("Filled", intervalFrom(day(1)), intervalFrom(16))
+    )
+    fixture7.getAll.toList shouldBe expectedFilled
+
     import DiffAction2D.*
     import DiscreteDomain1D.{Bottom, Point}
 

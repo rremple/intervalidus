@@ -91,7 +91,7 @@ trait MutableBase[
     *   the new value existing data in the interval should take on
     */
   def update(data: ValidData): Unit =
-    updateOrRemove(data.interval, Some(data.value))
+    updateOrRemove(data.interval, _ => Some(data.value))
 
   /**
     * Remove the old data and replace it with the new data. The new data value and interval can be different. Data with
@@ -125,13 +125,13 @@ trait MutableBase[
     * @param interval
     *   the interval where any valid values are removed.
     */
-  def remove(interval: I): Unit = updateOrRemove(interval, None)
+  def remove(interval: I): Unit = updateOrRemove(interval, _ => None)
 
   /**
     * Compress out adjacent intervals with the same value
     *
     * @param value
-    *   value to be evaluate
+    *   value to be evaluated
     * @return
     *   this structure once compressed (not a copy)
     */
@@ -189,3 +189,12 @@ trait MutableBase[
     */
   def flatMap(f: ValidData => Self): Unit = synchronized:
     replaceValidData(getAll.flatMap(f(_).getAll))
+
+  /**
+    * Adds a value as valid in portions of the interval where there aren't already valid values.
+    *
+    * @param data
+    *   value to make valid in any validity gaps found in the interval
+    */
+  def fill(data: ValidData): Unit = synchronized:
+    fillInPlace(data.interval, data.value)

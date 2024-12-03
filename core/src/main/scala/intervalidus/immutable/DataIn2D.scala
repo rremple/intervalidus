@@ -21,8 +21,8 @@ object DataIn2D extends DataIn2DBaseObject:
   override def apply[V, R1: DiscreteValue, R2: DiscreteValue](
     initialData: Iterable[ValidData2D[V, R1, R2]] = Iterable.empty[ValidData2D[V, R1, R2]]
   )(using Experimental): DataIn2D[V, R1, R2] =
-    val param = constructorParams(initialData)
-    new DataIn2D(param._1, param._2, param._3, param._4)
+    val (byStartAsc, byStartDesc, byValue, inSearchTree) = constructorParams(initialData)
+    new DataIn2D(byStartAsc, byStartDesc, byValue, inSearchTree)
 
 /**
   * Like [[DataIn1D]], data here have different values in different discrete intervals. But here data values vary in two

@@ -21,8 +21,8 @@ object DataIn3D extends DataIn3DBaseObject:
   override def apply[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](
     initialData: Iterable[ValidData3D[V, R1, R2, R3]] = Iterable.empty[ValidData3D[V, R1, R2, R3]]
   )(using Experimental): DataIn3D[V, R1, R2, R3] =
-    val param = constructorParams(initialData)
-    new DataIn3D(param._1, param._2, param._3, param._4)
+    val (byStartAsc, byStartDesc, byValue, inSearchTree) = constructorParams(initialData)
+    new DataIn3D(byStartAsc, byStartDesc, byValue, inSearchTree)
 
 /**
   * Like [[DataIn1D]] and [[DataIn2D]], data here have different values in different discrete intervals. But here data

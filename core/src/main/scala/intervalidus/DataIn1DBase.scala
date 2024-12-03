@@ -9,7 +9,7 @@ import scala.collection.mutable
 /**
   * Constructs data in one-dimensional intervals.
   */
-trait DataIn1DBaseObject:
+trait DataIn1DBaseObject extends DataIn1DConstructorParams:
   /**
     * Shorthand constructor for a single initial value that is valid in a particular interval.
     *
@@ -54,6 +54,7 @@ trait DataIn1DBaseObject:
     */
   def apply[V, R: DiscreteValue](initialData: Iterable[ValidData1D[V, R]])(using Experimental): DataIn1DBase[V, R]
 
+trait DataIn1DConstructorParams:
   protected def constructorParams[V, R](
     initialData: Iterable[ValidData1D[V, R]]
   )(using experimental: Experimental, discreteValue: DiscreteValue[R]): (
@@ -248,15 +249,20 @@ trait DataIn1DBase[V, R: DiscreteValue](using experimental: Experimental)
     *
     * @param targetInterval
     *   the interval where any valid values are updated or removed.
-    * @param newValueOption
-    *   when defined, the value to be stored as part of an update.
+    * @param updateValue
+    *   maps a current value to some updated value, or None if the value should be removed.
     */
   override protected def updateOrRemove(
     targetInterval: DiscreteInterval1D[R],
-    newValueOption: Option[V]
+    updateValue: V => Option[V]
   ): Unit = synchronized:
     import DiscreteInterval1D.Remainder
-    getIntersecting(targetInterval).foreach: overlap =>
+
+    val intersecting = getIntersecting(targetInterval)
+    val potentiallyAffectedValues = intersecting.map(_.value).toSet ++ intersecting.map(_.value).flatMap(updateValue)
+
+    intersecting.foreach: overlap =>
+      val newValueOption = updateValue(overlap.value)
       overlap.interval \ targetInterval match
 
         // overlap is subset, just update/remove entirely
@@ -286,4 +292,13 @@ trait DataIn1DBase[V, R: DiscreteValue](using experimental: Experimental)
             addValidData(interval(leftRemaining.end.successor, rightRemaining.start.predecessor) -> newValue)
           addValidData(rightRemaining -> overlap.value)
 
-    newValueOption.foreach(compressInPlace)
+    potentiallyAffectedValues.foreach(compressInPlace)
+
+  override protected def fillInPlace[B <: V](interval: DiscreteInterval1D[R], value: B): Unit = synchronized:
+    val intersectingIntervals = getIntersecting(interval).map(_.interval)
+    DiscreteInterval1D
+      .uniqueIntervals(intersectingIntervals.toSeq :+ interval)
+      .filterNot(intersects)
+      .map(_ -> value)
+      .foreach(addValidData)
+    compressInPlace(value)

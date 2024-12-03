@@ -21,8 +21,8 @@ object DataIn1D extends DataIn1DBaseObject:
   override def apply[V, R: DiscreteValue](
     initialData: Iterable[ValidData1D[V, R]] = Iterable.empty[ValidData1D[V, R]]
   )(using Experimental): DataIn1D[V, R] =
-    val param = constructorParams(initialData)
-    new DataIn1D(param._1, param._2, param._3, param._4)
+    val (byStartAsc, byStartDesc, byValue, inSearchTree) = constructorParams(initialData)
+    new DataIn1D(byStartAsc, byStartDesc, byValue, inSearchTree)
 
 /**
   * Data that may have different values in different intervals. These intervals may represent when the data are valid in

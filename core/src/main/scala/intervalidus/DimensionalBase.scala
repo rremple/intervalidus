@@ -14,10 +14,10 @@ import scala.math.Ordering.Implicits.infixOrderingOps
   *   the domain type for intervals. Must be [[DiscreteDomainLike]] and have an [[Ordering]].
   * @tparam I
   *   the interval type, based on the domain type. Must be [[DiscreteIntervalLike]] based on [[D]].
-  * @tparam DiffAction
-  *   the diff action type. Must be [[DiffActionLike]] based on [[V]], [[D]], and [[I]].
   * @tparam ValidData
   *   the valid data type. Must be [[ValidDataLike]] based on [[V]], [[D]], and [[I]].
+  * @tparam DiffAction
+  *   the diff action type. Must be [[DiffActionLike]] based on [[V]], [[D]], and [[I]].
   * @tparam Self
   *   F-bounded self type.
   */
@@ -127,10 +127,20 @@ trait DimensionalBase[
     *
     * @param targetInterval
     *   the interval where any valid values are updated or removed.
-    * @param newValueOption
-    *   when defined, the value to be stored as part of an update.
+    * @param updateValue
+    *   maps a current value to some updated value, or None if the value should be removed.
     */
-  protected def updateOrRemove(targetInterval: I, newValueOption: Option[V]): Unit
+  protected def updateOrRemove(targetInterval: I, updateValue: V => Option[V]): Unit
+
+  /**
+    * Adds a value as valid in portions of the interval where there aren't already valid values.
+    *
+    * @param interval
+    *   interval where some value will be valid (existing or new)
+    * @param value
+    *   new value to be valid in the interval where no existing value is already valid
+    */
+  protected def fillInPlace[B <: V](interval: I, value: B): Unit
 
   /**
     * Internal method, to compress in place.
@@ -139,7 +149,7 @@ trait DimensionalBase[
     * intersections.
     *
     * @param value
-    *   value to be evaluate
+    *   value to be evaluated
     * @return
     *   this structure once compressed (not a copy)
     */
