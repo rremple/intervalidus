@@ -152,18 +152,13 @@ protected class Visualize[V, R1: DiscreteValue, R2: DiscreteValue](
 def tryIt(): Unit =
   import DiscreteInterval1D.{interval, intervalFrom, intervalTo, unbounded}
 
-  def testData(
-    values: (String, DiscreteInterval1D[LocalDate], DiscreteInterval1D[Int])*
-  ): List[ValidData2D[String, LocalDate, Int]] =
-    values.map(v => (v._2 x v._3) -> v._1).toList
-
   val now = LocalDate.now()
 
-  val allData: Seq[ValidData2D[String, LocalDate, Int]] = testData(
-    ("<default>", unbounded, unbounded),
-    ("Hello", intervalTo(now), intervalTo(8)),
-    ("World", interval(now.minusDays(7), now.plusDays(14)), interval(5, 6)),
-    ("!", intervalFrom(now.plusDays(7)), intervalFrom(5))
+  val allData: Seq[ValidData2D[String, LocalDate, Int]] = List(
+    (unbounded[LocalDate] x unbounded[Int]) -> "<default>",
+    (intervalTo(now) x intervalTo(8)) -> "Hello",
+    (interval(now.minusDays(7), now.plusDays(14)) x interval(5, 6)) -> "World",
+    (intervalFrom(now.plusDays(7)) x intervalFrom(5)) -> "!"
   )
   val mutableFixture = mutable.DataIn2D[String, LocalDate, Int]()
   allData.foreach(mutableFixture.set)

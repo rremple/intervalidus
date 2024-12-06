@@ -50,26 +50,29 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     assertThrows[Exception]: // wow, ran out of versions!
       empty.incrementCurrentVersion()
 
-    val allData = testData("Hello" -> (interval(0, 9) x intervalFrom(0)), "World" -> (intervalFrom(10) x intervalTo(0)))
+    val allData = List(
+      (interval(0, 9) x intervalFrom(0)) -> "Hello",
+      (intervalFrom(10) x intervalTo(0)) -> "World"
+    )
     val fixture = newDataIn2DVersioned(allData)
     fixture.set((interval(5, 15) x unbounded[Int]) -> "to")
     fixture.incrementCurrentVersion()
-    val expectedData1 = testData(
-      "Hello" -> (interval(0, 4) x intervalFrom(0)),
-      "to" -> (interval(5, 15) x unbounded[Int]),
-      "World" -> (intervalFrom(16) x intervalTo(0))
+    val expectedData1 = List(
+      (interval(0, 4) x intervalFrom(0)) -> "Hello",
+      (interval(5, 15) x unbounded[Int]) -> "to",
+      (intervalFrom(16) x intervalTo(0)) -> "World"
     )
     fixture.getAll.toList shouldBe expectedData1
 
     fixture.set((interval(20, 25) x unbounded[Int]) -> "!") // split
     fixture.incrementCurrentVersion()
     fixture.recompressAll()
-    val expectedData2 = testData(
-      "Hello" -> (interval(0, 4) x intervalFrom(0)),
-      "to" -> (interval(5, 15) x unbounded[Int]),
-      "World" -> (interval(16, 19) x intervalTo(0)),
-      "!" -> (interval(20, 25) x unbounded[Int]),
-      "World" -> (intervalFrom(26) x intervalTo(0))
+    val expectedData2 = List(
+      (interval(0, 4) x intervalFrom(0)) -> "Hello",
+      (interval(5, 15) x unbounded[Int]) -> "to",
+      (interval(16, 19) x intervalTo(0)) -> "World",
+      (interval(20, 25) x unbounded[Int]) -> "!",
+      (intervalFrom(26) x intervalTo(0)) -> "World"
     )
     fixture.getAll.toList shouldBe expectedData2
 
@@ -98,22 +101,22 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     fixture.remove(intervalFrom(21) x unbounded[Int])
     fixture.incrementCurrentVersion()
 
-    val expectedData3 = testData(
-      "Hey" -> (intervalTo(4) x unbounded[Int]),
-      "to" -> (interval(5, 15) x unbounded[Int]),
-      "World" -> (interval(16, 19) x intervalTo(0)),
-      "!" -> (intervalAt(20) x unbounded[Int])
+    val expectedData3 = List(
+      (intervalTo(4) x unbounded[Int]) -> "Hey",
+      (interval(5, 15) x unbounded[Int]) -> "to",
+      (interval(16, 19) x intervalTo(0)) -> "World",
+      (intervalAt(20) x unbounded[Int]) -> "!"
     )
     fixture.getAll.toList shouldBe expectedData3
 
     fixture.set((intervalFrom(20) x intervalTo(0)) -> "World")
     fixture.incrementCurrentVersion()
     fixture.recompressAll()
-    val expectedData4 = testData(
-      "Hey" -> (intervalTo(4) x unbounded[Int]),
-      "to" -> (interval(5, 15) x unbounded[Int]),
-      "World" -> (intervalFrom(16) x intervalTo(0)),
-      "!" -> (intervalAt(20) x intervalFrom(1))
+    val expectedData4 = List(
+      (intervalTo(4) x unbounded[Int]) -> "Hey",
+      (interval(5, 15) x unbounded[Int]) -> "to",
+      (intervalFrom(16) x intervalTo(0)) -> "World",
+      (intervalAt(20) x intervalFrom(1)) -> "!"
     )
     fixture.getAll.toList shouldBe expectedData4
 
@@ -122,16 +125,16 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     fixture.remove(interval(5, 15) x unbounded[Int])
     fixture.remove(intervalAt(20) x intervalFrom(1))
     fixture.incrementCurrentVersion()
-    val expectedData5 = testData(
-      "Hey" -> (intervalTo(4) x unbounded[Int]),
-      "World" -> (intervalFrom(16) x intervalTo(0))
+    val expectedData5 = List(
+      (intervalTo(4) x unbounded[Int]) -> "Hey",
+      (intervalFrom(16) x intervalTo(0)) -> "World"
     )
     fixture.getAll.toList shouldBe expectedData5
 
     fixture.set((intervalFrom(1) x unbounded[Int]) -> "remove me")
     fixture.remove(intervalFrom(1) x unbounded[Int])
     // needed? .recompressAll()
-    val expectedData6 = testData("Hey" -> (intervalTo(0) x unbounded[Int]))
+    val expectedData6 = List((intervalTo(0) x unbounded[Int]) -> "Hey")
     fixture.getAll.toList shouldBe expectedData6
 
     val fixture6 = fixture.copy
@@ -165,7 +168,10 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     fixture2.getAll(using VersionSelection(fixture6.getCurrentVersion)).toList shouldBe expectedData6
 
   test("Mutable: Mapping, flat mapping, etc."):
-    val allData = testData("Hey" -> (intervalTo(4) x intervalFrom(0)), "World" -> (intervalFrom(16) x intervalFrom(0)))
+    val allData = List(
+      (intervalTo(4) x intervalFrom(0)) -> "Hey",
+      (intervalFrom(16) x intervalFrom(0)) -> "World"
+    )
 
     val fixture = newDataIn2DVersioned(allData)
     fixture.copy.getAll.toList shouldBe fixture.getAll.toList
@@ -177,14 +183,18 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     fixture.map(d =>
       d.interval.withHorizontalUpdate(_.endingWith(d.interval.horizontal.end.successor)) -> (d.value + "!")
     )
-    val expectedData2 =
-      testData("Hey!" -> (intervalTo(5) x intervalFrom(0)), "World!" -> (intervalFrom(16) x intervalFrom(0)))
+    val expectedData2 = List(
+      (intervalTo(5) x intervalFrom(0)) -> "Hey!",
+      (intervalFrom(16) x intervalFrom(0)) -> "World!"
+    )
 
     fixture.getAll.toList shouldBe expectedData2
 
     fixture.mapValues(_ + "!!")
-    val expectedData3 =
-      testData("Hey!!!" -> (intervalTo(5) x intervalFrom(0)), "World!!!" -> (intervalFrom(16) x intervalFrom(0)))
+    val expectedData3 = List(
+      (intervalTo(5) x intervalFrom(0)) -> "Hey!!!",
+      (intervalFrom(16) x intervalFrom(0)) -> "World!!!"
+    )
     fixture.getAll.toList shouldBe expectedData3
 
     fixture.flatMap(d => DataIn2DVersioned(Seq(d)))
@@ -194,14 +204,14 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
       fixture.get
 
     fixture.filter(_.interval.horizontal ⊆ intervalTo(10))
-    val expectedData5 = testData("Hey!!!" -> (intervalTo(5) x intervalFrom(0)))
+    val expectedData5 = List((intervalTo(5) x intervalFrom(0)) -> "Hey!!!")
     fixture.getAll.toList shouldBe expectedData5
     assert(!fixture.isEmpty)
     assertThrows[NoSuchElementException]:
       fixture.get
 
     fixture.flatMap(d => DataIn2DVersioned.of[String, Int, Int](d.value))
-    val expectedData6 = testData("Hey!!!" -> (unbounded[Int] x unbounded[Int]))
+    val expectedData6 = List((unbounded[Int] x unbounded[Int]) -> "Hey!!!")
     fixture.getAll.toList shouldBe expectedData6
     fixture.get shouldBe "Hey!!!"
 
@@ -211,31 +221,31 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
       fixture.get
 
   test("Mutable: Compressing data in intervals"):
-    val allData = testData(
-      "Hello" -> (intervalTo(4) x unbounded[Int]),
-      "World" -> (intervalAt(5) x unbounded[Int]),
-      "World" -> (intervalAt(6) x unbounded[Int]),
-      "Hello" -> (intervalAt(7) x unbounded[Int]),
-      "Hello" -> (interval(8, 9) x unbounded[Int]),
-      "Hello" -> (intervalFrom(10) x unbounded[Int])
+    val allData = List(
+      (intervalTo(4) x unbounded[Int]) -> "Hello",
+      (intervalAt(5) x unbounded[Int]) -> "World",
+      (intervalAt(6) x unbounded[Int]) -> "World",
+      (intervalAt(7) x unbounded[Int]) -> "Hello",
+      (interval(8, 9) x unbounded[Int]) -> "Hello",
+      (intervalFrom(10) x unbounded[Int]) -> "Hello"
     )
 
     val fixture1 = DataIn2DVersioned.from(allData)
     fixture1.compress("Hello")
-    val expectedData1 = testData(
-      "Hello" -> (intervalTo(4) x unbounded[Int]),
-      "World" -> (intervalAt(5) x unbounded[Int]),
-      "World" -> (intervalAt(6) x unbounded[Int]),
-      "Hello" -> (intervalFrom(7) x unbounded[Int])
+    val expectedData1 = List(
+      (intervalTo(4) x unbounded[Int]) -> "Hello",
+      (intervalAt(5) x unbounded[Int]) -> "World",
+      (intervalAt(6) x unbounded[Int]) -> "World",
+      (intervalFrom(7) x unbounded[Int]) -> "Hello"
     )
     fixture1.getSelectedDataMutable.getAll.toList shouldBe expectedData1
 
     val fixture2 = DataIn2DVersioned.from(allData)
     fixture2.compressAll()
-    val expectedData2 = testData(
-      "Hello" -> (intervalTo(4) x unbounded[Int]),
-      "World" -> (interval(5, 6) x unbounded[Int]),
-      "Hello" -> (intervalFrom(7) x unbounded[Int])
+    val expectedData2 = List(
+      (intervalTo(4) x unbounded[Int]) -> "Hello",
+      (interval(5, 6) x unbounded[Int]) -> "World",
+      (intervalFrom(7) x unbounded[Int]) -> "Hello"
     )
     fixture2.getSelectedDataMutable.getAll.toList shouldBe expectedData2
 
@@ -244,28 +254,28 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     one.incrementCurrentVersion()
 
     one.remove(intervalAt(0) x unbounded[Int]) // split
-    val expectedData0 = testData(
-      "value" -> (intervalTo(-1) x unbounded[Int]),
-      "value" -> (intervalFrom(1) x unbounded[Int])
+    val expectedData0 = List(
+      (intervalTo(-1) x unbounded[Int]) -> "value",
+      (intervalFrom(1) x unbounded[Int]) -> "value"
     )
     one.getAll.toList shouldBe expectedData0
     one.getAt(0, 0) shouldBe None
     one.getAt(1, 1) shouldBe Some("value")
 
-    val allData = testData(
-      "Hello" -> (intervalTo(4) x unbounded[Int]),
-      "World" -> (interval(5, 6) x unbounded[Int]),
-      "Hello" -> (intervalFrom(7) x unbounded[Int])
+    val allData = List(
+      (intervalTo(4) x unbounded[Int]) -> "Hello",
+      (interval(5, 6) x unbounded[Int]) -> "World",
+      (intervalFrom(7) x unbounded[Int]) -> "Hello"
     )
     val fixture = newDataIn2DVersioned(allData)
 
     fixture.update((interval(5, 7) x unbounded[Int]) -> "World!")
     fixture.incrementCurrentVersion()
     // needed? .recompressAll()
-    val expectedData1 = testData(
-      "Hello" -> (intervalTo(4) x unbounded[Int]),
-      "World!" -> (interval(5, 7) x unbounded[Int]),
-      "Hello" -> (intervalFrom(8) x unbounded[Int])
+    val expectedData1 = List(
+      (intervalTo(4) x unbounded[Int]) -> "Hello",
+      (interval(5, 7) x unbounded[Int]) -> "World!",
+      (intervalFrom(8) x unbounded[Int]) -> "Hello"
     )
     fixture.getAll.toList shouldBe expectedData1
 
@@ -325,19 +335,19 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
 
     fixture.update((interval(5, 6) x unbounded[Int]) -> "Hello")
     fixture.incrementCurrentVersion()
-    val expectedData2 = testData(
-      "Hello" -> (intervalTo(6) x unbounded[Int]),
-      "World!" -> (intervalAt(7) x unbounded[Int]),
-      "Hello" -> (intervalFrom(8) x unbounded[Int])
+    val expectedData2 = List(
+      (intervalTo(6) x unbounded[Int]) -> "Hello",
+      (intervalAt(7) x unbounded[Int]) -> "World!",
+      (intervalFrom(8) x unbounded[Int]) -> "Hello"
     )
     fixture.getAll.toList shouldBe expectedData2
 
     fixture.update((intervalFrom(6) x unbounded[Int]) -> "World!")
     fixture.incrementCurrentVersion()
     // needed? fixture.recompressAll()
-    val expectedData3 = testData(
-      "Hello" -> (intervalTo(5) x unbounded[Int]),
-      "World!" -> (intervalFrom(6) x unbounded[Int])
+    val expectedData3 = List(
+      (intervalTo(5) x unbounded[Int]) -> "Hello",
+      (intervalFrom(6) x unbounded[Int]) -> "World!"
     )
     fixture.getAll.toList shouldBe expectedData3
 
@@ -381,10 +391,10 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     val fixture0: DataIn2DVersioned[String, LocalDate, LocalDate] = DataIn2DVersioned()
     assert(fixture0.getAll.isEmpty)
 
-    val allData = testData(
-      "Testing" -> (unbounded[LocalDate] x unbounded[LocalDate]),
-      "Hello" -> (interval(day(1), day(15)) x unbounded[LocalDate]),
-      "World" -> (intervalFrom(day(10)) x unbounded[LocalDate])
+    val allData = List(
+      (unbounded[LocalDate] x unbounded[LocalDate]) -> "Testing",
+      (interval(day(1), day(15)) x unbounded[LocalDate]) -> "Hello",
+      (intervalFrom(day(10)) x unbounded[LocalDate]) -> "World"
     )
     val fixture = timeboundVersionedString(allData)
     // Visualize(fixture1.getDataIn2D, 50000, "before Zoinks")
@@ -408,9 +418,9 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     // Visualize(fixture.underlying2D, 15000, "after zoinks approved, before remove is approved")
 
     fixture.getAt(day(0), day(0)) shouldBe Some(zoinks.value)
-    fixture.getIntersecting(interval(day(5), day(15)) x unbounded[LocalDate]) should contain theSameElementsAs testData(
-      "Hello" -> (interval(day(1), day(9)) x unbounded[LocalDate]),
-      "World" -> (intervalFrom(day(10)) x unbounded[LocalDate])
+    fixture.getIntersecting(interval(day(5), day(15)) x unbounded[LocalDate]) should contain theSameElementsAs List(
+      (interval(day(1), day(9)) x unbounded[LocalDate]) -> "Hello",
+      (intervalFrom(day(10)) x unbounded[LocalDate]) -> "World"
     )
 
     fixture.incrementCurrentVersion()
@@ -418,7 +428,7 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     // Visualize(fixture5.underlying2D, 15000, "after remove is approved")
 
     fixture.getAt(day(0), day(0)) shouldBe None
-    fixture.getIntersecting(interval(day(5), day(15)) x unbounded[LocalDate]) should contain theSameElementsAs testData(
-      "Hello" -> (interval(day(6), day(9)) x unbounded[LocalDate]),
-      "World" -> (intervalFrom(day(10)) x unbounded[LocalDate])
+    fixture.getIntersecting(interval(day(5), day(15)) x unbounded[LocalDate]) should contain theSameElementsAs List(
+      (interval(day(6), day(9)) x unbounded[LocalDate]) -> "Hello",
+      (intervalFrom(day(10)) x unbounded[LocalDate]) -> "World"
     )

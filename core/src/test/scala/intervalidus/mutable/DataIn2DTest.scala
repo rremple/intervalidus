@@ -83,8 +83,10 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     assert(empty.getAll.isEmpty)
     assert(empty.domain.isEmpty)
 
-    val allData =
-      testData(("Hello", intervalTo(day(14)), interval(0, 10)), ("World", intervalFrom(day(1)), intervalFrom(11)))
+    val allData = List(
+      (intervalTo(day(14)) x interval(0, 10)) -> "Hello",
+      (intervalFrom(day(1)) x intervalFrom(11)) -> "World"
+    )
     val fixture = immutable.DataIn2D(allData).toImmutable.toMutable
 
     fixture.getByHorizontalIndex(dayZero).getAt(0) shouldBe Some("Hello")
@@ -93,38 +95,43 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
   test("Mutable [experimental noSearchTree]: Constructors and getting data by index"):
     given Experimental = Experimental("noSearchTree")
 
-    val allData =
-      testData(("Hello", intervalTo(day(14)), interval(0, 10)), ("World", intervalFrom(day(1)), intervalFrom(11)))
+    val allData = List(
+      (intervalTo(day(14)) x interval(0, 10)) -> "Hello",
+      (intervalFrom(day(1)) x intervalFrom(11)) -> "World"
+    )
     val fixture = immutable.DataIn2D(allData).toImmutable.toMutable
 
     fixture.getByHorizontalIndex(dayZero).getAt(0) shouldBe Some("Hello")
     fixture.getByVerticalIndex(11).getAt(day(1)) shouldBe Some("World")
 
   test("Mutable: Diff actions"):
-    val expectedData2 = testData(
-      ("Hello", unbounded, interval(0, 4)),
-      ("to", unbounded, interval(5, 15)),
-      ("World", unbounded, interval(16, 19)),
-      ("!", unbounded, interval(20, 25)),
-      ("World", unbounded, intervalFrom(26))
+    val expectedData2 = List(
+      (unbounded[LocalDate] x interval(0, 4)) -> "Hello",
+      (unbounded[LocalDate] x interval(5, 15)) -> "to",
+      (unbounded[LocalDate] x interval(16, 19)) -> "World",
+      (unbounded[LocalDate] x interval(20, 25)) -> "!",
+      (unbounded[LocalDate] x intervalFrom(26)) -> "World"
     )
     val fixture2 = DataIn2D(expectedData2)
-    val expectedData3 = testData(
-      ("Hey", unbounded, intervalTo(4)),
-      ("to", unbounded, interval(5, 15)),
-      ("World", unbounded, intervalFrom(16))
+    val expectedData3 = List(
+      (unbounded[LocalDate] x intervalTo(4)) -> "Hey",
+      (unbounded[LocalDate] x interval(5, 15)) -> "to",
+      (unbounded[LocalDate] x intervalFrom(16)) -> "World"
     )
     val fixture3 = DataIn2D(expectedData3)
-    val expectedData4 = testData(("Hey", unbounded, intervalTo(4)), ("World", unbounded, intervalFrom(16)))
+    val expectedData4 = List(
+      (unbounded[LocalDate] x intervalTo(4)) -> "Hey",
+      (unbounded[LocalDate] x intervalFrom(16)) -> "World"
+    )
     val fixture = DataIn2D(expectedData4)
     val fixture4 = fixture.copy
     fixture.set((intervalFrom(day(1)) x intervalFrom(1)) -> "remove me")
     fixture.remove(intervalFrom(day(1)) x intervalFrom(1))
     // needed? fixture.recompressAll()
-    val expectedData5 = testData(
-      ("Hey", unbounded, intervalTo(0)),
-      ("Hey", intervalTo(day(0)), interval(1, 4)),
-      ("World", intervalTo(day(0)), intervalFrom(16))
+    val expectedData5 = List(
+      (unbounded[LocalDate] x intervalTo(0)) -> "Hey",
+      (intervalTo(day(0)) x interval(1, 4)) -> "Hey",
+      (intervalTo(day(0)) x intervalFrom(16)) -> "World"
     )
     fixture.getAll.toList shouldBe expectedData5
 
@@ -163,26 +170,26 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     fixture2.getAll.toList shouldBe expectedData5
 
   test("Mutable: Updating data in intervals - bounded r1"):
-    val expectedData3 = testData(
-      ("Hello", unbounded, intervalTo(-6)),
-      ("World!", unbounded, interval(-5, -2)),
-      ("Hello", unbounded, interval(-1, 1)),
-      ("Hello", unbounded, intervalFrom(10))
+    val expectedData3 = List(
+      (unbounded[LocalDate] x intervalTo(-6)) -> "Hello",
+      (unbounded[LocalDate] x interval(-5, -2)) -> "World!",
+      (unbounded[LocalDate] x interval(-1, 1)) -> "Hello",
+      (unbounded[LocalDate] x intervalFrom(10)) -> "Hello"
     )
 
     val fixture = DataIn2D(expectedData3)
     fixture.set((intervalFrom(day(0)) x intervalFrom(1)) -> "update me")
     fixture.update((intervalFrom(day(1)) x intervalFrom(0)) -> "update me")
     // needed? fixture.recompressAll()
-    val expectedData4 = testData(
-      ("Hello", unbounded, intervalTo(-6)),
-      ("World!", unbounded, interval(-5, -2)),
-      ("Hello", unbounded, intervalAt(-1)),
-      ("Hello", intervalTo(day(0)), intervalAt(0)),
-      ("Hello", intervalTo(day(-1)), intervalAt(1)),
-      ("Hello", intervalTo(day(-1)), intervalFrom(10)),
-      ("update me", intervalFrom(day(0)), intervalFrom(1)),
-      ("update me", intervalFrom(day(1)), intervalAt(0))
+    val expectedData4 = List(
+      (unbounded[LocalDate] x intervalTo(-6)) -> "Hello",
+      (unbounded[LocalDate] x interval(-5, -2)) -> "World!",
+      (unbounded[LocalDate] x intervalAt(-1)) -> "Hello",
+      (intervalTo(day(0)) x intervalAt(0)) -> "Hello",
+      (intervalTo(day(-1)) x intervalAt(1)) -> "Hello",
+      (intervalTo(day(-1)) x intervalFrom(10)) -> "Hello",
+      (intervalFrom(day(0)) x intervalFrom(1)) -> "update me",
+      (intervalFrom(day(1)) x intervalAt(0)) -> "update me"
     )
     fixture.getAll.toList shouldBe expectedData4
     fixture.domain.toList shouldBe List(

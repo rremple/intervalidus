@@ -70,7 +70,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
     assert(empty.domain.isEmpty)
 
   test("Mutable: String representations and diff actions"):
-    val allData = testData("Hello" -> interval(0, 9), "World" -> intervalFrom(10))
+    val allData = List(interval(0, 9) -> "Hello", intervalFrom(10) -> "World")
     val f1 = immutable.DataIn1D(allData).toImmutable.toMutable
     f1.getAll.toList shouldBe allData
 
@@ -78,12 +78,12 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
       b.append(d.value).append("->").append(d.interval.toString).append(" ")
     concat.result() shouldBe "Hello->[0..9] World->[10..+∞) "
 
-    val expectedData2 = testData(
-      "Hello" -> interval(0, 4),
-      "to" -> interval(5, 15),
-      "World" -> interval(16, 19),
-      "!" -> interval(20, 25),
-      "World" -> intervalFrom(26)
+    val expectedData2 = List(
+      interval(0, 4) -> "Hello",
+      interval(5, 15) -> "to",
+      interval(16, 19) -> "World",
+      interval(20, 25) -> "!",
+      intervalFrom(26) -> "World"
     )
     val fixture = DataIn1D(expectedData2)
 
@@ -101,13 +101,13 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
     fixture.toString shouldBe expectedString
 
     val fixture2 = fixture.copy
-    val expectedData3 = testData("Hey" -> intervalTo(4), "to" -> interval(5, 15), "World" -> intervalFrom(16))
+    val expectedData3 = List(intervalTo(4) -> "Hey", interval(5, 15) -> "to", intervalFrom(16) -> "World")
     val fixture3 = DataIn1D(expectedData3)
 
     fixture.syncWith(fixture3)
     fixture.set(intervalFrom(1) -> "remove me")
     fixture.remove(intervalFrom(1))
-    val expectedData4 = testData("Hey" -> intervalTo(0))
+    val expectedData4 = List(intervalTo(0) -> "Hey")
     fixture.getAll.toList shouldBe expectedData4
 
     val fixture4 = fixture.copy

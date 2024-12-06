@@ -49,23 +49,23 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     assertThrows[Exception]: // wow, ran out of versions!
       emptyAtMaxVersion.incrementCurrentVersion()
 
-    val allData = testData("Hello" -> interval(0, 9), "World" -> intervalFrom(10))
+    val allData = List(interval(0, 9) -> "Hello", intervalFrom(10) -> "World")
     val fixture1 = newDataIn1DVersioned(allData)
       .set(interval(5, 15) -> "to")
       .incrementCurrentVersion()
-    val expectedData1 = testData("Hello" -> interval(0, 4), "to" -> interval(5, 15), "World" -> intervalFrom(16))
+    val expectedData1 = List(interval(0, 4) -> "Hello", interval(5, 15) -> "to", intervalFrom(16) -> "World")
     fixture1.getAll.toList shouldBe expectedData1
 
     val fixture2 = fixture1
       .set(interval(20, 25) -> "!") // split
       .incrementCurrentVersion()
       .recompressAll()
-    val expectedData2 = testData(
-      "Hello" -> interval(0, 4),
-      "to" -> interval(5, 15),
-      "World" -> interval(16, 19),
-      "!" -> interval(20, 25),
-      "World" -> intervalFrom(26)
+    val expectedData2 = List(
+      interval(0, 4) -> "Hello",
+      interval(5, 15) -> "to",
+      interval(16, 19) -> "World",
+      interval(20, 25) -> "!",
+      intervalFrom(26) -> "World"
     )
     fixture2.getAll.toList shouldBe expectedData2
 
@@ -92,11 +92,11 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
           .incrementCurrentVersion()
       case None => fail("unexpected conflict")
 
-    val expectedData3 = testData(
-      "Hey" -> intervalTo(4),
-      "to" -> interval(5, 15),
-      "World" -> interval(16, 19),
-      "!" -> intervalAt(20)
+    val expectedData3 = List(
+      intervalTo(4) -> "Hey",
+      interval(5, 15) -> "to",
+      interval(16, 19) -> "World",
+      intervalAt(20) -> "!"
     )
     fixture3.getAll.toList shouldBe expectedData3
 
@@ -104,24 +104,24 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
       .set(intervalFrom(20) -> "World")
       .incrementCurrentVersion()
       .recompressAll()
-    val expectedData4 = testData("Hey" -> intervalTo(4), "to" -> interval(5, 15), "World" -> intervalFrom(16))
+    val expectedData4 = List(intervalTo(4) -> "Hey", interval(5, 15) -> "to", intervalFrom(16) -> "World")
     fixture4.getAll.toList shouldBe expectedData4
 
     val fixture5 = fixture4
       .remove(interval(5, 15))
       .incrementCurrentVersion()
-    val expectedData5 = testData("Hey" -> intervalTo(4), "World" -> intervalFrom(16))
+    val expectedData5 = List(intervalTo(4) -> "Hey", intervalFrom(16) -> "World")
     fixture5.getAll.toList shouldBe expectedData5
 
     val fixture6 = fixture5
       .set(intervalFrom(1) -> "remove me")
       .remove(intervalFrom(1))
     // needed? .recompressAll()
-    val expectedData6 = testData("Hey" -> intervalTo(0))
+    val expectedData6 = List(intervalTo(0) -> "Hey")
     fixture6.getAll.toList shouldBe expectedData6
 
     val fixture7 = fixture6.fill(DiscreteInterval1D.unbounded -> "Filled")
-    val expectedFilled = testData("Hey" -> intervalTo(0), "Filled" -> intervalFrom(1))
+    val expectedFilled = List(intervalTo(0) -> "Hey", intervalFrom(1) -> "Filled")
     fixture7.getAll.toList shouldBe expectedFilled
 
     import DiffAction2D.*
@@ -151,7 +151,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     fixture2to6.getAll(using VersionSelection(fixture6.getCurrentVersion)).toList shouldBe expectedData6
 
   test("Immutable: Mapping, flat mapping, etc."):
-    val allData = testData("Hey" -> intervalTo(4), "World" -> intervalFrom(16))
+    val allData = List(intervalTo(4) -> "Hey", intervalFrom(16) -> "World")
 
     val fixture1 = newDataIn1DVersioned(allData)
     fixture1.copy.getAll.toList shouldBe fixture1.getAll.toList
@@ -163,29 +163,29 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     val fixture2 = fixture1.map(d =>
       d.interval.withHorizontalUpdate(_.endingWith(d.interval.horizontal.end.successor)) -> (d.value + "!")
     )
-    val expectedData2 = testData("Hey!" -> intervalTo(5), "World!" -> intervalFrom(16))
+    val expectedData2 = List(intervalTo(5) -> "Hey!", intervalFrom(16) -> "World!")
     fixture2.getAll.toList shouldBe expectedData2
 
     val fixture3 = fixture2.mapValues(_ + "!!")
-    val expectedData3 = testData("Hey!!!" -> intervalTo(5), "World!!!" -> intervalFrom(16))
+    val expectedData3 = List(intervalTo(5) -> "Hey!!!", intervalFrom(16) -> "World!!!")
     fixture3.getAll.toList shouldBe expectedData3
 
     val fixture4 = fixture3
       .flatMap(d => DataIn1DVersioned.of[String, Int](d.value).map(x => d.interval -> x.value))
-    val expectedData4 = testData("Hey!!!" -> intervalTo(5), "World!!!" -> intervalFrom(16))
+    val expectedData4 = List(intervalTo(5) -> "Hey!!!", intervalFrom(16) -> "World!!!")
     fixture4.getAll.toList shouldBe expectedData4
     assertThrows[NoSuchElementException]:
       fixture4.get
 
     val fixture5 = fixture4.filter(_.interval.horizontal ⊆ intervalTo(10))
-    val expectedData5 = testData("Hey!!!" -> intervalTo(5))
+    val expectedData5 = List(intervalTo(5) -> "Hey!!!")
     fixture5.getAll.toList shouldBe expectedData5
     assert(!fixture5.isEmpty)
     assertThrows[NoSuchElementException]:
       fixture5.get
 
     val fixture6 = fixture5.flatMap(d => DataIn1DVersioned.of[String, Int](d.value))
-    val expectedData6 = testData("Hey!!!" -> unbounded[Int])
+    val expectedData6 = List(unbounded[Int] -> "Hey!!!")
     fixture6.getAll.toList shouldBe expectedData6
     fixture6.get shouldBe "Hey!!!"
 
@@ -195,26 +195,30 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
       fixture7.get
 
   test("Immutable: Compressing data in intervals"):
-    val allData = testData(
-      "Hello" -> intervalTo(4),
-      "World" -> intervalAt(5),
-      "World" -> intervalAt(6),
-      "Hello" -> intervalAt(7),
-      "Hello" -> interval(8, 9),
-      "Hello" -> intervalFrom(10)
+    val allData = List(
+      intervalTo(4) -> "Hello",
+      intervalAt(5) -> "World",
+      intervalAt(6) -> "World",
+      intervalAt(7) -> "Hello",
+      interval(8, 9) -> "Hello",
+      intervalFrom(10) -> "Hello"
     )
 
     val fixture1 = DataIn1DVersioned
       .from(allData)
       .compress("Hello")
-    val expectedData1 =
-      testData("Hello" -> intervalTo(4), "World" -> intervalAt(5), "World" -> intervalAt(6), "Hello" -> intervalFrom(7))
+    val expectedData1 = List(
+      intervalTo(4) -> "Hello",
+      intervalAt(5) -> "World",
+      intervalAt(6) -> "World",
+      intervalFrom(7) -> "Hello"
+    )
     fixture1.getSelectedDataMutable.getAll.toList shouldBe expectedData1
 
     val fixture2 = DataIn1DVersioned
       .from(allData)
       .compressAll()
-    val expectedData2 = testData("Hello" -> intervalTo(4), "World" -> interval(5, 6), "Hello" -> intervalFrom(7))
+    val expectedData2 = List(intervalTo(4) -> "Hello", interval(5, 6) -> "World", intervalFrom(7) -> "Hello")
     fixture2.getSelectedDataMutable.getAll.toList shouldBe expectedData2
 
   test("Immutable: Updating data in intervals"):
@@ -223,17 +227,17 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
       .incrementCurrentVersion()
 
     val oneSplit = one.remove(intervalAt(0)) // split
-    val expectedDataSplit = testData("value" -> intervalTo(-1), "value" -> intervalFrom(1))
+    val expectedDataSplit = List(intervalTo(-1) -> "value", intervalFrom(1) -> "value")
     oneSplit.getAll.toList shouldBe expectedDataSplit
     oneSplit.getAt(0) shouldBe None
     oneSplit.getAt(1) shouldBe Some("value")
 
-    val allData = testData("Hello" -> intervalTo(4), "World" -> interval(5, 6), "Hello" -> intervalFrom(7))
+    val allData = List(intervalTo(4) -> "Hello", interval(5, 6) -> "World", intervalFrom(7) -> "Hello")
     val fixture1 = newDataIn1DVersioned(allData)
       .update(interval(5, 7) -> "World!")
       .incrementCurrentVersion()
     // needed? .recompressAll()
-    val expectedData1 = testData("Hello" -> intervalTo(4), "World!" -> interval(5, 7), "Hello" -> intervalFrom(8))
+    val expectedData1 = List(intervalTo(4) -> "Hello", interval(5, 7) -> "World!", intervalFrom(8) -> "Hello")
     fixture1.getAll.toList shouldBe expectedData1
 
     // println(fixture1.toString)
@@ -289,14 +293,14 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     val fixture2 = fixture1
       .update(interval(5, 6) -> "Hello")
       .incrementCurrentVersion()
-    val expectedData2 = testData("Hello" -> intervalTo(6), "World!" -> intervalAt(7), "Hello" -> intervalFrom(8))
+    val expectedData2 = List(intervalTo(6) -> "Hello", intervalAt(7) -> "World!", intervalFrom(8) -> "Hello")
     fixture2.getAll.toList shouldBe expectedData2
 
     val fixture3 = fixture2
       .update(intervalFrom(6) -> "World!")
       .incrementCurrentVersion()
     // needed? .recompressAll()
-    val expectedData3 = testData("Hello" -> intervalTo(5), "World!" -> intervalFrom(6))
+    val expectedData3 = List(intervalTo(5) -> "Hello", intervalFrom(6) -> "World!")
     fixture3.getAll.toList shouldBe expectedData3
 
     // println(fixture3.toString)
@@ -336,10 +340,10 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     val fixture0: DataIn1DVersioned[String, LocalDate] = DataIn1DVersioned()
     assert(fixture0.getAll.isEmpty)
 
-    val allData = testData(
-      "Testing" -> unbounded[LocalDate],
-      "Hello" -> interval(day(1), day(15)),
-      "World" -> intervalFrom(day(10))
+    val allData = List(
+      unbounded[LocalDate] -> "Testing",
+      interval(day(1), day(15)) -> "Hello",
+      intervalFrom(day(10)) -> "World"
     )
     val fixture1 = timeboundVersionedString(allData)
     // Visualize(fixture1.getDataIn2D, 50000, "before Zoinks")
@@ -367,9 +371,9 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     // Visualize(fixture4.underlying2D, 15000, "after zoinks approved, before remove is approved")
 
     fixture4.getAt(day(0)) shouldBe Some(zoinks.value)
-    fixture4.getIntersecting(interval(day(5), day(15))) should contain theSameElementsAs testData(
-      "Hello" -> interval(day(1), day(9)),
-      "World" -> intervalFrom(day(10))
+    fixture4.getIntersecting(interval(day(5), day(15))) should contain theSameElementsAs List(
+      interval(day(1), day(9)) -> "Hello",
+      intervalFrom(day(10)) -> "World"
     )
 
     val fixture5 = fixture4
@@ -378,7 +382,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     // Visualize(fixture5.underlying2D, 15000, "after remove is approved")
 
     fixture5.getAt(day(0)) shouldBe None
-    fixture5.getIntersecting(interval(day(5), day(15))) should contain theSameElementsAs testData(
-      "Hello" -> interval(day(6), day(9)),
-      "World" -> intervalFrom(day(10))
+    fixture5.getIntersecting(interval(day(5), day(15))) should contain theSameElementsAs List(
+      interval(day(6), day(9)) -> "Hello",
+      intervalFrom(day(10)) -> "World"
     )

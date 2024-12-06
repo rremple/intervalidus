@@ -114,7 +114,7 @@ trait DataIn3DBaseBehaviors:
       (unboundedDate x unboundedDate x interval(6, 9)) -> ("Hello", "Cruel"),
       (unboundedDate x unboundedDate x interval(10, 11)) -> ("<", "Cruel"),
       (unboundedDate x unboundedDate x interval(12, 14)) -> ("World", "Cruel"),
-      (unboundedDate x unboundedDate x interval(15, 15)) -> ("World", ">"),
+      (unboundedDate x unboundedDate x intervalAt(15)) -> ("World", ">"),
       (unboundedDate x unboundedDate x interval(16, 20)) -> ("World", "World"),
       (unboundedDate x unboundedDate x interval(21, 24)) -> ("<", "World")
     )

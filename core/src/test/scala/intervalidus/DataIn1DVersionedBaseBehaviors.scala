@@ -20,9 +20,6 @@ trait DataIn1DVersionedBaseBehaviors:
   def validString(s: String, validTime: DiscreteInterval1D[LocalDate]): ValidData1D[String, LocalDate] =
     validTime -> s
 
-  protected def testData[T, R: DiscreteValue](values: (T, DiscreteInterval1D[R])*): List[ValidData1D[T, R]] =
-    values.map(ValidData1D(_, _)).toList
-
   protected def testDataIn2D[T](
     current: DiscreteDomain1D[Int],
     values: List[ValidData1D[T, Int]]
@@ -42,7 +39,7 @@ trait DataIn1DVersionedBaseBehaviors:
         assertThrows[IllegalArgumentException]:
           // not valid as it overlaps on [10, +∞)
           val _ =
-            dataIn1DVersionedFrom2D(testDataIn2D(0, testData("Hello" -> interval(0, 10), "World" -> unbounded[Int])))
+            dataIn1DVersionedFrom2D(testDataIn2D(0, List(interval(0, 10) -> "Hello", unbounded[Int] -> "World")))
       }
 
       val empty: S = dataIn1DVersionedFrom1D(Seq.empty)
@@ -54,7 +51,7 @@ trait DataIn1DVersionedBaseBehaviors:
       single.getOption shouldBe Some("Hello world")
       single.domain.toList shouldBe List(unbounded[Int])
 
-      val fixture1: S = dataIn1DVersionedFrom1D(testData("Hello world" -> intervalFrom(0)))
+      val fixture1: S = dataIn1DVersionedFrom1D(List(intervalFrom(0) -> "Hello world"))
       fixture1.getOption shouldBe None
       assert(fixture1.isDefinedAt(0, 0))
       assert(fixture1.isValidAt(0))
@@ -64,7 +61,7 @@ trait DataIn1DVersionedBaseBehaviors:
       assertThrows[Exception]:
         val _ = fixture1(-1, 0)
 
-      val allData2 = testData("Hello" -> interval(0, 10), "World" -> intervalFrom(11))
+      val allData2 = List(interval(0, 10) -> "Hello", intervalFrom(11) -> "World")
       val fixture2 = dataIn1DVersionedFrom2D(testDataIn2D(0, allData2))
       fixture2.domain.toList shouldBe List(intervalFrom(0))
       fixture2.getAt(5) shouldBe Some("Hello")
@@ -73,32 +70,32 @@ trait DataIn1DVersionedBaseBehaviors:
       assert(fixture2.intersects(interval(5, 15)))
       fixture2.getIntersecting(interval(5, 15)) should contain theSameElementsAs allData2
 
-      val allData3a = testData("Hello" -> interval(0, 9), "World" -> interval(12, 20))
-      val allData3b = testData("Goodbye" -> interval(-4, -2), "Cruel" -> interval(6, 14), "World" -> interval(16, 24))
+      val allData3a = List(interval(0, 9) -> "Hello", interval(12, 20) -> "World")
+      val allData3b = List(interval(-4, -2) -> "Goodbye", interval(6, 14) -> "Cruel", interval(16, 24) -> "World")
 
       val fixture3 = dataIn1DVersionedFrom1D(allData3a).zip(dataIn1DVersionedFrom1D(allData3b))
-      val expected3 = testData(
-        ("Hello", "Cruel") -> interval(6, 9),
-        ("World", "Cruel") -> interval(12, 14),
-        ("World", "World") -> interval(16, 20)
+      val expected3 = List(
+        interval(6, 9) -> ("Hello", "Cruel"),
+        interval(12, 14) -> ("World", "Cruel"),
+        interval(16, 20) -> ("World", "World")
       )
       fixture3.getAll.toList shouldBe expected3
 
       val fixture4 = dataIn1DVersionedFrom1D(allData3a).zipAll(dataIn1DVersionedFrom1D(allData3b), "<", ">")
-      val expected4 = testData(
-        ("<", "Goodbye") -> interval(-4, -2),
-        ("Hello", ">") -> interval(0, 5),
-        ("Hello", "Cruel") -> interval(6, 9),
-        ("<", "Cruel") -> interval(10, 11),
-        ("World", "Cruel") -> interval(12, 14),
-        ("World", ">") -> interval(15, 15),
-        ("World", "World") -> interval(16, 20),
-        ("<", "World") -> interval(21, 24)
+      val expected4 = List(
+        interval(-4, -2) -> ("<", "Goodbye"),
+        interval(0, 5) -> ("Hello", ">"),
+        interval(6, 9) -> ("Hello", "Cruel"),
+        interval(10, 11) -> ("<", "Cruel"),
+        interval(12, 14) -> ("World", "Cruel"),
+        intervalAt(15) -> ("World", ">"),
+        interval(16, 20) -> ("World", "World"),
+        interval(21, 24) -> ("<", "World")
       )
       fixture4.getAll.toList shouldBe expected4
 
     test(s"$prefix: Looking up data in intervals"):
-      val allData = testData("Hello" -> interval(0, 9), "World" -> intervalFrom(10))
+      val allData = List(interval(0, 9) -> "Hello", intervalFrom(10) -> "World")
       val fixture = dataIn1DVersionedFrom1D(allData)
       fixture.getAt(5) shouldBe Some("Hello")
       fixture.getAt(15) shouldBe Some("World")

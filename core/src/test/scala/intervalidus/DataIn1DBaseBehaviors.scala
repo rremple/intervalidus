@@ -16,10 +16,6 @@ trait DataIn1DBaseBehaviors:
   import DiscreteDomain1D.Point
   import DiscreteInterval1D.*
 
-  protected def testData[T](
-    values: (T, DiscreteInterval1D[Int])*
-  ): List[ValidData1D[T, Int]] = values.map(ValidData1D(_, _)).toList
-
   def stringLookupTests[S <: DataIn1DBase[String, Int]](
     prefix: String,
     dataIn1DFrom: Experimental ?=> Iterable[ValidData1D[String, Int]] => S,
@@ -30,7 +26,7 @@ trait DataIn1DBaseBehaviors:
 
       assertThrows[IllegalArgumentException]:
         // not valid as it overlaps on [10, +∞)
-        val _ = dataIn1DFrom(testData("Hello" -> interval(0, 10), "World" -> unbounded))
+        val _ = dataIn1DFrom(List(interval(0, 10) -> "Hello", unbounded -> "World"))
     }
 
     val empty: S = dataIn1DFrom(List.empty)
@@ -65,7 +61,7 @@ trait DataIn1DBaseBehaviors:
     assertThrows[Exception]:
       val _ = fixture1(-1)
 
-    val allData2 = testData("Hello" -> interval(0, 10), "World" -> intervalFrom(11))
+    val allData2 = List(interval(0, 10) -> "Hello", intervalFrom(11) -> "World")
     val fixture2 = dataIn1DFrom(allData2)
     fixture2.domain.toList shouldBe List(intervalFrom(0))
     fixture2.getAt(5) shouldBe Some("Hello")
@@ -74,44 +70,44 @@ trait DataIn1DBaseBehaviors:
     assert(fixture2.intersects(interval(5, 15)))
     fixture2.getIntersecting(interval(5, 15)) should contain theSameElementsAs allData2
 
-    dataIn1DFrom(testData("Hello" -> intervalTo(10)))
-      .zip(dataIn1DFrom(testData("world" -> intervalFrom(5))))
+    dataIn1DFrom(List(intervalTo(10) -> "Hello"))
+      .zip(dataIn1DFrom(List(intervalFrom(5) -> "world")))
       .getAll
-      .toList shouldBe testData(("Hello", "world") -> interval(5, 10))
+      .toList shouldBe List(interval(5, 10) -> ("Hello", "world"))
 
-    val allData3a = testData("Hello" -> interval(0, 9), "World" -> interval(12, 20))
-    val allData3b = testData("Goodbye" -> interval(-4, -2), "Cruel" -> interval(6, 14), "World" -> interval(16, 24))
+    val allData3a = List(interval(0, 9) -> "Hello", interval(12, 20) -> "World")
+    val allData3b = List(interval(-4, -2) -> "Goodbye", interval(6, 14) -> "Cruel", interval(16, 24) -> "World")
 
     val fixture3 = dataIn1DFrom(allData3a).zip(dataIn1DFrom(allData3b))
-    val expected3 = testData(
-      ("Hello", "Cruel") -> interval(6, 9),
-      ("World", "Cruel") -> interval(12, 14),
-      ("World", "World") -> interval(16, 20)
+    val expected3 = List(
+      interval(6, 9) -> ("Hello", "Cruel"),
+      interval(12, 14) -> ("World", "Cruel"),
+      interval(16, 20) -> ("World", "World")
     )
     fixture3.getAll.toList shouldBe expected3
 
     val fixture4 = dataIn1DFrom(allData3a).zipAll(dataIn1DFrom(allData3b), "<", ">")
-    val expected4 = testData(
-      ("<", "Goodbye") -> interval(-4, -2),
-      ("Hello", ">") -> interval(0, 5),
-      ("Hello", "Cruel") -> interval(6, 9),
-      ("<", "Cruel") -> interval(10, 11),
-      ("World", "Cruel") -> interval(12, 14),
-      ("World", ">") -> interval(15, 15),
-      ("World", "World") -> interval(16, 20),
-      ("<", "World") -> interval(21, 24)
+    val expected4 = List(
+      interval(-4, -2) -> ("<", "Goodbye"),
+      interval(0, 5) -> ("Hello", ">"),
+      interval(6, 9) -> ("Hello", "Cruel"),
+      interval(10, 11) -> ("<", "Cruel"),
+      interval(12, 14) -> ("World", "Cruel"),
+      intervalAt(15) -> ("World", ">"),
+      interval(16, 20) -> ("World", "World"),
+      interval(21, 24) -> ("<", "World")
     )
     fixture4.getAll.toList shouldBe expected4
 
   // https://www.fidelity.com/learning-center/personal-finance/tax-brackets
-  val taxBrackets = testData( // value is tax rate (a double)
-    0.1 -> interval(1, 23200),
-    0.12 -> interval(23201, 94300),
-    0.22 -> interval(94301, 201050),
-    0.24 -> interval(201051, 383900),
-    0.32 -> interval(383901, 487450),
-    0.35 -> interval(487451, 731200),
-    0.37 -> intervalFrom(731201)
+  val taxBrackets = List( // value is tax rate (a double)
+    interval(1, 23200) -> 0.1,
+    interval(23201, 94300) -> 0.12,
+    interval(94301, 201050) -> 0.22,
+    interval(201051, 383900) -> 0.24,
+    interval(383901, 487450) -> 0.32,
+    interval(487451, 731200) -> 0.35,
+    intervalFrom(731201) -> 0.37
   )
 
   def doubleUseCaseTests[S <: DataIn1DBase[Double, Int]](

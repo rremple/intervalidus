@@ -86,7 +86,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
     assert(empty.domain.isEmpty)
 
   test("Immutable: String representations and diff actions"):
-    val allData = testData("Hello" -> interval(0, 9), "World" -> intervalFrom(10))
+    val allData = List(interval(0, 9) -> "Hello", intervalFrom(10) -> "World")
     val f1 = mutable.DataIn1D(allData).toMutable.toImmutable
     f1.getAll.toList shouldBe allData
 
@@ -94,12 +94,12 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
       b.append(d.value).append("->").append(d.interval.toString).append(" ")
     concat.result() shouldBe "Hello->[0..9] World->[10..+∞) "
 
-    val expectedData2 = testData(
-      "Hello" -> interval(0, 4),
-      "to" -> interval(5, 15),
-      "World" -> interval(16, 19),
-      "!" -> interval(20, 25),
-      "World" -> intervalFrom(26)
+    val expectedData2 = List(
+      interval(0, 4) -> "Hello",
+      interval(5, 15) -> "to",
+      interval(16, 19) -> "World",
+      interval(20, 25) -> "!",
+      intervalFrom(26) -> "World"
     )
     val f2 = DataIn1D(expectedData2)
 
@@ -115,12 +115,12 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
     f2.toString shouldBe expectedString
     f2.recompressAll().toString shouldBe expectedString // does nothing in 1D
 
-    val expectedData3 = testData("Hey" -> intervalTo(4), "to" -> interval(5, 15), "World" -> intervalFrom(16))
+    val expectedData3 = List(intervalTo(4) -> "Hey", interval(5, 15) -> "to", intervalFrom(16) -> "World")
     val f3 = DataIn1D(expectedData3)
     val f4 = f3
       .set(intervalFrom(1) -> "remove me")
       .remove(intervalFrom(1))
-    val expectedData4 = testData("Hey" -> intervalTo(0))
+    val expectedData4 = List(intervalTo(0) -> "Hey")
     f4.getAll.toList shouldBe expectedData4
 
     import DiffAction1D.*
@@ -154,27 +154,27 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
     f4sync.getAll.toList shouldBe expectedData4
 
   test("Immutable: Mapping, flatmapping, etc."):
-    val allData = testData("Hey" -> intervalTo(4), "World" -> intervalFrom(16))
+    val allData = List(intervalTo(4) -> "Hey", intervalFrom(16) -> "World")
 
     val fixture1 = DataIn1D(allData)
     fixture1.copy.getAll.toList shouldBe fixture1.getAll.toList
 
     val fixture2 = fixture1.map(d => d.interval.endingWith(d.interval.end.successor) -> (d.value + "!"))
-    val expectedData2 = testData("Hey!" -> intervalTo(5), "World!" -> intervalFrom(16))
+    val expectedData2 = List(intervalTo(5) -> "Hey!", intervalFrom(16) -> "World!")
     fixture2.getAll.toList shouldBe expectedData2
 
     val fixture3 = fixture2.mapValues(_ + "!!")
-    val expectedData3 = testData("Hey!!!" -> intervalTo(5), "World!!!" -> intervalFrom(16))
+    val expectedData3 = List(intervalTo(5) -> "Hey!!!", intervalFrom(16) -> "World!!!")
     fixture3.getAll.toList shouldBe expectedData3
 
     val fixture4 = fixture3.flatMap(d => DataIn1D.of[String, Int](d.value).map(x => d.interval -> x.value))
-    val expectedData4 = testData("Hey!!!" -> intervalTo(5), "World!!!" -> intervalFrom(16))
+    val expectedData4 = List(intervalTo(5) -> "Hey!!!", intervalFrom(16) -> "World!!!")
     fixture4.getAll.toList shouldBe expectedData4
     assertThrows[NoSuchElementException]:
       fixture4.get
 
     val fixture5 = fixture4.filter(_.value == "Hey!!!").flatMap(d => DataIn1D.of[String, Int](d.value))
-    val expectedData5 = testData("Hey!!!" -> unbounded)
+    val expectedData5 = List(unbounded[Int] -> "Hey!!!")
     fixture5.getAll.toList shouldBe expectedData5
     fixture5.get shouldBe "Hey!!!"
 
@@ -182,9 +182,9 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
   test("Immutable [experimental noSearchTree]: Mapping, flatmapping, etc. x"):
     given Experimental = Experimental("noSearchTree")
 
-    val allData = testData("Hey" -> intervalTo(4), "World" -> intervalFrom(16))
+    val allData = List(intervalTo(4) -> "Hey", intervalFrom(16) -> "World")
 
     val fixture1 = DataIn1D(allData)
     val fixture2 = fixture1.map(d => d.interval.endingWith(d.interval.end.successor) -> (d.value + "!"))
-    val expectedData2 = testData("Hey!" -> intervalTo(5), "World!" -> intervalFrom(16))
+    val expectedData2 = List(intervalTo(5) -> "Hey!", intervalFrom(16) -> "World!")
     fixture2.getAll.toList shouldBe expectedData2
