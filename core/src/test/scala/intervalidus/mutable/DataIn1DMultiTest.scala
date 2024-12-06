@@ -50,7 +50,7 @@ class DataIn1DMultiTest
     )
   )
 
-  test("Immutable: Applying diff actions"):
+  test("Mutable: Applying diff actions"):
     val fixture5 = DataIn1DMulti.from(
       List(
         interval(0, 4) -> "Hello",

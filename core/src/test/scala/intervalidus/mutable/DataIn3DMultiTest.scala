@@ -55,7 +55,7 @@ class DataIn3DMultiTest
     )
   )
 
-  test("Immutable: Applying diff actions"):
+  test("Mutable: Applying diff actions"):
     val fixture5 = DataIn3DMulti.from(
       List(
         withHorizontal(interval(0, 4)) -> "Hello",

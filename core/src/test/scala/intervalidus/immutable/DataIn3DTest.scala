@@ -8,7 +8,7 @@ import org.scalatest.matchers.should.Matchers
 import java.time.LocalDate
 import scala.language.implicitConversions
 
-class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors:
+class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors with ImmutableBaseBehaviors:
 
   import DiscreteInterval1D.*
 
@@ -16,6 +16,20 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors:
   testsFor(stringLookupTests("Immutable", DataIn3D(_), DataIn3D.of(_)))
   testsFor(
     stringLookupTests("Immutable [experimental]", DataIn3D(_), DataIn3D.of(_))(using Experimental("noSearchTree"))
+  )
+  testsFor(
+    immutableBaseTests[
+      DiscreteDomain3D[LocalDate, LocalDate, Int],
+      DiscreteInterval3D[LocalDate, LocalDate, Int],
+      ValidData3D[String, LocalDate, LocalDate, Int],
+      DiffAction3D[String, LocalDate, LocalDate, Int],
+      DataIn3D[String, LocalDate, LocalDate, Int]
+    ](
+      ds => DataIn3D(ds),
+      i => unbounded[LocalDate] x unbounded[LocalDate] x i,
+      (i, s) => (unbounded[LocalDate] x unbounded[LocalDate] x i) -> s,
+      DiscreteInterval3D.unbounded
+    )
   )
 
   override def assertRemoveOrUpdateResult(
@@ -55,7 +69,7 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors:
     interval3: DiscreteInterval1D[T2]
   ): DiscreteInterval3D[LocalDate, LocalDate, T2] = unbounded[LocalDate] x unbounded[LocalDate] x interval3
 
-  test("Immutable: Looking up data in intervals - bounded r1"):
+  test("Immutable: Constructors and getting data by index"):
     val empty: DataIn3D[String, Int, Int, Int] = DataIn3D()
     assert(empty.getAll.isEmpty)
     assert(empty.domain.isEmpty)
@@ -85,6 +99,10 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors:
          |                        | H [1..+∞) x [1..9]    |
          |""".stripMargin.replaceAll("\r", "")
 
+    val concat = fixturePadData.foldLeft(StringBuilder()): (a, d) =>
+      a.append(d.value).append("->").append(d.interval.start.toString).append(" ")
+    concat.result() shouldBe "H->{-∞, -∞, -∞} H->{-∞, -∞, 1} H->{-∞, -∞, 10} W->{1, -∞, 1} H->{1, 1, 1} "
+
     val fixturePadLabel = DataIn3D
       .of[String, Int, Int, Int]("Helloooooooooo")
       .set((intervalFrom(1) x unbounded[Int] x unbounded[Int]) -> "Wooooooorld")
@@ -95,22 +113,24 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors:
          |                                     | Wooooooorld (-∞..+∞) x (-∞..+∞)    |
          |""".stripMargin.replaceAll("\r", "")
 
-  test("Immutable: Adding and removing data in intervals - unbounded r1"):
+  test("Immutable [experimental noSearchTree]: Constructors and getting data by index"):
+    given Experimental = Experimental("noSearchTree")
+
+    val empty: DataIn3D[String, Int, Int, Int] = DataIn3D()
+    assert(empty.getAll.isEmpty)
+    assert(empty.domain.isEmpty)
+
     val allData = List(
-      (unboundedDate x unboundedDate x interval(0, 10)) -> "Hello",
-      (unboundedDate x unboundedDate x intervalFrom(11)) -> "World"
+      (intervalTo(day(14)) x intervalTo(day(14)) x interval(0, 10)) -> "Hello",
+      (intervalFrom(day(1)) x intervalFrom(day(1)) x intervalFrom(11)) -> "World"
     )
-    val fixture0 = DataIn3D(allData)
+    val fixture = mutable.DataIn3D(allData).toMutable.toImmutable
 
-    val fixture1 = fixture0.set(vertical3D(interval(5, 15)) -> "to")
-    val expectedData1 = List(
-      (unboundedDate x unboundedDate x interval(0, 4)) -> "Hello",
-      (unboundedDate x unboundedDate x interval(5, 15)) -> "to",
-      (unboundedDate x unboundedDate x intervalFrom(16)) -> "World"
-    )
-    fixture1.getAll.toList shouldBe expectedData1
+    fixture.getByHorizontalIndex(dayZero).getByHorizontalIndex(dayZero).getAt(0) shouldBe Some("Hello")
+    fixture.getByVerticalIndex(dayZero).getByHorizontalIndex(dayZero).getAt(0) shouldBe Some("Hello")
+    fixture.getByDepthIndex(11).getByHorizontalIndex(day(1)).getAt(day(1)) shouldBe Some("World")
 
-    val fixture2a = fixture1.set(vertical3D(interval(20, 25)) -> "!") // split
+  test("Immutable: Diff actions"):
     val expectedData2 = List(
       (unboundedDate x unboundedDate x interval(0, 4)) -> "Hello",
       (unboundedDate x unboundedDate x interval(5, 15)) -> "to",
@@ -118,111 +138,62 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors:
       (unboundedDate x unboundedDate x interval(20, 25)) -> "!",
       (unboundedDate x unboundedDate x intervalFrom(26)) -> "World"
     )
-    fixture2a.getAll.toList shouldBe expectedData2
-
-    val fixture2b = fixture2a.setIfNoConflict(vertical3D(intervalTo(-1)) -> "Hey") match
-      case Some(f) =>
-        f.getAll.toList shouldBe (vertical3D(intervalTo(-1)) -> "Hey") :: expectedData2
-        f.setIfNoConflict(vertical3D(intervalTo(-1)) -> "Hey") shouldBe None
-        f
-      case None => fail("unexpected conflict")
-
-    val fixture3 = fixture2b
-      .set(vertical3D(intervalTo(4)) -> "Hey")
-      .remove(vertical3D(intervalFrom(21)))
+    val fixture2 = DataIn3D(expectedData2)
     val expectedData3 = List(
       (unboundedDate x unboundedDate x intervalTo(4)) -> "Hey",
       (unboundedDate x unboundedDate x interval(5, 15)) -> "to",
-      (unboundedDate x unboundedDate x interval(16, 19)) -> "World",
-      (unboundedDate x unboundedDate x intervalAt(20)) -> "!"
+      (unboundedDate x unboundedDate x intervalFrom(16)) -> "World"
     )
-    fixture3.getAll.toList shouldBe expectedData3
-
-    val fixture3a = fixture3
-      .replaceByKey(
-        vertical3D(intervalTo(4)).start,
-        vertical3D(intervalTo(3)) -> "Hello"
-      )
-      .replace(
-        vertical3D(interval(16, 19)) -> "World",
-        vertical3D(interval(15, 20)) -> "World!"
-      )
-    val expectedData3a = List(
-      (unboundedDate x unboundedDate x intervalTo(3)) -> "Hello",
-      (unboundedDate x unboundedDate x interval(5, 14)) -> "to",
-      (unboundedDate x unboundedDate x interval(15, 20)) -> "World!"
-    )
-    fixture3a.getAll.toList shouldBe expectedData3a
-
-    val fixture4 = fixture3
-      .set(vertical3D(intervalFrom(20)) -> "World")
-    // needed? .recompressAll()
+    val fixture3 = DataIn3D(expectedData3)
     val expectedData4 = List(
       (unboundedDate x unboundedDate x intervalTo(4)) -> "Hey",
-      (unboundedDate x unboundedDate x interval(5, 15)) -> "to",
       (unboundedDate x unboundedDate x intervalFrom(16)) -> "World"
     )
-    fixture4.getAll.toList shouldBe expectedData4
 
-    val fixture5 = fixture4.remove(vertical3D(interval(5, 15)))
-    val expectedData5 = List(
-      (unboundedDate x unboundedDate x intervalTo(4)) -> "Hey",
-      (unboundedDate x unboundedDate x intervalFrom(16)) -> "World"
-    )
-    fixture5.getAll.toList shouldBe expectedData5
-
-    val fixture6 = fixture5
+    val fixture4 = DataIn3D(expectedData4)
+    val fixture5 = fixture4
       .set((intervalFrom(day(1)) x unboundedDate x intervalFrom(1)) -> "remove me")
       .remove(intervalFrom(day(1)) x unboundedDate x intervalFrom(1))
       .recompressAll()
-    val expectedData6 = List(
+    val expectedData5 = List(
       (unboundedDate x unboundedDate x intervalTo(0)) -> "Hey",
       (intervalTo(day(0)) x unboundedDate x interval(1, 4)) -> "Hey",
       (intervalTo(day(0)) x unboundedDate x intervalFrom(16)) -> "World"
     )
-    fixture6.getAll.toList shouldBe expectedData6
-
-    val fixture7 = fixture6.fill(DiscreteInterval3D.unbounded -> "Filled")
-    val expectedFilled = List(
-      (unboundedDate x unboundedDate x intervalTo(0)) -> "Hey",
-      (intervalTo(day(0)) x unboundedDate x interval(1, 4)) -> "Hey",
-      (unboundedDate x unboundedDate x interval(5, 15)) -> "Filled",
-      (intervalTo(day(0)) x unboundedDate x intervalFrom(16)) -> "World",
-      (intervalFrom(day(1)) x unboundedDate x interval(1, 4)) -> "Filled",
-      (intervalFrom(day(1)) x unboundedDate x intervalFrom(16)) -> "Filled"
-    )
-    fixture7.getAll.toList shouldBe expectedFilled
+    fixture5.getAll.toList shouldBe expectedData5
 
     import DiffAction3D.*
     import DiscreteDomain1D.{Bottom, Point}
 
-    val actionsFrom2To4 = fixture4.diffActionsFrom(fixture2a)
-    actionsFrom2To4.toList shouldBe List(
+    val actionsFrom2To3 = fixture3.diffActionsFrom(fixture2)
+    actionsFrom2To3.toList shouldBe List(
       Create(vertical3D(intervalTo(4)) -> "Hey"),
       Delete(DiscreteDomain3D[Int, Int, Int](Bottom, Bottom, 0)),
       Update(vertical3D(intervalFrom(16)) -> "World"),
       Delete(DiscreteDomain3D[Int, Int, Int](Bottom, Bottom, 20)),
       Delete(DiscreteDomain3D[Int, Int, Int](Bottom, Bottom, 26))
     )
-    actionsFrom2To4.toList.map(_.toCodeLikeString) shouldBe List(
+    actionsFrom2To3.toList.map(_.toCodeLikeString) shouldBe List(
       "DiffAction3D.Create((unbounded x unbounded x intervalTo(4)) -> \"Hey\")",
       "DiffAction3D.Delete(Bottom x Bottom x Point(0))",
       "DiffAction3D.Update((unbounded x unbounded x intervalFrom(16)) -> \"World\")",
       "DiffAction3D.Delete(Bottom x Bottom x Point(20))",
       "DiffAction3D.Delete(Bottom x Bottom x Point(26))"
     )
-    val actionsFrom4To6 = fixture6.diffActionsFrom(fixture4)
-    actionsFrom4To6.toList shouldBe List(
+
+    val actionsFrom3To5 = fixture5.diffActionsFrom(fixture3)
+    actionsFrom3To5.toList shouldBe List(
       Update((unboundedDate x unboundedDate x intervalTo(0)) -> "Hey"),
       Create((intervalTo(day(0)) x unboundedDate x interval(1, 4)) -> "Hey"),
       Delete(DiscreteDomain3D[Int, Int, Int](Bottom, Bottom, Point(5))),
       Update((intervalTo(day(0)) x unboundedDate x intervalFrom(16)) -> "World")
     )
-    val fixture2AppDiff = fixture2a.applyDiffActions(actionsFrom2To4)
-    fixture2AppDiff.getAll.toList shouldBe expectedData4
 
-    val fixture2Synced = fixture2a.syncWith(fixture6)
-    fixture2Synced.getAll.toList shouldBe expectedData6
+    val f3Sync = fixture2.applyDiffActions(actionsFrom2To3)
+    f3Sync.getAll.toList shouldBe expectedData3
+
+    val f5sync = fixture2.syncWith(fixture5)
+    f5sync.getAll.toList shouldBe expectedData5
 
   test("Immutable: Mapping, flatmapping, etc."):
     val allData = List(
@@ -232,10 +203,6 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors:
 
     val fixture1 = DataIn3D(allData)
     fixture1.copy.getAll.toList shouldBe fixture1.getAll.toList
-
-    val concat = fixture1.foldLeft(StringBuilder()): (a, d) =>
-      a.append(d.value).append("->").append(d.interval.depth.toString).append(" ")
-    concat.result() shouldBe "Hey->(-∞..4] World->[16..+∞) "
 
     val fixture2 = fixture1.map(d =>
       d.copy(
@@ -267,103 +234,20 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors:
     assertThrows[NoSuchElementException]:
       fixture4.get
 
-    val fixture5 = fixture4.filter(_.interval.depth ⊆ intervalTo(10))
-    val expectedData5 = List((unboundedDate x unboundedDate x intervalTo(5)) -> "Hey!!!")
+    val fixture5 =
+      fixture4.filter(_.value == "Hey!!!").flatMap(d => DataIn3D.of[String, LocalDate, LocalDate, Int](d.value))
+    val expectedData5 = List((unboundedDate x unboundedDate x unbounded[Int]) -> "Hey!!!")
     fixture5.getAll.toList shouldBe expectedData5
-    assert(!fixture5.isEmpty)
-    assertThrows[NoSuchElementException]:
-      fixture5.get
+    fixture5.get shouldBe "Hey!!!"
 
-    val fixture6 = fixture5.flatMap(d => DataIn3D.of[String, LocalDate, LocalDate, Int](d.value))
-    val expectedData6 = List((unboundedDate x unboundedDate x unbounded[Int]) -> "Hey!!!")
-    fixture6.getAll.toList shouldBe expectedData6
-    fixture6.get shouldBe "Hey!!!"
-
-    val fixture7 = fixture6.filter(_.value == "Planet")
-    assert(fixture7.isEmpty)
-    assertThrows[NoSuchElementException]:
-      fixture7.get
-
-  test("Immutable: Compressing data in intervals - unbounded r1"):
-    val allData = List(
-      (unboundedDate x unboundedDate x intervalTo(4)) -> "Hello",
-      (unboundedDate x unboundedDate x intervalAt(5)) -> "World",
-      (unboundedDate x unboundedDate x intervalAt(6)) -> "World",
-      (unboundedDate x unboundedDate x intervalAt(7)) -> "Hello",
-      (unboundedDate x unboundedDate x interval(8, 9)) -> "Hello",
-      (unboundedDate x unboundedDate x intervalFrom(10)) -> "Hello"
-    )
-
-    val fixture0 = DataIn3D(allData)
-    fixture0.domain.toList shouldBe List(DiscreteInterval3D.unbounded[Int, Int, Int])
-    val fixture1 = fixture0.compress("Hello")
-    val expectedData1 = List(
-      (unboundedDate x unboundedDate x intervalTo(4)) -> "Hello",
-      (unboundedDate x unboundedDate x intervalAt(5)) -> "World",
-      (unboundedDate x unboundedDate x intervalAt(6)) -> "World",
-      (unboundedDate x unboundedDate x intervalFrom(7)) -> "Hello"
-    )
-    fixture1.getAll.toList shouldBe expectedData1
-    fixture1.domain.toList shouldBe List(DiscreteInterval3D.unbounded[Int, Int, Int])
-
-    DiscreteInterval3D.isCompressible(allData.filter(_.value == "World").map(_.interval)) shouldBe true
-    val fixture2 = DataIn3D(allData)
-      .compressAll()
-    val expectedData2 = List(
-      (unboundedDate x unboundedDate x intervalTo(4)) -> "Hello",
-      (unboundedDate x unboundedDate x interval(5, 6)) -> "World",
-      (unboundedDate x unboundedDate x intervalFrom(7)) -> "Hello"
-    )
-    fixture2.getAll.toList shouldBe expectedData2
-    fixture2.domain.toList shouldBe List(DiscreteInterval3D.unbounded[Int, Int, Int])
-    DiscreteInterval3D.isCompressible(fixture2.getAll.filter(_.value == "World").map(_.interval)) shouldBe false
-
-  test("Immutable: Updating data in intervals - unbounded r1"):
-    val allData = List(
-      (unboundedDate x unboundedDate x intervalTo(4)) -> "Hello",
-      (unboundedDate x unboundedDate x interval(5, 6)) -> "World",
-      (unboundedDate x unboundedDate x intervalFrom(7)) -> "Hello"
-    )
-    val fixture0 = DataIn3D(allData)
-
-    val fixture1 = fixture0.update(vertical3D(interval(5, 7)) -> "World!")
-    val expectedData1 = List(
-      (unboundedDate x unboundedDate x intervalTo(4)) -> "Hello",
-      (unboundedDate x unboundedDate x interval(5, 7)) -> "World!",
-      (unboundedDate x unboundedDate x intervalFrom(8)) -> "Hello"
-    )
-    fixture1.getAll.toList shouldBe expectedData1
-
-    val fixture2 = fixture1
-      .remove(vertical3D(interval(3, 5)))
-      .update(vertical3D(interval(2, 9)) -> "to")
-    val expectedData2 = List(
-      (unboundedDate x unboundedDate x intervalTo(1)) -> "Hello",
-      (unboundedDate x unboundedDate x intervalAt(2)) -> "to",
-      (unboundedDate x unboundedDate x interval(6, 9)) -> "to",
-      (unboundedDate x unboundedDate x intervalFrom(10)) -> "Hello"
-    )
-    fixture2.getAll.toList shouldBe expectedData2
-    fixture2.domain.toList shouldBe List(
-      unboundedDate x unboundedDate x intervalTo(2),
-      unboundedDate x unboundedDate x intervalFrom(6)
-    )
-
-    val fixture3 = fixture2
-      .remove(vertical3D(interval(2, 9)))
-      .update(vertical3D(interval(-5, -2)) -> "World!")
+  test("Immutable: Updating data in intervals - bounded r1"):
     val expectedData3 = List(
       (unboundedDate x unboundedDate x intervalTo(-6)) -> "Hello",
       (unboundedDate x unboundedDate x interval(-5, -2)) -> "World!",
       (unboundedDate x unboundedDate x interval(-1, 1)) -> "Hello",
       (unboundedDate x unboundedDate x intervalFrom(10)) -> "Hello"
     )
-    fixture3.getAll.toList shouldBe expectedData3
-    fixture3.domain.toList shouldBe List(
-      unboundedDate x unboundedDate x intervalTo(1),
-      unboundedDate x unboundedDate x intervalFrom(10)
-    )
-
+    val fixture3 = DataIn3D(expectedData3)
     val fixture4 = fixture3
       .set((intervalFrom(day(0)) x unboundedDate x intervalFrom(1)) -> "update me")
       .update((intervalFrom(day(1)) x unboundedDate x intervalFrom(0)) -> "updated me")

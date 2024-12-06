@@ -84,7 +84,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
         |                                                                                | World [3..+∞) |
         |""".stripMargin.replaceAll("\r", "")
 
-    val copyFixture2 = fixture.copy
+    val fixture2 = fixture.copy
 
     assert(!fixture.setIfNoConflict(intervalTo(4) -> "Hey"))
     assert(fixture.setIfNoConflict(intervalTo(-1) -> "Hey"))
@@ -103,7 +103,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     val expectedData4 = testData("Hey" -> intervalTo(4), "to" -> interval(5, 15), "World" -> intervalFrom(16))
     fixture.getAll.toList shouldBe expectedData4
 
-    val copyFixture4 = fixture.copy
+    val fixture4 = fixture.copy
 
     fixture.remove(interval(5, 15))
     fixture.incrementCurrentVersion()
@@ -116,7 +116,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     val expectedData6 = testData("Hey" -> intervalTo(0))
     fixture.getAll.toList shouldBe expectedData6
 
-    val copyFixture6 = fixture.copy
+    val fixture6 = fixture.copy
 
     val fixture7 = fixture.copy
     fixture7.fill(DiscreteInterval1D.unbounded -> "Filled")
@@ -125,7 +125,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
 
     import DiffAction2D.*
 
-    val actionsFrom2To4 = copyFixture4.diffActionsFrom(copyFixture2)
+    val actionsFrom2To4 = fixture4.diffActionsFrom(fixture2)
     actionsFrom2To4.toList shouldBe List(
       Create((intervalTo(-1) x intervalFrom(4)) -> "Hey"),
       Update((interval(0, 4) x interval(2, 4)) -> "Hello"),
@@ -135,7 +135,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
       Create((intervalFrom(20) x intervalFrom(6)) -> "World"),
       Update((intervalFrom(26) x interval(3, 4)) -> "World")
     )
-    val actionsFrom4To6 = copyFixture6.diffActionsFrom(copyFixture4)
+    val actionsFrom4To6 = fixture6.diffActionsFrom(fixture4)
     actionsFrom4To6.toList shouldBe List(
       Update((interval(0, 4) x interval(5, 7)) -> "Hey"),
       Create((intervalAt(0) x intervalFrom(8)) -> "Hey"),
@@ -143,11 +143,11 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
       Update((interval(16, 19) x interval(3, 7)) -> "World"),
       Update((intervalFrom(20) x interval(6, 7)) -> "World")
     )
-    copyFixture2.applyDiffActions(actionsFrom2To4)
-    copyFixture2.getAll(using VersionSelection(copyFixture4.getCurrentVersion)).toList shouldBe expectedData4
+    fixture2.applyDiffActions(actionsFrom2To4)
+    fixture2.getAll(using VersionSelection(fixture4.getCurrentVersion)).toList shouldBe expectedData4
 
-    copyFixture2.syncWith(copyFixture6)
-    copyFixture2.getAll(using VersionSelection(copyFixture6.getCurrentVersion)).toList shouldBe expectedData6
+    fixture2.syncWith(fixture6)
+    fixture2.getAll(using VersionSelection(fixture6.getCurrentVersion)).toList shouldBe expectedData6
 
   test("Mutable: Mapping, flat mapping, etc."):
     val allData = testData("Hey" -> intervalTo(4), "World" -> intervalFrom(16))

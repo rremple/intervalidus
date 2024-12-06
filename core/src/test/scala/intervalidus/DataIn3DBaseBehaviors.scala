@@ -25,7 +25,7 @@ trait DataIn3DBaseBehaviors:
     prefix: String,
     dataIn3DFrom: Experimental ?=> Iterable[ValidData3D[String, LocalDate, LocalDate, Int]] => S,
     dataIn3DOf: Experimental ?=> String => S
-  )(using Experimental): Unit = test(s"$prefix: Looking up data in intervals - unbounded r1"):
+  )(using Experimental): Unit = test(s"$prefix: Looking up data in intervals"):
     {
       given Experimental = Experimental("requireDisjoint")
 

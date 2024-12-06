@@ -27,7 +27,7 @@ trait DataIn2DBaseBehaviors:
     prefix: String,
     dataIn2DFrom: Experimental ?=> Iterable[ValidData2D[String, LocalDate, Int]] => S,
     dataIn2DOf: Experimental ?=> String => S
-  )(using Experimental): Unit = test(s"$prefix: Looking up data in intervals - unbounded r1"):
+  )(using Experimental): Unit = test(s"$prefix: Looking up data in intervals"):
     {
       given Experimental = Experimental("requireDisjoint")
 
