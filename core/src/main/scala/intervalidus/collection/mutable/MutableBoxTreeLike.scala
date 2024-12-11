@@ -74,7 +74,7 @@ trait MutableBoxTreeLeafLike[
   this: SuperSelf =>
 
   // state
-  var data: List[P] = List.empty
+  protected var data: List[P] = List.empty
 
   override def hasCapacity: Boolean =
     data.length < capacity || depth == depthLimit

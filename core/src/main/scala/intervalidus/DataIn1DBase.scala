@@ -298,7 +298,6 @@ trait DataIn1DBase[V, R: DiscreteValue](using experimental: Experimental)
     val intersectingIntervals = getIntersecting(interval).map(_.interval)
     DiscreteInterval1D
       .uniqueIntervals(intersectingIntervals.toSeq :+ interval)
-      .filterNot(intersects)
-      .map(_ -> value)
-      .foreach(addValidData)
+      .foreach: i =>
+        if interval.intersects(i) && !this.intersects(i) then addValidData(i -> value)
     compressInPlace(value)

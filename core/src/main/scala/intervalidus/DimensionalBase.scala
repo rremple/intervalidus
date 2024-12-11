@@ -242,10 +242,9 @@ trait DimensionalBase[
     dataByStartAsc.addOne(data.withKey)
     dataByValue.addOne(data.value -> data)
     experimental.control("noSearchTree")(
-      experimentalResult = {
+      experimentalResult =
         // assert(!dataByStartDesc.isDefinedAt(data.interval.start))
-        dataByStartDesc.addOne(data.withKey)
-      },
+        dataByStartDesc.addOne(data.withKey),
       nonExperimentalResult = dataInSearchTreeAdd(data)
     )
 
@@ -262,14 +261,12 @@ trait DimensionalBase[
     dataByValue.addOne(data.value -> data)
     dataByStartAsc.update(data.interval.start, data)
     experimental.control("noSearchTree")(
-      experimentalResult = {
+      experimentalResult =
         // assert(dataByStartDesc.isDefinedAt(data.interval.start))
-        dataByStartDesc.update(data.interval.start, data)
-      },
-      nonExperimentalResult = {
+        dataByStartDesc.update(data.interval.start, data),
+      nonExperimentalResult =
         dataInSearchTreeRemove(oldData)
         dataInSearchTreeAdd(data)
-      }
     )
 
   /**
@@ -284,10 +281,10 @@ trait DimensionalBase[
     val previousAsc = dataByStartAsc.remove(key)
     // assert(previousDesc.isDefined)
     experimental.control("noSearchTree")(
-      experimentalResult = {
+      experimentalResult =
         val previousDesc = dataByStartDesc.remove(key)
         // assert(previousAsc.isDefined)
-      },
+      ,
       nonExperimentalResult = dataInSearchTreeRemove(oldData)
     )
 
@@ -306,14 +303,12 @@ trait DimensionalBase[
     dataByValue.clear()
     dataByValue.addAll(data.map(d => d.value -> d))
     experimental.control("noSearchTree")(
-      experimentalResult = {
+      experimentalResult =
         dataByStartDesc.clear()
-        dataByStartDesc.addAll(dataByStartAsc)
-      },
-      nonExperimentalResult = {
+        dataByStartDesc.addAll(dataByStartAsc),
+      nonExperimentalResult =
         dataInSearchTreeClear()
         dataInSearchTreeAddAll(data)
-      }
     )
 
   // from PartialFunction

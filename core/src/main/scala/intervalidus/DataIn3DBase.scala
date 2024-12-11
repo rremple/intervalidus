@@ -344,10 +344,9 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
     interval = _.interval,
     valueMatch = _.value == _.value,
     lookup = (_, start) => dataByStartAsc.get(start),
-    compressAdjacent = (r, s, intervalByStart) => {
+    compressAdjacent = (r, s, intervalByStart) =>
       removeValidData(s)
       updateValidData(r.interval ∪ s.interval -> value)
-    }
   )
 
   override protected def recompressInPlace(): Unit = synchronized:
@@ -1055,7 +1054,6 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
     val intersectingIntervals = getIntersecting(interval).map(_.interval)
     DiscreteInterval3D
       .uniqueIntervals(intersectingIntervals.toSeq :+ interval)
-      .filterNot(intersects)
-      .map(_ -> value)
-      .foreach(addValidData)
+      .foreach: i =>
+        if interval.intersects(i) && !this.intersects(i) then addValidData(i -> value)
     compressInPlace(value)

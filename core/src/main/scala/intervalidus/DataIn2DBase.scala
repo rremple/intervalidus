@@ -277,10 +277,9 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
     interval = _.interval,
     valueMatch = _.value == _.value,
     lookup = (_, start) => dataByStartAsc.get(start),
-    compressAdjacent = (r, s, intervalByStart) => {
+    compressAdjacent = (r, s, intervalByStart) =>
       removeValidData(s)
       updateValidData(r.interval ∪ s.interval -> value)
-    }
   )
 
   override protected def recompressInPlace(): Unit = synchronized:
@@ -615,7 +614,6 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
     val intersectingIntervals = getIntersecting(interval).map(_.interval)
     DiscreteInterval2D
       .uniqueIntervals(intersectingIntervals.toSeq :+ interval)
-      .filterNot(intersects)
-      .map(_ -> value)
-      .foreach(addValidData)
+      .foreach: i =>
+        if interval.intersects(i) && !this.intersects(i) then addValidData(i -> value)
     compressInPlace(value)
