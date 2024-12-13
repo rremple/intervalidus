@@ -1,7 +1,5 @@
 package intervalidus.collection
 
-import scala.annotation.tailrec
-
 /**
   * Represents a box in multidimensional double space. Could be a bounding box that defines the region of a tree node,
   * or could be a valid region associated with data.
@@ -12,10 +10,7 @@ import scala.annotation.tailrec
   *   Coordinate of the maximum corner of the box (right/upper/front/etc., depending on dimension)
   */
 case class Box(minPoint: Coordinate, maxPoint: Coordinate):
-  private type MM = (Double, Double)
-  protected def minMax: Vector[MM] = minPoint.zip(maxPoint)
-  private def minMaxForall(other: Box)(f: ((MM, MM)) => Boolean): Boolean =
-    minMax.zip(other.minMax).forall(f)
+  private def corners: (Coordinate, Coordinate) = (minPoint, maxPoint)
 
   /**
     * The center of the box -- the point halfway between the mid and max point.
@@ -30,7 +25,7 @@ case class Box(minPoint: Coordinate, maxPoint: Coordinate):
     * @return
     *   true or false
     */
-  def contains(other: Box): Boolean = minMaxForall(other):
+  def contains(other: Box): Boolean = Coordinate.minMaxForall(this.corners, other.corners):
     case ((thisMin, thisMax), (otherMin, otherMax)) =>
       otherMin >= thisMin && otherMax <= thisMax
 
@@ -44,7 +39,7 @@ case class Box(minPoint: Coordinate, maxPoint: Coordinate):
     * @return
     *   true or false
     */
-  def intersects(other: Box): Boolean = minMaxForall(other):
+  def intersects(other: Box): Boolean = Coordinate.minMaxForall(this.corners, other.corners):
     case ((thisMin, thisMax), (otherMin, otherMax)) =>
       otherMin <= thisMax && otherMax >= thisMin
 
@@ -72,30 +67,7 @@ case class Box(minPoint: Coordinate, maxPoint: Coordinate):
     * @return
     *   a vector of boxes that can be used for subtree boundaries
     */
-  def binarySplit: Vector[Box] = {
-    @tailrec
-    def helper(
-      minMidMax: Vector[(Double, Double, Double)],
-      protoBoxes: Vector[(Vector[Double], Vector[Double])] = Vector.empty
-    ): Vector[Box] = minMidMax.headOption match
-      case Some((min, mid, max)) =>
-        def growProtoBox(b: (Vector[Double], Vector[Double]), appendMin: Double, appendMax: Double) = (
-          b._1.appended(appendMin),
-          b._2.appended(appendMax)
-        )
-        val newProtoBoxes =
-          if protoBoxes.isEmpty then Vector((Vector(min), Vector(mid)), (Vector(mid), Vector(max)))
-          else protoBoxes.map(growProtoBox(_, min, mid)) ++ protoBoxes.map(growProtoBox(_, mid, max))
-        helper(minMidMax.tail, newProtoBoxes)
-
-      case None => protoBoxes.map(c => Box(Coordinate(c._1), Coordinate(c._2)))
-
-    val minMidMax = midPoint
-      .zip(minMax)
-      .map:
-        case (mid, (min, max)) => (min, mid, max)
-    helper(minMidMax)
-  }
+  def binarySplit: Vector[Box] = minPoint.binarySplit(maxPoint).map(Box(_, _))
 
   /**
     * Construct a new boxed payload from this box
