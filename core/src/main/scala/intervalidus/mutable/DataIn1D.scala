@@ -1,7 +1,7 @@
 package intervalidus.mutable
 
 import intervalidus.*
-import intervalidus.collection.mutable.{BoxBtree, MultiMapSorted}
+import intervalidus.collection.mutable.{BoxTree, MultiMapSorted}
 import intervalidus.immutable.DataIn1D as DataIn1DImmutable
 
 import scala.collection.mutable
@@ -39,7 +39,7 @@ class DataIn1D[V, R: DiscreteValue] private (
   override val dataByStartAsc: mutable.TreeMap[DiscreteDomain1D[R], ValidData1D[V, R]],
   override val dataByStartDesc: mutable.TreeMap[DiscreteDomain1D[R], ValidData1D[V, R]],
   override val dataByValue: MultiMapSorted[V, ValidData1D[V, R]],
-  override val dataInSearchTree: BoxBtree[ValidData1D[V, R]]
+  override val dataInSearchTree: BoxTree[ValidData1D[V, R]]
 )(using Experimental)
   extends DataIn1DBase[V, R]
   with MutableBase[

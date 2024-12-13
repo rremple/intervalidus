@@ -2,7 +2,7 @@ package intervalidus
 
 import intervalidus.DiscreteInterval1D.{interval, intervalAt, unbounded}
 import intervalidus.collection.*
-import intervalidus.collection.mutable.{BoxQuadtree, MultiMapSorted}
+import intervalidus.collection.mutable.{BoxTree, MultiMapSorted}
 
 import scala.collection.mutable
 
@@ -69,7 +69,7 @@ trait DataIn2DConstructorParams:
     mutable.TreeMap[DiscreteDomain2D[R1, R2], ValidData2D[V, R1, R2]],
     mutable.TreeMap[DiscreteDomain2D[R1, R2], ValidData2D[V, R1, R2]],
     MultiMapSorted[V, ValidData2D[V, R1, R2]],
-    BoxQuadtree[ValidData2D[V, R1, R2]]
+    BoxTree[ValidData2D[V, R1, R2]]
   ) =
     val dataByStartAsc: mutable.TreeMap[DiscreteDomain2D[R1, R2], ValidData2D[V, R1, R2]] =
       mutable.TreeMap.from(initialData.map(_.withKey))
@@ -85,14 +85,14 @@ trait DataIn2DConstructorParams:
       collection.mutable.MultiMapSorted.from(initialData.map(v => v.value -> v))
 
     val (r1, r2) = (summon[DiscreteValue[R1]], summon[DiscreteValue[R2]])
-    val minPoint = Coordinate2D(r1.minValue.orderedHashValue, r2.minValue.orderedHashValue)
-    val maxPoint = Coordinate2D(r1.maxValue.orderedHashValue, r2.maxValue.orderedHashValue)
-    val boundary = Box2D(minPoint, maxPoint)
+    val minPoint = Coordinate(r1.minValue.orderedHashValue, r2.minValue.orderedHashValue)
+    val maxPoint = Coordinate(r1.maxValue.orderedHashValue, r2.maxValue.orderedHashValue)
+    val boundary = Box(minPoint, maxPoint)
 
-    val dataInSearchTree: BoxQuadtree[ValidData2D[V, R1, R2]] =
+    val dataInSearchTree: BoxTree[ValidData2D[V, R1, R2]] =
       experimental.control("noSearchTree")(
-        experimentalResult = BoxQuadtree[ValidData2D[V, R1, R2]](boundary),
-        nonExperimentalResult = BoxQuadtree.from[ValidData2D[V, R1, R2]](boundary, initialData.map(_.asBoxedPayload))
+        experimentalResult = BoxTree[ValidData2D[V, R1, R2]](boundary),
+        nonExperimentalResult = BoxTree.from[ValidData2D[V, R1, R2]](boundary, initialData.map(_.asBoxedPayload))
       )
 
     (dataByStartAsc, dataByStartDesc, dataByValue, dataInSearchTree)
@@ -125,7 +125,7 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
     DataIn2DBase[V, R1, R2]
   ]:
 
-  protected def dataInSearchTree: BoxQuadtree[ValidData2D[V, R1, R2]]
+  protected def dataInSearchTree: BoxTree[ValidData2D[V, R1, R2]]
 
   experimental.control("requireDisjoint")(
     nonExperimentalResult = (),

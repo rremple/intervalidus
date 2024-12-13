@@ -1,7 +1,7 @@
 package intervalidus.mutable
 
 import intervalidus.*
-import intervalidus.collection.mutable.{BoxOctree, MultiMapSorted}
+import intervalidus.collection.mutable.{BoxTree, MultiMapSorted}
 import intervalidus.immutable.DataIn3DMulti as DataIn3DMultiImmutable
 
 import scala.collection.mutable
@@ -61,7 +61,7 @@ class DataIn3DMulti[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue] 
   override val dataByStartAsc: mutable.TreeMap[DiscreteDomain3D[R1, R2, R3], ValidData3D[Set[V], R1, R2, R3]],
   override val dataByStartDesc: mutable.TreeMap[DiscreteDomain3D[R1, R2, R3], ValidData3D[Set[V], R1, R2, R3]],
   override val dataByValue: MultiMapSorted[Set[V], ValidData3D[Set[V], R1, R2, R3]],
-  override val dataInSearchTree: BoxOctree[ValidData3D[Set[V], R1, R2, R3]]
+  override val dataInSearchTree: BoxTree[ValidData3D[Set[V], R1, R2, R3]]
 )(using Experimental)
   extends DataIn3DMultiBase[V, R1, R2, R3]
   with MutableMultiBase[

@@ -1,5 +1,7 @@
 package intervalidus.collection
 
+import scala.util.Properties
+
 /**
   * Collection that manages boxed data structures in multidimensional double space. This tree hold boxes rather than
   * individual points. Boxes are split to fit into the subtrees of the data structures (B-trees, quadtrees, or octrees,
@@ -18,22 +20,8 @@ package intervalidus.collection
   *
   * @tparam A
   *   payload type
-  * @tparam C
-  *   F-bounded coordinate type
-  * @tparam B
-  *   F-bounded box type (depends on the coordinate type)
-  * @tparam P
-  *   F-bounded boxed payload type (depends on the payload, coordinate, and box types)
-  * @tparam Self
-  *   F-bounded self type
   */
-trait BoxTreeLike[
-  A,
-  C <: CoordinateLike[C],
-  B <: BoxLike[C, B],
-  P <: BoxedPayloadLike[A, C, B, P],
-  Self <: BoxTreeLike[A, C, B, P, Self]
-]:
+trait BoxTreeLike[A, Self <: BoxTreeLike[A, Self]]:
   this: Self =>
 
   /**
@@ -46,7 +34,7 @@ trait BoxTreeLike[
   /**
     * The box in which data can be managed.
     */
-  def boundary: B
+  def boundary: Box
 
   /**
     * The target number of elements a leaf can manage until it will be split into a branch. The number of elements can
@@ -80,7 +68,7 @@ trait BoxTreeLike[
     * @return
     *   boxed data intersecting the range.
     */
-  def get(range: B): Iterable[P]
+  def get(range: Box): Iterable[BoxedPayload[A]]
 
   /**
     * A utility method to show data (for testing purposes). Because boxes can be split, the data returned can have
@@ -88,4 +76,28 @@ trait BoxTreeLike[
     * @return
     *   all the data.
     */
-  def toIterable: Iterable[P]
+  def toIterable: Iterable[BoxedPayload[A]]
+
+/**
+  * Attributes common to all box tree companions, settable as environment variables.
+  */
+trait BoxTreeObjectLike:
+  // based on benchmarks of 2D "set" on initial 10K random boxes (up to 1K on each side) in [-500K..500K]^2 space
+  /**
+    * Default capacity of leaf nodes. Default is 256, which was found to be optimal in benchmarks. Can be overridden by
+    * setting the environment variable `INTERVALIDUS_TREE_NODE_CAPACITY`.
+    */
+  val defaultCapacity: Int = Properties
+    .envOrElse("INTERVALIDUS_TREE_NODE_CAPACITY", "256")
+    .toInt
+  // println(s"using search tree leaf node capacity = $defaultCapacity")
+
+  /**
+    * Default depth limit of trees. Default is 32, which was found to be optimal in "set" benchmarks (though it was
+    * observed that any value > 17 is good). Can be overridden by setting the environment variable
+    * `INTERVALIDUS_TREE_DEPTH_LIMIT`.
+    */
+  val defaultDepthLimit: Int = Properties
+    .envOrElse("INTERVALIDUS_TREE_DEPTH_LIMIT", "32")
+    .toInt
+// println(s"using search tree depth limit = $defaultDepthLimit")

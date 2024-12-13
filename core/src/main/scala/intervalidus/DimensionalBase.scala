@@ -305,7 +305,8 @@ trait DimensionalBase[
     experimental.control("noSearchTree")(
       experimentalResult =
         dataByStartDesc.clear()
-        dataByStartDesc.addAll(dataByStartAsc),
+        dataByStartDesc.addAll(dataByStartAsc)
+      ,
       nonExperimentalResult =
         dataInSearchTreeClear()
         dataInSearchTreeAddAll(data)

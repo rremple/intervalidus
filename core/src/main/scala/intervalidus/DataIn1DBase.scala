@@ -1,8 +1,8 @@
 package intervalidus
 
 import intervalidus.DiscreteInterval1D.interval
-import intervalidus.collection.mutable.{BoxBtree, MultiMapSorted}
-import intervalidus.collection.{Box1D, BoxedPayload, Coordinate1D}
+import intervalidus.collection.mutable.{BoxTree, MultiMapSorted}
+import intervalidus.collection.{Box, BoxedPayload, Coordinate}
 
 import scala.collection.mutable
 
@@ -61,7 +61,7 @@ trait DataIn1DConstructorParams:
     mutable.TreeMap[DiscreteDomain1D[R], ValidData1D[V, R]],
     mutable.TreeMap[DiscreteDomain1D[R], ValidData1D[V, R]],
     MultiMapSorted[V, ValidData1D[V, R]],
-    BoxBtree[ValidData1D[V, R]]
+    BoxTree[ValidData1D[V, R]]
   ) =
     val dataByStartAsc: mutable.TreeMap[DiscreteDomain1D[R], ValidData1D[V, R]] =
       mutable.TreeMap.from(initialData.map(_.withKey))
@@ -76,13 +76,13 @@ trait DataIn1DConstructorParams:
     val dataByValue: MultiMapSorted[V, ValidData1D[V, R]] =
       collection.mutable.MultiMapSorted.from(initialData.map(v => v.value -> v))
 
-    val minPoint = Coordinate1D(discreteValue.minValue.orderedHashValue)
-    val maxPoint = Coordinate1D(discreteValue.maxValue.orderedHashValue)
-    val boundary = Box1D(minPoint, maxPoint)
-    val dataInSearchTree: BoxBtree[ValidData1D[V, R]] =
+    val minPoint = Coordinate(discreteValue.minValue.orderedHashValue)
+    val maxPoint = Coordinate(discreteValue.maxValue.orderedHashValue)
+    val boundary = Box(minPoint, maxPoint)
+    val dataInSearchTree: BoxTree[ValidData1D[V, R]] =
       experimental.control("noSearchTree")(
-        experimentalResult = BoxBtree[ValidData1D[V, R]](boundary), // not used
-        nonExperimentalResult = BoxBtree.from[ValidData1D[V, R]](boundary, initialData.map(_.asBoxedPayload))
+        experimentalResult = BoxTree[ValidData1D[V, R]](boundary), // not used
+        nonExperimentalResult = BoxTree.from[ValidData1D[V, R]](boundary, initialData.map(_.asBoxedPayload))
       )
 
     (dataByStartAsc, dataByStartDesc, dataByValue, dataInSearchTree)
@@ -109,7 +109,7 @@ trait DataIn1DBase[V, R: DiscreteValue](using experimental: Experimental)
     DataIn1DBase[V, R]
   ]:
 
-  protected def dataInSearchTree: BoxBtree[ValidData1D[V, R]]
+  protected def dataInSearchTree: BoxTree[ValidData1D[V, R]]
 
   experimental.control("requireDisjoint")(
     nonExperimentalResult = (),

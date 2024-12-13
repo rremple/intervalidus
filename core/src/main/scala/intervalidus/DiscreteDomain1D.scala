@@ -1,6 +1,6 @@
 package intervalidus
 
-import intervalidus.collection.Coordinate1D
+import intervalidus.collection.Coordinate
 
 import java.time.LocalDate
 import scala.language.implicitConversions
@@ -77,8 +77,8 @@ extension [T: DiscreteValue](domain1d: DiscreteDomain1D[T])
     * @return
     *   a new coordinate for boxes managed in box trees
     */
-  def asCoordinate: Coordinate1D =
-    Coordinate1D(domain1d.orderedHash)
+  def asCoordinate: Coordinate =
+    Coordinate(domain1d.orderedHash)
 
   /**
     * Successor of this, where `Bottom` and `Top` are their own successors, and the successor of `maxValue` is `Top`.

@@ -286,7 +286,7 @@ structures internally for managing state, two of which are custom:
   `compress` and all mutation operations relying on `compress`. Only the mutable variant is used internally, but an
   immutable variant is also provided.
 
-- A "box search tree" -- in either a B-tree, quadtree, or octree form, depending on the dimension -- that supports quick
+- A "box search tree" -- like a B-tree, quadtree, or octree, depending on the dimension -- that supports quick
   retrieval by interval. Box search trees manage boxed data structures in multidimensional double space. Unlike classic
   spacial search trees (used in collision detection and the like), these data structures manage "boxes" rather than
   individual points, where boxes are split and stored in all applicable subtrees of the data structure as subtrees are

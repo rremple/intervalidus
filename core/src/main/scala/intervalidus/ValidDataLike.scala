@@ -1,6 +1,6 @@
 package intervalidus
 
-import intervalidus.collection.BoxedPayloadLike
+import intervalidus.collection.BoxedPayload
 
 /**
   * A value that is valid in some discrete interval. This defines a partial function where all domain elements that are
@@ -23,15 +23,13 @@ trait ValidDataLike[
 ] extends PartialFunction[D, V]:
   this: Self =>
 
-  type BoxedPayloadType <: BoxedPayloadLike[Self, ?, ?, BoxedPayloadType]
-
   /**
     * Approximate this valid data as a boxed payload in double space based on the domain ordered hash.
     *
     * @return
     *   a new boxed payload that can be managed in a box tree
     */
-  def asBoxedPayload: BoxedPayloadType
+  def asBoxedPayload: BoxedPayload[Self]
 
   /**
     * The value valid in this interval.

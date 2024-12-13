@@ -2,7 +2,7 @@ package intervalidus
 
 import intervalidus.DiscreteDomain1D.{Bottom, Point, Top}
 import intervalidus.DiscreteInterval1D.{interval, intervalFrom, intervalTo}
-import intervalidus.collection.Box1D
+import intervalidus.collection.Box
 
 import java.time.LocalDate
 import scala.math.Ordering.Implicits.infixOrderingOps
@@ -28,10 +28,9 @@ case class DiscreteInterval1D[T: DiscreteValue](
 
   import DiscreteInterval1D.Remainder
 
-  override type BoxType = Box1D
   override type ExclusionRemainder = Remainder[DiscreteInterval1D[T]]
 
-  override def asBox: BoxType = Box1D(start.asCoordinate, end.asCoordinate)
+  override def asBox: Box = Box(start.asCoordinate, end.asCoordinate)
 
   override infix def withValue[V](value: V): ValidData1D[V, T] = ValidData1D(value, this)
 

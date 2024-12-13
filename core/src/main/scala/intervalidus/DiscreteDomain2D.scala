@@ -1,6 +1,6 @@
 package intervalidus
 
-import intervalidus.collection.Coordinate2D
+import intervalidus.collection.Coordinate
 
 import scala.language.implicitConversions
 
@@ -26,8 +26,8 @@ case class DiscreteDomain2D[T1: DiscreteValue, T2: DiscreteValue](
     * @return
     *   a new coordinate for boxes managed in box trees
     */
-  def asCoordinate: Coordinate2D =
-    Coordinate2D(horizontalIndex.orderedHash, verticalIndex.orderedHash)
+  def asCoordinate: Coordinate =
+    Coordinate(horizontalIndex.orderedHash, verticalIndex.orderedHash)
 
   override def toString: String = s"{$horizontalIndex, $verticalIndex}"
 

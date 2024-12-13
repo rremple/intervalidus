@@ -1,6 +1,6 @@
 package intervalidus
 
-import intervalidus.collection.Box3D
+import intervalidus.collection.Box
 
 import scala.annotation.tailrec
 import scala.collection.immutable.TreeMap
@@ -29,11 +29,10 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
 
   import DiscreteInterval1D.Remainder
 
-  override type BoxType = Box3D
   override type ExclusionRemainder =
     (Remainder[DiscreteInterval1D[T1]], Remainder[DiscreteInterval1D[T2]], Remainder[DiscreteInterval1D[T3]])
 
-  override def asBox: BoxType = Box3D(start.asCoordinate, end.asCoordinate)
+  override def asBox: Box = Box(start.asCoordinate, end.asCoordinate)
 
   override infix def withValue[V](value: V): ValidData3D[V, T1, T2, T3] = ValidData3D(value, this)
 

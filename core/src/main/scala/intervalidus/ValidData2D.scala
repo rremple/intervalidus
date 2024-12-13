@@ -1,6 +1,6 @@
 package intervalidus
 
-import intervalidus.collection.BoxedPayload2D
+import intervalidus.collection.BoxedPayload
 
 /**
   * A value that is valid in a two-dimensional discrete interval. Conceptually, this defines a partial function where
@@ -22,9 +22,7 @@ case class ValidData2D[V, R1: DiscreteValue, R2: DiscreteValue](
   interval: DiscreteInterval2D[R1, R2]
 ) extends ValidDataLike[V, DiscreteDomain2D[R1, R2], DiscreteInterval2D[R1, R2], ValidData2D[V, R1, R2]]:
 
-  override type BoxedPayloadType = BoxedPayload2D[ValidData2D[V, R1, R2]]
-
-  override def asBoxedPayload: BoxedPayloadType = BoxedPayload2D(interval.asBox, this)
+  override def asBoxedPayload: BoxedPayload[ValidData2D[V, R1, R2]] = BoxedPayload(interval.asBox, this)
 
 /**
   * Companion for valid data in two dimensions.

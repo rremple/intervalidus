@@ -1,6 +1,6 @@
 package intervalidus
 
-import intervalidus.collection.BoxLike
+import intervalidus.collection.Box
 
 import scala.math.Ordering.Implicits.infixOrderingOps
 
@@ -16,7 +16,6 @@ trait DiscreteIntervalLike[D <: DiscreteDomainLike[D]: Ordering, Self <: Discret
   this: Self =>
 
   type ExclusionRemainder
-  type BoxType <: BoxLike[?, BoxType]
 
   /**
     * Approximate this interval as a box in double space based on the domain ordered hash.
@@ -24,7 +23,7 @@ trait DiscreteIntervalLike[D <: DiscreteDomainLike[D]: Ordering, Self <: Discret
     * @return
     *   a new box that can be managed in a box tree
     */
-  def asBox: BoxType
+  def asBox: Box
 
   /**
     * The "infimum", i.e., the left/lower/back boundary of the interval (inclusive). When stored in a collection, this

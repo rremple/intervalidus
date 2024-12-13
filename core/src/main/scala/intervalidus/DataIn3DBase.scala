@@ -1,8 +1,8 @@
 package intervalidus
 
 import intervalidus.DiscreteInterval1D.{interval, unbounded}
-import intervalidus.collection.mutable.{BoxOctree, MultiMapSorted}
-import intervalidus.collection.{Box3D, BoxedPayload, Coordinate3D}
+import intervalidus.collection.mutable.{BoxTree, MultiMapSorted}
+import intervalidus.collection.{Box, BoxedPayload, Coordinate}
 
 import scala.collection.mutable
 
@@ -84,7 +84,7 @@ trait DataIn3DConstructorParams:
     mutable.TreeMap[DiscreteDomain3D[R1, R2, R3], ValidData3D[V, R1, R2, R3]],
     mutable.TreeMap[DiscreteDomain3D[R1, R2, R3], ValidData3D[V, R1, R2, R3]],
     MultiMapSorted[V, ValidData3D[V, R1, R2, R3]],
-    BoxOctree[ValidData3D[V, R1, R2, R3]]
+    BoxTree[ValidData3D[V, R1, R2, R3]]
   ) =
     val dataByStartAsc: mutable.TreeMap[DiscreteDomain3D[R1, R2, R3], ValidData3D[V, R1, R2, R3]] =
       mutable.TreeMap.from(initialData.map(_.withKey))
@@ -99,22 +99,22 @@ trait DataIn3DConstructorParams:
     val dataByValue: MultiMapSorted[V, ValidData3D[V, R1, R2, R3]] =
       collection.mutable.MultiMapSorted.from(initialData.map(v => v.value -> v))
 
-    val minPoint = Coordinate3D(
+    val minPoint = Coordinate(
       discreteValue1.minValue.orderedHashValue,
       discreteValue2.minValue.orderedHashValue,
       discreteValue3.minValue.orderedHashValue
     )
-    val maxPoint = Coordinate3D(
+    val maxPoint = Coordinate(
       discreteValue1.maxValue.orderedHashValue,
       discreteValue2.maxValue.orderedHashValue,
       discreteValue3.maxValue.orderedHashValue
     )
-    val boundary = Box3D(minPoint, maxPoint)
+    val boundary = Box(minPoint, maxPoint)
 
-    val dataInSearchTree: BoxOctree[ValidData3D[V, R1, R2, R3]] =
+    val dataInSearchTree: BoxTree[ValidData3D[V, R1, R2, R3]] =
       experimental.control("noSearchTree")(
-        experimentalResult = BoxOctree[ValidData3D[V, R1, R2, R3]](boundary), // not used
-        nonExperimentalResult = BoxOctree.from[ValidData3D[V, R1, R2, R3]](boundary, initialData.map(_.asBoxedPayload))
+        experimentalResult = BoxTree[ValidData3D[V, R1, R2, R3]](boundary), // not used
+        nonExperimentalResult = BoxTree.from[ValidData3D[V, R1, R2, R3]](boundary, initialData.map(_.asBoxedPayload))
       )
 
     (dataByStartAsc, dataByStartDesc, dataByValue, dataInSearchTree)
@@ -150,7 +150,7 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
     DataIn3DBase[V, R1, R2, R3]
   ]:
 
-  protected def dataInSearchTree: BoxOctree[ValidData3D[V, R1, R2, R3]]
+  protected def dataInSearchTree: BoxTree[ValidData3D[V, R1, R2, R3]]
 
   experimental.control("requireDisjoint")(
     nonExperimentalResult = (),

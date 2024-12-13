@@ -1,6 +1,6 @@
 package intervalidus
 
-import intervalidus.collection.BoxedPayload1D
+import intervalidus.collection.BoxedPayload
 
 /**
   * A value that is valid in a one-dimensional discrete interval. Conceptually, this defines a partial function where
@@ -19,9 +19,8 @@ case class ValidData1D[V, R: DiscreteValue](
   value: V,
   interval: DiscreteInterval1D[R]
 ) extends ValidDataLike[V, DiscreteDomain1D[R], DiscreteInterval1D[R], ValidData1D[V, R]]:
-  override type BoxedPayloadType = BoxedPayload1D[ValidData1D[V, R]]
 
-  override def asBoxedPayload: BoxedPayloadType = BoxedPayload1D(interval.asBox, this)
+  override def asBoxedPayload: BoxedPayload[ValidData1D[V, R]] = BoxedPayload(interval.asBox, this)
 
   // no crossing, so no parens required
   override protected def qualifiedInterval: String = s"${interval.toCodeLikeString}"
