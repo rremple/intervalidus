@@ -76,6 +76,30 @@ node3 -> node2;
  <div class="membersList expand">
   <div class="tabs">
    <div class="contents">
+    <section id="Type-members">
+     <div data-togglable="Type members" class="tab expand">
+      <div class="member-group-header">
+       <h3 data-togglable="Type members" class="h400">Type members</h3>
+      </div>
+      <section id="Types">
+       <div class="documentableList expand">
+        <div class="documentableList-expander">
+         <button class="icon-button show-content expand"></button>
+         <h4 class="groupHeader h200">Types</h4>
+        </div>
+        <div class="documentableElement" id="MinMax-0">
+         <div class="documentableElement-expander">
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">type </span></span><a href="Coordinate$.html#MinMax-0" t="n" class="documentableName ">MinMax</a> = (<a href="../collection.html#Coordinate-0" t="t">Coordinate</a>, <a href="../collection.html#Coordinate-0" t="t">Coordinate</a>)
+           </div>
+          </div>
+         </div>
+        </div>
+       </div>
+      </section>
+     </div>
+    </section>
     <section id="Value-members">
      <div data-togglable="Value members" class="tab expand">
       <div class="member-group-header">
@@ -96,11 +120,58 @@ node3 -> node2;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="apply-1fd">
+        <div class="documentableElement" id="minMaxForall-fffffbd3">
          <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Coordinate$.html#apply-1fd" t="n" class="documentableName ">apply</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">coordinates</span>: <span data-unresolved-link="" t="t">Iterable</span>[<span data-unresolved-link="" t="t">Double</span>]): <a href="../collection.html#Coordinate-0" t="t">Coordinate</a>
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Coordinate$.html#minMaxForall-fffffbd3" t="n" class="documentableName ">minMaxForall</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">minMax1</span>: <a href="Coordinate$.html#MinMax-0" t="t">MinMax</a>, <span t="k"></span><span data-unresolved-link="" t="n">minMax2</span>: <a href="Coordinate$.html#MinMax-0" t="t">MinMax</a>)(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">f</span>: (((<span data-unresolved-link="" t="t">Double</span>, <span data-unresolved-link="" t="t">Double</span>), (<span data-unresolved-link="" t="t">Double</span>, <span data-unresolved-link="" t="t">Double</span>)))<span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Boolean</span>): <span data-unresolved-link="" t="t">Boolean</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Evaluate each corresponding dimension of the two arguments and only return true if the function applied to each pair returns true.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Evaluate each corresponding dimension of the two arguments and only return true if the function applied to each pair returns true.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               f
+              </dt>
+              <dd class="body-medium">
+               <p>function applied to each corresponding dimension of the two min/max coordinate pairs</p>
+              </dd>
+              <dt class="body-small">
+               minMax1
+              </dt>
+              <dd class="body-medium">
+               <p>the first min and max coordinate pair to evaluate</p>
+              </dd>
+              <dt class="body-small">
+               minMax2
+              </dt>
+              <dd class="body-medium">
+               <p>the second min and max coordinate pair to evaluate</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>true if f applied to each corresponding dimension of the coordinate pairs is true, false otherwise</p>
+              </dd>
+             </dl>
+            </div>
            </div>
           </div>
          </div>
@@ -127,6 +198,50 @@ node3 -> node2;
            <div class="header monospace mono-medium">
             <div class="signature">
              <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Coordinate$.html#asString-fffff85c" t="n" class="documentableName ">asString</a>: <span data-unresolved-link="" t="t">String</span>
+            </div>
+           </div>
+          </div>
+         </div>
+         <div class="documentableElement" id="binarySplit-117">
+          <div class="documentableElement-expander">
+           <button class="icon-button ar show-content"></button>
+           <div class="header monospace mono-medium">
+            <div class="signature">
+             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Coordinate$.html#binarySplit-117" t="n" class="documentableName ">binarySplit</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">other</span>: <a href="../collection.html#Coordinate-0" t="t">Coordinate</a>): <span data-unresolved-link="" t="t">Vector</span>[<a href="Coordinate$.html#MinMax-0" t="t">MinMax</a>]
+            </div>
+           </div>
+          </div>
+          <div class="docs">
+           <span class="modifiers"></span>
+           <div>
+            <div class="originInfo"></div>
+            <div class="memberDocumentation">
+             <div class="documentableBrief doc">
+              <p>Treating the other coordinate as the opposite corner of a box, return a vector of coordinate pairs that represent the corners of boxes which make a binary split in all dimensions.</p>
+             </div>
+             <div class="cover">
+              <div class="doc">
+               <p>Treating the other coordinate as the opposite corner of a box, return a vector of coordinate pairs that represent the corners of boxes which make a binary split in all dimensions.</p>
+              </div>
+              <h2 class="h200">Value parameters</h2>
+              <dl class="attributes attributes-small">
+               <dt class="body-small">
+                other
+               </dt>
+               <dd class="body-medium">
+                <p>coordinate of the opposite corner of a box</p>
+               </dd>
+              </dl>
+              <h2 class="h200">Attributes</h2>
+              <dl class="attributes attributes-small">
+               <dt class="body-small">
+                Returns
+               </dt>
+               <dd class="body-medium">
+                <p>pairs of vectors for constructing boxes that split the space</p>
+               </dd>
+              </dl>
+             </div>
             </div>
            </div>
           </div>
@@ -263,24 +378,6 @@ node3 -> node2;
            </div>
           </div>
          </div>
-         <div class="documentableElement" id="zip-fffffc97">
-          <div class="documentableElement-expander">
-           <div class="header monospace mono-medium">
-            <div class="signature">
-             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Coordinate$.html#zip-fffffc97" t="n" class="documentableName ">zip</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">other</span>: <span data-unresolved-link="" t="t">Iterable</span>[<span t="t">T</span>]): <span data-unresolved-link="" t="t">Vector</span>[(<span data-unresolved-link="" t="t">Double</span>, <span data-unresolved-link="" t="t">T</span>)]
-            </div>
-           </div>
-          </div>
-         </div>
-         <div class="documentableElement" id="zip-117">
-          <div class="documentableElement-expander">
-           <div class="header monospace mono-medium">
-            <div class="signature">
-             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Coordinate$.html#zip-117" t="n" class="documentableName ">zip</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">other</span>: <a href="../collection.html#Coordinate-0" t="t">Coordinate</a>): <span data-unresolved-link="" t="t">Vector</span>[(<span data-unresolved-link="" t="t">Double</span>, <span data-unresolved-link="" t="t">Double</span>)]
-            </div>
-           </div>
-          </div>
-         </div>
         </div>
        </div>
       </section>
@@ -289,4 +386,4 @@ node3 -> node2;
    </div>
   </div>
  </div>
-</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Attributes</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Value-members">Value members</a><ul><li><a href="#Concrete-methods">Concrete methods</a></li></ul></li><li><a href="#Extensions">Extensions</a><ul><li><a href="#Extensions">Extensions</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
+</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Attributes</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Type-members">Type members</a><ul><li><a href="#Types">Types</a></li></ul></li><li><a href="#Value-members">Value members</a><ul><li><a href="#Concrete-methods">Concrete methods</a></li></ul></li><li><a href="#Extensions">Extensions</a><ul><li><a href="#Extensions">Extensions</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
