@@ -142,6 +142,45 @@ On 2024-05-15, expected Premium tier on 2024-08-01
 On 2024-07-15, no expected tier on 2024-08-01
 ```
 
+Sometimes one wants to treat multiple values as valid in the same interval. For example, a product team may add/remove
+features in each numbered release of a product. `DataIn1DMulti` could be used to model what features belong in what
+releases, this time using intervals based on integers rather than dates.
+```scala
+import intervalidus.DiscreteInterval1D.*
+import intervalidus.immutable.DataIn1DMulti
+
+case class Feat(id: String)
+
+val multi = DataIn1DMulti[Feat, Int]()
+  .addOne(intervalFrom(1) -> Feat("A")) // release 1 includes only feature A
+  .addOne(intervalFrom(2) -> Feat("B")) // release 2 adds feature B
+  .addOne(intervalFrom(3) -> Feat("C")) // release 3 adds feature C...
+  .removeOne(intervalFrom(3) -> Feat("B")) // ...and also drops feature B
+  // releases 4 and 5 were bug fixes, and no features were added or removed
+  .addOne(intervalFrom(6) -> Feat("D")) // release 6 adds feature D...
+  .removeOne(intervalFrom(6) -> Feat("A")) // ...and also drops feature A
+
+println(multi(4)) // what are the features in release 4?
+println
+println(multi) // what are all the feature combinations in all release intervals?
+```
+
+The result shows the unique feature combinations in each release-based interval (note that releases 3, 4, and 5 share
+the same feature set, i.e., the combination of feature A and C is "valid" in all in the [3..5] release interval):
+
+```
+Set(Feat(A), Feat(C))
+
+| 1 .. 1            | 2 .. 2            | 3 .. 5            | 6 .. +∞           |
+| {Feat(A)}         |
+                    | {Feat(A),Feat(B)} |
+                                        | {Feat(A),Feat(C)} |
+                                                            | {Feat(C),Feat(D)} |
+```
+
+For the same reasons explained earlier, one might want to use `DataIn2DMulti` instead to model what features belong in
+what release as well as when the product management decision was made to include/exclude a feature in a release.
+
 The same methods are available in both mutable/immutable and one-/two-/three-dimensional forms (though parameter and
 return types vary). See the [full API documentation](https://rremple.github.io/intervalidus/latest/api/intervalidus) for details on
 these methods.
@@ -190,7 +229,7 @@ A discrete value is a type class, and there are implementations given for the fo
 
 But if you have your own type with these properties, you can certainly give an implementation of the type class for that
 type and use it in the definition of one-, two-, or three-dimensional intervals. For example, these intervals use 
-colors instead of dates or numbers:
+colors (a discrete spectrum ordered by frequency) instead of dates or numbers:
 ```scala
 import intervalidus.DiscreteInterval1D.*
 import intervalidus.immutable.DataIn1D
@@ -214,19 +253,31 @@ given DiscreteValue[Color] with
   override def orderedHashOf(x: T): Double = x.ordinal
 
 val color1d = DataIn1D
-  .of(intervalTo(Color.Green) -> "Red, Yellow, Green")
-  .set(intervalAt(Color.Cyan) -> "just Cyan")
-  .set(intervalFrom(Color.Blue) -> "Blue, Magenta")
+  .of(intervalTo(Color.Green) -> "400 - 575 THz")
+  .set(intervalAt(Color.Cyan) -> "575 - 610 THz")
+  .set(intervalFrom(Color.Blue) -> "610 - 800 THz")
 
 println(color1d)
 ```
 
 This prints the following:
 ```
-| -∞ .. Green        | Cyan .. Cyan       | Blue .. +∞         |
-| Red, Yellow, Green |
-                     | just Cyan          |
-                                          | Blue, Magenta      |
+| -∞ .. Green   | Cyan .. Cyan  | Blue .. +∞    |
+| 400 - 575 THz |
+                | 575 - 610 THz |
+                                | 610 - 800 THz |
+```
+
+Because creating a `DiscreteValue` type class based on a finite sequence of unique items is a common need, a helper 
+method `fromSeq` is provided that reduces boilerplate code.
+
+```scala
+enum Color:
+  case Red, Yellow, Green, Cyan, Blue, Magenta
+
+given DiscreteValue[Color] = DiscreteValue.fromSeq(Color.values.toIndexedSeq)
+
+val color1d = DataIn1D...
 ```
 
 You can extend through composition. For example `DataIn1DVersioned` mimics the `DataIn1D` API but uses an
@@ -275,8 +326,8 @@ generic:
 Both the mutable and immutable variants of `DataIn#` (where `#` is `1D`, `2D`, and `3D`) use three mutable data
 structures internally for managing state, two of which are custom:
 
-- A mutable `TreeMap` ordered by the start of each interval. This allows for fast in-order retrieval in methods like
-  `getAll`, and is essential for deterministic results in methods like `foldLeft` that use `getAll`.
+- A mutable standard library `TreeMap`, ordered by the start of each interval. This allows for fast in-order retrieval
+  in methods like `getAll`, and is essential for deterministic results in methods like `foldLeft` that use `getAll`.
 
 - A mutable multimap that associates each value with all the intervals in which that value is valid, ordered by the
   start of each interval. This speeds up operations like `compress`, which improves performance for all mutation
