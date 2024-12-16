@@ -160,9 +160,8 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
       b.append(d.value).append("->").append(d.interval.horizontal.toString).append(" ")
     concat.result() shouldBe "Hey->(-∞..4] World->[16..+∞) "
 
-    val fixture2 = fixture1.map(d =>
-      d.interval.withHorizontalUpdate(_.endingWith(d.interval.horizontal.end.successor)) -> (d.value + "!")
-    )
+    val fixture2 =
+      fixture1.map(d => d.interval.withHorizontalUpdate(_.toAfter(d.interval.horizontal.end)) -> (d.value + "!"))
     val expectedData2 = List(intervalTo(5) -> "Hey!", intervalFrom(16) -> "World!")
     fixture2.getAll.toList shouldBe expectedData2
 

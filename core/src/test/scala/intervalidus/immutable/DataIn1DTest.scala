@@ -159,7 +159,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
     val fixture1 = DataIn1D(allData)
     fixture1.copy.getAll.toList shouldBe fixture1.getAll.toList
 
-    val fixture2 = fixture1.map(d => d.interval.endingWith(d.interval.end.successor) -> (d.value + "!"))
+    val fixture2 = fixture1.map(d => d.interval.toAfter(d.interval.end) -> (d.value + "!"))
     val expectedData2 = List(intervalTo(5) -> "Hey!", intervalFrom(16) -> "World!")
     fixture2.getAll.toList shouldBe expectedData2
 
@@ -185,6 +185,6 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
     val allData = List(intervalTo(4) -> "Hey", intervalFrom(16) -> "World")
 
     val fixture1 = DataIn1D(allData)
-    val fixture2 = fixture1.map(d => d.interval.endingWith(d.interval.end.successor) -> (d.value + "!"))
+    val fixture2 = fixture1.map(d => d.interval.toAfter(d.interval.end) -> (d.value + "!"))
     val expectedData2 = List(intervalTo(5) -> "Hey!", intervalFrom(16) -> "World!")
     fixture2.getAll.toList shouldBe expectedData2

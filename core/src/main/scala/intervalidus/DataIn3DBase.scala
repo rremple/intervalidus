@@ -443,8 +443,8 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
       remaining: DiscreteInterval1D[T]
     ): DiscreteInterval1D[T] =
       if remaining hasSameStartAs full
-      then full.startingAfter(remaining.end)
-      else full.endingBefore(remaining.start)
+      then full.fromAfter(remaining.end)
+      else full.toBefore(remaining.start)
 
     val intersecting = getIntersecting(targetInterval)
     // These values will be targets for compression later
@@ -1011,9 +1011,9 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
           case Remainder.None =>
             full
           case Remainder.Single(remaining) if remaining hasSameStartAs full =>
-            full.startingAfter(remaining.end)
+            full.fromAfter(remaining.end)
           case Remainder.Single(remaining) =>
-            full.endingBefore(remaining.start)
+            full.toBefore(remaining.start)
           case Remainder.Split(leftRemaining, rightRemaining) =>
             interval(leftRemaining.end.successor, rightRemaining.start.predecessor)
 

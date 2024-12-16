@@ -45,7 +45,7 @@ class DataIn1DMultiTest
       DataIn1DMulti.from(_),
       (interval, value) => ValidData1D(value, interval),
       (interval, valueSet) => ValidData1D(valueSet, interval),
-      d => d.interval.endingWith(d.interval.end.successor) -> d.value.map(_ + "!"),
+      d => d.interval.toAfter(d.interval.end) -> d.value.map(_ + "!"),
       d => DataIn1DMulti.from[String, Int](d.value.map(d.interval -> _))
     )
   )

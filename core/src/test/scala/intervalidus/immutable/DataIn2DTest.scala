@@ -172,7 +172,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     val fixture2 = fixture1.map(d =>
       d.copy(
         value = d.value + "!",
-        interval = d.interval.withVerticalUpdate(_.endingWith(d.interval.vertical.end.successor))
+        interval = d.interval.withVerticalUpdate(_.toAfter(d.interval.vertical.end))
       )
     )
     val expectedData2 = List(

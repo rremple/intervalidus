@@ -91,35 +91,49 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
     case _ =>
       None
 
-  override def startingWith(newStart: DiscreteDomain3D[T1, T2, T3]): DiscreteInterval3D[T1, T2, T3] =
-    horizontal.startingWith(newStart.horizontalIndex) x
-      vertical.startingWith(newStart.verticalIndex) x
-      depth.startingWith(newStart.depthIndex)
+  override def from(newStart: DiscreteDomain3D[T1, T2, T3]): DiscreteInterval3D[T1, T2, T3] =
+    horizontal.from(newStart.horizontalIndex) x
+      vertical.from(newStart.verticalIndex) x
+      depth.from(newStart.depthIndex)
 
-  override def startingAfter(newStartPredecessor: DiscreteDomain3D[T1, T2, T3]): DiscreteInterval3D[T1, T2, T3] =
-    startingWith(
+  override def fromBefore(newStartSuccessor: DiscreteDomain3D[T1, T2, T3]): DiscreteInterval3D[T1, T2, T3] =
+    to(
+      newStartSuccessor.horizontalIndex.predecessor x
+        newStartSuccessor.verticalIndex.predecessor x
+        newStartSuccessor.depthIndex.predecessor
+    )
+
+  override def fromAfter(newStartPredecessor: DiscreteDomain3D[T1, T2, T3]): DiscreteInterval3D[T1, T2, T3] =
+    from(
       newStartPredecessor.horizontalIndex.successor x
         newStartPredecessor.verticalIndex.successor x
         newStartPredecessor.depthIndex.successor
     )
 
   override def fromBottom: DiscreteInterval3D[T1, T2, T3] =
-    startingWith(DiscreteDomain1D.Bottom x DiscreteDomain1D.Bottom x DiscreteDomain1D.Bottom)
+    from(DiscreteDomain1D.Bottom x DiscreteDomain1D.Bottom x DiscreteDomain1D.Bottom)
 
-  override def endingWith(newEnd: DiscreteDomain3D[T1, T2, T3]): DiscreteInterval3D[T1, T2, T3] =
-    horizontal.endingWith(newEnd.horizontalIndex) x
-      vertical.endingWith(newEnd.verticalIndex) x
-      depth.endingWith(newEnd.depthIndex)
+  override def to(newEnd: DiscreteDomain3D[T1, T2, T3]): DiscreteInterval3D[T1, T2, T3] =
+    horizontal.to(newEnd.horizontalIndex) x
+      vertical.to(newEnd.verticalIndex) x
+      depth.to(newEnd.depthIndex)
 
-  override def endingBefore(newEndSuccessor: DiscreteDomain3D[T1, T2, T3]): DiscreteInterval3D[T1, T2, T3] =
-    endingWith(
+  override def toBefore(newEndSuccessor: DiscreteDomain3D[T1, T2, T3]): DiscreteInterval3D[T1, T2, T3] =
+    to(
       newEndSuccessor.horizontalIndex.predecessor x
         newEndSuccessor.verticalIndex.predecessor x
         newEndSuccessor.depthIndex.predecessor
     )
 
+  override def toAfter(newEndPredecessor: DiscreteDomain3D[T1, T2, T3]): DiscreteInterval3D[T1, T2, T3] =
+    to(
+      newEndPredecessor.horizontalIndex.successor x
+        newEndPredecessor.verticalIndex.successor x
+        newEndPredecessor.depthIndex.successor
+    )
+
   override def toTop: DiscreteInterval3D[T1, T2, T3] =
-    endingWith(DiscreteDomain1D.Top x DiscreteDomain1D.Top x DiscreteDomain1D.Top)
+    to(DiscreteDomain1D.Top x DiscreteDomain1D.Top x DiscreteDomain1D.Top)
 
   override infix def isLeftAdjacentTo(that: DiscreteInterval3D[T1, T2, T3]): Boolean =
     (this.horizontal.end.successor equiv that.horizontal.start) &&

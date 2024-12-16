@@ -51,7 +51,7 @@ case class DiscreteInterval1D[T: DiscreteValue](
       case Some(prevRemaining) =>
         val nextRemaining =
           if prevRemaining.start equiv prevRemaining.end then None
-          else Some(prevRemaining.startingAfter(prevRemaining.start))
+          else Some(prevRemaining.fromAfter(prevRemaining.start))
         Some(prevRemaining.start, nextRemaining)
 
   override infix def isAdjacentTo(that: DiscreteInterval1D[T]): Boolean =
@@ -101,19 +101,25 @@ case class DiscreteInterval1D[T: DiscreteValue](
       case (Point(s), Point(e))           => s"interval(${codeFor(s)}, ${codeFor(e)})"
       case (s, e)                         => s"interval(${s.toCodeLikeString}, ${e.toCodeLikeString})"
 
-  override def startingWith(newStart: DiscreteDomain1D[T]): DiscreteInterval1D[T] = copy(start = newStart)
+  override def from(newStart: DiscreteDomain1D[T]): DiscreteInterval1D[T] = copy(start = newStart)
 
-  override def startingAfter(newStartPredecessor: DiscreteDomain1D[T]): DiscreteInterval1D[T] =
-    startingWith(newStartPredecessor.successor)
+  override def fromBefore(newStartSuccessor: DiscreteDomain1D[T]): DiscreteInterval1D[T] =
+    from(newStartSuccessor.predecessor)
 
-  override def fromBottom: DiscreteInterval1D[T] = startingWith(Bottom)
+  override def fromAfter(newStartPredecessor: DiscreteDomain1D[T]): DiscreteInterval1D[T] =
+    from(newStartPredecessor.successor)
 
-  override def endingWith(newEnd: DiscreteDomain1D[T]): DiscreteInterval1D[T] = copy(end = newEnd)
+  override def fromBottom: DiscreteInterval1D[T] = from(Bottom)
 
-  override def endingBefore(newEndSuccessor: DiscreteDomain1D[T]): DiscreteInterval1D[T] =
-    endingWith(newEndSuccessor.predecessor)
+  override def to(newEnd: DiscreteDomain1D[T]): DiscreteInterval1D[T] = copy(end = newEnd)
 
-  override def toTop: DiscreteInterval1D[T] = endingWith(Top)
+  override def toBefore(newEndSuccessor: DiscreteDomain1D[T]): DiscreteInterval1D[T] =
+    to(newEndSuccessor.predecessor)
+
+  override def toAfter(newEndPredecessor: DiscreteDomain1D[T]): DiscreteInterval1D[T] =
+    to(newEndPredecessor.successor)
+
+  override def toTop: DiscreteInterval1D[T] = to(Top)
 
   override infix def isLeftAdjacentTo(that: DiscreteInterval1D[T]): Boolean = this.end.successor equiv that.start
 
@@ -137,11 +143,11 @@ case class DiscreteInterval1D[T: DiscreteValue](
       case Some(commonBit) =>
         commonBit match
           case DiscreteInterval1D(midStart, midEnd) if midStart > start && midEnd < end => // split
-            Remainder.Split(endingBefore(midStart), startingAfter(midEnd))
+            Remainder.Split(toBefore(midStart), fromAfter(midEnd))
           case DiscreteInterval1D(midStart, _) if midStart > start => // later start, common end
-            Remainder.Single(endingBefore(midStart))
+            Remainder.Single(toBefore(midStart))
           case DiscreteInterval1D(_, midEnd) if midEnd < end => // common start, earlier end
-            Remainder.Single(startingAfter(midEnd))
+            Remainder.Single(fromAfter(midEnd))
           case _ => // common start and end -- nothing remains
             Remainder.None
 

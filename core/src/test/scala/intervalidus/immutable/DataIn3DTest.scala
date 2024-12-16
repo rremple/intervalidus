@@ -207,7 +207,7 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
     val fixture2 = fixture1.map(d =>
       d.copy(
         value = d.value + "!",
-        interval = d.interval.withDepthUpdate(_.endingWith(d.interval.depth.end.successor))
+        interval = d.interval.withDepthUpdate(_.toAfter(d.interval.depth.end))
       )
     )
     val expectedData2 = List(

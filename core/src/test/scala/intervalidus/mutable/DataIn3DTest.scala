@@ -33,7 +33,7 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
       d =>
         d.copy(
           value = d.value + "!",
-          interval = d.interval.withDepthUpdate(_.endingWith(d.interval.depth.end.successor))
+          interval = d.interval.withDepthUpdate(_.toAfter(d.interval.depth.end))
         ),
       DiscreteInterval3D.unbounded
     )

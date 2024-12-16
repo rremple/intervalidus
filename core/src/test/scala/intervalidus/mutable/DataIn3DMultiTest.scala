@@ -46,7 +46,7 @@ class DataIn3DMultiTest
       (interval, value) => ValidData3D(value, withHorizontal(interval)),
       (interval, valueSet) => ValidData3D(valueSet, withHorizontal(interval)),
       d =>
-        d.interval.endingWith(
+        d.interval.to(
           d.interval.end.horizontalIndex.successor x
             d.interval.end.verticalIndex.successor x
             d.interval.end.depthIndex.successor

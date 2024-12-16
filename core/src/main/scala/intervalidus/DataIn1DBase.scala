@@ -275,14 +275,14 @@ trait DataIn1DBase[V, R: DiscreteValue](using experimental: Experimental)
         case Remainder.Single(remaining) if remaining hasSameStartAs overlap.interval =>
           updateValidData(remaining -> overlap.value) // shortened on left
           newValueOption.foreach: newValue =>
-            addValidData(overlap.interval.startingAfter(remaining.end) -> newValue)
+            addValidData(overlap.interval.fromAfter(remaining.end) -> newValue)
 
         // no split: adjust on right
         case Remainder.Single(remaining) =>
           removeValidData(overlap) // remove and re-add to shorten
           addValidData(remaining -> overlap.value) // shortened on right
           newValueOption.foreach: newValue =>
-            addValidData(overlap.interval.endingBefore(remaining.start) -> newValue)
+            addValidData(overlap.interval.toBefore(remaining.start) -> newValue)
 
         // split: shorten left, add right remaining
         case Remainder.Split(leftRemaining, rightRemaining) =>

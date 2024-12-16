@@ -180,9 +180,7 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
       b.append(d.value).append("->").append(d.interval.horizontal.toString).append(" ")
     concat.result() shouldBe "Hey->(-∞..4] World->[16..+∞) "
 
-    fixture.map(d =>
-      d.interval.withHorizontalUpdate(_.endingWith(d.interval.horizontal.end.successor)) -> (d.value + "!")
-    )
+    fixture.map(d => d.interval.withHorizontalUpdate(_.toAfter(d.interval.horizontal.end)) -> (d.value + "!"))
     val expectedData2 = List(
       (intervalTo(5) x intervalFrom(0)) -> "Hey!",
       (intervalFrom(16) x intervalFrom(0)) -> "World!"

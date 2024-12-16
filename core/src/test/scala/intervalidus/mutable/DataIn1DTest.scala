@@ -32,7 +32,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
       d =>
         d.copy(
           value = d.value + "!",
-          interval = d.interval.endingWith(d.interval.end.successor)
+          interval = d.interval.toAfter(d.interval.end)
         ),
       DiscreteInterval1D.unbounded
     )

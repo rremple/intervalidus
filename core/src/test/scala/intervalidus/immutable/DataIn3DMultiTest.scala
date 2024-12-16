@@ -39,7 +39,7 @@ class DataIn3DMultiTest
 
     val fixture1 = DataIn3DMulti.from(allData)
     val fixture2 = fixture1.map(d =>
-      d.interval.endingWith(
+      d.interval.to(
         d.interval.end.horizontalIndex.successor x
           d.interval.end.verticalIndex.successor x
           d.interval.end.depthIndex.successor

@@ -41,7 +41,7 @@ immutable -- to address storage and management of data like this. For more infor
 
 You could use Intervalidus `DataIn1D` to represent the above as a one-dimensional structure like this:
 
-```scala
+```scala 3
 import LocalDate.of as date
 
 import intervalidus.DiscreteInterval1D.*
@@ -55,7 +55,7 @@ println(plan1d)
 
 Which outputs a handy little Ascii Gantt of the valid values in the structure:
 
-```
+```text
 | 2024-01-01 .. 2024-03-31 | 2024-04-01 .. 2024-06-30 |
 | Basic                    |
                            | Premium                  |
@@ -64,7 +64,7 @@ Which outputs a handy little Ascii Gantt of the valid values in the structure:
 Since `DataIn1D` is a partial function, you can query individual valid values using that interface (many other query
 methods exist as well). For example, using function application:
 
-```scala 
+```scala 3 
 plan1d(date(2024, 3, 15))
 ```
 
@@ -73,7 +73,7 @@ will return `Basic` because the user had the Basic tier on 3/15.
 We could have just as easily used the immutable variant of `DataIn1D`, and the output would have been the same as
 the above output:
 
-```scala
+```scala 3
 import intervalidus.immutable.DataIn1D
 
 val plan1d = DataIn1D
@@ -87,7 +87,7 @@ On the other hand, you may want two dimensions of time: one to track what is eff
 were known. For that, you could use Intervalidus `DataIn2D` to represent the above as a two-dimensional structure like
 this:
 
-```scala
+```scala 3
 import intervalidus.immutable.DataIn2D
 
 val plan2d = DataIn2D
@@ -99,7 +99,7 @@ println(plan2d)
 
 Which results in the following (slightly less straightforward) output:
 
-```
+```text
 | 2024-01-01 .. 2024-03-31         | 2024-04-01 .. 2024-06-30         | 2024-07-01 .. +∞            |
 | Basic [2023-12-25..2024-03-14]                                                                    |
                                    | Premium [2024-03-15..2024-06-27]                               |
@@ -125,7 +125,7 @@ bit easier to decipher:
 One might query this structure to find what was known about expected August effective tiers at various sampled dates in
 the past or future. For example, leveraging `plan2d` as a partial function (with an `unapply`):
 
-```scala
+```scala 3
 val futureEffectiveDate: DiscreteDomain1D[LocalDate] = date(2024, 8, 1)
 List(date(2023, 12, 15), date(2024, 1, 15), date(2024, 5, 15), date(2024, 7, 15)).foreach: knownDate => 
   futureEffectiveDate x knownDate match
@@ -135,7 +135,7 @@ List(date(2023, 12, 15), date(2024, 1, 15), date(2024, 5, 15), date(2024, 7, 15)
 
 The result shows how what is known about this expected future effectivity changed over time:
 
-```
+```text
 On 2023-12-15, no expected tier on 2024-08-01
 On 2024-01-15, expected Basic tier on 2024-08-01
 On 2024-05-15, expected Premium tier on 2024-08-01
@@ -145,7 +145,7 @@ On 2024-07-15, no expected tier on 2024-08-01
 Sometimes one wants to treat multiple values as valid in the same interval. For example, a product team may add/remove
 features in each numbered release of a product. `DataIn1DMulti` could be used to model what features belong in what
 releases, this time using intervals based on integers rather than dates.
-```scala
+```scala 3
 import intervalidus.DiscreteInterval1D.*
 import intervalidus.immutable.DataIn1DMulti
 
@@ -168,7 +168,7 @@ println(multi) // what are all the feature combinations in all release intervals
 The result shows the unique feature combinations in each release-based interval (note that releases 3, 4, and 5 share
 the same feature set, i.e., the combination of feature A and C is "valid" in all in the [3..5] release interval):
 
-```
+```text
 Set(Feat(A), Feat(C))
 
 | 1 .. 1            | 2 .. 2            | 3 .. 5            | 6 .. +∞           |
@@ -227,57 +227,104 @@ A discrete value is a type class, and there are implementations given for the fo
 - `LocalDate`
 - `BigInteger`
 
-But if you have your own type with these properties, you can certainly give an implementation of the type class for that
-type and use it in the definition of one-, two-, or three-dimensional intervals. For example, these intervals use 
-colors (a discrete spectrum ordered by frequency) instead of dates or numbers:
-```scala
+But if you have your own type with these properties, you can certainly give a `DiscreteValue` type class definition for
+that type and use it in the definition of one-, two-, or three-dimensional intervals. To motivate an example where this
+makes sense, first consider a structure that represents the different colors of visible light as intervals of 
+integer-valued nanometer wavelengths.
+
+```scala 3
 import intervalidus.DiscreteInterval1D.*
 import intervalidus.immutable.DataIn1D
 
 enum Color:
-  case Red, Yellow, Green, Cyan, Blue, Magenta
+  case Violet, Indigo, Blue, Green, Yellow, Orange, Red
 
+val colorByWavelength = DataIn1D[Color, Int]()
+  .set(intervalFrom(380) -> Color.Violet)
+  .set(intervalFrom(450) -> Color.Blue)
+  .set(intervalFrom(495) -> Color.Green)
+  .set(intervalFrom(570) -> Color.Yellow)
+  .set(intervalFrom(590) -> Color.Orange)
+  .set(intervalFrom(620) -> Color.Red)
+  .remove(intervalFrom(750))
+
+println(colorByWavelength)
+```
+This prints the following (rather sad) representation of a rainbow.
+```text
+| 380 .. 449 | 450 .. 494 | 495 .. 569 | 570 .. 589 | 590 .. 619 | 620 .. 749 |
+| Violet     |
+             | Blue       |
+                          | Green      |
+                                       | Yellow     |
+                                                    | Orange     |
+                                                                 | Red        |
+```
+As shown earlier, the structure can be interrogated to get the color of a specific integer wavelength.
+```scala 3
+println(colorByWavelength(480)) // prints "Blue"
+```
+Say we also want to track notes about colors. We could make use of a similar structure that associates notes with these
+same integer-valued wavelength intervals like so.
+```scala 3
+val notesByWavelength = DataIn1D[String, Int]()
+  .set(intervalFrom(380).toBefore(570) -> "I like violet, blue, and green")
+  .set(intervalFrom(620).to(750) -> "I like red too")
+println(notesByWavelength)
+```
+Although this does track the information we need to track, it seems burdensome to have to know the wavelengths of the
+noted colors, and too fine-grained. Also, unless we include them in the notes themselves, we no longer see any color 
+names in the output, only wavelengths, which makes things a bit too cryptic.
+```text
+| 380 .. 569                     | 570 .. 619                     | 620 .. 750                     |
+| I like violet, blue, and green |                                | I like red too                 |
+```
+
+A more elegant approach would be to use intervals based on the colors themselves rather than their associated
+wavelengths. All we have to do is give a `DiscreteValue` type class definition for `Color` and then we can use it as the
+basis for discrete intervals.
+
+```scala 3
 given DiscreteValue[Color] with
-  override val minValue: Color = Color.values.head
-
-  override val maxValue: Color = Color.values.last
+  override val minValue: Color = Color.values.head // Violet
+  override val maxValue: Color = Color.values.last // Red
 
   override def predecessorOf(x: Color): Option[Color] =
     if x == minValue then None else Some(Color.fromOrdinal(x.ordinal - 1))
-
   override def successorOf(x: Color): Option[Color] =
     if x == maxValue then None else Some(Color.fromOrdinal(x.ordinal + 1))
 
   override def compare(lhs: Color, rhs: Color): Int = lhs.ordinal.compareTo(rhs.ordinal)
-  
   override def orderedHashOf(x: T): Double = x.ordinal
 
-val color1d = DataIn1D
-  .of(intervalTo(Color.Green) -> "400 - 575 THz")
-  .set(intervalAt(Color.Cyan) -> "575 - 610 THz")
-  .set(intervalFrom(Color.Blue) -> "610 - 800 THz")
-
-println(color1d)
+val notesByColor = DataIn1D[String, Color]()
+        .set(intervalFrom(Color.Violet).to(Color.Green) -> "I like violet, blue, and green")
+        .set(intervalAt(Color.Red) -> "I like red too")
+println(notesByColor)
+```
+This associates our notes with color-based intervals rather than a wavelength-based intervals, with the following
+output.
+```text
+| Violet .. Green                | Yellow .. Orange               | Red .. Red                     |
+| I like violet, blue, and green |
+                                                                  | I like red too                 |
+```
+And this structure can be interrogated to get the note of a specific color without knowing anything about wavelengths.
+```scala 3
+println(notesByColor(Color.Blue)) // prints "I like violet, blue, and green"
 ```
 
-This prints the following:
-```
-| -∞ .. Green   | Cyan .. Cyan  | Blue .. +∞    |
-| 400 - 575 THz |
-                | 575 - 610 THz |
-                                | 610 - 800 THz |
-```
+Because creating a `DiscreteValue` type class definition based on a finite sequence of unique items is a common need, a
+helper method `fromSeq` is provided that reduces boilerplate code. The following code is equivalent to what is shown 
+above.
 
-Because creating a `DiscreteValue` type class based on a finite sequence of unique items is a common need, a helper 
-method `fromSeq` is provided that reduces boilerplate code.
-
-```scala
+```scala 3
 enum Color:
-  case Red, Yellow, Green, Cyan, Blue, Magenta
+  case Violet, Indigo, Blue, Green, Yellow, Orange, Red
 
 given DiscreteValue[Color] = DiscreteValue.fromSeq(Color.values.toIndexedSeq)
 
-val color1d = DataIn1D...
+val notesByColor = DataIn1D[String, Color]() //...
 ```
 
 You can extend through composition. For example `DataIn1DVersioned` mimics the `DataIn1D` API but uses an
@@ -373,7 +420,7 @@ disjointedness is a huge performance burden -- especially for immutable structur
 structures -- it may be worth doing during initial development and testing. So there is an experimental feature called
 **"requireDisjoint"** that, if set, will validate the disjointedness of all data with every construction.
 
-```scala
+```scala 3
 import intervalidus.immutable.DataIn1D
 import intervalidus.DiscreteInterval1D.*
 import LocalDate.of as date

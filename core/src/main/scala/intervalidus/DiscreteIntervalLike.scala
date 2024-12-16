@@ -136,7 +136,15 @@ trait DiscreteIntervalLike[D <: DiscreteDomainLike[D]: Ordering, Self <: Discret
     * @param newStart
     *   the start of the new interval
     */
-  def startingWith(newStart: D): Self
+  def from(newStart: D): Self
+
+  /**
+    * Returns a new interval starting at the predecessor of the provided value.
+    *
+    * @param newStartSuccessor
+    *   the successor of the start of the new interval
+    */
+  def fromBefore(newStartSuccessor: D): Self
 
   /**
     * Returns a new interval starting at the successor of the provided value.
@@ -144,7 +152,7 @@ trait DiscreteIntervalLike[D <: DiscreteDomainLike[D]: Ordering, Self <: Discret
     * @param newStartPredecessor
     *   the predecessor of the start of the new interval
     */
-  def startingAfter(newStartPredecessor: D): Self
+  def fromAfter(newStartPredecessor: D): Self
 
   /**
     * Returns a new interval with the same end as this interval but with an unbounded start.
@@ -157,7 +165,7 @@ trait DiscreteIntervalLike[D <: DiscreteDomainLike[D]: Ordering, Self <: Discret
     * @param newEnd
     *   the end of the new interval
     */
-  def endingWith(newEnd: D): Self
+  def to(newEnd: D): Self
 
   /**
     * Returns a new interval ending at the predecessor of the provided value.
@@ -165,7 +173,15 @@ trait DiscreteIntervalLike[D <: DiscreteDomainLike[D]: Ordering, Self <: Discret
     * @param newEndSuccessor
     *   the successor of the end of the new interval
     */
-  def endingBefore(newEndSuccessor: D): Self
+  def toBefore(newEndSuccessor: D): Self
+
+  /**
+    * Returns a new interval ending at the successor of the provided value.
+    *
+    * @param newEndPredecessor
+    *   the predecessor of the end of the new interval
+    */
+  def toAfter(newEndPredecessor: D): Self
 
   /**
     * Returns a new interval with the same start as this interval but with an unbounded end.
@@ -270,12 +286,12 @@ trait DiscreteIntervalLike[D <: DiscreteDomainLike[D]: Ordering, Self <: Discret
   /**
     * Returns a new singleton interval containing only the end of this interval.
     */
-  def atEnd: Self = startingWith(end)
+  def atEnd: Self = from(end)
 
   /**
     * Returns a new singleton interval containing only the start of this interval.
     */
-  def atStart: Self = endingWith(start)
+  def atStart: Self = to(start)
 
   /**
     * Same as [[intersectionWith]].

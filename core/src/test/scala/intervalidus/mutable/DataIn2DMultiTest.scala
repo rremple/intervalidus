@@ -45,10 +45,7 @@ class DataIn2DMultiTest
       DataIn2DMulti.from(_),
       (interval, value) => ValidData2D(value, withHorizontal(interval)),
       (interval, valueSet) => ValidData2D(valueSet, withHorizontal(interval)),
-      d =>
-        d.interval.endingWith(
-          d.interval.end.horizontalIndex.successor x d.interval.end.verticalIndex.successor
-        ) -> d.value.map(_ + "!"),
+      d => d.interval.toAfter(d.interval.end) -> d.value.map(_ + "!"),
       d => DataIn2DMulti.from(d.value.map(d.interval -> _))
     )
   )

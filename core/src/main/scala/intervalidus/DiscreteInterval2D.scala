@@ -72,23 +72,29 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
     case (Some(horizontalBefore), Some(verticalBefore)) => Some(DiscreteInterval2D(horizontalBefore, verticalBefore))
     case _                                              => None
 
-  override def startingWith(newStart: DiscreteDomain2D[T1, T2]): DiscreteInterval2D[T1, T2] =
-    horizontal.startingWith(newStart.horizontalIndex) x vertical.startingWith(newStart.verticalIndex)
+  override def from(newStart: DiscreteDomain2D[T1, T2]): DiscreteInterval2D[T1, T2] =
+    horizontal.from(newStart.horizontalIndex) x vertical.from(newStart.verticalIndex)
 
-  override def startingAfter(newStartPredecessor: DiscreteDomain2D[T1, T2]): DiscreteInterval2D[T1, T2] =
-    startingWith(newStartPredecessor.horizontalIndex.successor x newStartPredecessor.verticalIndex.successor)
+  override def fromBefore(newStartSuccessor: DiscreteDomain2D[T1, T2]): DiscreteInterval2D[T1, T2] =
+    to(newStartSuccessor.horizontalIndex.predecessor x newStartSuccessor.verticalIndex.predecessor)
+
+  override def fromAfter(newStartPredecessor: DiscreteDomain2D[T1, T2]): DiscreteInterval2D[T1, T2] =
+    from(newStartPredecessor.horizontalIndex.successor x newStartPredecessor.verticalIndex.successor)
 
   override def fromBottom: DiscreteInterval2D[T1, T2] =
-    startingWith(DiscreteDomain1D.Bottom x DiscreteDomain1D.Bottom)
+    from(DiscreteDomain1D.Bottom x DiscreteDomain1D.Bottom)
 
-  override def endingWith(newEnd: DiscreteDomain2D[T1, T2]): DiscreteInterval2D[T1, T2] =
-    horizontal.endingWith(newEnd.horizontalIndex) x vertical.endingWith(newEnd.verticalIndex)
+  override def to(newEnd: DiscreteDomain2D[T1, T2]): DiscreteInterval2D[T1, T2] =
+    horizontal.to(newEnd.horizontalIndex) x vertical.to(newEnd.verticalIndex)
 
-  override def endingBefore(newEndSuccessor: DiscreteDomain2D[T1, T2]): DiscreteInterval2D[T1, T2] =
-    endingWith(newEndSuccessor.horizontalIndex.predecessor x newEndSuccessor.verticalIndex.predecessor)
+  override def toBefore(newEndSuccessor: DiscreteDomain2D[T1, T2]): DiscreteInterval2D[T1, T2] =
+    to(newEndSuccessor.horizontalIndex.predecessor x newEndSuccessor.verticalIndex.predecessor)
+
+  override def toAfter(newEndPredecessor: DiscreteDomain2D[T1, T2]): DiscreteInterval2D[T1, T2] =
+    to(newEndPredecessor.horizontalIndex.successor x newEndPredecessor.verticalIndex.successor)
 
   override def toTop: DiscreteInterval2D[T1, T2] =
-    endingWith(DiscreteDomain1D.Top x DiscreteDomain1D.Top)
+    to(DiscreteDomain1D.Top x DiscreteDomain1D.Top)
 
   override infix def isLeftAdjacentTo(that: DiscreteInterval2D[T1, T2]): Boolean =
     (this.horizontal.end.successor equiv that.horizontal.start) && (this.vertical equiv that.vertical)
