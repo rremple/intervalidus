@@ -17,7 +17,7 @@ import intervalidus.collection.BoxedPayload
   */
 trait ValidDataLike[
   V,
-  D <: DiscreteDomainLike[D],
+  D: DiscreteDomainLike,
   I <: DiscreteIntervalLike[D, I],
   Self <: ValidDataLike[V, D, I, Self]
 ] extends PartialFunction[D, V]:
@@ -29,7 +29,7 @@ trait ValidDataLike[
     * @return
     *   a new boxed payload that can be managed in a box tree
     */
-  def asBoxedPayload: BoxedPayload[Self]
+  def asBoxedPayload: BoxedPayload[Self] = BoxedPayload(interval.asBox, this)
 
   /**
     * The value valid in this interval.
@@ -66,3 +66,16 @@ trait ValidDataLike[
     if isDefinedAt(domainIndex) then value else throw new Exception(s"Not defined at $domainIndex")
 
   override def isDefinedAt(d: D): Boolean = interval contains d
+
+object ValidDataLike:
+  /**
+    * Valid data are ordered using interval ordering
+    */
+  given [
+    V,
+    D: DiscreteDomainLike,
+    I <: DiscreteIntervalLike[D, I],
+    ValidData <: ValidDataLike[V, D, I, ValidData]
+  ](using intervalOrder: Ordering[I]): Ordering[ValidData] with
+    override def compare(x: ValidData, y: ValidData): Int =
+      intervalOrder.compare(x.interval, y.interval)

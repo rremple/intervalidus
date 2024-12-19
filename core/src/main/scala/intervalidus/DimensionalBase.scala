@@ -23,10 +23,10 @@ import scala.math.Ordering.Implicits.infixOrderingOps
   */
 trait DimensionalBase[
   V,
-  D <: DiscreteDomainLike[D]: Ordering,
+  D: DiscreteDomainLike: Ordering,
   I <: DiscreteIntervalLike[D, I],
   ValidData <: ValidDataLike[V, D, I, ValidData],
-  DiffAction <: DiffActionLike[V, D, I, ValidData, DiffAction],
+  DiffAction: DiffActionLike,
   Self <: DimensionalBase[V, D, I, ValidData, DiffAction, Self]
 ](using
   experimental: Experimental

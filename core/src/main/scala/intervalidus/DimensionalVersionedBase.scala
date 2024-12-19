@@ -65,14 +65,14 @@ object DimensionalVersionedBase:
   */
 trait DimensionalVersionedBase[
   V,
-  D <: DiscreteDomainLike[D],
+  D: DiscreteDomainLike,
   I <: DiscreteIntervalLike[D, I],
   ValidData <: ValidDataLike[V, D, I, ValidData],
-  DiffAction <: DiffActionLike[V, D, I, ValidData, DiffAction],
-  D2 <: DiscreteDomainLike[D2],
+  DiffAction: DiffActionLike,
+  D2: DiscreteDomainLike,
   I2 <: DiscreteIntervalLike[D2, I2],
   ValidData2 <: ValidDataLike[V, D2, I2, ValidData2],
-  DiffAction2 <: DiffActionLike[V, D2, I2, ValidData2, DiffAction2],
+  DiffAction2: DiffActionLike,
   Self <: DimensionalVersionedBase[V, D, I, ValidData, DiffAction, D2, I2, ValidData2, DiffAction2, Self]
 ](using
   Experimental

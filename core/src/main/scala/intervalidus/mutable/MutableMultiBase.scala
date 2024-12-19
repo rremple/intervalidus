@@ -22,11 +22,11 @@ import intervalidus.*
   */
 trait MutableMultiBase[
   V,
-  D <: DiscreteDomainLike[D],
+  D: DiscreteDomainLike,
   I <: DiscreteIntervalLike[D, I],
   ValidDataOne <: ValidDataLike[V, D, I, ValidDataOne],
   ValidData <: ValidDataLike[Set[V], D, I, ValidData],
-  DiffAction <: DiffActionLike[Set[V], D, I, ValidData, DiffAction],
+  DiffAction: DiffActionLike,
   Self <: MutableMultiBase[V, D, I, ValidDataOne, ValidData, DiffAction, Self] &
     DimensionalBase[Set[V], D, I, ValidData, DiffAction, ?]
 ] extends MutableBase[Set[V], D, I, ValidData, DiffAction, Self]

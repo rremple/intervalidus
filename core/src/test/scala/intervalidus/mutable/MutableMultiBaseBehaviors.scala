@@ -16,11 +16,11 @@ trait MutableMultiBaseBehaviors:
   import DiscreteInterval1D.*
 
   def addAndRemoveTests[
-    D <: DiscreteDomainLike[D],
+    D: DiscreteDomainLike,
     I <: DiscreteIntervalLike[D, I],
     ValidDataOne <: ValidDataLike[String, D, I, ValidDataOne],
     ValidData <: ValidDataLike[Set[String], D, I, ValidData],
-    DiffAction <: DiffActionLike[Set[String], D, I, ValidData, DiffAction],
+    DiffAction: DiffActionLike,
     S <: MutableMultiBase[String, D, I, ValidDataOne, ValidData, DiffAction, S] &
       DimensionalBase[Set[String], D, I, ValidData, DiffAction, ?]
   ](
@@ -116,11 +116,11 @@ trait MutableMultiBaseBehaviors:
       )
 
   def mapAndFlatmapTests[
-    D <: DiscreteDomainLike[D],
+    D: DiscreteDomainLike,
     I <: DiscreteIntervalLike[D, I],
     ValidDataOne <: ValidDataLike[String, D, I, ValidDataOne],
     ValidData <: ValidDataLike[Set[String], D, I, ValidData],
-    DiffAction <: DiffActionLike[Set[String], D, I, ValidData, DiffAction],
+    DiffAction: DiffActionLike,
     S <: MutableMultiBase[String, D, I, ValidDataOne, ValidData, DiffAction, S] &
       DimensionalBase[Set[String], D, I, ValidData, DiffAction, ?]
   ](

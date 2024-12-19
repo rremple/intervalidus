@@ -1,7 +1,5 @@
 package intervalidus
 
-import intervalidus.collection.Box
-
 import scala.annotation.tailrec
 import scala.collection.immutable.TreeMap
 import scala.math.Ordering.Implicits.infixOrderingOps
@@ -27,8 +25,6 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
   import DiscreteInterval1D.Remainder
 
   override type ExclusionRemainder = (Remainder[DiscreteInterval1D[T1]], Remainder[DiscreteInterval1D[T2]])
-
-  override def asBox: Box = Box(start.asCoordinate, end.asCoordinate)
 
   override infix def withValue[V](value: V): ValidData2D[V, T1, T2] = ValidData2D(value, this)
 
@@ -75,23 +71,11 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
   override def from(newStart: DiscreteDomain2D[T1, T2]): DiscreteInterval2D[T1, T2] =
     horizontal.from(newStart.horizontalIndex) x vertical.from(newStart.verticalIndex)
 
-  override def fromBefore(newStartSuccessor: DiscreteDomain2D[T1, T2]): DiscreteInterval2D[T1, T2] =
-    to(newStartSuccessor.horizontalIndex.predecessor x newStartSuccessor.verticalIndex.predecessor)
-
-  override def fromAfter(newStartPredecessor: DiscreteDomain2D[T1, T2]): DiscreteInterval2D[T1, T2] =
-    from(newStartPredecessor.horizontalIndex.successor x newStartPredecessor.verticalIndex.successor)
-
   override def fromBottom: DiscreteInterval2D[T1, T2] =
     from(DiscreteDomain1D.Bottom x DiscreteDomain1D.Bottom)
 
   override def to(newEnd: DiscreteDomain2D[T1, T2]): DiscreteInterval2D[T1, T2] =
     horizontal.to(newEnd.horizontalIndex) x vertical.to(newEnd.verticalIndex)
-
-  override def toBefore(newEndSuccessor: DiscreteDomain2D[T1, T2]): DiscreteInterval2D[T1, T2] =
-    to(newEndSuccessor.horizontalIndex.predecessor x newEndSuccessor.verticalIndex.predecessor)
-
-  override def toAfter(newEndPredecessor: DiscreteDomain2D[T1, T2]): DiscreteInterval2D[T1, T2] =
-    to(newEndPredecessor.horizontalIndex.successor x newEndPredecessor.verticalIndex.successor)
 
   override def toTop: DiscreteInterval2D[T1, T2] =
     to(DiscreteDomain1D.Top x DiscreteDomain1D.Top)
@@ -199,15 +183,6 @@ object DiscreteInterval2D:
     */
   def unbounded[T1: DiscreteValue, T2: DiscreteValue]: DiscreteInterval2D[T1, T2] =
     DiscreteInterval1D.unbounded[T1] x DiscreteInterval1D.unbounded[T2]
-
-  /**
-    * Intervals are ordered by start
-    */
-  given [T1: DiscreteValue, T2: DiscreteValue](using
-    domainOrder: Ordering[DiscreteDomain2D[T1, T2]]
-  ): Ordering[DiscreteInterval2D[T1, T2]] with
-    override def compare(x: DiscreteInterval2D[T1, T2], y: DiscreteInterval2D[T1, T2]): Int =
-      domainOrder.compare(x.start, y.start)
 
   /**
     * Generic compression algorithm used by both `compress` and `Data3DBase.compressInPlace`.

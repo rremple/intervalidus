@@ -1,7 +1,5 @@
 package intervalidus
 
-import intervalidus.collection.Box
-
 import scala.annotation.tailrec
 import scala.collection.immutable.TreeMap
 import scala.math.Ordering.Implicits.infixOrderingOps
@@ -31,8 +29,6 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
 
   override type ExclusionRemainder =
     (Remainder[DiscreteInterval1D[T1]], Remainder[DiscreteInterval1D[T2]], Remainder[DiscreteInterval1D[T3]])
-
-  override def asBox: Box = Box(start.asCoordinate, end.asCoordinate)
 
   override infix def withValue[V](value: V): ValidData3D[V, T1, T2, T3] = ValidData3D(value, this)
 
@@ -96,20 +92,6 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
       vertical.from(newStart.verticalIndex) x
       depth.from(newStart.depthIndex)
 
-  override def fromBefore(newStartSuccessor: DiscreteDomain3D[T1, T2, T3]): DiscreteInterval3D[T1, T2, T3] =
-    to(
-      newStartSuccessor.horizontalIndex.predecessor x
-        newStartSuccessor.verticalIndex.predecessor x
-        newStartSuccessor.depthIndex.predecessor
-    )
-
-  override def fromAfter(newStartPredecessor: DiscreteDomain3D[T1, T2, T3]): DiscreteInterval3D[T1, T2, T3] =
-    from(
-      newStartPredecessor.horizontalIndex.successor x
-        newStartPredecessor.verticalIndex.successor x
-        newStartPredecessor.depthIndex.successor
-    )
-
   override def fromBottom: DiscreteInterval3D[T1, T2, T3] =
     from(DiscreteDomain1D.Bottom x DiscreteDomain1D.Bottom x DiscreteDomain1D.Bottom)
 
@@ -117,20 +99,6 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
     horizontal.to(newEnd.horizontalIndex) x
       vertical.to(newEnd.verticalIndex) x
       depth.to(newEnd.depthIndex)
-
-  override def toBefore(newEndSuccessor: DiscreteDomain3D[T1, T2, T3]): DiscreteInterval3D[T1, T2, T3] =
-    to(
-      newEndSuccessor.horizontalIndex.predecessor x
-        newEndSuccessor.verticalIndex.predecessor x
-        newEndSuccessor.depthIndex.predecessor
-    )
-
-  override def toAfter(newEndPredecessor: DiscreteDomain3D[T1, T2, T3]): DiscreteInterval3D[T1, T2, T3] =
-    to(
-      newEndPredecessor.horizontalIndex.successor x
-        newEndPredecessor.verticalIndex.successor x
-        newEndPredecessor.depthIndex.successor
-    )
 
   override def toTop: DiscreteInterval3D[T1, T2, T3] =
     to(DiscreteDomain1D.Top x DiscreteDomain1D.Top x DiscreteDomain1D.Top)
@@ -286,15 +254,6 @@ object DiscreteInterval3D:
     */
   def unbounded[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue]: DiscreteInterval3D[T1, T2, T3] =
     DiscreteInterval1D.unbounded[T1] x DiscreteInterval1D.unbounded[T2] x DiscreteInterval1D.unbounded[T3]
-
-  /**
-    * Intervals are ordered by start
-    */
-  given [T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue](using
-    domainOrder: Ordering[DiscreteDomain3D[T1, T2, T3]]
-  ): Ordering[DiscreteInterval3D[T1, T2, T3]] with
-    override def compare(x: DiscreteInterval3D[T1, T2, T3], y: DiscreteInterval3D[T1, T2, T3]): Int =
-      domainOrder.compare(x.start, y.start)
 
   /**
     * Generic compression algorithm used by both `compress` and `Data3DBase.compressInPlace`.

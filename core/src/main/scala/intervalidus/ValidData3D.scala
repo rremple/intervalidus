@@ -22,24 +22,4 @@ import intervalidus.collection.BoxedPayload
 case class ValidData3D[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](
   value: V,
   interval: DiscreteInterval3D[R1, R2, R3]
-) extends ValidDataLike[
-    V,
-    DiscreteDomain3D[R1, R2, R3],
-    DiscreteInterval3D[R1, R2, R3],
-    ValidData3D[V, R1, R2, R3]
-  ]:
-
-  override def asBoxedPayload: BoxedPayload[ValidData3D[V, R1, R2, R3]] = BoxedPayload(interval.asBox, this)
-
-/**
-  * Companion for valid data in three dimensions.
-  */
-object ValidData3D:
-  /**
-    * Valid data are ordered using interval ordering
-    */
-  given [V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](using
-    intervalOrder: Ordering[DiscreteInterval3D[R1, R2, R3]]
-  ): Ordering[ValidData3D[V, R1, R2, R3]] with
-    override def compare(x: ValidData3D[V, R1, R2, R3], y: ValidData3D[V, R1, R2, R3]): Int =
-      intervalOrder.compare(x.interval, y.interval)
+) extends ValidDataLike[V, DiscreteDomain3D[R1, R2, R3], DiscreteInterval3D[R1, R2, R3], ValidData3D[V, R1, R2, R3]]

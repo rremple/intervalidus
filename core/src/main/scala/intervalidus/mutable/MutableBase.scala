@@ -20,10 +20,10 @@ import intervalidus.*
   */
 trait MutableBase[
   V,
-  D <: DiscreteDomainLike[D],
+  D: DiscreteDomainLike,
   I <: DiscreteIntervalLike[D, I],
   ValidData <: ValidDataLike[V, D, I, ValidData],
-  DiffAction <: DiffActionLike[V, D, I, ValidData, DiffAction],
+  DiffAction: DiffActionLike,
   Self <: MutableBase[V, D, I, ValidData, DiffAction, Self] & DimensionalBase[V, D, I, ValidData, DiffAction, ?]
 ]:
   this: Self =>

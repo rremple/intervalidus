@@ -21,10 +21,10 @@ trait MutableBaseBehaviors:
   import DiscreteInterval1D.*
 
   def mutableBaseTests[
-    D <: DiscreteDomainLike[D],
+    D: DiscreteDomainLike,
     I <: DiscreteIntervalLike[D, I],
     ValidData <: ValidDataLike[String, D, I, ValidData],
-    DiffAction <: DiffActionLike[String, D, I, ValidData, DiffAction],
+    DiffAction: DiffActionLike,
     S <: MutableBase[String, D, I, ValidData, DiffAction, S] & DimensionalBase[String, D, I, ValidData, DiffAction, ?]
   ](
     mutableFrom: Experimental ?=> Iterable[ValidData] => S,

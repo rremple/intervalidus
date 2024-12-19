@@ -1,6 +1,6 @@
 package intervalidus
 
-import intervalidus.DiscreteInterval1D.{interval, unbounded}
+import intervalidus.DiscreteInterval1D.{between, interval, unbounded}
 import intervalidus.collection.mutable.{BoxTree, MultiMapSorted}
 import intervalidus.collection.{Box, BoxedPayload, Coordinate}
 
@@ -430,12 +430,6 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
     updateValue: V => Option[V]
   ): Unit = synchronized:
     import DiscreteInterval1D.Remainder
-
-    // Utility to find the complement of split remaining
-    def between[T: DiscreteValue](
-      beforeRemaining: DiscreteInterval1D[T],
-      afterRemaining: DiscreteInterval1D[T]
-    ): DiscreteInterval1D[T] = interval(beforeRemaining.end.successor, afterRemaining.start.predecessor)
 
     // Utility to find the complement of single remaining (intervals must either start or end together)
     def excludeRemaining[T: DiscreteValue](
@@ -1015,7 +1009,7 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
           case Remainder.Single(remaining) =>
             full.toBefore(remaining.start)
           case Remainder.Split(leftRemaining, rightRemaining) =>
-            interval(leftRemaining.end.successor, rightRemaining.start.predecessor)
+            between(leftRemaining, rightRemaining)
 
       def allOverlapSubintevals1D[T: DiscreteValue](
         extractFromOverlap: DiscreteInterval3D[R1, R2, R3] => DiscreteInterval1D[T],

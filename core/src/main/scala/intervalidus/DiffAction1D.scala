@@ -11,20 +11,15 @@ package intervalidus
   * @tparam R
   *   the type of discrete value used in the discrete interval assigned to each value.
   */
-enum DiffAction1D[V, R]
-  extends DiffActionLike[
-    V,
-    DiscreteDomain1D[R],
-    DiscreteInterval1D[R],
-    ValidData1D[V, R],
-    DiffAction1D[V, R]
-  ]:
+enum DiffAction1D[V, R]:
   case Create(validData: ValidData1D[V, R])
   case Update(validData: ValidData1D[V, R])
   case Delete(key: DiscreteDomain1D[R])
 
-  override def toCodeLikeString: String =
-    this match
-      case Create(validData) => s"DiffAction1D.Create(${validData.toCodeLikeString})"
-      case Update(validData) => s"DiffAction1D.Update(${validData.toCodeLikeString})"
-      case Delete(key)       => s"DiffAction1D.Delete(${key.toCodeLikeString})"
+object DiffAction1D:
+  given [V, R: DiscreteValue]: DiffActionLike[DiffAction1D[V, R]] with
+    extension (action: DiffAction1D[V, R])
+      override def toCodeLikeString: String = action match
+        case Create(validData) => s"DiffAction1D.Create(${validData.toCodeLikeString})"
+        case Update(validData) => s"DiffAction1D.Update(${validData.toCodeLikeString})"
+        case Delete(key)       => s"DiffAction1D.Delete(${key.toCodeLikeString})"

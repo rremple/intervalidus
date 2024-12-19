@@ -1,6 +1,6 @@
 package intervalidus
 
-import intervalidus.DiscreteInterval1D.interval
+import intervalidus.DiscreteInterval1D.{between, interval}
 import intervalidus.collection.mutable.{BoxTree, MultiMapSorted}
 import intervalidus.collection.{Box, BoxedPayload, Coordinate}
 
@@ -289,7 +289,7 @@ trait DataIn1DBase[V, R: DiscreteValue](using experimental: Experimental)
           // assert(leftRemaining hasSameStart overlap.interval)
           updateValidData(leftRemaining -> overlap.value)
           newValueOption.foreach: newValue =>
-            addValidData(interval(leftRemaining.end.successor, rightRemaining.start.predecessor) -> newValue)
+            addValidData(between(leftRemaining, rightRemaining) -> newValue)
           addValidData(rightRemaining -> overlap.value)
 
     potentiallyAffectedValues.foreach(compressInPlace)

@@ -1,6 +1,6 @@
 package intervalidus
 
-import intervalidus.DiscreteInterval1D.{interval, intervalAt, unbounded}
+import intervalidus.DiscreteInterval1D.{between, interval, intervalAt, unbounded}
 import intervalidus.collection.*
 import intervalidus.collection.mutable.{BoxTree, MultiMapSorted}
 
@@ -358,12 +358,6 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
   ): Unit = synchronized:
     import DiscreteInterval1D.Remainder
 
-    // Utility to find the complement of split remaining
-    def between[T: DiscreteValue](
-      beforeRemaining: DiscreteInterval1D[T],
-      afterRemaining: DiscreteInterval1D[T]
-    ): DiscreteInterval1D[T] = interval(beforeRemaining.end.successor, afterRemaining.start.predecessor)
-
     // Utility to find the complement of single remaining (intervals must either start or end together)
     def excludeRemaining[T: DiscreteValue](
       full: DiscreteInterval1D[T],
@@ -420,7 +414,7 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
       ): Unit =
         updateValidData(modify2D(overlap.interval, remainingBefore1D) -> overlap.value)
         newValueOption.foreach: newValue =>
-          val sliceBit = interval(remainingBefore1D.end.successor, remainingAfter1D.start.predecessor)
+          val sliceBit = between(remainingBefore1D, remainingAfter1D)
           addValidData(modify2D(overlap.interval, sliceBit) -> newValue)
         addValidData(modify2D(overlap.interval, remainingAfter1D) -> overlap.value)
 
@@ -577,7 +571,7 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
           case Remainder.Single(remaining) =>
             full.toBefore(remaining.start)
           case Remainder.Split(leftRemaining, rightRemaining) =>
-            interval(leftRemaining.end.successor, rightRemaining.start.predecessor)
+            between(leftRemaining, rightRemaining)
 
       def allOverlapSubintevals1D[T: DiscreteValue](
         extractFromOverlap: DiscreteInterval2D[R1, R2] => DiscreteInterval1D[T],

@@ -19,31 +19,9 @@ import scala.language.implicitConversions
 case class DiscreteDomain2D[T1: DiscreteValue, T2: DiscreteValue](
   horizontalIndex: DiscreteDomain1D[T1],
   verticalIndex: DiscreteDomain1D[T2]
-) extends DiscreteDomainLike[DiscreteDomain2D[T1, T2]]:
-  /**
-    * Approximate this domain element as a coordinate in double space based on the domain ordered hash.
-    *
-    * @return
-    *   a new coordinate for boxes managed in box trees
-    */
-  def asCoordinate: Coordinate =
-    Coordinate(horizontalIndex.orderedHash, verticalIndex.orderedHash)
+):
 
   override def toString: String = s"{$horizontalIndex, $verticalIndex}"
-
-  override def isUnbounded: Boolean = horizontalIndex.isUnbounded && verticalIndex.isUnbounded
-
-  override def toCodeLikeString: String = s"${horizontalIndex.toCodeLikeString} x ${verticalIndex.toCodeLikeString}"
-
-  /**
-    * Tests if this belongs to an interval.
-    *
-    * @param interval
-    *   interval to test.
-    * @return
-    *   true if this belongs to the specified interval, false otherwise.
-    */
-  infix def belongsTo(interval: DiscreteInterval2D[T1, T2]): Boolean = interval contains this
 
   /**
     * Cross this domain element with that domain element to arrive at a new three-dimensional domain element.
@@ -64,24 +42,31 @@ case class DiscreteDomain2D[T1: DiscreteValue, T2: DiscreteValue](
     */
   def flip: DiscreteDomain2D[T2, T1] = DiscreteDomain2D(verticalIndex, horizontalIndex)
 
-  // equivalent symbolic method names
-
-  /**
-    * Same as [[belongsTo]]
-    *
-    * Tests if this belongs to an interval.
-    *
-    * @param interval
-    *   interval to test.
-    * @return
-    *   true if this belongs to the specified interval, false otherwise.
-    */
-  def ∈(interval: DiscreteInterval2D[T1, T2]): Boolean = this belongsTo interval
-
 /**
   * Companion for the two-dimensional domain used in defining and operating on discrete intervals.
   */
 object DiscreteDomain2D:
+
+  /**
+    * Type class instance for two-dimensional discrete domains.
+    */
+  given [T1: DiscreteValue, T2: DiscreteValue]: DiscreteDomainLike[DiscreteDomain2D[T1, T2]] with
+    extension (domain: DiscreteDomain2D[T1, T2])
+      override def isUnbounded: Boolean =
+        domain.horizontalIndex.isUnbounded && domain.verticalIndex.isUnbounded
+
+      override def toCodeLikeString: String =
+        s"${domain.horizontalIndex.toCodeLikeString} x ${domain.verticalIndex.toCodeLikeString}"
+
+      override def asCoordinate: Coordinate =
+        Coordinate(domain.horizontalIndex.orderedHash, domain.verticalIndex.orderedHash)
+
+      override def successor: DiscreteDomain2D[T1, T2] =
+        domain.horizontalIndex.successor x domain.verticalIndex.successor
+
+      override def predecessor: DiscreteDomain2D[T1, T2] =
+        domain.horizontalIndex.predecessor x domain.verticalIndex.predecessor
+
   /**
     * Provides a default ordering for any 2D domain based on the orderings of its constituent horizontal and vertical
     * interval components.

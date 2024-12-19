@@ -12,18 +12,10 @@ import scala.math.Ordering.Implicits.infixOrderingOps
   * @tparam Self
   *   F-bounded self type.
   */
-trait DiscreteIntervalLike[D <: DiscreteDomainLike[D]: Ordering, Self <: DiscreteIntervalLike[D, Self]: Ordering]:
+trait DiscreteIntervalLike[D: DiscreteDomainLike: Ordering, Self <: DiscreteIntervalLike[D, Self]]:
   this: Self =>
 
   type ExclusionRemainder
-
-  /**
-    * Approximate this interval as a box in double space based on the domain ordered hash.
-    *
-    * @return
-    *   a new box that can be managed in a box tree
-    */
-  def asBox: Box
 
   /**
     * The "infimum", i.e., the left/lower/back boundary of the interval (inclusive). When stored in a collection, this
@@ -139,22 +131,6 @@ trait DiscreteIntervalLike[D <: DiscreteDomainLike[D]: Ordering, Self <: Discret
   def from(newStart: D): Self
 
   /**
-    * Returns a new interval starting at the predecessor of the provided value.
-    *
-    * @param newStartSuccessor
-    *   the successor of the start of the new interval
-    */
-  def fromBefore(newStartSuccessor: D): Self
-
-  /**
-    * Returns a new interval starting at the successor of the provided value.
-    *
-    * @param newStartPredecessor
-    *   the predecessor of the start of the new interval
-    */
-  def fromAfter(newStartPredecessor: D): Self
-
-  /**
     * Returns a new interval with the same end as this interval but with an unbounded start.
     */
   def fromBottom: Self
@@ -166,22 +142,6 @@ trait DiscreteIntervalLike[D <: DiscreteDomainLike[D]: Ordering, Self <: Discret
     *   the end of the new interval
     */
   def to(newEnd: D): Self
-
-  /**
-    * Returns a new interval ending at the predecessor of the provided value.
-    *
-    * @param newEndSuccessor
-    *   the successor of the end of the new interval
-    */
-  def toBefore(newEndSuccessor: D): Self
-
-  /**
-    * Returns a new interval ending at the successor of the provided value.
-    *
-    * @param newEndPredecessor
-    *   the predecessor of the end of the new interval
-    */
-  def toAfter(newEndPredecessor: D): Self
 
   /**
     * Returns a new interval with the same start as this interval but with an unbounded end.
@@ -232,7 +192,45 @@ trait DiscreteIntervalLike[D <: DiscreteDomainLike[D]: Ordering, Self <: Discret
     */
   infix def ->[V](value: V): ValidDataLike[V, D, Self, ?]
 
-  // equivalent symbolic method names and other implementations
+  /**
+    * Approximate this interval as a box in double space based on the domain ordered hash.
+    *
+    * @return
+    *   a new box that can be managed in a box tree
+    */
+  def asBox: Box = Box(start.asCoordinate, end.asCoordinate)
+
+  /**
+    * Returns a new interval starting at the predecessor of the provided value.
+    *
+    * @param newStartSuccessor
+    *   the successor of the start of the new interval
+    */
+  def fromBefore(newStartSuccessor: D): Self = from(newStartSuccessor.predecessor)
+
+  /**
+    * Returns a new interval starting at the successor of the provided value.
+    *
+    * @param newStartPredecessor
+    *   the predecessor of the start of the new interval
+    */
+  def fromAfter(newStartPredecessor: D): Self = from(newStartPredecessor.successor)
+
+  /**
+    * Returns a new interval ending at the predecessor of the provided value.
+    *
+    * @param newEndSuccessor
+    *   the successor of the end of the new interval
+    */
+  def toBefore(newEndSuccessor: D): Self = to(newEndSuccessor.predecessor)
+
+  /**
+    * Returns a new interval ending at the successor of the provided value.
+    *
+    * @param newEndPredecessor
+    *   the predecessor of the end of the new interval
+    */
+  def toAfter(newEndPredecessor: D): Self = to(newEndPredecessor.successor)
 
   /**
     * Tests if there is no fixed start or end - spans the entire domain.
@@ -293,6 +291,8 @@ trait DiscreteIntervalLike[D <: DiscreteDomainLike[D]: Ordering, Self <: Discret
     */
   def atStart: Self = to(start)
 
+  // equivalent symbolic method names and other implementations
+
   /**
     * Same as [[intersectionWith]].
     *
@@ -342,3 +342,13 @@ trait DiscreteIntervalLike[D <: DiscreteDomainLike[D]: Ordering, Self <: Discret
     *   The remainder in each dimension after exclusion.
     */
   def \(that: Self): ExclusionRemainder = this excluding that
+
+object DiscreteIntervalLike:
+  /**
+    * Intervals are ordered by start
+    */
+  given [
+    D: DiscreteDomainLike,
+    I <: DiscreteIntervalLike[D, I]
+  ](using domainOrder: Ordering[D]): Ordering[I] with
+    override def compare(x: I, y: I): Int = domainOrder.compare(x.start, y.start)

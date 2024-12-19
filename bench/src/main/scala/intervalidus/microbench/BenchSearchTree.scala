@@ -23,10 +23,10 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
     value = 1
   )
   abstract class GenericMutableBench[
-    D <: DiscreteDomainLike[D],
+    D: DiscreteDomainLike,
     I <: DiscreteIntervalLike[D, I],
     ValidData <: ValidDataLike[String, D, I, ValidData],
-    DiffAction <: DiffActionLike[String, D, I, ValidData, DiffAction],
+    DiffAction: DiffActionLike,
     DimData <: mutable.MutableBase[String, D, I, ValidData, DiffAction, DimData] &
       DimensionalBase[String, D, I, ValidData, DiffAction, ?]
   ](
@@ -225,10 +225,10 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
     value = 1
   )
   abstract class GenericImmutableBench[
-    D <: DiscreteDomainLike[D],
+    D: DiscreteDomainLike,
     I <: DiscreteIntervalLike[D, I],
     ValidData <: ValidDataLike[String, D, I, ValidData],
-    DiffAction <: DiffActionLike[String, D, I, ValidData, DiffAction],
+    DiffAction: DiffActionLike,
     DimData <: immutable.ImmutableBase[String, D, I, ValidData, DiffAction, DimData]
   ](
     intervalRange: Int,

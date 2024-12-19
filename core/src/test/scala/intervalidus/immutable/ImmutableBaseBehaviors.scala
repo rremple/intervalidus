@@ -21,10 +21,10 @@ trait ImmutableBaseBehaviors:
   import DiscreteInterval1D.*
 
   def immutableBaseTests[
-    D <: DiscreteDomainLike[D],
+    D: DiscreteDomainLike,
     I <: DiscreteIntervalLike[D, I],
     ValidData <: ValidDataLike[String, D, I, ValidData],
-    DiffAction <: DiffActionLike[String, D, I, ValidData, DiffAction],
+    DiffAction: DiffActionLike,
     S <: ImmutableBase[String, D, I, ValidData, DiffAction, S]
   ](
     immutableFrom: Experimental ?=> Iterable[ValidData] => S,

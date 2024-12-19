@@ -2,7 +2,6 @@ package intervalidus
 
 import intervalidus.DiscreteDomain1D.{Bottom, Point, Top}
 import intervalidus.DiscreteInterval1D.{interval, intervalFrom, intervalTo}
-import intervalidus.collection.Box
 
 import java.time.LocalDate
 import scala.math.Ordering.Implicits.infixOrderingOps
@@ -29,8 +28,6 @@ case class DiscreteInterval1D[T: DiscreteValue](
   import DiscreteInterval1D.Remainder
 
   override type ExclusionRemainder = Remainder[DiscreteInterval1D[T]]
-
-  override def asBox: Box = Box(start.asCoordinate, end.asCoordinate)
 
   override infix def withValue[V](value: V): ValidData1D[V, T] = ValidData1D(value, this)
 
@@ -103,21 +100,9 @@ case class DiscreteInterval1D[T: DiscreteValue](
 
   override def from(newStart: DiscreteDomain1D[T]): DiscreteInterval1D[T] = copy(start = newStart)
 
-  override def fromBefore(newStartSuccessor: DiscreteDomain1D[T]): DiscreteInterval1D[T] =
-    from(newStartSuccessor.predecessor)
-
-  override def fromAfter(newStartPredecessor: DiscreteDomain1D[T]): DiscreteInterval1D[T] =
-    from(newStartPredecessor.successor)
-
-  override def fromBottom: DiscreteInterval1D[T] = from(Bottom)
-
   override def to(newEnd: DiscreteDomain1D[T]): DiscreteInterval1D[T] = copy(end = newEnd)
 
-  override def toBefore(newEndSuccessor: DiscreteDomain1D[T]): DiscreteInterval1D[T] =
-    to(newEndSuccessor.predecessor)
-
-  override def toAfter(newEndPredecessor: DiscreteDomain1D[T]): DiscreteInterval1D[T] =
-    to(newEndPredecessor.successor)
+  override def fromBottom: DiscreteInterval1D[T] = from(Bottom)
 
   override def toTop: DiscreteInterval1D[T] = to(Top)
 
@@ -217,17 +202,15 @@ object DiscreteInterval1D:
       e.map(Point(_)).getOrElse(Top)
     )
 
+  def between[T: DiscreteValue](
+    left: DiscreteInterval1D[T],
+    right: DiscreteInterval1D[T]
+  ): DiscreteInterval1D[T] = interval(left.end.successor, right.start.predecessor)
+
   /**
     * Returns an interval unbounded on both the left and right.
     */
   def unbounded[T: DiscreteValue]: DiscreteInterval1D[T] = apply(Bottom, Top)
-
-  /**
-    * Intervals are ordered by start
-    */
-  given [T: DiscreteValue](using domainOrder: Ordering[DiscreteDomain1D[T]]): Ordering[DiscreteInterval1D[T]] with
-    override def compare(x: DiscreteInterval1D[T], y: DiscreteInterval1D[T]): Int =
-      domainOrder.compare(x.start, y.start)
 
   /*
    * These methods operate on collections of intervals.

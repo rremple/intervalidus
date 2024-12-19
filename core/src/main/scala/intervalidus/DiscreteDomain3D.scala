@@ -24,33 +24,9 @@ case class DiscreteDomain3D[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteVa
   horizontalIndex: DiscreteDomain1D[T1],
   verticalIndex: DiscreteDomain1D[T2],
   depthIndex: DiscreteDomain1D[T3]
-) extends DiscreteDomainLike[DiscreteDomain3D[T1, T2, T3]]:
-
-  /**
-    * Approximate this domain element as a coordinate in double space based on the domain ordered hash.
-    *
-    * @return
-    *   a new coordinate for boxes managed in box trees
-    */
-  def asCoordinate: Coordinate =
-    Coordinate(horizontalIndex.orderedHash, verticalIndex.orderedHash, depthIndex.orderedHash)
+):
 
   override def toString: String = s"{$horizontalIndex, $verticalIndex, $depthIndex}"
-
-  override def isUnbounded: Boolean = horizontalIndex.isUnbounded && verticalIndex.isUnbounded & depthIndex.isUnbounded
-
-  override def toCodeLikeString: String =
-    s"${horizontalIndex.toCodeLikeString} x ${verticalIndex.toCodeLikeString} x ${depthIndex.toCodeLikeString}"
-
-  /**
-    * Tests if this belongs to an interval.
-    *
-    * @param interval
-    *   interval to test.
-    * @return
-    *   true if this belongs to the specified interval, false otherwise.
-    */
-  infix def belongsTo(interval: DiscreteInterval3D[T1, T2, T3]): Boolean = interval contains this
 
   /**
     * Flips this domain by swapping the vertical and horizontal components with one another and keeping the same depth
@@ -70,24 +46,36 @@ case class DiscreteDomain3D[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteVa
     */
   def flipAboutHorizontal: DiscreteDomain3D[T1, T3, T2] = DiscreteDomain3D(horizontalIndex, depthIndex, verticalIndex)
 
-  // equivalent symbolic method names
-
-  /**
-    * Same as [[belongsTo]]
-    *
-    * Tests if this belongs to an interval.
-    *
-    * @param interval
-    *   interval to test.
-    * @return
-    *   true if this belongs to the specified interval, false otherwise.
-    */
-  def ∈(interval: DiscreteInterval3D[T1, T2, T3]): Boolean = this belongsTo interval
-
 /**
   * Companion for the three-dimensional domain used in defining and operating on discrete intervals.
   */
 object DiscreteDomain3D:
+
+  /**
+    * Type class instance for three-dimensional discrete domains.
+    */
+  given [T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue]: DiscreteDomainLike[DiscreteDomain3D[T1, T2, T3]] with
+    extension (domain: DiscreteDomain3D[T1, T2, T3])
+      override def isUnbounded: Boolean =
+        domain.horizontalIndex.isUnbounded && domain.verticalIndex.isUnbounded & domain.depthIndex.isUnbounded
+
+      override def toCodeLikeString: String =
+        s"${domain.horizontalIndex.toCodeLikeString} x ${domain.verticalIndex.toCodeLikeString} x " +
+          s"${domain.depthIndex.toCodeLikeString}"
+
+      override def asCoordinate: Coordinate =
+        Coordinate(
+          domain.horizontalIndex.orderedHash,
+          domain.verticalIndex.orderedHash,
+          domain.depthIndex.orderedHash
+        )
+
+      override def successor: DiscreteDomain3D[T1, T2, T3] =
+        domain.horizontalIndex.successor x domain.verticalIndex.successor x domain.depthIndex.successor
+
+      override def predecessor: DiscreteDomain3D[T1, T2, T3] =
+        domain.horizontalIndex.predecessor x domain.verticalIndex.predecessor x domain.depthIndex.predecessor
+
   /**
     * Provides a default ordering for any 3D domain based on the orderings of its constituent horizontal, vertical, and
     * depth interval components.

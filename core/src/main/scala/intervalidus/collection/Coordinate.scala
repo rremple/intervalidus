@@ -12,8 +12,6 @@ object Coordinate:
 
   def apply(coordinates: Double*): Coordinate = coordinates.toVector
 
-  def apply(coordinates: Vector[Double]): Coordinate = coordinates
-
   /**
     * Evaluate each corresponding dimension of the two arguments and only return true if the function applied to each
     * pair returns true.

@@ -17,10 +17,10 @@ package intervalidus
   */
 trait DimensionalMultiBase[
   V,
-  D <: DiscreteDomainLike[D]: Ordering,
+  D: DiscreteDomainLike,
   I <: DiscreteIntervalLike[D, I],
   ValidData <: ValidDataLike[Set[V], D, I, ValidData],
-  DiffAction <: DiffActionLike[Set[V], D, I, ValidData, DiffAction]
+  DiffAction: DiffActionLike
 ]:
   this: DimensionalBase[Set[V], D, I, ValidData, DiffAction, ?] =>
 
