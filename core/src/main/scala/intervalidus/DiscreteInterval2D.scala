@@ -313,7 +313,8 @@ object DiscreteInterval2D:
           (d isLeftAdjacentTo r) || (d isLowerAdjacentTo r) || (d intersects r)
 
   /**
-    * Tests if there are no intersections between intervals in the collection.
+    * Tests if there are no intersections between intervals in the collection. See
+    * [[https://en.wikipedia.org/wiki/Disjoint_sets]].
     *
     * @param intervals
     *   a collection of two-dimensional intervals.

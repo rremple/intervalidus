@@ -25,13 +25,13 @@ trait DiscreteDomainLike[D: Ordering]:
       * Approximate this domain as a coordinate in double space based on the domain ordered hash.
       *
       * @return
-      *   a new coordinate for boxes managed in box trees
+      *   a new coordinate for boxes managed in box search trees
       */
     def asCoordinate: Coordinate
 
     /**
       * Successor of this in all dimensions, where `Bottom` and `Top` are their own successors, and the successor of
-      * `maxValue` is `Top`.
+      * `maxValue` is `Top`. See [[https://en.wikipedia.org/wiki/Successor_function]].
       *
       * @return
       *   successor of this
@@ -40,7 +40,7 @@ trait DiscreteDomainLike[D: Ordering]:
 
     /**
       * Predecessor of this in all dimensions, where `Bottom` and `Top` are their own predecessors, and the predecessor
-      * of `minValue` is `Bottom`.
+      * of `minValue` is `Bottom`. See [[https://en.wikipedia.org/wiki/Primitive_recursive_function#Predecessor]].
       *
       * @return
       *   successor of this
@@ -48,7 +48,7 @@ trait DiscreteDomainLike[D: Ordering]:
     def predecessor: D
 
     /**
-      * Tests if this belongs to an interval.
+      * Tests if this belongs to an interval. See [[https://en.wikipedia.org/wiki/Element_(mathematics)]].
       *
       * @param interval
       *   interval to test.
@@ -62,7 +62,7 @@ trait DiscreteDomainLike[D: Ordering]:
     /**
       * Same as [[belongsTo]]
       *
-      * Tests if this belongs to an interval.
+      * Tests if this belongs to an interval. See [[https://en.wikipedia.org/wiki/Element_(mathematics)]].
       *
       * @param interval
       *   interval to test.

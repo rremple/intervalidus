@@ -27,7 +27,7 @@ trait ValidDataLike[
     * Approximate this valid data as a boxed payload in double space based on the domain ordered hash.
     *
     * @return
-    *   a new boxed payload that can be managed in a box tree
+    *   a new boxed payload that can be managed in a box search tree
     */
   def asBoxedPayload: BoxedPayload[Self] = BoxedPayload(interval.asBox, this)
 

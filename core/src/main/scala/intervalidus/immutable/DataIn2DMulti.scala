@@ -42,9 +42,10 @@ object DataIn2DMulti extends DataIn2DMultiBaseObject:
   * (conceptually similar to zip, but operating on individual values, and more appropriate for these multiple values
   * structures).
   *
-  * Note that visualizing two-dimensional data can be a bit daunting as well, so the toString method outputs a little
-  * Gantt chart and there is a simple Visualize tool provided (in the test package... though maybe this should be its
-  * own separate subproject).
+  * @note
+  *   Visualizing two-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt
+  *   chart and there is a simple Visualize tool provided (in the test package... though maybe this should be its own
+  *   separate subproject).
   *
   * @tparam V
   *   the type of the value managed as data.

@@ -29,7 +29,7 @@ trait DimensionalMultiBase[
     * interval without any valid values to just have the new value as valid.
     *
     * @param interval
-    *   new value will be valid in this interval (along with other existing values)
+    *   new value that should be valid in this interval (along with other existing values)
     * @param value
     *   the new value to make valid in the interval
     * @tparam B
@@ -44,7 +44,7 @@ trait DimensionalMultiBase[
     * new value, remove the interval completely.
     *
     * @param interval
-    *   new value will no longer be valid in this interval
+    *   interval to update
     * @param value
     *   the new value to make no longer valid in the interval
     * @tparam B

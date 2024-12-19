@@ -3,7 +3,7 @@ package intervalidus.collection.immutable
 import intervalidus.collection.*
 
 /**
-  * Constructors and types for immutable box trees of arbitrary dimensions.
+  * Constructors and types for immutable box search trees of arbitrary dimensions.
   */
 object BoxTree extends BoxTreeObjectLike:
   def apply[A](
@@ -20,8 +20,10 @@ object BoxTree extends BoxTreeObjectLike:
   ): BoxTree[A] = apply(boundary, capacity, depthLimit).addAll(ds)
 
 /**
-  * Immutable box tree in arbitrary dimensions, see [[https://en.wikipedia.org/wiki/Tree]]. Mutation operations return a
-  * new tree with updates applied.
+  * Immutable box search tree in arbitrary dimensions. Mutation operations return a new tree with updates applied.
+  *
+  * See [[https://en.wikipedia.org/wiki/Tree_(abstract_data_type)]], [[https://en.wikipedia.org/wiki/B-tree]],
+  * [[https://en.wikipedia.org/wiki/Quadtree]], and [[https://en.wikipedia.org/wiki/Octree]].
   *
   * @tparam A
   *   payload type

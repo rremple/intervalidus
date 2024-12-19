@@ -1,7 +1,7 @@
 package intervalidus
 
 /**
-  * Constructs multi-data in one-dimensional intervals.
+  * Constructs multi-data in three-dimensional intervals.
   */
 trait DataIn3DMultiBaseObject extends DataIn3DConstructorParams:
   /**

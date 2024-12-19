@@ -60,9 +60,9 @@ case class Box(minPoint: Coordinate, maxPoint: Coordinate):
     else None
 
   /**
-    * Constructs a boxes based on binary splits in each dimension. For n dimensions, there will be 2 to the power of n
-    * boxes created, which generalizes subtrees for B-tree (2) in one dimension, quadtrees (4) in two dimension, octrees
-    * (8) in three dimensions, etc.
+    * Constructs a boxes based on binary splits in each dimension. For n dimensions, there are 2<sup>n</sup> boxes
+    * created, which generalizes subtree branches in B-trees (2 boxes in one dimension), quadtrees (4 boxes in two
+    * dimensions), octrees (8 boxes in three dimensions), etc.
     *
     * @return
     *   a vector of boxes that can be used for subtree boundaries

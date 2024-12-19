@@ -31,17 +31,7 @@ object DataIn1DVersioned extends DataIn1DVersionedBaseObject:
   )
 
 /**
-  * Interface is similar to [[DataIn1D]], but it operates on an underlying [[mutable.DataIn2D]] using an integer-valued
-  * vertical dimension to version data. One use case would be that R = LocalDate, so data values may vary in terms of
-  * both version and time. Most methods require some generic version selection criteria rather than specific integer
-  * intervals, therefore this does not extend [[DimensionalBase]].
-  *
-  * The "current" version is managed as state (a var). Versioning also separates notions of approved vs. unapproved data
-  * (unapproved data are pushed up to start at version maxValue).
-  *
-  * When getting data, by default, we return "current" version data (a.k.a., approved). When updating data, by default,
-  * we don't rewrite history, so mutations start with the "current" version too. Note that updates starting with
-  * "current" will update unapproved changes as well (since intervalFrom goes to the Top).
+  * @inheritdoc
   *
   * @tparam V
   *   the type of the value managed as data
@@ -49,7 +39,7 @@ object DataIn1DVersioned extends DataIn1DVersionedBaseObject:
   *   the type of discrete value used in the discrete interval assigned to each value
   * @param initialData
   *   (optional) a collection of valid data in two dimensions (the vertical dimension is the version) to start with --
-  *   note that two-dimensional intervals must be disjoint
+  *   two-dimensional intervals must be disjoint
   * @param initialVersion
   *   (optional) the version to start with, typically zero
   * @param withCurrentVersion

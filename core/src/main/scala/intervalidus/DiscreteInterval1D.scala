@@ -202,10 +202,24 @@ object DiscreteInterval1D:
       e.map(Point(_)).getOrElse(Top)
     )
 
+  /**
+    * Returns the interval between `before` and `after`. This is equivalent to `before.gapWith(after).get`, but without
+    * intersection and adjacency checks. Only use this function if you know `before.end.successor < after.start`, e.g.,
+    * `before` and `after` are exclusion remainders.
+    *
+    * @param before
+    *   interval on the left/bottom/back side
+    * @param after
+    *   interval on the right/top/front side
+    * @tparam T
+    *   discrete value for interval
+    * @return
+    *   the interval made from the gap between the two inputs
+    */
   def between[T: DiscreteValue](
-    left: DiscreteInterval1D[T],
-    right: DiscreteInterval1D[T]
-  ): DiscreteInterval1D[T] = interval(left.end.successor, right.start.predecessor)
+    before: DiscreteInterval1D[T],
+    after: DiscreteInterval1D[T]
+  ): DiscreteInterval1D[T] = interval(before.end.successor, after.start.predecessor)
 
   /**
     * Returns an interval unbounded on both the left and right.
@@ -236,7 +250,7 @@ object DiscreteInterval1D:
 
   /**
     * Checks if the collection of intervals is compressible. That is, are there any intervals that are adjacent to, or
-    * intersecting with, their neighbors. If true, calling [[compress]] on the collection will result in a smaller
+    * intersecting with, their neighbors. If true, calling [[compress]] on the collection results in a smaller
     * collection covering the same domain.
     *
     * @param intervals
@@ -254,7 +268,8 @@ object DiscreteInterval1D:
         .exists((left, right) => (left isLeftAdjacentTo right) || (left intersects right))
 
   /**
-    * Checks if the collection of intervals is disjoint. That is, all neighboring intervals do not intersect.
+    * Checks if the collection of intervals is disjoint. That is, all neighboring intervals do not intersect. See
+    * [[https://en.wikipedia.org/wiki/Disjoint_sets]].
     *
     * @param intervals
     *   a collection of intervals -- must be ordered by start.
@@ -288,7 +303,8 @@ object DiscreteInterval1D:
       starts.zip(ends).map(apply)
 
   /**
-    * Given a collection of intervals, finds the complement intervals (i.e., the gaps).
+    * Given a collection of intervals, finds the complement intervals (i.e., the gaps). See
+    * [[https://en.wikipedia.org/wiki/Complement_(set_theory)]].
     *
     * @param intervals
     *   a collection of intervals -- must be disjoint and ordered by start.

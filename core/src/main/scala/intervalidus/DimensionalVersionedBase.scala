@@ -141,7 +141,7 @@ trait DimensionalVersionedBase[
     * Given some version selection context, gets all the data (uncompressed, mutable).
     *
     * Useful when you don't need the overhead of creating an immutable structure and compressing the data, e.g., if just
-    * doing a `getAt` after version selection, which will give the same answer compressed or uncompressed, mutable or
+    * doing a `getAt` after version selection, which gives the same answer if compressed or uncompressed, mutable or
     * immutable.
     *
     * @return
@@ -237,8 +237,8 @@ trait DimensionalVersionedBase[
     * the specified domain element is a member of some valid data interval. If no such valid data exists, returns None.
     *
     * @param domain
-    *   the domain element where data may be valid. Note that the domain element can be a specific data point or the
-    *   special notions of "bottom" or "top" of the domain.
+    *   the domain element where data may be valid. The domain element can be a specific data point or the special
+    *   notions of "bottom" or "top" of the domain.
     * @return
     *   Some value if valid at the specified domain element, otherwise None.
     */

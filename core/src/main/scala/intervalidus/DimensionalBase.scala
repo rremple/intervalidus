@@ -136,7 +136,7 @@ trait DimensionalBase[
     * Adds a value as valid in portions of the interval where there aren't already valid values.
     *
     * @param interval
-    *   interval where some value will be valid (existing or new)
+    *   interval where some value should be valid (existing or new)
     * @param value
     *   new value to be valid in the interval where no existing value is already valid
     */
@@ -177,7 +177,8 @@ trait DimensionalBase[
   def copy: Self
 
   /**
-    * Returns all the intervals (compressed) in which there are valid values.
+    * Returns all the intervals (compressed) in which there are valid values. See
+    * [[https://en.wikipedia.org/wiki/Domain_of_a_function]].
     */
   def domain: Iterable[I]
 

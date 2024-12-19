@@ -56,8 +56,8 @@ trait MutableVersionedBase[
   def copy: Self
 
   /**
-    * Sets the current version. Note that no version history is rewritten, which may cause some unexpected results
-    * (especially if the version is set to something from the past). Use with caution.
+    * Sets the current version. No version history is rewritten, which may cause some unexpected results (especially if
+    * the version is set to something from the past). Use with caution.
     *
     * @param version
     *   the new current version
@@ -87,7 +87,7 @@ trait MutableVersionedBase[
     * version selection context -- operates on full underlying structure.
     *
     * @param that
-    *   the structure with which this will be synchronized.
+    *   the structure with which this is synchronized.
     */
   def syncWith(that: Self): Unit
 
@@ -144,7 +144,7 @@ trait MutableVersionedBase[
     * Compress out adjacent intervals with the same value.
     *
     * @param value
-    *   value for which valid data will be compressed.
+    *   value for which valid data are compressed.
     */
   def compress(value: V): Unit = underlying.compress(value)
 
@@ -163,8 +163,8 @@ trait MutableVersionedBase[
   // ---------- Implement methods similar to those in DimensionalBase, but many with version selection ----------
 
   /**
-    * Set new valid data. Note that any data previously valid in this interval and the given version selection context
-    * are replaced by this data.
+    * Set new valid data. Any data previously valid in this interval and the given version selection context are
+    * replaced by this data.
     *
     * @param data
     *   the valid data to set.
@@ -198,7 +198,7 @@ trait MutableVersionedBase[
 
   /**
     * Update everything valid in the specified interval and the given version selection context to have the specified
-    * value. Note that no new intervals of validity are added as part of this operation. Data with overlaps are adjusted
+    * value. No new intervals of validity are added as part of this operation. Data with overlaps are adjusted
     * accordingly.
     *
     * @param data

@@ -77,15 +77,16 @@ trait DataIn1DVersionedBaseObject:
   * (unapproved data are pushed up to start at version maxValue).
   *
   * When getting data, by default, we return "current" version data (a.k.a., approved). When updating data, by default,
-  * we don't rewrite history, so mutations start with the "current" version too. Note that updates starting with
-  * "current" will update unapproved changes as well (since intervalFrom goes to the Top).
+  * we don't rewrite history, so mutations start with the "current" version too.
+  * @note
+  *   Updates starting with "current" also update unapproved changes (since intervalFrom goes to the Top).
   *
   * @tparam V
   *   the type of the value managed as data
   * @tparam R
   *   the type of discrete value used in the discrete interval assigned to each valid value
   * @param initialData
-  *   a collection of valid data in two dimensions (the vertical dimension is the version) to start with -- note that
+  *   a collection of valid data in two dimensions (the vertical dimension is the version) to start with --
   *   two-dimensional intervals must be disjoint
   * @param initialVersion
   *   the version to start with, typically zero. (Could, for example, use `IntDiscreteValue.minValue` instead of zero to

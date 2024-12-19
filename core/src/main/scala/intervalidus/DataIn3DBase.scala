@@ -1,6 +1,6 @@
 package intervalidus
 
-import intervalidus.DiscreteInterval1D.{between, interval, unbounded}
+import intervalidus.DiscreteInterval1D.{between, unbounded}
 import intervalidus.collection.mutable.{BoxTree, MultiMapSorted}
 import intervalidus.collection.{Box, BoxedPayload, Coordinate}
 
@@ -126,10 +126,11 @@ trait DataIn3DConstructorParams:
   *
   * We can capture the dependency between various values and related three-dimensional intervals cohesively in this
   * structure rather than in separate data structures using distributed (and potentially inconsistent) logic. This is
-  * especially important for managing mutation, which can be a bit complex in three dimensions. Note that visualizing
-  * three-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there
-  * is a simple 2D Visualize tool provided where you can visualize 2D slices of the 3D structure (in the test package...
-  * though maybe this should be its own separate subproject).
+  * especially important for managing mutation, which can be a bit complex in three dimensions.
+  * @note
+  *   Visualizing three-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt
+  *   chart and there is a simple 2D Visualize tool provided where you can visualize 2D slices of the 3D structure (in
+  *   the test package... though maybe this should be its own separate subproject).
   *
   * @tparam V
   *   the type of the value managed as data.
@@ -353,7 +354,7 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
     // decompress
     val atomicData = for
       atomicInterval <- DiscreteInterval3D.uniqueIntervals(getAll.map(_.interval))
-      intersecting <- getIntersecting(atomicInterval) // will always return either one or zero results
+      intersecting <- getIntersecting(atomicInterval) // always returns either one or zero results
     yield intersecting.copy(interval = atomicInterval)
     replaceValidData(atomicData)
 
@@ -441,7 +442,7 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
       else full.toBefore(remaining.start)
 
     val intersecting = getIntersecting(targetInterval)
-    // These values will be targets for compression later
+    // These values are targets for compression later
     val potentiallyAffectedValues = intersecting.map(_.value).toSet ++ intersecting.map(_.value).flatMap(updateValue)
 
     intersecting.foreach: overlap =>

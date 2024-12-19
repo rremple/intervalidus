@@ -18,6 +18,8 @@ import scala.math.Ordering.Implicits.infixOrderingOps
   *   a discrete value type for this interval's horizontal domain
   * @tparam T2
   *   a discrete value type for this interval's vertical domain
+  * @tparam T3
+  *   a discrete value type for this interval's depth domain
   */
 case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue](
   horizontal: DiscreteInterval1D[T1],
@@ -366,9 +368,7 @@ object DiscreteInterval3D:
     DiscreteInterval1D.intervalAt(s.depthIndex)
   )
 
-  /*
-   * These methods operate on collections of two-dimensional intervals.
-   */
+  // These methods operate on collections of three-dimensional intervals.
 
   /**
     * Checks if the collection of three-dimensional intervals is compressible. That is, are there any intervals that are
@@ -377,7 +377,7 @@ object DiscreteInterval3D:
     * are considered.
     *
     * @param intervals
-    *   a collection of two-dimensional intervals -- must be ordered by start.
+    *   a collection of three-dimensional intervals -- must be ordered by start.
     * @tparam T1
     *   a discrete value type for this interval's horizontal domain.
     * @tparam T2
@@ -399,14 +399,17 @@ object DiscreteInterval3D:
           (d isLeftAdjacentTo r) || (d isLowerAdjacentTo r) || (d isBackAdjacentTo r) || (d intersects r)
 
   /**
-    * Tests if there are no intersections between intervals in the collection.
+    * Tests if there are no intersections between intervals in the collection. See
+    * [[https://en.wikipedia.org/wiki/Disjoint_sets]].
     *
     * @param intervals
-    *   a collection of two-dimensional intervals.
+    *   a collection of three-dimensional intervals.
     * @tparam T1
     *   a discrete value type for this interval's horizontal domain.
     * @tparam T2
     *   a discrete value type for this interval's vertical domain.
+    * @tparam T3
+    *   a discrete value type for this interval's depth domain.
     * @return
     *   true if the collection is disjoint, false otherwise.
     */

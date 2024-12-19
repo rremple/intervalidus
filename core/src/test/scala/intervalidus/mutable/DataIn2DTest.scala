@@ -124,7 +124,6 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
       (unbounded[LocalDate] x intervalFrom(16)) -> "World"
     )
     val fixture = DataIn2D(expectedData4)
-    val fixture4 = fixture.copy
     fixture.set((intervalFrom(day(1)) x intervalFrom(1)) -> "remove me")
     fixture.remove(intervalFrom(day(1)) x intervalFrom(1))
     // needed? fixture.recompressAll()

@@ -1,6 +1,6 @@
 package intervalidus
 
-import intervalidus.DiscreteInterval1D.{between, interval}
+import intervalidus.DiscreteInterval1D.between
 import intervalidus.collection.mutable.{BoxTree, MultiMapSorted}
 import intervalidus.collection.{Box, BoxedPayload, Coordinate}
 
@@ -245,7 +245,7 @@ trait DataIn1DBase[V, R: DiscreteValue](using experimental: Experimental)
   /**
     * @inheritdoc
     *
-    * Both have to deal with exclusions, which can have three cases: simple, partial, and split.
+    * Exclusions in one dimension can have three remainders: none (simple), single (partial), and split.
     *
     * @param targetInterval
     *   the interval where any valid values are updated or removed.

@@ -7,7 +7,7 @@ import intervalidus.mutable.DataIn3DMulti as DataIn3DMultiMutable
 import scala.collection.mutable
 
 /**
-  * Constructs multi-data in two-dimensional intervals.
+  * Constructs multi-data in three-dimensional intervals.
   */
 object DataIn3DMulti extends DataIn3DMultiBaseObject:
   override def of[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](
@@ -42,9 +42,10 @@ object DataIn3DMulti extends DataIn3DMultiBaseObject:
   * (conceptually similar to zip, but operating on individual values, and more appropriate for these multiple values
   * structures).
   *
-  * Note that visualizing three-dimensional data can be a bit daunting as well, so the toString method outputs a little
-  * Gantt chart and there is a simple 2D Visualize tool provided where you can visualize 2D slices of the 3D structure
-  * (in the test package... though maybe this should be its own separate subproject).
+  * @note
+  *   Visualizing three-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt
+  *   chart and there is a simple 2D Visualize tool provided where you can visualize 2D slices of the 3D structure (in
+  *   the test package... though maybe this should be its own separate subproject).
   *
   * @tparam V
   *   the type of the value managed as data.
@@ -83,6 +84,8 @@ class DataIn3DMulti[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue] 
     *   the valid data horizontal interval type of the returned structure.
     * @tparam S2
     *   the valid data vertical interval type of the returned structure.
+    * @tparam S3
+    *   the valid data depth interval type of the returned structure.
     * @return
     *   a new structure resulting from applying the provided function f to each element of this structure.
     */
@@ -118,6 +121,8 @@ class DataIn3DMulti[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue] 
     *   the valid data horizontal interval type of the returned structure.
     * @tparam S2
     *   the valid data vertical interval type of the returned structure.
+    * @tparam S3
+    *   the valid data depth interval type of the returned structure.
     * @return
     *   a new structure resulting from applying the provided function f to each element of this structure and
     *   concatenating the results.

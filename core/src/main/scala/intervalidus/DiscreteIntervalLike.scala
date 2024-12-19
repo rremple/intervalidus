@@ -79,7 +79,7 @@ trait DiscreteIntervalLike[D: DiscreteDomainLike: Ordering, Self <: DiscreteInte
   infix def intersects(that: Self): Boolean
 
   /**
-    * Finds the intersection between this and that.
+    * Finds the intersection between this and that. See [[https://en.wikipedia.org/wiki/Intersection_(set_theory)]].
     *
     * @param that
     *   the interval to intersect.
@@ -90,8 +90,8 @@ trait DiscreteIntervalLike[D: DiscreteDomainLike: Ordering, Self <: DiscreteInte
 
   /**
     * A kind of union between this and that interval. Includes the domain of both this and that plus any gaps that may
-    * exist between them. So it is a proper union in the cases where this and that are adjacent, and a bit more than
-    * that otherwise.
+    * exist between them. So it is a proper union in the cases where this and that are adjacent (see
+    * [[https://en.wikipedia.org/wiki/Union_(set_theory)]]), and a bit more than that otherwise.
     *
     * @param that
     *   the interval to join.
@@ -157,7 +157,8 @@ trait DiscreteIntervalLike[D: DiscreteDomainLike: Ordering, Self <: DiscreteInte
   infix def isLeftAdjacentTo(that: Self): Boolean
 
   /**
-    * Excludes that interval from this one.
+    * Excludes that interval from this one. See
+    * [[https://en.wikipedia.org/wiki/Complement_(set_theory)#Relative_complement]].
     *
     * @param that
     *   the interval to exclude.
@@ -196,7 +197,7 @@ trait DiscreteIntervalLike[D: DiscreteDomainLike: Ordering, Self <: DiscreteInte
     * Approximate this interval as a box in double space based on the domain ordered hash.
     *
     * @return
-    *   a new box that can be managed in a box tree
+    *   a new box that can be managed in a box search tree
     */
   def asBox: Box = Box(start.asCoordinate, end.asCoordinate)
 
@@ -264,7 +265,7 @@ trait DiscreteIntervalLike[D: DiscreteDomainLike: Ordering, Self <: DiscreteInte
   infix def equiv(that: Self): Boolean = (start equiv that.start) && (end equiv that.end)
 
   /**
-    * Tests if this is a subset (proper or improper) of that.
+    * Tests if this is a subset (proper or improper) of that. See [[https://en.wikipedia.org/wiki/Subset]].
     *
     * @param that
     *   the interval to test.
@@ -296,7 +297,7 @@ trait DiscreteIntervalLike[D: DiscreteDomainLike: Ordering, Self <: DiscreteInte
   /**
     * Same as [[intersectionWith]].
     *
-    * Finds the intersection between this and that.
+    * Finds the intersection between this and that. See [[https://en.wikipedia.org/wiki/Intersection_(set_theory)]].
     *
     * @param that
     *   the interval to intersect.
@@ -309,8 +310,8 @@ trait DiscreteIntervalLike[D: DiscreteDomainLike: Ordering, Self <: DiscreteInte
     * Same as [[joinedWith]].
     *
     * A kind of union between this and that interval. Includes the domain of both this and that plus any gaps that may
-    * exist between them. So it is a proper union in the cases where this and that are adjacent, and a bit more than
-    * that otherwise.
+    * exist between them. So it is a proper union in the cases where this and that are adjacent (see
+    * [[https://en.wikipedia.org/wiki/Union_(set_theory)]]), and a bit more than that otherwise.
     *
     * @param that
     *   the interval to join.
@@ -322,7 +323,7 @@ trait DiscreteIntervalLike[D: DiscreteDomainLike: Ordering, Self <: DiscreteInte
   /**
     * Same as [[isSubsetOf]].
     *
-    * Tests if this is a subset (proper or improper) of that.
+    * Tests if this is a subset (proper or improper) of that. See [[https://en.wikipedia.org/wiki/Subset]].
     *
     * @param that
     *   the interval to test.
@@ -334,7 +335,8 @@ trait DiscreteIntervalLike[D: DiscreteDomainLike: Ordering, Self <: DiscreteInte
   /**
     * Same as [[excluding]].
     *
-    * Excludes that interval from this one. The horizontal, vertical, and depth results are returned as a tuple.
+    * Excludes that interval from this one. The horizontal, vertical, and depth results are returned as a tuple. See
+    * [[https://en.wikipedia.org/wiki/Complement_(set_theory)#Relative_complement]].
     *
     * @param that
     *   the interval to exclude.

@@ -1,7 +1,5 @@
 package intervalidus
 
-import intervalidus.collection.BoxedPayload
-
 /**
   * A value that is valid in a two-dimensional discrete interval. Conceptually, this defines a partial function where
   * all domain elements that are part of the 2D interval map to the value.

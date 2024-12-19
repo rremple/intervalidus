@@ -8,9 +8,9 @@ package intervalidus.collection
   * @param payload
   *   Value stored in box.
   * @param parentBox
-  *   If the box is split because it intersects multiple leaf boundaries, the box will just be the intersections and the
-  *   parentBox is set to the original box before the split. (Subsequent splits will carry the same original parent
-  *   value.) It the box is never split, the parentBox will be None.
+  *   If the box is split because it intersects multiple leaf boundaries, the spit boxes are just these intersections
+  *   and each has the same parentBox: the original box before the split. (Subsequent splits carry the same original
+  *   parent value.) It the box is never split, the parentBox is None.
   * @tparam A
   *   payload type
   */

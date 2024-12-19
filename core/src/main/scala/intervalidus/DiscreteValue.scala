@@ -17,52 +17,58 @@ package intervalidus
   */
 trait DiscreteValue[T] extends Ordering[T]:
   /**
-    * Maximum discrete value
+    * Maximum discrete value. See [[https://en.wikipedia.org/wiki/Maximum_and_minimum]].
     */
   def maxValue: T
 
   /**
-    * Minimum discrete value
+    * Minimum discrete value. See [[https://en.wikipedia.org/wiki/Maximum_and_minimum]].
     */
   def minValue: T
 
   /**
-    * Successor of a discrete value, when defined: only successorOf(maxValue) is not defined.
+    * Successor of a discrete value, when defined: only successorOf(maxValue) is not defined. See
+    * [[https://en.wikipedia.org/wiki/Successor_function]].
     */
   def successorOf(x: T): Option[T]
 
   /**
-    * Predecessor of a discrete value, when defined: only predecessorOf(minValue) is not defined.
+    * Predecessor of a discrete value, when defined: only predecessorOf(minValue) is not defined. See
+    * [[https://en.wikipedia.org/wiki/Primitive_recursive_function#Predecessor]].
     */
   def predecessorOf(x: T): Option[T]
 
   /**
-    * A special totally-ordered hash of a discrete value used for mapping intervals to B/Quad/Oc box trees in double
-    * space. If `x1 < x2` (i.e., there are some number of `successorOf` functions that can be applied to `x1` to reach
-    * `x2`), then `orderedHashOf(x1) ≤ orderedHashOf(x2)`.
+    * A special totally-ordered hash of a discrete value used for mapping intervals to box search trees in double space.
+    * If `x1 < x2` (i.e., there are some number of `successorOf` functions that can be applied to `x1` to reach `x2`),
+    * then `orderedHashOf(x1) ≤ orderedHashOf(x2)`, i.e., it is "weakly monotonic". See
+    * [[https://en.wikipedia.org/wiki/Monotonic_function]].
     * @note
     *   having equal `orderedHashOf` results for different inputs is allowed, but represents a hash collision. If the
-    *   `orderedHashOf` method has too many collisions, the performance of B/Quad/Oc box trees will suffer.
+    *   `orderedHashOf` method has too many collisions, the performance of box search trees will suffer.
     */
   def orderedHashOf(x: T): Double
 
   extension (lhs: T)
     /**
-      * Successor of this discrete value, when defined: only maxValue.successorValue is not defined.
+      * Successor of this discrete value, when defined: only maxValue.successorValue is not defined. See
+      * [[https://en.wikipedia.org/wiki/Successor_function]].
       */
     def successorValue: Option[T] = successorOf(lhs)
 
     /**
-      * Predecessor of this discrete value, when defined: only minValue.predecessorValue is not defined.
+      * Predecessor of this discrete value, when defined: only minValue.predecessorValue is not defined. See
+      * [[https://en.wikipedia.org/wiki/Primitive_recursive_function#Predecessor]].
       */
     def predecessorValue: Option[T] = predecessorOf(lhs)
 
     /**
-      * The ordered hash of this discrete value, used for mapping intervals to B/Quad/Oc box trees in double space. If
-      * `x1 < x2`, then `orderedHashOf(x1) ≤ orderedHashOf(x2)`.
+      * The ordered hash of this discrete value, used for mapping intervals to box search trees in double space. If `x1
+      * < x2`, then `orderedHashOf(x1) ≤ orderedHashOf(x2)`, i.e., it is "weakly monotonic". See
+      * [[https://en.wikipedia.org/wiki/Monotonic_function]].
       * @note
       *   having equal `orderedHashOf` results for different inputs is allowed, but represents a hash collision. If the
-      *   `orderedHashOf` method has too many collisions, the performance of the B/Quad/Oc box trees using them will
+      *   `orderedHashOf` method has too many collisions, the performance of the box search trees using them will
       *   suffer.
       */
     def orderedHashValue: Double = orderedHashOf(lhs)
@@ -168,10 +174,11 @@ object DiscreteValue:
     *
     * @note
     *   per [[https://docs.oracle.com/javase/8/docs/api/java/math/BigInteger.html]] "BigInteger constructors and
-    *   operations throw ArithmeticException when the result is out of the supported range of -2^Integer.MAX_VALUE^
-    *   (exclusive) to +2^Integer.MAX_VALUE^ (exclusive)." However, on the practical side of things, this number is so
-    *   large that just rendering it as a string can easily cause OOM in the string builder! So maybe override this and
-    *   pick your own "biggest" BigInteger based on how you plan to use it rather than this theoretically biggest one...
+    *   operations throw ArithmeticException when the result is out of the supported range of
+    *   -2<sup>Integer.MAX_VALUE</sup> (exclusive) to +2<sup>Integer.MAX_VALUE</sup> (exclusive)." However, on the
+    *   practical side of things, this number is so large that just rendering it as a string can easily cause OOM in the
+    *   string builder! So maybe override this and pick your own "biggest" BigInteger based on how you plan to use it
+    *   rather than this theoretically biggest one...
     */
   given BigIntegerDiscreteValue: DiscreteValue[BigInteger] with
     override def compare(lhs: BigInteger, rhs: BigInteger): Int = lhs.compareTo(rhs)

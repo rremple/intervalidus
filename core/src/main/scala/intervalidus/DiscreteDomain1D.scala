@@ -9,8 +9,8 @@ import scala.language.implicitConversions
   * Domain used in defining and operating on a discrete interval. It describes specific discrete data points as well as
   * the special "`Bottom`" and "`Top`" cases which conceptually lie below and above the finite range of data points
   * (logically below and above `minValue` and `maxValue` respectively). This also gives us a way to accommodate having a
-  * predecessor or successor on a boundary, i.e., `maxValue.successor == Top` and `minValue.predecessor == Bottom`. Note
-  * this allows predecessor and successor to be closed, where `Top.successor == Top.predecessor == Top`, and
+  * predecessor or successor on a boundary, i.e., `maxValue.successor == Top` and `minValue.predecessor == Bottom`. This
+  * allows predecessor and successor to be closed, where `Top.successor == Top.predecessor == Top`, and
   * `Bottom.predecessor == Bottom.successor == Bottom`.
   *
   * @tparam T
@@ -108,10 +108,11 @@ object DiscreteDomain1D:
     * This ordering sorts Bottoms and Tops correctly and leverages the discrete value ordering for the data points in
     * between.
     *
-    * Note that, because `T` is covariant in the enum definition, this ordering will not get summoned automatically for
-    * specific instance values of the enum. For example, `Point(3).predecessor equiv Point(2)` will summon the ordering
-    * since `Point(3).predecessor` has the type `DiscreteDomain1D[Int]`, but `Point(2) equiv Point(3).predecessor` will
-    * not summon the ordering since `Point(2)` returns the type `DiscreteDomain1D.Point[Int]`.
+    * @note
+    *   Because `T` is covariant in the enum definition, this ordering will not get summoned automatically for specific
+    *   instance values of the enum. For example, `Point(3).predecessor equiv Point(2)` will summon the ordering since
+    *   `Point(3).predecessor` has the type `DiscreteDomain1D[Int]`, but `Point(2) equiv Point(3).predecessor` will not
+    *   summon the ordering since `Point(2)` returns the type `DiscreteDomain1D.Point[Int]`.
     *
     * One workaround is to safe cast as supertype, e.g., `(Point(2): DiscreteDomain1D[Int]) equiv Point(3).predecessor`
     */

@@ -1,6 +1,6 @@
 package intervalidus
 
-import intervalidus.DiscreteInterval1D.{between, interval, intervalAt, unbounded}
+import intervalidus.DiscreteInterval1D.{between, unbounded}
 import intervalidus.collection.*
 import intervalidus.collection.mutable.{BoxTree, MultiMapSorted}
 
@@ -104,9 +104,11 @@ trait DataIn2DConstructorParams:
   *
   * We can capture the dependency between various values and related two-dimensional intervals cohesively in this
   * structure rather than in separate data structures using distributed (and potentially inconsistent) logic. This is
-  * especially important for managing mutation, which can be a bit complex in two dimensions. Note that visualizing
-  * two-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there is
-  * a simple Visualize tool provided (in the test package... though maybe this should be its own separate subproject).
+  * especially important for managing mutation, which can be a bit complex in two dimensions.
+  * @note
+  *   Visualizing two-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt
+  *   chart and there is a simple Visualize tool provided (in the test package... though maybe this should be its own
+  *   separate subproject).
   *
   * @tparam V
   *   the type of the value managed as data.
@@ -286,7 +288,7 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
     // decompress
     val atomicData = for
       atomicInterval <- DiscreteInterval2D.uniqueIntervals(getAll.map(_.interval))
-      intersecting <- getIntersecting(atomicInterval) // will always return either one or zero results
+      intersecting <- getIntersecting(atomicInterval) // always returns either one or zero results
     yield intersecting.copy(interval = atomicInterval)
     replaceValidData(atomicData)
 
@@ -368,7 +370,7 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
       else full.toBefore(remaining.start)
 
     val intersecting = getIntersecting(targetInterval)
-    // These values will be targets for compression later
+    // These values are targets for compression later
     val potentiallyAffectedValues = intersecting.map(_.value).toSet ++ intersecting.map(_.value).flatMap(updateValue)
 
     intersecting.foreach: overlap =>

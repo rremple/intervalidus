@@ -7,6 +7,9 @@ import scala.util.Properties
   * individual points. Boxes are split to fit into the subtrees of the data structures (B-trees, quadtrees, or octrees,
   * depending on the dimension).
   *
+  * See [[https://en.wikipedia.org/wiki/Tree_(abstract_data_type)]], [[https://en.wikipedia.org/wiki/B-tree]],
+  * [[https://en.wikipedia.org/wiki/Quadtree]], and [[https://en.wikipedia.org/wiki/Octree]].
+  *
   * These collections leverage the ordered hash functions on discrete domain components (which only support
   * successor/predecessor functions and not functions requiring distance calculations, e.g., midpoint) to improve
   * performance of data structures in one-, two-, and three-dimensional discrete domain space.
@@ -37,8 +40,8 @@ trait BoxTreeLike[A, Self <: BoxTreeLike[A, Self]]:
   def boundary: Box
 
   /**
-    * The target number of elements a leaf can manage until it will be split into a branch. The number of elements can
-    * exceed this target if the tree reaches the depth limit.
+    * The target number of elements a leaf can manage until it is split into a branch. The number of elements can exceed
+    * this target if the tree reaches the depth limit.
     */
   def capacity: Int
 
@@ -79,7 +82,7 @@ trait BoxTreeLike[A, Self <: BoxTreeLike[A, Self]]:
   def toIterable: Iterable[BoxedPayload[A]]
 
 /**
-  * Attributes common to all box tree companions, settable as environment variables.
+  * Attributes common to all box search tree companions, settable as environment variables.
   */
 trait BoxTreeObjectLike:
   // based on benchmarks of 2D "set" on initial 10K random boxes (up to 1K on each side) in [-500K..500K]^2 space

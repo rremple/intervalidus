@@ -42,7 +42,7 @@ trait MutableBase[
     * Synchronizes this with another structure by getting and applying the applicable diff actions.
     *
     * @param that
-    *   the structure with which this will be synchronized.
+    *   the structure with which this is synchronized.
     */
   def syncWith(that: Self): Unit
 
@@ -58,7 +58,7 @@ trait MutableBase[
     replaceValidData(getAll.filter(p))
 
   /**
-    * Set new valid data. Note that any data previously valid in this interval are replace by this data.
+    * Set new valid data. Any data previously valid in this interval are replace by this data.
     *
     * @param newData
     *   the valid data to set.
@@ -84,8 +84,8 @@ trait MutableBase[
     else false
 
   /**
-    * Update everything valid in data's interval to have the data's value. Note that no new intervals of validity are
-    * added as part of this operation. Data with overlaps are adjusted accordingly.
+    * Update everything valid in data's interval to have the data's value. No new intervals of validity are added as
+    * part of this operation. Data with overlaps are adjusted accordingly.
     *
     * @param data
     *   the new value existing data in the interval should take on

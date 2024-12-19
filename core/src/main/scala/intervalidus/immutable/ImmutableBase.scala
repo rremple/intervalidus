@@ -42,6 +42,8 @@ trait ImmutableBase[
     * would be the following "atomic" intervals: {[1..2], [1..2]} + {[3..5], [1..2]} + {[1..2], [3..4]}. Then it
     * recompresses the data, which results in a unique physical representation. It may be useful when comparing two
     * structures to see if they are logically equivalent even if, physically, they differ in how they are compressed.
+    * @return
+    *   a new, updated structure.
     */
   def recompressAll(): Self = copyAndModify(_.recompressInPlace())
 
@@ -50,6 +52,8 @@ trait ImmutableBase[
     *
     * @param diffActions
     *   actions to be applied.
+    * @return
+    *   a new, updated structure.
     */
   def applyDiffActions(diffActions: Iterable[DiffAction]): Self
 
@@ -57,7 +61,9 @@ trait ImmutableBase[
     * Synchronizes this with another structure by getting and applying the applicable diff actions.
     *
     * @param that
-    *   the structure with which this will be synchronized.
+    *   the structure with which this is synchronized.
+    * @return
+    *   a new, updated structure.
     */
   def syncWith(that: Self): Self
 
@@ -75,7 +81,7 @@ trait ImmutableBase[
     getAll.filterNot(p).foreach(result.removeValidData)
 
   /**
-    * Set new valid data. Note that any data previously valid in this interval are replace by this data.
+    * Set new valid data. Any data previously valid in this interval are replace by this data.
     *
     * @param newData
     *   the valid data to set.
@@ -104,8 +110,8 @@ trait ImmutableBase[
       )
 
   /**
-    * Update everything valid in data's interval to have the data's value. Note that no new intervals of validity are
-    * added as part of this operation. Data with overlaps are adjusted accordingly.
+    * Update everything valid in data's interval to have the data's value. No new intervals of validity are added as
+    * part of this operation. Data with overlaps are adjusted accordingly.
     *
     * @param data
     *   the new value existing data in the interval should take on

@@ -69,8 +69,8 @@ object Coordinate:
       helper(minMidMax)
 
     /**
-      * Returns the point where each dimension is the min of this and the other point. It will be less than or equal to
-      * the other point in every dimension.
+      * Returns the point where each dimension is the min of this and the other point. It is less than or equal to the
+      * other point in every dimension.
       *
       * @param other
       *   coordinate
@@ -90,8 +90,8 @@ object Coordinate:
     infix def mid(other: Coordinate): Coordinate = combineWith(other)(_ / 2.0 + _ / 2.0)
 
     /**
-      * Returns the point where each dimension is the max of this and the other point. It will be greater than or equal
-      * to the other point in every dimension.
+      * Returns the point where each dimension is the max of this and the other point. It is greater than or equal to
+      * the other point in every dimension.
       *
       * @param other
       *   coordinate
