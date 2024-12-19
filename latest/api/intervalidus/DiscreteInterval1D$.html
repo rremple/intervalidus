@@ -167,9 +167,59 @@ node3 -> node2;
         </div>
         <div class="documentableElement" id="between-fffff308">
          <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval1D$.html#between-fffff308" t="n" class="documentableName ">between</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span> : <a href="DiscreteValue.html" t="t">DiscreteValue</a>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">left</span>: <a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>], <span t="k"></span><span data-unresolved-link="" t="n">right</span>: <a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>]): <a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span data-unresolved-link="" t="t">T</span>]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DiscreteInterval1D$.html#between-fffff308" t="n" class="documentableName ">between</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span> : <a href="DiscreteValue.html" t="t">DiscreteValue</a>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">before</span>: <a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>], <span t="k"></span><span data-unresolved-link="" t="n">after</span>: <a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span t="t">T</span>]): <a href="DiscreteInterval1D.html" t="t">DiscreteInterval1D</a>[<span data-unresolved-link="" t="t">T</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Returns the interval between <code>before</code> and <code>after</code>. This is equivalent to <code>before.gapWith(after).get</code>, but without intersection and adjacency checks. Only use this function if you know <code>before.end.successor &lt; after.start</code>, e.g., <code>before</code> and <code>after</code> are exclusion remainders.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Returns the interval between <code>before</code> and <code>after</code>. This is equivalent to <code>before.gapWith(after).get</code>, but without intersection and adjacency checks. Only use this function if you know <code>before.end.successor &lt; after.start</code>, e.g., <code>before</code> and <code>after</code> are exclusion remainders.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               T
+              </dt>
+              <dd class="body-medium">
+               <p>discrete value for interval</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               after
+              </dt>
+              <dd class="body-medium">
+               <p>interval on the right/top/front side</p>
+              </dd>
+              <dt class="body-small">
+               before
+              </dt>
+              <dd class="body-medium">
+               <p>interval on the left/bottom/back side</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>the interval made from the gap between the two inputs</p>
+              </dd>
+             </dl>
+            </div>
            </div>
           </div>
          </div>
@@ -189,11 +239,11 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Given a collection of intervals, finds the complement intervals (i.e., the gaps).</p>
+             <p>Given a collection of intervals, finds the complement intervals (i.e., the gaps). See <a href="https://en.wikipedia.org/wiki/Complement_(set_theory)">https://en.wikipedia.org/wiki/Complement_(set_theory)</a>.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Given a collection of intervals, finds the complement intervals (i.e., the gaps).</p>
+              <p>Given a collection of intervals, finds the complement intervals (i.e., the gaps). See <a href="https://en.wikipedia.org/wiki/Complement_(set_theory)">https://en.wikipedia.org/wiki/Complement_(set_theory)</a>.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -435,11 +485,11 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Checks if the collection of intervals is compressible. That is, are there any intervals that are adjacent to, or intersecting with, their neighbors. If true, calling <a href="DiscreteInterval1D$.html#compress-e49">compress</a> on the collection will result in a smaller collection covering the same domain.</p>
+             <p>Checks if the collection of intervals is compressible. That is, are there any intervals that are adjacent to, or intersecting with, their neighbors. If true, calling <a href="DiscreteInterval1D$.html#compress-e49">compress</a> on the collection results in a smaller collection covering the same domain.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Checks if the collection of intervals is compressible. That is, are there any intervals that are adjacent to, or intersecting with, their neighbors. If true, calling <a href="DiscreteInterval1D$.html#compress-e49">compress</a> on the collection will result in a smaller collection covering the same domain.</p>
+              <p>Checks if the collection of intervals is compressible. That is, are there any intervals that are adjacent to, or intersecting with, their neighbors. If true, calling <a href="DiscreteInterval1D$.html#compress-e49">compress</a> on the collection results in a smaller collection covering the same domain.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -488,11 +538,11 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Checks if the collection of intervals is disjoint. That is, all neighboring intervals do not intersect.</p>
+             <p>Checks if the collection of intervals is disjoint. That is, all neighboring intervals do not intersect. See <a href="https://en.wikipedia.org/wiki/Disjoint_sets">https://en.wikipedia.org/wiki/Disjoint_sets</a>.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Checks if the collection of intervals is disjoint. That is, all neighboring intervals do not intersect.</p>
+              <p>Checks if the collection of intervals is disjoint. That is, all neighboring intervals do not intersect. See <a href="https://en.wikipedia.org/wiki/Disjoint_sets">https://en.wikipedia.org/wiki/Disjoint_sets</a>.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">

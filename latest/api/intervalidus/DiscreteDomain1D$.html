@@ -174,11 +174,20 @@ node3 -> node2;
             <div class="cover">
              <div class="doc">
               <p>This ordering sorts Bottoms and Tops correctly and leverages the discrete value ordering for the data points in between.</p>
-              <p>Note that, because <code>T</code> is covariant in the enum definition, this ordering will not get summoned automatically for specific instance values of the enum. For example, <code>Point(3).predecessor equiv Point(2)</code> will summon the ordering since <code>Point(3).predecessor</code> has the type <code>DiscreteDomain1D[Int]</code>, but <code>Point(2) equiv Point(3).predecessor</code> will not summon the ordering since <code>Point(2)</code> returns the type <code>DiscreteDomain1D.Point[Int]</code>.</p>
-              <p>One workaround is to safe cast as supertype, e.g., <code>(Point(2): DiscreteDomain1D[Int]) equiv Point(3).predecessor</code></p>
              </div>
              <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small"></dl>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Note
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <div>
+                 <p>Because <code>T</code> is covariant in the enum definition, this ordering will not get summoned automatically for specific instance values of the enum. For example, <code>Point(3).predecessor equiv Point(2)</code> will summon the ordering since <code>Point(3).predecessor</code> has the type <code>DiscreteDomain1D[Int]</code>, but <code>Point(2) equiv Point(3).predecessor</code> will not summon the ordering since <code>Point(2)</code> returns the type <code>DiscreteDomain1D.Point[Int]</code>. One workaround is to safe cast as supertype, e.g., <code>(Point(2): DiscreteDomain1D[Int]) equiv Point(3).predecessor</code></p>
+                </div>
+               </div>
+              </dd>
+             </dl>
             </div>
            </div>
           </div>

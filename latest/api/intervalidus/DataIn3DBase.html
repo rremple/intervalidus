@@ -13,7 +13,7 @@
 <div class="cover">
  <div class="doc">
   <p>Like <a href="DataIn1DBase.html">DataIn1DBase</a> and <a href="DataIn2DBase.html">DataIn2DBase</a>, data here have different values in different discrete intervals. But here data values vary in three dimensions. For example, one may want to represent when data are valid in two dimensions of time and over certain versions simultaneously.</p>
-  <p>We can capture the dependency between various values and related three-dimensional intervals cohesively in this structure rather than in separate data structures using distributed (and potentially inconsistent) logic. This is especially important for managing mutation, which can be a bit complex in three dimensions. Note that visualizing three-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there is a simple 2D Visualize tool provided where you can visualize 2D slices of the 3D structure (in the test package... though maybe this should be its own separate subproject).</p>
+  <p>We can capture the dependency between various values and related three-dimensional intervals cohesively in this structure rather than in separate data structures using distributed (and potentially inconsistent) logic. This is especially important for managing mutation, which can be a bit complex in three dimensions.</p>
  </div>
  <section id="attributes">
   <h2 class="h500">Type parameters</h2>
@@ -45,6 +45,16 @@
   </dl>
   <h2 class="h500">Attributes</h2>
   <dl class="attributes">
+   <dt class="body-small">
+    Note
+   </dt>
+   <dd class="body-medium">
+    <div>
+     <div>
+      <p>Visualizing three-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there is a simple 2D Visualize tool provided where you can visualize 2D slices of the 3D structure (in the test package... though maybe this should be its own separate subproject).</p>
+     </div>
+    </div>
+   </dd>
    <dt class="body-small">
     Graph
    </dt>
@@ -851,11 +861,11 @@ node11 -> node9;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns all the intervals (compressed) in which there are valid values.</p>
+             <p>Returns all the intervals (compressed) in which there are valid values. See <a href="https://en.wikipedia.org/wiki/Domain_of_a_function">https://en.wikipedia.org/wiki/Domain_of_a_function</a>.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns all the intervals (compressed) in which there are valid values.</p>
+              <p>Returns all the intervals (compressed) in which there are valid values. See <a href="https://en.wikipedia.org/wiki/Domain_of_a_function">https://en.wikipedia.org/wiki/Domain_of_a_function</a>.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -900,7 +910,7 @@ node11 -> node9;
                interval
               </dt>
               <dd class="body-medium">
-               <p>interval where some value will be valid (existing or new)</p>
+               <p>interval where some value should be valid (existing or new)</p>
               </dd>
               <dt class="body-small">
                value

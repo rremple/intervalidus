@@ -61,7 +61,7 @@
             <div class="doc">
              <p>Intervalidus's custom data structures for optimizing one-, two-, and three-dimensional interval retrieval. Built for internal use, but use them if they are useful. There are both immutable and mutable versions of each data structure, but only the mutable versions are used internally (for performance reasons).</p>
              <ul>
-              <li>Box trees manage boxed data structures in multidimensional double space (B-trees, quadtrees, and octrees, depending on the dimension). They hold boxes rather than individual points, where boxes are split to fit into the subtrees of the data structure. Intervalidus uses the ordered hashes defined on the discrete domain components of intervals to approximate all intervals as boxes in double space, and manages valid data associated with these boxes in box trees, resulting in dramatically faster intersection retrieval (in most cases).</li>
+              <li>Box search trees manage boxed data structures in multidimensional double space (B-trees, quadtrees, and octrees, depending on the dimension). They hold boxes rather than individual points, where boxes are split to fit into the subtrees of the data structure. Intervalidus uses the ordered hashes defined on the discrete domain components of intervals to approximate all intervals as boxes in double space, and manages valid data associated with these boxes in box search trees, resulting in dramatically faster intersection retrieval (in most cases).</li>
               <li>Multimaps (a.k.a., multi-dictionaries) allow multiple values to be associated with the same key. Intervalidus uses multimaps to store the association of each valid value with all the intervals where it is valid. This allows value-driven functions like compression to operate on a smaller subset of valid values and to be substantially faster.</li>
              </ul>
             </div>
@@ -536,7 +536,7 @@
              <div class="doc">
               <p>Interface is similar to <a href="intervalidus/DataIn1DBase.html">DataIn1DBase</a>, but it operates on an underlying <a href="intervalidus/mutable/DataIn2D.html">mutable.DataIn2D</a> using an integer-valued vertical dimension to version data. One use case would be that R = LocalDate, so data values may vary in terms of both version and time. Most methods require some generic version selection criteria rather than specific integer intervals, therefore this does not extend <a href="intervalidus/DimensionalBase.html">DimensionalBase</a>.</p>
               <p>The "current" version is managed as state (a var). Versioning also separates notions of approved vs. unapproved data (unapproved data are pushed up to start at version maxValue).</p>
-              <p>When getting data, by default, we return "current" version data (a.k.a., approved). When updating data, by default, we don't rewrite history, so mutations start with the "current" version too. Note that updates starting with "current" will update unapproved changes as well (since intervalFrom goes to the Top).</p>
+              <p>When getting data, by default, we return "current" version data (a.k.a., approved). When updating data, by default, we don't rewrite history, so mutations start with the "current" version too.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -559,7 +559,7 @@
                initialData
               </dt>
               <dd class="body-medium">
-               <p>a collection of valid data in two dimensions (the vertical dimension is the version) to start with -- note that two-dimensional intervals must be disjoint</p>
+               <p>a collection of valid data in two dimensions (the vertical dimension is the version) to start with -- two-dimensional intervals must be disjoint</p>
               </dd>
               <dt class="body-small">
                initialVersion
@@ -576,6 +576,16 @@
              </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Note
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <div>
+                 <p>Updates starting with "current" also update unapproved changes (since intervalFrom goes to the Top).</p>
+                </div>
+               </div>
+              </dd>
               <dt class="body-small">
                Supertypes
               </dt>
@@ -698,7 +708,7 @@
             <div class="cover">
              <div class="doc">
               <p>Like <a href="intervalidus/DataIn1DBase.html">DataIn1DBase</a>, data here have different values in different discrete intervals. But here data values vary in two dimensions. For example, one may want to represent when the data are valid in time and over certain versions, or in two dimensions of time, simultaneously.</p>
-              <p>We can capture the dependency between various values and related two-dimensional intervals cohesively in this structure rather than in separate data structures using distributed (and potentially inconsistent) logic. This is especially important for managing mutation, which can be a bit complex in two dimensions. Note that visualizing two-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there is a simple Visualize tool provided (in the test package... though maybe this should be its own separate subproject).</p>
+              <p>We can capture the dependency between various values and related two-dimensional intervals cohesively in this structure rather than in separate data structures using distributed (and potentially inconsistent) logic. This is especially important for managing mutation, which can be a bit complex in two dimensions.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -723,6 +733,16 @@
              </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Note
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <div>
+                 <p>Visualizing two-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there is a simple Visualize tool provided (in the test package... though maybe this should be its own separate subproject).</p>
+                </div>
+               </div>
+              </dd>
               <dt class="body-small">
                Supertypes
               </dt>
@@ -1008,11 +1028,11 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Constructs multi-data in one-dimensional intervals.</p>
+             <p>Constructs multi-data in two-dimensional intervals.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Constructs multi-data in one-dimensional intervals.</p>
+              <p>Constructs multi-data in two-dimensional intervals.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -1075,7 +1095,7 @@
              <div class="doc">
               <p>Interface is similar to <a href="intervalidus/DataIn2DBase.html">DataIn2DBase</a>, but it operates on an underlying <a href="intervalidus/mutable/DataIn3D.html">mutable.DataIn3D</a> using an integer-valued vertical dimension to version data. One use case would be that R1 and R2 = LocalDate, so data values may vary in terms of both version and two dimensions of time. Most methods require some generic version selection criteria rather than specific integer intervals, therefore this does not extend <a href="intervalidus/DimensionalBase.html">DimensionalBase</a>.</p>
               <p>The "current" version is managed as state (a var). Versioning also separates notions of approved vs. unapproved data (unapproved data are pushed up to start at version maxValue).</p>
-              <p>When getting data, by default, we return "current" version data (a.k.a., approved). When updating data, by default, we don't rewrite history, so mutations start with the "current" version too. Note that updates starting with "current" will update unapproved changes as well (since intervalFrom goes to the Top).</p>
+              <p>When getting data, by default, we return "current" version data (a.k.a., approved). When updating data, by default, we don't rewrite history, so mutations start with the "current" version too.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -1104,7 +1124,7 @@
                initialData
               </dt>
               <dd class="body-medium">
-               <p>a collection of valid data in three dimensions (the depth dimension is the version) to start with -- note that three-dimensional intervals must be disjoint</p>
+               <p>a collection of valid data in three dimensions (the depth dimension is the version) to start with -- three-dimensional intervals must be disjoint</p>
               </dd>
               <dt class="body-small">
                initialVersion
@@ -1121,6 +1141,16 @@
              </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Note
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <div>
+                 <p>Updates starting with "current" also update unapproved changes (since intervalFrom goes to the Top).</p>
+                </div>
+               </div>
+              </dd>
               <dt class="body-small">
                Supertypes
               </dt>
@@ -1243,7 +1273,7 @@
             <div class="cover">
              <div class="doc">
               <p>Like <a href="intervalidus/DataIn1DBase.html">DataIn1DBase</a> and <a href="intervalidus/DataIn2DBase.html">DataIn2DBase</a>, data here have different values in different discrete intervals. But here data values vary in three dimensions. For example, one may want to represent when data are valid in two dimensions of time and over certain versions simultaneously.</p>
-              <p>We can capture the dependency between various values and related three-dimensional intervals cohesively in this structure rather than in separate data structures using distributed (and potentially inconsistent) logic. This is especially important for managing mutation, which can be a bit complex in three dimensions. Note that visualizing three-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there is a simple 2D Visualize tool provided where you can visualize 2D slices of the 3D structure (in the test package... though maybe this should be its own separate subproject).</p>
+              <p>We can capture the dependency between various values and related three-dimensional intervals cohesively in this structure rather than in separate data structures using distributed (and potentially inconsistent) logic. This is especially important for managing mutation, which can be a bit complex in three dimensions.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -1274,6 +1304,16 @@
              </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Note
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <div>
+                 <p>Visualizing three-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there is a simple 2D Visualize tool provided where you can visualize 2D slices of the 3D structure (in the test package... though maybe this should be its own separate subproject).</p>
+                </div>
+               </div>
+              </dd>
               <dt class="body-small">
                Supertypes
               </dt>
@@ -1565,11 +1605,11 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Constructs multi-data in one-dimensional intervals.</p>
+             <p>Constructs multi-data in three-dimensional intervals.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Constructs multi-data in one-dimensional intervals.</p>
+              <p>Constructs multi-data in three-dimensional intervals.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -2648,11 +2688,11 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Domain used in defining and operating on a discrete interval. It describes specific discrete data points as well as the special "<code>Bottom</code>" and "<code>Top</code>" cases which conceptually lie below and above the finite range of data points (logically below and above <code>minValue</code> and <code>maxValue</code> respectively). This also gives us a way to accommodate having a predecessor or successor on a boundary, i.e., <code>maxValue.successor == Top</code> and <code>minValue.predecessor == Bottom</code>. Note this allows predecessor and successor to be closed, where <code>Top.successor == Top.predecessor == Top</code>, and <code>Bottom.predecessor == Bottom.successor == Bottom</code>.</p>
+             <p>Domain used in defining and operating on a discrete interval. It describes specific discrete data points as well as the special "<code>Bottom</code>" and "<code>Top</code>" cases which conceptually lie below and above the finite range of data points (logically below and above <code>minValue</code> and <code>maxValue</code> respectively). This also gives us a way to accommodate having a predecessor or successor on a boundary, i.e., <code>maxValue.successor == Top</code> and <code>minValue.predecessor == Bottom</code>. This allows predecessor and successor to be closed, where <code>Top.successor == Top.predecessor == Top</code>, and <code>Bottom.predecessor == Bottom.successor == Bottom</code>.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Domain used in defining and operating on a discrete interval. It describes specific discrete data points as well as the special "<code>Bottom</code>" and "<code>Top</code>" cases which conceptually lie below and above the finite range of data points (logically below and above <code>minValue</code> and <code>maxValue</code> respectively). This also gives us a way to accommodate having a predecessor or successor on a boundary, i.e., <code>maxValue.successor == Top</code> and <code>minValue.predecessor == Bottom</code>. Note this allows predecessor and successor to be closed, where <code>Top.successor == Top.predecessor == Top</code>, and <code>Bottom.predecessor == Bottom.successor == Bottom</code>.</p>
+              <p>Domain used in defining and operating on a discrete interval. It describes specific discrete data points as well as the special "<code>Bottom</code>" and "<code>Top</code>" cases which conceptually lie below and above the finite range of data points (logically below and above <code>minValue</code> and <code>maxValue</code> respectively). This also gives us a way to accommodate having a predecessor or successor on a boundary, i.e., <code>maxValue.successor == Top</code> and <code>minValue.predecessor == Bottom</code>. This allows predecessor and successor to be closed, where <code>Top.successor == Top.predecessor == Top</code>, and <code>Bottom.predecessor == Bottom.successor == Bottom</code>.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -3485,6 +3525,12 @@
               </dt>
               <dd class="body-medium">
                <p>a discrete value type for this interval's vertical domain</p>
+              </dd>
+              <dt class="body-small">
+               T3
+              </dt>
+              <dd class="body-medium">
+               <p>a discrete value type for this interval's depth domain</p>
               </dd>
              </dl>
              <h2 class="h200">Value parameters</h2>

@@ -824,11 +824,11 @@ node9 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns all the intervals (compressed) in which there are valid values.</p>
+             <p>Returns all the intervals (compressed) in which there are valid values. See <a href="https://en.wikipedia.org/wiki/Domain_of_a_function">https://en.wikipedia.org/wiki/Domain_of_a_function</a>.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns all the intervals (compressed) in which there are valid values.</p>
+              <p>Returns all the intervals (compressed) in which there are valid values. See <a href="https://en.wikipedia.org/wiki/Domain_of_a_function">https://en.wikipedia.org/wiki/Domain_of_a_function</a>.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -909,7 +909,7 @@ node9 -> node0;
                interval
               </dt>
               <dd class="body-medium">
-               <p>interval where some value will be valid (existing or new)</p>
+               <p>interval where some value should be valid (existing or new)</p>
               </dd>
               <dt class="body-small">
                value
@@ -1721,7 +1721,7 @@ node9 -> node0;
             <div class="cover">
              <div class="doc">
               <p>Remove, and possibly update, valid values on the target interval. If there are values valid on portions of the interval, those values have their interval adjusted (e.g., shortened, shifted, split) accordingly. The logic of remove and update are similar, and this method supports both.</p>
-              <p>Both have to deal with exclusions, which can have three cases: simple, partial, and split.</p>
+              <p>Exclusions in one dimension can have three remainders: none (simple), single (partial), and split.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">

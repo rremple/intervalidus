@@ -427,14 +427,10 @@
           <div>
            <div class="originInfo"></div>
            <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Interface is similar to <a href="mutable/DataIn1D.html">DataIn1D</a>, but it operates on an underlying <a href="mutable/DataIn2D.html">mutable.DataIn2D</a> using an integer-valued vertical dimension to version data. One use case would be that R = LocalDate, so data values may vary in terms of both version and time. Most methods require some generic version selection criteria rather than specific integer intervals, therefore this does not extend <a href="DimensionalBase.html">DimensionalBase</a>.</p>
-            </div>
             <div class="cover">
              <div class="doc">
-              <p>Interface is similar to <a href="mutable/DataIn1D.html">DataIn1D</a>, but it operates on an underlying <a href="mutable/DataIn2D.html">mutable.DataIn2D</a> using an integer-valued vertical dimension to version data. One use case would be that R = LocalDate, so data values may vary in terms of both version and time. Most methods require some generic version selection criteria rather than specific integer intervals, therefore this does not extend <a href="DimensionalBase.html">DimensionalBase</a>.</p>
-              <p>The "current" version is managed as state (a var). Versioning also separates notions of approved vs. unapproved data (unapproved data are pushed up to start at version maxValue).</p>
-              <p>When getting data, by default, we return "current" version data (a.k.a., approved). When updating data, by default, we don't rewrite history, so mutations start with the "current" version too. Note that updates starting with "current" will update unapproved changes as well (since intervalFrom goes to the Top).</p>
+              <invalid inheritdoc annotation>
+              </invalid>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -457,7 +453,7 @@
                initialData
               </dt>
               <dd class="body-medium">
-               <p>(optional) a collection of valid data in two dimensions (the vertical dimension is the version) to start with -- note that two-dimensional intervals must be disjoint</p>
+               <p>(optional) a collection of valid data in two dimensions (the vertical dimension is the version) to start with -- two-dimensional intervals must be disjoint</p>
               </dd>
               <dt class="body-small">
                initialVersion
@@ -605,7 +601,7 @@
             <div class="cover">
              <div class="doc">
               <p>Like <a href="mutable/DataIn1D.html">DataIn1D</a>, data here have different values in different discrete intervals. But here data values vary in two dimensions. For example, one may want to represent when the data are valid in time and over certain versions, or in two dimensions of time, simultaneously.</p>
-              <p>We can capture the dependency between various values and related two-dimensional intervals cohesively in this structure rather than in separate data structures using distributed (and potentially inconsistent) logic. This is especially important for managing mutation, which can be a bit complex in two dimensions. Note that visualizing two-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there is a simple Visualize tool provided (in the test package... though maybe this should be its own separate subproject).</p>
+              <p>We can capture the dependency between various values and related two-dimensional intervals cohesively in this structure rather than in separate data structures using distributed (and potentially inconsistent) logic. This is especially important for managing mutation, which can be a bit complex in two dimensions.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -630,6 +626,16 @@
              </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Note
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <div>
+                 <p>Visualizing two-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there is a simple Visualize tool provided (in the test package... though maybe this should be its own separate subproject).</p>
+                </div>
+               </div>
+              </dd>
               <dt class="body-small">
                Companion
               </dt>
@@ -761,7 +767,6 @@
             <div class="cover">
              <div class="doc">
               <p>Like <a href="mutable/DataIn1DMulti.html">DataIn1DMulti</a>, data may have multiple values valid in different intervals, conceptually similar to a multimap. But here data values vary in two dimensions. For example, one may want to represent when the data are valid in time and over certain versions, or in two dimensions of time, simultaneously. When queried, values are returned as a set. The standard mutation methods operate on these sets of values. There are also add and remove methods allow mutation of individual values across intervals, and a merge method for combining two structures (conceptually similar to zip, but operating on individual values, and more appropriate for these multiple values structures).</p>
-              <p>Note that visualizing two-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there is a simple Visualize tool provided (in the test package... though maybe this should be its own separate subproject).</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -786,6 +791,16 @@
              </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Note
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <div>
+                 <p>Visualizing two-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there is a simple Visualize tool provided (in the test package... though maybe this should be its own separate subproject).</p>
+                </div>
+               </div>
+              </dd>
               <dt class="body-small">
                Companion
               </dt>
@@ -915,14 +930,10 @@
           <div>
            <div class="originInfo"></div>
            <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Interface is similar to <a href="mutable/DataIn2D.html">DataIn2D</a>, but it operates on an underlying <a href="mutable/DataIn3D.html">mutable.DataIn3D</a> using an integer-valued vertical dimension to version data. One use case would be that R1 and R2 = LocalDate, so data values may vary in terms of both version and two dimensions of time. Most methods require some generic version selection criteria rather than specific integer intervals, therefore this does not extend <a href="DimensionalBase.html">DimensionalBase</a>.</p>
-            </div>
             <div class="cover">
              <div class="doc">
-              <p>Interface is similar to <a href="mutable/DataIn2D.html">DataIn2D</a>, but it operates on an underlying <a href="mutable/DataIn3D.html">mutable.DataIn3D</a> using an integer-valued vertical dimension to version data. One use case would be that R1 and R2 = LocalDate, so data values may vary in terms of both version and two dimensions of time. Most methods require some generic version selection criteria rather than specific integer intervals, therefore this does not extend <a href="DimensionalBase.html">DimensionalBase</a>.</p>
-              <p>The "current" version is managed as state (a var). Versioning also separates notions of approved vs. unapproved data (unapproved data are pushed up to start at version maxValue).</p>
-              <p>When getting data, by default, we return "current" version data (a.k.a., approved). When updating data, by default, we don't rewrite history, so mutations start with the "current" version too. Note that updates starting with "current" will update unapproved changes as well (since intervalFrom goes to the Top).</p>
+              <invalid inheritdoc annotation>
+              </invalid>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -951,7 +962,7 @@
                initialData
               </dt>
               <dd class="body-medium">
-               <p>(optional) a collection of valid data in three dimensions (the depth dimension is the version) to start with -- note that three-dimensional intervals must be disjoint</p>
+               <p>(optional) a collection of valid data in three dimensions (the depth dimension is the version) to start with -- three-dimensional intervals must be disjoint</p>
               </dd>
               <dt class="body-small">
                initialVersion
@@ -1099,7 +1110,7 @@
             <div class="cover">
              <div class="doc">
               <p>Like <a href="mutable/DataIn1D.html">DataIn1D</a> and <a href="mutable/DataIn2D.html">DataIn2D</a>, data here have different values in different discrete intervals. But here data values vary in three dimensions. For example, one may want to represent when data are valid in two dimensions of time and over certain versions simultaneously.</p>
-              <p>We can capture the dependency between various values and related three-dimensional intervals cohesively in this structure rather than in separate data structures using distributed (and potentially inconsistent) logic. This is especially important for managing mutation, which can be a bit complex in three dimensions. Note that visualizing three-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there is a simple 2D Visualize tool provided where you can visualize 2D slices of the 3D structure (in the test package... though maybe this should be its own separate subproject).</p>
+              <p>We can capture the dependency between various values and related three-dimensional intervals cohesively in this structure rather than in separate data structures using distributed (and potentially inconsistent) logic. This is especially important for managing mutation, which can be a bit complex in three dimensions.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -1130,6 +1141,16 @@
              </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Note
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <div>
+                 <p>Visualizing three-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there is a simple 2D Visualize tool provided where you can visualize 2D slices of the 3D structure (in the test package... though maybe this should be its own separate subproject).</p>
+                </div>
+               </div>
+              </dd>
               <dt class="body-small">
                Companion
               </dt>
@@ -1188,11 +1209,11 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Constructs multi-data in two-dimensional intervals.</p>
+             <p>Constructs multi-data in three-dimensional intervals.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Constructs multi-data in two-dimensional intervals.</p>
+              <p>Constructs multi-data in three-dimensional intervals.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -1261,7 +1282,6 @@
             <div class="cover">
              <div class="doc">
               <p>Like <a href="mutable/DataIn1DMulti.html">DataIn1DMulti</a> and <a href="mutable/DataIn2DMulti.html">DataIn2DMulti</a>, data may have multiple values valid in different intervals, conceptually similar to a multimap. But here data values vary in two dimensions. For example, one may want to represent when data are valid in two dimensions of time and over certain versions simultaneously. When queried, values are returned as a set. The standard mutation methods operate on these sets of values. There are also add and remove methods allow mutation of individual values across intervals, and a merge method for combining two structures (conceptually similar to zip, but operating on individual values, and more appropriate for these multiple values structures).</p>
-              <p>Note that visualizing three-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there is a simple 2D Visualize tool provided where you can visualize 2D slices of the 3D structure (in the test package... though maybe this should be its own separate subproject).</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -1292,6 +1312,16 @@
              </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Note
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <div>
+                 <p>Visualizing three-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there is a simple 2D Visualize tool provided where you can visualize 2D slices of the 3D structure (in the test package... though maybe this should be its own separate subproject).</p>
+                </div>
+               </div>
+              </dd>
               <dt class="body-small">
                Companion
               </dt>

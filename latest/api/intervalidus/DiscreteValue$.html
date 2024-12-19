@@ -127,7 +127,7 @@ node3 -> node2;
               <dd class="body-medium">
                <div>
                 <div>
-                 <p>per <a href="https://docs.oracle.com/javase/8/docs/api/java/math/BigInteger.html">https://docs.oracle.com/javase/8/docs/api/java/math/BigInteger.html</a> "BigInteger constructors and operations throw ArithmeticException when the result is out of the supported range of -2^Integer.MAX_VALUE^ (exclusive) to +2^Integer.MAX_VALUE^ (exclusive)." However, on the practical side of things, this number is so large that just rendering it as a string can easily cause OOM in the string builder! So maybe override this and pick your own "biggest" BigInteger based on how you plan to use it rather than this theoretically biggest one...</p>
+                 <p>per <a href="https://docs.oracle.com/javase/8/docs/api/java/math/BigInteger.html">https://docs.oracle.com/javase/8/docs/api/java/math/BigInteger.html</a> "BigInteger constructors and operations throw ArithmeticException when the result is out of the supported range of -2<sup>Integer.MAX_VALUE</sup> (exclusive) to +2<sup>Integer.MAX_VALUE</sup> (exclusive)." However, on the practical side of things, this number is so large that just rendering it as a string can easily cause OOM in the string builder! So maybe override this and pick your own "biggest" BigInteger based on how you plan to use it rather than this theoretically biggest one...</p>
                 </div>
                </div>
               </dd>
@@ -523,7 +523,7 @@ node3 -> node2;
               <dd class="body-medium">
                <div>
                 <div>
-                 <p>per <a href="https://docs.oracle.com/javase/8/docs/api/java/math/BigInteger.html">https://docs.oracle.com/javase/8/docs/api/java/math/BigInteger.html</a> "BigInteger constructors and operations throw ArithmeticException when the result is out of the supported range of -2^Integer.MAX_VALUE^ (exclusive) to +2^Integer.MAX_VALUE^ (exclusive)." However, on the practical side of things, this number is so large that just rendering it as a string can easily cause OOM in the string builder! So maybe override this and pick your own "biggest" BigInteger based on how you plan to use it rather than this theoretically biggest one...</p>
+                 <p>per <a href="https://docs.oracle.com/javase/8/docs/api/java/math/BigInteger.html">https://docs.oracle.com/javase/8/docs/api/java/math/BigInteger.html</a> "BigInteger constructors and operations throw ArithmeticException when the result is out of the supported range of -2<sup>Integer.MAX_VALUE</sup> (exclusive) to +2<sup>Integer.MAX_VALUE</sup> (exclusive)." However, on the practical side of things, this number is so large that just rendering it as a string can easily cause OOM in the string builder! So maybe override this and pick your own "biggest" BigInteger based on how you plan to use it rather than this theoretically biggest one...</p>
                 </div>
                </div>
               </dd>

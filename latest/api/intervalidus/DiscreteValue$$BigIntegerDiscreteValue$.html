@@ -23,7 +23,7 @@
    <dd class="body-medium">
     <div>
      <div>
-      <p>per <a href="https://docs.oracle.com/javase/8/docs/api/java/math/BigInteger.html">https://docs.oracle.com/javase/8/docs/api/java/math/BigInteger.html</a> "BigInteger constructors and operations throw ArithmeticException when the result is out of the supported range of -2^Integer.MAX_VALUE^ (exclusive) to +2^Integer.MAX_VALUE^ (exclusive)." However, on the practical side of things, this number is so large that just rendering it as a string can easily cause OOM in the string builder! So maybe override this and pick your own "biggest" BigInteger based on how you plan to use it rather than this theoretically biggest one...</p>
+      <p>per <a href="https://docs.oracle.com/javase/8/docs/api/java/math/BigInteger.html">https://docs.oracle.com/javase/8/docs/api/java/math/BigInteger.html</a> "BigInteger constructors and operations throw ArithmeticException when the result is out of the supported range of -2<sup>Integer.MAX_VALUE</sup> (exclusive) to +2<sup>Integer.MAX_VALUE</sup> (exclusive)." However, on the practical side of things, this number is so large that just rendering it as a string can easily cause OOM in the string builder! So maybe override this and pick your own "biggest" BigInteger based on how you plan to use it rather than this theoretically biggest one...</p>
      </div>
     </div>
    </dd>
@@ -244,11 +244,11 @@ node5 -> node9;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>A special totally-ordered hash of a discrete value used for mapping intervals to B/Quad/Oc box trees in double space. If <code>x1 &lt; x2</code> (i.e., there are some number of <code>successorOf</code> functions that can be applied to <code>x1</code> to reach <code>x2</code>), then <code>orderedHashOf(x1) ≤ orderedHashOf(x2)</code>.</p>
+             <p>A special totally-ordered hash of a discrete value used for mapping intervals to box search trees in double space. If <code>x1 &lt; x2</code> (i.e., there are some number of <code>successorOf</code> functions that can be applied to <code>x1</code> to reach <code>x2</code>), then <code>orderedHashOf(x1) ≤ orderedHashOf(x2)</code>, i.e., it is "weakly monotonic". See <a href="https://en.wikipedia.org/wiki/Monotonic_function">https://en.wikipedia.org/wiki/Monotonic_function</a>.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>A special totally-ordered hash of a discrete value used for mapping intervals to B/Quad/Oc box trees in double space. If <code>x1 &lt; x2</code> (i.e., there are some number of <code>successorOf</code> functions that can be applied to <code>x1</code> to reach <code>x2</code>), then <code>orderedHashOf(x1) ≤ orderedHashOf(x2)</code>.</p>
+              <p>A special totally-ordered hash of a discrete value used for mapping intervals to box search trees in double space. If <code>x1 &lt; x2</code> (i.e., there are some number of <code>successorOf</code> functions that can be applied to <code>x1</code> to reach <code>x2</code>), then <code>orderedHashOf(x1) ≤ orderedHashOf(x2)</code>, i.e., it is "weakly monotonic". See <a href="https://en.wikipedia.org/wiki/Monotonic_function">https://en.wikipedia.org/wiki/Monotonic_function</a>.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -258,7 +258,7 @@ node5 -> node9;
               <dd class="body-medium">
                <div>
                 <div>
-                 <p>having equal <code>orderedHashOf</code> results for different inputs is allowed, but represents a hash collision. If the <code>orderedHashOf</code> method has too many collisions, the performance of B/Quad/Oc box trees will suffer.</p>
+                 <p>having equal <code>orderedHashOf</code> results for different inputs is allowed, but represents a hash collision. If the <code>orderedHashOf</code> method has too many collisions, the performance of box search trees will suffer.</p>
                 </div>
                </div>
               </dd>
@@ -291,11 +291,11 @@ node5 -> node9;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Predecessor of a discrete value, when defined: only predecessorOf(minValue) is not defined.</p>
+             <p>Predecessor of a discrete value, when defined: only predecessorOf(minValue) is not defined. See <a href="https://en.wikipedia.org/wiki/Primitive_recursive_function#Predecessor">https://en.wikipedia.org/wiki/Primitive_recursive_function#Predecessor</a>.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Predecessor of a discrete value, when defined: only predecessorOf(minValue) is not defined.</p>
+              <p>Predecessor of a discrete value, when defined: only predecessorOf(minValue) is not defined. See <a href="https://en.wikipedia.org/wiki/Primitive_recursive_function#Predecessor">https://en.wikipedia.org/wiki/Primitive_recursive_function#Predecessor</a>.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -328,11 +328,11 @@ node5 -> node9;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Successor of a discrete value, when defined: only successorOf(maxValue) is not defined.</p>
+             <p>Successor of a discrete value, when defined: only successorOf(maxValue) is not defined. See <a href="https://en.wikipedia.org/wiki/Successor_function">https://en.wikipedia.org/wiki/Successor_function</a>.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Successor of a discrete value, when defined: only successorOf(maxValue) is not defined.</p>
+              <p>Successor of a discrete value, when defined: only successorOf(maxValue) is not defined. See <a href="https://en.wikipedia.org/wiki/Successor_function">https://en.wikipedia.org/wiki/Successor_function</a>.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -1029,11 +1029,11 @@ node5 -> node9;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Maximum discrete value</p>
+             <p>Maximum discrete value. See <a href="https://en.wikipedia.org/wiki/Maximum_and_minimum">https://en.wikipedia.org/wiki/Maximum_and_minimum</a>.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Maximum discrete value</p>
+              <p>Maximum discrete value. See <a href="https://en.wikipedia.org/wiki/Maximum_and_minimum">https://en.wikipedia.org/wiki/Maximum_and_minimum</a>.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -1057,11 +1057,11 @@ node5 -> node9;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Minimum discrete value</p>
+             <p>Minimum discrete value. See <a href="https://en.wikipedia.org/wiki/Maximum_and_minimum">https://en.wikipedia.org/wiki/Maximum_and_minimum</a>.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Minimum discrete value</p>
+              <p>Minimum discrete value. See <a href="https://en.wikipedia.org/wiki/Maximum_and_minimum">https://en.wikipedia.org/wiki/Maximum_and_minimum</a>.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -1102,11 +1102,11 @@ node5 -> node9;
             <div class="originInfo"></div>
             <div class="memberDocumentation">
              <div class="documentableBrief doc">
-              <p>The ordered hash of this discrete value, used for mapping intervals to B/Quad/Oc box trees in double space. If <code>x1 &lt; x2</code>, then <code>orderedHashOf(x1) ≤ orderedHashOf(x2)</code>.</p>
+              <p>The ordered hash of this discrete value, used for mapping intervals to box search trees in double space. If <code>x1 &lt; x2</code>, then <code>orderedHashOf(x1) ≤ orderedHashOf(x2)</code>, i.e., it is "weakly monotonic". See <a href="https://en.wikipedia.org/wiki/Monotonic_function">https://en.wikipedia.org/wiki/Monotonic_function</a>.</p>
              </div>
              <div class="cover">
               <div class="doc">
-               <p>The ordered hash of this discrete value, used for mapping intervals to B/Quad/Oc box trees in double space. If <code>x1 &lt; x2</code>, then <code>orderedHashOf(x1) ≤ orderedHashOf(x2)</code>.</p>
+               <p>The ordered hash of this discrete value, used for mapping intervals to box search trees in double space. If <code>x1 &lt; x2</code>, then <code>orderedHashOf(x1) ≤ orderedHashOf(x2)</code>, i.e., it is "weakly monotonic". See <a href="https://en.wikipedia.org/wiki/Monotonic_function">https://en.wikipedia.org/wiki/Monotonic_function</a>.</p>
               </div>
               <h2 class="h200">Attributes</h2>
               <dl class="attributes attributes-small">
@@ -1116,7 +1116,7 @@ node5 -> node9;
                <dd class="body-medium">
                 <div>
                  <div>
-                  <p>having equal <code>orderedHashOf</code> results for different inputs is allowed, but represents a hash collision. If the <code>orderedHashOf</code> method has too many collisions, the performance of the B/Quad/Oc box trees using them will suffer.</p>
+                  <p>having equal <code>orderedHashOf</code> results for different inputs is allowed, but represents a hash collision. If the <code>orderedHashOf</code> method has too many collisions, the performance of the box search trees using them will suffer.</p>
                  </div>
                 </div>
                </dd>
@@ -1147,11 +1147,11 @@ node5 -> node9;
             <div class="originInfo"></div>
             <div class="memberDocumentation">
              <div class="documentableBrief doc">
-              <p>Predecessor of this discrete value, when defined: only minValue.predecessorValue is not defined.</p>
+              <p>Predecessor of this discrete value, when defined: only minValue.predecessorValue is not defined. See <a href="https://en.wikipedia.org/wiki/Primitive_recursive_function#Predecessor">https://en.wikipedia.org/wiki/Primitive_recursive_function#Predecessor</a>.</p>
              </div>
              <div class="cover">
               <div class="doc">
-               <p>Predecessor of this discrete value, when defined: only minValue.predecessorValue is not defined.</p>
+               <p>Predecessor of this discrete value, when defined: only minValue.predecessorValue is not defined. See <a href="https://en.wikipedia.org/wiki/Primitive_recursive_function#Predecessor">https://en.wikipedia.org/wiki/Primitive_recursive_function#Predecessor</a>.</p>
               </div>
               <h2 class="h200">Attributes</h2>
               <dl class="attributes attributes-small">
@@ -1182,11 +1182,11 @@ node5 -> node9;
             <div class="originInfo"></div>
             <div class="memberDocumentation">
              <div class="documentableBrief doc">
-              <p>Successor of this discrete value, when defined: only maxValue.successorValue is not defined.</p>
+              <p>Successor of this discrete value, when defined: only maxValue.successorValue is not defined. See <a href="https://en.wikipedia.org/wiki/Successor_function">https://en.wikipedia.org/wiki/Successor_function</a>.</p>
              </div>
              <div class="cover">
               <div class="doc">
-               <p>Successor of this discrete value, when defined: only maxValue.successorValue is not defined.</p>
+               <p>Successor of this discrete value, when defined: only maxValue.successorValue is not defined. See <a href="https://en.wikipedia.org/wiki/Successor_function">https://en.wikipedia.org/wiki/Successor_function</a>.</p>
               </div>
               <h2 class="h200">Attributes</h2>
               <dl class="attributes attributes-small">

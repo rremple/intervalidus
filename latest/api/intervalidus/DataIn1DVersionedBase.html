@@ -14,7 +14,7 @@
  <div class="doc">
   <p>Interface is similar to <a href="DataIn1DBase.html">DataIn1DBase</a>, but it operates on an underlying <a href="mutable/DataIn2D.html">mutable.DataIn2D</a> using an integer-valued vertical dimension to version data. One use case would be that R = LocalDate, so data values may vary in terms of both version and time. Most methods require some generic version selection criteria rather than specific integer intervals, therefore this does not extend <a href="DimensionalBase.html">DimensionalBase</a>.</p>
   <p>The "current" version is managed as state (a var). Versioning also separates notions of approved vs. unapproved data (unapproved data are pushed up to start at version maxValue).</p>
-  <p>When getting data, by default, we return "current" version data (a.k.a., approved). When updating data, by default, we don't rewrite history, so mutations start with the "current" version too. Note that updates starting with "current" will update unapproved changes as well (since intervalFrom goes to the Top).</p>
+  <p>When getting data, by default, we return "current" version data (a.k.a., approved). When updating data, by default, we don't rewrite history, so mutations start with the "current" version too.</p>
  </div>
  <section id="attributes">
   <h2 class="h500">Type parameters</h2>
@@ -38,7 +38,7 @@
     initialData
    </dt>
    <dd class="body-medium">
-    <p>a collection of valid data in two dimensions (the vertical dimension is the version) to start with -- note that two-dimensional intervals must be disjoint</p>
+    <p>a collection of valid data in two dimensions (the vertical dimension is the version) to start with -- two-dimensional intervals must be disjoint</p>
    </dd>
    <dt class="body-small">
     initialVersion
@@ -55,6 +55,16 @@
   </dl>
   <h2 class="h500">Attributes</h2>
   <dl class="attributes">
+   <dt class="body-small">
+    Note
+   </dt>
+   <dd class="body-medium">
+    <div>
+     <div>
+      <p>Updates starting with "current" also update unapproved changes (since intervalFrom goes to the Top).</p>
+     </div>
+    </div>
+   </dd>
    <dt class="body-small">
     Graph
    </dt>
@@ -498,7 +508,7 @@ node8 -> node0;
             <div class="cover">
              <div class="doc">
               <p>Given some version selection context, gets all the data (uncompressed, mutable).</p>
-              <p>Useful when you don't need the overhead of creating an immutable structure and compressing the data, e.g., if just doing a <code>getAt</code> after version selection, which will give the same answer compressed or uncompressed, mutable or immutable.</p>
+              <p>Useful when you don't need the overhead of creating an immutable structure and compressing the data, e.g., if just doing a <code>getAt</code> after version selection, which gives the same answer if compressed or uncompressed, mutable or immutable.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -1232,7 +1242,7 @@ node8 -> node0;
                domain
               </dt>
               <dd class="body-medium">
-               <p>the domain element where data may be valid. Note that the domain element can be a specific data point or the special notions of "bottom" or "top" of the domain.</p>
+               <p>the domain element where data may be valid. The domain element can be a specific data point or the special notions of "bottom" or "top" of the domain.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>

@@ -450,7 +450,7 @@ node11 -> node0;
                interval
               </dt>
               <dd class="body-medium">
-               <p>new value will be valid in this interval (along with other existing values)</p>
+               <p>new value that should be valid in this interval (along with other existing values)</p>
               </dd>
               <dt class="body-small">
                value
@@ -1482,6 +1482,12 @@ node11 -> node0;
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>a new, updated structure.</p>
+              </dd>
+              <dt class="body-small">
                Inherited from:
               </dt>
               <dd class="body-medium">
@@ -1579,7 +1585,7 @@ node11 -> node0;
                interval
               </dt>
               <dd class="body-medium">
-               <p>new value will no longer be valid in this interval</p>
+               <p>interval to update</p>
               </dd>
               <dt class="body-small">
                value
@@ -1877,11 +1883,11 @@ node11 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Set new valid data. Note that any data previously valid in this interval are replace by this data.</p>
+             <p>Set new valid data. Any data previously valid in this interval are replace by this data.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Set new valid data. Note that any data previously valid in this interval are replace by this data.</p>
+              <p>Set new valid data. Any data previously valid in this interval are replace by this data.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -2087,11 +2093,11 @@ node11 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Update everything valid in data's interval to have the data's value. Note that no new intervals of validity are added as part of this operation. Data with overlaps are adjusted accordingly.</p>
+             <p>Update everything valid in data's interval to have the data's value. No new intervals of validity are added as part of this operation. Data with overlaps are adjusted accordingly.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Update everything valid in data's interval to have the data's value. Note that no new intervals of validity are added as part of this operation. Data with overlaps are adjusted accordingly.</p>
+              <p>Update everything valid in data's interval to have the data's value. No new intervals of validity are added as part of this operation. Data with overlaps are adjusted accordingly.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -2206,6 +2212,12 @@ node11 -> node0;
              </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>a new, updated structure.</p>
+              </dd>
               <dt class="body-small">
                Inherited from:
               </dt>
@@ -2720,11 +2732,11 @@ node11 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns all the intervals (compressed) in which there are valid values.</p>
+             <p>Returns all the intervals (compressed) in which there are valid values. See <a href="https://en.wikipedia.org/wiki/Domain_of_a_function">https://en.wikipedia.org/wiki/Domain_of_a_function</a>.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns all the intervals (compressed) in which there are valid values.</p>
+              <p>Returns all the intervals (compressed) in which there are valid values. See <a href="https://en.wikipedia.org/wiki/Domain_of_a_function">https://en.wikipedia.org/wiki/Domain_of_a_function</a>.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -2767,7 +2779,7 @@ node11 -> node0;
                interval
               </dt>
               <dd class="body-medium">
-               <p>interval where some value will be valid (existing or new)</p>
+               <p>interval where some value should be valid (existing or new)</p>
               </dd>
               <dt class="body-small">
                value
@@ -2884,11 +2896,17 @@ node11 -> node0;
                that
               </dt>
               <dd class="body-medium">
-               <p>the structure with which this will be synchronized.</p>
+               <p>the structure with which this is synchronized.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>a new, updated structure.</p>
+              </dd>
               <dt class="body-small">
                Inherited from:
               </dt>

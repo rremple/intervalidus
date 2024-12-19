@@ -16,7 +16,6 @@
 <div class="cover">
  <div class="doc">
   <p>Like <a href="DataIn1DMulti.html">DataIn1DMulti</a> and <a href="DataIn2DMulti.html">DataIn2DMulti</a>, data may have multiple values valid in different intervals, conceptually similar to a multimap. But here data values vary in two dimensions. For example, one may want to represent when data are valid in two dimensions of time and over certain versions simultaneously. When queried, values are returned as a set. The standard mutation methods operate on these sets of values. There are also add and remove methods allow mutation of individual values across intervals, and a merge method for combining two structures (conceptually similar to zip, but operating on individual values, and more appropriate for these multiple values structures).</p>
-  <p>Note that visualizing three-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there is a simple 2D Visualize tool provided where you can visualize 2D slices of the 3D structure (in the test package... though maybe this should be its own separate subproject).</p>
  </div>
  <section id="attributes">
   <h2 class="h500">Type parameters</h2>
@@ -48,6 +47,16 @@
   </dl>
   <h2 class="h500">Attributes</h2>
   <dl class="attributes">
+   <dt class="body-small">
+    Note
+   </dt>
+   <dd class="body-medium">
+    <div>
+     <div>
+      <p>Visualizing three-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there is a simple 2D Visualize tool provided where you can visualize 2D slices of the 3D structure (in the test package... though maybe this should be its own separate subproject).</p>
+     </div>
+    </div>
+   </dd>
    <dt class="body-small">
     Companion
    </dt>
@@ -550,7 +559,7 @@ node11 -> node10;
                that
               </dt>
               <dd class="body-medium">
-               <p>the structure with which this will be synchronized.</p>
+               <p>the structure with which this is synchronized.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -909,7 +918,7 @@ node11 -> node10;
                interval
               </dt>
               <dd class="body-medium">
-               <p>new value will be valid in this interval (along with other existing values)</p>
+               <p>new value that should be valid in this interval (along with other existing values)</p>
               </dd>
               <dt class="body-small">
                value
@@ -1661,11 +1670,11 @@ node11 -> node10;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns all the intervals (compressed) in which there are valid values.</p>
+             <p>Returns all the intervals (compressed) in which there are valid values. See <a href="https://en.wikipedia.org/wiki/Domain_of_a_function">https://en.wikipedia.org/wiki/Domain_of_a_function</a>.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns all the intervals (compressed) in which there are valid values.</p>
+              <p>Returns all the intervals (compressed) in which there are valid values. See <a href="https://en.wikipedia.org/wiki/Domain_of_a_function">https://en.wikipedia.org/wiki/Domain_of_a_function</a>.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -1790,7 +1799,7 @@ node11 -> node10;
                interval
               </dt>
               <dd class="body-medium">
-               <p>interval where some value will be valid (existing or new)</p>
+               <p>interval where some value should be valid (existing or new)</p>
               </dd>
               <dt class="body-small">
                value
@@ -2941,7 +2950,7 @@ node11 -> node10;
                interval
               </dt>
               <dd class="body-medium">
-               <p>new value will no longer be valid in this interval</p>
+               <p>interval to update</p>
               </dd>
               <dt class="body-small">
                value
@@ -3227,11 +3236,11 @@ node11 -> node10;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Set new valid data. Note that any data previously valid in this interval are replace by this data.</p>
+             <p>Set new valid data. Any data previously valid in this interval are replace by this data.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Set new valid data. Note that any data previously valid in this interval are replace by this data.</p>
+              <p>Set new valid data. Any data previously valid in this interval are replace by this data.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -3431,11 +3440,11 @@ node11 -> node10;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Update everything valid in data's interval to have the data's value. Note that no new intervals of validity are added as part of this operation. Data with overlaps are adjusted accordingly.</p>
+             <p>Update everything valid in data's interval to have the data's value. No new intervals of validity are added as part of this operation. Data with overlaps are adjusted accordingly.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Update everything valid in data's interval to have the data's value. Note that no new intervals of validity are added as part of this operation. Data with overlaps are adjusted accordingly.</p>
+              <p>Update everything valid in data's interval to have the data's value. No new intervals of validity are added as part of this operation. Data with overlaps are adjusted accordingly.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
