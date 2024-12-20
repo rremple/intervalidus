@@ -2580,6 +2580,56 @@ node11 -> node10;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="merge-fffff3ec" data-f-inherited="MutableBase">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DataIn3DMulti.html#merge-fffff3ec" t="n" class="documentableName ">merge</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DataIn3DMulti.html" t="t">DataIn3DMulti</a>[<span t="t">V</span>, <span t="t">R1</span>, <span t="t">R2</span>, <span t="t">R3</span>], <span t="k"></span><span data-unresolved-link="" t="n">mergeValues</span>: (<span data-unresolved-link="" t="t">Set</span>[<span t="t">V</span>], <span data-unresolved-link="" t="t">Set</span>[<span t="t">V</span>])<span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Set</span>[<span t="t">V</span>]): <span data-unresolved-link="" t="t">Unit</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Merges this structure with data from that structure. In intervals where both structures have valid values, the two values are merged (e.g., keep this data). In intervals where this does not have valid data but that does, the data are added (a fill operation).</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Merges this structure with data from that structure. In intervals where both structures have valid values, the two values are merged (e.g., keep this data). In intervals where this does not have valid data but that does, the data are added (a fill operation).</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               mergeValues
+              </dt>
+              <dd class="body-medium">
+               <p>function that merges values where both this and that have valid values, where the default merge operation is to give this data values priority and drop that data values</p>
+              </dd>
+              <dt class="body-small">
+               that
+              </dt>
+              <dd class="body-medium">
+               <p>structure to merge into this one</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="MutableBase.html#merge-fffff3ec">MutableBase</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="mergeInPlace-fffff035" data-f-visibility="protected" data-f-inherited="DimensionalMultiBase">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -2626,6 +2676,56 @@ node11 -> node10;
               </dt>
               <dd class="body-medium">
                <a href="../DimensionalMultiBase.html#mergeInPlace-fffff035">DimensionalMultiBase</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="mergeInPlace-fffff764" data-f-visibility="protected" data-f-inherited="DimensionalBase">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">protected </span></span><span class="kind"><span t="k">def </span></span><a href="DataIn3DMulti.html#mergeInPlace-fffff764" t="n" class="documentableName ">mergeInPlace</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <span data-unresolved-link="" t="t">Iterable</span>[<a href="../ValidData3D.html" t="t">ValidData3D</a>[<span data-unresolved-link="" t="t">Set</span>[<span t="t">V</span>], <span t="t">R1</span>, <span t="t">R2</span>, <span t="t">R3</span>]], <span t="k"></span><span data-unresolved-link="" t="n">mergeValues</span>: (<span data-unresolved-link="" t="t">Set</span>[<span t="t">V</span>], <span data-unresolved-link="" t="t">Set</span>[<span t="t">V</span>])<span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Set</span>[<span t="t">V</span>]): <span data-unresolved-link="" t="t">Unit</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Merges this structure with data from that structure. In intervals where both structures have valid values, the two values are merged (e.g., keep this data). In intervals where this does not have valid data but that does, the data are added (a fill operation).</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Merges this structure with data from that structure. In intervals where both structures have valid values, the two values are merged (e.g., keep this data). In intervals where this does not have valid data but that does, the data are added (a fill operation).</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               mergeValues
+              </dt>
+              <dd class="body-medium">
+               <p>function that merges values where both this and that have valid values</p>
+              </dd>
+              <dt class="body-small">
+               that
+              </dt>
+              <dd class="body-medium">
+               <p>data to merge into this one</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="../DimensionalBase.html#mergeInPlace-fffff764">DimensionalBase</a>
               </dd>
              </dl>
             </div>
