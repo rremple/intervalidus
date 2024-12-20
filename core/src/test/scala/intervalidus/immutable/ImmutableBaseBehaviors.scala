@@ -112,6 +112,23 @@ trait ImmutableBaseBehaviors:
       )
       fixture6.getAll.toList shouldBe expectedFilled
 
+      val data1 = DataIn1D[String, Int](Seq(intervalFrom(1).to(3) -> "A", intervalFrom(5) -> "B"))
+      val data2 = DataIn1D[String, Int](Seq(intervalFrom(2).to(4) -> "C", intervalFrom(6) -> "D"))
+      // Default merge operation will "prioritize left"
+      data1.merge(data2).getAll.toList shouldBe List(
+        intervalFrom(1).to(3) -> "A",
+        intervalAt(4) -> "C",
+        intervalFrom(5) -> "B"
+      )
+      // Custom merge operation will combine overlapping elements
+      data1.merge(data2, _ + _).getAll.toList shouldBe List(
+        intervalAt(1) -> "A",
+        intervalFrom(2).to(3) -> "AC",
+        intervalAt(4) -> "C",
+        intervalAt(5) -> "B",
+        intervalFrom(6) -> "BD"
+      )
+
     test("Immutable: Filter"):
       val expectedData4 = List(dataFrom1D(intervalTo(5), "Hey!!!"), dataFrom1D(intervalFrom(16), "World!!!"))
       val fixture4 = immutableFrom(expectedData4)

@@ -198,3 +198,19 @@ trait MutableBase[
     */
   def fill(data: ValidData): Unit = synchronized:
     fillInPlace(data.interval, data.value)
+
+  /**
+    * Merges this structure with data from that structure. In intervals where both structures have valid values, the two
+    * values are merged (e.g., keep this data). In intervals where this does not have valid data but that does, the data
+    * are added (a fill operation).
+    *
+    * @param that
+    *   structure to merge into this one
+    * @param mergeValues
+    *   function that merges values where both this and that have valid values, where the default merge operation is to
+    *   give this data values priority and drop that data values
+    */
+  def merge(
+    that: Self,
+    mergeValues: (V, V) => V = (thisDataValue, _) => thisDataValue
+  ): Unit = mergeInPlace(that.getAll, mergeValues)

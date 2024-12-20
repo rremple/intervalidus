@@ -109,6 +109,27 @@ trait MutableBaseBehaviors:
       )
       fixture.getAll.toList shouldBe expectedFilled
 
+      val data1 = DataIn1D[String, Int](Seq(intervalFrom(1).to(3) -> "A", intervalFrom(5) -> "B"))
+      val data2 = DataIn1D[String, Int](Seq(intervalFrom(2).to(4) -> "C", intervalFrom(6) -> "D"))
+      // Default merge operation will "prioritize left"
+      val defaultMerge = data1.copy
+      defaultMerge.merge(data2)
+      defaultMerge.getAll.toList shouldBe List(
+        intervalFrom(1).to(3) -> "A",
+        intervalAt(4) -> "C",
+        intervalFrom(5) -> "B"
+      )
+      // Custom merge operation will combine overlapping elements
+      val customMerge = data1.copy
+      customMerge.merge(data2, _ + _)
+      customMerge.getAll.toList shouldBe List(
+        intervalAt(1) -> "A",
+        intervalFrom(2).to(3) -> "AC",
+        intervalAt(4) -> "C",
+        intervalAt(5) -> "B",
+        intervalFrom(6) -> "BD"
+      )
+
     test("Mutable: Filter, mapping, flatmapping, etc."):
       val allData = List(dataFrom1D(intervalTo(4), "Hey"), dataFrom1D(intervalFrom(16), "World"))
 

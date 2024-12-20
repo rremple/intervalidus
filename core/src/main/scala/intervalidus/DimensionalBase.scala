@@ -143,6 +143,23 @@ trait DimensionalBase[
   protected def fillInPlace[B <: V](interval: I, value: B): Unit
 
   /**
+    * Merges this structure with data from that structure. In intervals where both structures have valid values, the two
+    * values are merged (e.g., keep this data). In intervals where this does not have valid data but that does, the data
+    * are added (a fill operation).
+    *
+    * @param that
+    *   data to merge into this one
+    * @param mergeValues
+    *   function that merges values where both this and that have valid values
+    */
+  protected def mergeInPlace(
+    that: Iterable[ValidData],
+    mergeValues: (V, V) => V
+  ): Unit = that.foreach: thatData =>
+    updateOrRemove(thatData.interval, thisDataValue => Some(mergeValues(thisDataValue, thatData.value)))
+    fillInPlace(thatData.interval, thatData.value)
+
+  /**
     * Internal method, to compress in place.
     *
     * Assumes caller does synchronization (if needed). Assumes underlying data are disjoint, so no need to address
