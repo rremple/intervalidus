@@ -34,6 +34,15 @@ lazy val `intervalidus-upickle` = (project in file("json/upickle"))
     libraryDependencies += "com.lihaoyi" %% "upickle" % "4.0.2"
   )
 
+lazy val `intervalidus-examples` = (project in file("examples"))
+  .dependsOn(core)
+  .settings(commonSettings)
+  .settings(
+    publish / skip := true,
+    Compile / packageDoc / publishArtifact := false,
+    coverageEnabled := false
+)
+
 lazy val bench = project
   .enablePlugins(JmhPlugin)
   .dependsOn(core)

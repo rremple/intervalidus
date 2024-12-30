@@ -43,6 +43,17 @@ import DiscreteDomain1D.{Bottom, Point, Top}
   * Companion for the one-dimensional domain used in defining and operating on discrete intervals.
   */
 object DiscreteDomain1D:
+  /**
+    * Construct a discrete domain based on a discrete value type.
+    *
+    * @param t
+    *   the discrete value
+    * @tparam T
+    *   a discrete value type
+    * @return
+    *   a discrete domain of the discrete value type
+    */
+  def domain[T: DiscreteValue](t: T): DiscreteDomain1D[T] = t
 
   /**
     * Type class instance for one-dimensional discrete domains.

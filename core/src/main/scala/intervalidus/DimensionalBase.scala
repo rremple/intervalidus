@@ -356,8 +356,28 @@ trait DimensionalBase[
   def getOption: Option[V] = getAll.headOption.filter(_.interval.isUnbounded).map(_.value)
 
   /**
+    * Returns valid data at the specified domain element. That is, where the specified domain element is a member of
+    * some valid data interval. If no such valid data exists, returns None.
+    *
+    * @param domainIndex
+    *   the domain element where data may be valid. The domain element can be a specific data point or the special
+    *   notions of "bottom" or "top" of the domain.
+    * @return
+    *   Some value and corresponding interval if valid at the specified domain element, otherwise None.
+    */
+  def getDataAt(domainIndex: D): Option[ValidData] =
+    experimental.control("noSearchTree")(
+      experimentalResult = dataByStartDesc // Using reverse-key order allows us nearly O(1) for hits
+        .valuesIteratorFrom(domainIndex) // (starting at or before the index)
+        .filter(_.interval.end >= domainIndex) // but misses are still slow - this slightly improves miss performance
+        .collectFirst:
+          case d if d.interval.contains(domainIndex) => d,
+      nonExperimentalResult = dataInSearchTreeGetByDomain(domainIndex)
+    )
+
+  /**
     * Returns a value that is valid at the specified domain element. That is, where the specified domain element is a
-    * member of some valid data interval. If no such valid data exists, returns None.
+    * member of some valid data interval. If no such valid value exists, returns None.
     *
     * @param domainIndex
     *   the domain element where data may be valid. The domain element can be a specific data point or the special
@@ -365,15 +385,7 @@ trait DimensionalBase[
     * @return
     *   Some value if valid at the specified domain element, otherwise None.
     */
-  def getAt(domainIndex: D): Option[V] =
-    experimental.control("noSearchTree")(
-      experimentalResult = dataByStartDesc // Using reverse-key order allows us nearly O(1) for hits
-        .valuesIteratorFrom(domainIndex) // (starting at or before the index)
-        .filter(_.interval.end >= domainIndex) // but misses are still slow - this slightly improves miss performance
-        .collectFirst:
-          case d if d.interval.contains(domainIndex) => d.value,
-      nonExperimentalResult = dataInSearchTreeGetByDomain(domainIndex).map(_.value)
-    )
+  def getAt(domainIndex: D): Option[V] = getDataAt(domainIndex).map(_.value)
 
   /**
     * Tests if there are no valid data in this structure.

@@ -178,9 +178,29 @@ object DiscreteInterval1D:
   def intervalFrom[T: DiscreteValue](s: DiscreteDomain1D[T]): DiscreteInterval1D[T] = apply(s, Top)
 
   /**
+    * Returns an interval from after the input value that is unbounded on the right.
+    */
+  def intervalFromAfter[T: DiscreteValue](s: DiscreteDomain1D[T]): DiscreteInterval1D[T] = apply(s.successor, Top)
+
+  /**
+    * Returns an interval from before the input value that is unbounded on the right.
+    */
+  def intervalFromBefore[T: DiscreteValue](s: DiscreteDomain1D[T]): DiscreteInterval1D[T] = apply(s.predecessor, Top)
+
+  /**
     * Returns an interval to the input value that is unbounded on the left.
     */
   def intervalTo[T: DiscreteValue](e: DiscreteDomain1D[T]): DiscreteInterval1D[T] = apply(Bottom, e)
+
+  /**
+    * Returns an interval to after the input value that is unbounded on the left.
+    */
+  def intervalToAfter[T: DiscreteValue](e: DiscreteDomain1D[T]): DiscreteInterval1D[T] = apply(Bottom, e.successor)
+
+  /**
+    * Returns an interval to before the input value that is unbounded on the left.
+    */
+  def intervalToBefore[T: DiscreteValue](e: DiscreteDomain1D[T]): DiscreteInterval1D[T] = apply(Bottom, e.predecessor)
 
   /**
     * Returns an interval that starts and ends at the same value.

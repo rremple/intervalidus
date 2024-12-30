@@ -142,6 +142,10 @@ On 2024-05-15, expected Premium tier on 2024-08-01
 On 2024-07-15, no expected tier on 2024-08-01
 ```
 
+There is a sample billing application provided that demonstrates how both of these 1D and 2D structures could be used to 
+support time-oriented logic like billing directly, including prospective calculation and retrospective
+adjustments/refunds.
+
 Sometimes one wants to treat multiple values as valid in the same interval. For example, a product team may add/remove
 features in each numbered release of a product. `DataIn1DMulti` could be used to model what features belong in what
 releases, this time using intervals based on integers rather than dates.
@@ -187,7 +191,7 @@ these methods.
 
 These query methods provide various data, difference, and Boolean results:
 
-- `get` / `getOption` / `getAt` / `getAll` / `getIntersecting`
+- `get` / `getOption` / `getAt` / `getDataAt` / `getAll` / `getIntersecting`
 - `intersects`
 - `foldLeft`
 - `isEmpty`
@@ -208,7 +212,7 @@ These mutation methods return a new structure when using immutable and `Unit` wh
 - `remove`
 - `replace` / `replaceByKey`
 - `set` / `setIfNoConflict`
-- `update` / `fill`
+- `update` / `fill` / `merge`
 - `compress` / `compressAll` / `recompressAll`
 - `filter`
 - `map` / `mapValues`
@@ -407,6 +411,18 @@ Note that box search trees are tunable via environment variables.
 
 - The default depth limit of trees is 32, which was found to be optimal in micro-benchmarks. This can be overridden by
   setting the environment variable `INTERVALIDUS_TREE_DEPTH_LIMIT`.
+
+There are a few other subprojects that are worth mentioning:
+
+- As described earlier, in the `intervalidus-examples` subproject there is a sample billing application that shows how 
+  Intervalidus structures can be used to support time-oriented logic like billing directly.
+
+- There is a separate `bench` subproject that leverages the Java Microbenchmark Harness (jmh) framework to benchmark
+  methods, including relative performance of experimental vs. non-experimental features.
+
+- There are sample JSON pickling subprojects `intervalidus-upickle` and `intervalidus-weepickle` which could be useful
+  when managing Intervalidus data in a JSON data store (e.g. MongoDB) and/or serializing data through web services.
+  (There are many JSON frameworks, and one could use these subprojects as a starting point to add support for others.)
 
 Lastly, there is a context parameter component used to enable/disable experimental features (a.k.a., feature flagging)
 called `Experimental`. The default implementation given disables all experimental features. But one can enable something

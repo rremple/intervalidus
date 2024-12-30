@@ -24,7 +24,9 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
     assert(!(interval(3, 4) isLeftAdjacentTo interval(1, 2)))
     assert(!(interval(1, 3) isLeftAdjacentTo interval(2, 4)))
     assert(!(interval(1, 3) isLeftAdjacentTo interval(3, 4)))
-    assert(intervalTo(2) isLeftAdjacentTo intervalFrom(3))
+    assert(intervalTo(2) isLeftAdjacentTo intervalFromAfter(2))
+    assert(intervalToBefore(3) isLeftAdjacentTo intervalFrom(3))
+    assert(intervalToAfter(1) isLeftAdjacentTo intervalFromBefore(4))
     assert(!(intervalFrom(2) isLeftAdjacentTo intervalTo(3)))
 
     assert(interval(3, 4) isRightAdjacentTo interval(1, 2))
