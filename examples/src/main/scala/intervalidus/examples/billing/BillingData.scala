@@ -1,7 +1,10 @@
 package intervalidus.examples.billing
 
 import intervalidus.DiscreteInterval1D
+import intervalidus.immutable.DataIn1D
+
 import java.time.LocalDate
+import scala.language.implicitConversions
 
 /**
   * Supports toy billing systems with core data definition.
@@ -34,15 +37,19 @@ object BillingData:
       def /(year: Int): LocalDate = LocalDate.of(year, d.getMonthValue, d.getDayOfMonth)
       def slashFormat: String = s"[${Month.fromOrdinal(d.getMonthValue - 1)} / ${d.getDayOfMonth} / ${d.getYear}]"
 
-  // Tiers
-  case class Tier(id: TierId, description: String, dailyRate: Dollars):
+  import Month.*
+  import DiscreteInterval1D.intervalFromAfter
+
+  // Tiers, where rates can vary over time
+  case class Tier(id: TierId, description: String, dailyRates: DataIn1D[Dollars, LocalDate]):
     def withId: (TierId, Tier) = id -> this
     override def toString: String = s"[$description ($id)]"
 
   object Tier:
-    // Test tiers
-    val basic: Tier = Tier(TierId(1), "basic", 1.0)
-    val premium: Tier = Tier(TierId(2), "premium", 1.5)
+    // Test tiers, where on April 20, the rates go up 20% (basic from $1.00 to $1.20, premium from $1.50 to $1.80)
+    private val basicDailyRate = DataIn1D.of[Dollars, LocalDate](1.0).set(intervalFromAfter(Apr / 20) -> 1.2)
+    val basic: Tier = Tier(TierId(1), "basic", basicDailyRate)
+    val premium: Tier = Tier(TierId(2), "premium", basicDailyRate.mapValues(_ * 1.5))
     val all: Map[TierId, Tier] = Map.from(Seq(basic.withId, premium.withId))
 
   // Customers
@@ -64,16 +71,15 @@ object BillingData:
     amount: Dollars,
     remark: String
   ):
-    import Month.*
     def withId: (CustomerId, Transaction) = customer.id -> this
     override def toString: String = s"${date.slashFormat}: ${amount.dollarFormat} - $remark"
 
   object Transaction:
-    // order transactions by date, amount, and remark
-    given (using dateOrder: Ordering[LocalDate]): Ordering[Transaction] with
+    // order transactions by date, period, amount, and remark
+    given Ordering[Transaction] with
       override def compare(x: Transaction, y: Transaction): Int =
-        val primary = dateOrder.compare(x.date, y.date)
-        if primary != 0 then primary
-        else
-          val secondary = x.amount.compareTo(y.amount)
-          if secondary != 0 then secondary else x.remark.compareTo(y.remark)
+        def by[T](getFrom: Transaction => T)(using order: Ordering[T]): Option[Int] =
+          Some(order.compare(getFrom(x), getFrom(y))).filterNot(_ == 0)
+        def byEverything: Int =
+          if x == y then 0 else throw Exception(s"Transaction ordering insufficient for $x and $y")
+        by(_.date).orElse(by(_.period)).orElse(by(_.amount)).orElse(by(_.remark)).getOrElse(byEverything)

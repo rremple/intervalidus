@@ -131,10 +131,14 @@ trait Billing:
     priorCycle: BillingCycle,
     thisCycle: BillingCycle
   ): Iterable[Transaction] =
-    def transaction(tier: Tier, period: Period, refund: Boolean = false): Transaction =
+    def transactions(tier: Tier, billingPeriod: Period, refund: Boolean = false): Iterable[Transaction] =
       val (amountSign, transactionType) = if refund then (-1, "refund") else (1, "bill")
-      val remark = s"$transactionType for $period at the ${tier.description} ${tier.dailyRate.dollarFormat}/day rate"
-      Transaction(thisCycle.runDate, customer, tier, period, tier.dailyRate * period.days * amountSign, remark)
+      for
+        ValidData1D(dailyRate, ratePeriod) <- tier.dailyRates.getIntersecting(billingPeriod)
+        period <- billingPeriod.intersectionWith(ratePeriod)
+      yield
+        val remark = s"$transactionType for $period at the ${tier.description} ${dailyRate.dollarFormat}/day rate"
+        Transaction(thisCycle.runDate, customer, tier, period, dailyRate * period.days * amountSign, remark)
 
     import DiffAction1D.*
     val newTiersTruncated = newTiers.remove(intervalFromAfter(thisCycle.billToDate))
@@ -143,16 +147,15 @@ trait Billing:
 
     diffActions.flatMap:
       case Create(ValidData1D(newTier, newInterval)) =>
-        Seq(transaction(newTier, newInterval))
+        transactions(newTier, newInterval)
 
       case Update(ValidData1D(newTier, newInterval)) =>
         priorTiersTruncated.getDataAt(newInterval.start) match
           case Some(ValidData1D(priorTier, priorInterval)) if priorTier == newTier => // different interval
-            if priorInterval.end < newInterval.end then
-              Seq(transaction(newTier, newInterval.fromAfter(priorInterval.end)))
-            else Seq(transaction(priorTier, priorInterval.fromAfter(newInterval.end), refund = true))
+            if priorInterval.end < newInterval.end then transactions(newTier, newInterval.fromAfter(priorInterval.end))
+            else transactions(priorTier, priorInterval.fromAfter(newInterval.end), refund = true)
           case Some(ValidData1D(priorTier, priorInterval)) => // different tier
-            Seq(transaction(priorTier, priorInterval, refund = true), transaction(newTier, newInterval))
+            transactions(priorTier, priorInterval, refund = true) ++ transactions(newTier, newInterval)
           case None => // should never happen
             println(
               s"Update action, but updated data at ${newInterval.start} could not be found in $priorTiersTruncated"
@@ -162,7 +165,7 @@ trait Billing:
       case Delete(start) =>
         priorTiersTruncated.getDataAt(start) match
           case Some(ValidData1D(priorTier, priorInterval)) =>
-            Seq(transaction(priorTier, priorInterval, refund = true))
+            transactions(priorTier, priorInterval, refund = true)
           case None => // should never happen
             println(s"Delete action, but deleted data at $start could not be found in $priorTiersTruncated")
             Seq.empty
