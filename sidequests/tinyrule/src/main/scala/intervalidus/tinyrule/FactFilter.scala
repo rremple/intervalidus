@@ -1,0 +1,88 @@
+package intervalidus.tinyrule
+
+/**
+  * A fact filter applies rules to a set of facts to come up with a new (possibly smaller) set of facts. These new facts
+  * can have some attributes augmented or redacted. Filters can be combined through conjunction and disjunction.
+  */
+sealed trait FactFilter:
+  def apply(facts: Set[Fact]): Set[Fact]
+
+  def excluding(factIds: String*): ExcludeFilter = ExcludeFilter(this, factIds.toSet)
+  def and(that: FactFilter): AndFactFilter = AndFactFilter(List(this, that))
+
+  def or(that: FactFilter): OrFactFilter = OrFactFilter(List(this, that), FactMergeStyle.KeepingAll)
+  def orWhenAbsent(that: FactFilter): OrFactFilter = OrFactFilter(List(this, that), FactMergeStyle.WhenAbsent)
+  def orAsReplacement(that: FactFilter): OrFactFilter = OrFactFilter(List(this, that), FactMergeStyle.AsReplacement)
+
+object FactFilter:
+  extension (r: Rule)
+    def filter: SelectFilter = SelectFilter(r)
+    def redact(attributeNames: String*): RedactFilter = RedactFilter(r, attributeNames.toSet)
+
+    def augment(fact: Fact): AugmentFilter = AugmentFilter(r, fact, FactMergeStyle.KeepingAll)
+    def augmentWhenAbsent(fact: Fact): AugmentFilter = AugmentFilter(r, fact, FactMergeStyle.WhenAbsent)
+    def augmentAsReplacement(fact: Fact): AugmentFilter = AugmentFilter(r, fact, FactMergeStyle.AsReplacement)
+
+/**
+  * Select a subset of facts based on a rule.
+  */
+case class SelectFilter(
+  shouldInclude: Rule
+) extends FactFilter:
+  override def apply(facts: Set[Fact]): Set[Fact] = facts.filter(shouldInclude.apply)
+
+/**
+  * Augments the attributes of some facts based on a rule.
+  */
+case class AugmentFilter(
+  shouldAugment: Rule,
+  augmentWith: Fact,
+  mergeStyle: FactMergeStyle = FactMergeStyle.KeepingAll
+) extends FactFilter:
+  override def apply(facts: Set[Fact]): Set[Fact] = facts.map: f =>
+    if shouldAugment(f) then f.merge(augmentWith, mergeStyle) else f
+
+/**
+  * Redacts the attributes of some facts based on a rule.
+  */
+case class RedactFilter(
+  shouldRedact: Rule,
+  excludedAttributeNames: Set[String]
+) extends FactFilter:
+  override def apply(facts: Set[Fact]): Set[Fact] = facts.map: f =>
+    if shouldRedact(f) then f.copy(attributes = f.attributes.filterNot(a => excludedAttributeNames.contains(a.name)))
+    else f
+
+/**
+  * Excludes facts from the results of a base filter by id.
+  */
+case class ExcludeFilter(
+  baseFilter: FactFilter,
+  shouldExcludeFactIds: Set[String]
+) extends FactFilter:
+  override def apply(facts: Set[Fact]): Set[Fact] =
+    baseFilter(facts).filterNot(f => shouldExcludeFactIds.contains(f.id))
+
+/**
+  * Combines the result of a collection of filters. Facts that make it through any filter are included. Attributes are
+  * combined based on the merge style.
+  */
+case class OrFactFilter(
+  includeFilters: List[FactFilter],
+  mergeStyle: FactMergeStyle = FactMergeStyle.KeepingAll
+) extends FactFilter:
+  override def apply(facts: Set[Fact]): Set[Fact] =
+    val filteredResults = includeFilters.map(_.apply(facts))
+    filteredResults.foldLeft(Set[Fact]()): (priorFacts, nextFacts) =>
+      Fact.mergeAll(priorFacts, nextFacts, mergeStyle)
+
+/**
+  * Combines the result of a collection of filters. Only facts that make it through all the filters are included. unlike
+  * [[OrFactFilter]], attributes are combined based strictly on how each include filter is defined.
+  */
+case class AndFactFilter(
+  includeFilters: List[FactFilter]
+) extends FactFilter:
+  override def apply(facts: Set[Fact]): Set[Fact] =
+    includeFilters.foldLeft(facts): (priorFacts, filter) =>
+      filter(priorFacts)

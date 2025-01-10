@@ -34,8 +34,15 @@ lazy val `intervalidus-upickle` = (project in file("json/upickle"))
     libraryDependencies += "com.lihaoyi" %% "upickle" % "4.0.2"
   )
 
-lazy val `intervalidus-examples` = (project in file("examples"))
+lazy val `intervalidus-tinyrule` = (project in file("sidequests/tinyrule"))
   .dependsOn(core)
+  .settings(commonSettings)
+  .settings(
+    name := "intervalidus-tinyrule"
+  )
+
+lazy val `intervalidus-examples` = (project in file("examples"))
+  .dependsOn(core, `intervalidus-tinyrule`)
   .settings(commonSettings)
   .settings(
     publish / skip := true,

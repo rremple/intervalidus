@@ -143,7 +143,7 @@ On 2024-07-15, no expected tier on 2024-08-01
 ```
 
 There is a sample billing application provided that demonstrates how both of these 1D and 2D structures could be used to 
-support time-oriented logic like billing directly, including prospective calculation and retrospective
+support time-oriented logic, like billing, directly, including prospective calculation and retrospective
 adjustments/refunds.
 
 Sometimes one wants to treat multiple values as valid in the same interval. For example, a product team may add/remove
@@ -414,8 +414,16 @@ Note that box search trees are tunable via environment variables.
 
 There are a few other subprojects that are worth mentioning:
 
-- As described earlier, in the `intervalidus-examples` subproject there is a sample billing application that shows how 
+- As described earlier, in the `intervalidus-examples` subproject there is a sample billing application that shows how
   Intervalidus structures can be used to support time-oriented logic like billing directly.
+
+- Also in the `intervalidus-examples` subproject there is a sample rules-based application that shows how Intervalidus
+  structures can be used to capture the outcomes of patients in a clinical trial. It uses a toy rules engine rules to
+  interpret daily measurements, and Intervalidus to capture progress in a concise way.
+
+- The above example leverages a toy rules engine that is available in a separate subproject: `intervalidus-tinyrule`.
+  (This is not strictly related to Intervalidus, so it is tucked under a directory called `sidequests`.) It uses some
+  interesting generic and metaprogramming features of Scala 3 to represent and process facts.
 
 - There is a separate `bench` subproject that leverages the Java Microbenchmark Harness (jmh) framework to benchmark
   methods, including relative performance of experimental vs. non-experimental features.
