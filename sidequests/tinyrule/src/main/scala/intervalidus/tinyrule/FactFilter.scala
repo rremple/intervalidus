@@ -8,11 +8,11 @@ sealed trait FactFilter:
   def apply(facts: Set[Fact]): Set[Fact]
 
   def excluding(factIds: String*): ExcludeFilter = ExcludeFilter(this, factIds.toSet)
-  def and(that: FactFilter): AndFactFilter = AndFactFilter(List(this, that))
+  def and(that: FactFilter): AndFilter = AndFilter(List(this, that))
 
-  def or(that: FactFilter): OrFactFilter = OrFactFilter(List(this, that), FactMergeStyle.KeepingAll)
-  def orWhenAbsent(that: FactFilter): OrFactFilter = OrFactFilter(List(this, that), FactMergeStyle.WhenAbsent)
-  def orAsReplacement(that: FactFilter): OrFactFilter = OrFactFilter(List(this, that), FactMergeStyle.AsReplacement)
+  def or(that: FactFilter): OrFilter = OrFilter(List(this, that), FactMergeStyle.KeepingAll)
+  def orWhenAbsent(that: FactFilter): OrFilter = OrFilter(List(this, that), FactMergeStyle.WhenAbsent)
+  def orAsReplacement(that: FactFilter): OrFilter = OrFilter(List(this, that), FactMergeStyle.AsReplacement)
 
 object FactFilter:
   extension (r: Rule)
@@ -67,7 +67,7 @@ case class ExcludeFilter(
   * Combines the result of a collection of filters. Facts that make it through any filter are included. Attributes are
   * combined based on the merge style.
   */
-case class OrFactFilter(
+case class OrFilter(
   includeFilters: List[FactFilter],
   mergeStyle: FactMergeStyle = FactMergeStyle.KeepingAll
 ) extends FactFilter:
@@ -78,9 +78,9 @@ case class OrFactFilter(
 
 /**
   * Combines the result of a collection of filters. Only facts that make it through all the filters are included. unlike
-  * [[OrFactFilter]], attributes are combined based strictly on how each include filter is defined.
+  * [[OrFilter]], attributes are combined based strictly on how each include filter is defined.
   */
-case class AndFactFilter(
+case class AndFilter(
   includeFilters: List[FactFilter]
 ) extends FactFilter:
   override def apply(facts: Set[Fact]): Set[Fact] =
