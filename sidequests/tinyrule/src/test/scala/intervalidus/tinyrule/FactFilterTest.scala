@@ -35,7 +35,7 @@ class FactFilterTest extends AnyFunSuite with Matchers:
     val myInt10 = Attribute("myInt", 10)
     val augmentInt = Rule.always.augmentWhenAbsent(Fact("add myInt back", myInt10))
     val expectedInt = Set(fact1 + greeting, fact2 + greeting - "myInt" + myInt10, fact3, fact4 - "myInt" + myInt10)
-    augmentInt(expected)
+    augmentInt(expected) shouldBe expectedInt
 
   test("Combining filters"):
     (filter1 and filter2)(facts) shouldBe Set(fact2)

@@ -2,10 +2,9 @@ package intervalidus.tinyrule
 
 import java.time.LocalDate
 import java.util.UUID
-import scala.annotation.tailrec
-import scala.compiletime.summonAll
+import scala.compiletime.{erasedValue, summonAll}
 import scala.deriving.Mirror
-import scala.reflect.ClassTag
+import scala.util.Try
 
 enum FactMergeStyle:
   case KeepingAll, WhenAbsent, AsReplacement
@@ -82,6 +81,20 @@ case class Fact(id: String, attributes: Set[Attribute[?]]):
       Fact(id, keepAttributes ++ that.attributes)
 
   /**
+    * Recursively get all the functions for mapping a set of attribute values to each target element type.
+    * @tparam T
+    *   The tuple of target types, staring with the product mirror's MirroredElemTypes
+    * @return
+    *   A function for mapping all sets of attributes to all target types.
+    */
+  private inline def getProductElemValueOps[T <: Tuple]: List[Set[Any] => Any] =
+    inline erasedValue[T] match
+      case _: EmptyTuple        => Nil
+      case _: (Set[_] *: ts)    => identity :: getProductElemValueOps[ts]
+      case _: (Option[_] *: ts) => (_.headOption) :: getProductElemValueOps[ts]
+      case _: (_ *: ts)         => (_.head) :: getProductElemValueOps[ts]
+
+  /**
     * Convert this fact to a case class where the case class element names align with the fact attribute names. If there
     * are more attributes than elements, they are ignored. If there are more elements than attributes, an exception is
     * thrown. If multiple attributes have the same name and the corresponding element is a Set, all values are mapped,
@@ -93,35 +106,88 @@ case class Fact(id: String, attributes: Set[Attribute[?]]):
     *   the case class type (a subtype of [[Product]])
     */
   inline def to[P <: Product](using mirror: Mirror.ProductOf[P]): P =
-    val attributeValuesByName = attributes.groupBy(_.name).view.mapValues(_.map(_.value))
-    val productElemLabels = summonAll[Tuple.Map[mirror.MirroredElemLabels, ValueOf]]
-    // kind of a hack...
-    val productElemTypeNames = Macro.summonTypeNames[mirror.MirroredElemTypes]
-    // for stringy type comparisons
-    import Fact.{set, option}
-    val indexedNames = productElemTypeNames.zipWithIndex
-    val targetIsSet = indexedNames.map((elemType, index) => index -> elemType.startsWith(set)).toMap
-    val targetIsOption = indexedNames.map((elemType, index) => index -> elemType.startsWith(option)).toMap
+    val attributesByName = attributes.groupBy(_.name)
 
     // Get the attribute values as a tuple corresponding to the product label order. Each element of the product
     // label tuple will be a ValueOf[String] (unchecked because type param is erased).
-    def attributeValueTuple(labelTuple: Tuple, index: Int = 0): Tuple = labelTuple match
+    // The setOps.head will tell us how to map a set of values to the element of the product.
+    def elementsFromAttributes(labels: Tuple, setOps: List[Set[Any] => Any]): Tuple = labels match
       case EmptyTuple => EmptyTuple
-      case (firstLabel: ValueOf[String] @unchecked) *: remainingLabels =>
-        val attributeValueSet = attributeValuesByName.getOrElse(firstLabel.value, Set.empty)
-        val attributeValue =
-          if targetIsSet(index) then attributeValueSet
-          else if targetIsOption(index) then attributeValueSet.headOption
-          else attributeValueSet.headOption.getOrElse(throw new Exception(s"No attribute for ${firstLabel.value}"))
-        attributeValue *: attributeValueTuple(remainingLabels, index + 1)
+      case (elementLabel: ValueOf[String] @unchecked) *: remainingLabels =>
+        val attributeValueSet = attributesByName.getOrElse(elementLabel.value, Set.empty).map(_.value)
+        val elementValue = Try(setOps.head.apply(attributeValueSet))
+          .getOrElse(throw new Exception(s"No attribute for ${elementLabel.value}"))
+        elementValue *: elementsFromAttributes(remainingLabels, setOps.tail)
       case other => throw new Exception(s"Unexpected case: $other")
 
-    mirror.fromProduct(attributeValueTuple(productElemLabels))
+    val productElemLabels = summonAll[Tuple.Map[mirror.MirroredElemLabels, ValueOf]]
+    val productElemValueSetOps = getProductElemValueOps[mirror.MirroredElemTypes]
+    mirror.fromProduct(elementsFromAttributes(productElemLabels, productElemValueSetOps))
 
 object Fact:
-  // for stringy type comparisons
-  private val set = "scala.collection.immutable.Set"
-  private val option = "scala.Option"
+  /**
+    * Generates attributes that represent the source element.
+    * @param elementName
+    *   The name of the element
+    * @param elementValue
+    *   The value (or values) associated with the element
+    * @tparam T
+    *   The element value type
+    * @return
+    *   A collection of attributes representing the provided element.
+    */
+  private inline def attributesFromOneElement[T](elementName: String, elementValue: T): Iterable[Attribute[?]] =
+    inline elementValue match
+      case a: Boolean           => Seq(BooleanAttribute(elementName, a))
+      case a: Int               => Seq(IntAttribute(elementName, a))
+      case a: Double            => Seq(DoubleAttribute(elementName, a))
+      case a: String            => Seq(StringAttribute(elementName, a))
+      case a: LocalDate         => Seq(DateAttribute(elementName, a))
+      case a: Option[Boolean]   => a.map(BooleanAttribute(elementName, _))
+      case a: Option[Int]       => a.map(IntAttribute(elementName, _))
+      case a: Option[Double]    => a.map(DoubleAttribute(elementName, _))
+      case a: Option[String]    => a.map(StringAttribute(elementName, _))
+      case a: Option[LocalDate] => a.map(DateAttribute(elementName, _))
+      case a: Set[Boolean]      => a.map(BooleanAttribute(elementName, _))
+      case a: Set[Int]          => a.map(IntAttribute(elementName, _))
+      case a: Set[Double]       => a.map(DoubleAttribute(elementName, _))
+      case a: Set[String]       => a.map(StringAttribute(elementName, _))
+      case a: Set[LocalDate]    => a.map(DateAttribute(elementName, _))
+      case a                    => Seq(StringAttribute(elementName, a.toString)) // fallback to String
+
+  /**
+    * Recursively deconstructs the product elements as a set of attributes. Unfortunately deconstructing
+    * Tuple.fromProductTyped has some kind of conflict with being inline, but without inline it looses type parameter
+    * information (important for Set and Option types). So this uses separate lists of attribute names and values
+    * (untyped), and reconstructs the element value types from the Tupled type directly (which starts as the product
+    * mirror's MirroredElemTypes).
+    *
+    * @param elementNames
+    *   names of the product's elements
+    * @param elementValues
+    *   values of the product's elements - untyped
+    * @param accumulatedAttributes
+    *   accumulator for recursive results (this is tailrec, but that annotation is not allowed on inline)
+    * @tparam T
+    *   the tuple type for the element components passed in as lists
+    * @return
+    *   a set of attributes for the elements
+    */
+  private inline def attributesFromElements[T <: Tuple](
+    elementNames: List[String],
+    elementValues: List[Any],
+    accumulatedAttributes: Set[Attribute[?]] = Set.empty
+  ): Set[Attribute[?]] =
+    inline erasedValue[T] match
+      case _: EmptyTuple                         => accumulatedAttributes
+      case _: (elementType *: elementsTailTypes) =>
+        // recover the type and recurse
+        val typedElement = elementValues.head.asInstanceOf[elementType]
+        attributesFromElements[elementsTailTypes](
+          elementNames.tail,
+          elementValues.tail,
+          accumulatedAttributes ++ attributesFromOneElement(elementNames.head, typedElement)
+        )
 
   /**
     * Construct from a case class where the name of the fact will be the case class name and the attributes will be the
@@ -137,36 +203,13 @@ object Fact:
     *   a new fact
     */
   inline def from[P <: Product](p: P)(using mirror: Mirror.ProductOf[P]): Fact =
-    // kind of a hack, but won't match on Set as a type, and type parameters are erased anyway...
-    val productElemTypeNames = Macro.summonTypeNames[mirror.MirroredElemTypes]
-    // for stringy type comparisons
-    val bool = "scala.Boolean"
-    val int = "scala.Int"
-    val double = "scala.Double"
-    val string = "scala.Predef.String"
-    val date = "java.time.LocalDate"
-
-    val attributes: Iterator[Attribute[?]] = p.productElementNames
-      .zip(Tuple.fromProductTyped(p).toList)
-      .zip(productElemTypeNames)
-      .flatMap:
-        case ((name, a: Boolean), _)                                                => Seq(BooleanAttribute(name, a))
-        case ((name, a: Int), _)                                                    => Seq(IntAttribute(name, a))
-        case ((name, a: Double), _)                                                 => Seq(DoubleAttribute(name, a))
-        case ((name, a: String), _)                                                 => Seq(StringAttribute(name, a))
-        case ((name, a: LocalDate), _)                                              => Seq(DateAttribute(name, a))
-        case ((name, a: Option[Boolean] @unchecked), t) if t == s"$option[$bool]"   => a.map(BooleanAttribute(name, _))
-        case ((name, a: Option[Int] @unchecked), t) if t == s"$option[$int]"        => a.map(IntAttribute(name, _))
-        case ((name, a: Option[Double] @unchecked), t) if t == s"$option[$double]"  => a.map(DoubleAttribute(name, _))
-        case ((name, a: Option[String] @unchecked), t) if t == s"$option[$string]"  => a.map(StringAttribute(name, _))
-        case ((name, a: Option[LocalDate] @unchecked), t) if t == s"$option[$date]" => a.map(DateAttribute(name, _))
-        case ((name, a: Set[Boolean] @unchecked), t) if t == s"$set[$bool]"         => a.map(BooleanAttribute(name, _))
-        case ((name, a: Set[Int] @unchecked), t) if t == s"$set[$int]"              => a.map(IntAttribute(name, _))
-        case ((name, a: Set[Double] @unchecked), t) if t == s"$set[$double]"        => a.map(DoubleAttribute(name, _))
-        case ((name, a: Set[String] @unchecked), t) if t == s"$set[$string]"        => a.map(StringAttribute(name, _))
-        case ((name, a: Set[LocalDate] @unchecked), t) if t == s"$set[$date]"       => a.map(DateAttribute(name, _))
-        case ((name, a), typeString) => Set(StringAttribute(name, a.toString)) // fallback to String
-    Fact(s"${p.productPrefix}-${UUID.randomUUID()}", attributes.toSet)
+    Fact(
+      s"${p.productPrefix}-${UUID.randomUUID()}",
+      attributesFromElements[mirror.MirroredElemTypes](
+        p.productElementNames.toList,
+        p.productIterator.toList // untyped, where types are recovered recursively from MirroredElemTypes
+      )
+    )
 
   /**
     * Construct from parameters.
