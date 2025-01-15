@@ -4,20 +4,19 @@ import java.time.LocalDate
 import java.util.UUID
 import scala.compiletime.{erasedValue, summonAll}
 import scala.deriving.Mirror
-import scala.util.Try
 
 enum FactMergeStyle:
   case KeepingAll, WhenAbsent, AsReplacement
 
 /**
   * A fact has an id and a set of attributes. It is flat, without any nested structure, isomorphic with a similarly flat
-  * case class with parameters that only use supported attribute value types (which are: Boolean, String, Int, Double,
-  * and LocalDate) or sets/options of those same value types. Based on this, Facts can be created from case classes (via
+  * case class with elements that only use supported attribute value types (which are: Boolean, String, Int, Double, and
+  * LocalDate) or sets/options of those same value types. Based on this, Facts can be created from case classes (via
   * `from`), and vice versa (via `to`).
   *
   * @note
   *   Facts are allowed to have multiple attributes with the same name and different values, which can be used to
-  *   represent a set of values for a single name. However, it may be confusing, so it should be used sparingly.
+  *   represent a set of values for a single name.
   *
   * @param id
   *   id of the fact, used when merging sets of facts
@@ -81,18 +80,29 @@ case class Fact(id: String, attributes: Set[Attribute[?]]):
       Fact(id, keepAttributes ++ that.attributes)
 
   /**
-    * Recursively get all the functions for mapping a set of attribute values to each target element type.
+    * Recursively gets all the functions for extracting target element values from each set of attribute values. Each
+    * function throws an exception if the number of attribute values is more or less than what is expected in the target
+    * type.
     * @tparam T
-    *   The tuple of target types, staring with the product mirror's MirroredElemTypes
+    *   tuple of target types, staring with the product mirror's `MirroredElemTypes`
     * @return
-    *   A function for mapping all sets of attributes to all target types.
+    *   list of functions from a label name (for error reporting) and a set of attribute values to the corresponding
+    *   product element value, in the same order as the target elements
     */
-  private inline def getProductElemValueOps[T <: Tuple]: List[Set[Any] => Any] =
+  private inline def attributeValuesToElementValues[T <: Tuple]: List[(String, Set[Any]) => Any] =
+    def setAsSet(name: String, values: Set[Any]): Set[Any] =
+      values // no checks needed
+    def setAsOption(name: String, values: Set[Any]): Option[Any] =
+      if values.size > 1 then throw new Exception(s"Multiple attributes for $name")
+      else values.headOption
+    def setAsSingleValue(name: String, values: Set[Any]): Any =
+      setAsOption(name, values).getOrElse(throw new Exception(s"No attribute for $name"))
+
     inline erasedValue[T] match
       case _: EmptyTuple        => Nil
-      case _: (Set[_] *: ts)    => identity :: getProductElemValueOps[ts]
-      case _: (Option[_] *: ts) => (_.headOption) :: getProductElemValueOps[ts]
-      case _: (_ *: ts)         => (_.head) :: getProductElemValueOps[ts]
+      case _: (Set[?] *: ts)    => setAsSet :: attributeValuesToElementValues[ts]
+      case _: (Option[?] *: ts) => setAsOption :: attributeValuesToElementValues[ts]
+      case _: (_ *: ts)         => setAsSingleValue :: attributeValuesToElementValues[ts]
 
   /**
     * Convert this fact to a case class where the case class element names align with the fact attribute names. If there
@@ -106,23 +116,35 @@ case class Fact(id: String, attributes: Set[Attribute[?]]):
     *   the case class type (a subtype of [[Product]])
     */
   inline def to[P <: Product](using mirror: Mirror.ProductOf[P]): P =
-    val attributesByName = attributes.groupBy(_.name)
+    val attributeValuesByName = attributes.groupBy(_.name).view.mapValues(_.map(_.value))
 
-    // Get the attribute values as a tuple corresponding to the product label order. Each element of the product
-    // label tuple will be a ValueOf[String] (unchecked because type param is erased).
-    // The setOps.head will tell us how to map a set of values to the element of the product.
-    def elementsFromAttributes(labels: Tuple, setOps: List[Set[Any] => Any]): Tuple = labels match
+    /**
+      * Get the attribute values as a tuple of product element values.
+      *
+      * @param labels
+      *   tuple of product element labels where each element of the product label tuple will be a `ValueOf[String]` (the
+      *   match is unchecked because the `String` type parameter is erased)
+      * @param fromAttributeValues
+      *   list of functions from a label name (for error reporting) and a set of attribute values to the corresponding
+      *   product element value, in the same order as the elements
+      * @return
+      *   a tuple of values that can be used to construct the product (i.e., case class) using its mirror
+      */
+    def elementsFromAttributes[T <: Tuple](
+      labels: T,
+      fromAttributeValues: List[(String, Set[Any]) => Any]
+    ): Tuple = labels match
       case EmptyTuple => EmptyTuple
-      case (elementLabel: ValueOf[String] @unchecked) *: remainingLabels =>
-        val attributeValueSet = attributesByName.getOrElse(elementLabel.value, Set.empty).map(_.value)
-        val elementValue = Try(setOps.head.apply(attributeValueSet))
-          .getOrElse(throw new Exception(s"No attribute for ${elementLabel.value}"))
-        elementValue *: elementsFromAttributes(remainingLabels, setOps.tail)
+      case (valueOfLabel: ValueOf[String] @unchecked) *: labelsTail =>
+        val label = valueOfLabel.value
+        val attributeValues = attributeValuesByName.getOrElse(label, Set.empty)
+        val elementValue = fromAttributeValues.head.apply(label, attributeValues)
+        elementValue *: elementsFromAttributes(labelsTail, fromAttributeValues.tail)
       case other => throw new Exception(s"Unexpected case: $other")
 
     val productElemLabels = summonAll[Tuple.Map[mirror.MirroredElemLabels, ValueOf]]
-    val productElemValueSetOps = getProductElemValueOps[mirror.MirroredElemTypes]
-    mirror.fromProduct(elementsFromAttributes(productElemLabels, productElemValueSetOps))
+    val productElemValuesFromAttributeValues = attributeValuesToElementValues[mirror.MirroredElemTypes]
+    mirror.fromProduct(elementsFromAttributes(productElemLabels, productElemValuesFromAttributeValues))
 
 object Fact:
   /**
@@ -227,12 +249,12 @@ object Fact:
     * Merge two sets of facts (by id).
     */
   def mergeAll(these: Set[Fact], those: Set[Fact], style: FactMergeStyle = FactMergeStyle.KeepingAll): Set[Fact] =
-    val theseById = these.map(_.withId).toMap
-    val thoseById = those.map(_.withId).toMap
-    (theseById.keySet ++ thoseById.keySet).map: id =>
-      theseById.get(id) match
+    val theseFactsById = these.map(_.withId).toMap
+    val thoseFactsById = those.map(_.withId).toMap
+    (theseFactsById.keySet ++ thoseFactsById.keySet).map: id =>
+      theseFactsById.get(id) match
+        case None => thoseFactsById(id)
         case Some(thisFact) =>
-          thoseById.get(id) match
-            case Some(thatFact) => thisFact.merge(thatFact, style)
+          thoseFactsById.get(id) match
             case None           => thisFact
-        case None => thoseById(id)
+            case Some(thatFact) => thisFact.merge(thatFact, style)

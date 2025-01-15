@@ -29,7 +29,7 @@ object FactFilter:
 case class SelectFilter(
   shouldInclude: Rule
 ) extends FactFilter:
-  override def apply(facts: Set[Fact]): Set[Fact] = facts.filter(shouldInclude.apply)
+  override def apply(facts: Set[Fact]): Set[Fact] = facts.filter(shouldInclude(_))
 
 /**
   * Augments the attributes of some facts based on a rule.
@@ -72,9 +72,8 @@ case class OrFilter(
   mergeStyle: FactMergeStyle = FactMergeStyle.KeepingAll
 ) extends FactFilter:
   override def apply(facts: Set[Fact]): Set[Fact] =
-    val filteredResults = includeFilters.map(_.apply(facts))
-    filteredResults.foldLeft(Set[Fact]()): (priorFacts, nextFacts) =>
-      Fact.mergeAll(priorFacts, nextFacts, mergeStyle)
+    includeFilters.foldLeft(Set.empty[Fact]): (priorFacts, filter) =>
+      Fact.mergeAll(priorFacts, filter(facts), mergeStyle)
 
 /**
   * Combines the result of a collection of filters. Only facts that make it through all the filters are included. unlike
