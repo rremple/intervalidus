@@ -18,18 +18,18 @@ import scala.language.implicitConversions
 trait ImmutableBaseBehaviors:
   this: AnyFunSuite & Matchers =>
 
-  import DiscreteInterval1D.*
+  import Interval1D.*
 
   def immutableBaseTests[
-    D: DiscreteDomainLike,
-    I <: DiscreteIntervalLike[D, I],
+    D: DomainLike,
+    I <: IntervalLike[D, I],
     ValidData <: ValidDataLike[String, D, I, ValidData],
     DiffAction: DiffActionLike,
     S <: ImmutableBase[String, D, I, ValidData, DiffAction, S]
   ](
     immutableFrom: Experimental ?=> Iterable[ValidData] => S,
-    intervalFrom1D: DiscreteInterval1D[Int] => I,
-    dataFrom1D: (DiscreteInterval1D[Int], String) => ValidData,
+    intervalFrom1D: Interval1D[Int] => I,
+    dataFrom1D: (Interval1D[Int], String) => ValidData,
     fullyUnbound: I
   )(using Experimental): Unit =
     test("Immutable: Adding and removing data in intervals"):

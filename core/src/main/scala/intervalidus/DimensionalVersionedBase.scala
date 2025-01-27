@@ -7,7 +7,7 @@ import scala.language.implicitConversions
   */
 object DimensionalVersionedBase:
 
-  type VersionDomain = DiscreteDomain1D[Int]
+  type VersionDomain = Domain1D[Int]
 
   /**
     * Context parameter for selecting the version interval on which to operate in selection and mutation. Typically,
@@ -44,18 +44,18 @@ object DimensionalVersionedBase:
   * @tparam V
   *   the value type for valid data.
   * @tparam D
-  *   the domain type for intervals in the public interface. Must be [[DiscreteDomainLike]].
+  *   the domain type for intervals in the public interface. Must be [[DomainLike]].
   * @tparam I
-  *   the interval type in the public interface. Must be [[DiscreteIntervalLike]] based on [[D]].
+  *   the interval type in the public interface. Must be [[IntervalLike]] based on [[D]].
   * @tparam ValidData
   *   the valid data type in the public interface. Must be [[ValidDataLike]] based on [[V]], [[D]], and [[I]].
   * @tparam DiffAction
   *   the diff action type. Must be [[DiffActionLike]] based on [[V]], [[D]], and [[I]].
   * @tparam D2
-  *   the domain type for intervals used in the underlying data. Must be [[DiscreteDomainLike]] and should be one
-  *   dimension higher than [[D]], where the last dimension is `Int`.
+  *   the domain type for intervals used in the underlying data. Must be [[DomainLike]] and should be one dimension
+  *   higher than [[D]], where the last dimension is `Int`.
   * @tparam I2
-  *   the interval type of the underlying data. Must be [[DiscreteIntervalLike]] based on [[D2]].
+  *   the interval type of the underlying data. Must be [[IntervalLike]] based on [[D2]].
   * @tparam ValidData2
   *   the valid data type of the underlying data. Must be [[ValidDataLike]] based on [[V]], [[D2]], and [[I2]].
   * @tparam DiffAction2
@@ -65,12 +65,12 @@ object DimensionalVersionedBase:
   */
 trait DimensionalVersionedBase[
   V,
-  D: DiscreteDomainLike,
-  I <: DiscreteIntervalLike[D, I],
+  D: DomainLike,
+  I <: IntervalLike[D, I],
   ValidData <: ValidDataLike[V, D, I, ValidData],
   DiffAction: DiffActionLike,
-  D2: DiscreteDomainLike,
-  I2 <: DiscreteIntervalLike[D2, I2],
+  D2: DomainLike,
+  I2 <: IntervalLike[D2, I2],
   ValidData2 <: ValidDataLike[V, D2, I2, ValidData2],
   DiffAction2: DiffActionLike,
   Self <: DimensionalVersionedBase[V, D, I, ValidData, DiffAction, D2, I2, ValidData2, DiffAction2, Self]
@@ -104,18 +104,18 @@ trait DimensionalVersionedBase[
   protected def underlyingValidData(data: ValidData)(using VersionSelection): ValidData2
 
   // Extract version interval from underlying data
-  protected def versionInterval(data: ValidData2): DiscreteInterval1D[Int]
+  protected def versionInterval(data: ValidData2): Interval1D[Int]
 
   // Construct new underlying interval from a public interval with a version interval
   protected def underlyingIntervalWithVersion(
     interval: I,
-    version: DiscreteInterval1D[Int]
+    version: Interval1D[Int]
   ): I2
 
   // Construct new underlying data with an updated version interval
   protected def withVersionUpdate(
     data: ValidData2,
-    update: DiscreteInterval1D[Int] => DiscreteInterval1D[Int]
+    update: Interval1D[Int] => Interval1D[Int]
   ): ValidData2
 
   // Extract public data from underlying data
@@ -176,17 +176,17 @@ trait DimensionalVersionedBase[
     /**
       * Returns the interval to the boundary of this version selection
       */
-    def intervalTo: DiscreteInterval1D[Int] = DiscreteInterval1D.intervalTo(boundary)
+    def intervalTo: Interval1D[Int] = Interval1D.intervalTo(boundary)
 
     /**
       * Returns the interval at the boundary of this version selection
       */
-    def intervalAt: DiscreteInterval1D[Int] = DiscreteInterval1D.intervalAt(boundary)
+    def intervalAt: Interval1D[Int] = Interval1D.intervalAt(boundary)
 
     /**
       * Returns the interval from the boundary of this version selection
       */
-    def intervalFrom: DiscreteInterval1D[Int] = DiscreteInterval1D.intervalFrom(boundary)
+    def intervalFrom: Interval1D[Int] = Interval1D.intervalFrom(boundary)
 
   // from PartialFunction
   override def isDefinedAt(key: D2): Boolean = underlying.isDefinedAt(key)

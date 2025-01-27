@@ -13,15 +13,15 @@ class DataIn1DMultiTest
   with DataIn1DMultiBaseBehaviors
   with MutableMultiBaseBehaviors:
 
-  import DiscreteInterval1D.*
+  import Interval1D.*
 
   testsFor(
     basicAndZipTests("Mutable", DataIn1DMulti.from(_), DataIn1DMulti.from(_), DataIn1DMulti.of(_), DataIn1DMulti(_))
   )
   testsFor(
     addAndRemoveTests[
-      DiscreteDomain1D[Int],
-      DiscreteInterval1D[Int],
+      Domain1D[Int],
+      Interval1D[Int],
       ValidData1D[String, Int],
       ValidData1D[Set[String], Int],
       DiffAction1D[Set[String], Int],
@@ -35,8 +35,8 @@ class DataIn1DMultiTest
 
   testsFor(
     mapAndFlatmapTests[
-      DiscreteDomain1D[Int],
-      DiscreteInterval1D[Int],
+      Domain1D[Int],
+      Interval1D[Int],
       ValidData1D[String, Int],
       ValidData1D[Set[String], Int],
       DiffAction1D[Set[String], Int],

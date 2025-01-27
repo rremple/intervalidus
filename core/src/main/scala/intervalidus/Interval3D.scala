@@ -21,98 +21,98 @@ import scala.math.Ordering.Implicits.infixOrderingOps
   * @tparam T3
   *   a discrete value type for this interval's depth domain
   */
-case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue](
-  horizontal: DiscreteInterval1D[T1],
-  vertical: DiscreteInterval1D[T2],
-  depth: DiscreteInterval1D[T3]
-) extends DiscreteIntervalLike[DiscreteDomain3D[T1, T2, T3], DiscreteInterval3D[T1, T2, T3]]:
+case class Interval3D[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue](
+  horizontal: Interval1D[T1],
+  vertical: Interval1D[T2],
+  depth: Interval1D[T3]
+) extends IntervalLike[Domain3D[T1, T2, T3], Interval3D[T1, T2, T3]]:
 
-  import DiscreteInterval1D.Remainder
+  import Interval1D.Remainder
 
   override type ExclusionRemainder =
-    (Remainder[DiscreteInterval1D[T1]], Remainder[DiscreteInterval1D[T2]], Remainder[DiscreteInterval1D[T3]])
+    (Remainder[Interval1D[T1]], Remainder[Interval1D[T2]], Remainder[Interval1D[T3]])
 
   override infix def withValue[V](value: V): ValidData3D[V, T1, T2, T3] = ValidData3D(value, this)
 
-  override val start: DiscreteDomain3D[T1, T2, T3] = horizontal.start x vertical.start x depth.start
+  override val start: Domain3D[T1, T2, T3] = horizontal.start x vertical.start x depth.start
 
-  override val end: DiscreteDomain3D[T1, T2, T3] = horizontal.end x vertical.end x depth.end
+  override val end: Domain3D[T1, T2, T3] = horizontal.end x vertical.end x depth.end
 
-  override infix def contains(domainElement: DiscreteDomain3D[T1, T2, T3]): Boolean =
+  override infix def contains(domainElement: Domain3D[T1, T2, T3]): Boolean =
     (this.horizontal contains domainElement.horizontalIndex) &&
       (this.vertical contains domainElement.verticalIndex) &&
       (this.depth contains domainElement.depthIndex)
 
-  override def points: Iterable[DiscreteDomain3D[T1, T2, T3]] =
+  override def points: Iterable[Domain3D[T1, T2, T3]] =
     for
       horizontalPoint <- horizontal.points
       verticalPoint <- vertical.points
       depthPoint <- depth.points
     yield horizontalPoint x verticalPoint x depthPoint
 
-  override infix def isAdjacentTo(that: DiscreteInterval3D[T1, T2, T3]): Boolean =
+  override infix def isAdjacentTo(that: Interval3D[T1, T2, T3]): Boolean =
     (this isLeftAdjacentTo that) || (this isRightAdjacentTo that) ||
       (this isLowerAdjacentTo that) || (this isUpperAdjacentTo that) ||
       (this isBackAdjacentTo that) || (this isFrontAdjacentTo that)
 
-  override infix def intersects(that: DiscreteInterval3D[T1, T2, T3]): Boolean =
+  override infix def intersects(that: Interval3D[T1, T2, T3]): Boolean =
     (this.horizontal intersects that.horizontal) &&
       (this.vertical intersects that.vertical) &&
       (this.depth intersects that.depth)
 
-  override infix def intersectionWith(that: DiscreteInterval3D[T1, T2, T3]): Option[DiscreteInterval3D[T1, T2, T3]] =
+  override infix def intersectionWith(that: Interval3D[T1, T2, T3]): Option[Interval3D[T1, T2, T3]] =
     for
       horizontalIntersection <- horizontal intersectionWith that.horizontal
       verticalIntersection <- vertical intersectionWith that.vertical
       depthIntersection <- depth intersectionWith that.depth
     yield horizontalIntersection x verticalIntersection x depthIntersection
 
-  override infix def joinedWith(that: DiscreteInterval3D[T1, T2, T3]): DiscreteInterval3D[T1, T2, T3] =
+  override infix def joinedWith(that: Interval3D[T1, T2, T3]): Interval3D[T1, T2, T3] =
     (this.horizontal joinedWith that.horizontal) x
       (this.vertical joinedWith that.vertical) x
       (this.depth joinedWith that.depth)
 
-  override infix def contains(that: DiscreteInterval3D[T1, T2, T3]): Boolean =
+  override infix def contains(that: Interval3D[T1, T2, T3]): Boolean =
     (this.horizontal contains that.horizontal) &&
       (this.vertical contains that.vertical) &&
       (this.depth contains that.depth)
 
-  override def after: Option[DiscreteInterval3D[T1, T2, T3]] = (horizontal.after, vertical.after, depth.after) match
+  override def after: Option[Interval3D[T1, T2, T3]] = (horizontal.after, vertical.after, depth.after) match
     case (Some(horizontalAfter), Some(verticalAfter), Some(depthAfter)) =>
-      Some(DiscreteInterval3D(horizontalAfter, verticalAfter, depthAfter))
+      Some(Interval3D(horizontalAfter, verticalAfter, depthAfter))
     case _ =>
       None
 
-  override def before: Option[DiscreteInterval3D[T1, T2, T3]] = (horizontal.before, vertical.before, depth.before) match
+  override def before: Option[Interval3D[T1, T2, T3]] = (horizontal.before, vertical.before, depth.before) match
     case (Some(horizontalBefore), Some(verticalBefore), Some(depthBefore)) =>
-      Some(DiscreteInterval3D(horizontalBefore, verticalBefore, depthBefore))
+      Some(Interval3D(horizontalBefore, verticalBefore, depthBefore))
     case _ =>
       None
 
-  override def from(newStart: DiscreteDomain3D[T1, T2, T3]): DiscreteInterval3D[T1, T2, T3] =
+  override def from(newStart: Domain3D[T1, T2, T3]): Interval3D[T1, T2, T3] =
     horizontal.from(newStart.horizontalIndex) x
       vertical.from(newStart.verticalIndex) x
       depth.from(newStart.depthIndex)
 
-  override def fromBottom: DiscreteInterval3D[T1, T2, T3] =
-    from(DiscreteDomain1D.Bottom x DiscreteDomain1D.Bottom x DiscreteDomain1D.Bottom)
+  override def fromBottom: Interval3D[T1, T2, T3] =
+    from(Domain1D.Bottom x Domain1D.Bottom x Domain1D.Bottom)
 
-  override def to(newEnd: DiscreteDomain3D[T1, T2, T3]): DiscreteInterval3D[T1, T2, T3] =
+  override def to(newEnd: Domain3D[T1, T2, T3]): Interval3D[T1, T2, T3] =
     horizontal.to(newEnd.horizontalIndex) x
       vertical.to(newEnd.verticalIndex) x
       depth.to(newEnd.depthIndex)
 
-  override def toTop: DiscreteInterval3D[T1, T2, T3] =
-    to(DiscreteDomain1D.Top x DiscreteDomain1D.Top x DiscreteDomain1D.Top)
+  override def toTop: Interval3D[T1, T2, T3] =
+    to(Domain1D.Top x Domain1D.Top x Domain1D.Top)
 
-  override infix def isLeftAdjacentTo(that: DiscreteInterval3D[T1, T2, T3]): Boolean =
+  override infix def isLeftAdjacentTo(that: Interval3D[T1, T2, T3]): Boolean =
     (this.horizontal.end.successor equiv that.horizontal.start) &&
       (this.vertical equiv that.vertical) && (this.depth equiv that.depth)
 
-  override infix def excluding(that: DiscreteInterval3D[T1, T2, T3]): ExclusionRemainder =
+  override infix def excluding(that: Interval3D[T1, T2, T3]): ExclusionRemainder =
     (this.horizontal excluding that.horizontal, this.vertical excluding that.vertical, this.depth excluding that.depth)
 
-  override infix def gapWith(that: DiscreteInterval3D[T1, T2, T3]): Option[DiscreteInterval3D[T1, T2, T3]] =
+  override infix def gapWith(that: Interval3D[T1, T2, T3]): Option[Interval3D[T1, T2, T3]] =
     for
       horizontalGap <- horizontal gapWith that.horizontal
       verticalGap <- vertical gapWith that.vertical
@@ -131,7 +131,7 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
     * @param newHorizontal
     *   the new horizontal interval
     */
-  def withHorizontal(newHorizontal: DiscreteInterval1D[T1]): DiscreteInterval3D[T1, T2, T3] =
+  def withHorizontal(newHorizontal: Interval1D[T1]): Interval3D[T1, T2, T3] =
     copy(horizontal = newHorizontal)
 
   /**
@@ -141,7 +141,7 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
     * @param newVertical
     *   the new horizontal interval
     */
-  def withVertical(newVertical: DiscreteInterval1D[T2]): DiscreteInterval3D[T1, T2, T3] =
+  def withVertical(newVertical: Interval1D[T2]): Interval3D[T1, T2, T3] =
     copy(vertical = newVertical)
 
   /**
@@ -151,7 +151,7 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
     * @param newDepth
     *   the new depth interval
     */
-  def withDepth(newDepth: DiscreteInterval1D[T3]): DiscreteInterval3D[T1, T2, T3] =
+  def withDepth(newDepth: Interval1D[T3]): Interval3D[T1, T2, T3] =
     copy(depth = newDepth)
 
   /**
@@ -161,7 +161,7 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
     * @param update
     *   function to apply to this horizontal interval and used in the returned interval.
     */
-  def withHorizontalUpdate(update: DiscreteInterval1D[T1] => DiscreteInterval1D[T1]): DiscreteInterval3D[T1, T2, T3] =
+  def withHorizontalUpdate(update: Interval1D[T1] => Interval1D[T1]): Interval3D[T1, T2, T3] =
     withHorizontal(update(this.horizontal))
 
   /**
@@ -171,7 +171,7 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
     * @param update
     *   function to apply to this vertical interval and used in the returned interval.
     */
-  def withVerticalUpdate(update: DiscreteInterval1D[T2] => DiscreteInterval1D[T2]): DiscreteInterval3D[T1, T2, T3] =
+  def withVerticalUpdate(update: Interval1D[T2] => Interval1D[T2]): Interval3D[T1, T2, T3] =
     withVertical(update(this.vertical))
 
   /**
@@ -181,7 +181,7 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
     * @param update
     *   function to apply to this depth interval and used in the returned interval.
     */
-  def withDepthUpdate(update: DiscreteInterval1D[T3] => DiscreteInterval1D[T3]): DiscreteInterval3D[T1, T2, T3] =
+  def withDepthUpdate(update: Interval1D[T3] => Interval1D[T3]): Interval3D[T1, T2, T3] =
     withDepth(update(this.depth))
 
   /**
@@ -191,7 +191,7 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
     * @param that
     *   the interval to test for adjacency.
     */
-  infix def isLowerAdjacentTo(that: DiscreteInterval3D[T1, T2, T3]): Boolean =
+  infix def isLowerAdjacentTo(that: Interval3D[T1, T2, T3]): Boolean =
     (this.vertical.end.successor equiv that.vertical.start) &&
       (this.horizontal equiv that.horizontal) && (this.depth equiv that.depth)
 
@@ -202,7 +202,7 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
     * @param that
     *   the interval to test for adjacency.
     */
-  infix def isBackAdjacentTo(that: DiscreteInterval3D[T1, T2, T3]): Boolean =
+  infix def isBackAdjacentTo(that: Interval3D[T1, T2, T3]): Boolean =
     (this.depth.end.successor equiv that.depth.start) &&
       (this.vertical equiv that.vertical) && (this.horizontal equiv that.horizontal)
 
@@ -213,7 +213,7 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
     * @param that
     *   the interval to test for adjacency.
     */
-  infix def isUpperAdjacentTo(that: DiscreteInterval3D[T1, T2, T3]): Boolean = that isLowerAdjacentTo this
+  infix def isUpperAdjacentTo(that: Interval3D[T1, T2, T3]): Boolean = that isLowerAdjacentTo this
 
   /**
     * Tests if this interval is in front of that interval, and there is no gap between them, and their vertical and
@@ -222,25 +222,25 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
     * @param that
     *   the interval to test for adjacency.
     */
-  infix def isFrontAdjacentTo(that: DiscreteInterval3D[T1, T2, T3]): Boolean = that isBackAdjacentTo this
+  infix def isFrontAdjacentTo(that: Interval3D[T1, T2, T3]): Boolean = that isBackAdjacentTo this
 
   /**
     * Flips this interval by swapping the vertical and horizontal components with one another and keeping the depth
     * component unchanged.
     */
-  def flipAboutDepth: DiscreteInterval3D[T2, T1, T3] = vertical x horizontal x depth
+  def flipAboutDepth: Interval3D[T2, T1, T3] = vertical x horizontal x depth
 
   /**
     * Flips this interval by swapping the vertical and depth components with one another and keeping the horizontal
     * component unchanged.
     */
-  def flipAboutHorizontal: DiscreteInterval3D[T1, T3, T2] = horizontal x depth x vertical
+  def flipAboutHorizontal: Interval3D[T1, T3, T2] = horizontal x depth x vertical
 
   /**
     * Flips this interval by swapping the depth and horizontal components with one another and keeping the vertical
     * component unchanged.
     */
-  def flipAboutVertical: DiscreteInterval3D[T3, T2, T1] = depth x vertical x horizontal
+  def flipAboutVertical: Interval3D[T3, T2, T1] = depth x vertical x horizontal
 
   // equivalent symbolic method names
 
@@ -249,13 +249,13 @@ case class DiscreteInterval3D[T1: DiscreteValue, T2: DiscreteValue, T3: Discrete
 /**
   * Companion for the three-dimensional interval used in defining and operating on valid data.
   */
-object DiscreteInterval3D:
+object Interval3D:
 
   /**
     * Returns an interval unbounded in all dimensions.
     */
-  def unbounded[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue]: DiscreteInterval3D[T1, T2, T3] =
-    DiscreteInterval1D.unbounded[T1] x DiscreteInterval1D.unbounded[T2] x DiscreteInterval1D.unbounded[T3]
+  def unbounded[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue]: Interval3D[T1, T2, T3] =
+    Interval1D.unbounded[T1] x Interval1D.unbounded[T2] x Interval1D.unbounded[T3]
 
   /**
     * Generic compression algorithm used by both `compress` and `Data3DBase.compressInPlace`.
@@ -293,9 +293,9 @@ object DiscreteInterval3D:
     initialState: S,
     result: S => R,
     dataIterable: S => Iterable[D],
-    interval: D => DiscreteInterval3D[T1, T2, T3],
+    interval: D => Interval3D[T1, T2, T3],
     valueMatch: (D, D) => Boolean,
-    lookup: (S, DiscreteDomain3D[T1, T2, T3]) => Option[D],
+    lookup: (S, Domain3D[T1, T2, T3]) => Option[D],
     compressAdjacent: (D, D, S) => S
   ): R =
     /*
@@ -346,8 +346,8 @@ object DiscreteInterval3D:
     *   a new (possibly smaller) collection of intervals covering the same domain as the input.
     */
   def compress[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue](
-    intervals: Iterable[DiscreteInterval3D[T1, T2, T3]]
-  ): Iterable[DiscreteInterval3D[T1, T2, T3]] = compressGeneric(
+    intervals: Iterable[Interval3D[T1, T2, T3]]
+  ): Iterable[Interval3D[T1, T2, T3]] = compressGeneric(
     initialState = TreeMap.from(intervals.map(i => i.start -> i)), // intervals by start
     result = _.values,
     dataIterable = _.values,
@@ -361,11 +361,11 @@ object DiscreteInterval3D:
     * Returns an interval that starts and ends at the same value.
     */
   def intervalAt[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue](
-    s: DiscreteDomain3D[T1, T2, T3]
-  ): DiscreteInterval3D[T1, T2, T3] = apply(
-    DiscreteInterval1D.intervalAt(s.horizontalIndex),
-    DiscreteInterval1D.intervalAt(s.verticalIndex),
-    DiscreteInterval1D.intervalAt(s.depthIndex)
+    s: Domain3D[T1, T2, T3]
+  ): Interval3D[T1, T2, T3] = apply(
+    Interval1D.intervalAt(s.horizontalIndex),
+    Interval1D.intervalAt(s.verticalIndex),
+    Interval1D.intervalAt(s.depthIndex)
   )
 
   // These methods operate on collections of three-dimensional intervals.
@@ -388,7 +388,7 @@ object DiscreteInterval3D:
     *   true if the collection is compressible, false otherwise.
     */
   def isCompressible[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue](
-    intervals: Iterable[DiscreteInterval3D[T1, T2, T3]]
+    intervals: Iterable[Interval3D[T1, T2, T3]]
   ): Boolean =
     // evaluates every pair of 2D intervals twice, so we only need to check for left/lower adjacency
     intervals.exists: r =>
@@ -414,7 +414,7 @@ object DiscreteInterval3D:
     *   true if the collection is disjoint, false otherwise.
     */
   def isDisjoint[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue](
-    intervals: Iterable[DiscreteInterval3D[T1, T2, T3]]
+    intervals: Iterable[Interval3D[T1, T2, T3]]
   ): Boolean = !intervals.exists: r =>
     intervals
       .filter(_.start <= r.start) // by symmetry
@@ -437,10 +437,10 @@ object DiscreteInterval3D:
     *   a new collection of intervals representing disjoint intervals covering the span of the input.
     */
   def uniqueIntervals[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue](
-    intervals: Iterable[DiscreteInterval3D[T1, T2, T3]]
-  ): Iterable[DiscreteInterval3D[T1, T2, T3]] =
+    intervals: Iterable[Interval3D[T1, T2, T3]]
+  ): Iterable[Interval3D[T1, T2, T3]] =
     for
-      horizontal <- DiscreteInterval1D.uniqueIntervals(intervals.map(_.horizontal))
-      vertical <- DiscreteInterval1D.uniqueIntervals(intervals.map(_.vertical))
-      depth <- DiscreteInterval1D.uniqueIntervals(intervals.map(_.depth))
+      horizontal <- Interval1D.uniqueIntervals(intervals.map(_.horizontal))
+      vertical <- Interval1D.uniqueIntervals(intervals.map(_.vertical))
+      depth <- Interval1D.uniqueIntervals(intervals.map(_.depth))
     yield horizontal x vertical x depth

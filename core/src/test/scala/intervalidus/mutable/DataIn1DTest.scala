@@ -9,7 +9,7 @@ import scala.language.implicitConversions
 
 class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors with MutableBaseBehaviors:
 
-  import DiscreteInterval1D.*
+  import Interval1D.*
 
   // shared
   testsFor(stringLookupTests("Mutable", DataIn1D(_), DataIn1D.of(_)))
@@ -20,8 +20,8 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
   )
   testsFor(
     mutableBaseTests[
-      DiscreteDomain1D[Int],
-      DiscreteInterval1D[Int],
+      Domain1D[Int],
+      Interval1D[Int],
       ValidData1D[String, Int],
       DiffAction1D[String, Int],
       DataIn1D[String, Int]
@@ -34,7 +34,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
           value = d.value + "!",
           interval = d.interval.toAfter(d.interval.end)
         ),
-      DiscreteInterval1D.unbounded
+      Interval1D.unbounded
     )
   )
 
@@ -47,7 +47,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
   override def assertRemoveOrUpdateResult(
     removeExpectedUnsorted: ValidData1D[String, Int]*
   )(
-    removeOrUpdateInterval: DiscreteInterval1D[Int],
+    removeOrUpdateInterval: Interval1D[Int],
     updateValue: String = "update"
   )(using Experimental): Assertion =
     val fixtureInterval = interval(-7, 7)

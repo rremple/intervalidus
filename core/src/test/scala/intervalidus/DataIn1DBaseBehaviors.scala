@@ -12,8 +12,8 @@ import scala.language.implicitConversions
 trait DataIn1DBaseBehaviors:
   this: AnyFunSuite & Matchers =>
 
-  import DiscreteDomain1D.Point
-  import DiscreteInterval1D.*
+  import Domain1D.Point
+  import Interval1D.*
 
   def stringLookupTests[S <: DataIn1DBase[String, Int]](
     prefix: String,
@@ -117,11 +117,11 @@ trait DataIn1DBaseBehaviors:
 
     def taxUsingFold(income: Int): Double = fixture.foldLeft(0.0): (priorTax, bracket) =>
       bracket.interval match
-        case DiscreteInterval1D(Point(start), _) if start > income => // bracket above income
+        case Interval1D(Point(start), _) if start > income => // bracket above income
           priorTax // no tax in this bracket
-        case DiscreteInterval1D(Point(start), _) if bracket.interval contains income => // income in bracket
+        case Interval1D(Point(start), _) if bracket.interval contains income => // income in bracket
           priorTax + bracket.value * (income - start + 1) // add calculation based on income
-        case DiscreteInterval1D(Point(start), Point(end)) => // income above bracket
+        case Interval1D(Point(start), Point(end)) => // income above bracket
           priorTax + bracket.value * (end - start + 1) // add full tax in this bracket
         case unexpected => fail(s"invalid bracket: $unexpected")
 
@@ -141,7 +141,7 @@ trait DataIn1DBaseBehaviors:
   protected def assertRemoveOrUpdateResult(
     removeExpectedUnsorted: ValidData1D[String, Int]*
   )(
-    removeOrUpdateInterval: DiscreteInterval1D[Int],
+    removeOrUpdateInterval: Interval1D[Int],
     updateValue: String = "update"
   )(using Experimental): Assertion
 

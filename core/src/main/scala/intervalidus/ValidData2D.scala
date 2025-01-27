@@ -17,5 +17,5 @@ package intervalidus
   */
 case class ValidData2D[V, R1: DiscreteValue, R2: DiscreteValue](
   value: V,
-  interval: DiscreteInterval2D[R1, R2]
-) extends ValidDataLike[V, DiscreteDomain2D[R1, R2], DiscreteInterval2D[R1, R2], ValidData2D[V, R1, R2]]
+  interval: Interval2D[R1, R2]
+) extends ValidDataLike[V, Domain2D[R1, R2], Interval2D[R1, R2], ValidData2D[V, R1, R2]]

@@ -10,7 +10,7 @@ import scala.language.implicitConversions
 
 class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors with MutableBaseBehaviors:
 
-  import DiscreteInterval1D.*
+  import Interval1D.*
 
   // shared
   testsFor(stringLookupTests("Mutable", DataIn3D(_), DataIn3D.of(_)))
@@ -21,8 +21,8 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
   )
   testsFor(
     mutableBaseTests[
-      DiscreteDomain3D[LocalDate, LocalDate, Int],
-      DiscreteInterval3D[LocalDate, LocalDate, Int],
+      Domain3D[LocalDate, LocalDate, Int],
+      Interval3D[LocalDate, LocalDate, Int],
       ValidData3D[String, LocalDate, LocalDate, Int],
       DiffAction3D[String, LocalDate, LocalDate, Int],
       DataIn3D[String, LocalDate, LocalDate, Int]
@@ -35,14 +35,14 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
           value = d.value + "!",
           interval = d.interval.withDepthUpdate(_.toAfter(d.interval.depth.end))
         ),
-      DiscreteInterval3D.unbounded
+      Interval3D.unbounded
     )
   )
 
   override def assertRemoveOrUpdateResult(
     removeExpectedUnsorted: ValidData3D[String, Int, Int, Int]*
   )(
-    removeOrUpdateInterval: DiscreteInterval3D[Int, Int, Int],
+    removeOrUpdateInterval: Interval3D[Int, Int, Int],
     updateValue: String = "update"
   )(using Experimental): Assertion =
     val cube = interval(-9, 9) x interval(-9, 9) x interval(-9, 9)
@@ -76,8 +76,8 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
   testsFor(removeOrUpdateTests("Mutable [experimental bruteForceUpdate]")(using Experimental("bruteForceUpdate")))
 
   def vertical3D[T2: DiscreteValue](
-    interval3: DiscreteInterval1D[T2]
-  ): DiscreteInterval3D[LocalDate, LocalDate, T2] = unbounded[LocalDate] x unbounded[LocalDate] x interval3
+    interval3: Interval1D[T2]
+  ): Interval3D[LocalDate, LocalDate, T2] = unbounded[LocalDate] x unbounded[LocalDate] x interval3
 
   test("Mutable: Constructors and getting data by index"):
     val empty: DataIn3D[String, Int, Int, Int] = DataIn3D()
@@ -174,15 +174,15 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
     val fixture5 = fixture.copy
 
     import DiffAction3D.*
-    import DiscreteDomain1D.{Bottom, Point}
+    import Domain1D.{Bottom, Point}
 
     val actionsFrom2To3 = fixture3.diffActionsFrom(fixture2)
     actionsFrom2To3.toList shouldBe List(
       Create(vertical3D(intervalTo(4)) -> "Hey"),
-      Delete(DiscreteDomain3D[Int, Int, Int](Bottom, Bottom, 0)),
+      Delete(Domain3D[Int, Int, Int](Bottom, Bottom, 0)),
       Update(vertical3D(intervalFrom(16)) -> "World"),
-      Delete(DiscreteDomain3D[Int, Int, Int](Bottom, Bottom, 20)),
-      Delete(DiscreteDomain3D[Int, Int, Int](Bottom, Bottom, 26))
+      Delete(Domain3D[Int, Int, Int](Bottom, Bottom, 20)),
+      Delete(Domain3D[Int, Int, Int](Bottom, Bottom, 26))
     )
     actionsFrom2To3.toList.map(_.toCodeLikeString) shouldBe List(
       "DiffAction3D.Create((unbounded x unbounded x intervalTo(4)) -> \"Hey\")",
@@ -196,7 +196,7 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
     actionsFrom3To5.toList shouldBe List(
       Update((unboundedDate x unboundedDate x intervalTo(0)) -> "Hey"),
       Create((intervalTo(day(0)) x unboundedDate x interval(1, 4)) -> "Hey"),
-      Delete(DiscreteDomain3D[Int, Int, Int](Bottom, Bottom, Point(5))),
+      Delete(Domain3D[Int, Int, Int](Bottom, Bottom, Point(5))),
       Update((intervalTo(day(0)) x unboundedDate x intervalFrom(16)) -> "World")
     )
     fixture2.applyDiffActions(actionsFrom2To3)

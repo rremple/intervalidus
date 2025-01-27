@@ -9,8 +9,8 @@ import scala.language.implicitConversions
 
 class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors with ImmutableBaseBehaviors:
 
-  import DiscreteInterval1D.*
-  import DiscreteDomain1D.Point
+  import Interval1D.*
+  import Domain1D.Point
 
   // shared
   testsFor(stringLookupTests("Immutable", DataIn1D(_), DataIn1D.of(_)))
@@ -21,8 +21,8 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
   )
   testsFor(
     immutableBaseTests[
-      DiscreteDomain1D[Int],
-      DiscreteInterval1D[Int],
+      Domain1D[Int],
+      Interval1D[Int],
       ValidData1D[String, Int],
       DiffAction1D[String, Int],
       DataIn1D[String, Int]
@@ -30,7 +30,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
       DataIn1D(_),
       identity,
       _ -> _,
-      DiscreteInterval1D.unbounded
+      Interval1D.unbounded
     )
   )
 
@@ -43,7 +43,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
   override def assertRemoveOrUpdateResult(
     removeExpectedUnsorted: ValidData1D[String, Int]*
   )(
-    removeOrUpdateInterval: DiscreteInterval1D[Int],
+    removeOrUpdateInterval: Interval1D[Int],
     updateValue: String = "update"
   )(using Experimental): Assertion =
     val fixtureInterval = interval(-7, 7)
@@ -68,7 +68,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
         .zip(brackets)
         .getAll
         .map:
-          case ValidData1D((_, rate), DiscreteInterval1D(Point(bottomInBracket), Point(topInBracket))) =>
+          case ValidData1D((_, rate), Interval1D(Point(bottomInBracket), Point(topInBracket))) =>
             rate * (topInBracket - bottomInBracket + 1)
           case unexpected => fail(s"invalid bracket: $unexpected")
       taxesByBracket.sum

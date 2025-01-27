@@ -5,7 +5,7 @@ import intervalidus.collection.Coordinate
 import scala.language.implicitConversions
 
 /**
-  * A three-dimensional discrete domain, like cartesian coordinates. Used in conjunction with [[DiscreteInterval3D]].
+  * A three-dimensional discrete domain, like cartesian coordinates. Used in conjunction with [[Interval3D]].
   *
   * @param horizontalIndex
   *   domain element on the x-axis.
@@ -20,10 +20,10 @@ import scala.language.implicitConversions
   * @tparam T3
   *   the depth domain type
   */
-case class DiscreteDomain3D[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue](
-  horizontalIndex: DiscreteDomain1D[T1],
-  verticalIndex: DiscreteDomain1D[T2],
-  depthIndex: DiscreteDomain1D[T3]
+case class Domain3D[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue](
+  horizontalIndex: Domain1D[T1],
+  verticalIndex: Domain1D[T2],
+  depthIndex: Domain1D[T3]
 ):
 
   override def toString: String = s"{$horizontalIndex, $verticalIndex, $depthIndex}"
@@ -32,30 +32,30 @@ case class DiscreteDomain3D[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteVa
     * Flips this domain by swapping the vertical and horizontal components with one another and keeping the same depth
     * component.
     */
-  def flipAboutDepth: DiscreteDomain3D[T2, T1, T3] = DiscreteDomain3D(verticalIndex, horizontalIndex, depthIndex)
+  def flipAboutDepth: Domain3D[T2, T1, T3] = Domain3D(verticalIndex, horizontalIndex, depthIndex)
 
   /**
     * Flips this domain by swapping the depth and horizontal components with one another and keeping the same vertical
     * component.
     */
-  def flipAboutVertical: DiscreteDomain3D[T3, T2, T1] = DiscreteDomain3D(depthIndex, verticalIndex, horizontalIndex)
+  def flipAboutVertical: Domain3D[T3, T2, T1] = Domain3D(depthIndex, verticalIndex, horizontalIndex)
 
   /**
     * Flips this domain by swapping the vertical and depth components with one another and keeping the same horizontal
     * component.
     */
-  def flipAboutHorizontal: DiscreteDomain3D[T1, T3, T2] = DiscreteDomain3D(horizontalIndex, depthIndex, verticalIndex)
+  def flipAboutHorizontal: Domain3D[T1, T3, T2] = Domain3D(horizontalIndex, depthIndex, verticalIndex)
 
 /**
   * Companion for the three-dimensional domain used in defining and operating on discrete intervals.
   */
-object DiscreteDomain3D:
+object Domain3D:
 
   /**
     * Type class instance for three-dimensional discrete domains.
     */
-  given [T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue]: DiscreteDomainLike[DiscreteDomain3D[T1, T2, T3]] with
-    extension (domain: DiscreteDomain3D[T1, T2, T3])
+  given [T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue]: DomainLike[Domain3D[T1, T2, T3]] with
+    extension (domain: Domain3D[T1, T2, T3])
       override def isUnbounded: Boolean =
         domain.horizontalIndex.isUnbounded && domain.verticalIndex.isUnbounded & domain.depthIndex.isUnbounded
 
@@ -70,10 +70,10 @@ object DiscreteDomain3D:
           domain.depthIndex.orderedHash
         )
 
-      override def successor: DiscreteDomain3D[T1, T2, T3] =
+      override def successor: Domain3D[T1, T2, T3] =
         domain.horizontalIndex.successor x domain.verticalIndex.successor x domain.depthIndex.successor
 
-      override def predecessor: DiscreteDomain3D[T1, T2, T3] =
+      override def predecessor: Domain3D[T1, T2, T3] =
         domain.horizontalIndex.predecessor x domain.verticalIndex.predecessor x domain.depthIndex.predecessor
 
   /**
@@ -96,11 +96,11 @@ object DiscreteDomain3D:
     *   an ordering for the 3D domain
     */
   given [T1, T2, T3](using
-    horizontalOrdering: Ordering[DiscreteDomain1D[T1]],
-    verticalOrdering: Ordering[DiscreteDomain1D[T2]],
-    depthOrdering: Ordering[DiscreteDomain1D[T3]]
-  ): Ordering[DiscreteDomain3D[T1, T2, T3]] with
-    override def compare(x: DiscreteDomain3D[T1, T2, T3], y: DiscreteDomain3D[T1, T2, T3]): Int =
+    horizontalOrdering: Ordering[Domain1D[T1]],
+    verticalOrdering: Ordering[Domain1D[T2]],
+    depthOrdering: Ordering[Domain1D[T3]]
+  ): Ordering[Domain3D[T1, T2, T3]] with
+    override def compare(x: Domain3D[T1, T2, T3], y: Domain3D[T1, T2, T3]): Int =
       val horizontalCompare = horizontalOrdering.compare(x.horizontalIndex, y.horizontalIndex)
       if horizontalCompare != 0 then horizontalCompare
       else
@@ -118,4 +118,4 @@ object DiscreteDomain3D:
     DiscreteValue[T1],
     DiscreteValue[T2],
     DiscreteValue[T3]
-  ): Conversion[(T1, T2, T3), DiscreteDomain3D[T1, T2, T3]] = (t: (T1, T2, T3)) => DiscreteDomain3D(t._1, t._2, t._3)
+  ): Conversion[(T1, T2, T3), Domain3D[T1, T2, T3]] = (t: (T1, T2, T3)) => Domain3D(t._1, t._2, t._3)

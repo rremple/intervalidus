@@ -16,7 +16,7 @@ object DataIn1DMulti extends DataIn1DMultiBaseObject:
 
   override def of[V, R: DiscreteValue](
     value: V
-  )(using Experimental): DataIn1DMulti[V, R] = of(DiscreteInterval1D.unbounded[R] -> value)
+  )(using Experimental): DataIn1DMulti[V, R] = of(Interval1D.unbounded[R] -> value)
 
   override def from[V, R: DiscreteValue](
     initialData: Iterable[ValidData1D[V, R]]
@@ -49,16 +49,16 @@ object DataIn1DMulti extends DataIn1DMultiBaseObject:
   *   the type of discrete domain used in the interval assigned to each value.
   */
 class DataIn1DMulti[V, R: DiscreteValue] private (
-  override val dataByStartAsc: mutable.TreeMap[DiscreteDomain1D[R], ValidData1D[Set[V], R]],
-  override val dataByStartDesc: mutable.TreeMap[DiscreteDomain1D[R], ValidData1D[Set[V], R]],
+  override val dataByStartAsc: mutable.TreeMap[Domain1D[R], ValidData1D[Set[V], R]],
+  override val dataByStartDesc: mutable.TreeMap[Domain1D[R], ValidData1D[Set[V], R]],
   override val dataByValue: MultiMapSorted[Set[V], ValidData1D[Set[V], R]],
   override val dataInSearchTree: BoxTree[ValidData1D[Set[V], R]]
 )(using Experimental)
   extends DataIn1DMultiBase[V, R]
   with MutableMultiBase[
     V,
-    DiscreteDomain1D[R],
-    DiscreteInterval1D[R],
+    Domain1D[R],
+    Interval1D[R],
     ValidData1D[V, R],
     ValidData1D[Set[V], R],
     DiffAction1D[Set[V], R],

@@ -13,19 +13,19 @@ import scala.language.implicitConversions
 trait ImmutableMultiBaseBehaviors:
   this: AnyFunSuite & Matchers =>
 
-  import DiscreteInterval1D.*
+  import Interval1D.*
 
   def addAndRemoveTests[
-    D: DiscreteDomainLike,
-    I <: DiscreteIntervalLike[D, I],
+    D: DomainLike,
+    I <: IntervalLike[D, I],
     ValidDataOne <: ValidDataLike[String, D, I, ValidDataOne],
     ValidData <: ValidDataLike[Set[String], D, I, ValidData],
     DiffAction: DiffActionLike,
     S <: ImmutableMultiBase[String, D, I, ValidDataOne, ValidData, DiffAction, S]
   ](
     immutableMultiFrom: Experimental ?=> Iterable[ValidDataOne] => S,
-    withHorizontalOne: (DiscreteInterval1D[Int], String) => ValidDataOne,
-    withHorizontal: (DiscreteInterval1D[Int], Set[String]) => ValidData
+    withHorizontalOne: (Interval1D[Int], String) => ValidDataOne,
+    withHorizontal: (Interval1D[Int], Set[String]) => ValidData
   )(using Experimental): Unit =
     test("Immutable: Element-wise adding and removing data in intervals"):
       val allData = List(

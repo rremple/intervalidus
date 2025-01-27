@@ -12,7 +12,7 @@ import scala.language.implicitConversions
 trait DataIn1DMultiBaseBehaviors:
   this: AnyFunSuite & Matchers =>
 
-  import DiscreteInterval1D.*
+  import Interval1D.*
 
   def basicAndZipTests[S <: DataIn1DMultiBase[String, Int]](
     prefix: String,

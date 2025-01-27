@@ -16,7 +16,7 @@ object DataIn3DMulti extends DataIn3DMultiBaseObject:
 
   override def of[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](
     value: V
-  )(using Experimental): DataIn3DMulti[V, R1, R2, R3] = of(DiscreteInterval3D.unbounded[R1, R2, R3] -> value)
+  )(using Experimental): DataIn3DMulti[V, R1, R2, R3] = of(Interval3D.unbounded[R1, R2, R3] -> value)
 
   override def from[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](
     initialData: Iterable[ValidData3D[V, R1, R2, R3]]
@@ -59,16 +59,16 @@ object DataIn3DMulti extends DataIn3DMultiBaseObject:
   *   the type of discrete domain used in the depth interval assigned to each value.
   */
 class DataIn3DMulti[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue] private (
-  override val dataByStartAsc: mutable.TreeMap[DiscreteDomain3D[R1, R2, R3], ValidData3D[Set[V], R1, R2, R3]],
-  override val dataByStartDesc: mutable.TreeMap[DiscreteDomain3D[R1, R2, R3], ValidData3D[Set[V], R1, R2, R3]],
+  override val dataByStartAsc: mutable.TreeMap[Domain3D[R1, R2, R3], ValidData3D[Set[V], R1, R2, R3]],
+  override val dataByStartDesc: mutable.TreeMap[Domain3D[R1, R2, R3], ValidData3D[Set[V], R1, R2, R3]],
   override val dataByValue: MultiMapSorted[Set[V], ValidData3D[Set[V], R1, R2, R3]],
   override val dataInSearchTree: BoxTree[ValidData3D[Set[V], R1, R2, R3]]
 )(using Experimental)
   extends DataIn3DMultiBase[V, R1, R2, R3]
   with MutableMultiBase[
     V,
-    DiscreteDomain3D[R1, R2, R3],
-    DiscreteInterval3D[R1, R2, R3],
+    Domain3D[R1, R2, R3],
+    Interval3D[R1, R2, R3],
     ValidData3D[V, R1, R2, R3],
     ValidData3D[Set[V], R1, R2, R3],
     DiffAction3D[Set[V], R1, R2, R3],
@@ -94,13 +94,13 @@ class DataIn3DMulti[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue] 
   override def flipAboutDepth: DataIn3DMulti[V, R2, R1, R3] =
     DataIn3DMulti(getAll.map(d => d.copy(interval = d.interval.flipAboutDepth)))
 
-  override def getByHorizontalIndex(horizontalIndex: DiscreteDomain1D[R1]): DataIn2DMulti[V, R2, R3] =
+  override def getByHorizontalIndex(horizontalIndex: Domain1D[R1]): DataIn2DMulti[V, R2, R3] =
     DataIn2DMulti[V, R2, R3](getByHorizontalIndexData(horizontalIndex))
 
-  override def getByVerticalIndex(verticalIndex: DiscreteDomain1D[R2]): DataIn2DMulti[V, R1, R3] =
+  override def getByVerticalIndex(verticalIndex: Domain1D[R2]): DataIn2DMulti[V, R1, R3] =
     DataIn2DMulti[V, R1, R3](getByVerticalIndexData(verticalIndex))
 
-  override def getByDepthIndex(depthIndex: DiscreteDomain1D[R3]): DataIn2DMulti[V, R1, R2] =
+  override def getByDepthIndex(depthIndex: Domain1D[R3]): DataIn2DMulti[V, R1, R2] =
     DataIn2DMulti[V, R1, R2](getByDepthIndexData(depthIndex))
 
   // ---------- Implement methods from MutableBase ----------

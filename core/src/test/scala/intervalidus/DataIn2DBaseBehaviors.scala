@@ -13,7 +13,7 @@ import scala.language.implicitConversions
 trait DataIn2DBaseBehaviors:
   this: AnyFunSuite & Matchers =>
 
-  import DiscreteInterval1D.*
+  import Interval1D.*
 
   val unboundedDate = unbounded[LocalDate]
   val unboundedInt = unbounded[Int]
@@ -47,7 +47,7 @@ trait DataIn2DBaseBehaviors:
     val single = dataIn2DOf("Hello world")
     single.get shouldBe "Hello world"
     single.getOption shouldBe Some("Hello world")
-    single.domain.toList shouldBe List(DiscreteInterval2D.unbounded[Int, Int])
+    single.domain.toList shouldBe List(Interval2D.unbounded[Int, Int])
 
     val bounded = (intervalFrom(0) x intervalTo(0)) -> "Hello world"
     bounded.toString shouldBe "{[0..+∞), (-∞..0]} -> Hello world"
@@ -63,7 +63,7 @@ trait DataIn2DBaseBehaviors:
     )
     fixture1.getOption shouldBe None
     assert(fixture1.isDefinedAt(dayZero, 0))
-    DiscreteDomain2D(dayZero, 0).flip shouldBe DiscreteDomain2D(0, dayZero)
+    Domain2D(dayZero, 0).flip shouldBe Domain2D(0, dayZero)
     fixture1(dayZero, 0) shouldBe "Hello world"
     fixture1.flip(0, dayZero) shouldBe "Hello world"
     assert(!fixture1.isDefinedAt(day(-1), 0))
@@ -129,7 +129,7 @@ trait DataIn2DBaseBehaviors:
   protected def assertRemoveOrUpdateResult(
     removeExpectedUnsorted: ValidData2D[String, LocalDate, Int]*
   )(
-    removeOrUpdateInterval: DiscreteInterval2D[LocalDate, Int],
+    removeOrUpdateInterval: Interval2D[LocalDate, Int],
     updateValue: String = "update"
   )(using Experimental): Assertion
 

@@ -8,9 +8,9 @@ import intervalidus.*
   * @tparam V
   *   the value type for valid data.
   * @tparam D
-  *   the domain type for intervals. Must be [[DiscreteDomainLike]].
+  *   the domain type for intervals. Must be [[DomainLike]].
   * @tparam I
-  *   the interval type, based on the domain type. Must be [[DiscreteIntervalLike]] based on [[D]].
+  *   the interval type, based on the domain type. Must be [[IntervalLike]] based on [[D]].
   * @tparam ValidDataOne
   *   the valid data type for a single value. Must be [[ValidDataLike]] based on [[V]], [[D]], and [[I]].
   * @tparam ValidData
@@ -22,8 +22,8 @@ import intervalidus.*
   */
 trait ImmutableMultiBase[
   V,
-  D: DiscreteDomainLike,
-  I <: DiscreteIntervalLike[D, I],
+  D: DomainLike,
+  I <: IntervalLike[D, I],
   ValidDataOne <: ValidDataLike[V, D, I, ValidDataOne],
   ValidData <: ValidDataLike[Set[V], D, I, ValidData],
   DiffAction: DiffActionLike,

@@ -3,7 +3,7 @@ package intervalidus.json.weepickle
 import com.rallyhealth.weejson.v1.jackson.{FromJson, ToJson}
 import com.rallyhealth.weepickle.v1.WeePickle.*
 import intervalidus.*
-import intervalidus.DiscreteInterval1D.*
+import intervalidus.Interval1D.*
 import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
@@ -12,7 +12,7 @@ import scala.language.implicitConversions
 
 class JsonTest extends AnyFunSuite with Matchers:
 
-  import DiscreteDomain1D.{Bottom, Point, Top}
+  import Domain1D.{Bottom, Point, Top}
   import Json.given
   extension (json: String) def as[T: To]: T = FromJson(json).transform(to[T])
   private def write[T: From](t: T): String = fromScala(t).transform(ToJson.string)
@@ -25,34 +25,34 @@ class JsonTest extends AnyFunSuite with Matchers:
     write(t) shouldBe json
 
   test("Domains encoded as strings/objects - 1D"):
-    isomorphic[DiscreteDomain1D[Int]](Top, quote("Top"))
-    isomorphic[DiscreteDomain1D[Int]](Bottom, quote("Bottom"))
-    isomorphic[DiscreteDomain1D[Int]](Point(1), """{"point":1}""")
+    isomorphic[Domain1D[Int]](Top, quote("Top"))
+    isomorphic[Domain1D[Int]](Bottom, quote("Bottom"))
+    isomorphic[Domain1D[Int]](Point(1), """{"point":1}""")
 
     // must be an object or string
-    assertThrows[Exception]("1".as[DiscreteDomain1D[Int]])
-    assertThrows[Exception](quote("Unknown string").as[DiscreteDomain1D[Int]])
-    assertThrows[Exception]("""{ "point": "type mismatch" }""".as[DiscreteDomain1D[Int]])
+    assertThrows[Exception]("1".as[Domain1D[Int]])
+    assertThrows[Exception](quote("Unknown string").as[Domain1D[Int]])
+    assertThrows[Exception]("""{ "point": "type mismatch" }""".as[Domain1D[Int]])
 
   test("Domains encoded as strings/objects - 2D"):
-    isomorphic(DiscreteDomain2D[Int, Int](Top, Top), """{"horizontalIndex":"Top","verticalIndex":"Top"}""")
-    isomorphic(DiscreteDomain2D[Int, Int](Bottom, 1), """{"horizontalIndex":"Bottom","verticalIndex":{"point":1}}""")
+    isomorphic(Domain2D[Int, Int](Top, Top), """{"horizontalIndex":"Top","verticalIndex":"Top"}""")
+    isomorphic(Domain2D[Int, Int](Bottom, 1), """{"horizontalIndex":"Bottom","verticalIndex":{"point":1}}""")
 
     // must be an object
-    assertThrows[Exception](quote("Top").as[DiscreteDomain2D[Int, Int]])
+    assertThrows[Exception](quote("Top").as[Domain2D[Int, Int]])
 
   test("Domains encoded as strings/objects - 3D"):
     isomorphic(
-      DiscreteDomain3D[Int, Int, Int](Top, Top, Top),
+      Domain3D[Int, Int, Int](Top, Top, Top),
       """{"horizontalIndex":"Top","verticalIndex":"Top","depthIndex":"Top"}"""
     )
     isomorphic(
-      DiscreteDomain3D[Int, Int, Int](Bottom, 1, 2),
+      Domain3D[Int, Int, Int](Bottom, 1, 2),
       """{"horizontalIndex":"Bottom","verticalIndex":{"point":1},"depthIndex":{"point":2}}"""
     )
 
     // must be an object
-    assertThrows[Exception](quote("Top").as[DiscreteDomain3D[Int, Int, Int]])
+    assertThrows[Exception](quote("Top").as[Domain3D[Int, Int, Int]])
 
   test("Intervals encoded as objects - 1D"):
     isomorphic(intervalFrom(0), """{"start":{"point":0},"end":"Top"}""")

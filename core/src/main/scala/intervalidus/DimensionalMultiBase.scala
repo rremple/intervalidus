@@ -7,9 +7,9 @@ package intervalidus
   * @tparam V
   *   the value type for valid data.
   * @tparam D
-  *   the domain type for intervals. Must be [[DiscreteDomainLike]] and have an [[Ordering]].
+  *   the domain type for intervals. Must be [[DomainLike]] and have an [[Ordering]].
   * @tparam I
-  *   the interval type, based on the domain type. Must be [[DiscreteIntervalLike]] based on [[D]].
+  *   the interval type, based on the domain type. Must be [[IntervalLike]] based on [[D]].
   * @tparam ValidData
   *   the valid data type for a set of values. Must be [[ValidDataLike]] based on [[V]], [[D]], and [[I]].
   * @tparam DiffAction
@@ -17,8 +17,8 @@ package intervalidus
   */
 trait DimensionalMultiBase[
   V,
-  D: DiscreteDomainLike,
-  I <: DiscreteIntervalLike[D, I],
+  D: DomainLike,
+  I <: IntervalLike[D, I],
   ValidData <: ValidDataLike[Set[V], D, I, ValidData],
   DiffAction: DiffActionLike
 ]:

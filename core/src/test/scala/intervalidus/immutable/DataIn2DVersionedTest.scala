@@ -10,7 +10,7 @@ import scala.language.implicitConversions
 class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersionedBaseBehaviors:
 
   import DimensionalVersionedBase.VersionSelection
-  import DiscreteInterval1D.*
+  import Interval1D.*
 
   // increment current version with each data element
   def newDataIn2DVersioned(allData: Iterable[ValidData2D[String, Int, Int]]): DataIn2DVersioned[String, Int, Int] =
@@ -40,10 +40,10 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
       empty.setCurrentVersion(Int.MaxValue)
 
     assertThrows[Exception]: // version too large
-      empty.setCurrentVersion(DiscreteDomain1D.Top)
+      empty.setCurrentVersion(Domain1D.Top)
 
     assertThrows[Exception]: // version too small
-      empty.setCurrentVersion(DiscreteDomain1D.Bottom)
+      empty.setCurrentVersion(Domain1D.Bottom)
 
     val emptyAtMaxVersion = empty.setCurrentVersion(Int.MaxValue - 1) // last approved version
     assertThrows[Exception]: // wow, ran out of versions!

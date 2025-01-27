@@ -16,7 +16,7 @@ import scala.language.implicitConversions
   * @tparam T
   *   expected to be a discrete value (i.e., `DiscreteValue[T]` should be given).
   */
-enum DiscreteDomain1D[+T]:
+enum Domain1D[+T]:
   /**
     * Smaller than smallest data point (like -∞)
     */
@@ -25,7 +25,7 @@ enum DiscreteDomain1D[+T]:
   /**
     * A single data point in the finite range of this domain
     */
-  case Point[P: DiscreteValue](p: P) extends DiscreteDomain1D[P]
+  case Point[P: DiscreteValue](p: P) extends Domain1D[P]
 
   /**
     * Larger than largest data point (like +∞)
@@ -37,12 +37,12 @@ enum DiscreteDomain1D[+T]:
     case Point(t) => t.toString
     case Top      => "+∞"
 
-import DiscreteDomain1D.{Bottom, Point, Top}
+import Domain1D.{Bottom, Point, Top}
 
 /**
   * Companion for the one-dimensional domain used in defining and operating on discrete intervals.
   */
-object DiscreteDomain1D:
+object Domain1D:
   /**
     * Construct a discrete domain based on a discrete value type.
     *
@@ -53,13 +53,13 @@ object DiscreteDomain1D:
     * @return
     *   a discrete domain of the discrete value type
     */
-  def domain[T: DiscreteValue](t: T): DiscreteDomain1D[T] = t
+  def domain[T: DiscreteValue](t: T): Domain1D[T] = t
 
   /**
     * Type class instance for one-dimensional discrete domains.
     */
-  given [T: DiscreteValue]: DiscreteDomainLike[DiscreteDomain1D[T]] with
-    extension (domain: DiscreteDomain1D[T])
+  given [T: DiscreteValue]: DomainLike[Domain1D[T]] with
+    extension (domain: Domain1D[T])
       override def isUnbounded: Boolean = domain match
         case Point(_) => false
         case _        => true
@@ -77,11 +77,11 @@ object DiscreteDomain1D:
       override def asCoordinate: Coordinate =
         Coordinate(domain.orderedHash)
 
-      override def successor: DiscreteDomain1D[T] = domain match
+      override def successor: Domain1D[T] = domain match
         case Point(p)    => p.successorValue.map(Point(_)).getOrElse(Top)
         case topOrBottom => topOrBottom
 
-      override def predecessor: DiscreteDomain1D[T] = domain match
+      override def predecessor: Domain1D[T] = domain match
         case Point(p)    => p.predecessorValue.map(Point(_)).getOrElse(Bottom)
         case topOrBottom => topOrBottom
 
@@ -112,8 +112,8 @@ object DiscreteDomain1D:
         *   a new two-dimensional domain element with this as the horizontal component and that as the vertical
         *   component.
         */
-      infix def x[T2: DiscreteValue](that: DiscreteDomain1D[T2]): DiscreteDomain2D[T, T2] =
-        DiscreteDomain2D(domain, that)
+      infix def x[T2: DiscreteValue](that: Domain1D[T2]): Domain2D[T, T2] =
+        Domain2D(domain, that)
 
   /**
     * This ordering sorts Bottoms and Tops correctly and leverages the discrete value ordering for the data points in
@@ -127,7 +127,7 @@ object DiscreteDomain1D:
     *
     * One workaround is to safe cast as supertype, e.g., `(Point(2): DiscreteDomain1D[Int]) equiv Point(3).predecessor`
     */
-  given [T](using discreteValue: DiscreteValue[T]): Ordering[DiscreteDomain1D[T]] =
+  given [T](using discreteValue: DiscreteValue[T]): Ordering[Domain1D[T]] =
     case (Bottom, Bottom)     => 0
     case (Bottom, _)          => -1
     case (_, Bottom)          => 1
@@ -143,4 +143,4 @@ object DiscreteDomain1D:
     * conversion rather than a multitude of overloaded methods (which are especially problematic when combined with
     * default parameters).
     */
-  given [T](using DiscreteValue[T]): Conversion[T, DiscreteDomain1D[T]] = Point(_)
+  given [T](using DiscreteValue[T]): Conversion[T, Domain1D[T]] = Point(_)

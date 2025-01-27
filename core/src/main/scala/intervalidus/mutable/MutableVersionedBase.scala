@@ -11,18 +11,18 @@ import scala.math.Ordering.Implicits.infixOrderingOps
   * @tparam V
   *   the value type for valid data.
   * @tparam D
-  *   the domain type for intervals in the public interface. Must be [[DiscreteDomainLike]].
+  *   the domain type for intervals in the public interface. Must be [[DomainLike]].
   * @tparam I
-  *   the interval type in the public interface. Must be [[DiscreteIntervalLike]] based on [[D]].
+  *   the interval type in the public interface. Must be [[IntervalLike]] based on [[D]].
   * @tparam ValidData
   *   the valid data type in the public interface. Must be [[ValidDataLike]] based on [[V]], [[D]], and [[I]].
   * @tparam DiffAction
   *   the diff action type. Must be [[DiffActionLike]] based on [[V]], [[D]], and [[I]].
   * @tparam D2
-  *   the domain type for intervals used in the underlying data. Must be [[DiscreteDomainLike]] and should be one
-  *   dimension higher than [[D]], where the last dimension is `Int`.
+  *   the domain type for intervals used in the underlying data. Must be [[DomainLike]] and should be one dimension
+  *   higher than [[D]], where the last dimension is `Int`.
   * @tparam I2
-  *   the interval type of the underlying data. Must be [[DiscreteIntervalLike]] based on [[D2]].
+  *   the interval type of the underlying data. Must be [[IntervalLike]] based on [[D2]].
   * @tparam ValidData2
   *   the valid data type of the underlying data. Must be [[ValidDataLike]] based on [[V]], [[D2]], and [[I2]].
   * @tparam DiffAction2
@@ -32,12 +32,12 @@ import scala.math.Ordering.Implicits.infixOrderingOps
   */
 trait MutableVersionedBase[
   V,
-  D: DiscreteDomainLike,
-  I <: DiscreteIntervalLike[D, I],
+  D: DomainLike,
+  I <: IntervalLike[D, I],
   ValidData <: ValidDataLike[V, D, I, ValidData],
   DiffAction: DiffActionLike,
-  D2: DiscreteDomainLike,
-  I2 <: DiscreteIntervalLike[D2, I2],
+  D2: DomainLike,
+  I2 <: IntervalLike[D2, I2],
   ValidData2 <: ValidDataLike[V, D2, I2, ValidData2],
   DiffAction2: DiffActionLike,
   Self <: MutableVersionedBase[V, D, I, ValidData, DiffAction, D2, I2, ValidData2, DiffAction2, Self] &

@@ -12,11 +12,11 @@ import scala.language.implicitConversions
 trait DataIn2DMultiBaseBehaviors:
   this: AnyFunSuite & Matchers =>
 
-  import DiscreteInterval1D.*
+  import Interval1D.*
 
-  def withHorizontal[T: DiscreteValue](i: DiscreteInterval1D[T]): DiscreteInterval2D[T, T] = i x unbounded
+  def withHorizontal[T: DiscreteValue](i: Interval1D[T]): Interval2D[T, T] = i x unbounded
 
-  def withHorizontal[T: DiscreteValue](d: DiscreteDomain1D[T]): DiscreteDomain2D[T, T] = d x DiscreteDomain1D.Bottom
+  def withHorizontal[T: DiscreteValue](d: Domain1D[T]): Domain2D[T, T] = d x Domain1D.Bottom
 
   def basicAndZipTests[S <: DataIn2DMultiBase[String, Int, Int]](
     prefix: String,

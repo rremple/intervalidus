@@ -13,7 +13,7 @@ class DataIn2DMultiTest
   with DataIn2DMultiBaseBehaviors
   with ImmutableMultiBaseBehaviors:
 
-  import DiscreteInterval1D.*
+  import Interval1D.*
 
   testsFor(
     basicAndZipTests("Immutable", DataIn2DMulti.from(_), DataIn2DMulti.from(_), DataIn2DMulti.of(_), DataIn2DMulti(_))
@@ -21,8 +21,8 @@ class DataIn2DMultiTest
 
   testsFor(
     addAndRemoveTests[
-      DiscreteDomain2D[Int, Int],
-      DiscreteInterval2D[Int, Int],
+      Domain2D[Int, Int],
+      Interval2D[Int, Int],
       ValidData2D[String, Int, Int],
       ValidData2D[Set[String], Int, Int],
       DiffAction2D[Set[String], Int, Int],

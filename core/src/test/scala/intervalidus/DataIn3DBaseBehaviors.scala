@@ -13,7 +13,7 @@ import scala.language.implicitConversions
 trait DataIn3DBaseBehaviors:
   this: AnyFunSuite & Matchers =>
 
-  import DiscreteInterval1D.*
+  import Interval1D.*
 
   protected val dayZero: LocalDate = LocalDate.of(2024, 7, 15)
 
@@ -46,7 +46,7 @@ trait DataIn3DBaseBehaviors:
     val single = dataIn3DOf("Hello world")
     single.get shouldBe "Hello world"
     single.getOption shouldBe Some("Hello world")
-    single.domain.toList shouldBe List(DiscreteInterval3D.unbounded[LocalDate, LocalDate, Int])
+    single.domain.toList shouldBe List(Interval3D.unbounded[LocalDate, LocalDate, Int])
 
     val bounded = (intervalFrom(0) x intervalTo(0) x intervalTo(0)) -> "Hello world"
     bounded.toString shouldBe "{[0..+∞), (-∞..0], (-∞..0]} -> Hello world"
@@ -58,23 +58,23 @@ trait DataIn3DBaseBehaviors:
     assertThrows[Exception]:
       val _ = bounded(-1, 0, 0)
 
-    DiscreteDomain3D(dayZero, day(1), 0).flipAboutHorizontal shouldBe DiscreteDomain3D(dayZero, 0, day(1))
-    DiscreteDomain3D(dayZero, day(1), 0).flipAboutVertical shouldBe DiscreteDomain3D(0, day(1), dayZero)
-    DiscreteDomain3D(dayZero, day(1), 0).flipAboutDepth shouldBe DiscreteDomain3D(day(1), dayZero, 0)
+    Domain3D(dayZero, day(1), 0).flipAboutHorizontal shouldBe Domain3D(dayZero, 0, day(1))
+    Domain3D(dayZero, day(1), 0).flipAboutVertical shouldBe Domain3D(0, day(1), dayZero)
+    Domain3D(dayZero, day(1), 0).flipAboutDepth shouldBe Domain3D(day(1), dayZero, 0)
     val fixture1 = dataIn3DFrom(
       List((intervalFrom(dayZero) x intervalTo(dayZero) x intervalFrom(0)) -> "Hello world")
     )
     fixture1.getOption shouldBe None
     assert(fixture1.isDefinedAt(day(1), dayZero, 0))
     fixture1(day(1), dayZero, 0) shouldBe "Hello world"
-    fixture1.flipAboutHorizontal(DiscreteDomain3D(day(1), dayZero, 0).flipAboutHorizontal) shouldBe "Hello world"
-    fixture1.flipAboutVertical(DiscreteDomain3D(day(1), dayZero, 0).flipAboutVertical) shouldBe "Hello world"
-    fixture1.flipAboutDepth(DiscreteDomain3D(day(1), dayZero, 0).flipAboutDepth) shouldBe "Hello world"
+    fixture1.flipAboutHorizontal(Domain3D(day(1), dayZero, 0).flipAboutHorizontal) shouldBe "Hello world"
+    fixture1.flipAboutVertical(Domain3D(day(1), dayZero, 0).flipAboutVertical) shouldBe "Hello world"
+    fixture1.flipAboutDepth(Domain3D(day(1), dayZero, 0).flipAboutDepth) shouldBe "Hello world"
     assert(!fixture1.isDefinedAt(day(-1), day(1), 0))
     assertThrows[Exception]:
       val _ = fixture1(day(-1), day(1), 0)
 
-    val now: DiscreteDomain1D[LocalDate] =
+    val now: Domain1D[LocalDate] =
       LocalDate.now // since all the dates are unbounded, this value shouldn't matter
 
     val allData2 = List(
@@ -137,7 +137,7 @@ trait DataIn3DBaseBehaviors:
   protected def assertRemoveOrUpdateResult(
     removeExpectedUnsorted: ValidData3D[String, Int, Int, Int]*
   )(
-    removeOrUpdateInterval: DiscreteInterval3D[Int, Int, Int],
+    removeOrUpdateInterval: Interval3D[Int, Int, Int],
     updateValue: String = "update"
   )(using Experimental): Assertion
 

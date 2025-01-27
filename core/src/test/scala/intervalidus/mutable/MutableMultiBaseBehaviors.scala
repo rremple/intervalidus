@@ -13,11 +13,11 @@ import scala.language.implicitConversions
 trait MutableMultiBaseBehaviors:
   this: AnyFunSuite & Matchers =>
 
-  import DiscreteInterval1D.*
+  import Interval1D.*
 
   def addAndRemoveTests[
-    D: DiscreteDomainLike,
-    I <: DiscreteIntervalLike[D, I],
+    D: DomainLike,
+    I <: IntervalLike[D, I],
     ValidDataOne <: ValidDataLike[String, D, I, ValidDataOne],
     ValidData <: ValidDataLike[Set[String], D, I, ValidData],
     DiffAction: DiffActionLike,
@@ -25,8 +25,8 @@ trait MutableMultiBaseBehaviors:
       DimensionalBase[Set[String], D, I, ValidData, DiffAction, ?]
   ](
     multiFrom: Experimental ?=> Iterable[ValidDataOne] => S,
-    withHorizontalOne: (DiscreteInterval1D[Int], String) => ValidDataOne,
-    withHorizontal: (DiscreteInterval1D[Int], Set[String]) => ValidData
+    withHorizontalOne: (Interval1D[Int], String) => ValidDataOne,
+    withHorizontal: (Interval1D[Int], Set[String]) => ValidData
   )(using Experimental): Unit =
     test("Mutable: Element-wise adding and removing data in intervals"):
       val allData = List(
@@ -116,8 +116,8 @@ trait MutableMultiBaseBehaviors:
       )
 
   def mapAndFlatmapTests[
-    D: DiscreteDomainLike,
-    I <: DiscreteIntervalLike[D, I],
+    D: DomainLike,
+    I <: IntervalLike[D, I],
     ValidDataOne <: ValidDataLike[String, D, I, ValidDataOne],
     ValidData <: ValidDataLike[Set[String], D, I, ValidData],
     DiffAction: DiffActionLike,
@@ -125,8 +125,8 @@ trait MutableMultiBaseBehaviors:
       DimensionalBase[Set[String], D, I, ValidData, DiffAction, ?]
   ](
     multiFrom: Experimental ?=> Iterable[ValidDataOne] => S,
-    withHorizontalOne: (DiscreteInterval1D[Int], String) => ValidDataOne,
-    withHorizontal: (DiscreteInterval1D[Int], Set[String]) => ValidData,
+    withHorizontalOne: (Interval1D[Int], String) => ValidDataOne,
+    withHorizontal: (Interval1D[Int], Set[String]) => ValidData,
     mapF: ValidData => ValidData,
     flatMapF: ValidData => S
   )(using Experimental): Unit =

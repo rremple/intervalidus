@@ -1,6 +1,6 @@
 package intervalidus.examples.billing
 
-import intervalidus.DiscreteInterval1D.*
+import intervalidus.Interval1D.*
 import intervalidus.immutable.DataIn2D
 
 import java.time.LocalDate

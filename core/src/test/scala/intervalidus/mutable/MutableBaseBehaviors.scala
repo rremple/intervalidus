@@ -18,18 +18,18 @@ import scala.language.implicitConversions
 trait MutableBaseBehaviors:
   this: AnyFunSuite & Matchers =>
 
-  import DiscreteInterval1D.*
+  import Interval1D.*
 
   def mutableBaseTests[
-    D: DiscreteDomainLike,
-    I <: DiscreteIntervalLike[D, I],
+    D: DomainLike,
+    I <: IntervalLike[D, I],
     ValidData <: ValidDataLike[String, D, I, ValidData],
     DiffAction: DiffActionLike,
     S <: MutableBase[String, D, I, ValidData, DiffAction, S] & DimensionalBase[String, D, I, ValidData, DiffAction, ?]
   ](
     mutableFrom: Experimental ?=> Iterable[ValidData] => S,
-    intervalFrom1D: DiscreteInterval1D[Int] => I,
-    dataFrom1D: (DiscreteInterval1D[Int], String) => ValidData,
+    intervalFrom1D: Interval1D[Int] => I,
+    dataFrom1D: (Interval1D[Int], String) => ValidData,
     mapF: ValidData => ValidData,
     fullyUnbound: I
   )(using Experimental): Unit =

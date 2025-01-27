@@ -12,7 +12,7 @@ import scala.math.Ordering.Implicits.infixOrderingOps
   * @tparam Self
   *   F-bounded self type.
   */
-trait DiscreteIntervalLike[D: DiscreteDomainLike: Ordering, Self <: DiscreteIntervalLike[D, Self]]:
+trait IntervalLike[D: DomainLike: Ordering, Self <: IntervalLike[D, Self]]:
   this: Self =>
 
   type ExclusionRemainder
@@ -345,12 +345,12 @@ trait DiscreteIntervalLike[D: DiscreteDomainLike: Ordering, Self <: DiscreteInte
     */
   def \(that: Self): ExclusionRemainder = this excluding that
 
-object DiscreteIntervalLike:
+object IntervalLike:
   /**
     * Intervals are ordered by start
     */
   given [
-    D: DiscreteDomainLike,
-    I <: DiscreteIntervalLike[D, I]
+    D: DomainLike,
+    I <: IntervalLike[D, I]
   ](using domainOrder: Ordering[D]): Ordering[I] with
     override def compare(x: I, y: I): Int = domainOrder.compare(x.start, y.start)

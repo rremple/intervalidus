@@ -12,13 +12,13 @@ import scala.language.implicitConversions
 trait DataIn3DMultiBaseBehaviors:
   this: AnyFunSuite & Matchers =>
 
-  import DiscreteInterval1D.*
+  import Interval1D.*
 
-  def withHorizontal[T: DiscreteValue](i: DiscreteInterval1D[T]): DiscreteInterval3D[T, T, T] =
+  def withHorizontal[T: DiscreteValue](i: Interval1D[T]): Interval3D[T, T, T] =
     i x unbounded x unbounded
 
-  def withHorizontal[T: DiscreteValue](d: DiscreteDomain1D[T]): DiscreteDomain3D[T, T, T] =
-    d x DiscreteDomain1D.Bottom x DiscreteDomain1D.Bottom
+  def withHorizontal[T: DiscreteValue](d: Domain1D[T]): Domain3D[T, T, T] =
+    d x Domain1D.Bottom x Domain1D.Bottom
 
   def basicAndZipTests[S <: DataIn3DMultiBase[String, Int, Int, Int]](
     prefix: String,

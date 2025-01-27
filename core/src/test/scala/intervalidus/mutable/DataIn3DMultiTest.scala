@@ -13,15 +13,15 @@ class DataIn3DMultiTest
   with DataIn3DMultiBaseBehaviors
   with MutableMultiBaseBehaviors:
 
-  import DiscreteInterval1D.*
+  import Interval1D.*
 
   testsFor(
     basicAndZipTests("Mutable", DataIn3DMulti.from(_), DataIn3DMulti.from(_), DataIn3DMulti.of(_), DataIn3DMulti(_))
   )
   testsFor(
     addAndRemoveTests[
-      DiscreteDomain3D[Int, Int, Int],
-      DiscreteInterval3D[Int, Int, Int],
+      Domain3D[Int, Int, Int],
+      Interval3D[Int, Int, Int],
       ValidData3D[String, Int, Int, Int],
       ValidData3D[Set[String], Int, Int, Int],
       DiffAction3D[Set[String], Int, Int, Int],
@@ -35,8 +35,8 @@ class DataIn3DMultiTest
 
   testsFor(
     mapAndFlatmapTests[
-      DiscreteDomain3D[Int, Int, Int],
-      DiscreteInterval3D[Int, Int, Int],
+      Domain3D[Int, Int, Int],
+      Interval3D[Int, Int, Int],
       ValidData3D[String, Int, Int, Int],
       ValidData3D[Set[String], Int, Int, Int],
       DiffAction3D[Set[String], Int, Int, Int],

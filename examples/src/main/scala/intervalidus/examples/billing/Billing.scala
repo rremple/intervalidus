@@ -1,7 +1,7 @@
 package intervalidus.examples.billing
 
 import intervalidus.*
-import intervalidus.DiscreteInterval1D.*
+import intervalidus.Interval1D.*
 import intervalidus.collection.mutable.MultiMapSorted
 import intervalidus.immutable.DataIn1D
 

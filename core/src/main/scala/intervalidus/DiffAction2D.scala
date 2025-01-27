@@ -16,7 +16,7 @@ package intervalidus
 enum DiffAction2D[V, R1, R2]:
   case Create(validData: ValidData2D[V, R1, R2])
   case Update(validData: ValidData2D[V, R1, R2])
-  case Delete(key: DiscreteDomain2D[R1, R2])
+  case Delete(key: Domain2D[R1, R2])
 
 object DiffAction2D:
   given [V, R1: DiscreteValue, R2: DiscreteValue]: DiffActionLike[DiffAction2D[V, R1, R2]] with

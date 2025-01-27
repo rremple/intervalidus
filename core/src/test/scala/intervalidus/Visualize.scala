@@ -39,8 +39,8 @@ protected class Visualize[V, R1: DiscreteValue, R2: DiscreteValue](
 
   override def getPreferredSize: Dimension = new Dimension(1200, 500) // TODO: can we do better than guessing?
 
-  private val horizontalIntervals = DiscreteInterval1D.uniqueIntervals(validData.map(_.interval.horizontal))
-  private val verticalIntervals = DiscreteInterval1D.uniqueIntervals(validData.map(_.interval.vertical))
+  private val horizontalIntervals = Interval1D.uniqueIntervals(validData.map(_.interval.horizontal))
+  private val verticalIntervals = Interval1D.uniqueIntervals(validData.map(_.interval.vertical))
   private val verticalLabelCount = verticalIntervals.size
 
   override protected def paintComponent(graphicsOld: Graphics): Unit =
@@ -150,7 +150,7 @@ protected class Visualize[V, R1: DiscreteValue, R2: DiscreteValue](
 
 @main
 def tryIt(): Unit =
-  import DiscreteInterval1D.{interval, intervalFrom, intervalTo, unbounded}
+  import Interval1D.{interval, intervalFrom, intervalTo, unbounded}
 
   val now = LocalDate.now()
 

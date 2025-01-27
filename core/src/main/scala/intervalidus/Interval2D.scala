@@ -17,76 +17,76 @@ import scala.math.Ordering.Implicits.infixOrderingOps
   * @tparam T2
   *   a discrete value type for this interval's vertical domain
   */
-case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
-  horizontal: DiscreteInterval1D[T1],
-  vertical: DiscreteInterval1D[T2]
-) extends DiscreteIntervalLike[DiscreteDomain2D[T1, T2], DiscreteInterval2D[T1, T2]]:
+case class Interval2D[T1: DiscreteValue, T2: DiscreteValue](
+  horizontal: Interval1D[T1],
+  vertical: Interval1D[T2]
+) extends IntervalLike[Domain2D[T1, T2], Interval2D[T1, T2]]:
 
-  import DiscreteInterval1D.Remainder
+  import Interval1D.Remainder
 
-  override type ExclusionRemainder = (Remainder[DiscreteInterval1D[T1]], Remainder[DiscreteInterval1D[T2]])
+  override type ExclusionRemainder = (Remainder[Interval1D[T1]], Remainder[Interval1D[T2]])
 
   override infix def withValue[V](value: V): ValidData2D[V, T1, T2] = ValidData2D(value, this)
 
-  override val start: DiscreteDomain2D[T1, T2] = horizontal.start x vertical.start
+  override val start: Domain2D[T1, T2] = horizontal.start x vertical.start
 
-  override val end: DiscreteDomain2D[T1, T2] = horizontal.end x vertical.end
+  override val end: Domain2D[T1, T2] = horizontal.end x vertical.end
 
-  override infix def contains(domainElement: DiscreteDomain2D[T1, T2]): Boolean =
+  override infix def contains(domainElement: Domain2D[T1, T2]): Boolean =
     (this.horizontal contains domainElement.horizontalIndex) && (this.vertical contains domainElement.verticalIndex)
 
-  override def points: Iterable[DiscreteDomain2D[T1, T2]] =
+  override def points: Iterable[Domain2D[T1, T2]] =
     for
       horizontalPoint <- horizontal.points
       verticalPoint <- vertical.points
     yield horizontalPoint x verticalPoint
 
-  override infix def isAdjacentTo(that: DiscreteInterval2D[T1, T2]): Boolean =
+  override infix def isAdjacentTo(that: Interval2D[T1, T2]): Boolean =
     (this isLeftAdjacentTo that) || (this isRightAdjacentTo that) ||
       (this isLowerAdjacentTo that) || (this isUpperAdjacentTo that)
 
-  override infix def intersects(that: DiscreteInterval2D[T1, T2]): Boolean =
+  override infix def intersects(that: Interval2D[T1, T2]): Boolean =
     (this.horizontal intersects that.horizontal) && (this.vertical intersects that.vertical)
 
-  override infix def intersectionWith(that: DiscreteInterval2D[T1, T2]): Option[DiscreteInterval2D[T1, T2]] =
+  override infix def intersectionWith(that: Interval2D[T1, T2]): Option[Interval2D[T1, T2]] =
     for
       horizontalIntersection <- horizontal intersectionWith that.horizontal
       verticalIntersection <- vertical intersectionWith that.vertical
     yield horizontalIntersection x verticalIntersection
 
-  override infix def joinedWith(that: DiscreteInterval2D[T1, T2]): DiscreteInterval2D[T1, T2] =
+  override infix def joinedWith(that: Interval2D[T1, T2]): Interval2D[T1, T2] =
     (this.horizontal joinedWith that.horizontal) x (this.vertical joinedWith that.vertical)
 
-  override infix def contains(that: DiscreteInterval2D[T1, T2]): Boolean =
+  override infix def contains(that: Interval2D[T1, T2]): Boolean =
     (this.horizontal contains that.horizontal) && (this.vertical contains that.vertical)
 
-  override def after: Option[DiscreteInterval2D[T1, T2]] = (horizontal.after, vertical.after) match
-    case (Some(horizontalAfter), Some(verticalAfter)) => Some(DiscreteInterval2D(horizontalAfter, verticalAfter))
+  override def after: Option[Interval2D[T1, T2]] = (horizontal.after, vertical.after) match
+    case (Some(horizontalAfter), Some(verticalAfter)) => Some(Interval2D(horizontalAfter, verticalAfter))
     case _                                            => None
 
-  override def before: Option[DiscreteInterval2D[T1, T2]] = (horizontal.before, vertical.before) match
-    case (Some(horizontalBefore), Some(verticalBefore)) => Some(DiscreteInterval2D(horizontalBefore, verticalBefore))
+  override def before: Option[Interval2D[T1, T2]] = (horizontal.before, vertical.before) match
+    case (Some(horizontalBefore), Some(verticalBefore)) => Some(Interval2D(horizontalBefore, verticalBefore))
     case _                                              => None
 
-  override def from(newStart: DiscreteDomain2D[T1, T2]): DiscreteInterval2D[T1, T2] =
+  override def from(newStart: Domain2D[T1, T2]): Interval2D[T1, T2] =
     horizontal.from(newStart.horizontalIndex) x vertical.from(newStart.verticalIndex)
 
-  override def fromBottom: DiscreteInterval2D[T1, T2] =
-    from(DiscreteDomain1D.Bottom x DiscreteDomain1D.Bottom)
+  override def fromBottom: Interval2D[T1, T2] =
+    from(Domain1D.Bottom x Domain1D.Bottom)
 
-  override def to(newEnd: DiscreteDomain2D[T1, T2]): DiscreteInterval2D[T1, T2] =
+  override def to(newEnd: Domain2D[T1, T2]): Interval2D[T1, T2] =
     horizontal.to(newEnd.horizontalIndex) x vertical.to(newEnd.verticalIndex)
 
-  override def toTop: DiscreteInterval2D[T1, T2] =
-    to(DiscreteDomain1D.Top x DiscreteDomain1D.Top)
+  override def toTop: Interval2D[T1, T2] =
+    to(Domain1D.Top x Domain1D.Top)
 
-  override infix def isLeftAdjacentTo(that: DiscreteInterval2D[T1, T2]): Boolean =
+  override infix def isLeftAdjacentTo(that: Interval2D[T1, T2]): Boolean =
     (this.horizontal.end.successor equiv that.horizontal.start) && (this.vertical equiv that.vertical)
 
-  override infix def excluding(that: DiscreteInterval2D[T1, T2]): ExclusionRemainder =
+  override infix def excluding(that: Interval2D[T1, T2]): ExclusionRemainder =
     (this.horizontal excluding that.horizontal, this.vertical excluding that.vertical)
 
-  override infix def gapWith(that: DiscreteInterval2D[T1, T2]): Option[DiscreteInterval2D[T1, T2]] =
+  override infix def gapWith(that: Interval2D[T1, T2]): Option[Interval2D[T1, T2]] =
     for
       horizontalGap <- horizontal gapWith that.horizontal
       verticalGap <- vertical gapWith that.vertical
@@ -102,7 +102,7 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
     * @param newHorizontal
     *   the new horizontal interval
     */
-  def withHorizontal(newHorizontal: DiscreteInterval1D[T1]): DiscreteInterval2D[T1, T2] =
+  def withHorizontal(newHorizontal: Interval1D[T1]): Interval2D[T1, T2] =
     copy(horizontal = newHorizontal)
 
   /**
@@ -111,7 +111,7 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
     * @param newVertical
     *   the new horizontal interval
     */
-  def withVertical(newVertical: DiscreteInterval1D[T2]): DiscreteInterval2D[T1, T2] =
+  def withVertical(newVertical: Interval1D[T2]): Interval2D[T1, T2] =
     copy(vertical = newVertical)
 
   /**
@@ -120,7 +120,7 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
     * @param update
     *   function to apply to this horizontal interval and used in the returned interval.
     */
-  def withHorizontalUpdate(update: DiscreteInterval1D[T1] => DiscreteInterval1D[T1]): DiscreteInterval2D[T1, T2] =
+  def withHorizontalUpdate(update: Interval1D[T1] => Interval1D[T1]): Interval2D[T1, T2] =
     withHorizontal(update(this.horizontal))
 
   /**
@@ -129,7 +129,7 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
     * @param update
     *   function to apply to this vertical interval and used in the returned interval.
     */
-  def withVerticalUpdate(update: DiscreteInterval1D[T2] => DiscreteInterval1D[T2]): DiscreteInterval2D[T1, T2] =
+  def withVerticalUpdate(update: Interval1D[T2] => Interval1D[T2]): Interval2D[T1, T2] =
     withVertical(update(this.vertical))
 
   /**
@@ -139,7 +139,7 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
     * @param that
     *   the interval to test for adjacency.
     */
-  infix def isLowerAdjacentTo(that: DiscreteInterval2D[T1, T2]): Boolean =
+  infix def isLowerAdjacentTo(that: Interval2D[T1, T2]): Boolean =
     (this.vertical.end.successor equiv that.vertical.start) && (this.horizontal equiv that.horizontal)
 
   /**
@@ -149,7 +149,7 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
     * @param that
     *   the interval to test for adjacency.
     */
-  infix def isUpperAdjacentTo(that: DiscreteInterval2D[T1, T2]): Boolean = that isLowerAdjacentTo this
+  infix def isUpperAdjacentTo(that: Interval2D[T1, T2]): Boolean = that isLowerAdjacentTo this
 
   /**
     * Cross this interval with that interval to arrive at a new three-dimensional interval.
@@ -161,13 +161,13 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
     *   a new three-dimensional interval with this interval as the horizontal and vertical components and that interval
     *   as the depth component.
     */
-  infix def x[T3: DiscreteValue](that: DiscreteInterval1D[T3]): DiscreteInterval3D[T1, T2, T3] =
-    DiscreteInterval3D(this.horizontal, this.vertical, that)
+  infix def x[T3: DiscreteValue](that: Interval1D[T3]): Interval3D[T1, T2, T3] =
+    Interval3D(this.horizontal, this.vertical, that)
 
   /**
     * Flips this interval by swapping the vertical and horizontal components with one another.
     */
-  def flip: DiscreteInterval2D[T2, T1] = vertical x horizontal
+  def flip: Interval2D[T2, T1] = vertical x horizontal
 
   // equivalent symbolic method names
 
@@ -176,13 +176,13 @@ case class DiscreteInterval2D[T1: DiscreteValue, T2: DiscreteValue](
 /**
   * Companion for the two-dimensional interval used in defining and operating on valid data.
   */
-object DiscreteInterval2D:
+object Interval2D:
 
   /**
     * Returns an interval unbounded in both dimensions.
     */
-  def unbounded[T1: DiscreteValue, T2: DiscreteValue]: DiscreteInterval2D[T1, T2] =
-    DiscreteInterval1D.unbounded[T1] x DiscreteInterval1D.unbounded[T2]
+  def unbounded[T1: DiscreteValue, T2: DiscreteValue]: Interval2D[T1, T2] =
+    Interval1D.unbounded[T1] x Interval1D.unbounded[T2]
 
   /**
     * Generic compression algorithm used by both `compress` and `Data3DBase.compressInPlace`.
@@ -218,9 +218,9 @@ object DiscreteInterval2D:
     initialState: S,
     result: S => R,
     dataIterable: S => Iterable[D],
-    interval: D => DiscreteInterval2D[T1, T2],
+    interval: D => Interval2D[T1, T2],
     valueMatch: (D, D) => Boolean,
-    lookup: (S, DiscreteDomain2D[T1, T2]) => Option[D],
+    lookup: (S, Domain2D[T1, T2]) => Option[D],
     compressAdjacent: (D, D, S) => S
   ): R =
     /*
@@ -265,8 +265,8 @@ object DiscreteInterval2D:
     *   a new (possibly smaller) collection of intervals covering the same domain as the input.
     */
   def compress[T1: DiscreteValue, T2: DiscreteValue](
-    intervals: Iterable[DiscreteInterval2D[T1, T2]]
-  ): Iterable[DiscreteInterval2D[T1, T2]] = compressGeneric(
+    intervals: Iterable[Interval2D[T1, T2]]
+  ): Iterable[Interval2D[T1, T2]] = compressGeneric(
     initialState = TreeMap.from(intervals.map(i => i.start -> i)), // intervals by start
     result = _.values,
     dataIterable = _.values,
@@ -279,8 +279,8 @@ object DiscreteInterval2D:
   /**
     * Returns an interval that starts and ends at the same value.
     */
-  def intervalAt[T1: DiscreteValue, T2: DiscreteValue](s: DiscreteDomain2D[T1, T2]): DiscreteInterval2D[T1, T2] =
-    apply(DiscreteInterval1D.intervalAt(s.horizontalIndex), DiscreteInterval1D.intervalAt(s.verticalIndex))
+  def intervalAt[T1: DiscreteValue, T2: DiscreteValue](s: Domain2D[T1, T2]): Interval2D[T1, T2] =
+    apply(Interval1D.intervalAt(s.horizontalIndex), Interval1D.intervalAt(s.verticalIndex))
 
   /*
    * These methods operate on collections of two-dimensional intervals.
@@ -302,7 +302,7 @@ object DiscreteInterval2D:
     *   true if the collection is compressible, false otherwise.
     */
   def isCompressible[T1: DiscreteValue, T2: DiscreteValue](
-    intervals: Iterable[DiscreteInterval2D[T1, T2]]
+    intervals: Iterable[Interval2D[T1, T2]]
   ): Boolean =
     // evaluates every pair of 2D intervals twice, so we only need to check for left/lower adjacency
     intervals.exists: r =>
@@ -326,7 +326,7 @@ object DiscreteInterval2D:
     *   true if the collection is disjoint, false otherwise.
     */
   def isDisjoint[T1: DiscreteValue, T2: DiscreteValue](
-    intervals: Iterable[DiscreteInterval2D[T1, T2]]
+    intervals: Iterable[Interval2D[T1, T2]]
   ): Boolean = !intervals.exists: r =>
     intervals
       .filter(_.start <= r.start) // by symmetry
@@ -347,9 +347,9 @@ object DiscreteInterval2D:
     *   a new collection of intervals representing disjoint intervals covering the span of the input.
     */
   def uniqueIntervals[T1: DiscreteValue, T2: DiscreteValue](
-    intervals: Iterable[DiscreteInterval2D[T1, T2]]
-  ): Iterable[DiscreteInterval2D[T1, T2]] =
+    intervals: Iterable[Interval2D[T1, T2]]
+  ): Iterable[Interval2D[T1, T2]] =
     for
-      horizontal <- DiscreteInterval1D.uniqueIntervals(intervals.map(_.horizontal))
-      vertical <- DiscreteInterval1D.uniqueIntervals(intervals.map(_.vertical))
+      horizontal <- Interval1D.uniqueIntervals(intervals.map(_.horizontal))
+      vertical <- Interval1D.uniqueIntervals(intervals.map(_.vertical))
     yield horizontal x vertical

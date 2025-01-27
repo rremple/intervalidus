@@ -18,11 +18,11 @@ package intervalidus
 enum DiffAction3D[V, R1, R2, R3]:
   case Create(validData: ValidData3D[V, R1, R2, R3])
   case Update(validData: ValidData3D[V, R1, R2, R3])
-  case Delete(key: DiscreteDomain3D[R1, R2, R3])
+  case Delete(key: Domain3D[R1, R2, R3])
 
 object DiffAction3D:
   given [V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue]: DiffActionLike[DiffAction3D[V, R1, R2, R3]] with
-    import DiscreteDomain3D.given
+    import Domain3D.given
     extension (action: DiffAction3D[V, R1, R2, R3])
       override def toCodeLikeString: String =
         action match

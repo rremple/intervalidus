@@ -9,15 +9,15 @@ import scala.math.Ordering.Implicits.infixOrderingOps
 
 class DiscreteIntervalTest extends AnyFunSuite with Matchers:
 
-  import DiscreteDomain1D.{Bottom, Point, Top}
-  import DiscreteInterval1D.*
+  import Domain1D.{Bottom, Point, Top}
+  import Interval1D.*
 
   test("Int interval validity"):
     assertThrows[IllegalArgumentException]:
       val _ = interval(2, 1) // end before start
 
     assertThrows[IllegalArgumentException]:
-      val _ = DiscreteInterval1D[Int](Top, Bottom) // end before start
+      val _ = Interval1D[Int](Top, Bottom) // end before start
 
   test("Int interval adjacency, etc."):
     assert(interval(1, 2) isLeftAdjacentTo interval(3, 4))
@@ -67,7 +67,7 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
 
   test("Int 2D interval adjacency, etc."):
     val now = LocalDate.now
-    val d: DiscreteInterval2D[LocalDate, Int] = intervalTo(now) x intervalFrom(0)
+    val d: Interval2D[LocalDate, Int] = intervalTo(now) x intervalFrom(0)
     d.flip shouldBe (intervalFrom(0) x intervalTo(now))
 
     def interval2d(hs: Int, he: Int, vs: Int, ve: Int) = interval(hs, he) x interval(vs, ve)
@@ -153,7 +153,7 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
 
   test("Int 3D interval adjacency, etc."):
     val now = LocalDate.now
-    val d: DiscreteInterval3D[LocalDate, LocalDate, Int] = intervalTo(now) x intervalFrom(now) x intervalFrom(0)
+    val d: Interval3D[LocalDate, LocalDate, Int] = intervalTo(now) x intervalFrom(now) x intervalFrom(0)
     d.flipAboutHorizontal shouldBe (intervalTo(now) x intervalFrom(0) x intervalFrom(now))
     d.flipAboutVertical shouldBe (intervalFrom(0) x intervalFrom(now) x intervalTo(now))
     d.flipAboutDepth shouldBe (intervalFrom(now) x intervalTo(now) x intervalFrom(0))
@@ -285,7 +285,7 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
     (interval(3, 4) ∪ interval(7, 8)) shouldBe interval(3, 8)
 
   test("Int interval exclusions"):
-    import DiscreteInterval1D.Remainder
+    import Interval1D.Remainder
     (intervalTo(4) excluding intervalFrom(5)) shouldBe Remainder.Single(intervalTo(4))
     (intervalTo(4) \ intervalFrom(1)) shouldBe Remainder.Single(intervalTo(0))
     (intervalTo(4) \ interval(1, 2)) shouldBe Remainder.Split(intervalTo(0), interval(3, 4))
@@ -327,7 +327,7 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
       "intervalFrom(0) x intervalTo(0) x unbounded"
 
   test("Int interval collection operations"):
-    import DiscreteInterval1D.*
+    import Interval1D.*
 
     val intervalsUnsorted1 = List(
       interval(1, 10),
@@ -380,7 +380,7 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
     complement(expected2) shouldBe Nil
 
   test("Int interval 2D collection operations"):
-    import DiscreteInterval2D.*
+    import Interval2D.*
 
     val intervalsUnsorted1 = List(
       interval(1, 10),
@@ -391,27 +391,27 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
     val intervals1 = intervalsUnsorted1.sorted
 
     assert(!isCompressible[Int, Int](Nil))
-    assert(isCompressible(intervals1.map(_ x DiscreteInterval1D.unbounded[Int])))
-    assert(isCompressible(intervals1.map(DiscreteInterval1D.unbounded[Int] x _)))
+    assert(isCompressible(intervals1.map(_ x Interval1D.unbounded[Int])))
+    assert(isCompressible(intervals1.map(Interval1D.unbounded[Int] x _)))
     assert(
       isCompressible(
         List(
-          interval(1, 15) x DiscreteInterval1D.unbounded[Int],
-          interval(11, 20) x DiscreteInterval1D.unbounded[Int] // overlap
+          interval(1, 15) x Interval1D.unbounded[Int],
+          interval(11, 20) x Interval1D.unbounded[Int] // overlap
         )
       )
     )
     assert(
       isCompressible(
         List(
-          DiscreteInterval1D.unbounded[Int] x interval(1, 15),
-          DiscreteInterval1D.unbounded[Int] x interval(11, 20) // overlap
+          Interval1D.unbounded[Int] x interval(1, 15),
+          Interval1D.unbounded[Int] x interval(11, 20) // overlap
         )
       )
     )
 
   test("Int interval 3D collection operations"):
-    import DiscreteInterval3D.*
+    import Interval3D.*
 
     val intervalsUnsorted1 = List(
       interval(1, 10),
@@ -422,30 +422,30 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
     val intervals1 = intervalsUnsorted1.sorted
 
     assert(!isCompressible[Int, Int, Int](Nil))
-    assert(isCompressible(intervals1.map(_ x DiscreteInterval1D.unbounded[Int] x DiscreteInterval1D.unbounded[Int])))
-    assert(isCompressible(intervals1.map(DiscreteInterval1D.unbounded[Int] x _ x DiscreteInterval1D.unbounded[Int])))
-    assert(isCompressible(intervals1.map(DiscreteInterval1D.unbounded[Int] x DiscreteInterval1D.unbounded[Int] x _)))
+    assert(isCompressible(intervals1.map(_ x Interval1D.unbounded[Int] x Interval1D.unbounded[Int])))
+    assert(isCompressible(intervals1.map(Interval1D.unbounded[Int] x _ x Interval1D.unbounded[Int])))
+    assert(isCompressible(intervals1.map(Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x _)))
     assert(
       isCompressible(
         List(
-          interval(1, 15) x DiscreteInterval1D.unbounded[Int] x DiscreteInterval1D.unbounded[Int],
-          interval(11, 20) x DiscreteInterval1D.unbounded[Int] x DiscreteInterval1D.unbounded[Int] // overlap
+          interval(1, 15) x Interval1D.unbounded[Int] x Interval1D.unbounded[Int],
+          interval(11, 20) x Interval1D.unbounded[Int] x Interval1D.unbounded[Int] // overlap
         )
       )
     )
     assert(
       isCompressible(
         List(
-          DiscreteInterval1D.unbounded[Int] x interval(1, 15) x DiscreteInterval1D.unbounded[Int],
-          DiscreteInterval1D.unbounded[Int] x interval(11, 20) x DiscreteInterval1D.unbounded[Int] // overlap
+          Interval1D.unbounded[Int] x interval(1, 15) x Interval1D.unbounded[Int],
+          Interval1D.unbounded[Int] x interval(11, 20) x Interval1D.unbounded[Int] // overlap
         )
       )
     )
     assert(
       isCompressible(
         List(
-          DiscreteInterval1D.unbounded[Int] x DiscreteInterval1D.unbounded[Int] x interval(1, 15),
-          DiscreteInterval1D.unbounded[Int] x DiscreteInterval1D.unbounded[Int] x interval(11, 20) // overlap
+          Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x interval(1, 15),
+          Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x interval(11, 20) // overlap
         )
       )
     )

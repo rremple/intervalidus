@@ -16,7 +16,7 @@ object DataIn2DMulti extends DataIn2DMultiBaseObject:
 
   override def of[V, R1: DiscreteValue, R2: DiscreteValue](
     value: V
-  )(using Experimental): DataIn2DMulti[V, R1, R2] = of(DiscreteInterval2D.unbounded[R1, R2] -> value)
+  )(using Experimental): DataIn2DMulti[V, R1, R2] = of(Interval2D.unbounded[R1, R2] -> value)
 
   override def from[V, R1: DiscreteValue, R2: DiscreteValue](
     initialData: Iterable[ValidData2D[V, R1, R2]]
@@ -55,16 +55,16 @@ object DataIn2DMulti extends DataIn2DMultiBaseObject:
   *   the type of discrete domain used in the vertical interval assigned to each value.
   */
 class DataIn2DMulti[V, R1: DiscreteValue, R2: DiscreteValue] private (
-  override val dataByStartAsc: mutable.TreeMap[DiscreteDomain2D[R1, R2], ValidData2D[Set[V], R1, R2]],
-  override val dataByStartDesc: mutable.TreeMap[DiscreteDomain2D[R1, R2], ValidData2D[Set[V], R1, R2]],
+  override val dataByStartAsc: mutable.TreeMap[Domain2D[R1, R2], ValidData2D[Set[V], R1, R2]],
+  override val dataByStartDesc: mutable.TreeMap[Domain2D[R1, R2], ValidData2D[Set[V], R1, R2]],
   override val dataByValue: MultiMapSorted[Set[V], ValidData2D[Set[V], R1, R2]],
   override val dataInSearchTree: BoxTree[ValidData2D[Set[V], R1, R2]]
 )(using Experimental)
   extends DataIn2DMultiBase[V, R1, R2]
   with ImmutableMultiBase[
     V,
-    DiscreteDomain2D[R1, R2],
-    DiscreteInterval2D[R1, R2],
+    Domain2D[R1, R2],
+    Interval2D[R1, R2],
     ValidData2D[V, R1, R2],
     ValidData2D[Set[V], R1, R2],
     DiffAction2D[Set[V], R1, R2],
@@ -139,10 +139,10 @@ class DataIn2DMulti[V, R1: DiscreteValue, R2: DiscreteValue] private (
 
   override def flip: DataIn2DMulti[V, R2, R1] = map(d => d.copy(interval = d.interval.flip))
 
-  override def getByHorizontalIndex(horizontalIndex: DiscreteDomain1D[R1]): DataIn1DMulti[V, R2] =
+  override def getByHorizontalIndex(horizontalIndex: Domain1D[R1]): DataIn1DMulti[V, R2] =
     DataIn1DMulti[V, R2](getByHorizontalIndexData(horizontalIndex))
 
-  override def getByVerticalIndex(verticalIndex: DiscreteDomain1D[R2]): DataIn1DMulti[V, R1] =
+  override def getByVerticalIndex(verticalIndex: Domain1D[R2]): DataIn1DMulti[V, R1] =
     DataIn1DMulti[V, R1](getByVerticalIndexData(verticalIndex))
 
   // ---------- Implement methods from ImmutableBase ----------

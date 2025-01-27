@@ -15,7 +15,7 @@ package intervalidus
   */
 case class ValidData1D[V, R: DiscreteValue](
   value: V,
-  interval: DiscreteInterval1D[R]
-) extends ValidDataLike[V, DiscreteDomain1D[R], DiscreteInterval1D[R], ValidData1D[V, R]]:
+  interval: Interval1D[R]
+) extends ValidDataLike[V, Domain1D[R], Interval1D[R], ValidData1D[V, R]]:
   // no crossing, so no parens required
   override protected def qualifiedInterval: String = s"${interval.toCodeLikeString}"

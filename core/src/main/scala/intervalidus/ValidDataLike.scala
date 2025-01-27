@@ -17,8 +17,8 @@ import intervalidus.collection.BoxedPayload
   */
 trait ValidDataLike[
   V,
-  D: DiscreteDomainLike,
-  I <: DiscreteIntervalLike[D, I],
+  D: DomainLike,
+  I <: IntervalLike[D, I],
   Self <: ValidDataLike[V, D, I, Self]
 ] extends PartialFunction[D, V]:
   this: Self =>
@@ -73,8 +73,8 @@ object ValidDataLike:
     */
   given [
     V,
-    D: DiscreteDomainLike,
-    I <: DiscreteIntervalLike[D, I],
+    D: DomainLike,
+    I <: IntervalLike[D, I],
     ValidData <: ValidDataLike[V, D, I, ValidData]
   ](using intervalOrder: Ordering[I]): Ordering[ValidData] with
     override def compare(x: ValidData, y: ValidData): Int =

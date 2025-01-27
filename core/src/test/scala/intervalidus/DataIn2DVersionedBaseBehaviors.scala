@@ -13,7 +13,7 @@ import scala.language.implicitConversions
 trait DataIn2DVersionedBaseBehaviors:
   this: AnyFunSuite & Matchers =>
 
-  import DiscreteInterval1D.*
+  import Interval1D.*
 
   val dayZero: LocalDate = LocalDate.of(2024, 6, 30)
 
@@ -21,11 +21,11 @@ trait DataIn2DVersionedBaseBehaviors:
 
   def validString(
     s: String,
-    validTime: DiscreteInterval2D[LocalDate, LocalDate]
+    validTime: Interval2D[LocalDate, LocalDate]
   ): ValidData2D[String, LocalDate, LocalDate] = validTime -> s
 
   protected def testDataIn3D[T](
-    current: DiscreteDomain1D[Int],
+    current: Domain1D[Int],
     values: List[ValidData2D[T, Int, Int]]
   ): List[ValidData3D[T, Int, Int, Int]] = values.map(d => (d.interval x intervalFrom(current)) -> d.value)
 
@@ -46,7 +46,7 @@ trait DataIn2DVersionedBaseBehaviors:
               0,
               List(
                 (interval(0, 10) x interval(0, 10)) -> "Hello",
-                DiscreteInterval2D.unbounded[Int, Int] -> "World"
+                Interval2D.unbounded[Int, Int] -> "World"
               )
             )
           )
@@ -59,7 +59,7 @@ trait DataIn2DVersionedBaseBehaviors:
       val single = dataIn2DVersionedOf("Hello world")
       single.get shouldBe "Hello world"
       single.getOption shouldBe Some("Hello world")
-      single.domain.toList shouldBe List(DiscreteInterval2D.unbounded[Int, Int])
+      single.domain.toList shouldBe List(Interval2D.unbounded[Int, Int])
 
       val fixture1: S = dataIn2DVersionedFrom2D(List((intervalFrom(0) x intervalFrom(0)) -> "Hello world"))
       fixture1.getOption shouldBe None

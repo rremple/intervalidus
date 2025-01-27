@@ -21,12 +21,12 @@ class DiscreteValueTest extends AnyFunSuite:
     assert(4 > 0)
 
   test("Ops on Int Domain"):
-    import DiscreteDomain1D.*
+    import Domain1D.*
     import DiscreteValue.IntDiscreteValue
     import DiscreteValue.IntDiscreteValue.{maxValue, minValue}
 
-    def top: DiscreteDomain1D[Int] = Top
-    def bottom: DiscreteDomain1D[Int] = Bottom
+    def top: Domain1D[Int] = Top
+    def bottom: Domain1D[Int] = Bottom
 
     assert(domain(3).successor equiv domain(4))
     assert(domain(3).predecessor equiv domain(2))
@@ -72,10 +72,10 @@ class DiscreteValueTest extends AnyFunSuite:
     given discreteColor: DiscreteValue[Color] = DiscreteValue.fromSeq(Color.values.toIndexedSeq)
 
     import Color.*
-    import DiscreteDomain1D.*
+    import Domain1D.*
 
-    def top: DiscreteDomain1D[Color] = Top
-    def bottom: DiscreteDomain1D[Color] = Bottom
+    def top: Domain1D[Color] = Top
+    def bottom: Domain1D[Color] = Bottom
 
     // For some reason ScalaTest is intervening here and applying its own comparison and getting the wrong answer.
     // So we wrap these assertions to prevent its tinkering...
@@ -135,13 +135,13 @@ class DiscreteValueTest extends AnyFunSuite:
     assert(4 > 0)
 
   test("Ops on Long Domain"):
-    import DiscreteDomain1D.*
+    import Domain1D.*
     import DiscreteValue.LongDiscreteValue
     import DiscreteValue.LongDiscreteValue.{maxValue, minValue}
 
-    def point(v: Long): DiscreteDomain1D[Long] = domain(v)
-    def top: DiscreteDomain1D[Long] = Top
-    def bottom: DiscreteDomain1D[Long] = Bottom
+    def point(v: Long): Domain1D[Long] = domain(v)
+    def top: Domain1D[Long] = Top
+    def bottom: Domain1D[Long] = Bottom
 
     assert(point(3).successor equiv point(4))
     assert(point(3).predecessor equiv point(2))
@@ -188,15 +188,15 @@ class DiscreteValueTest extends AnyFunSuite:
     assert(valueOf(4) > valueOf(0))
 
   test("Ops on BigInteger Domain"):
-    import DiscreteDomain1D.*
+    import Domain1D.*
     import DiscreteValue.BigIntegerDiscreteValue
     import DiscreteValue.BigIntegerDiscreteValue.{maxValue, minValue}
     import java.math.BigInteger
     import java.math.BigInteger.valueOf
 
-    def point(v: Int): DiscreteDomain1D[BigInteger] = domain(valueOf(v))
-    def top: DiscreteDomain1D[BigInteger] = Top
-    def bottom: DiscreteDomain1D[BigInteger] = Bottom
+    def point(v: Int): Domain1D[BigInteger] = domain(valueOf(v))
+    def top: Domain1D[BigInteger] = Top
+    def bottom: Domain1D[BigInteger] = Bottom
 
     assert(point(3).successor equiv point(4))
     assert(point(3).predecessor equiv point(2))
@@ -246,12 +246,12 @@ class DiscreteValueTest extends AnyFunSuite:
     assert(date4 > date0)
 
   test("Ops on LocalDate Domain"):
-    import DiscreteDomain1D.*
+    import Domain1D.*
     import DiscreteValue.LocalDateDiscreteValue
     import DiscreteValue.LocalDateDiscreteValue.{maxValue, minValue}
 
-    def top: DiscreteDomain1D[LocalDate] = Top
-    def bottom: DiscreteDomain1D[LocalDate] = Bottom
+    def top: Domain1D[LocalDate] = Top
+    def bottom: Domain1D[LocalDate] = Bottom
 
     val date0 = LocalDate.of(2024, 5, 31)
     val date3 = LocalDate.of(2024, 6, 3)

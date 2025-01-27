@@ -109,12 +109,12 @@ trait DataIn2DVersionedBase[V, R1: DiscreteValue, R2: DiscreteValue](
 )(using Experimental)
   extends DimensionalVersionedBase[
     V,
-    DiscreteDomain2D[R1, R2],
-    DiscreteInterval2D[R1, R2],
+    Domain2D[R1, R2],
+    Interval2D[R1, R2],
     ValidData2D[V, R1, R2],
     DiffAction2D[V, R1, R2],
-    DiscreteDomain3D[R1, R2, Int],
-    DiscreteInterval3D[R1, R2, Int],
+    Domain3D[R1, R2, Int],
+    Interval3D[R1, R2, Int],
     ValidData3D[V, R1, R2, Int],
     DiffAction3D[V, R1, R2, Int],
     DataIn2DVersionedBase[V, R1, R2]
@@ -128,28 +128,28 @@ trait DataIn2DVersionedBase[V, R1: DiscreteValue, R2: DiscreteValue](
 
   // The current version, mutable via access methods only
   protected var currentVersion: VersionDomain =
-    withCurrentVersion.getOrElse(DiscreteDomain1D.Point(initialVersion))
+    withCurrentVersion.getOrElse(Domain1D.Point(initialVersion))
 
   // -- implement methods from DimensionalVersionedBase
   override protected def underlyingDomain(
-    domain: DiscreteDomain2D[R1, R2]
-  )(using versionSelection: VersionSelection): DiscreteDomain3D[R1, R2, Int] =
+    domain: Domain2D[R1, R2]
+  )(using versionSelection: VersionSelection): Domain3D[R1, R2, Int] =
     domain x versionSelection.boundary
 
   override protected def underlyingIntervalFrom(
-    interval: DiscreteInterval2D[R1, R2]
-  )(using versionSelection: VersionSelection): DiscreteInterval3D[R1, R2, Int] =
+    interval: Interval2D[R1, R2]
+  )(using versionSelection: VersionSelection): Interval3D[R1, R2, Int] =
     interval x versionSelection.intervalFrom
 
   override protected def underlyingIntervalAt(
-    interval: DiscreteInterval2D[R1, R2]
-  )(using versionSelection: VersionSelection): DiscreteInterval3D[R1, R2, Int] =
+    interval: Interval2D[R1, R2]
+  )(using versionSelection: VersionSelection): Interval3D[R1, R2, Int] =
     interval x versionSelection.intervalAt
 
   override protected def underlyingIntervalWithVersion(
-    interval: DiscreteInterval2D[R1, R2],
-    version: DiscreteInterval1D[Int]
-  ): DiscreteInterval3D[R1, R2, Int] = interval x version
+    interval: Interval2D[R1, R2],
+    version: Interval1D[Int]
+  ): Interval3D[R1, R2, Int] = interval x version
 
   override protected def underlyingValidData(
     data: ValidData2D[V, R1, R2]
@@ -163,11 +163,11 @@ trait DataIn2DVersionedBase[V, R1: DiscreteValue, R2: DiscreteValue](
 
   override protected def versionInterval(
     data: ValidData3D[V, R1, R2, Int]
-  ): DiscreteInterval1D[Int] = data.interval.depth
+  ): Interval1D[Int] = data.interval.depth
 
   override protected def withVersionUpdate(
     data: ValidData3D[V, R1, R2, Int],
-    update: DiscreteInterval1D[Int] => DiscreteInterval1D[Int]
+    update: Interval1D[Int] => Interval1D[Int]
   ): ValidData3D[V, R1, R2, Int] =
     data.copy(interval = data.interval.withDepth(update(versionInterval(data))))
 

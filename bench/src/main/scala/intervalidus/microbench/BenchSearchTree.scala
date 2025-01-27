@@ -1,7 +1,7 @@
 package intervalidus.microbench
 
 import intervalidus.*
-import intervalidus.DiscreteInterval1D.interval
+import intervalidus.Interval1D.interval
 import org.openjdk.jmh.annotations.*
 
 import java.util.concurrent.TimeUnit
@@ -23,8 +23,8 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
     value = 1
   )
   abstract class GenericMutableBench[
-    D: DiscreteDomainLike,
-    I <: DiscreteIntervalLike[D, I],
+    D: DomainLike,
+    I <: IntervalLike[D, I],
     ValidData <: ValidDataLike[String, D, I, ValidData],
     DiffAction: DiffActionLike,
     DimData <: mutable.MutableBase[String, D, I, ValidData, DiffAction, DimData] &
@@ -121,8 +121,8 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
     baselineData: => mutable.DataIn1D[String, Int],
     featuredData: => mutable.DataIn1D[String, Int]
   ) extends GenericMutableBench[
-      DiscreteDomain1D[Int],
-      DiscreteInterval1D[Int],
+      Domain1D[Int],
+      Interval1D[Int],
       ValidData1D[String, Int],
       DiffAction1D[String, Int],
       mutable.DataIn1D[String, Int]
@@ -130,18 +130,18 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
     val fullRangeInterval = interval(fullRangeMin, fullRangeMax)
     val hits = data.map(_.interval)
     val hitsSize = hits.size
-    val gaps = DiscreteInterval1D.complement(hits).flatMap(_.intersectionWith(fullRangeInterval)).toVector
+    val gaps = Interval1D.complement(hits).flatMap(_.intersectionWith(fullRangeInterval)).toVector
     val gapsSize = gaps.size
     println(s"hit intervals=$hitsSize; gap intervals=$gapsSize")
 
-    def randDomainInInterval1d(i: DiscreteInterval1D[Int]): DiscreteDomain1D[Int] = i match
-      case DiscreteInterval1D(DiscreteDomain1D.Point(start), DiscreteDomain1D.Point(end)) =>
+    def randDomainInInterval1d(i: Interval1D[Int]): Domain1D[Int] = i match
+      case Interval1D(Domain1D.Point(start), Domain1D.Point(end)) =>
         start + rand.nextInt(end - start + 1)
       case unexpected => throw new Exception(s"unexpected result: $unexpected")
 
-    def randHit(): DiscreteDomain1D[Int] = randDomainInInterval1d(hits(rand.nextInt(hitsSize)))
+    def randHit(): Domain1D[Int] = randDomainInInterval1d(hits(rand.nextInt(hitsSize)))
 
-    def randMiss(): DiscreteDomain1D[Int] = randDomainInInterval1d(gaps(rand.nextInt(gapsSize)))
+    def randMiss(): Domain1D[Int] = randDomainInInterval1d(gaps(rand.nextInt(gapsSize)))
 
     @Benchmark
     def baselineGetAtHit: Option[String] = baselineData.getAt(randHit())
@@ -161,8 +161,8 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
     baselineData: => mutable.DataIn2D[String, Int, Int],
     featuredData: => mutable.DataIn2D[String, Int, Int]
   ) extends GenericMutableBench[
-      DiscreteDomain2D[Int, Int],
-      DiscreteInterval2D[Int, Int],
+      Domain2D[Int, Int],
+      Interval2D[Int, Int],
       ValidData2D[String, Int, Int],
       DiffAction2D[String, Int, Int],
       mutable.DataIn2D[String, Int, Int]
@@ -186,8 +186,8 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
     baselineData: => mutable.DataIn3D[String, Int, Int, Int],
     featuredData: => mutable.DataIn3D[String, Int, Int, Int]
   ) extends GenericMutableBench[
-      DiscreteDomain3D[Int, Int, Int],
-      DiscreteInterval3D[Int, Int, Int],
+      Domain3D[Int, Int, Int],
+      Interval3D[Int, Int, Int],
       ValidData3D[String, Int, Int, Int],
       DiffAction3D[String, Int, Int, Int],
       mutable.DataIn3D[String, Int, Int, Int]
@@ -225,8 +225,8 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
     value = 1
   )
   abstract class GenericImmutableBench[
-    D: DiscreteDomainLike,
-    I <: DiscreteIntervalLike[D, I],
+    D: DomainLike,
+    I <: IntervalLike[D, I],
     ValidData <: ValidDataLike[String, D, I, ValidData],
     DiffAction: DiffActionLike,
     DimData <: immutable.ImmutableBase[String, D, I, ValidData, DiffAction, DimData]
@@ -323,8 +323,8 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
     baselineData: => immutable.DataIn1D[String, Int],
     featuredData: => immutable.DataIn1D[String, Int]
   ) extends GenericImmutableBench[
-      DiscreteDomain1D[Int],
-      DiscreteInterval1D[Int],
+      Domain1D[Int],
+      Interval1D[Int],
       ValidData1D[String, Int],
       DiffAction1D[String, Int],
       immutable.DataIn1D[String, Int]
@@ -332,18 +332,18 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
     val fullRangeInterval = interval(fullRangeMin, fullRangeMax)
     val hits = data.map(_.interval)
     val hitsSize = hits.size
-    val gaps = DiscreteInterval1D.complement(hits).flatMap(_.intersectionWith(fullRangeInterval)).toVector
+    val gaps = Interval1D.complement(hits).flatMap(_.intersectionWith(fullRangeInterval)).toVector
     val gapsSize = gaps.size
     println(s"hit intervals=$hitsSize; gap intervals=$gapsSize")
 
-    def randDomainInInterval1d(i: DiscreteInterval1D[Int]): DiscreteDomain1D[Int] = i match
-      case DiscreteInterval1D(DiscreteDomain1D.Point(start), DiscreteDomain1D.Point(end)) =>
+    def randDomainInInterval1d(i: Interval1D[Int]): Domain1D[Int] = i match
+      case Interval1D(Domain1D.Point(start), Domain1D.Point(end)) =>
         start + rand.nextInt(end - start + 1)
       case unexpected => throw new Exception(s"unexpected result: $unexpected")
 
-    def randHit(): DiscreteDomain1D[Int] = randDomainInInterval1d(hits(rand.nextInt(hitsSize)))
+    def randHit(): Domain1D[Int] = randDomainInInterval1d(hits(rand.nextInt(hitsSize)))
 
-    def randMiss(): DiscreteDomain1D[Int] = randDomainInInterval1d(gaps(rand.nextInt(gapsSize)))
+    def randMiss(): Domain1D[Int] = randDomainInInterval1d(gaps(rand.nextInt(gapsSize)))
 
     @Benchmark
     def baselineGetAtHit: Option[String] = baselineData.getAt(randHit())
@@ -363,8 +363,8 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
     baselineData: => immutable.DataIn2D[String, Int, Int],
     featuredData: => immutable.DataIn2D[String, Int, Int]
   ) extends GenericImmutableBench[
-      DiscreteDomain2D[Int, Int],
-      DiscreteInterval2D[Int, Int],
+      Domain2D[Int, Int],
+      Interval2D[Int, Int],
       ValidData2D[String, Int, Int],
       DiffAction2D[String, Int, Int],
       immutable.DataIn2D[String, Int, Int]
@@ -390,8 +390,8 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
     baselineData: => immutable.DataIn3D[String, Int, Int, Int],
     featuredData: => immutable.DataIn3D[String, Int, Int, Int]
   ) extends GenericImmutableBench[
-      DiscreteDomain3D[Int, Int, Int],
-      DiscreteInterval3D[Int, Int, Int],
+      Domain3D[Int, Int, Int],
+      Interval3D[Int, Int, Int],
       ValidData3D[String, Int, Int, Int],
       DiffAction3D[String, Int, Int, Int],
       immutable.DataIn3D[String, Int, Int, Int]

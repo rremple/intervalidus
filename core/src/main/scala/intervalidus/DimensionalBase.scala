@@ -11,9 +11,9 @@ import scala.math.Ordering.Implicits.infixOrderingOps
   * @tparam V
   *   the value type for valid data.
   * @tparam D
-  *   the domain type for intervals. Must be [[DiscreteDomainLike]] and have an [[Ordering]].
+  *   the domain type for intervals. Must be [[DomainLike]] and have an [[Ordering]].
   * @tparam I
-  *   the interval type, based on the domain type. Must be [[DiscreteIntervalLike]] based on [[D]].
+  *   the interval type, based on the domain type. Must be [[IntervalLike]] based on [[D]].
   * @tparam ValidData
   *   the valid data type. Must be [[ValidDataLike]] based on [[V]], [[D]], and [[I]].
   * @tparam DiffAction
@@ -23,8 +23,8 @@ import scala.math.Ordering.Implicits.infixOrderingOps
   */
 trait DimensionalBase[
   V,
-  D: DiscreteDomainLike: Ordering,
-  I <: DiscreteIntervalLike[D, I],
+  D: DomainLike: Ordering,
+  I <: IntervalLike[D, I],
   ValidData <: ValidDataLike[V, D, I, ValidData],
   DiffAction: DiffActionLike,
   Self <: DimensionalBase[V, D, I, ValidData, DiffAction, Self]
@@ -37,13 +37,13 @@ trait DimensionalBase[
   // For defining 1D and 2D toString methods - print a uniform grid representing the data.
   protected def toStringGrid[R1: DiscreteValue, R2: DiscreteValue](
     dataToString: ValidData => String,
-    dataToInterval: ValidData => DiscreteInterval1D[R1],
-    dataToSortBy: ValidData => DiscreteDomain1D[R2]
+    dataToInterval: ValidData => Interval1D[R1],
+    dataToSortBy: ValidData => Domain1D[R2]
   ): String =
 
     val validData = getAll.toList
     val maxDataSize = validData.map(dataToString).map(_.length + 3).maxOption.getOrElse(3)
-    val horizontalIntervals = DiscreteInterval1D.uniqueIntervals(validData.map(dataToInterval))
+    val horizontalIntervals = Interval1D.uniqueIntervals(validData.map(dataToInterval))
     val horizontalSpacer = "| " // 2 +
     val horizontalDots = " .. " // 4 = 6 + end space = 7
     val maxHorizontalIntervalsSize = horizontalIntervals
@@ -56,7 +56,7 @@ trait DimensionalBase[
 
     val (horizontalStringBuilder, horizontalStartPositionBuilder, horizontalEndPositionBuilder) =
       horizontalIntervals.zipWithIndex.foldLeft(
-        (StringBuilder(), Map.newBuilder[DiscreteDomain1D[R1], Int], Map.newBuilder[DiscreteDomain1D[R1], Int])
+        (StringBuilder(), Map.newBuilder[Domain1D[R1], Int], Map.newBuilder[Domain1D[R1], Int])
       ):
         case ((stringBuilder, startPositionBuilder, endPositionBuilder), (interval, index)) =>
           val barString = s"$horizontalSpacer${interval.start}$horizontalDots${interval.end} "

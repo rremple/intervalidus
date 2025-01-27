@@ -101,12 +101,12 @@ trait DataIn1DVersionedBase[V, R: DiscreteValue](
 )(using Experimental)
   extends DimensionalVersionedBase[
     V,
-    DiscreteDomain1D[R],
-    DiscreteInterval1D[R],
+    Domain1D[R],
+    Interval1D[R],
     ValidData1D[V, R],
     DiffAction1D[V, R],
-    DiscreteDomain2D[R, Int],
-    DiscreteInterval2D[R, Int],
+    Domain2D[R, Int],
+    Interval2D[R, Int],
     ValidData2D[V, R, Int],
     DiffAction2D[V, R, Int],
     DataIn1DVersionedBase[V, R]
@@ -120,28 +120,28 @@ trait DataIn1DVersionedBase[V, R: DiscreteValue](
 
   // The current version, mutable via access methods only
   protected var currentVersion: VersionDomain =
-    withCurrentVersion.getOrElse(DiscreteDomain1D.Point(initialVersion))
+    withCurrentVersion.getOrElse(Domain1D.Point(initialVersion))
 
   // -- implement methods from DimensionalVersionedBase
   override protected def underlyingDomain(
-    domain: DiscreteDomain1D[R]
-  )(using versionSelection: VersionSelection): DiscreteDomain2D[R, Int] =
+    domain: Domain1D[R]
+  )(using versionSelection: VersionSelection): Domain2D[R, Int] =
     domain x versionSelection.boundary
 
   override protected def underlyingIntervalFrom(
-    interval: DiscreteInterval1D[R]
-  )(using versionSelection: VersionSelection): DiscreteInterval2D[R, Int] =
+    interval: Interval1D[R]
+  )(using versionSelection: VersionSelection): Interval2D[R, Int] =
     interval x versionSelection.intervalFrom
 
   override protected def underlyingIntervalAt(
-    interval: DiscreteInterval1D[R]
-  )(using versionSelection: VersionSelection): DiscreteInterval2D[R, Int] =
+    interval: Interval1D[R]
+  )(using versionSelection: VersionSelection): Interval2D[R, Int] =
     interval x versionSelection.intervalAt
 
   override protected def underlyingIntervalWithVersion(
-    interval: DiscreteInterval1D[R],
-    version: DiscreteInterval1D[Int]
-  ): DiscreteInterval2D[R, Int] = interval x version
+    interval: Interval1D[R],
+    version: Interval1D[Int]
+  ): Interval2D[R, Int] = interval x version
 
   override protected def underlyingValidData(
     data: ValidData1D[V, R]
@@ -155,11 +155,11 @@ trait DataIn1DVersionedBase[V, R: DiscreteValue](
 
   override protected def versionInterval(
     data: ValidData2D[V, R, Int]
-  ): DiscreteInterval1D[Int] = data.interval.vertical
+  ): Interval1D[Int] = data.interval.vertical
 
   override protected def withVersionUpdate(
     data: ValidData2D[V, R, Int],
-    update: DiscreteInterval1D[Int] => DiscreteInterval1D[Int]
+    update: Interval1D[Int] => Interval1D[Int]
   ): ValidData2D[V, R, Int] =
     data.copy(interval = data.interval.withVertical(update(versionInterval(data))))
 

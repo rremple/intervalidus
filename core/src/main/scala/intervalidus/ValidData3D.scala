@@ -19,5 +19,5 @@ package intervalidus
   */
 case class ValidData3D[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](
   value: V,
-  interval: DiscreteInterval3D[R1, R2, R3]
-) extends ValidDataLike[V, DiscreteDomain3D[R1, R2, R3], DiscreteInterval3D[R1, R2, R3], ValidData3D[V, R1, R2, R3]]
+  interval: Interval3D[R1, R2, R3]
+) extends ValidDataLike[V, Domain3D[R1, R2, R3], Interval3D[R1, R2, R3], ValidData3D[V, R1, R2, R3]]

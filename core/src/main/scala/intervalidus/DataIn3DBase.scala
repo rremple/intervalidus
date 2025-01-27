@@ -1,6 +1,6 @@
 package intervalidus
 
-import intervalidus.DiscreteInterval1D.{between, unbounded}
+import intervalidus.Interval1D.{between, unbounded}
 import intervalidus.collection.mutable.{BoxTree, MultiMapSorted}
 import intervalidus.collection.{Box, BoxedPayload, Coordinate}
 
@@ -81,19 +81,19 @@ trait DataIn3DConstructorParams:
     discreteValue2: DiscreteValue[R2],
     discreteValue3: DiscreteValue[R3]
   ): (
-    mutable.TreeMap[DiscreteDomain3D[R1, R2, R3], ValidData3D[V, R1, R2, R3]],
-    mutable.TreeMap[DiscreteDomain3D[R1, R2, R3], ValidData3D[V, R1, R2, R3]],
+    mutable.TreeMap[Domain3D[R1, R2, R3], ValidData3D[V, R1, R2, R3]],
+    mutable.TreeMap[Domain3D[R1, R2, R3], ValidData3D[V, R1, R2, R3]],
     MultiMapSorted[V, ValidData3D[V, R1, R2, R3]],
     BoxTree[ValidData3D[V, R1, R2, R3]]
   ) =
-    val dataByStartAsc: mutable.TreeMap[DiscreteDomain3D[R1, R2, R3], ValidData3D[V, R1, R2, R3]] =
+    val dataByStartAsc: mutable.TreeMap[Domain3D[R1, R2, R3], ValidData3D[V, R1, R2, R3]] =
       mutable.TreeMap.from(initialData.map(_.withKey))
 
-    val dataByStartDesc: mutable.TreeMap[DiscreteDomain3D[R1, R2, R3], ValidData3D[V, R1, R2, R3]] =
+    val dataByStartDesc: mutable.TreeMap[Domain3D[R1, R2, R3], ValidData3D[V, R1, R2, R3]] =
       experimental.control("noSearchTree")(
         experimentalResult =
-          mutable.TreeMap.from(dataByStartAsc.iterator)(summon[Ordering[DiscreteDomain3D[R1, R2, R3]]].reverse),
-        nonExperimentalResult = mutable.TreeMap()(summon[Ordering[DiscreteDomain3D[R1, R2, R3]]].reverse) // not used
+          mutable.TreeMap.from(dataByStartAsc.iterator)(summon[Ordering[Domain3D[R1, R2, R3]]].reverse),
+        nonExperimentalResult = mutable.TreeMap()(summon[Ordering[Domain3D[R1, R2, R3]]].reverse) // not used
       )
 
     val dataByValue: MultiMapSorted[V, ValidData3D[V, R1, R2, R3]] =
@@ -144,8 +144,8 @@ trait DataIn3DConstructorParams:
 trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](using experimental: Experimental)
   extends DimensionalBase[
     V,
-    DiscreteDomain3D[R1, R2, R3],
-    DiscreteInterval3D[R1, R2, R3],
+    Domain3D[R1, R2, R3],
+    Interval3D[R1, R2, R3],
     ValidData3D[V, R1, R2, R3],
     DiffAction3D[V, R1, R2, R3],
     DataIn3DBase[V, R1, R2, R3]
@@ -155,16 +155,16 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
 
   experimental.control("requireDisjoint")(
     nonExperimentalResult = (),
-    experimentalResult = require(DiscreteInterval3D.isDisjoint(getAll.map(_.interval)), "data must be disjoint")
+    experimentalResult = require(Interval3D.isDisjoint(getAll.map(_.interval)), "data must be disjoint")
   )
 
-  override protected def newValidData(value: V, interval: DiscreteInterval3D[R1, R2, R3]): ValidData3D[V, R1, R2, R3] =
+  override protected def newValidData(value: V, interval: Interval3D[R1, R2, R3]): ValidData3D[V, R1, R2, R3] =
     interval -> value
 
   private def subIntervalsWith[B, R: DiscreteValue](
     that: DataIn3DBase[B, R1, R2, R3],
-    f: DiscreteInterval3D[R1, R2, R3] => DiscreteInterval1D[R]
-  ): Iterable[DiscreteInterval1D[R]] = DiscreteInterval1D.uniqueIntervals(
+    f: Interval3D[R1, R2, R3] => Interval1D[R]
+  ): Iterable[Interval1D[R]] = Interval1D.uniqueIntervals(
     this.getAll.map(d => f(d.interval)).toSet ++ that.getAll.map(d => f(d.interval))
   )
 
@@ -197,12 +197,12 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
           valuePair.map(subInterval -> _)
 
   protected def getByHorizontalIndexData(
-    horizontalIndex: DiscreteDomain1D[R1]
+    horizontalIndex: Domain1D[R1]
   ): Iterable[ValidData2D[V, R2, R3]] =
     val candidates = experimental.control("noSearchTree")(
       experimentalResult = getAll,
       nonExperimentalResult = dataInSearchTreeGet(
-        DiscreteInterval1D.intervalAt(horizontalIndex) x unbounded[R2] x unbounded[R3]
+        Interval1D.intervalAt(horizontalIndex) x unbounded[R2] x unbounded[R3]
       )
     )
     candidates.collect:
@@ -210,12 +210,12 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
         (interval.vertical x interval.depth) -> value
 
   protected def getByVerticalIndexData(
-    verticalIndex: DiscreteDomain1D[R2]
+    verticalIndex: Domain1D[R2]
   ): Iterable[ValidData2D[V, R1, R3]] =
     val candidates = experimental.control("noSearchTree")(
       experimentalResult = getAll,
       nonExperimentalResult = dataInSearchTreeGet(
-        unbounded[R1] x DiscreteInterval1D.intervalAt(verticalIndex) x unbounded[R3]
+        unbounded[R1] x Interval1D.intervalAt(verticalIndex) x unbounded[R3]
       )
     )
     candidates.collect:
@@ -223,12 +223,12 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
         (interval.horizontal x interval.depth) -> value
 
   protected def getByDepthIndexData(
-    depthIndex: DiscreteDomain1D[R3]
+    depthIndex: Domain1D[R3]
   ): Iterable[ValidData2D[V, R1, R2]] =
     val candidates = experimental.control("noSearchTree")(
       experimentalResult = getAll,
       nonExperimentalResult = dataInSearchTreeGet(
-        unbounded[R1] x unbounded[R2] x DiscreteInterval1D.intervalAt(depthIndex)
+        unbounded[R1] x unbounded[R2] x Interval1D.intervalAt(depthIndex)
       )
     )
     candidates.collect:
@@ -294,7 +294,7 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
     * @return
     *   a two-dimensional projection
     */
-  def getByHorizontalIndex(horizontalIndex: DiscreteDomain1D[R1]): DataIn2DBase[V, R2, R3]
+  def getByHorizontalIndex(horizontalIndex: Domain1D[R1]): DataIn2DBase[V, R2, R3]
 
   /**
     * Project as two-dimensional data based on a vertical domain element
@@ -304,7 +304,7 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
     * @return
     *   a two-dimensional projection
     */
-  def getByVerticalIndex(verticalIndex: DiscreteDomain1D[R2]): DataIn2DBase[V, R1, R3]
+  def getByVerticalIndex(verticalIndex: Domain1D[R2]): DataIn2DBase[V, R1, R3]
 
   /**
     * Project as two-dimensional data based on a depth domain element
@@ -314,7 +314,7 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
     * @return
     *   a two-dimensional projection
     */
-  def getByDepthIndex(depthIndex: DiscreteDomain1D[R3]): DataIn2DBase[V, R1, R2]
+  def getByDepthIndex(depthIndex: Domain1D[R3]): DataIn2DBase[V, R1, R2]
 
   // ---------- Implement methods not defined in DimensionalBase ----------
 
@@ -327,8 +327,8 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
 
   // ---------- Implement methods from DimensionalBase ----------
 
-  override def domain: Iterable[DiscreteInterval3D[R1, R2, R3]] =
-    DiscreteInterval3D.compress(DiscreteInterval3D.uniqueIntervals(getAll.map(_.interval)).filter(intersects))
+  override def domain: Iterable[Interval3D[R1, R2, R3]] =
+    Interval3D.compress(Interval3D.uniqueIntervals(getAll.map(_.interval)).filter(intersects))
 
   override def diffActionsFrom(old: DataIn3DBase[V, R1, R2, R3]): Iterable[DiffAction3D[V, R1, R2, R3]] =
     (dataByStartAsc.keys.toSet ++ old.dataByStartAsc.keys).toList.sorted.flatMap: key =>
@@ -338,7 +338,7 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
         case (Some(oldData), None)                                => Some(DiffAction3D.Delete(oldData.interval.start))
         case _                                                    => None
 
-  override protected def compressInPlace(value: V): Unit = DiscreteInterval3D.compressGeneric(
+  override protected def compressInPlace(value: V): Unit = Interval3D.compressGeneric(
     initialState = (), // no state -- updates applied in place
     result = identity, // no result -- updates applied in place
     dataIterable = _ => dataByValue.get(value),
@@ -353,7 +353,7 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
   override protected def recompressInPlace(): Unit = synchronized:
     // decompress
     val atomicData = for
-      atomicInterval <- DiscreteInterval3D.uniqueIntervals(getAll.map(_.interval))
+      atomicInterval <- Interval3D.uniqueIntervals(getAll.map(_.interval))
       intersecting <- getIntersecting(atomicInterval) // always returns either one or zero results
     yield intersecting.copy(interval = atomicInterval)
     replaceValidData(atomicData)
@@ -374,7 +374,7 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
     dataInSearchTree.addAll(data.map(_.asBoxedPayload))
 
   override protected def dataInSearchTreeGet(
-    interval: DiscreteInterval3D[R1, R2, R3]
+    interval: Interval3D[R1, R2, R3]
   ): Iterable[ValidData3D[V, R1, R2, R3]] =
     BoxedPayload
       .deduplicate(dataInSearchTree.get(interval.asBox))
@@ -382,14 +382,14 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
       .filter(_.interval intersects interval)
 
   override protected def dataInSearchTreeGetByDomain(
-    domainIndex: DiscreteDomain3D[R1, R2, R3]
+    domainIndex: Domain3D[R1, R2, R3]
   ): Option[ValidData3D[V, R1, R2, R3]] =
     dataInSearchTree
-      .get(DiscreteInterval3D.intervalAt(domainIndex).asBox)
+      .get(Interval3D.intervalAt(domainIndex).asBox)
       .collectFirst:
         case d if d.payload.interval.contains(domainIndex) => d.payload
 
-  override protected def dataInSearchTreeIntersects(interval: DiscreteInterval3D[R1, R2, R3]): Boolean =
+  override protected def dataInSearchTreeIntersects(interval: Interval3D[R1, R2, R3]): Boolean =
     dataInSearchTree.get(interval.asBox).exists(_.payload.interval intersects interval)
 
   /**
@@ -415,7 +415,7 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
     *   maps a current value to some updated value, or None if the value should be removed.
     */
   override protected def updateOrRemove(
-    targetInterval: DiscreteInterval3D[R1, R2, R3],
+    targetInterval: Interval3D[R1, R2, R3],
     updateValue: V => Option[V]
   ): Unit = experimental.control("bruteForceUpdate")(
     nonExperimentalResult = updateOrRemoveOptimized(targetInterval, updateValue),
@@ -427,16 +427,16 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
    * Considers each case separately.
    */
   private def updateOrRemoveOptimized(
-    targetInterval: DiscreteInterval3D[R1, R2, R3],
+    targetInterval: Interval3D[R1, R2, R3],
     updateValue: V => Option[V]
   ): Unit = synchronized:
-    import DiscreteInterval1D.Remainder
+    import Interval1D.Remainder
 
     // Utility to find the complement of single remaining (intervals must either start or end together)
     def excludeRemaining[T: DiscreteValue](
-      full: DiscreteInterval1D[T],
-      remaining: DiscreteInterval1D[T]
-    ): DiscreteInterval1D[T] =
+      full: Interval1D[T],
+      remaining: Interval1D[T]
+    ): Interval1D[T] =
       if remaining hasSameStartAs full
       then full.fromAfter(remaining.end)
       else full.toBefore(remaining.start)
@@ -458,9 +458,9 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
         * "edge" case extended into the third dimension to take out the whole face.)
         */
       def face[T: DiscreteValue](
-        remaining1D: DiscreteInterval1D[T],
-        extract1D: DiscreteInterval3D[R1, R2, R3] => DiscreteInterval1D[T],
-        modify3D: (DiscreteInterval3D[R1, R2, R3], DiscreteInterval1D[T]) => DiscreteInterval3D[R1, R2, R3]
+        remaining1D: Interval1D[T],
+        extract1D: Interval3D[R1, R2, R3] => Interval1D[T],
+        modify3D: (Interval3D[R1, R2, R3], Interval1D[T]) => Interval3D[R1, R2, R3]
       ): Unit =
         if remaining1D hasSameStartAs extract1D(overlap.interval)
         then // same start: shorten
@@ -479,18 +479,18 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
         * later). (This is the 2D "corner" case extended into the third dimension to take out the whole edge.)
         */
       def edge[T1: DiscreteValue, T2: DiscreteValue](
-        remainingDimOne: DiscreteInterval1D[T1],
-        remainingDimTwo: DiscreteInterval1D[T2],
-        extractDimOne: DiscreteInterval3D[R1, R2, R3] => DiscreteInterval1D[T1],
-        extractDimTwo: DiscreteInterval3D[R1, R2, R3] => DiscreteInterval1D[T2],
-        modifyDimOne: (DiscreteInterval3D[R1, R2, R3], DiscreteInterval1D[T1]) => DiscreteInterval3D[R1, R2, R3],
-        modifyDimTwo: (DiscreteInterval3D[R1, R2, R3], DiscreteInterval1D[T2]) => DiscreteInterval3D[R1, R2, R3]
+        remainingDimOne: Interval1D[T1],
+        remainingDimTwo: Interval1D[T2],
+        extractDimOne: Interval3D[R1, R2, R3] => Interval1D[T1],
+        extractDimTwo: Interval3D[R1, R2, R3] => Interval1D[T2],
+        modifyDimOne: (Interval3D[R1, R2, R3], Interval1D[T1]) => Interval3D[R1, R2, R3],
+        modifyDimTwo: (Interval3D[R1, R2, R3], Interval1D[T2]) => Interval3D[R1, R2, R3]
       ): Unit =
-        extension (s: DiscreteInterval3D[R1, R2, R3])
+        extension (s: Interval3D[R1, R2, R3])
           def dimOne = extractDimOne(s)
           def dimTwo = extractDimTwo(s)
-          def withDimOne(update: DiscreteInterval1D[T1]) = modifyDimOne(s, update)
-          def withDimTwo(update: DiscreteInterval1D[T2]) = modifyDimTwo(s, update)
+          def withDimOne(update: Interval1D[T1]) = modifyDimOne(s, update)
+          def withDimTwo(update: Interval1D[T2]) = modifyDimTwo(s, update)
 
         // can be before or after.
         val dimTwoCornerBit = excludeRemaining(overlap.interval.dimTwo, remainingDimTwo)
@@ -507,9 +507,9 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
         * 2D "slice" case extended into the third dimension.)
         */
       def slice[T: DiscreteValue](
-        remainingBefore1D: DiscreteInterval1D[T],
-        remainingAfter1D: DiscreteInterval1D[T],
-        modify3D: (DiscreteInterval3D[R1, R2, R3], DiscreteInterval1D[T]) => DiscreteInterval3D[R1, R2, R3]
+        remainingBefore1D: Interval1D[T],
+        remainingAfter1D: Interval1D[T],
+        modify3D: (Interval3D[R1, R2, R3], Interval1D[T]) => Interval3D[R1, R2, R3]
       ): Unit =
         updateValidData(modify3D(overlap.interval, remainingBefore1D) -> overlap.value)
         addValidData(modify3D(overlap.interval, remainingAfter1D) -> overlap.value)
@@ -522,16 +522,16 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
         * "hole" case extended into the third dimension.)
         */
       def hole[T1: DiscreteValue, T2: DiscreteValue](
-        beforeRemainingDimOne: DiscreteInterval1D[T1],
-        afterRemainingDimOne: DiscreteInterval1D[T1],
-        beforeRemainingDimTwo: DiscreteInterval1D[T2],
-        afterRemainingDimTwo: DiscreteInterval1D[T2],
-        modifyDimOne: (DiscreteInterval3D[R1, R2, R3], DiscreteInterval1D[T1]) => DiscreteInterval3D[R1, R2, R3],
-        modifyDimTwo: (DiscreteInterval3D[R1, R2, R3], DiscreteInterval1D[T2]) => DiscreteInterval3D[R1, R2, R3]
+        beforeRemainingDimOne: Interval1D[T1],
+        afterRemainingDimOne: Interval1D[T1],
+        beforeRemainingDimTwo: Interval1D[T2],
+        afterRemainingDimTwo: Interval1D[T2],
+        modifyDimOne: (Interval3D[R1, R2, R3], Interval1D[T1]) => Interval3D[R1, R2, R3],
+        modifyDimTwo: (Interval3D[R1, R2, R3], Interval1D[T2]) => Interval3D[R1, R2, R3]
       ): Unit =
-        extension (s: DiscreteInterval3D[R1, R2, R3])
-          def withDimOne(update: DiscreteInterval1D[T1]) = modifyDimOne(s, update)
-          def withDimTwo(update: DiscreteInterval1D[T2]) = modifyDimTwo(s, update)
+        extension (s: Interval3D[R1, R2, R3])
+          def withDimOne(update: Interval1D[T1]) = modifyDimOne(s, update)
+          def withDimTwo(update: Interval1D[T2]) = modifyDimTwo(s, update)
 
         val holeBitDim2 = between(beforeRemainingDimTwo, afterRemainingDimTwo)
         // shorten before the hole in dim 2
@@ -552,22 +552,22 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
         * is a unique 3D case, like a "bite", but out of an edge instead of a face.)
         */
       def notch[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue](
-        remainingDimOne: DiscreteInterval1D[T1],
-        beforeRemainingDimTwo: DiscreteInterval1D[T2],
-        afterRemainingDimTwo: DiscreteInterval1D[T2],
-        remainingDimThree: DiscreteInterval1D[T3],
-        extractDimOne: DiscreteInterval3D[R1, R2, R3] => DiscreteInterval1D[T1],
-        extractDimThree: DiscreteInterval3D[R1, R2, R3] => DiscreteInterval1D[T3],
-        modifyDimOne: (DiscreteInterval3D[R1, R2, R3], DiscreteInterval1D[T1]) => DiscreteInterval3D[R1, R2, R3],
-        modifyDimTwo: (DiscreteInterval3D[R1, R2, R3], DiscreteInterval1D[T2]) => DiscreteInterval3D[R1, R2, R3],
-        modifyDimThree: (DiscreteInterval3D[R1, R2, R3], DiscreteInterval1D[T3]) => DiscreteInterval3D[R1, R2, R3]
+        remainingDimOne: Interval1D[T1],
+        beforeRemainingDimTwo: Interval1D[T2],
+        afterRemainingDimTwo: Interval1D[T2],
+        remainingDimThree: Interval1D[T3],
+        extractDimOne: Interval3D[R1, R2, R3] => Interval1D[T1],
+        extractDimThree: Interval3D[R1, R2, R3] => Interval1D[T3],
+        modifyDimOne: (Interval3D[R1, R2, R3], Interval1D[T1]) => Interval3D[R1, R2, R3],
+        modifyDimTwo: (Interval3D[R1, R2, R3], Interval1D[T2]) => Interval3D[R1, R2, R3],
+        modifyDimThree: (Interval3D[R1, R2, R3], Interval1D[T3]) => Interval3D[R1, R2, R3]
       ): Unit =
-        extension (s: DiscreteInterval3D[R1, R2, R3])
+        extension (s: Interval3D[R1, R2, R3])
           def dimOne = extractDimOne(s)
           def dimThree = extractDimThree(s)
-          def withDimOne(update: DiscreteInterval1D[T1]) = modifyDimOne(s, update)
-          def withDimTwo(update: DiscreteInterval1D[T2]) = modifyDimTwo(s, update)
-          def withDimThree(update: DiscreteInterval1D[T3]) = modifyDimThree(s, update)
+          def withDimOne(update: Interval1D[T1]) = modifyDimOne(s, update)
+          def withDimTwo(update: Interval1D[T2]) = modifyDimTwo(s, update)
+          def withDimThree(update: Interval1D[T3]) = modifyDimThree(s, update)
 
         val excludedDimOne = excludeRemaining(overlap.interval.dimOne, remainingDimOne)
         val excludedDimTwo = between(beforeRemainingDimTwo, afterRemainingDimTwo)
@@ -597,21 +597,21 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
         * (This is a unique 3D case, like a "hole" but not extending in the full third dimension.)
         */
       def divot[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue](
-        beforeRemainingDimOne: DiscreteInterval1D[T1],
-        afterRemainingDimOne: DiscreteInterval1D[T1],
-        beforeRemainingDimTwo: DiscreteInterval1D[T2],
-        afterRemainingDimTwo: DiscreteInterval1D[T2],
-        remainingDimThree: DiscreteInterval1D[T3],
-        extractDimThree: DiscreteInterval3D[R1, R2, R3] => DiscreteInterval1D[T3],
-        modifyDimOne: (DiscreteInterval3D[R1, R2, R3], DiscreteInterval1D[T1]) => DiscreteInterval3D[R1, R2, R3],
-        modifyDimTwo: (DiscreteInterval3D[R1, R2, R3], DiscreteInterval1D[T2]) => DiscreteInterval3D[R1, R2, R3],
-        modifyDimThree: (DiscreteInterval3D[R1, R2, R3], DiscreteInterval1D[T3]) => DiscreteInterval3D[R1, R2, R3]
+        beforeRemainingDimOne: Interval1D[T1],
+        afterRemainingDimOne: Interval1D[T1],
+        beforeRemainingDimTwo: Interval1D[T2],
+        afterRemainingDimTwo: Interval1D[T2],
+        remainingDimThree: Interval1D[T3],
+        extractDimThree: Interval3D[R1, R2, R3] => Interval1D[T3],
+        modifyDimOne: (Interval3D[R1, R2, R3], Interval1D[T1]) => Interval3D[R1, R2, R3],
+        modifyDimTwo: (Interval3D[R1, R2, R3], Interval1D[T2]) => Interval3D[R1, R2, R3],
+        modifyDimThree: (Interval3D[R1, R2, R3], Interval1D[T3]) => Interval3D[R1, R2, R3]
       ): Unit =
-        extension (s: DiscreteInterval3D[R1, R2, R3])
+        extension (s: Interval3D[R1, R2, R3])
           def dimThree = extractDimThree(s)
-          def withDimOne(update: DiscreteInterval1D[T1]) = modifyDimOne(s, update)
-          def withDimTwo(update: DiscreteInterval1D[T2]) = modifyDimTwo(s, update)
-          def withDimThree(update: DiscreteInterval1D[T3]) = modifyDimThree(s, update)
+          def withDimOne(update: Interval1D[T1]) = modifyDimOne(s, update)
+          def withDimTwo(update: Interval1D[T2]) = modifyDimTwo(s, update)
+          def withDimThree(update: Interval1D[T3]) = modifyDimThree(s, update)
 
         val excludedDimOne = between(beforeRemainingDimOne, afterRemainingDimOne)
         val excludedDimTwo = between(beforeRemainingDimTwo, afterRemainingDimTwo)
@@ -642,17 +642,17 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
         * add 2 remaining. (This is the 2D "bite" case extended into the third dimension, so a bite out of a face.)
         */
       def bite[T1: DiscreteValue, T2: DiscreteValue](
-        remainingDimOne: DiscreteInterval1D[T1],
-        beforeRemainingDimTwo: DiscreteInterval1D[T2],
-        afterRemainingDimTwo: DiscreteInterval1D[T2],
-        extractDimOne: DiscreteInterval3D[R1, R2, R3] => DiscreteInterval1D[T1],
-        modifyDimOne: (DiscreteInterval3D[R1, R2, R3], DiscreteInterval1D[T1]) => DiscreteInterval3D[R1, R2, R3],
-        modifyDimTwo: (DiscreteInterval3D[R1, R2, R3], DiscreteInterval1D[T2]) => DiscreteInterval3D[R1, R2, R3]
+        remainingDimOne: Interval1D[T1],
+        beforeRemainingDimTwo: Interval1D[T2],
+        afterRemainingDimTwo: Interval1D[T2],
+        extractDimOne: Interval3D[R1, R2, R3] => Interval1D[T1],
+        modifyDimOne: (Interval3D[R1, R2, R3], Interval1D[T1]) => Interval3D[R1, R2, R3],
+        modifyDimTwo: (Interval3D[R1, R2, R3], Interval1D[T2]) => Interval3D[R1, R2, R3]
       ): Unit =
-        extension (s: DiscreteInterval3D[R1, R2, R3])
+        extension (s: Interval3D[R1, R2, R3])
           def dimOne = extractDimOne(s)
-          def withDimOne(update: DiscreteInterval1D[T1]) = modifyDimOne(s, update)
-          def withDimTwo(update: DiscreteInterval1D[T2]) = modifyDimTwo(s, update)
+          def withDimOne(update: Interval1D[T1]) = modifyDimOne(s, update)
+          def withDimTwo(update: Interval1D[T2]) = modifyDimTwo(s, update)
 
         val biteBitDimTwo = between(beforeRemainingDimTwo, afterRemainingDimTwo)
         // shorten to before bite
@@ -986,10 +986,10 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
    * Benchmarks show this makes the remove operation 2.8 to 4.5 times slower.
    */
   private def updateOrRemoveBruteForce(
-    targetInterval: DiscreteInterval3D[R1, R2, R3],
+    targetInterval: Interval3D[R1, R2, R3],
     updateValue: V => Option[V]
   ): Unit = synchronized:
-    import DiscreteInterval1D.Remainder
+    import Interval1D.Remainder
 
     val intersecting = getIntersecting(targetInterval)
     val potentiallyAffectedValues = intersecting.map(_.value).toSet ++ intersecting.map(_.value).flatMap(updateValue)
@@ -998,9 +998,9 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
       val newValueOption = updateValue(overlap.value)
 
       def excludeOverlapRemainder1D[T: DiscreteValue](
-        extractFromOverlap: DiscreteInterval3D[R1, R2, R3] => DiscreteInterval1D[T],
-        remainder: Remainder[DiscreteInterval1D[T]]
-      ): DiscreteInterval1D[T] =
+        extractFromOverlap: Interval3D[R1, R2, R3] => Interval1D[T],
+        remainder: Remainder[Interval1D[T]]
+      ): Interval1D[T] =
         val full = extractFromOverlap(overlap.interval)
         remainder match
           case Remainder.None =>
@@ -1013,9 +1013,9 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
             between(leftRemaining, rightRemaining)
 
       def allOverlapSubintevals1D[T: DiscreteValue](
-        extractFromOverlap: DiscreteInterval3D[R1, R2, R3] => DiscreteInterval1D[T],
-        remainder: Remainder[DiscreteInterval1D[T]]
-      ): Seq[DiscreteInterval1D[T]] =
+        extractFromOverlap: Interval3D[R1, R2, R3] => Interval1D[T],
+        remainder: Remainder[Interval1D[T]]
+      ): Seq[Interval1D[T]] =
         val excluded = excludeOverlapRemainder1D(extractFromOverlap, remainder)
         remainder match
           case Remainder.None                                 => Seq(excluded)
@@ -1045,9 +1045,9 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
 
     potentiallyAffectedValues.foreach(compressInPlace)
 
-  override protected def fillInPlace[B <: V](interval: DiscreteInterval3D[R1, R2, R3], value: B): Unit = synchronized:
+  override protected def fillInPlace[B <: V](interval: Interval3D[R1, R2, R3], value: B): Unit = synchronized:
     val intersectingIntervals = getIntersecting(interval).map(_.interval)
-    DiscreteInterval3D
+    Interval3D
       .uniqueIntervals(intersectingIntervals.toSeq :+ interval)
       .foreach: i =>
         if interval.intersects(i) && !this.intersects(i) then addValidData(i -> value)

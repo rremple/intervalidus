@@ -9,7 +9,7 @@ import intervalidus.collection.Coordinate
   * @tparam D
   *   discrete domain type
   */
-trait DiscreteDomainLike[D: Ordering]:
+trait DomainLike[D: Ordering]:
   extension (domain: D)
     /**
       * Tests if domain is infinite (i.e., Top or Bottom) in all dimensions.
@@ -55,7 +55,7 @@ trait DiscreteDomainLike[D: Ordering]:
       * @return
       *   true if this belongs to the specified interval, false otherwise.
       */
-    infix def belongsTo[I <: DiscreteIntervalLike[D, I]](interval: I): Boolean = interval contains domain
+    infix def belongsTo[I <: IntervalLike[D, I]](interval: I): Boolean = interval contains domain
 
     // equivalent symbolic method names
 
@@ -69,4 +69,4 @@ trait DiscreteDomainLike[D: Ordering]:
       * @return
       *   true if this belongs to the specified interval, false otherwise.
       */
-    def ∈[I <: DiscreteIntervalLike[D, I]](interval: I): Boolean = domain belongsTo interval
+    def ∈[I <: IntervalLike[D, I]](interval: I): Boolean = domain belongsTo interval

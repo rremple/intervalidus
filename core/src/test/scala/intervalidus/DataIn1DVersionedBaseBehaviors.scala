@@ -1,6 +1,6 @@
 package intervalidus
 
-import intervalidus.DiscreteInterval1D.*
+import intervalidus.Interval1D.*
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
@@ -17,11 +17,11 @@ trait DataIn1DVersionedBaseBehaviors:
 
   def day(offsetDays: Int): LocalDate = dayZero.plusDays(offsetDays)
 
-  def validString(s: String, validTime: DiscreteInterval1D[LocalDate]): ValidData1D[String, LocalDate] =
+  def validString(s: String, validTime: Interval1D[LocalDate]): ValidData1D[String, LocalDate] =
     validTime -> s
 
   protected def testDataIn2D[T](
-    current: DiscreteDomain1D[Int],
+    current: Domain1D[Int],
     values: List[ValidData1D[T, Int]]
   ): List[ValidData2D[T, Int, Int]] =
     values.map(d => (d.interval x intervalFrom(current)) -> d.value)

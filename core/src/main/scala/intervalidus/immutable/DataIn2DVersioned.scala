@@ -21,13 +21,13 @@ object DataIn2DVersioned extends DataIn2DVersionedBaseObject:
     value: V,
     initialVersion: Int = 0
   )(using Experimental): DataIn2DVersioned[V, R1, R2] =
-    of(DiscreteInterval2D.unbounded[R1, R2] -> value, initialVersion)
+    of(Interval2D.unbounded[R1, R2] -> value, initialVersion)
 
   override def from[V, R1: DiscreteValue, R2: DiscreteValue](
     initialData: Iterable[ValidData2D[V, R1, R2]],
     initialVersion: Int = 0 // could use summon[DiscreteValue[Int]].minValue to extend range
   )(using Experimental): DataIn2DVersioned[V, R1, R2] = DataIn2DVersioned[V, R1, R2](
-    initialData.map(d => (d.interval x DiscreteInterval1D.intervalFrom(initialVersion)) -> d.value),
+    initialData.map(d => (d.interval x Interval1D.intervalFrom(initialVersion)) -> d.value),
     initialVersion
   )
 
@@ -57,12 +57,12 @@ class DataIn2DVersioned[V, R1: DiscreteValue, R2: DiscreteValue](
   extends DataIn2DVersionedBase[V, R1, R2](initialData, initialVersion, withCurrentVersion)
   with ImmutableVersionedBase[
     V,
-    DiscreteDomain2D[R1, R2],
-    DiscreteInterval2D[R1, R2],
+    Domain2D[R1, R2],
+    Interval2D[R1, R2],
     ValidData2D[V, R1, R2],
     DiffAction2D[V, R1, R2],
-    DiscreteDomain3D[R1, R2, Int],
-    DiscreteInterval3D[R1, R2, Int],
+    Domain3D[R1, R2, Int],
+    Interval3D[R1, R2, Int],
     ValidData3D[V, R1, R2, Int],
     DiffAction3D[V, R1, R2, Int],
     DataIn2DVersioned[V, R1, R2]
@@ -93,7 +93,7 @@ class DataIn2DVersioned[V, R1: DiscreteValue, R2: DiscreteValue](
 
   override def setCurrentVersion(version: VersionDomain): DataIn2DVersioned[V, R1, R2] =
     if version >= unapprovedStartVersion then throw Exception("version too large")
-    else if version equiv DiscreteDomain1D.Bottom then throw Exception("version too small")
+    else if version equiv Domain1D.Bottom then throw Exception("version too small")
     else copyAndModify(_.currentVersion = version)
 
   override def incrementCurrentVersion(): DataIn2DVersioned[V, R1, R2] =

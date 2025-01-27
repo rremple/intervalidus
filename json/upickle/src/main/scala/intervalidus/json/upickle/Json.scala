@@ -16,46 +16,46 @@ object Json:
    * Domains encoded as strings/objects
    */
 
-  given [T: DiscreteValue: Reader: Writer]: ReadWriter[DiscreteDomain1D[T]] =
+  given [T: DiscreteValue: Reader: Writer]: ReadWriter[Domain1D[T]] =
     ReadWriter
       .join(JsValueR, JsValueW)
-      .bimap[DiscreteDomain1D[T]](
+      .bimap[Domain1D[T]](
         {
-          case DiscreteDomain1D.Top      => Str("Top")
-          case DiscreteDomain1D.Bottom   => Str("Bottom")
-          case DiscreteDomain1D.Point(p) => Obj("point" -> writeJs[T](p))
+          case Domain1D.Top      => Str("Top")
+          case Domain1D.Bottom   => Str("Bottom")
+          case Domain1D.Point(p) => Obj("point" -> writeJs[T](p))
         },
         {
-          case Str("Top")    => DiscreteDomain1D.Top
-          case Str("Bottom") => DiscreteDomain1D.Bottom
-          case Obj(p)        => DiscreteDomain1D.Point(p("point").as[T])
+          case Str("Top")    => Domain1D.Top
+          case Str("Bottom") => Domain1D.Bottom
+          case Obj(p)        => Domain1D.Point(p("point").as[T])
           case unexpected    => throw new Exception(s"Expected Str (Top/Bottom) or Obj (point) but got $unexpected")
         }
       )
 
   given [T1: DiscreteValue, T2: DiscreteValue](using
-    ReadWriter[DiscreteDomain1D[T1]],
-    ReadWriter[DiscreteDomain1D[T2]]
-  ): ReadWriter[DiscreteDomain2D[T1, T2]] =
-    asValueObj.bimap[DiscreteDomain2D[T1, T2]](
+    ReadWriter[Domain1D[T1]],
+    ReadWriter[Domain1D[T2]]
+  ): ReadWriter[Domain2D[T1, T2]] =
+    asValueObj.bimap[Domain2D[T1, T2]](
       domain =>
         Obj(
           "horizontalIndex" -> writeJs(domain.horizontalIndex),
           "verticalIndex" -> writeJs(domain.verticalIndex)
         ),
       obj =>
-        DiscreteDomain2D[T1, T2](
-          obj("horizontalIndex").as[DiscreteDomain1D[T1]],
-          obj("verticalIndex").as[DiscreteDomain1D[T2]]
+        Domain2D[T1, T2](
+          obj("horizontalIndex").as[Domain1D[T1]],
+          obj("verticalIndex").as[Domain1D[T2]]
         )
     )
 
   given [T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue](using
-    ReadWriter[DiscreteDomain1D[T1]],
-    ReadWriter[DiscreteDomain1D[T2]],
-    ReadWriter[DiscreteDomain1D[T3]]
-  ): ReadWriter[DiscreteDomain3D[T1, T2, T3]] =
-    asValueObj.bimap[DiscreteDomain3D[T1, T2, T3]](
+    ReadWriter[Domain1D[T1]],
+    ReadWriter[Domain1D[T2]],
+    ReadWriter[Domain1D[T3]]
+  ): ReadWriter[Domain3D[T1, T2, T3]] =
+    asValueObj.bimap[Domain3D[T1, T2, T3]](
       domain =>
         Obj(
           "horizontalIndex" -> writeJs(domain.horizontalIndex),
@@ -63,10 +63,10 @@ object Json:
           "depthIndex" -> writeJs(domain.depthIndex)
         ),
       obj =>
-        DiscreteDomain3D[T1, T2, T3](
-          obj("horizontalIndex").as[DiscreteDomain1D[T1]],
-          obj("verticalIndex").as[DiscreteDomain1D[T2]],
-          obj("depthIndex").as[DiscreteDomain1D[T3]]
+        Domain3D[T1, T2, T3](
+          obj("horizontalIndex").as[Domain1D[T1]],
+          obj("verticalIndex").as[Domain1D[T2]],
+          obj("depthIndex").as[Domain1D[T3]]
         )
     )
 
@@ -74,43 +74,43 @@ object Json:
    * Intervals encoded as objects
    */
 
-  given [T: DiscreteValue](using ReadWriter[DiscreteDomain1D[T]]): ReadWriter[DiscreteInterval1D[T]] =
-    asValueObj.bimap[DiscreteInterval1D[T]](
+  given [T: DiscreteValue](using ReadWriter[Domain1D[T]]): ReadWriter[Interval1D[T]] =
+    asValueObj.bimap[Interval1D[T]](
       interval =>
         Obj(
           "start" -> writeJs(interval.start),
           "end" -> writeJs(interval.end)
         ),
       obj =>
-        DiscreteInterval1D[T](
-          obj("start").as[DiscreteDomain1D[T]],
-          obj("end").as[DiscreteDomain1D[T]]
+        Interval1D[T](
+          obj("start").as[Domain1D[T]],
+          obj("end").as[Domain1D[T]]
         )
     )
 
   given [T1: DiscreteValue, T2: DiscreteValue](using
-    ReadWriter[DiscreteInterval1D[T1]],
-    ReadWriter[DiscreteInterval1D[T2]]
-  ): ReadWriter[DiscreteInterval2D[T1, T2]] =
-    asValueObj.bimap[DiscreteInterval2D[T1, T2]](
+    ReadWriter[Interval1D[T1]],
+    ReadWriter[Interval1D[T2]]
+  ): ReadWriter[Interval2D[T1, T2]] =
+    asValueObj.bimap[Interval2D[T1, T2]](
       interval =>
         Obj(
           "horizontal" -> writeJs(interval.horizontal),
           "vertical" -> writeJs(interval.vertical)
         ),
       obj =>
-        DiscreteInterval2D[T1, T2](
-          obj("horizontal").as[DiscreteInterval1D[T1]],
-          obj("vertical").as[DiscreteInterval1D[T2]]
+        Interval2D[T1, T2](
+          obj("horizontal").as[Interval1D[T1]],
+          obj("vertical").as[Interval1D[T2]]
         )
     )
 
   given [T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue](using
-    ReadWriter[DiscreteInterval1D[T1]],
-    ReadWriter[DiscreteInterval1D[T2]],
-    ReadWriter[DiscreteInterval1D[T3]]
-  ): ReadWriter[DiscreteInterval3D[T1, T2, T3]] =
-    asValueObj.bimap[DiscreteInterval3D[T1, T2, T3]](
+    ReadWriter[Interval1D[T1]],
+    ReadWriter[Interval1D[T2]],
+    ReadWriter[Interval1D[T3]]
+  ): ReadWriter[Interval3D[T1, T2, T3]] =
+    asValueObj.bimap[Interval3D[T1, T2, T3]](
       interval =>
         Obj(
           "horizontal" -> writeJs(interval.horizontal),
@@ -118,10 +118,10 @@ object Json:
           "depth" -> writeJs(interval.depth)
         ),
       obj =>
-        DiscreteInterval3D[T1, T2, T3](
-          obj("horizontal").as[DiscreteInterval1D[T1]],
-          obj("vertical").as[DiscreteInterval1D[T2]],
-          obj("depth").as[DiscreteInterval1D[T3]]
+        Interval3D[T1, T2, T3](
+          obj("horizontal").as[Interval1D[T1]],
+          obj("vertical").as[Interval1D[T2]],
+          obj("depth").as[Interval1D[T3]]
         )
     )
 
@@ -129,7 +129,7 @@ object Json:
    * Valid data encoded as objects
    */
 
-  given [V, R: DiscreteValue](using ReadWriter[V], ReadWriter[DiscreteInterval1D[R]]): ReadWriter[ValidData1D[V, R]] =
+  given [V, R: DiscreteValue](using ReadWriter[V], ReadWriter[Interval1D[R]]): ReadWriter[ValidData1D[V, R]] =
     asValueObj.bimap[ValidData1D[V, R]](
       data =>
         Obj(
@@ -139,13 +139,13 @@ object Json:
       obj =>
         ValidData1D[V, R](
           obj("value").as[V],
-          obj("interval").as[DiscreteInterval1D[R]]
+          obj("interval").as[Interval1D[R]]
         )
     )
 
   given [V, R1: DiscreteValue, R2: DiscreteValue](using
     ReadWriter[V],
-    ReadWriter[DiscreteInterval2D[R1, R2]]
+    ReadWriter[Interval2D[R1, R2]]
   ): ReadWriter[ValidData2D[V, R1, R2]] =
     asValueObj.bimap[ValidData2D[V, R1, R2]](
       data =>
@@ -156,13 +156,13 @@ object Json:
       obj =>
         ValidData2D[V, R1, R2](
           obj("value").as[V],
-          obj("interval").as[DiscreteInterval2D[R1, R2]]
+          obj("interval").as[Interval2D[R1, R2]]
         )
     )
 
   given [V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](using
     ReadWriter[V],
-    ReadWriter[DiscreteInterval3D[R1, R2, R3]]
+    ReadWriter[Interval3D[R1, R2, R3]]
   ): ReadWriter[ValidData3D[V, R1, R2, R3]] =
     asValueObj.bimap[ValidData3D[V, R1, R2, R3]](
       data =>
@@ -173,7 +173,7 @@ object Json:
       obj =>
         ValidData3D[V, R1, R2, R3](
           obj("value").as[V],
-          obj("interval").as[DiscreteInterval3D[R1, R2, R3]]
+          obj("interval").as[Interval3D[R1, R2, R3]]
         )
     )
 
@@ -183,7 +183,7 @@ object Json:
 
   given [V, R: DiscreteValue](using
     ReadWriter[ValidData1D[V, R]],
-    ReadWriter[DiscreteDomain1D[R]]
+    ReadWriter[Domain1D[R]]
   ): ReadWriter[DiffAction1D[V, R]] =
     asValueObj.bimap[DiffAction1D[V, R]](
       {
@@ -195,12 +195,12 @@ object Json:
         obj("action").str match
           case "Create" => DiffAction1D.Create(obj("validData").as[ValidData1D[V, R]])
           case "Update" => DiffAction1D.Update(obj("validData").as[ValidData1D[V, R]])
-          case "Delete" => DiffAction1D.Delete(obj("key").as[DiscreteDomain1D[R]])
+          case "Delete" => DiffAction1D.Delete(obj("key").as[Domain1D[R]])
     )
 
   given [V, R1: DiscreteValue, R2: DiscreteValue](using
     ReadWriter[ValidData2D[V, R1, R2]],
-    ReadWriter[DiscreteDomain2D[R1, R2]]
+    ReadWriter[Domain2D[R1, R2]]
   ): ReadWriter[DiffAction2D[V, R1, R2]] =
     asValueObj.bimap[DiffAction2D[V, R1, R2]](
       {
@@ -212,12 +212,12 @@ object Json:
         obj("action").str match
           case "Create" => DiffAction2D.Create(obj("validData").as[ValidData2D[V, R1, R2]])
           case "Update" => DiffAction2D.Update(obj("validData").as[ValidData2D[V, R1, R2]])
-          case "Delete" => DiffAction2D.Delete(obj("key").as[DiscreteDomain2D[R1, R2]])
+          case "Delete" => DiffAction2D.Delete(obj("key").as[Domain2D[R1, R2]])
     )
 
   given [V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](using
     ReadWriter[ValidData3D[V, R1, R2, R3]],
-    ReadWriter[DiscreteDomain3D[R1, R2, R3]]
+    ReadWriter[Domain3D[R1, R2, R3]]
   ): ReadWriter[DiffAction3D[V, R1, R2, R3]] =
     asValueObj.bimap[DiffAction3D[V, R1, R2, R3]](
       {
@@ -229,7 +229,7 @@ object Json:
         obj("action").str match
           case "Create" => DiffAction3D.Create(obj("validData").as[ValidData3D[V, R1, R2, R3]])
           case "Update" => DiffAction3D.Update(obj("validData").as[ValidData3D[V, R1, R2, R3]])
-          case "Delete" => DiffAction3D.Delete(obj("key").as[DiscreteDomain3D[R1, R2, R3]])
+          case "Delete" => DiffAction3D.Delete(obj("key").as[Domain3D[R1, R2, R3]])
     )
 
   /*

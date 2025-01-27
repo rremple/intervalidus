@@ -1,6 +1,6 @@
 package intervalidus.examples.billing
 
-import intervalidus.DiscreteInterval1D
+import intervalidus.Interval1D
 import intervalidus.immutable.DataIn1D
 
 import java.time.LocalDate
@@ -11,7 +11,7 @@ import scala.language.implicitConversions
   */
 object BillingData:
   // types, opaque and otherwise
-  type Period = DiscreteInterval1D[LocalDate]
+  type Period = Interval1D[LocalDate]
   extension (period: Period) def days: Int = period.points.size
 
   type Dollars = BigDecimal
@@ -38,7 +38,7 @@ object BillingData:
       def slashFormat: String = s"[${Month.fromOrdinal(d.getMonthValue - 1)} / ${d.getDayOfMonth} / ${d.getYear}]"
 
   import Month.*
-  import DiscreteInterval1D.intervalFromAfter
+  import Interval1D.intervalFromAfter
 
   // Tiers, where rates can vary over time
   case class Tier(id: TierId, description: String, dailyRates: DataIn1D[Dollars, LocalDate]):

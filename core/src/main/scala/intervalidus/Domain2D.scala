@@ -5,7 +5,7 @@ import intervalidus.collection.Coordinate
 import scala.language.implicitConversions
 
 /**
-  * A two-dimensional discrete domain, like cartesian coordinates. Used in conjunction with [[DiscreteInterval2D]].
+  * A two-dimensional discrete domain, like cartesian coordinates. Used in conjunction with [[Interval2D]].
   *
   * @param horizontalIndex
   *   domain element on the x-axis.
@@ -16,9 +16,9 @@ import scala.language.implicitConversions
   * @tparam T2
   *   the vertical domain type
   */
-case class DiscreteDomain2D[T1: DiscreteValue, T2: DiscreteValue](
-  horizontalIndex: DiscreteDomain1D[T1],
-  verticalIndex: DiscreteDomain1D[T2]
+case class Domain2D[T1: DiscreteValue, T2: DiscreteValue](
+  horizontalIndex: Domain1D[T1],
+  verticalIndex: Domain1D[T2]
 ):
 
   override def toString: String = s"{$horizontalIndex, $verticalIndex}"
@@ -34,24 +34,24 @@ case class DiscreteDomain2D[T1: DiscreteValue, T2: DiscreteValue](
     *   a new three-dimensional domain element with this as the horizontal and vertical components and that as the depth
     *   component.
     */
-  infix def x[T3: DiscreteValue](that: DiscreteDomain1D[T3]): DiscreteDomain3D[T1, T2, T3] =
-    DiscreteDomain3D(horizontalIndex, verticalIndex, that)
+  infix def x[T3: DiscreteValue](that: Domain1D[T3]): Domain3D[T1, T2, T3] =
+    Domain3D(horizontalIndex, verticalIndex, that)
 
   /**
     * Flips this domain by swapping the vertical and horizontal components with one another.
     */
-  def flip: DiscreteDomain2D[T2, T1] = DiscreteDomain2D(verticalIndex, horizontalIndex)
+  def flip: Domain2D[T2, T1] = Domain2D(verticalIndex, horizontalIndex)
 
 /**
   * Companion for the two-dimensional domain used in defining and operating on discrete intervals.
   */
-object DiscreteDomain2D:
+object Domain2D:
 
   /**
     * Type class instance for two-dimensional discrete domains.
     */
-  given [T1: DiscreteValue, T2: DiscreteValue]: DiscreteDomainLike[DiscreteDomain2D[T1, T2]] with
-    extension (domain: DiscreteDomain2D[T1, T2])
+  given [T1: DiscreteValue, T2: DiscreteValue]: DomainLike[Domain2D[T1, T2]] with
+    extension (domain: Domain2D[T1, T2])
       override def isUnbounded: Boolean =
         domain.horizontalIndex.isUnbounded && domain.verticalIndex.isUnbounded
 
@@ -61,10 +61,10 @@ object DiscreteDomain2D:
       override def asCoordinate: Coordinate =
         Coordinate(domain.horizontalIndex.orderedHash, domain.verticalIndex.orderedHash)
 
-      override def successor: DiscreteDomain2D[T1, T2] =
+      override def successor: Domain2D[T1, T2] =
         domain.horizontalIndex.successor x domain.verticalIndex.successor
 
-      override def predecessor: DiscreteDomain2D[T1, T2] =
+      override def predecessor: Domain2D[T1, T2] =
         domain.horizontalIndex.predecessor x domain.verticalIndex.predecessor
 
   /**
@@ -83,10 +83,10 @@ object DiscreteDomain2D:
     *   an ordering for the 2D domain
     */
   given [T1, T2](using
-    horizontalOrdering: Ordering[DiscreteDomain1D[T1]],
-    verticalOrdering: Ordering[DiscreteDomain1D[T2]]
-  ): Ordering[DiscreteDomain2D[T1, T2]] with
-    override def compare(x: DiscreteDomain2D[T1, T2], y: DiscreteDomain2D[T1, T2]): Int =
+    horizontalOrdering: Ordering[Domain1D[T1]],
+    verticalOrdering: Ordering[Domain1D[T2]]
+  ): Ordering[Domain2D[T1, T2]] with
+    override def compare(x: Domain2D[T1, T2], y: Domain2D[T1, T2]): Int =
       val horizontalCompare = horizontalOrdering.compare(x.horizontalIndex, y.horizontalIndex)
       if horizontalCompare != 0 then horizontalCompare
       else verticalOrdering.compare(x.verticalIndex, y.verticalIndex)
@@ -97,5 +97,5 @@ object DiscreteDomain2D:
     * even `dataIn2D.getAt(Point(1) x Point(2))`) or, simpler, `dataIn1D.getAt((1, 2))` (or, with auto-tupling, even the
     * extra parens can be dropped: `dataIn1D.getAt(1, 2)`)
     */
-  given [T1, T2](using DiscreteValue[T1], DiscreteValue[T2]): Conversion[(T1, T2), DiscreteDomain2D[T1, T2]] =
-    (t: (T1, T2)) => DiscreteDomain2D(t._1, t._2)
+  given [T1, T2](using DiscreteValue[T1], DiscreteValue[T2]): Conversion[(T1, T2), Domain2D[T1, T2]] =
+    (t: (T1, T2)) => Domain2D(t._1, t._2)

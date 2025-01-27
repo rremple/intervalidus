@@ -1,7 +1,7 @@
 package intervalidus.microbench
 
 import intervalidus.*
-import intervalidus.DiscreteInterval1D.interval
+import intervalidus.Interval1D.interval
 
 import scala.language.implicitConversions
 import scala.math.Ordering.Implicits.infixOrderingOps
@@ -15,18 +15,18 @@ trait BenchBase(baselineFeature: Option[String], featuredFeature: Option[String]
   val (fullRangeMin, fullRangeMax) = (-500_000, 500_000)
   def fullRangeSize = fullRangeMax - fullRangeMin
 
-  def randDomain1d(): DiscreteDomain1D[Int] = rand.nextInt(fullRangeSize) + fullRangeMin
-  def randDomain2d(): DiscreteDomain2D[Int, Int] = randDomain1d() x randDomain1d()
-  def randDomain3d(): DiscreteDomain3D[Int, Int, Int] = randDomain1d() x randDomain1d() x randDomain1d()
+  def randDomain1d(): Domain1D[Int] = rand.nextInt(fullRangeSize) + fullRangeMin
+  def randDomain2d(): Domain2D[Int, Int] = randDomain1d() x randDomain1d()
+  def randDomain3d(): Domain3D[Int, Int, Int] = randDomain1d() x randDomain1d() x randDomain1d()
 
-  def randInterval1d(intervalRange: Int): DiscreteInterval1D[Int] =
+  def randInterval1d(intervalRange: Int): Interval1D[Int] =
     val start = rand.nextInt(fullRangeSize) + fullRangeMin
     val size = rand.nextInt(intervalRange) + 1
     val end = math.min(fullRangeMax, start + size)
     interval(start, end)
-  def randInterval2d(intervalRange: Int): DiscreteInterval2D[Int, Int] =
+  def randInterval2d(intervalRange: Int): Interval2D[Int, Int] =
     randInterval1d(intervalRange) x randInterval1d(intervalRange)
-  def randInterval3d(intervalRange: Int): DiscreteInterval3D[Int, Int, Int] =
+  def randInterval3d(intervalRange: Int): Interval3D[Int, Int, Int] =
     randInterval1d(intervalRange) x randInterval1d(intervalRange) x randInterval1d(intervalRange)
 
   def randValue1d(intervalRange: Int): ValidData1D[String, Int] =
@@ -39,7 +39,7 @@ trait BenchBase(baselineFeature: Option[String], featuredFeature: Option[String]
     val interval = randInterval3d(intervalRange)
     interval -> interval.toString
 
-  def shorten(existing: DiscreteInterval1D[Int]) =
+  def shorten(existing: Interval1D[Int]) =
     interval(existing.start, existing.end.predecessor max existing.start)
 
   def randValue1dWithKey(existing: ValidData1D[String, Int]) =

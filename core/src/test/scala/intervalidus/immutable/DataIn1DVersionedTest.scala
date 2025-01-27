@@ -10,7 +10,7 @@ import scala.language.implicitConversions
 class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersionedBaseBehaviors:
 
   import DimensionalVersionedBase.VersionSelection
-  import DiscreteInterval1D.*
+  import Interval1D.*
 
   // increment current version with each data element
   def newDataIn1DVersioned(allData: Iterable[ValidData1D[String, Int]]): DataIn1DVersioned[String, Int] =
@@ -40,10 +40,10 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
       empty.setCurrentVersion(Int.MaxValue)
 
     assertThrows[Exception]: // version too large
-      empty.setCurrentVersion(DiscreteDomain1D.Top)
+      empty.setCurrentVersion(Domain1D.Top)
 
     assertThrows[Exception]: // version too small
-      empty.setCurrentVersion(DiscreteDomain1D.Bottom)
+      empty.setCurrentVersion(Domain1D.Bottom)
 
     val emptyAtMaxVersion = empty.setCurrentVersion(Int.MaxValue - 1) // last approved version
     assertThrows[Exception]: // wow, ran out of versions!
@@ -120,7 +120,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     val expectedData6 = List(intervalTo(0) -> "Hey")
     fixture6.getAll.toList shouldBe expectedData6
 
-    val fixture7 = fixture6.fill(DiscreteInterval1D.unbounded -> "Filled")
+    val fixture7 = fixture6.fill(Interval1D.unbounded -> "Filled")
     val expectedFilled = List(intervalTo(0) -> "Hey", intervalFrom(1) -> "Filled")
     fixture7.getAll.toList shouldBe expectedFilled
 
