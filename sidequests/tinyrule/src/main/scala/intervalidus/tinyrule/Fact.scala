@@ -111,7 +111,7 @@ case class Fact(id: String, attributes: Set[Attribute[?]]):
     * but if the corresponding element isn't a Set, one of the values (arbitrarily selected) is mapped. If attributes
     * names line up but types don't, construction will likely fail.
     * @param mirror
-    *   the [[Mirror.ProductOf]] mirror of the case class, which should be given automatically
+    *   the `Mirror.ProductOf` mirror of the case class, which should be given automatically
     * @tparam P
     *   the case class type (a subtype of [[Product]])
     */
@@ -218,7 +218,7 @@ object Fact:
     * @param p
     *   the case class
     * @param mirror
-    *   the [[Mirror.ProductOf]] mirror of the case class, which should be given automatically
+    *   the `Mirror.ProductOf` mirror of the case class, which should be given automatically
     * @tparam P
     *   the case class type (a subtype of [[Product]])
     * @return

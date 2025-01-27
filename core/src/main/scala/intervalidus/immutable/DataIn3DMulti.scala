@@ -10,24 +10,24 @@ import scala.collection.mutable
   * Constructs multi-data in three-dimensional intervals.
   */
 object DataIn3DMulti extends DataIn3DMultiBaseObject:
-  override def of[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](
+  override def of[V, R1: DomainValueLike, R2: DomainValueLike, R3: DomainValueLike](
     data: ValidData3D[V, R1, R2, R3]
   )(using Experimental): DataIn3DMulti[V, R1, R2, R3] = DataIn3DMulti(Iterable(data.interval -> Set(data.value)))
 
-  override def of[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](
+  override def of[V, R1: DomainValueLike, R2: DomainValueLike, R3: DomainValueLike](
     value: V
   )(using Experimental): DataIn3DMulti[V, R1, R2, R3] = of(Interval3D.unbounded[R1, R2, R3] -> value)
 
-  override def from[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](
+  override def from[V, R1: DomainValueLike, R2: DomainValueLike, R3: DomainValueLike](
     initialData: Iterable[ValidData3D[V, R1, R2, R3]]
   )(using Experimental): DataIn3DMulti[V, R1, R2, R3] =
     DataIn3DMulti[V, R1, R2, R3]().addAll(initialData)
 
-  override def from[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](
+  override def from[V, R1: DomainValueLike, R2: DomainValueLike, R3: DomainValueLike](
     that: DataIn3DBase[Set[V], R1, R2, R3]
   )(using Experimental): DataIn3DMulti[V, R1, R2, R3] = apply(that.getAll)
 
-  override def apply[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](
+  override def apply[V, R1: DomainValueLike, R2: DomainValueLike, R3: DomainValueLike](
     initialData: Iterable[ValidData3D[Set[V], R1, R2, R3]] = Iterable.empty[ValidData3D[Set[V], R1, R2, R3]]
   )(using Experimental): DataIn3DMulti[V, R1, R2, R3] =
     val (byStartAsc, byStartDesc, byValue, inSearchTree) = constructorParams(initialData)
@@ -56,7 +56,7 @@ object DataIn3DMulti extends DataIn3DMultiBaseObject:
   * @tparam R3
   *   the type of discrete domain used in the depth interval assigned to each value.
   */
-class DataIn3DMulti[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue] private (
+class DataIn3DMulti[V, R1: DomainValueLike, R2: DomainValueLike, R3: DomainValueLike] private (
   override val dataByStartAsc: mutable.TreeMap[Domain3D[R1, R2, R3], ValidData3D[Set[V], R1, R2, R3]],
   override val dataByStartDesc: mutable.TreeMap[Domain3D[R1, R2, R3], ValidData3D[Set[V], R1, R2, R3]],
   override val dataByValue: MultiMapSorted[Set[V], ValidData3D[Set[V], R1, R2, R3]],
@@ -89,7 +89,7 @@ class DataIn3DMulti[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue] 
     * @return
     *   a new structure resulting from applying the provided function f to each element of this structure.
     */
-  def map[B, S1: DiscreteValue, S2: DiscreteValue, S3: DiscreteValue](
+  def map[B, S1: DomainValueLike, S2: DomainValueLike, S3: DomainValueLike](
     f: ValidData3D[Set[V], R1, R2, R3] => ValidData3D[Set[B], S1, S2, S3]
   ): DataIn3DMulti[B, S1, S2, S3] = DataIn3DMulti(
     getAll.map(f)
@@ -127,7 +127,7 @@ class DataIn3DMulti[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue] 
     *   a new structure resulting from applying the provided function f to each element of this structure and
     *   concatenating the results.
     */
-  def flatMap[B, S1: DiscreteValue, S2: DiscreteValue, S3: DiscreteValue](
+  def flatMap[B, S1: DomainValueLike, S2: DomainValueLike, S3: DomainValueLike](
     f: ValidData3D[Set[V], R1, R2, R3] => DataIn3DMulti[B, S1, S2, S3]
   ): DataIn3DMulti[B, S1, S2, S3] = DataIn3DMulti(
     getAll.flatMap(f(_).getAll)

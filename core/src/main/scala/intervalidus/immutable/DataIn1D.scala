@@ -10,15 +10,15 @@ import scala.collection.mutable
   * Constructs data in one-dimensional intervals.
   */
 object DataIn1D extends DataIn1DBaseObject:
-  override def of[V, R: DiscreteValue](
+  override def of[V, R: DomainValueLike](
     data: ValidData1D[V, R]
   )(using Experimental): DataIn1D[V, R] = DataIn1D(Iterable(data))
 
-  override def of[V, R: DiscreteValue](
+  override def of[V, R: DomainValueLike](
     value: V
   )(using Experimental): DataIn1D[V, R] = of(Interval1D.unbounded[R] -> value)
 
-  override def apply[V, R: DiscreteValue](
+  override def apply[V, R: DomainValueLike](
     initialData: Iterable[ValidData1D[V, R]] = Iterable.empty[ValidData1D[V, R]]
   )(using Experimental): DataIn1D[V, R] =
     val (byStartAsc, byStartDesc, byValue, inSearchTree) = constructorParams(initialData)
@@ -35,7 +35,7 @@ object DataIn1D extends DataIn1DBaseObject:
   * @tparam R
   *   the type of discrete domain used in the interval assigned to each value.
   */
-class DataIn1D[V, R: DiscreteValue] private (
+class DataIn1D[V, R: DomainValueLike] private (
   override val dataByStartAsc: mutable.TreeMap[Domain1D[R], ValidData1D[V, R]],
   override val dataByStartDesc: mutable.TreeMap[Domain1D[R], ValidData1D[V, R]],
   override val dataByValue: MultiMapSorted[V, ValidData1D[V, R]],
@@ -63,7 +63,7 @@ class DataIn1D[V, R: DiscreteValue] private (
     * @return
     *   a new structure resulting from applying the provided function f to each element of this structure.
     */
-  def map[B, S: DiscreteValue](f: ValidData1D[V, R] => ValidData1D[B, S]): DataIn1D[B, S] = DataIn1D(
+  def map[B, S: DomainValueLike](f: ValidData1D[V, R] => ValidData1D[B, S]): DataIn1D[B, S] = DataIn1D(
     getAll.map(f)
   ).compressAll()
 
@@ -95,7 +95,7 @@ class DataIn1D[V, R: DiscreteValue] private (
     *   a new structure resulting from applying the provided function f to each element of this structure and
     *   concatenating the results.
     */
-  def flatMap[B, S: DiscreteValue](f: ValidData1D[V, R] => DataIn1D[B, S]): DataIn1D[B, S] = DataIn1D(
+  def flatMap[B, S: DomainValueLike](f: ValidData1D[V, R] => DataIn1D[B, S]): DataIn1D[B, S] = DataIn1D(
     getAll.flatMap(f(_).getAll)
   ).compressAll()
 

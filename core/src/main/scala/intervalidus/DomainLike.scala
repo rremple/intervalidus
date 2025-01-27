@@ -3,11 +3,11 @@ package intervalidus
 import intervalidus.collection.Coordinate
 
 /**
-  * Template for a type class with operations on a discrete domain. A discrete domain is used in defining and operating
-  * on a discrete interval.
+  * Template for a type class with operations on a domain (discrete or continuous). A domain is used in defining the
+  * boundaries of an interval.
   *
   * @tparam D
-  *   discrete domain type
+  *   domain type
   */
 trait DomainLike[D: Ordering]:
   extension (domain: D)
@@ -30,22 +30,26 @@ trait DomainLike[D: Ordering]:
     def asCoordinate: Coordinate
 
     /**
-      * Successor of this in all dimensions, where `Bottom` and `Top` are their own successors, and the successor of
-      * `maxValue` is `Top`. See [[https://en.wikipedia.org/wiki/Successor_function]].
+      * Domain adjacent to this in all dimensions from the "right", where `Bottom` and `Top` are considered
+      * self-adjacent. For discrete domains, this is the successor, where the right adjacent of `maxValue` is `Top` --
+      * see [[https://en.wikipedia.org/wiki/Successor_function]]. For continuous domains, this maps open points to
+      * closed ones, and closed points to open ones (right and left complements are the same).
       *
       * @return
-      *   successor of this
+      *   right complement of this
       */
-    def successor: D
+    def rightAdjacent: D
 
     /**
-      * Predecessor of this in all dimensions, where `Bottom` and `Top` are their own predecessors, and the predecessor
-      * of `minValue` is `Bottom`. See [[https://en.wikipedia.org/wiki/Primitive_recursive_function#Predecessor]].
+      * Domain adjacent to this in all dimensions from the "left", where `Bottom` and `Top` are considered
+      * self-adjacent. For discrete domains, this is the predecessor, where the left adjacent of `minValue` is `Bottom`
+      * -- see [[https://en.wikipedia.org/wiki/Primitive_recursive_function#Predecessor]]. For continuous domains, this
+      * maps open points to closed ones, and closed points to open ones (right and left complements are the same).
       *
       * @return
-      *   successor of this
+      *   left complement of this
       */
-    def predecessor: D
+    def leftAdjacent: D
 
     /**
       * Tests if this belongs to an interval. See [[https://en.wikipedia.org/wiki/Element_(mathematics)]].

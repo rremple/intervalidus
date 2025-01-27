@@ -1,6 +1,7 @@
 package intervalidus.microbench
 
 import intervalidus.*
+import intervalidus.DiscreteValue.given
 import intervalidus.Interval1D.interval
 
 import scala.language.implicitConversions
@@ -40,7 +41,7 @@ trait BenchBase(baselineFeature: Option[String], featuredFeature: Option[String]
     interval -> interval.toString
 
   def shorten(existing: Interval1D[Int]) =
-    interval(existing.start, existing.end.predecessor max existing.start)
+    interval(existing.start, existing.end.leftAdjacent max existing.start)
 
   def randValue1dWithKey(existing: ValidData1D[String, Int]) =
     val newInterval = shorten(existing.interval)

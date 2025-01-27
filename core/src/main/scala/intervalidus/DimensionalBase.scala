@@ -1,7 +1,7 @@
 package intervalidus
 
 import intervalidus.collection.*
-import intervalidus.collection.mutable.MultiMapSorted
+import intervalidus.collection.mutable.{BoxTree, MultiMapSorted}
 
 import scala.math.Ordering.Implicits.infixOrderingOps
 
@@ -35,19 +35,26 @@ trait DimensionalBase[
   protected def newValidData(value: V, interval: I): ValidData
 
   // For defining 1D and 2D toString methods - print a uniform grid representing the data.
-  protected def toStringGrid[R1: DiscreteValue, R2: DiscreteValue](
+  protected def toStringGrid[R1, R2: DomainValueLike](
     dataToString: ValidData => String,
     dataToInterval: ValidData => Interval1D[R1],
     dataToSortBy: ValidData => Domain1D[R2]
-  ): String =
+  )(using horizontalDomainValue: DomainValueLike[R1]): String =
 
     val validData = getAll.toList
     val maxDataSize = validData.map(dataToString).map(_.length + 3).maxOption.getOrElse(3)
     val horizontalIntervals = Interval1D.uniqueIntervals(validData.map(dataToInterval))
-    val horizontalSpacer = "| " // 2 +
-    val horizontalDots = " .. " // 4 = 6 + end space = 7
+    val punctuation = horizontalDomainValue match
+      case _: ContinuousValue[R1] => horizontalDomainValue.bracePunctuation
+      case _: DiscreteValue[R1]   => s" ${horizontalDomainValue.bracePunctuation} "
+
+    def formatInterval(interval: Interval1D[R1]): String = horizontalDomainValue match
+      case _: ContinuousValue[R1] =>
+        s"${interval.start.leftBrace} ${interval.start}$punctuation${interval.end} ${interval.end.rightBrace} "
+      case _: DiscreteValue[R1] =>
+        s"| ${interval.start}$punctuation${interval.end} "
     val maxHorizontalIntervalsSize = horizontalIntervals
-      .map(i => i.start.toString.length + i.end.toString.length + 7)
+      .map(formatInterval(_).length)
       .maxOption
       .getOrElse(7)
     val cellSize = math.max(maxDataSize, maxHorizontalIntervalsSize)
@@ -59,9 +66,8 @@ trait DimensionalBase[
         (StringBuilder(), Map.newBuilder[Domain1D[R1], Int], Map.newBuilder[Domain1D[R1], Int])
       ):
         case ((stringBuilder, startPositionBuilder, endPositionBuilder), (interval, index)) =>
-          val barString = s"$horizontalSpacer${interval.start}$horizontalDots${interval.end} "
           startPositionBuilder.addOne(interval.start, stringBuilder.size)
-          stringBuilder.append(barString)
+          stringBuilder.append(formatInterval(interval))
           val padTo = cellSize * (index + 1)
           if stringBuilder.size < padTo then stringBuilder.append(pad(padTo - stringBuilder.size))
           endPositionBuilder.addOne(interval.end, stringBuilder.size)
@@ -108,17 +114,34 @@ trait DimensionalBase[
     */
   protected def dataByValue: MultiMapSorted[V, ValidData]
 
-  /*
-   * Because the type parameters are a bit wonky, the search tree is instantiated in the subclass, and accessed here
-   * using only the following methods
-   */
-  protected def dataInSearchTreeAdd(data: ValidData): Unit
-  protected def dataInSearchTreeRemove(data: ValidData): Unit
-  protected def dataInSearchTreeClear(): Unit
-  protected def dataInSearchTreeAddAll(data: Iterable[ValidData]): Unit
-  protected def dataInSearchTreeGet(interval: I): Iterable[ValidData]
-  protected def dataInSearchTreeGetByDomain(domainIndex: D): Option[ValidData]
-  protected def dataInSearchTreeIntersects(interval: I): Boolean
+  protected def dataInSearchTree: BoxTree[ValidData]
+
+  protected def dataInSearchTreeAdd(data: ValidData): Unit =
+    dataInSearchTree.addOne(data.asBoxedPayload)
+
+  protected def dataInSearchTreeRemove(data: ValidData): Unit =
+    dataInSearchTree.remove(data.asBoxedPayload)
+
+  protected def dataInSearchTreeClear(): Unit =
+    dataInSearchTree.clear()
+
+  protected def dataInSearchTreeAddAll(data: Iterable[ValidData]): Unit =
+    dataInSearchTree.addAll(data.map(_.asBoxedPayload))
+
+  protected def dataInSearchTreeGet(interval: I): Iterable[ValidData] =
+    BoxedPayload
+      .deduplicate(dataInSearchTree.get(interval.asBox))
+      .map(_.payload)
+      .filter(_.interval intersects interval)
+
+  protected def dataInSearchTreeGetByDomain(domainIndex: D): Option[ValidData] =
+    dataInSearchTree
+      .get(Box.at(domainIndex.asCoordinate))
+      .collectFirst:
+        case d if d.payload.interval.contains(domainIndex) => d.payload
+
+  protected def dataInSearchTreeIntersects(interval: I): Boolean =
+    dataInSearchTree.get(interval.asBox).exists(_.payload.interval intersects interval)
 
   /**
     * Remove, and possibly update, valid values on the target interval. If there are values valid on portions of the

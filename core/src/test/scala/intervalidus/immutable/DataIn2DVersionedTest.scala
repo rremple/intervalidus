@@ -1,6 +1,7 @@
 package intervalidus.immutable
 
 import intervalidus.*
+import intervalidus.DiscreteValue.given
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
@@ -180,8 +181,8 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
       b.append(d.value).append("->").append(d.interval.horizontal.toString).append(" ")
     concat.result() shouldBe "Hey->(-∞..4] World->[16..+∞) "
 
-    val fixture2 =
-      fixture1.map(d => d.interval.withHorizontalUpdate(_.toAfter(d.interval.horizontal.end)) -> (d.value + "!"))
+    val fixture2 = fixture1.map: d =>
+      d.interval.withHorizontalUpdate(_.to(d.interval.horizontal.end.rightAdjacent)) -> (d.value + "!")
     val expectedData2 = List(
       (intervalTo(5) x intervalFrom(0)) -> "Hey!",
       (intervalFrom(16) x intervalFrom(0)) -> "World!"

@@ -10,17 +10,17 @@ trait DataIn3DMultiBaseObject extends DataIn3DConstructorParams:
     * @tparam V
     *   the type of the value managed as data.
     * @tparam R1
-    *   the type of discrete value used in the horizontal discrete interval assigned to each value.
+    *   the type of domain value used in the horizontal interval assigned to each value.
     * @tparam R2
-    *   the type of discrete value used in the vertical discrete interval assigned to each value.
+    *   the type of domain value used in the vertical interval assigned to each value.
     * @tparam R3
-    *   the type of discrete domain used in the depth interval assigned to each value.
+    *   the type of domain value used in the depth interval assigned to each value.
     * @param data
     *   valid data to start with.
     * @return
     *   [[DataIn3DMultiBase]] structure with a single valid value.
     */
-  def of[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](
+  def of[V, R1: DomainValueLike, R2: DomainValueLike, R3: DomainValueLike](
     data: ValidData3D[V, R1, R2, R3]
   )(using Experimental): DataIn3DMultiBase[V, R1, R2, R3]
 
@@ -30,17 +30,17 @@ trait DataIn3DMultiBaseObject extends DataIn3DConstructorParams:
     * @tparam V
     *   the type of the value managed as data.
     * @tparam R1
-    *   the type of discrete value used in the horizontal discrete interval assigned to each value.
+    *   the type of domain value used in the horizontal interval assigned to each value.
     * @tparam R2
-    *   the type of discrete value used in the vertical discrete interval assigned to each value.
+    *   the type of domain value used in the vertical interval assigned to each value.
     * @tparam R3
-    *   the type of discrete domain used in the depth interval assigned to each value.
+    *   the type of domain value used in the depth interval assigned to each value.
     * @param value
     *   value to start with.
     * @return
     *   [[DataIn3DMultiBase]] structure with a single valid value.
     */
-  def of[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](
+  def of[V, R1: DomainValueLike, R2: DomainValueLike, R3: DomainValueLike](
     value: V
   )(using Experimental): DataIn3DMultiBase[V, R1, R2, R3]
 
@@ -52,15 +52,15 @@ trait DataIn3DMultiBaseObject extends DataIn3DConstructorParams:
     * @tparam V
     *   the type of the value managed as data.
     * @tparam R1
-    *   the type of discrete domain used in the horizontal interval assigned to each value.
+    *   the type of domain value used in the horizontal interval assigned to each value.
     * @tparam R2
-    *   the type of discrete domain used in the vertical interval assigned to each value.
+    *   the type of domain value used in the vertical interval assigned to each value.
     * @tparam R3
-    *   the type of discrete domain used in the depth interval assigned to each value.
+    *   the type of domain value used in the depth interval assigned to each value.
     * @return
     *   [[DataIn3DMultiBase]] structure with zero or more valid values.
     */
-  def from[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](
+  def from[V, R1: DomainValueLike, R2: DomainValueLike, R3: DomainValueLike](
     initialData: Iterable[ValidData3D[V, R1, R2, R3]]
   )(using Experimental): DataIn3DMultiBase[V, R1, R2, R3]
 
@@ -72,15 +72,15 @@ trait DataIn3DMultiBaseObject extends DataIn3DConstructorParams:
     * @tparam V
     *   the type of the value managed as data.
     * @tparam R1
-    *   the type of discrete domain used in the horizontal interval assigned to each value.
+    *   the type of domain value used in the horizontal interval assigned to each value.
     * @tparam R2
-    *   the type of discrete domain used in the vertical interval assigned to each value.
+    *   the type of domain value used in the vertical interval assigned to each value.
     * @tparam R3
-    *   the type of discrete domain used in the depth interval assigned to each value.
+    *   the type of domain value used in the depth interval assigned to each value.
     * @return
     *   [[DataIn3DMultiBase]] structure with the same valid values.
     */
-  def from[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](
+  def from[V, R1: DomainValueLike, R2: DomainValueLike, R3: DomainValueLike](
     that: DataIn3DBase[Set[V], R1, R2, R3]
   )(using Experimental): DataIn3DMultiBase[V, R1, R2, R3]
 
@@ -92,15 +92,15 @@ trait DataIn3DMultiBaseObject extends DataIn3DConstructorParams:
     * @tparam V
     *   the type of the value managed as data.
     * @tparam R1
-    *   the type of discrete domain used in the horizontal interval assigned to each value.
+    *   the type of domain value used in the horizontal interval assigned to each value.
     * @tparam R2
-    *   the type of discrete domain used in the vertical interval assigned to each value.
+    *   the type of domain value used in the vertical interval assigned to each value.
     * @tparam R3
-    *   the type of discrete domain used in the depth interval assigned to each value.
+    *   the type of domain value used in the depth interval assigned to each value.
     * @return
     *   [[DataIn3DMultiBase]] structure with zero or more valid values.
     */
-  def apply[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](
+  def apply[V, R1: DomainValueLike, R2: DomainValueLike, R3: DomainValueLike](
     initialData: Iterable[ValidData3D[Set[V], R1, R2, R3]]
   )(using Experimental): DataIn3DMultiBase[V, R1, R2, R3]
 
@@ -110,14 +110,14 @@ trait DataIn3DMultiBaseObject extends DataIn3DConstructorParams:
   * @tparam V
   *   the type of the value managed as data.
   * @tparam R1
-  *   the type of discrete domain used in the horizontal interval assigned to each value.
+  *   the type of domain value used in the horizontal interval assigned to each value.
   * @tparam R2
-  *   the type of discrete domain used in the vertical interval assigned to each value.
+  *   the type of domain value used in the vertical interval assigned to each value.
   * @tparam R3
-  *   the type of discrete domain used in the depth interval assigned to each value.
+  *   the type of domain value used in the depth interval assigned to each value.
   */
 // Base for all 3D multi-data, both mutable and immutable
-trait DataIn3DMultiBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue]
+trait DataIn3DMultiBase[V, R1: DomainValueLike, R2: DomainValueLike, R3: DomainValueLike]
   extends DataIn3DBase[Set[V], R1, R2, R3]:
   // from Object - use Visualize (in the test package) if you want something fancier
   override def toString: String = toStringGrid(

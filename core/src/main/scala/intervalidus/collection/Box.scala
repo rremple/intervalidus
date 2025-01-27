@@ -82,3 +82,14 @@ case class Box(minPoint: Coordinate, maxPoint: Coordinate):
   infix def ->[A](payload: A): BoxedPayload[A] = BoxedPayload(this, payload)
 
   override def toString: String = s"[${minPoint.asString}..${maxPoint.asString}]"
+
+object Box:
+  /**
+    * Construct a box at a single coordinate point.
+    *
+    * @param onePoint
+    *   single coordinate
+    * @return
+    *   a new box
+    */
+  def at(onePoint: Coordinate): Box = Box(onePoint, onePoint)

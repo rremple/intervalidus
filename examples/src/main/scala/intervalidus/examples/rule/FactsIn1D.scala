@@ -1,5 +1,6 @@
 package intervalidus.examples.rule
 
+import intervalidus.DiscreteValue.given
 import intervalidus.immutable.DataIn1D
 import intervalidus.Interval1D.*
 import intervalidus.tinyrule.*

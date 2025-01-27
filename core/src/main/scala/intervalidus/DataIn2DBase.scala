@@ -16,15 +16,15 @@ trait DataIn2DBaseObject extends DataIn2DConstructorParams:
     * @tparam V
     *   the type of the value managed as data.
     * @tparam R1
-    *   the type of discrete value used in the horizontal discrete interval assigned to each value.
+    *   the type of domain value used in the horizontal interval assigned to each value.
     * @tparam R2
-    *   the type of discrete value used in the vertical discrete interval assigned to each value.
+    *   the type of domain value used in the vertical interval assigned to each value.
     * @param data
     *   value in interval to start with.
     * @return
     *   [[DataIn2DBase]] structure with a single valid value.
     */
-  def of[V, R1: DiscreteValue, R2: DiscreteValue](
+  def of[V, R1: DomainValueLike, R2: DomainValueLike](
     data: ValidData2D[V, R1, R2]
   )(using Experimental): DataIn2DBase[V, R1, R2]
 
@@ -34,15 +34,15 @@ trait DataIn2DBaseObject extends DataIn2DConstructorParams:
     * @tparam V
     *   the type of the value managed as data.
     * @tparam R1
-    *   the type of discrete value used in the horizontal discrete interval assigned to each value.
+    *   the type of domain value used in the horizontal interval assigned to each value.
     * @tparam R2
-    *   the type of discrete value used in the vertical discrete interval assigned to each value.
+    *   the type of domain value used in the vertical interval assigned to each value.
     * @param value
     *   value to start with.
     * @return
     *   [[DataIn2DBase]] structure with a single valid value.
     */
-  def of[V, R1: DiscreteValue, R2: DiscreteValue](value: V)(using Experimental): DataIn2DBase[V, R1, R2]
+  def of[V, R1: DomainValueLike, R2: DomainValueLike](value: V)(using Experimental): DataIn2DBase[V, R1, R2]
 
   /**
     * Constructor for multiple (or no) initial values that are valid in the various intervals.
@@ -52,20 +52,20 @@ trait DataIn2DBaseObject extends DataIn2DConstructorParams:
     * @tparam V
     *   the type of the value managed as data.
     * @tparam R1
-    *   the type of discrete domain used in the horizontal interval assigned to each value.
+    *   the type of domain value used in the horizontal interval assigned to each value.
     * @tparam R2
-    *   the type of discrete domain used in the vertical interval assigned to each value.
+    *   the type of domain value used in the vertical interval assigned to each value.
     * @return
     *   [[DataIn2DBase]] structure with zero or more valid values.
     */
-  def apply[V, R1: DiscreteValue, R2: DiscreteValue](initialData: Iterable[ValidData2D[V, R1, R2]])(using
+  def apply[V, R1: DomainValueLike, R2: DomainValueLike](initialData: Iterable[ValidData2D[V, R1, R2]])(using
     Experimental
   ): DataIn2DBase[V, R1, R2]
 
 trait DataIn2DConstructorParams:
   protected def constructorParams[V, R1, R2](
     initialData: Iterable[ValidData2D[V, R1, R2]]
-  )(using experimental: Experimental, discreteValue1: DiscreteValue[R1], discreteValue2: DiscreteValue[R2]): (
+  )(using experimental: Experimental, domainValue1: DomainValueLike[R1], domainValue2: DomainValueLike[R2]): (
     mutable.TreeMap[Domain2D[R1, R2], ValidData2D[V, R1, R2]],
     mutable.TreeMap[Domain2D[R1, R2], ValidData2D[V, R1, R2]],
     MultiMapSorted[V, ValidData2D[V, R1, R2]],
@@ -83,7 +83,7 @@ trait DataIn2DConstructorParams:
     val dataByValue: MultiMapSorted[V, ValidData2D[V, R1, R2]] =
       collection.mutable.MultiMapSorted.from(initialData.map(v => v.value -> v))
 
-    val (r1, r2) = (summon[DiscreteValue[R1]], summon[DiscreteValue[R2]])
+    val (r1, r2) = (summon[DomainValueLike[R1]], summon[DomainValueLike[R2]])
     val minPoint = Coordinate(r1.minValue.orderedHashValue, r2.minValue.orderedHashValue)
     val maxPoint = Coordinate(r1.maxValue.orderedHashValue, r2.maxValue.orderedHashValue)
     val boundary = Box(minPoint, maxPoint)
@@ -97,9 +97,9 @@ trait DataIn2DConstructorParams:
     (dataByStartAsc, dataByStartDesc, dataByValue, dataInSearchTree)
 
 /**
-  * Like [[DataIn1DBase]], data here have different values in different discrete intervals. But here data values vary in
-  * two dimensions. For example, one may want to represent when the data are valid in time and over certain versions, or
-  * in two dimensions of time, simultaneously.
+  * Like [[DataIn1DBase]], data here have different values in different intervals. But here data values vary in two
+  * dimensions. For example, one may want to represent when the data are valid in time and over certain versions, or in
+  * two dimensions of time, simultaneously.
   *
   * We can capture the dependency between various values and related two-dimensional intervals cohesively in this
   * structure rather than in separate data structures using distributed (and potentially inconsistent) logic. This is
@@ -112,12 +112,12 @@ trait DataIn2DConstructorParams:
   * @tparam V
   *   the type of the value managed as data.
   * @tparam R1
-  *   the type of discrete domain used in the horizontal interval assigned to each value.
+  *   the type of domain value used in the horizontal interval assigned to each value.
   * @tparam R2
-  *   the type of discrete domain used in the vertical interval assigned to each value.
+  *   the type of domain value used in the vertical interval assigned to each value.
   */
-trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: Experimental)
-  extends DimensionalBase[
+trait DataIn2DBase[V, R1: DomainValueLike, R2: DomainValueLike](using experimental: Experimental)
+  extends intervalidus.DimensionalBase[
     V,
     Domain2D[R1, R2],
     Interval2D[R1, R2],
@@ -125,8 +125,6 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
     DiffAction2D[V, R1, R2],
     DataIn2DBase[V, R1, R2]
   ]:
-
-  protected def dataInSearchTree: BoxTree[ValidData2D[V, R1, R2]]
 
   experimental.control("requireDisjoint")(
     nonExperimentalResult = (),
@@ -136,7 +134,7 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
   override protected def newValidData(value: V, interval: Interval2D[R1, R2]): ValidData2D[V, R1, R2] =
     interval -> value
 
-  private def subIntervalsWith[B, R: DiscreteValue](
+  private def subIntervalsWith[B, R: DomainValueLike](
     that: DataIn2DBase[B, R1, R2],
     f: Interval2D[R1, R2] => Interval1D[R]
   ): Iterable[Interval1D[R]] = Interval1D.uniqueIntervals(
@@ -294,35 +292,6 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
     // recompress
     dataByValue.keySet.foreach(compressInPlace)
 
-  override protected def dataInSearchTreeAdd(data: ValidData2D[V, R1, R2]): Unit =
-    dataInSearchTree.addOne(data.asBoxedPayload)
-
-  override protected def dataInSearchTreeRemove(data: ValidData2D[V, R1, R2]): Unit =
-    dataInSearchTree.remove(data.asBoxedPayload)
-
-  override protected def dataInSearchTreeClear(): Unit =
-    dataInSearchTree.clear()
-
-  override protected def dataInSearchTreeAddAll(data: Iterable[ValidData2D[V, R1, R2]]): Unit =
-    dataInSearchTree.addAll(data.map(_.asBoxedPayload))
-
-  override protected def dataInSearchTreeGet(interval: Interval2D[R1, R2]): Iterable[ValidData2D[V, R1, R2]] =
-    BoxedPayload
-      .deduplicate(dataInSearchTree.get(interval.asBox))
-      .map(_.payload)
-      .filter(_.interval intersects interval)
-
-  override protected def dataInSearchTreeGetByDomain(
-    domainIndex: Domain2D[R1, R2]
-  ): Option[ValidData2D[V, R1, R2]] =
-    dataInSearchTree
-      .get(Interval2D.intervalAt(domainIndex).asBox)
-      .collectFirst:
-        case d if d.payload.interval.contains(domainIndex) => d.payload
-
-  override protected def dataInSearchTreeIntersects(interval: Interval2D[R1, R2]): Boolean =
-    dataInSearchTree.get(interval.asBox).exists(_.payload.interval intersects interval)
-
   /**
     * @inheritdoc
     *
@@ -360,7 +329,7 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
     import Interval1D.Remainder
 
     // Utility to find the complement of single remaining (intervals must either start or end together)
-    def excludeRemaining[T: DiscreteValue](
+    def excludeRemaining[T: DomainValueLike](
       full: Interval1D[T],
       remaining: Interval1D[T]
     ): Interval1D[T] =
@@ -381,7 +350,7 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
        */
 
       // total overlap in one dimension with a single overlap in the other - adjust in the other
-      def edge[T: DiscreteValue](
+      def edge[T: DomainValueLike](
         remaining1D: Interval1D[T],
         extractOverlap1D: Interval2D[R1, R2] => Interval1D[T],
         modify2D: (Interval2D[R1, R2], Interval1D[T]) => Interval2D[R1, R2]
@@ -408,7 +377,7 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
             )
 
       // total overlap in one dimension with a split in the other - shorten before, add remaining after
-      def slice[T: DiscreteValue](
+      def slice[T: DomainValueLike](
         remainingBefore1D: Interval1D[T],
         remainingAfter1D: Interval1D[T],
         modify2D: (Interval2D[R1, R2], Interval1D[T]) => Interval2D[R1, R2]
@@ -559,7 +528,7 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
     intersecting.foreach: overlap =>
       val newValueOption = updateValue(overlap.value)
 
-      def excludeOverlapRemainder1D[T: DiscreteValue](
+      def excludeOverlapRemainder1D[T: DomainValueLike](
         extractFromOverlap: Interval2D[R1, R2] => Interval1D[T],
         remainder: Remainder[Interval1D[T]]
       ): Interval1D[T] =
@@ -574,7 +543,7 @@ trait DataIn2DBase[V, R1: DiscreteValue, R2: DiscreteValue](using experimental: 
           case Remainder.Split(leftRemaining, rightRemaining) =>
             between(leftRemaining, rightRemaining)
 
-      def allOverlapSubintevals1D[T: DiscreteValue](
+      def allOverlapSubintevals1D[T: DomainValueLike](
         extractFromOverlap: Interval2D[R1, R2] => Interval1D[T],
         remainder: Remainder[Interval1D[T]]
       ): Seq[Interval1D[T]] =

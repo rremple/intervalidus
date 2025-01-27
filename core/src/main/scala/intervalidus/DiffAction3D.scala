@@ -9,11 +9,11 @@ package intervalidus
   * @tparam V
   *   the type of the value managed as data (not used in Delete).
   * @tparam R1
-  *   the type of discrete value used in the horizontal interval assigned to each value.
+  *   the type of domain value used in the horizontal interval assigned to each value.
   * @tparam R2
-  *   the type of discrete value used in the vertical interval assigned to each value.
+  *   the type of domain value used in the vertical interval assigned to each value.
   * @tparam R3
-  *   the type of discrete value used in the depth interval assigned to each value.
+  *   the type of domain value used in the depth interval assigned to each value.
   */
 enum DiffAction3D[V, R1, R2, R3]:
   case Create(validData: ValidData3D[V, R1, R2, R3])
@@ -21,7 +21,8 @@ enum DiffAction3D[V, R1, R2, R3]:
   case Delete(key: Domain3D[R1, R2, R3])
 
 object DiffAction3D:
-  given [V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue]: DiffActionLike[DiffAction3D[V, R1, R2, R3]] with
+  given [V, R1: DomainValueLike, R2: DomainValueLike, R3: DomainValueLike]: DiffActionLike[DiffAction3D[V, R1, R2, R3]]
+  with
     import Domain3D.given
     extension (action: DiffAction3D[V, R1, R2, R3])
       override def toCodeLikeString: String =

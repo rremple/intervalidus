@@ -1,6 +1,7 @@
 package intervalidus.mutable
 
 import intervalidus.*
+import intervalidus.DiscreteValue.given
 import org.scalatest.compatible.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
@@ -33,7 +34,7 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
       d =>
         d.copy(
           value = d.value + "!",
-          interval = d.interval.withDepthUpdate(_.toAfter(d.interval.depth.end))
+          interval = d.interval.withDepthUpdate(_.to(d.interval.depth.end.leftAdjacent))
         ),
       Interval3D.unbounded
     )

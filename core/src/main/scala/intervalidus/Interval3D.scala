@@ -5,7 +5,7 @@ import scala.collection.immutable.TreeMap
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 /**
-  * A three-dimensional interval over a contiguous set of discrete values in `T1`, `T2`, and `T3`. See
+  * A three-dimensional interval over a contiguous set of domain values in `T1`, `T2`, and `T3`. See
   * [[https://en.wikipedia.org/wiki/Interval_(mathematics)]] for more information.
   *
   * @param horizontal
@@ -15,13 +15,13 @@ import scala.math.Ordering.Implicits.infixOrderingOps
   * @param depth
   *   the third dimension interval: the (right-handed) depth Z-axis (from back to front)
   * @tparam T1
-  *   a discrete value type for this interval's horizontal domain
+  *   a domain value type for this interval's horizontal domain
   * @tparam T2
-  *   a discrete value type for this interval's vertical domain
+  *   a domain value type for this interval's vertical domain
   * @tparam T3
-  *   a discrete value type for this interval's depth domain
+  *   a domain value type for this interval's depth domain
   */
-case class Interval3D[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue](
+case class Interval3D[T1: DomainValueLike, T2: DomainValueLike, T3: DomainValueLike](
   horizontal: Interval1D[T1],
   vertical: Interval1D[T2],
   depth: Interval1D[T3]
@@ -106,7 +106,7 @@ case class Interval3D[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue](
     to(Domain1D.Top x Domain1D.Top x Domain1D.Top)
 
   override infix def isLeftAdjacentTo(that: Interval3D[T1, T2, T3]): Boolean =
-    (this.horizontal.end.successor equiv that.horizontal.start) &&
+    (this.horizontal.end.rightAdjacent equiv that.horizontal.start) &&
       (this.vertical equiv that.vertical) && (this.depth equiv that.depth)
 
   override infix def excluding(that: Interval3D[T1, T2, T3]): ExclusionRemainder =
@@ -192,7 +192,7 @@ case class Interval3D[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue](
     *   the interval to test for adjacency.
     */
   infix def isLowerAdjacentTo(that: Interval3D[T1, T2, T3]): Boolean =
-    (this.vertical.end.successor equiv that.vertical.start) &&
+    (this.vertical.end.rightAdjacent equiv that.vertical.start) &&
       (this.horizontal equiv that.horizontal) && (this.depth equiv that.depth)
 
   /**
@@ -203,7 +203,7 @@ case class Interval3D[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue](
     *   the interval to test for adjacency.
     */
   infix def isBackAdjacentTo(that: Interval3D[T1, T2, T3]): Boolean =
-    (this.depth.end.successor equiv that.depth.start) &&
+    (this.depth.end.rightAdjacent equiv that.depth.start) &&
       (this.vertical equiv that.vertical) && (this.horizontal equiv that.horizontal)
 
   /**
@@ -254,7 +254,7 @@ object Interval3D:
   /**
     * Returns an interval unbounded in all dimensions.
     */
-  def unbounded[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue]: Interval3D[T1, T2, T3] =
+  def unbounded[T1: DomainValueLike, T2: DomainValueLike, T3: DomainValueLike]: Interval3D[T1, T2, T3] =
     Interval1D.unbounded[T1] x Interval1D.unbounded[T2] x Interval1D.unbounded[T3]
 
   /**
@@ -281,15 +281,15 @@ object Interval3D:
     * @tparam R
     *   the result type
     * @tparam T1
-    *   a discrete value type for this interval's horizontal domain.
+    *   a domain value type for this interval's horizontal domain.
     * @tparam T2
-    *   a discrete value type for this interval's vertical domain.
+    *   a domain value type for this interval's vertical domain.
     * @tparam T3
-    *   a discrete value type for this interval's depth domain.
+    *   a domain value type for this interval's depth domain.
     * @return
     *   a result extracted from the final state
     */
-  def compressGeneric[S, D, R, T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue](
+  def compressGeneric[S, D, R, T1: DomainValueLike, T2: DomainValueLike, T3: DomainValueLike](
     initialState: S,
     result: S => R,
     dataIterable: S => Iterable[D],
@@ -309,9 +309,9 @@ object Interval3D:
       val maybeUpdate = dataIterable(state)
         .map: r =>
           val key = interval(r).start
-          def rightKey = key.copy(horizontalIndex = interval(r).horizontal.end.successor)
-          def upperKey = key.copy(verticalIndex = interval(r).vertical.end.successor)
-          def frontKey = key.copy(depthIndex = interval(r).depth.end.successor)
+          def rightKey = key.copy(horizontalIndex = interval(r).horizontal.end.rightAdjacent)
+          def upperKey = key.copy(verticalIndex = interval(r).vertical.end.rightAdjacent)
+          def frontKey = key.copy(depthIndex = interval(r).depth.end.rightAdjacent)
           def rightAdjacent =
             lookup(state, rightKey).filter(s => valueMatch(r, s) && (interval(s) isRightAdjacentTo interval(r)))
           def upperAdjacent =
@@ -337,15 +337,15 @@ object Interval3D:
     * @param intervals
     *   a collection of intervals.
     * @tparam T1
-    *   a discrete value type for this interval's horizontal domain.
+    *   a domain value type for this interval's horizontal domain.
     * @tparam T2
-    *   a discrete value type for this interval's vertical domain.
+    *   a domain value type for this interval's vertical domain.
     * @tparam T3
-    *   a discrete value type for this interval's depth domain.
+    *   a domain value type for this interval's depth domain.
     * @return
     *   a new (possibly smaller) collection of intervals covering the same domain as the input.
     */
-  def compress[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue](
+  def compress[T1: DomainValueLike, T2: DomainValueLike, T3: DomainValueLike](
     intervals: Iterable[Interval3D[T1, T2, T3]]
   ): Iterable[Interval3D[T1, T2, T3]] = compressGeneric(
     initialState = TreeMap.from(intervals.map(i => i.start -> i)), // intervals by start
@@ -360,7 +360,7 @@ object Interval3D:
   /**
     * Returns an interval that starts and ends at the same value.
     */
-  def intervalAt[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue](
+  def intervalAt[T1: DomainValueLike, T2: DomainValueLike, T3: DomainValueLike](
     s: Domain3D[T1, T2, T3]
   ): Interval3D[T1, T2, T3] = apply(
     Interval1D.intervalAt(s.horizontalIndex),
@@ -379,15 +379,15 @@ object Interval3D:
     * @param intervals
     *   a collection of three-dimensional intervals -- must be ordered by start.
     * @tparam T1
-    *   a discrete value type for this interval's horizontal domain.
+    *   a domain value type for this interval's horizontal domain.
     * @tparam T2
-    *   a discrete value type for this interval's vertical domain.
+    *   a domain value type for this interval's vertical domain.
     * @tparam T3
-    *   a discrete value type for this interval's depth domain.
+    *   a domain value type for this interval's depth domain.
     * @return
     *   true if the collection is compressible, false otherwise.
     */
-  def isCompressible[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue](
+  def isCompressible[T1: DomainValueLike, T2: DomainValueLike, T3: DomainValueLike](
     intervals: Iterable[Interval3D[T1, T2, T3]]
   ): Boolean =
     // evaluates every pair of 2D intervals twice, so we only need to check for left/lower adjacency
@@ -405,15 +405,15 @@ object Interval3D:
     * @param intervals
     *   a collection of three-dimensional intervals.
     * @tparam T1
-    *   a discrete value type for this interval's horizontal domain.
+    *   a domain value type for this interval's horizontal domain.
     * @tparam T2
-    *   a discrete value type for this interval's vertical domain.
+    *   a domain value type for this interval's vertical domain.
     * @tparam T3
-    *   a discrete value type for this interval's depth domain.
+    *   a domain value type for this interval's depth domain.
     * @return
     *   true if the collection is disjoint, false otherwise.
     */
-  def isDisjoint[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue](
+  def isDisjoint[T1: DomainValueLike, T2: DomainValueLike, T3: DomainValueLike](
     intervals: Iterable[Interval3D[T1, T2, T3]]
   ): Boolean = !intervals.exists: r =>
     intervals
@@ -428,15 +428,15 @@ object Interval3D:
     * @param intervals
     *   collection of intervals
     * @tparam T1
-    *   a discrete value type for this interval's horizontal domain.
+    *   a domain value type for this interval's horizontal domain.
     * @tparam T2
-    *   a discrete value type for this interval's vertical domain.
+    *   a domain value type for this interval's vertical domain.
     * @tparam T3
-    *   a discrete value type for this interval's depth domain.
+    *   a domain value type for this interval's depth domain.
     * @return
     *   a new collection of intervals representing disjoint intervals covering the span of the input.
     */
-  def uniqueIntervals[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue](
+  def uniqueIntervals[T1: DomainValueLike, T2: DomainValueLike, T3: DomainValueLike](
     intervals: Iterable[Interval3D[T1, T2, T3]]
   ): Iterable[Interval3D[T1, T2, T3]] =
     for

@@ -10,24 +10,24 @@ import scala.collection.mutable
   * Constructs multi-data in two-dimensional intervals.
   */
 object DataIn2DMulti extends DataIn2DMultiBaseObject:
-  override def of[V, R1: DiscreteValue, R2: DiscreteValue](
+  override def of[V, R1: DomainValueLike, R2: DomainValueLike](
     data: ValidData2D[V, R1, R2]
   )(using Experimental): DataIn2DMulti[V, R1, R2] = DataIn2DMulti(Iterable(data.interval -> Set(data.value)))
 
-  override def of[V, R1: DiscreteValue, R2: DiscreteValue](
+  override def of[V, R1: DomainValueLike, R2: DomainValueLike](
     value: V
   )(using Experimental): DataIn2DMulti[V, R1, R2] = of(Interval2D.unbounded[R1, R2] -> value)
 
-  override def from[V, R1: DiscreteValue, R2: DiscreteValue](
+  override def from[V, R1: DomainValueLike, R2: DomainValueLike](
     initialData: Iterable[ValidData2D[V, R1, R2]]
   )(using Experimental): DataIn2DMulti[V, R1, R2] =
     DataIn2DMulti[V, R1, R2]().addAll(initialData)
 
-  override def from[V, R1: DiscreteValue, R2: DiscreteValue](
+  override def from[V, R1: DomainValueLike, R2: DomainValueLike](
     that: DataIn2DBase[Set[V], R1, R2]
   )(using Experimental): DataIn2DMulti[V, R1, R2] = apply(that.getAll)
 
-  override def apply[V, R1: DiscreteValue, R2: DiscreteValue](
+  override def apply[V, R1: DomainValueLike, R2: DomainValueLike](
     initialData: Iterable[ValidData2D[Set[V], R1, R2]] = Iterable.empty[ValidData2D[Set[V], R1, R2]]
   )(using Experimental): DataIn2DMulti[V, R1, R2] =
     val (byStartAsc, byStartDesc, byValue, inSearchTree) = constructorParams(initialData)
@@ -54,7 +54,7 @@ object DataIn2DMulti extends DataIn2DMultiBaseObject:
   * @tparam R2
   *   the type of discrete domain used in the vertical interval assigned to each value.
   */
-class DataIn2DMulti[V, R1: DiscreteValue, R2: DiscreteValue] private (
+class DataIn2DMulti[V, R1: DomainValueLike, R2: DomainValueLike] private (
   override val dataByStartAsc: mutable.TreeMap[Domain2D[R1, R2], ValidData2D[Set[V], R1, R2]],
   override val dataByStartDesc: mutable.TreeMap[Domain2D[R1, R2], ValidData2D[Set[V], R1, R2]],
   override val dataByValue: MultiMapSorted[Set[V], ValidData2D[Set[V], R1, R2]],
@@ -85,7 +85,7 @@ class DataIn2DMulti[V, R1: DiscreteValue, R2: DiscreteValue] private (
     * @return
     *   a new structure resulting from applying the provided function f to each element of this structure.
     */
-  def map[B, S1: DiscreteValue, S2: DiscreteValue](
+  def map[B, S1: DomainValueLike, S2: DomainValueLike](
     f: ValidData2D[Set[V], R1, R2] => ValidData2D[Set[B], S1, S2]
   ): DataIn2DMulti[B, S1, S2] = DataIn2DMulti(
     getAll.map(f)
@@ -121,7 +121,7 @@ class DataIn2DMulti[V, R1: DiscreteValue, R2: DiscreteValue] private (
     *   a new structure resulting from applying the provided function f to each element of this structure and
     *   concatenating the results.
     */
-  def flatMap[B, S1: DiscreteValue, S2: DiscreteValue](
+  def flatMap[B, S1: DomainValueLike, S2: DomainValueLike](
     f: ValidData2D[Set[V], R1, R2] => DataIn2DMulti[B, S1, S2]
   ): DataIn2DMulti[B, S1, S2] = DataIn2DMulti(
     getAll.flatMap(f(_).getAll)

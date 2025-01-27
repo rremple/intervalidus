@@ -1,5 +1,6 @@
 package intervalidus.microbench
 
+import intervalidus.DiscreteValue.given
 import intervalidus.*
 import intervalidus.Interval1D.interval
 import org.openjdk.jmh.annotations.*

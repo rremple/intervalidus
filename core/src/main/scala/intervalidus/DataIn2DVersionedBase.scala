@@ -1,5 +1,7 @@
 package intervalidus
 
+import intervalidus.DiscreteValue.IntDiscreteValue
+
 import scala.language.implicitConversions
 
 import DimensionalVersionedBase.{VersionDomain, VersionSelection}
@@ -9,15 +11,15 @@ import DimensionalVersionedBase.{VersionDomain, VersionSelection}
   */
 trait DataIn2DVersionedBaseObject:
   /**
-    * Shorthand constructor for a single initial value that is valid in a specific discrete interval starting at the
-    * initial version.
+    * Shorthand constructor for a single initial value that is valid in a specific interval starting at the initial
+    * version.
     *
     * @tparam V
     *   the type of the value managed as data
     * @tparam R1
-    *   the type of discrete value used in the horizontal discrete interval assigned to each value
+    *   the type of domain value used in the horizontal interval assigned to each value
     * @tparam R2
-    *   the type of discrete value used in the vertical discrete interval assigned to each value
+    *   the type of domain value used in the vertical interval assigned to each value
     * @param data
     *   data to start with
     * @param initialVersion
@@ -25,21 +27,21 @@ trait DataIn2DVersionedBaseObject:
     * @return
     *   DataIn2DVersioned structure with a single valid value
     */
-  def of[V, R1: DiscreteValue, R2: DiscreteValue](
+  def of[V, R1: DomainValueLike, R2: DomainValueLike](
     data: ValidData2D[V, R1, R2],
     initialVersion: Int
   )(using Experimental): DataIn2DVersionedBase[V, R1, R2]
 
   /**
-    * Shorthand constructor for a single initial value that is valid in the full discrete interval starting at the
-    * initial version.
+    * Shorthand constructor for a single initial value that is valid in the full interval starting at the initial
+    * version.
     *
     * @tparam V
     *   the type of the value managed as data
     * @tparam R1
-    *   the type of discrete value used in the horizontal discrete interval assigned to each value
+    *   the type of domain value used in the horizontal interval assigned to each value
     * @tparam R2
-    *   the type of discrete value used in the vertical discrete interval assigned to each value
+    *   the type of domain value used in the vertical interval assigned to each value
     * @param value
     *   value to start with
     * @param initialVersion
@@ -47,7 +49,7 @@ trait DataIn2DVersionedBaseObject:
     * @return
     *   DataIn2DVersioned structure with a single valid value
     */
-  def of[V, R1: DiscreteValue, R2: DiscreteValue](
+  def of[V, R1: DomainValueLike, R2: DomainValueLike](
     value: V,
     initialVersion: Int
   )(using Experimental): DataIn2DVersionedBase[V, R1, R2]
@@ -58,9 +60,9 @@ trait DataIn2DVersionedBaseObject:
     * @tparam V
     *   the type of the value managed as data
     * @tparam R1
-    *   the type of discrete value used in the horizontal discrete interval assigned to each value
+    *   the type of domain value used in the horizontal interval assigned to each value
     * @tparam R2
-    *   the type of discrete value used in the vertical discrete interval assigned to each value
+    *   the type of domain value used in the vertical interval assigned to each value
     * @param initialData
     *   valid data to start with
     * @param initialVersion
@@ -68,9 +70,9 @@ trait DataIn2DVersionedBaseObject:
     * @return
     *   DataIn2DVersioned structure with the provided initial values
     */
-  def from[V, R1: DiscreteValue, R2: DiscreteValue](
+  def from[V, R1: DomainValueLike, R2: DomainValueLike](
     initialData: Iterable[ValidData2D[V, R1, R2]],
-    initialVersion: Int // could use summon[DiscreteValue[Int]].minValue to extend range
+    initialVersion: Int // could use summon[DomainValueLike[Int]].minValue to extend range
   )(using Experimental): DataIn2DVersionedBase[V, R1, R2]
 
 /**
@@ -90,9 +92,9 @@ trait DataIn2DVersionedBaseObject:
   * @tparam V
   *   the type of the value managed as data
   * @tparam R1
-  *   the type of discrete value used in the horizontal discrete interval assigned to each value
+  *   the type of domain value used in the horizontal interval assigned to each value
   * @tparam R2
-  *   the type of discrete value used in the vertical discrete interval assigned to each value
+  *   the type of domain value used in the vertical interval assigned to each value
   * @param initialData
   *   a collection of valid data in three dimensions (the depth dimension is the version) to start with --
   *   three-dimensional intervals must be disjoint
@@ -102,7 +104,7 @@ trait DataIn2DVersionedBaseObject:
   * @param withCurrentVersion
   *   the version to use as current if different form the initial version, e.g., when making a copy, typically None
   */
-trait DataIn2DVersionedBase[V, R1: DiscreteValue, R2: DiscreteValue](
+trait DataIn2DVersionedBase[V, R1: DomainValueLike, R2: DomainValueLike](
   initialData: Iterable[ValidData3D[V, R1, R2, Int]],
   val initialVersion: Int,
   withCurrentVersion: Option[VersionDomain]

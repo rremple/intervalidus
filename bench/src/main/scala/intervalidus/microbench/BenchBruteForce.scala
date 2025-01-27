@@ -1,5 +1,6 @@
 package intervalidus.microbench
 
+import intervalidus.DiscreteValue.given
 import intervalidus.*
 import org.openjdk.jmh.annotations.*
 
@@ -23,33 +24,33 @@ object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature
   //  def applyDiffActions(diffActions: Iterable[DiffAction2D[V, R1, R2]]): Unit
   //  def diffActionsFrom(old: DataIn2DBase[V, R1, R2]): Iterable[DiffAction2D[V, R1, R2]]
   //  def syncWith(that: DataIn2D[V, R1, R2]): Unit
-  //  def isDefinedAt(key: DiscreteDomain2D[R1, R2]): Boolean // same profile as getAt
+  //  def isDefinedAt(key: Domain2D[R1, R2]): Boolean // same profile as getAt
   //
   // Operates on the full structure every time -- unlikely to be important, but maybe validate that later:
   //  def getAll: Iterable[ValidData2D[V, R1, R2]]
   //  def compress(value: V): Unit
   //  def compressAll(): Unit
   //  def recompressAll(): Unit
-  //  def domain: Iterable[DiscreteInterval2D[R1, R2]]
+  //  def domain: Iterable[Interval2D[R1, R2]]
   //  def flip: DataIn2D[V, R2, R1]
   //  def map(f: (ValidData2D[V, R1, R2]) => ValidData2D[V, R1, R2]): Unit
   //  def mapValues(f: V => V): Unit
   //  def flatMap(f: (ValidData2D[V, R1, R2]) =>
-  //    DimensionalBase[V, DiscreteDomain2D[R1, R2], DiscreteInterval2D[R1, R2], ValidData2D[V, R1, R2]]): Unit
+  //    DimensionalBase[V, Domain2D[R1, R2], Interval2D[R1, R2], ValidData2D[V, R1, R2]]): Unit
   //  def filter(p: (ValidData2D[V, R1, R2]) => Boolean): Unit
   //  def foldLeft[B](z: B)(op: (B, ValidData2D[V, R1, R2]) => B): B
   //  def zip[B](that: DataIn2DBase[B, R1, R2]): DataIn2D[(V, B), R1, R2]
   //  def zipAll[B](that: DataIn2DBase[B, R1, R2], thisElem: V, thatElem: B): DataIn2D[(V, B), R1, R2]
   //
   // Targeting these for benchmarking (note that mutable signatures are shown below):
-  //  def getAt(domainIndex: DiscreteDomain2D[R1, R2]): Option[V]
-  //  def getByHorizontalIndex(horizontalIndex: DiscreteDomain1D[R1]): DataIn1D[V, R2]
-  //  def getByVerticalIndex(verticalIndex: DiscreteDomain1D[R2]): DataIn1D[V, R1]
-  //  def intersects(interval: DiscreteInterval2D[R1, R2]): Boolean
-  //  def getIntersecting(interval: DiscreteInterval2D[R1, R2]): Iterable[ValidData2D[V, R1, R2]]
-  //  def remove(interval: DiscreteInterval2D[R1, R2]): Unit
+  //  def getAt(domainIndex: Domain2D[R1, R2]): Option[V]
+  //  def getByHorizontalIndex(horizontalIndex: Domain1D[R1]): DataIn1D[V, R2]
+  //  def getByVerticalIndex(verticalIndex: Domain1D[R2]): DataIn1D[V, R1]
+  //  def intersects(interval: Interval2D[R1, R2]): Boolean
+  //  def getIntersecting(interval: Interval2D[R1, R2]): Iterable[ValidData2D[V, R1, R2]]
+  //  def remove(interval: Interval2D[R1, R2]): Unit
   //  def replace(oldData: ValidData2D[V, R1, R2], newData: ValidData2D[V, R1, R2]): Unit
-  //  def replaceByKey(key: DiscreteDomain2D[R1, R2], newData: ValidData2D[V, R1, R2]): Unit
+  //  def replaceByKey(key: Domain2D[R1, R2], newData: ValidData2D[V, R1, R2]): Unit
   //  def set(newData: ValidData2D[V, R1, R2]): Unit
   //  def setIfNoConflict(newData: ValidData2D[V, R1, R2]): Boolean
   //  def update(data: ValidData2D[V, R1, R2]): Unit

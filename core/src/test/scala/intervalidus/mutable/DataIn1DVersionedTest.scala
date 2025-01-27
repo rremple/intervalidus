@@ -1,6 +1,7 @@
 package intervalidus.mutable
 
 import intervalidus.*
+import intervalidus.DiscreteValue.given
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
@@ -163,7 +164,8 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
       b.append(d.value).append("->").append(d.interval.horizontal.toString).append(" ")
     concat.result() shouldBe "Hey->(-∞..4] World->[16..+∞) "
 
-    fixture.map(d => d.interval.withHorizontalUpdate(_.toAfter(d.interval.horizontal.end)) -> (d.value + "!"))
+    fixture.map: d =>
+      d.interval.withHorizontalUpdate(_.to(d.interval.horizontal.end.rightAdjacent)) -> (d.value + "!")
     val expectedData2 = List(intervalTo(5) -> "Hey!", intervalFrom(16) -> "World!")
     fixture.getAll.toList shouldBe expectedData2
 

@@ -1,6 +1,7 @@
 package intervalidus.mutable
 
 import intervalidus.*
+import intervalidus.DiscreteValue.IntDiscreteValue
 import intervalidus.immutable.DataIn2DVersioned as DataIn2DVersionedImmutable
 import intervalidus.DimensionalVersionedBase.{VersionDomain, VersionSelection}
 
@@ -9,7 +10,7 @@ import scala.math.Ordering.Implicits.infixOrderingOps
 
 /** @inheritdoc */
 object DataIn2DVersioned extends DataIn2DVersionedBaseObject:
-  override def of[V, R1: DiscreteValue, R2: DiscreteValue](
+  override def of[V, R1: DomainValueLike, R2: DomainValueLike](
     data: ValidData2D[V, R1, R2],
     initialVersion: Int
   )(using Experimental): DataIn2DVersioned[V, R1, R2] = from(
@@ -17,15 +18,15 @@ object DataIn2DVersioned extends DataIn2DVersionedBaseObject:
     initialVersion
   )
 
-  override def of[V, R1: DiscreteValue, R2: DiscreteValue](
+  override def of[V, R1: DomainValueLike, R2: DomainValueLike](
     value: V,
     initialVersion: Int = 0
   )(using Experimental): DataIn2DVersioned[V, R1, R2] =
     of(Interval2D.unbounded[R1, R2] -> value, initialVersion)
 
-  override def from[V, R1: DiscreteValue, R2: DiscreteValue](
+  override def from[V, R1: DomainValueLike, R2: DomainValueLike](
     initialData: Iterable[ValidData2D[V, R1, R2]],
-    initialVersion: Int = 0 // could use summon[DiscreteValue[Int]].minValue to extend range
+    initialVersion: Int = 0 // could use summon[DomainValueLike[Int]].minValue to extend range
   )(using Experimental): DataIn2DVersioned[V, R1, R2] = DataIn2DVersioned[V, R1, R2](
     initialData.map(d => (d.interval x Interval1D.intervalFrom(initialVersion)) -> d.value),
     initialVersion
@@ -37,9 +38,9 @@ object DataIn2DVersioned extends DataIn2DVersionedBaseObject:
   * @tparam V
   *   the type of the value managed as data
   * @tparam R1
-  *   the type of discrete value used in the horizontal discrete interval assigned to each value
+  *   the type of domain value used in the horizontal interval assigned to each value
   * @tparam R2
-  *   the type of discrete value used in the vertical discrete interval assigned to each value
+  *   the type of domain value used in the vertical interval assigned to each value
   * @param initialData
   *   (optional) a collection of valid data in three dimensions (the depth dimension is the version) to start with --
   *   three-dimensional intervals must be disjoint
@@ -49,9 +50,9 @@ object DataIn2DVersioned extends DataIn2DVersionedBaseObject:
   *   (optional) the version to use as current if different form the initial version, e.g., when making a copy,
   *   typically None
   */
-class DataIn2DVersioned[V, R1: DiscreteValue, R2: DiscreteValue](
+class DataIn2DVersioned[V, R1: DomainValueLike, R2: DomainValueLike](
   initialData: Iterable[ValidData3D[V, R1, R2, Int]] = Iterable.empty[ValidData3D[V, R1, R2, Int]],
-  initialVersion: Int = 0, // could use summon[DiscreteValue[Int]].minValue to extend range
+  initialVersion: Int = 0, // could use summon[DomainValueLike[Int]].minValue to extend range
   withCurrentVersion: Option[VersionDomain] = None
 )(using Experimental)
   extends DataIn2DVersionedBase[V, R1, R2](initialData, initialVersion, withCurrentVersion)
@@ -92,8 +93,8 @@ class DataIn2DVersioned[V, R1: DiscreteValue, R2: DiscreteValue](
     else currentVersion = version
 
   override def incrementCurrentVersion(): Unit = synchronized:
-    if currentVersion.successor equiv unapprovedStartVersion then throw Exception("wow, ran out of versions!")
-    else currentVersion = currentVersion.successor
+    if currentVersion.rightAdjacent equiv unapprovedStartVersion then throw Exception("wow, ran out of versions!")
+    else currentVersion = currentVersion.rightAdjacent
 
   override def resetToVersion(version: VersionDomain): Unit =
     val keep = VersionSelection(version)

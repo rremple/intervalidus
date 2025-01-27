@@ -2,9 +2,9 @@
 
 ## In what intervals are your data valid?
 
-A Scala library with zero dependencies for representing data as valid only in discrete intervals, one-, two-, and
-three-dimensional. This seems to come up a lot in application design both in terms of effective dating and versioning
-data.
+A Scala library with zero dependencies for representing data as valid only in discrete or continuous intervals, one-,
+two-, and three-dimensional. This seems to come up a lot in application design both in terms of effective dating and
+versioning data.
 
 ### Goals, Non-Goals, Background, and Motivation:
 
@@ -39,17 +39,18 @@ immutable -- to address storage and management of data like this. For more infor
 
 ### Usage:
 
-You could use Intervalidus `DataIn1D` to represent the above as a one-dimensional structure like this:
+You could use Intervalidus `DataIn1D` to represent the above as a one-dimensional structure that treats dates as 
+discrete values like this:
 
 ```scala 3
-import LocalDate.of as date
-
-import intervalidus.DiscreteInterval1D.*
+import intervalidus.DiscreteValue.given
+import intervalidus.Interval1D.*
 import intervalidus.mutable.DataIn1D
+import java.time.LocalDate.of as date
 
 val plan1d = DataIn1D.of(intervalFrom(date(2024, 1, 1)) -> "Basic")
 plan1d.set(intervalFrom(date(2024, 4, 1)) -> "Premium")
-plan1d.remove(intervalFrom(date(2024, 6, 30).successor))
+plan1d.remove(intervalFromAfter(date(2024, 6, 30)))
 println(plan1d)
 ```
 
@@ -74,12 +75,14 @@ We could have just as easily used the immutable variant of `DataIn1D`, and the o
 the above output:
 
 ```scala 3
+import intervalidus.DiscreteValue.given
+import intervalidus.Interval1D.*
 import intervalidus.immutable.DataIn1D
 
 val plan1d = DataIn1D
   .of(intervalFrom(date(2024, 1, 1)) -> "Basic")
   .set(intervalFrom(date(2024, 4, 1)) -> "Premium")
-  .remove(intervalFrom(date(2024, 6, 30).successor))
+  .remove(intervalFromAfter(date(2024, 6, 30)))
 println(plan1d)
 ```
 
@@ -88,12 +91,14 @@ were known. For that, you could use Intervalidus `DataIn2D` to represent the abo
 this:
 
 ```scala 3
+import intervalidus.DiscreteValue.given
+import intervalidus.Interval1D.*
 import intervalidus.immutable.DataIn2D
 
 val plan2d = DataIn2D
   .of((intervalFrom(date(2024, 1, 1)) x intervalFrom(date(2023, 12, 25))) -> "Basic")
   .set((intervalFrom(date(2024, 4, 1)) x intervalFrom(date(2024, 3, 15))) -> "Premium")
-  .remove(intervalFrom(date(2024, 6, 30).successor) x intervalFrom(date(2024, 6, 28)))
+  .remove(intervalFromAfter(date(2024, 6, 30)) x intervalFrom(date(2024, 6, 28)))
 println(plan2d)
 ```
 
@@ -126,7 +131,7 @@ One might query this structure to find what was known about expected August effe
 the past or future. For example, leveraging `plan2d` as a partial function (with an `unapply`):
 
 ```scala 3
-val futureEffectiveDate: DiscreteDomain1D[LocalDate] = date(2024, 8, 1)
+val futureEffectiveDate: Domain1D[LocalDate] = date(2024, 8, 1)
 List(date(2023, 12, 15), date(2024, 1, 15), date(2024, 5, 15), date(2024, 7, 15)).foreach: knownDate => 
   futureEffectiveDate x knownDate match
     case plan2d(tier) => println(s"On $knownDate, expected $tier tier on $futureEffectiveDate")
@@ -142,6 +147,56 @@ On 2024-05-15, expected Premium tier on 2024-08-01
 On 2024-07-15, no expected tier on 2024-08-01
 ```
 
+Going further, lets say tracking the known date is not enough. There are transactions that drive this new knowledge, 
+and those transactions are timestamped. Then using an interval in the "knowledge" dimension based on a datetime rather
+than a date would be more appropriate. But timestamps are better thought of as continuous rather than discrete values.
+So we can use a continuous value in the knowledge dimension, and continue to use a discrete value in the effective date
+dimension.
+
+```scala 3
+import intervalidus.DiscreteValue.LocalDateDiscreteValue
+import intervalidus.ContinuousValue.LocalDateTimeContinuousValue
+import intervalidus.Interval1D.*
+import intervalidus.immutable.DataIn2D
+
+val plan2d = DataIn2D
+  .of((intervalFrom(date(2024, 1, 1)) x intervalFrom(date(2023, 12, 25).atTime(10, 23, 33, 123456789))) -> "Basic")
+  .set((intervalFrom(date(2024, 4, 1)) x intervalFrom(date(2024, 3, 15).atTime(14, 10, 15, 987654321))) -> "Premium")
+println(plan2d)
+```
+
+Which results in the following output, which is similar to what was shown in the previous example:
+
+```text
+| 2024-01-01 .. 2024-03-31                                             | 2024-04-01 .. +∞                             |
+| Basic [2023-12-25T10:23:33.123456789, 2024-03-15T14:10:15.987654321)                                                |
+| Basic [2024-03-15T14:10:15.987654321, +∞)                            |
+                                                                       | Premium [2024-03-15T14:10:15.987654321, +∞)  |
+```
+
+The two main differences are:
+- The timestamps are included in the knowledge dimension
+- The notation for the intervals in this dimension is different, where the boundary of each interval can either be
+  closed (denoted with brackets) or open (denoted with parens), and the start and end of each interval is separated by
+  a comma rather than two dots. 
+
+These notational differences are carried in the representation of the horizontal dimension too. For example, if we flip
+the dimensions and print the result:
+
+```scala 3
+println(plan2d.flip)
+```
+
+The result shows how the continuous notation is pulled to the top and the discrete notation is used with each piece of 
+effective-dated data:
+
+```text
+[ 2023-12-25T10:23:33.123456789, 2024-03-15T14:10:15.987654321 ) [ 2024-03-15T14:10:15.987654321, +∞ )                |
+                                                                 | Basic [2024-01-01..2024-03-31]                     |
+| Basic [2024-01-01..+∞)                                         |
+                                                                 | Premium [2024-04-01..+∞)                           |
+```
+
 There is a sample billing application provided that demonstrates how both of these 1D and 2D structures could be used to 
 support time-oriented logic, like billing, directly, including prospective calculation and retrospective
 adjustments/refunds.
@@ -150,7 +205,7 @@ Sometimes one wants to treat multiple values as valid in the same interval. For 
 features in each numbered release of a product. `DataIn1DMulti` could be used to model what features belong in what
 releases, this time using intervals based on integers rather than dates.
 ```scala 3
-import intervalidus.DiscreteInterval1D.*
+import intervalidus.Interval1D.*
 import intervalidus.immutable.DataIn1DMulti
 
 case class Feat(id: String)
@@ -221,9 +276,14 @@ These mutation methods return a new structure when using immutable and `Unit` wh
 
 ## Using and Extending
 
-There is nothing remarkable about `LocalDate` here. It is an example of something called a "discrete value" upon which a
-"discrete domain" can be defined. Discrete values are finite with min/max values, they have an ordering, and they have 
-methods for finding successors/predecessors. It is the "discrete domain" that is used to define "discrete intervals".
+There is nothing remarkable about `LocalDate` here. It is an example of something called a "domain value" upon which a
+"domain" can be defined. Domain values are finite with min/max values, an order, and an ordered hash function. There are
+two kinds of domain values: discrete and continuous. Discrete values have methods for finding successors/predecessors
+where continuous values do not. It is the domain built on top of the domain value that is used to define "interval"
+boundaries. Intervals using a continuous domain values have boundaries that are either open or closed. Note that
+intervals with more than one dimension may include both discrete and continuous dimensions, as was shown in an example
+earlier.
+
 A discrete value is a type class, and there are implementations given for the following types:
 
 - `Int`
@@ -231,13 +291,22 @@ A discrete value is a type class, and there are implementations given for the fo
 - `LocalDate`
 - `BigInteger`
 
-But if you have your own type with these properties, you can certainly give a `DiscreteValue` type class definition for
-that type and use it in the definition of one-, two-, or three-dimensional intervals. To motivate an example where this
-makes sense, first consider a structure that represents the different colors of visible light as intervals of 
-integer-valued nanometer wavelengths.
+A continuous value is also a type class, and there are implementations given for the following types:
+
+- `Double`
+- `LocalDateTime`
+- `Int`
+- `Long`
+- `LocalDate`
+
+But if you have your own type with these properties, you can certainly give a `DiscreteValue` or `ContinuousValue` type
+class definition for that type and use it in the definition of one-, two-, or three-dimensional intervals. To motivate
+an example where this makes sense, first consider a structure that represents the different colors of visible light as 
+intervals of integer-valued nanometer wavelengths.
 
 ```scala 3
-import intervalidus.DiscreteInterval1D.*
+import intervalidus.DiscreteValue.given
+import intervalidus.Interval1D.*
 import intervalidus.immutable.DataIn1D
 
 enum Color:
@@ -268,20 +337,20 @@ As shown earlier, the structure can be interrogated to get the color of a specif
 ```scala 3
 println(colorByWavelength(480)) // prints "Blue"
 ```
-Say we also want to track notes about colors. We could make use of a similar structure that associates notes with these
-same integer-valued wavelength intervals like so.
+Say we also want to track our thoughts about colors. We could make use of a similar structure that associates thoughts
+with these same integer-valued wavelength intervals like so.
 ```scala 3
-val notesByWavelength = DataIn1D[String, Int]()
+val thoughtsByWavelength = DataIn1D[String, Int]()
   .set(intervalFrom(380).toBefore(570) -> "I like violet, blue, and green")
-  .set(intervalFrom(620).to(750) -> "I like red too")
-println(notesByWavelength)
+  .set(intervalFrom(620).to(750) -> "I like this too")
+println(thoughtsByWavelength)
 ```
 Although this does track the information we need to track, it seems burdensome to have to know the wavelengths of the
-noted colors, and too fine-grained. Also, unless we include them in the notes themselves, we no longer see any color 
+noted colors, and too fine-grained. Also, unless we include them in the noted thoughts, we no longer see any color 
 names in the output, only wavelengths, which makes things a bit too cryptic.
 ```text
 | 380 .. 569                     | 570 .. 619                     | 620 .. 750                     |
-| I like violet, blue, and green |                                | I like red too                 |
+| I like violet, blue, and green |                                | I like this too                |
 ```
 
 A more elegant approach would be to use intervals based on the colors themselves rather than their associated
@@ -299,23 +368,23 @@ given DiscreteValue[Color] with
     if x == maxValue then None else Some(Color.fromOrdinal(x.ordinal + 1))
 
   override def compare(lhs: Color, rhs: Color): Int = lhs.ordinal.compareTo(rhs.ordinal)
-  override def orderedHashOf(x: T): Double = x.ordinal
+  override def orderedHashOf(x: Color): Double = x.ordinal
 
-val notesByColor = DataIn1D[String, Color]()
+val thoughtsByColor = DataIn1D[String, Color]()
         .set(intervalFrom(Color.Violet).to(Color.Green) -> "I like violet, blue, and green")
-        .set(intervalAt(Color.Red) -> "I like red too")
-println(notesByColor)
+        .set(intervalAt(Color.Red) -> "I like this too")
+println(thoughtsByColor)
 ```
-This associates our notes with color-based intervals rather than a wavelength-based intervals, with the following
+This associates our thoughts with color-based intervals rather than a wavelength-based intervals, with the following
 output.
 ```text
 | Violet .. Green                | Yellow .. Orange               | Red .. Red                     |
 | I like violet, blue, and green |
-                                                                  | I like red too                 |
+                                                                  | I like this too                |
 ```
-And this structure can be interrogated to get the note of a specific color without knowing anything about wavelengths.
+And this structure can be interrogated to get the thought for a specific color without knowing anything about wavelengths.
 ```scala 3
-println(notesByColor(Color.Blue)) // prints "I like violet, blue, and green"
+println(thoughtsByColor(Color.Blue)) // prints "I like violet, blue, and green"
 ```
 
 Because creating a `DiscreteValue` type class definition based on a finite sequence of unique items is a common need, a
@@ -328,7 +397,7 @@ enum Color:
 
 given DiscreteValue[Color] = DiscreteValue.fromSeq(Color.values.toIndexedSeq)
 
-val notesByColor = DataIn1D[String, Color]() //...
+val thoughtsByColor = DataIn1D[String, Color]() //...
 ```
 
 You can extend through composition. For example `DataIn1DVersioned` mimics the `DataIn1D` API but uses an
@@ -392,8 +461,8 @@ structures internally for managing state, two of which are custom:
   retrieval by interval. Box search trees manage boxed data structures in multidimensional double space. Unlike classic
   spacial search trees (used in collision detection and the like), these data structures manage "boxes" rather than
   individual points, where boxes are split and stored in all applicable subtrees of the data structure as subtrees are
-  split. Intervalildus uses the ordered hashes defined on discrete domain components of intervals to approximate all
-  discrete domain intervals as boxes in double space, and then manages valid data associated with these boxes in the box
+  split. Intervalildus uses the ordered hashes defined on domain components of intervals to approximate all
+  domain intervals as boxes in double space, and then manages valid data associated with these boxes in the box
   search tree. This not only results in dramatically faster retrieval (e.g., `getAt` and `getIntersecting`), since many
   mutation operations use intersection retrieval in their own logic, they are made dramatically faster as well. Only the
   mutable variant is used internally, but an immutable variant is also provided.
@@ -445,9 +514,10 @@ structures -- it may be worth doing during initial development and testing. So t
 **"requireDisjoint"** that, if set, will validate the disjointedness of all data with every construction.
 
 ```scala 3
+import intervalidus.DiscreteValue.given
+import intervalidus.Interval1D.*
 import intervalidus.immutable.DataIn1D
-import intervalidus.DiscreteInterval1D.*
-import LocalDate.of as date
+import java.time.LocalDate.of as date
 
 given Experimental = Experimental("requireDisjoint")
 

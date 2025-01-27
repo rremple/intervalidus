@@ -1,7 +1,7 @@
 package intervalidus.immutable
 
 import intervalidus.*
-import intervalidus.DimensionalVersionedBase.{VersionDomain, VersionSelection}
+import intervalidus.DiscreteValue.IntDiscreteValue
 
 import scala.math.Ordering.Implicits.infixOrderingOps
 
@@ -44,6 +44,8 @@ trait ImmutableVersionedBase[
   // & DimensionalVersionedBase[V, D, I, ValidData, DiffAction, D2, I2, ValidData2, DiffAction2, ?] // bug?
 ] extends DimensionalVersionedBase[V, D, I, ValidData, DiffAction, D2, I2, ValidData2, DiffAction2, ?]:
   this: Self =>
+
+  import DimensionalVersionedBase.{VersionDomain, VersionSelection}
 
   // ---------- To be implemented by inheritor ----------
 
@@ -152,7 +154,7 @@ trait ImmutableVersionedBase[
         prev.approve(d).getOrElse(prev)
     approved.underlying
       .getIntersecting(underlyingIntervalWithVersion(interval, VersionSelection.Current.intervalFrom))
-      .filter(versionInterval(_).end equiv unapprovedStartVersion.predecessor) // only related to unapproved removes
+      .filter(versionInterval(_).end equiv unapprovedStartVersion.leftAdjacent) // only related to unapproved removes
       .flatMap(publicValidData(_).interval intersectionWith interval)
       .foldLeft(approved): (prev, i) =>
         prev.remove(i)(using VersionSelection.Current)

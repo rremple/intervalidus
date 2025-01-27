@@ -1,6 +1,6 @@
 package intervalidus.json.weepickle
 
-import com.rallyhealth.weejson.v1.{Obj, Arr, Str, Value}
+import com.rallyhealth.weejson.v1.{Arr, Obj, Str, Value}
 import com.rallyhealth.weepickle.v1.WeePickle.*
 import intervalidus.*
 
@@ -23,15 +23,17 @@ object Json:
       .join(ToValue, FromValue)
       .bimap[Domain1D[T]](
         {
-          case Domain1D.Top      => Str("Top")
-          case Domain1D.Bottom   => Str("Bottom")
-          case Domain1D.Point(p) => Obj("point" -> writeJs[T](p))
+          case Domain1D.Top          => Str("Top")
+          case Domain1D.Bottom       => Str("Bottom")
+          case Domain1D.Point(p)     => Obj("point" -> writeJs[T](p))
+          case Domain1D.OpenPoint(p) => Obj("open" -> writeJs[T](p))
         },
         {
-          case Str("Top")    => Domain1D.Top
-          case Str("Bottom") => Domain1D.Bottom
-          case Obj(p)        => Domain1D.Point(p("point").as[T])
-          case unexpected    => throw new Exception(s"Expected Str (Top/Bottom) or Obj (point) but got $unexpected")
+          case Str("Top")                       => Domain1D.Top
+          case Str("Bottom")                    => Domain1D.Bottom
+          case Obj(p) if p.isDefinedAt("point") => Domain1D.Point(p("point").as[T])
+          case Obj(p) if p.isDefinedAt("open")  => Domain1D.OpenPoint(p("open").as[T])
+          case unexpected => throw new Exception(s"Expected Str (Top/Bottom) or Obj (point/open) but got $unexpected")
         }
       )
 

@@ -1,30 +1,21 @@
 package intervalidus
 
 /**
-  * Template for a type class with operations on a discrete value. A discrete value is
-  *   1. finite, with a max and min value (think `Int` with its `MaxValue` and `MinValue` methods)
-  *   1. totally ordered (this type class extends the [[Ordering]] type class, requiring a compare method).
-  *   1. have predecessor and successor functions, which are properly defined on `x: max < x < min`.
-  *   1. mappable to a similarly-ordered double space (potentially with collisions)
+  * Type class template for a discrete value.
   *
-  * Having predecessors and successors defined this way avoids issues where the natural successor functions of the
-  * underlying types behave unexpectedly/inconsistently on the boundaries, e.g., how `Int.MaxValue + 1` and
-  * `Int.MinValue - 1` silently wrap around to each other, vs. how both `LocalDate.MAX.plusDays(1)` and
+  * @inheritdoc
+  *
+  * Unlike continuous values, discrete values also have predecessors and successors, which are properly defined on `x:
+  * max < x < min`. Having predecessors and successors defined this way avoids issues where the natural successor
+  * functions of the underlying types behave unexpectedly/inconsistently on the boundaries, e.g., how `Int.MaxValue + 1`
+  * and `Int.MinValue - 1` silently wrap around to each other, vs. how both `LocalDate.MAX.plusDays(1)` and
   * `LocalDate.MIN.minusDays(1)` throw a `DateTimeException`.
   *
   * @tparam T
   *   a value that has discrete value behavior (e.g., `Int`)
   */
-trait DiscreteValue[T] extends Ordering[T]:
-  /**
-    * Maximum discrete value. See [[https://en.wikipedia.org/wiki/Maximum_and_minimum]].
-    */
-  def maxValue: T
-
-  /**
-    * Minimum discrete value. See [[https://en.wikipedia.org/wiki/Maximum_and_minimum]].
-    */
-  def minValue: T
+trait DiscreteValue[T] extends DomainValueLike[T]:
+  override def bracePunctuation: String = ".."
 
   /**
     * Successor of a discrete value, when defined: only successorOf(maxValue) is not defined. See
@@ -38,17 +29,6 @@ trait DiscreteValue[T] extends Ordering[T]:
     */
   def predecessorOf(x: T): Option[T]
 
-  /**
-    * A special totally-ordered hash of a discrete value used for mapping intervals to box search trees in double space.
-    * If `x1 < x2` (i.e., there are some number of `successorOf` functions that can be applied to `x1` to reach `x2`),
-    * then `orderedHashOf(x1) ≤ orderedHashOf(x2)`, i.e., it is "weakly monotonic". See
-    * [[https://en.wikipedia.org/wiki/Monotonic_function]].
-    * @note
-    *   having equal `orderedHashOf` results for different inputs is allowed, but represents a hash collision. If the
-    *   `orderedHashOf` method has too many collisions, the performance of box search trees will suffer.
-    */
-  def orderedHashOf(x: T): Double
-
   extension (lhs: T)
     /**
       * Successor of this discrete value, when defined: only maxValue.successorValue is not defined. See
@@ -61,17 +41,6 @@ trait DiscreteValue[T] extends Ordering[T]:
       * [[https://en.wikipedia.org/wiki/Primitive_recursive_function#Predecessor]].
       */
     def predecessorValue: Option[T] = predecessorOf(lhs)
-
-    /**
-      * The ordered hash of this discrete value, used for mapping intervals to box search trees in double space. If `x1
-      * < x2`, then `orderedHashOf(x1) ≤ orderedHashOf(x2)`, i.e., it is "weakly monotonic". See
-      * [[https://en.wikipedia.org/wiki/Monotonic_function]].
-      * @note
-      *   having equal `orderedHashOf` results for different inputs is allowed, but represents a hash collision. If the
-      *   `orderedHashOf` method has too many collisions, the performance of the box search trees using them will
-      *   suffer.
-      */
-    def orderedHashValue: Double = orderedHashOf(lhs)
 
 /**
   * Default discrete value type classes for common data types.

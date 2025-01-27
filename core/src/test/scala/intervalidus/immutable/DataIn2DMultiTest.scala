@@ -1,6 +1,7 @@
 package intervalidus.immutable
 
 import intervalidus.*
+import intervalidus.DiscreteValue.given
 import org.scalatest.compatible.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
@@ -38,7 +39,7 @@ class DataIn2DMultiTest
     val allData = List(withHorizontal(intervalTo(4)) -> "Hey", withHorizontal(intervalFrom(16)) -> "World")
 
     val fixture1 = DataIn2DMulti.from(allData)
-    val fixture2 = fixture1.map(d => d.interval.toAfter(d.interval.end) -> d.value.map(_ + "!"))
+    val fixture2 = fixture1.map(d => d.interval.to(d.interval.end.rightAdjacent) -> d.value.map(_ + "!"))
     val expectedData2 = List(
       withHorizontal(intervalTo(5)) -> Set("Hey!"),
       withHorizontal(intervalFrom(16)) -> Set("World!")

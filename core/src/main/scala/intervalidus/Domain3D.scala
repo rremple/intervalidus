@@ -5,7 +5,7 @@ import intervalidus.collection.Coordinate
 import scala.language.implicitConversions
 
 /**
-  * A three-dimensional discrete domain, like cartesian coordinates. Used in conjunction with [[Interval3D]].
+  * A three-dimensional domain, like cartesian coordinates. Used in conjunction with [[Interval3D]].
   *
   * @param horizontalIndex
   *   domain element on the x-axis.
@@ -20,7 +20,7 @@ import scala.language.implicitConversions
   * @tparam T3
   *   the depth domain type
   */
-case class Domain3D[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue](
+case class Domain3D[T1: DomainValueLike, T2: DomainValueLike, T3: DomainValueLike](
   horizontalIndex: Domain1D[T1],
   verticalIndex: Domain1D[T2],
   depthIndex: Domain1D[T3]
@@ -47,14 +47,14 @@ case class Domain3D[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue](
   def flipAboutHorizontal: Domain3D[T1, T3, T2] = Domain3D(horizontalIndex, depthIndex, verticalIndex)
 
 /**
-  * Companion for the three-dimensional domain used in defining and operating on discrete intervals.
+  * Companion for the three-dimensional domain used in defining and operating on intervals.
   */
 object Domain3D:
 
   /**
-    * Type class instance for three-dimensional discrete domains.
+    * Type class instance for three-dimensional domains.
     */
-  given [T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue]: DomainLike[Domain3D[T1, T2, T3]] with
+  given [T1: DomainValueLike, T2: DomainValueLike, T3: DomainValueLike]: DomainLike[Domain3D[T1, T2, T3]] with
     extension (domain: Domain3D[T1, T2, T3])
       override def isUnbounded: Boolean =
         domain.horizontalIndex.isUnbounded && domain.verticalIndex.isUnbounded & domain.depthIndex.isUnbounded
@@ -70,11 +70,15 @@ object Domain3D:
           domain.depthIndex.orderedHash
         )
 
-      override def successor: Domain3D[T1, T2, T3] =
-        domain.horizontalIndex.successor x domain.verticalIndex.successor x domain.depthIndex.successor
+      override def rightAdjacent: Domain3D[T1, T2, T3] =
+        domain.horizontalIndex.rightAdjacent x
+          domain.verticalIndex.rightAdjacent x
+          domain.depthIndex.rightAdjacent
 
-      override def predecessor: Domain3D[T1, T2, T3] =
-        domain.horizontalIndex.predecessor x domain.verticalIndex.predecessor x domain.depthIndex.predecessor
+      override def leftAdjacent: Domain3D[T1, T2, T3] =
+        domain.horizontalIndex.leftAdjacent x
+          domain.verticalIndex.leftAdjacent x
+          domain.depthIndex.leftAdjacent
 
   /**
     * Provides a default ordering for any 3D domain based on the orderings of its constituent horizontal, vertical, and
@@ -109,13 +113,13 @@ object Domain3D:
         else depthOrdering.compare(x.depthIndex, y.depthIndex)
 
   /**
-    * This allows a client to use a tuple of discrete values in methods requiring a three-dimensional discrete domain
-    * element by implicitly converting. For example, a client can write `dataIn2D.getAt(DiscreteDomain3D(1, 2, 3))` (or
-    * even `dataIn2D.getAt(Point(1) x Point(2) x Point(3))`) or, simpler, `dataIn1D.getAt((1, 2, 3))` (or, with
-    * auto-tupling, even the extra parens can be dropped: `dataIn1D.getAt(1, 2, 3)`)
+    * This allows a client to use a tuple of domain values in methods requiring a three-dimensional domain element by
+    * implicitly converting. For example, a client can write `dataIn2D.getAt(Domain3D(1, 2, 3))` (or even
+    * `dataIn2D.getAt(Point(1) x Point(2) x Point(3))`) or, simpler, `dataIn1D.getAt((1, 2, 3))` (or, with auto-tupling,
+    * even the extra parens can be dropped: `dataIn1D.getAt(1, 2, 3)`)
     */
   given [T1, T2, T3](using
-    DiscreteValue[T1],
-    DiscreteValue[T2],
-    DiscreteValue[T3]
+    DomainValueLike[T1],
+    DomainValueLike[T2],
+    DomainValueLike[T3]
   ): Conversion[(T1, T2, T3), Domain3D[T1, T2, T3]] = (t: (T1, T2, T3)) => Domain3D(t._1, t._2, t._3)

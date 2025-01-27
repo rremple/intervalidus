@@ -3,15 +3,15 @@ package intervalidus
 import intervalidus.collection.BoxedPayload
 
 /**
-  * A value that is valid in some discrete interval. This defines a partial function where all domain elements that are
-  * part of the interval map to the specified value.
+  * A value that is valid in some interval. This defines a partial function where all domain elements that are part of
+  * the interval map to the specified value.
   *
   * @tparam V
   *   the type of the value managed as data (the codomain).
   * @tparam D
-  *   the type of discrete domain used in the discrete interval assigned to each value (the domain).
+  *   the type of domain used in the interval assigned to each value (the domain).
   * @tparam I
-  *   the type of discrete interval in which the value is valid.
+  *   the type of interval in which the value is valid.
   * @tparam Self
   *   F-bounded self type.
   */

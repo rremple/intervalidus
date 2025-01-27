@@ -2,7 +2,7 @@ package intervalidus
 
 import intervalidus.Interval1D.{between, unbounded}
 import intervalidus.collection.mutable.{BoxTree, MultiMapSorted}
-import intervalidus.collection.{Box, BoxedPayload, Coordinate}
+import intervalidus.collection.{Box, Coordinate}
 
 import scala.collection.mutable
 
@@ -16,17 +16,17 @@ trait DataIn3DBaseObject extends DataIn3DConstructorParams:
     * @tparam V
     *   the type of the value managed as data.
     * @tparam R1
-    *   the type of discrete value used in the horizontal discrete interval assigned to each value.
+    *   the type of domain value used in the horizontal interval assigned to each value.
     * @tparam R2
-    *   the type of discrete value used in the vertical discrete interval assigned to each value.
+    *   the type of domain value used in the vertical interval assigned to each value.
     * @tparam R3
-    *   the type of discrete value used in the depth discrete interval assigned to each value.
+    *   the type of domain value used in the depth interval assigned to each value.
     * @param data
     *   value in interval to start with.
     * @return
     *   [[DataIn3DBase]] structure with a single valid value.
     */
-  def of[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](
+  def of[V, R1: DomainValueLike, R2: DomainValueLike, R3: DomainValueLike](
     data: ValidData3D[V, R1, R2, R3]
   )(using experimental: Experimental): DataIn3DBase[V, R1, R2, R3]
 
@@ -36,17 +36,17 @@ trait DataIn3DBaseObject extends DataIn3DConstructorParams:
     * @tparam V
     *   the type of the value managed as data.
     * @tparam R1
-    *   the type of discrete value used in the horizontal discrete interval assigned to each value.
+    *   the type of domain value used in the horizontal interval assigned to each value.
     * @tparam R2
-    *   the type of discrete value used in the vertical discrete interval assigned to each value.
+    *   the type of domain value used in the vertical interval assigned to each value.
     * @tparam R3
-    *   the type of discrete value used in the depth discrete interval assigned to each value.
+    *   the type of domain value used in the depth interval assigned to each value.
     * @param value
     *   value to start with.
     * @return
     *   [[DataIn3DBase]] structure with a single valid value.
     */
-  def of[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](
+  def of[V, R1: DomainValueLike, R2: DomainValueLike, R3: DomainValueLike](
     value: V
   )(using experimental: Experimental): DataIn3DBase[V, R1, R2, R3]
 
@@ -58,15 +58,15 @@ trait DataIn3DBaseObject extends DataIn3DConstructorParams:
     * @tparam V
     *   the type of the value managed as data.
     * @tparam R1
-    *   the type of discrete domain used in the horizontal interval assigned to each value.
+    *   the type of domain value used in the horizontal interval assigned to each value.
     * @tparam R2
-    *   the type of discrete domain used in the vertical interval assigned to each value.
+    *   the type of domain value used in the vertical interval assigned to each value.
     * @tparam R3
-    *   the type of discrete value used in the depth discrete interval assigned to each value.
+    *   the type of domain value used in the depth interval assigned to each value.
     * @return
     *   [[DataIn3DBase]] structure with zero or more valid values.
     */
-  def apply[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](
+  def apply[V, R1: DomainValueLike, R2: DomainValueLike, R3: DomainValueLike](
     initialData: Iterable[ValidData3D[V, R1, R2, R3]]
   )(using
     Experimental
@@ -77,9 +77,9 @@ trait DataIn3DConstructorParams:
     initialData: Iterable[ValidData3D[V, R1, R2, R3]]
   )(using
     experimental: Experimental,
-    discreteValue1: DiscreteValue[R1],
-    discreteValue2: DiscreteValue[R2],
-    discreteValue3: DiscreteValue[R3]
+    domainValue1: DomainValueLike[R1],
+    domainValue2: DomainValueLike[R2],
+    domainValue3: DomainValueLike[R3]
   ): (
     mutable.TreeMap[Domain3D[R1, R2, R3], ValidData3D[V, R1, R2, R3]],
     mutable.TreeMap[Domain3D[R1, R2, R3], ValidData3D[V, R1, R2, R3]],
@@ -100,14 +100,14 @@ trait DataIn3DConstructorParams:
       collection.mutable.MultiMapSorted.from(initialData.map(v => v.value -> v))
 
     val minPoint = Coordinate(
-      discreteValue1.minValue.orderedHashValue,
-      discreteValue2.minValue.orderedHashValue,
-      discreteValue3.minValue.orderedHashValue
+      domainValue1.minValue.orderedHashValue,
+      domainValue2.minValue.orderedHashValue,
+      domainValue3.minValue.orderedHashValue
     )
     val maxPoint = Coordinate(
-      discreteValue1.maxValue.orderedHashValue,
-      discreteValue2.maxValue.orderedHashValue,
-      discreteValue3.maxValue.orderedHashValue
+      domainValue1.maxValue.orderedHashValue,
+      domainValue2.maxValue.orderedHashValue,
+      domainValue3.maxValue.orderedHashValue
     )
     val boundary = Box(minPoint, maxPoint)
 
@@ -120,9 +120,9 @@ trait DataIn3DConstructorParams:
     (dataByStartAsc, dataByStartDesc, dataByValue, dataInSearchTree)
 
 /**
-  * Like [[DataIn1DBase]] and [[DataIn2DBase]], data here have different values in different discrete intervals. But
-  * here data values vary in three dimensions. For example, one may want to represent when data are valid in two
-  * dimensions of time and over certain versions simultaneously.
+  * Like [[DataIn1DBase]] and [[DataIn2DBase]], data here have different values in different intervals. But here data
+  * values vary in three dimensions. For example, one may want to represent when data are valid in two dimensions of
+  * time and over certain versions simultaneously.
   *
   * We can capture the dependency between various values and related three-dimensional intervals cohesively in this
   * structure rather than in separate data structures using distributed (and potentially inconsistent) logic. This is
@@ -135,14 +135,14 @@ trait DataIn3DConstructorParams:
   * @tparam V
   *   the type of the value managed as data.
   * @tparam R1
-  *   the type of discrete domain used in the horizontal interval assigned to each value.
+  *   the type of domain value used in the horizontal interval assigned to each value.
   * @tparam R2
-  *   the type of discrete domain used in the vertical interval assigned to each value.
+  *   the type of domain value used in the vertical interval assigned to each value.
   * @tparam R3
-  *   the type of discrete domain used in the depth interval assigned to each value.
+  *   the type of domain value used in the depth interval assigned to each value.
   */
-trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](using experimental: Experimental)
-  extends DimensionalBase[
+trait DataIn3DBase[V, R1: DomainValueLike, R2: DomainValueLike, R3: DomainValueLike](using experimental: Experimental)
+  extends intervalidus.DimensionalBase[
     V,
     Domain3D[R1, R2, R3],
     Interval3D[R1, R2, R3],
@@ -150,8 +150,6 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
     DiffAction3D[V, R1, R2, R3],
     DataIn3DBase[V, R1, R2, R3]
   ]:
-
-  protected def dataInSearchTree: BoxTree[ValidData3D[V, R1, R2, R3]]
 
   experimental.control("requireDisjoint")(
     nonExperimentalResult = (),
@@ -161,7 +159,7 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
   override protected def newValidData(value: V, interval: Interval3D[R1, R2, R3]): ValidData3D[V, R1, R2, R3] =
     interval -> value
 
-  private def subIntervalsWith[B, R: DiscreteValue](
+  private def subIntervalsWith[B, R: DomainValueLike](
     that: DataIn3DBase[B, R1, R2, R3],
     f: Interval3D[R1, R2, R3] => Interval1D[R]
   ): Iterable[Interval1D[R]] = Interval1D.uniqueIntervals(
@@ -361,37 +359,6 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
     // recompress
     dataByValue.keySet.foreach(compressInPlace)
 
-  override protected def dataInSearchTreeAdd(data: ValidData3D[V, R1, R2, R3]): Unit =
-    dataInSearchTree.addOne(data.asBoxedPayload)
-
-  override protected def dataInSearchTreeRemove(data: ValidData3D[V, R1, R2, R3]): Unit =
-    dataInSearchTree.remove(data.asBoxedPayload)
-
-  override protected def dataInSearchTreeClear(): Unit =
-    dataInSearchTree.clear()
-
-  override protected def dataInSearchTreeAddAll(data: Iterable[ValidData3D[V, R1, R2, R3]]): Unit =
-    dataInSearchTree.addAll(data.map(_.asBoxedPayload))
-
-  override protected def dataInSearchTreeGet(
-    interval: Interval3D[R1, R2, R3]
-  ): Iterable[ValidData3D[V, R1, R2, R3]] =
-    BoxedPayload
-      .deduplicate(dataInSearchTree.get(interval.asBox))
-      .map(_.payload)
-      .filter(_.interval intersects interval)
-
-  override protected def dataInSearchTreeGetByDomain(
-    domainIndex: Domain3D[R1, R2, R3]
-  ): Option[ValidData3D[V, R1, R2, R3]] =
-    dataInSearchTree
-      .get(Interval3D.intervalAt(domainIndex).asBox)
-      .collectFirst:
-        case d if d.payload.interval.contains(domainIndex) => d.payload
-
-  override protected def dataInSearchTreeIntersects(interval: Interval3D[R1, R2, R3]): Boolean =
-    dataInSearchTree.get(interval.asBox).exists(_.payload.interval intersects interval)
-
   /**
     * @inheritdoc
     *
@@ -433,7 +400,7 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
     import Interval1D.Remainder
 
     // Utility to find the complement of single remaining (intervals must either start or end together)
-    def excludeRemaining[T: DiscreteValue](
+    def excludeRemaining[T: DomainValueLike](
       full: Interval1D[T],
       remaining: Interval1D[T]
     ): Interval1D[T] =
@@ -457,7 +424,7 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
         * A single overlap in one dimension with total overlaps in the others - adjust in the one. (This is the 2D
         * "edge" case extended into the third dimension to take out the whole face.)
         */
-      def face[T: DiscreteValue](
+      def face[T: DomainValueLike](
         remaining1D: Interval1D[T],
         extract1D: Interval3D[R1, R2, R3] => Interval1D[T],
         modify3D: (Interval3D[R1, R2, R3], Interval1D[T]) => Interval3D[R1, R2, R3]
@@ -478,7 +445,7 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
         * A partial overlap in two dimensions and total overlap in the other - remove and add 2 remaining (compress
         * later). (This is the 2D "corner" case extended into the third dimension to take out the whole edge.)
         */
-      def edge[T1: DiscreteValue, T2: DiscreteValue](
+      def edge[T1: DomainValueLike, T2: DomainValueLike](
         remainingDimOne: Interval1D[T1],
         remainingDimTwo: Interval1D[T2],
         extractDimOne: Interval3D[R1, R2, R3] => Interval1D[T1],
@@ -506,7 +473,7 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
         * A split in one dimension with total overlaps in the others - shorten before, add remaining after. (This is the
         * 2D "slice" case extended into the third dimension.)
         */
-      def slice[T: DiscreteValue](
+      def slice[T: DomainValueLike](
         remainingBefore1D: Interval1D[T],
         remainingAfter1D: Interval1D[T],
         modify3D: (Interval3D[R1, R2, R3], Interval1D[T]) => Interval3D[R1, R2, R3]
@@ -521,7 +488,7 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
         * A split in three dimensions with a total overlap in the other - shorten before, add remaining. (This is the 2D
         * "hole" case extended into the third dimension.)
         */
-      def hole[T1: DiscreteValue, T2: DiscreteValue](
+      def hole[T1: DomainValueLike, T2: DomainValueLike](
         beforeRemainingDimOne: Interval1D[T1],
         afterRemainingDimOne: Interval1D[T1],
         beforeRemainingDimTwo: Interval1D[T2],
@@ -551,7 +518,7 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
         * A partial overlap in two dimensions and a split in the other - remove and add four chunks to replace it. (This
         * is a unique 3D case, like a "bite", but out of an edge instead of a face.)
         */
-      def notch[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue](
+      def notch[T1: DomainValueLike, T2: DomainValueLike, T3: DomainValueLike](
         remainingDimOne: Interval1D[T1],
         beforeRemainingDimTwo: Interval1D[T2],
         afterRemainingDimTwo: Interval1D[T2],
@@ -596,7 +563,7 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
         * A partial overlap in one dimension and splits in the other two - remove and add five chunks to replace it.
         * (This is a unique 3D case, like a "hole" but not extending in the full third dimension.)
         */
-      def divot[T1: DiscreteValue, T2: DiscreteValue, T3: DiscreteValue](
+      def divot[T1: DomainValueLike, T2: DomainValueLike, T3: DomainValueLike](
         beforeRemainingDimOne: Interval1D[T1],
         afterRemainingDimOne: Interval1D[T1],
         beforeRemainingDimTwo: Interval1D[T2],
@@ -641,7 +608,7 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
         * A partial overlap in one dimension, a split in another, and a total overlap in the last - shorten before and
         * add 2 remaining. (This is the 2D "bite" case extended into the third dimension, so a bite out of a face.)
         */
-      def bite[T1: DiscreteValue, T2: DiscreteValue](
+      def bite[T1: DomainValueLike, T2: DomainValueLike](
         remainingDimOne: Interval1D[T1],
         beforeRemainingDimTwo: Interval1D[T2],
         afterRemainingDimTwo: Interval1D[T2],
@@ -997,7 +964,7 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
     intersecting.foreach: overlap =>
       val newValueOption = updateValue(overlap.value)
 
-      def excludeOverlapRemainder1D[T: DiscreteValue](
+      def excludeOverlapRemainder1D[T: DomainValueLike](
         extractFromOverlap: Interval3D[R1, R2, R3] => Interval1D[T],
         remainder: Remainder[Interval1D[T]]
       ): Interval1D[T] =
@@ -1012,7 +979,7 @@ trait DataIn3DBase[V, R1: DiscreteValue, R2: DiscreteValue, R3: DiscreteValue](u
           case Remainder.Split(leftRemaining, rightRemaining) =>
             between(leftRemaining, rightRemaining)
 
-      def allOverlapSubintevals1D[T: DiscreteValue](
+      def allOverlapSubintevals1D[T: DomainValueLike](
         extractFromOverlap: Interval3D[R1, R2, R3] => Interval1D[T],
         remainder: Remainder[Interval1D[T]]
       ): Seq[Interval1D[T]] =

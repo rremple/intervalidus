@@ -5,7 +5,7 @@ import scala.collection.immutable.TreeMap
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 /**
-  * A two-dimensional interval over a contiguous set of discrete values in `T1` and `T2`. See
+  * A two-dimensional interval over a contiguous set of domain values in `T1` and `T2`. See
   * [[https://en.wikipedia.org/wiki/Interval_(mathematics)]] for more information.
   *
   * @param horizontal
@@ -13,11 +13,11 @@ import scala.math.Ordering.Implicits.infixOrderingOps
   * @param vertical
   *   the ordinate interval: the vertical Y-axis
   * @tparam T1
-  *   a discrete value type for this interval's horizontal domain
+  *   a domain value type for this interval's horizontal domain
   * @tparam T2
-  *   a discrete value type for this interval's vertical domain
+  *   a domain value type for this interval's vertical domain
   */
-case class Interval2D[T1: DiscreteValue, T2: DiscreteValue](
+case class Interval2D[T1: DomainValueLike, T2: DomainValueLike](
   horizontal: Interval1D[T1],
   vertical: Interval1D[T2]
 ) extends IntervalLike[Domain2D[T1, T2], Interval2D[T1, T2]]:
@@ -81,7 +81,7 @@ case class Interval2D[T1: DiscreteValue, T2: DiscreteValue](
     to(Domain1D.Top x Domain1D.Top)
 
   override infix def isLeftAdjacentTo(that: Interval2D[T1, T2]): Boolean =
-    (this.horizontal.end.successor equiv that.horizontal.start) && (this.vertical equiv that.vertical)
+    (this.horizontal.end.rightAdjacent equiv that.horizontal.start) && (this.vertical equiv that.vertical)
 
   override infix def excluding(that: Interval2D[T1, T2]): ExclusionRemainder =
     (this.horizontal excluding that.horizontal, this.vertical excluding that.vertical)
@@ -140,7 +140,7 @@ case class Interval2D[T1: DiscreteValue, T2: DiscreteValue](
     *   the interval to test for adjacency.
     */
   infix def isLowerAdjacentTo(that: Interval2D[T1, T2]): Boolean =
-    (this.vertical.end.successor equiv that.vertical.start) && (this.horizontal equiv that.horizontal)
+    (this.vertical.end.rightAdjacent equiv that.vertical.start) && (this.horizontal equiv that.horizontal)
 
   /**
     * Tests if this interval is above that interval, there is no vertical gap between them, and their horizontal
@@ -156,12 +156,12 @@ case class Interval2D[T1: DiscreteValue, T2: DiscreteValue](
     * @param that
     *   a one-dimensional interval to be used in the depth dimension
     * @tparam T3
-    *   discrete value type for that interval
+    *   domain value type for that interval
     * @return
     *   a new three-dimensional interval with this interval as the horizontal and vertical components and that interval
     *   as the depth component.
     */
-  infix def x[T3: DiscreteValue](that: Interval1D[T3]): Interval3D[T1, T2, T3] =
+  infix def x[T3: DomainValueLike](that: Interval1D[T3]): Interval3D[T1, T2, T3] =
     Interval3D(this.horizontal, this.vertical, that)
 
   /**
@@ -181,7 +181,7 @@ object Interval2D:
   /**
     * Returns an interval unbounded in both dimensions.
     */
-  def unbounded[T1: DiscreteValue, T2: DiscreteValue]: Interval2D[T1, T2] =
+  def unbounded[T1: DomainValueLike, T2: DomainValueLike]: Interval2D[T1, T2] =
     Interval1D.unbounded[T1] x Interval1D.unbounded[T2]
 
   /**
@@ -208,13 +208,13 @@ object Interval2D:
     * @tparam R
     *   the result type
     * @tparam T1
-    *   a discrete value type for this interval's horizontal domain.
+    *   a domain value type for this interval's horizontal domain.
     * @tparam T2
-    *   a discrete value type for this interval's vertical domain.
+    *   a domain value type for this interval's vertical domain.
     * @return
     *   a result extracted from the final state
     */
-  def compressGeneric[C, S, D, R, T1: DiscreteValue, T2: DiscreteValue](
+  def compressGeneric[C, S, D, R, T1: DomainValueLike, T2: DomainValueLike](
     initialState: S,
     result: S => R,
     dataIterable: S => Iterable[D],
@@ -234,8 +234,8 @@ object Interval2D:
       val maybeUpdate = dataIterable(state)
         .map: r =>
           val key = interval(r).start
-          def rightKey = key.copy(horizontalIndex = interval(r).horizontal.end.successor)
-          def upperKey = key.copy(verticalIndex = interval(r).vertical.end.successor)
+          def rightKey = key.copy(horizontalIndex = interval(r).horizontal.end.rightAdjacent)
+          def upperKey = key.copy(verticalIndex = interval(r).vertical.end.rightAdjacent)
           def rightAdjacent =
             lookup(state, rightKey).filter(s => valueMatch(r, s) && (interval(s) isRightAdjacentTo interval(r)))
           def upperAdjacent =
@@ -258,13 +258,13 @@ object Interval2D:
     * @param intervals
     *   a collection of disjoint intervals.
     * @tparam T1
-    *   a discrete value type for this interval's horizontal domain.
+    *   a domain value type for this interval's horizontal domain.
     * @tparam T2
-    *   a discrete value type for this interval's vertical domain.
+    *   a domain value type for this interval's vertical domain.
     * @return
     *   a new (possibly smaller) collection of intervals covering the same domain as the input.
     */
-  def compress[T1: DiscreteValue, T2: DiscreteValue](
+  def compress[T1: DomainValueLike, T2: DomainValueLike](
     intervals: Iterable[Interval2D[T1, T2]]
   ): Iterable[Interval2D[T1, T2]] = compressGeneric(
     initialState = TreeMap.from(intervals.map(i => i.start -> i)), // intervals by start
@@ -279,7 +279,7 @@ object Interval2D:
   /**
     * Returns an interval that starts and ends at the same value.
     */
-  def intervalAt[T1: DiscreteValue, T2: DiscreteValue](s: Domain2D[T1, T2]): Interval2D[T1, T2] =
+  def intervalAt[T1: DomainValueLike, T2: DomainValueLike](s: Domain2D[T1, T2]): Interval2D[T1, T2] =
     apply(Interval1D.intervalAt(s.horizontalIndex), Interval1D.intervalAt(s.verticalIndex))
 
   /*
@@ -295,13 +295,13 @@ object Interval2D:
     * @param intervals
     *   a collection of two-dimensional intervals.
     * @tparam T1
-    *   a discrete value type for the horizontal interval domain.
+    *   a domain value type for the horizontal interval domain.
     * @tparam T2
-    *   a discrete value type for the vertical interval domain.
+    *   a domain value type for the vertical interval domain.
     * @return
     *   true if the collection is compressible, false otherwise.
     */
-  def isCompressible[T1: DiscreteValue, T2: DiscreteValue](
+  def isCompressible[T1: DomainValueLike, T2: DomainValueLike](
     intervals: Iterable[Interval2D[T1, T2]]
   ): Boolean =
     // evaluates every pair of 2D intervals twice, so we only need to check for left/lower adjacency
@@ -319,13 +319,13 @@ object Interval2D:
     * @param intervals
     *   a collection of two-dimensional intervals.
     * @tparam T1
-    *   a discrete value type for this interval's horizontal domain.
+    *   a domain value type for this interval's horizontal domain.
     * @tparam T2
-    *   a discrete value type for this interval's vertical domain.
+    *   a domain value type for this interval's vertical domain.
     * @return
     *   true if the collection is disjoint, false otherwise.
     */
-  def isDisjoint[T1: DiscreteValue, T2: DiscreteValue](
+  def isDisjoint[T1: DomainValueLike, T2: DomainValueLike](
     intervals: Iterable[Interval2D[T1, T2]]
   ): Boolean = !intervals.exists: r =>
     intervals
@@ -340,13 +340,13 @@ object Interval2D:
     * @param intervals
     *   collection of intervals
     * @tparam T1
-    *   a discrete value type for this interval's horizontal domain.
+    *   a domain value type for this interval's horizontal domain.
     * @tparam T2
-    *   a discrete value type for this interval's vertical domain.
+    *   a domain value type for this interval's vertical domain.
     * @return
     *   a new collection of intervals representing disjoint intervals covering the span of the input.
     */
-  def uniqueIntervals[T1: DiscreteValue, T2: DiscreteValue](
+  def uniqueIntervals[T1: DomainValueLike, T2: DomainValueLike](
     intervals: Iterable[Interval2D[T1, T2]]
   ): Iterable[Interval2D[T1, T2]] =
     for

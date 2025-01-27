@@ -1,6 +1,7 @@
 package intervalidus.mutable
 
 import intervalidus.*
+import intervalidus.DiscreteValue.given
 import org.scalatest.compatible.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
@@ -45,7 +46,7 @@ class DataIn2DMultiTest
       DataIn2DMulti.from(_),
       (interval, value) => ValidData2D(value, withHorizontal(interval)),
       (interval, valueSet) => ValidData2D(valueSet, withHorizontal(interval)),
-      d => d.interval.toAfter(d.interval.end) -> d.value.map(_ + "!"),
+      d => d.interval.to(d.interval.end.rightAdjacent) -> d.value.map(_ + "!"),
       d => DataIn2DMulti.from(d.value.map(d.interval -> _))
     )
   )

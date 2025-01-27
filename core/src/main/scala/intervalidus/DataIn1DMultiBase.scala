@@ -10,13 +10,13 @@ trait DataIn1DMultiBaseObject extends DataIn1DConstructorParams:
     * @tparam V
     *   the type of the value managed as data.
     * @tparam R
-    *   the type of discrete value used in the discrete interval assigned to each value.
+    *   the type of domain value used in the interval assigned to each value.
     * @param data
     *   valid data to start with.
     * @return
     *   [[DataIn1DMultiBase]] structure with a single valid value.
     */
-  def of[V, R: DiscreteValue](
+  def of[V, R: DomainValueLike](
     data: ValidData1D[V, R]
   )(using Experimental): DataIn1DMultiBase[V, R]
 
@@ -26,13 +26,13 @@ trait DataIn1DMultiBaseObject extends DataIn1DConstructorParams:
     * @tparam V
     *   the type of the value managed as data.
     * @tparam R
-    *   the type of discrete value used in the discrete interval assigned to each value.
+    *   the type of domain value used in the interval assigned to each value.
     * @param value
     *   value to start with.
     * @return
     *   [[DataIn1DMultiBase]] structure with a single valid value.
     */
-  def of[V, R: DiscreteValue](
+  def of[V, R: DomainValueLike](
     value: V
   )(using Experimental): DataIn1DMultiBase[V, R]
 
@@ -44,11 +44,11 @@ trait DataIn1DMultiBaseObject extends DataIn1DConstructorParams:
     * @tparam V
     *   the type of the value managed as data.
     * @tparam R
-    *   the type of discrete domain used in the interval assigned to each value.
+    *   the type of domain value used in the interval assigned to each value.
     * @return
     *   [[DataIn1DMultiBase]] structure with zero or more valid values.
     */
-  def from[V, R: DiscreteValue](
+  def from[V, R: DomainValueLike](
     initialData: Iterable[ValidData1D[V, R]]
   )(using Experimental): DataIn1DMultiBase[V, R]
 
@@ -60,11 +60,11 @@ trait DataIn1DMultiBaseObject extends DataIn1DConstructorParams:
     * @tparam V
     *   the type of the value managed as data.
     * @tparam R
-    *   the type of discrete domain used in the interval assigned to each value.
+    *   the type of domain value used in the interval assigned to each value.
     * @return
     *   [[DataIn1DMultiBase]] structure with the same valid values.
     */
-  def from[V, R: DiscreteValue](
+  def from[V, R: DomainValueLike](
     that: DataIn1DBase[Set[V], R]
   )(using Experimental): DataIn1DMultiBase[V, R]
 
@@ -76,11 +76,11 @@ trait DataIn1DMultiBaseObject extends DataIn1DConstructorParams:
     * @tparam V
     *   the type of the value managed as data.
     * @tparam R
-    *   the type of discrete domain used in the interval assigned to each value.
+    *   the type of domain value used in the interval assigned to each value.
     * @return
     *   [[DataIn1DMultiBase]] structure with zero or more valid values.
     */
-  def apply[V, R: DiscreteValue](
+  def apply[V, R: DomainValueLike](
     initialData: Iterable[ValidData1D[Set[V], R]]
   )(using Experimental): DataIn1DMultiBase[V, R]
 
@@ -90,10 +90,10 @@ trait DataIn1DMultiBaseObject extends DataIn1DConstructorParams:
   * @tparam V
   *   the type of the value managed as data.
   * @tparam R
-  *   the type of discrete domain used in the interval assigned to each value.
+  *   the type of domain value used in the interval assigned to each value.
   */
 // Base for all 1D multi-data, both mutable and immutable
-trait DataIn1DMultiBase[V, R: DiscreteValue] extends DataIn1DBase[Set[V], R]:
+trait DataIn1DMultiBase[V, R: DomainValueLike] extends DataIn1DBase[Set[V], R]:
   // from Object
   override def toString: String = toStringGrid(
     dataToString = _.value.map(_.toString).mkString("{", ",", "}"),

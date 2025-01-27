@@ -27,14 +27,15 @@ trait DataIn2DVersionedBaseBehaviors:
   protected def testDataIn3D[T](
     current: Domain1D[Int],
     values: List[ValidData2D[T, Int, Int]]
-  ): List[ValidData3D[T, Int, Int, Int]] = values.map(d => (d.interval x intervalFrom(current)) -> d.value)
+  )(using DomainValueLike[Int]): List[ValidData3D[T, Int, Int, Int]] =
+    values.map(d => (d.interval x intervalFrom(current)) -> d.value)
 
   def stringLookupTests[S <: DataIn2DVersionedBase[String, Int, Int]](
     prefix: String,
     dataIn2DVersionedFrom2D: Experimental ?=> Iterable[ValidData2D[String, Int, Int]] => S,
     dataIn2DVersionedFrom3D: Experimental ?=> Iterable[ValidData3D[String, Int, Int, Int]] => S,
     dataIn2DVersionedOf: Experimental ?=> String => S
-  )(using Experimental): Unit =
+  )(using Experimental, DomainValueLike[Int]): Unit =
     test(s"$prefix: General setup"):
       {
         given Experimental = Experimental("requireDisjoint")

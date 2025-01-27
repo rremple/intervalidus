@@ -3,13 +3,14 @@ package intervalidus.immutable
 import intervalidus.*
 import intervalidus.mutable.DataIn1DVersioned as DataIn1DVersionedMutable
 import intervalidus.DimensionalVersionedBase.{VersionDomain, VersionSelection}
+import intervalidus.DiscreteValue.IntDiscreteValue
 
 import scala.language.implicitConversions
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 /** @inheritdoc */
 object DataIn1DVersioned extends DataIn1DVersionedBaseObject:
-  override def of[V, R: DiscreteValue](
+  override def of[V, R: DomainValueLike](
     data: ValidData1D[V, R],
     initialVersion: Int
   )(using Experimental): DataIn1DVersioned[V, R] = from(
@@ -17,14 +18,14 @@ object DataIn1DVersioned extends DataIn1DVersionedBaseObject:
     initialVersion
   )
 
-  override def of[V, R: DiscreteValue](
+  override def of[V, R: DomainValueLike](
     value: V,
     initialVersion: Int = 0
   )(using Experimental): DataIn1DVersioned[V, R] = of(Interval1D.unbounded -> value, initialVersion)
 
-  override def from[V, R: DiscreteValue](
+  override def from[V, R: DomainValueLike](
     initialData: Iterable[ValidData1D[V, R]],
-    initialVersion: Int = 0 // could use summon[DiscreteValue[Int]].minValue to extend range
+    initialVersion: Int = 0 // could use summon[DomainValueLike[Int]].minValue to extend range
   )(using Experimental): DataIn1DVersioned[V, R] = DataIn1DVersioned[V, R](
     initialData.map(d => (d.interval x Interval1D.intervalFrom(initialVersion)) -> d.value),
     initialVersion
@@ -36,7 +37,7 @@ object DataIn1DVersioned extends DataIn1DVersionedBaseObject:
   * @tparam V
   *   the type of the value managed as data
   * @tparam R
-  *   the type of discrete value used in the discrete interval assigned to each value
+  *   the type of domain value used in the interval assigned to each value
   * @param initialData
   *   (optional) a collection of valid data in two dimensions (the vertical dimension is the version) to start with --
   *   two-dimensional intervals must be disjoint
@@ -46,9 +47,9 @@ object DataIn1DVersioned extends DataIn1DVersionedBaseObject:
   *   (optional) the version to use as current if different form the initial version, e.g., when making a copy,
   *   typically None
   */
-class DataIn1DVersioned[V, R: DiscreteValue](
+class DataIn1DVersioned[V, R: DomainValueLike](
   initialData: Iterable[ValidData2D[V, R, Int]] = Iterable.empty[ValidData2D[V, R, Int]],
-  initialVersion: Int = 0, // could use summon[DiscreteValue[Int]].minValue to extend range
+  initialVersion: Int = 0, // could use summon[DomainValueLike[Int]].minValue to extend range
   withCurrentVersion: Option[VersionDomain] = None
 )(using Experimental)
   extends DataIn1DVersionedBase[V, R](initialData, initialVersion, withCurrentVersion)
@@ -94,8 +95,8 @@ class DataIn1DVersioned[V, R: DiscreteValue](
     else copyAndModify(_.currentVersion = version)
 
   override def incrementCurrentVersion(): DataIn1DVersioned[V, R] =
-    if currentVersion.successor equiv unapprovedStartVersion then throw Exception("wow, ran out of versions!")
-    else copyAndModify(_.currentVersion = currentVersion.successor)
+    if currentVersion.rightAdjacent equiv unapprovedStartVersion then throw Exception("wow, ran out of versions!")
+    else copyAndModify(_.currentVersion = currentVersion.rightAdjacent)
 
   override def resetToVersion(version: VersionDomain): DataIn1DVersioned[V, R] =
     val keep = VersionSelection(version)
@@ -156,7 +157,7 @@ class DataIn1DVersioned[V, R: DiscreteValue](
     *   a new structure with the same current version resulting from applying the provided function f to each element of
     *   this structure.
     */
-  def map[B, S: DiscreteValue](f: ValidData2D[V, R, Int] => ValidData2D[B, S, Int]): DataIn1DVersioned[B, S] =
+  def map[B, S: DomainValueLike](f: ValidData2D[V, R, Int] => ValidData2D[B, S, Int]): DataIn1DVersioned[B, S] =
     DataIn1DVersioned(
       underlying.getAll.map(f),
       initialVersion,
@@ -197,7 +198,7 @@ class DataIn1DVersioned[V, R: DiscreteValue](
     *   a new structure with the same current version resulting from applying the provided function f to each element of
     *   this structure and concatenating the results.
     */
-  def flatMap[B, S: DiscreteValue](f: ValidData2D[V, R, Int] => DataIn1DVersioned[B, S]): DataIn1DVersioned[B, S] =
+  def flatMap[B, S: DomainValueLike](f: ValidData2D[V, R, Int] => DataIn1DVersioned[B, S]): DataIn1DVersioned[B, S] =
     DataIn1DVersioned(
       underlying.getAll.flatMap(f(_).underlying.getAll),
       initialVersion,

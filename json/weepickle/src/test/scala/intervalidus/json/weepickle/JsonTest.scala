@@ -3,6 +3,7 @@ package intervalidus.json.weepickle
 import com.rallyhealth.weejson.v1.jackson.{FromJson, ToJson}
 import com.rallyhealth.weepickle.v1.WeePickle.*
 import intervalidus.*
+import intervalidus.DiscreteValue.given
 import intervalidus.Interval1D.*
 import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
@@ -12,7 +13,7 @@ import scala.language.implicitConversions
 
 class JsonTest extends AnyFunSuite with Matchers:
 
-  import Domain1D.{Bottom, Point, Top}
+  import Domain1D.{Bottom, OpenPoint, Point, Top}
   import Json.given
   extension (json: String) def as[T: To]: T = FromJson(json).transform(to[T])
   private def write[T: From](t: T): String = fromScala(t).transform(ToJson.string)
@@ -28,11 +29,13 @@ class JsonTest extends AnyFunSuite with Matchers:
     isomorphic[Domain1D[Int]](Top, quote("Top"))
     isomorphic[Domain1D[Int]](Bottom, quote("Bottom"))
     isomorphic[Domain1D[Int]](Point(1), """{"point":1}""")
+    isomorphic[Domain1D[Int]](OpenPoint(1), """{"open":1}""")
 
     // must be an object or string
     assertThrows[Exception]("1".as[Domain1D[Int]])
     assertThrows[Exception](quote("Unknown string").as[Domain1D[Int]])
     assertThrows[Exception]("""{ "point": "type mismatch" }""".as[Domain1D[Int]])
+    assertThrows[Exception]("""{ "notpoint": 1 }""".as[Domain1D[Int]])
 
   test("Domains encoded as strings/objects - 2D"):
     isomorphic(Domain2D[Int, Int](Top, Top), """{"horizontalIndex":"Top","verticalIndex":"Top"}""")

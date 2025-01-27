@@ -28,14 +28,21 @@ class DiscreteValueTest extends AnyFunSuite:
     def top: Domain1D[Int] = Top
     def bottom: Domain1D[Int] = Bottom
 
-    assert(domain(3).successor equiv domain(4))
-    assert(domain(3).predecessor equiv domain(2))
-    assert(domain(maxValue).successor equiv top)
-    assert(domain(minValue).predecessor equiv bottom)
-    assert(bottom.predecessor equiv bottom)
-    assert(bottom.successor equiv bottom)
-    assert(top.predecessor equiv top)
-    assert(top.successor equiv top)
+    // Can't be open
+    assertThrows[IllegalArgumentException]:
+      val _ = open(0)
+
+    assert(domain(3).rightAdjacent equiv domain(4))
+    assert(domain(4) isRightAdjacentTo domain(3))
+    assert(domain(4) isAdjacentTo domain(3))
+    assert(domain(3).leftAdjacent equiv domain(2))
+    assert(domain(2) isLeftAdjacentTo domain(3))
+    assert(domain(maxValue).rightAdjacent equiv top)
+    assert(domain(minValue).leftAdjacent equiv bottom)
+    assert(bottom.leftAdjacent equiv bottom)
+    assert(bottom.rightAdjacent equiv bottom)
+    assert(top.leftAdjacent equiv top)
+    assert(top.rightAdjacent equiv top)
     assert(domain(3) equiv domain(3))
     assert(domain(3) <= domain(3))
     assert(domain(3) >= domain(3))
@@ -91,14 +98,14 @@ class DiscreteValueTest extends AnyFunSuite:
     assertCompare(Red < Blue)
     assertCompare(Blue > Red)
 
-    assert(domain(Cyan).successor equiv domain(Blue))
-    assert(domain(Cyan).predecessor equiv domain(Green))
-    assert(domain(discreteColor.maxValue).successor equiv top)
-    assert(domain(discreteColor.minValue).predecessor equiv bottom)
-    assert(bottom.predecessor equiv bottom)
-    assert(bottom.successor equiv bottom)
-    assert(top.predecessor equiv top)
-    assert(top.successor equiv top)
+    assert(domain(Cyan).rightAdjacent equiv domain(Blue))
+    assert(domain(Cyan).leftAdjacent equiv domain(Green))
+    assert(domain(discreteColor.maxValue).rightAdjacent equiv top)
+    assert(domain(discreteColor.minValue).leftAdjacent equiv bottom)
+    assert(bottom.leftAdjacent equiv bottom)
+    assert(bottom.rightAdjacent equiv bottom)
+    assert(top.leftAdjacent equiv top)
+    assert(top.rightAdjacent equiv top)
     assert(domain(Cyan) equiv domain(Cyan))
 
     assertCompare(domain(Cyan) <= domain(Cyan))
@@ -143,14 +150,14 @@ class DiscreteValueTest extends AnyFunSuite:
     def top: Domain1D[Long] = Top
     def bottom: Domain1D[Long] = Bottom
 
-    assert(point(3).successor equiv point(4))
-    assert(point(3).predecessor equiv point(2))
-    assert(point(maxValue).successor equiv top)
-    assert(point(minValue).predecessor equiv bottom)
-    assert(bottom.predecessor equiv bottom)
-    assert(bottom.successor equiv bottom)
-    assert(top.predecessor equiv top)
-    assert(top.successor equiv top)
+    assert(point(3).rightAdjacent equiv point(4))
+    assert(point(3).leftAdjacent equiv point(2))
+    assert(point(maxValue).rightAdjacent equiv top)
+    assert(point(minValue).leftAdjacent equiv bottom)
+    assert(bottom.leftAdjacent equiv bottom)
+    assert(bottom.rightAdjacent equiv bottom)
+    assert(top.leftAdjacent equiv top)
+    assert(top.rightAdjacent equiv top)
 
     assert(point(3) equiv point(3))
     assert(point(3) <= point(3))
@@ -198,14 +205,14 @@ class DiscreteValueTest extends AnyFunSuite:
     def top: Domain1D[BigInteger] = Top
     def bottom: Domain1D[BigInteger] = Bottom
 
-    assert(point(3).successor equiv point(4))
-    assert(point(3).predecessor equiv point(2))
-    assert(domain(maxValue).successor equiv top)
-    assert(domain(minValue).predecessor equiv bottom)
-    assert(bottom.predecessor equiv bottom)
-    assert(bottom.successor equiv bottom)
-    assert(top.predecessor equiv top)
-    assert(top.successor equiv top)
+    assert(point(3).rightAdjacent equiv point(4))
+    assert(point(3).leftAdjacent equiv point(2))
+    assert(domain(maxValue).rightAdjacent equiv top)
+    assert(domain(minValue).leftAdjacent equiv bottom)
+    assert(bottom.leftAdjacent equiv bottom)
+    assert(bottom.rightAdjacent equiv bottom)
+    assert(top.leftAdjacent equiv top)
+    assert(top.rightAdjacent equiv top)
 
     assert(point(3) equiv point(3))
     assert(point(3) <= point(3))
@@ -275,8 +282,8 @@ class DiscreteValueTest extends AnyFunSuite:
     assert(domain(date4).orderedHash <= top.orderedHash)
     assert(bottom.orderedHash <= top.orderedHash)
 
-    assert(domain(maxValue).successor equiv top)
-    assert(domain(minValue).predecessor equiv bottom)
+    assert(domain(maxValue).rightAdjacent equiv top)
+    assert(domain(minValue).leftAdjacent equiv bottom)
 
     assertResult("Point(LocalDate.of(2024,5,31)) x Point(LocalDate.of(2024,6,3)) x Point(LocalDate.of(2024,6,4))")(
       (Point(date0) x Point(date3) x Point(date4)).toCodeLikeString

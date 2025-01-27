@@ -4,7 +4,7 @@ import intervalidus.collection.*
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
-class BoxTreeTest extends AnyFunSuite with Matchers:
+class BoxBtreeTest extends AnyFunSuite with Matchers:
   def box(start: Double, end: Double): Box =
     Box(Coordinate(start), Coordinate(end))
 

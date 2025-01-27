@@ -2,6 +2,7 @@ package intervalidus.mutable
 
 import intervalidus.*
 import intervalidus.DimensionalVersionedBase.{VersionDomain, VersionSelection}
+import intervalidus.DiscreteValue.IntDiscreteValue
 
 import scala.math.Ordering.Implicits.infixOrderingOps
 
@@ -126,7 +127,7 @@ trait MutableVersionedBase[
       .foreach(approve)
     underlying
       .getIntersecting(underlyingIntervalWithVersion(interval, VersionSelection.Current.intervalFrom))
-      .filter(versionInterval(_).end equiv unapprovedStartVersion.predecessor) // only related to unapproved removes
+      .filter(versionInterval(_).end equiv unapprovedStartVersion.leftAdjacent) // only related to unapproved removes
       .flatMap(publicValidData(_).interval intersectionWith interval)
       .foreach(remove(_)(using VersionSelection.Current))
 

@@ -19,7 +19,9 @@ trait DataIn1DBaseBehaviors:
     prefix: String,
     dataIn1DFrom: Experimental ?=> Iterable[ValidData1D[String, Int]] => S,
     dataIn1DOf: Experimental ?=> String => S
-  )(using Experimental): Unit = test(s"$prefix: Looking up data in intervals"):
+  )(using Experimental, DomainValueLike[Int]): Unit = test(s"$prefix: Looking up data in intervals"):
+    val domainValue = summon[DomainValueLike[Int]]
+
     {
       given Experimental = Experimental("requireDisjoint")
 
@@ -39,12 +41,13 @@ trait DataIn1DBaseBehaviors:
     single.getOption shouldBe Some("Hello world")
     single.domain.toList shouldBe List(unbounded[Int])
 
+    val bracePunctuation = domainValue.bracePunctuation
     val boundedInt = intervalFrom(0) -> 1
-    boundedInt.toString shouldBe "[0..+∞) -> 1"
+    boundedInt.toString shouldBe s"[0$bracePunctuation+∞) -> 1"
     boundedInt.toCodeLikeString shouldBe "intervalFrom(0) -> 1"
 
     val bounded = intervalFrom(0) -> "Hello world"
-    bounded.toString shouldBe "[0..+∞) -> Hello world"
+    bounded.toString shouldBe s"[0$bracePunctuation+∞) -> Hello world"
     bounded.toCodeLikeString shouldBe "intervalFrom(0) -> \"Hello world\""
     assert(bounded.isDefinedAt(0))
     assert(!bounded.isDefinedAt(-1))
@@ -60,7 +63,7 @@ trait DataIn1DBaseBehaviors:
     assertThrows[Exception]:
       val _ = fixture1(-1)
 
-    val allData2 = List(interval(0, 10) -> "Hello", intervalFrom(11) -> "World")
+    val allData2 = List(interval(0, 10) -> "Hello", intervalFromAfter(10) -> "World")
     val fixture2 = dataIn1DFrom(allData2)
     fixture2.domain.toList shouldBe List(intervalFrom(0))
     fixture2.getAt(5) shouldBe Some("Hello")
@@ -88,18 +91,18 @@ trait DataIn1DBaseBehaviors:
     val fixture4 = dataIn1DFrom(allData3a).zipAll(dataIn1DFrom(allData3b), "<", ">")
     val expected4 = List(
       interval(-4, -2) -> ("<", "Goodbye"),
-      interval(0, 5) -> ("Hello", ">"),
+      intervalFrom(0).toBefore(6) -> ("Hello", ">"),
       interval(6, 9) -> ("Hello", "Cruel"),
-      interval(10, 11) -> ("<", "Cruel"),
+      intervalFromAfter(9).toBefore(12) -> ("<", "Cruel"),
       interval(12, 14) -> ("World", "Cruel"),
-      intervalAt(15) -> ("World", ">"),
+      intervalFromAfter(14).toBefore(16) -> ("World", ">"),
       interval(16, 20) -> ("World", "World"),
-      interval(21, 24) -> ("<", "World")
+      intervalFromAfter(20).to(24) -> ("<", "World")
     )
     fixture4.getAll.toList shouldBe expected4
 
   // https://www.fidelity.com/learning-center/personal-finance/tax-brackets
-  val taxBrackets = List( // value is tax rate (a double)
+  def taxBrackets(using DomainValueLike[Int]): Seq[ValidData1D[Double, Int]] = List( // value is tax rate (a double)
     interval(1, 23200) -> 0.1,
     interval(23201, 94300) -> 0.12,
     interval(94301, 201050) -> 0.22,
@@ -112,7 +115,7 @@ trait DataIn1DBaseBehaviors:
   def doubleUseCaseTests[S <: DataIn1DBase[Double, Int]](
     prefix: String,
     dataIn1DFrom: Iterable[ValidData1D[Double, Int]] => S
-  ): Unit = test(s"$prefix: Practical use case: tax brackets"):
+  )(using DomainValueLike[Int]): Unit = test(s"$prefix: Practical use case: tax brackets"):
     val fixture: S = dataIn1DFrom(taxBrackets)
 
     def taxUsingFold(income: Int): Double = fixture.foldLeft(0.0): (priorTax, bracket) =>
@@ -143,9 +146,9 @@ trait DataIn1DBaseBehaviors:
   )(
     removeOrUpdateInterval: Interval1D[Int],
     updateValue: String = "update"
-  )(using Experimental): Assertion
+  )(using Experimental, DomainValueLike[Int]): Assertion
 
-  def removeOrUpdateTests(prefix: String)(using Experimental): Unit =
+  def removeOrUpdateTests(prefix: String)(using Experimental, DomainValueLike[Int]): Unit =
     test(s"$prefix: All remove/update by interval - (1) simple"):
       // same size
       assertRemoveOrUpdateResult(
@@ -157,16 +160,16 @@ trait DataIn1DBaseBehaviors:
     test(s"$prefix: All remove/update by interval - (2) partial"):
       // on left
       assertRemoveOrUpdateResult(
-        interval(1, 7) -> "World"
+        intervalFromAfter(0).to(7) -> "World"
       )(intervalTo(0))
 
       // on right
       assertRemoveOrUpdateResult(
-        interval(-7, -1) -> "World"
+        intervalFrom(-7).toBefore(0) -> "World"
       )(intervalFrom(0))
 
     test(s"$prefix: All remove/update by interval - (3) split"):
       assertRemoveOrUpdateResult(
-        interval(-7, -1) -> "World",
-        interval(1, 7) -> "World"
+        intervalFrom(-7).toBefore(0) -> "World",
+        intervalFromAfter(0).to(7) -> "World"
       )(intervalAt(0))

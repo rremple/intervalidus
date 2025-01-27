@@ -1,6 +1,7 @@
 package intervalidus.immutable
 
 import intervalidus.*
+import intervalidus.DiscreteValue.given
 import org.scalatest.compatible.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
@@ -207,7 +208,7 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
     val fixture2 = fixture1.map(d =>
       d.copy(
         value = d.value + "!",
-        interval = d.interval.withDepthUpdate(_.toAfter(d.interval.depth.end))
+        interval = d.interval.withDepthUpdate(_.to(d.interval.depth.end.rightAdjacent))
       )
     )
     val expectedData2 = List(

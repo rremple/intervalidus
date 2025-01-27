@@ -1,5 +1,7 @@
 package intervalidus
 
+import intervalidus.DiscreteValue.IntDiscreteValue
+
 import scala.language.implicitConversions
 
 import DimensionalVersionedBase.{VersionDomain, VersionSelection}
@@ -9,13 +11,13 @@ import DimensionalVersionedBase.{VersionDomain, VersionSelection}
   */
 trait DataIn1DVersionedBaseObject:
   /**
-    * Shorthand constructor for a single initial value that is valid in a specific one-dimensional discrete interval
-    * starting at the initial version.
+    * Shorthand constructor for a single initial value that is valid in a specific one-dimensional interval starting at
+    * the initial version.
     *
     * @tparam V
     *   the type of the value managed as data
     * @tparam R
-    *   the type of discrete value used in the discrete interval assigned to each value
+    *   the type of domain value used in the interval assigned to each value
     * @param data
     *   valid data to start with
     * @param initialVersion
@@ -23,7 +25,7 @@ trait DataIn1DVersionedBaseObject:
     * @return
     *   DataIn1DVersioned structure with a single valid value
     */
-  def of[V, R: DiscreteValue](
+  def of[V, R: DomainValueLike](
     data: ValidData1D[V, R],
     initialVersion: Int
   )(using Experimental): DataIn1DVersionedBase[V, R]
@@ -35,7 +37,7 @@ trait DataIn1DVersionedBaseObject:
     * @tparam V
     *   the type of the value managed as data
     * @tparam R
-    *   the type of discrete value used in the discrete interval assigned to each value
+    *   the type of domain value used in the interval assigned to each value
     * @param value
     *   value to start with
     * @param initialVersion
@@ -43,7 +45,7 @@ trait DataIn1DVersionedBaseObject:
     * @return
     *   DataIn1DVersioned structure with a single valid value
     */
-  def of[V, R: DiscreteValue](
+  def of[V, R: DomainValueLike](
     value: V,
     initialVersion: Int
   )(using Experimental): DataIn1DVersionedBase[V, R]
@@ -54,7 +56,7 @@ trait DataIn1DVersionedBaseObject:
     * @tparam V
     *   the type of the value managed as data
     * @tparam R
-    *   the type of discrete value used in the discrete interval assigned to each value
+    *   the type of domain value used in the interval assigned to each value
     * @param initialData
     *   valid data to start with
     * @param initialVersion
@@ -62,9 +64,9 @@ trait DataIn1DVersionedBaseObject:
     * @return
     *   DataIn1DVersioned structure with the provided initial values
     */
-  def from[V, R: DiscreteValue](
+  def from[V, R: DomainValueLike](
     initialData: Iterable[ValidData1D[V, R]],
-    initialVersion: Int // could use summon[DiscreteValue[Int]].minValue to extend range
+    initialVersion: Int // could use summon[DomainValueLike[Int]].minValue to extend range
   )(using Experimental): DataIn1DVersionedBase[V, R]
 
 /**
@@ -84,7 +86,7 @@ trait DataIn1DVersionedBaseObject:
   * @tparam V
   *   the type of the value managed as data
   * @tparam R
-  *   the type of discrete value used in the discrete interval assigned to each valid value
+  *   the type of domain value used in the interval assigned to each valid value
   * @param initialData
   *   a collection of valid data in two dimensions (the vertical dimension is the version) to start with --
   *   two-dimensional intervals must be disjoint
@@ -94,7 +96,7 @@ trait DataIn1DVersionedBaseObject:
   * @param withCurrentVersion
   *   the version to use as current if different form the initial version, e.g., when making a copy, typically None
   */
-trait DataIn1DVersionedBase[V, R: DiscreteValue](
+trait DataIn1DVersionedBase[V, R: DomainValueLike](
   initialData: Iterable[ValidData2D[V, R, Int]],
   val initialVersion: Int,
   withCurrentVersion: Option[VersionDomain]

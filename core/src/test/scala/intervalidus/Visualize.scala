@@ -9,7 +9,7 @@ import scala.language.implicitConversions
 import scala.util.chaining.*
 
 object Visualize:
-  def apply[V, R1: DiscreteValue, R2: DiscreteValue](
+  def apply[V, R1: DomainValueLike, R2: DomainValueLike](
     validData: Iterable[ValidData2D[V, R1, R2]],
     title: String
   ): Unit =
@@ -21,7 +21,7 @@ object Visualize:
     frame.setLocationByPlatform(true)
     frame.setVisible(true)
 
-  def apply[V, R1: DiscreteValue, R2: DiscreteValue](
+  def apply[V, R1: DomainValueLike, R2: DomainValueLike](
     dataIn2D: DataIn2DBase[V, R1, R2],
     millis: Long = 0,
     title: String = "Visualize 2D data"
@@ -29,7 +29,7 @@ object Visualize:
     apply(dataIn2D.getAll, title)
     Thread.sleep(millis)
 
-protected class Visualize[V, R1: DiscreteValue, R2: DiscreteValue](
+protected class Visualize[V, R1: DomainValueLike, R2: DomainValueLike](
   validData: Iterable[ValidData2D[V, R1, R2]],
   title: String
 ) extends JPanel:
@@ -150,6 +150,9 @@ protected class Visualize[V, R1: DiscreteValue, R2: DiscreteValue](
 
 @main
 def tryIt(): Unit =
+  import intervalidus.DiscreteValue.given
+  // import intervalidus.ContinuousValue.given
+
   import Interval1D.{interval, intervalFrom, intervalTo, unbounded}
 
   val now = LocalDate.now()

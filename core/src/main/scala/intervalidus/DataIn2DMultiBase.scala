@@ -10,15 +10,15 @@ trait DataIn2DMultiBaseObject extends DataIn2DConstructorParams:
     * @tparam V
     *   the type of the value managed as data.
     * @tparam R1
-    *   the type of discrete value used in the horizontal discrete interval assigned to each value.
+    *   the type of domain value used in the horizontal interval assigned to each value.
     * @tparam R2
-    *   the type of discrete value used in the vertical discrete interval assigned to each value.
+    *   the type of domain value used in the vertical interval assigned to each value.
     * @param data
     *   valid data to start with.
     * @return
     *   [[DataIn2DMultiBase]] structure with a single valid value.
     */
-  def of[V, R1: DiscreteValue, R2: DiscreteValue](
+  def of[V, R1: DomainValueLike, R2: DomainValueLike](
     data: ValidData2D[V, R1, R2]
   )(using Experimental): DataIn2DMultiBase[V, R1, R2]
 
@@ -28,15 +28,15 @@ trait DataIn2DMultiBaseObject extends DataIn2DConstructorParams:
     * @tparam V
     *   the type of the value managed as data.
     * @tparam R1
-    *   the type of discrete value used in the horizontal discrete interval assigned to each value.
+    *   the type of domain value used in the horizontal interval assigned to each value.
     * @tparam R2
-    *   the type of discrete value used in the vertical discrete interval assigned to each value.
+    *   the type of domain value used in the vertical interval assigned to each value.
     * @param value
     *   value to start with.
     * @return
     *   [[DataIn2DMultiBase]] structure with a single valid value.
     */
-  def of[V, R1: DiscreteValue, R2: DiscreteValue](
+  def of[V, R1: DomainValueLike, R2: DomainValueLike](
     value: V
   )(using Experimental): DataIn2DMultiBase[V, R1, R2]
 
@@ -48,13 +48,13 @@ trait DataIn2DMultiBaseObject extends DataIn2DConstructorParams:
     * @tparam V
     *   the type of the value managed as data.
     * @tparam R1
-    *   the type of discrete domain used in the horizontal interval assigned to each value.
+    *   the type of domain value used in the horizontal interval assigned to each value.
     * @tparam R2
-    *   the type of discrete domain used in the vertical interval assigned to each value.
+    *   the type of domain value used in the vertical interval assigned to each value.
     * @return
     *   [[DataIn2DMultiBase]] structure with zero or more valid values.
     */
-  def from[V, R1: DiscreteValue, R2: DiscreteValue](
+  def from[V, R1: DomainValueLike, R2: DomainValueLike](
     initialData: Iterable[ValidData2D[V, R1, R2]]
   )(using Experimental): DataIn2DMultiBase[V, R1, R2]
 
@@ -66,13 +66,13 @@ trait DataIn2DMultiBaseObject extends DataIn2DConstructorParams:
     * @tparam V
     *   the type of the value managed as data.
     * @tparam R1
-    *   the type of discrete domain used in the horizontal interval assigned to each value.
+    *   the type of domain value used in the horizontal interval assigned to each value.
     * @tparam R2
-    *   the type of discrete domain used in the vertical interval assigned to each value.
+    *   the type of domain value used in the vertical interval assigned to each value.
     * @return
     *   [[DataIn2DMultiBase]] structure with the same valid values.
     */
-  def from[V, R1: DiscreteValue, R2: DiscreteValue](
+  def from[V, R1: DomainValueLike, R2: DomainValueLike](
     that: DataIn2DBase[Set[V], R1, R2]
   )(using Experimental): DataIn2DMultiBase[V, R1, R2]
 
@@ -84,13 +84,13 @@ trait DataIn2DMultiBaseObject extends DataIn2DConstructorParams:
     * @tparam V
     *   the type of the value managed as data.
     * @tparam R1
-    *   the type of discrete domain used in the horizontal interval assigned to each value.
+    *   the type of domain value used in the horizontal interval assigned to each value.
     * @tparam R2
-    *   the type of discrete domain used in the vertical interval assigned to each value.
+    *   the type of domain value used in the vertical interval assigned to each value.
     * @return
     *   [[DataIn2DMultiBase]] structure with zero or more valid values.
     */
-  def apply[V, R1: DiscreteValue, R2: DiscreteValue](
+  def apply[V, R1: DomainValueLike, R2: DomainValueLike](
     initialData: Iterable[ValidData2D[Set[V], R1, R2]]
   )(using Experimental): DataIn2DMultiBase[V, R1, R2]
 
@@ -100,12 +100,12 @@ trait DataIn2DMultiBaseObject extends DataIn2DConstructorParams:
   * @tparam V
   *   the type of the value managed as data.
   * @tparam R1
-  *   the type of discrete domain used in the horizontal interval assigned to each value.
+  *   the type of domain value used in the horizontal interval assigned to each value.
   * @tparam R2
-  *   the type of discrete domain used in the vertical interval assigned to each value.
+  *   the type of domain value used in the vertical interval assigned to each value.
   */
 // Base for all 2D multi-data, both mutable and immutable
-trait DataIn2DMultiBase[V, R1: DiscreteValue, R2: DiscreteValue] extends DataIn2DBase[Set[V], R1, R2]:
+trait DataIn2DMultiBase[V, R1: DomainValueLike, R2: DomainValueLike] extends DataIn2DBase[Set[V], R1, R2]:
   // from Object - use Visualize (in the test package) if you want something fancier
   override def toString: String = toStringGrid(
     dataToString = v => s"${v.value.map(_.toString).mkString("{", ",", "}")} ${v.interval.vertical}",

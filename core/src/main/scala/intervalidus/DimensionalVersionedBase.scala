@@ -1,5 +1,8 @@
 package intervalidus
 
+import DiscreteValue.IntDiscreteValue
+import Domain1D.given
+
 import scala.language.implicitConversions
 
 /**
@@ -80,6 +83,10 @@ trait DimensionalVersionedBase[
 
   import DimensionalVersionedBase.{VersionDomain, VersionSelection}
 
+  private type VersionValue = DiscreteValue[Int]
+  private type VersionInterval = Interval1D[Int]
+  private val VersionInterval = intervalidus.Interval1D
+
   // ---------- To be implemented by inheritor ----------
 
   type PublicSelf <: DimensionalBase[V, D, I, ValidData, DiffAction, PublicSelf]
@@ -104,18 +111,18 @@ trait DimensionalVersionedBase[
   protected def underlyingValidData(data: ValidData)(using VersionSelection): ValidData2
 
   // Extract version interval from underlying data
-  protected def versionInterval(data: ValidData2): Interval1D[Int]
+  protected def versionInterval(data: ValidData2): VersionInterval
 
   // Construct new underlying interval from a public interval with a version interval
   protected def underlyingIntervalWithVersion(
     interval: I,
-    version: Interval1D[Int]
+    version: VersionInterval
   ): I2
 
   // Construct new underlying data with an updated version interval
   protected def withVersionUpdate(
     data: ValidData2,
-    update: Interval1D[Int] => Interval1D[Int]
+    update: VersionInterval => VersionInterval
   ): ValidData2
 
   // Extract public data from underlying data
@@ -162,7 +169,7 @@ trait DimensionalVersionedBase[
   // ---------- Implement methods not similar to those in DimensionalBase ----------
 
   // Special version at which we place (or delete) unapproved stuff (fixed)
-  protected val unapprovedStartVersion: VersionDomain = summon[DiscreteValue[Int]].maxValue
+  protected val unapprovedStartVersion: VersionDomain = summon[VersionValue].maxValue
 
   extension (versionSelection: VersionSelection)
     /**
@@ -176,17 +183,17 @@ trait DimensionalVersionedBase[
     /**
       * Returns the interval to the boundary of this version selection
       */
-    def intervalTo: Interval1D[Int] = Interval1D.intervalTo(boundary)
+    def intervalTo: VersionInterval = VersionInterval.intervalTo(boundary)
 
     /**
       * Returns the interval at the boundary of this version selection
       */
-    def intervalAt: Interval1D[Int] = Interval1D.intervalAt(boundary)
+    def intervalAt: VersionInterval = VersionInterval.intervalAt(boundary)
 
     /**
       * Returns the interval from the boundary of this version selection
       */
-    def intervalFrom: Interval1D[Int] = Interval1D.intervalFrom(boundary)
+    def intervalFrom: VersionInterval = VersionInterval.intervalFrom(boundary)
 
   // from PartialFunction
   override def isDefinedAt(key: D2): Boolean = underlying.isDefinedAt(key)

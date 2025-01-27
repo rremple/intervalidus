@@ -10,23 +10,23 @@ import scala.collection.mutable
   * Constructs multi-data in one-dimensional intervals.
   */
 object DataIn1DMulti extends DataIn1DMultiBaseObject:
-  override def of[V, R: DiscreteValue](
+  override def of[V, R: DomainValueLike](
     data: ValidData1D[V, R]
   )(using Experimental): DataIn1DMulti[V, R] = DataIn1DMulti(Iterable(data.interval -> Set(data.value)))
 
-  override def of[V, R: DiscreteValue](
+  override def of[V, R: DomainValueLike](
     value: V
   )(using Experimental): DataIn1DMulti[V, R] = of(Interval1D.unbounded[R] -> value)
 
-  override def from[V, R: DiscreteValue](
+  override def from[V, R: DomainValueLike](
     initialData: Iterable[ValidData1D[V, R]]
   )(using Experimental): DataIn1DMulti[V, R] = DataIn1DMulti[V, R]().addAll(initialData)
 
-  override def from[V, R: DiscreteValue](
+  override def from[V, R: DomainValueLike](
     that: DataIn1DBase[Set[V], R]
   )(using Experimental): DataIn1DMulti[V, R] = apply(that.getAll)
 
-  override def apply[V, R: DiscreteValue](
+  override def apply[V, R: DomainValueLike](
     initialData: Iterable[ValidData1D[Set[V], R]] = Iterable.empty[ValidData1D[Set[V], R]]
   )(using Experimental): DataIn1DMulti[V, R] =
     val (byStartAsc, byStartDesc, byValue, inSearchTree) = constructorParams(initialData)
@@ -45,7 +45,7 @@ object DataIn1DMulti extends DataIn1DMultiBaseObject:
   * @tparam R
   *   the type of discrete domain used in the interval assigned to each value.
   */
-class DataIn1DMulti[V, R: DiscreteValue] private (
+class DataIn1DMulti[V, R: DomainValueLike] private (
   override val dataByStartAsc: mutable.TreeMap[Domain1D[R], ValidData1D[Set[V], R]],
   override val dataByStartDesc: mutable.TreeMap[Domain1D[R], ValidData1D[Set[V], R]],
   override val dataByValue: MultiMapSorted[Set[V], ValidData1D[Set[V], R]],
@@ -74,7 +74,7 @@ class DataIn1DMulti[V, R: DiscreteValue] private (
     * @return
     *   a new structure resulting from applying the provided function f to each element of this structure.
     */
-  def map[B, S: DiscreteValue](
+  def map[B, S: DomainValueLike](
     f: ValidData1D[Set[V], R] => ValidData1D[Set[B], S]
   ): DataIn1DMulti[B, S] =
     DataIn1DMulti(
@@ -109,7 +109,7 @@ class DataIn1DMulti[V, R: DiscreteValue] private (
     *   a new structure resulting from applying the provided function f to each element of this structure and
     *   concatenating the results.
     */
-  def flatMap[B, S: DiscreteValue](
+  def flatMap[B, S: DomainValueLike](
     f: ValidData1D[Set[V], R] => DataIn1DMulti[B, S]
   ): DataIn1DMulti[B, S] =
     DataIn1DMulti(

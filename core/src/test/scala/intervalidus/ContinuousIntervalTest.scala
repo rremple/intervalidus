@@ -1,6 +1,6 @@
 package intervalidus
 
-import intervalidus.DiscreteValue.given
+import intervalidus.ContinuousValue.given
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
@@ -8,9 +8,9 @@ import java.time.LocalDate
 import scala.language.implicitConversions
 import scala.math.Ordering.Implicits.infixOrderingOps
 
-class DiscreteIntervalTest extends AnyFunSuite with Matchers:
+class ContinuousIntervalTest extends AnyFunSuite with Matchers:
 
-  import Domain1D.{Bottom, Point, Top}
+  import Domain1D.{Bottom, Point, Top, open}
   import Interval1D.*
 
   test("Int interval validity"):
@@ -48,9 +48,7 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
     interval(1, 2).before shouldBe Some(intervalToBefore(1))
     intervalFrom(2).after shouldBe None
     intervalTo(2).before shouldBe None
-    interval(1, 3).points.toList shouldBe List(1, 2, 3).map(Point(_))
-    intervalFrom(Int.MaxValue - 1).points.toList shouldBe List(Int.MaxValue - 1, Int.MaxValue).map(Point(_))
-    intervalTo(Int.MinValue + 1).points.toList shouldBe List(Int.MinValue, Int.MinValue + 1).map(Point(_))
+    interval(1, 3).points.toList shouldBe List.empty
 
     intervalFrom(0).toCodeLikeString shouldBe "intervalFrom(0)"
     intervalTo(0).toCodeLikeString shouldBe "intervalTo(0)"
@@ -61,24 +59,29 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
     intervalFrom(LocalDate.of(2025, 1, 10)).toCodeLikeString shouldBe "intervalFrom(LocalDate.of(2025,1,10))"
     intervalTo(LocalDate.of(2025, 1, 10)).toCodeLikeString shouldBe "intervalTo(LocalDate.of(2025,1,10))"
     intervalAt(LocalDate.of(2025, 1, 10)).toCodeLikeString shouldBe "intervalAt(LocalDate.of(2025,1,10))"
+    intervalAt(open(LocalDate.of(2025, 1, 10))).toCodeLikeString shouldBe "intervalAt(LocalDate.of(2025,1,10))"
     interval(LocalDate.of(2025, 1, 10), LocalDate.of(2025, 1, 11)).toCodeLikeString shouldBe
       "interval(LocalDate.of(2025,1,10), LocalDate.of(2025,1,11))"
+    intervalFromAfter(LocalDate.of(2025, 1, 10).atTime(1, 2, 3, 4)).toCodeLikeString shouldBe
+      "intervalFromAfter(LocalDate.of(2025,1,10).atTime(1,2,3,4))"
     unbounded[LocalDate].toCodeLikeString shouldBe "unbounded"
     intervalFrom[LocalDate](Top).toCodeLikeString shouldBe "intervalFrom(Top)"
     intervalTo[LocalDate](Bottom).toCodeLikeString shouldBe "intervalTo(Bottom)"
+    intervalFromAfter(0).toBefore(1).toCodeLikeString shouldBe "interval(open(0), open(1))"
 
   test("Int 2D interval adjacency, etc."):
     val now = LocalDate.now
     val d: Interval2D[LocalDate, Int] = intervalTo(now) x intervalFrom(0)
     d.flip shouldBe (intervalFrom(0) x intervalTo(now))
 
-    def interval2d(hs: Int, he: Int, vs: Int, ve: Int) = interval(hs, he) x interval(vs, ve)
+    def interval2d(hs: Domain1D[Int], he: Domain1D[Int], vs: Domain1D[Int], ve: Domain1D[Int]) =
+      interval(hs, he) x interval(vs, ve)
 
-    def interval2dFrom(hs: Int, vs: Int) = intervalFrom(hs) x intervalFrom(vs)
+    def interval2dFrom(hs: Domain1D[Int], vs: Domain1D[Int]) = intervalFrom(hs) x intervalFrom(vs)
 
-    def interval2dTo(he: Int, ve: Int) = intervalTo(he) x intervalTo(ve)
+    def interval2dTo(he: Domain1D[Int], ve: Domain1D[Int]) = intervalTo(he) x intervalTo(ve)
 
-    interval2d(1, 2, 3, 4).toString shouldBe "{[1..2], [3..4]}"
+    interval2d(1, 2, 3, 4).toString shouldBe "{[1, 2], [3, 4]}"
 
     interval2d(1, 2, 3, 4) intersectionWith interval2d(2, 3, 4, 5) shouldBe Some(interval2d(2, 2, 4, 4))
     interval2d(1, 2, 3, 4) ∩ interval2d(2, 3, 4, 5) shouldBe Some(interval2d(2, 2, 4, 4))
@@ -86,53 +89,43 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
     assert(interval2d(2, 2, 4, 4) isSubsetOf interval2d(1, 2, 3, 4))
     assert(interval2d(2, 2, 4, 4) ⊆ interval2d(1, 2, 3, 4))
 
-    assert(interval2d(1, 2, 3, 4) isLeftAdjacentTo interval2d(3, 4, 3, 4))
-    assert(interval2d(1, 2, 3, 4) isAdjacentTo interval2d(3, 4, 3, 4))
+    assert(interval2d(1, 2, 3, 4) isLeftAdjacentTo interval2d(open(2), 4, 3, 4))
+    assert(interval2d(1, 2, 3, 4) isAdjacentTo interval2d(open(2), 4, 3, 4))
     assert(!(interval2d(3, 4, 3, 4) isLeftAdjacentTo interval2d(1, 2, 3, 4)))
     assert(!(interval2d(1, 3, 3, 4) isLeftAdjacentTo interval2d(2, 4, 3, 4)))
     assert(!(interval2d(1, 3, 3, 4) isLeftAdjacentTo interval2d(3, 4, 3, 4)))
     assert(interval2dTo(2, 2) isLeftAdjacentTo (intervalFromAfter(2) x intervalTo(2)))
     assert(!(interval2dFrom(2, 2) isLeftAdjacentTo interval2dTo(3, 3)))
 
-    assert(interval2d(3, 4, 1, 2) isRightAdjacentTo interval2d(1, 2, 1, 2))
-    assert(interval2d(3, 4, 1, 2) isAdjacentTo interval2d(1, 2, 1, 2))
+    assert(interval2d(open(2), 4, 1, 2) isRightAdjacentTo interval2d(1, 2, 1, 2))
+    assert(interval2d(open(2), 4, 1, 2) isAdjacentTo interval2d(1, 2, 1, 2))
     assert(!(interval2d(1, 2, 1, 2) isRightAdjacentTo interval2d(3, 4, 1, 2)))
     assert(!(interval2d(2, 4, 1, 2) isRightAdjacentTo interval2d(1, 3, 1, 2)))
     assert(!(interval2d(3, 4, 1, 2) isRightAdjacentTo interval2d(1, 3, 1, 2)))
-    assert(interval2dFrom(3, 3) isRightAdjacentTo (intervalTo(2) x intervalFrom(3)))
-    assert(!(interval2dTo(3, 3) isRightAdjacentTo interval2dFrom(2, 2)))
+    assert(interval2dFrom(open(2), 3) isRightAdjacentTo (intervalTo(2) x intervalFrom(3)))
+    assert(!(interval2dTo(open(2), 3) isRightAdjacentTo interval2dFrom(2, 2)))
 
-    assert(interval2d(3, 4, 1, 2) isLowerAdjacentTo interval2d(3, 4, 3, 4))
-    assert(interval2d(3, 4, 1, 2) isAdjacentTo interval2d(3, 4, 3, 4))
+    assert(interval2d(3, 4, 1, 2) isLowerAdjacentTo interval2d(3, 4, open(2), 4))
+    assert(interval2d(3, 4, 1, 2) isAdjacentTo interval2d(3, 4, open(2), 4))
     assert(!(interval2d(3, 4, 3, 4) isLowerAdjacentTo interval2d(3, 4, 1, 2)))
     assert(!(interval2d(3, 4, 1, 3) isLowerAdjacentTo interval2d(3, 4, 2, 4)))
     assert(!(interval2d(3, 4, 1, 3) isLowerAdjacentTo interval2d(3, 4, 3, 4)))
     assert(interval2dTo(2, 2) isLowerAdjacentTo (intervalTo(2) x intervalFromAfter(2)))
     assert(!(interval2dFrom(2, 2) isLowerAdjacentTo interval2dTo(3, 3)))
 
-    assert(interval2d(1, 2, 3, 4) isUpperAdjacentTo interval2d(1, 2, 1, 2))
-    assert(interval2d(1, 2, 3, 4) isAdjacentTo interval2d(1, 2, 1, 2))
+    assert(interval2d(1, 2, open(2), 4) isUpperAdjacentTo interval2d(1, 2, 1, 2))
+    assert(interval2d(1, 2, open(2), 4) isAdjacentTo interval2d(1, 2, 1, 2))
     assert(!(interval2d(1, 2, 1, 2) isUpperAdjacentTo interval2d(1, 2, 3, 4)))
     assert(!(interval2d(1, 2, 2, 4) isUpperAdjacentTo interval2d(1, 2, 1, 3)))
     assert(!(interval2d(1, 2, 3, 4) isUpperAdjacentTo interval2d(1, 2, 1, 3)))
     assert(interval2dFrom(3, 3) isUpperAdjacentTo (intervalFrom(3) x intervalToBefore(3)))
     assert(!(interval2dTo(3, 3) isUpperAdjacentTo interval2dFrom(2, 2)))
 
-    interval2d(1, 2, 3, 4).after shouldBe Some(interval2dFrom(3, 5))
-    interval2d(1, 2, 3, 4).before shouldBe Some(interval2dTo(0, 2))
+    interval2d(1, 2, 3, 4).after shouldBe Some(interval2dFrom(open(2), open(4)))
+    interval2d(1, 2, 3, 4).before shouldBe Some(interval2dTo(open(1), open(3)))
     interval2dFrom(2, 2).after shouldBe None
     interval2dTo(2, 2).before shouldBe None
-    interval2d(1, 3, 1, 3).points.toList shouldBe List(
-      (1, 1),
-      (1, 2),
-      (1, 3),
-      (2, 1),
-      (2, 2),
-      (2, 3),
-      (3, 1),
-      (3, 2),
-      (3, 3)
-    ).map((t1, t2) => Point(t1) x Point(t2))
+    interval2d(1, 3, 1, 3).points.toList shouldBe List.empty
 
     assert(interval2d(1, 2, 3, 4) hasSameStartAs interval2dFrom(1, 3))
     assert(interval2d(1, 2, 3, 4) hasSameEndAs interval2dTo(2, 4))
@@ -142,14 +135,14 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
     interval2d(1, 2, 3, 4).fromBottom shouldBe interval2dTo(2, 4)
     interval2d(1, 2, 3, 4).toTop shouldBe interval2dFrom(1, 3)
     interval2d(1, 2, 3, 4).from(0, 0) shouldBe interval2d(0, 2, 0, 4)
-    interval2d(1, 2, 3, 4).fromAfter(1, 1) shouldBe interval2d(2, 2, 2, 4)
+    interval2d(1, 2, 3, 4).fromAfter(1, 1) shouldBe interval2d(open(1), 2, open(1), 4)
     interval2d(1, 2, 3, 4).to(5, 5) shouldBe interval2d(1, 5, 3, 5)
-    interval2d(1, 2, 3, 4).toBefore(7, 7) shouldBe interval2d(1, 6, 3, 6)
+    interval2d(1, 2, 3, 4).toBefore(7, 7) shouldBe interval2d(1, open(7), 3, open(7))
     interval2d(1, 2, 3, 4).atStart shouldBe interval2d(1, 1, 3, 3)
     interval2d(1, 2, 3, 4).atEnd shouldBe interval2d(2, 2, 4, 4)
-    interval2d(1, 2, 3, 4).gapWith(interval2d(5, 6, 7, 8)) shouldBe Some(interval2d(3, 4, 5, 6))
+    interval2d(1, 2, 3, 4).gapWith(interval2d(5, 6, 7, 8)) shouldBe Some(interval2d(open(2), open(5), open(4), open(7)))
     // even though neither adjacent nor intersecting in 2D, no gap in _all_ dimensions
-    interval2d(1, 2, 3, 4).gapWith(interval2d(5, 6, 5, 6)) shouldBe None
+    interval2d(1, 2, 3, 4).gapWith(interval2d(5, 6, open(4), 6)) shouldBe None
     Interval2D.intervalAt(0, 0).toCodeLikeString shouldBe "intervalAt(0) x intervalAt(0)"
 
   test("Int 3D interval adjacency, etc."):
@@ -159,14 +152,22 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
     d.flipAboutVertical shouldBe (intervalFrom(0) x intervalFrom(now) x intervalTo(now))
     d.flipAboutDepth shouldBe (intervalFrom(now) x intervalTo(now) x intervalFrom(0))
 
-    def interval3d(hs: Int, he: Int, vs: Int, ve: Int, ds: Int, de: Int) =
-      interval(hs, he) x interval(vs, ve) x interval(ds, de)
+    def interval3d(
+      hs: Domain1D[Int],
+      he: Domain1D[Int],
+      vs: Domain1D[Int],
+      ve: Domain1D[Int],
+      ds: Domain1D[Int],
+      de: Domain1D[Int]
+    ) = interval(hs, he) x interval(vs, ve) x interval(ds, de)
 
-    def interval3dFrom(hs: Int, vs: Int, ds: Int) = intervalFrom(hs) x intervalFrom(vs) x intervalFrom(ds)
+    def interval3dFrom(hs: Domain1D[Int], vs: Domain1D[Int], ds: Domain1D[Int]) =
+      intervalFrom(hs) x intervalFrom(vs) x intervalFrom(ds)
 
-    def interval3dTo(he: Int, ve: Int, de: Int) = intervalTo(he) x intervalTo(ve) x intervalTo(de)
+    def interval3dTo(he: Domain1D[Int], ve: Domain1D[Int], de: Domain1D[Int]) =
+      intervalTo(he) x intervalTo(ve) x intervalTo(de)
 
-    interval3d(1, 2, 3, 4, 5, 6).toString shouldBe "{[1..2], [3..4], [5..6]}"
+    interval3d(1, 2, 3, 4, 5, 6).toString shouldBe "{[1, 2], [3, 4], [5, 6]}"
 
     interval3d(1, 2, 3, 4, 5, 6) intersectionWith interval3d(2, 3, 4, 5, 6, 7) shouldBe Some(
       interval3d(2, 2, 4, 4, 6, 6)
@@ -176,73 +177,62 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
     assert(interval3d(2, 2, 4, 4, 6, 6) isSubsetOf interval3d(1, 2, 3, 4, 5, 6))
     assert(interval3d(2, 2, 4, 4, 6, 6) ⊆ interval3d(1, 2, 3, 4, 5, 6))
 
-    assert(interval3d(1, 2, 3, 4, 5, 6) isLeftAdjacentTo interval3d(3, 4, 3, 4, 5, 6))
-    assert(interval3d(1, 2, 3, 4, 5, 6) isAdjacentTo interval3d(3, 4, 3, 4, 5, 6))
-    assert(!(interval3d(3, 4, 3, 4, 3, 4) isLeftAdjacentTo interval3d(1, 2, 3, 4, 5, 6)))
+    assert(interval3d(1, 2, 3, 4, 5, 6) isLeftAdjacentTo interval3d(open(2), 4, 3, 4, 5, 6))
+    assert(interval3d(1, 2, 3, 4, 5, 6) isAdjacentTo interval3d(open(2), 4, 3, 4, 5, 6))
+    assert(!(interval3d(open(2), 4, 3, 4, 3, 4) isLeftAdjacentTo interval3d(1, 2, 3, 4, 5, 6)))
     assert(!(interval3d(1, 3, 3, 4, 5, 6) isLeftAdjacentTo interval3d(2, 4, 3, 4, 5, 6)))
     assert(!(interval3d(1, 3, 3, 4, 5, 6) isLeftAdjacentTo interval3d(3, 4, 3, 4, 5, 6)))
     assert(interval3dTo(2, 2, 2) isLeftAdjacentTo (intervalFromAfter(2) x intervalTo(2) x intervalTo(2)))
     assert(!(interval3dFrom(2, 2, 2) isLeftAdjacentTo interval3dTo(3, 3, 3)))
 
-    assert(interval3d(3, 4, 1, 2, 5, 6) isRightAdjacentTo interval3d(1, 2, 1, 2, 5, 6))
-    assert(interval3d(3, 4, 1, 2, 5, 6) isAdjacentTo interval3d(1, 2, 1, 2, 5, 6))
-    assert(!(interval3d(1, 2, 1, 2, 5, 6) isRightAdjacentTo interval3d(3, 4, 1, 2, 5, 6)))
+    assert(interval3d(3, 4, 1, 2, 5, 6) isRightAdjacentTo interval3d(1, open(3), 1, 2, 5, 6))
+    assert(interval3d(3, 4, 1, 2, 5, 6) isAdjacentTo interval3d(1, open(3), 1, 2, 5, 6))
+    assert(!(interval3d(1, open(3), 1, 2, 5, 6) isRightAdjacentTo interval3d(3, 4, 1, 2, 5, 6)))
     assert(!(interval3d(2, 4, 1, 2, 5, 6) isRightAdjacentTo interval3d(1, 3, 1, 2, 5, 6)))
     assert(!(interval3d(3, 4, 1, 2, 5, 6) isRightAdjacentTo interval3d(1, 3, 1, 2, 5, 6)))
-    assert(interval3dFrom(3, 3, 3) isRightAdjacentTo (intervalTo(2) x intervalFrom(3) x intervalFrom(3)))
-    assert(!(interval3dTo(3, 3, 3) isRightAdjacentTo interval3dFrom(2, 2, 2)))
+    assert(interval3dFrom(3, 3, 3) isRightAdjacentTo (intervalToBefore(3) x intervalFrom(3) x intervalFrom(3)))
+    assert(!(interval3dTo(3, 3, 3) isRightAdjacentTo interval3dFrom(open(3), open(3), open(3))))
 
-    assert(interval3d(3, 4, 1, 2, 5, 6) isLowerAdjacentTo interval3d(3, 4, 3, 4, 5, 6))
-    assert(interval3d(3, 4, 1, 2, 5, 6) isAdjacentTo interval3d(3, 4, 3, 4, 5, 6))
-    assert(!(interval3d(3, 4, 3, 4, 5, 6) isLowerAdjacentTo interval3d(3, 4, 1, 2, 5, 6)))
+    assert(interval3d(3, 4, 1, 2, 5, 6) isLowerAdjacentTo interval3d(3, 4, open(2), 4, 5, 6))
+    assert(interval3d(3, 4, 1, 2, 5, 6) isAdjacentTo interval3d(3, 4, open(2), 4, 5, 6))
+    assert(!(interval3d(3, 4, 3, 4, 5, 6) isLowerAdjacentTo interval3d(3, 4, 1, open(4), 5, 6)))
     assert(!(interval3d(3, 4, 1, 3, 5, 6) isLowerAdjacentTo interval3d(3, 4, 2, 4, 5, 6)))
     assert(!(interval3d(3, 4, 1, 3, 5, 6) isLowerAdjacentTo interval3d(3, 4, 3, 4, 5, 6)))
     assert(interval3dTo(2, 2, 2) isLowerAdjacentTo (intervalTo(2) x intervalFromAfter(2) x intervalTo(2)))
     assert(!(interval3dFrom(2, 2, 2) isLowerAdjacentTo interval3dTo(3, 3, 3)))
 
-    assert(interval3d(1, 2, 3, 4, 5, 6) isUpperAdjacentTo interval3d(1, 2, 1, 2, 5, 6))
-    assert(interval3d(1, 2, 3, 4, 5, 6) isAdjacentTo interval3d(1, 2, 1, 2, 5, 6))
-    assert(!(interval3d(1, 2, 1, 2, 5, 6) isUpperAdjacentTo interval3d(1, 2, 3, 4, 5, 6)))
+    assert(interval3d(1, 2, open(2), 4, 5, 6) isUpperAdjacentTo interval3d(1, 2, 1, 2, 5, 6))
+    assert(interval3d(1, 2, open(2), 4, 5, 6) isAdjacentTo interval3d(1, 2, 1, 2, 5, 6))
+    assert(!(interval3d(1, 2, 1, 2, 5, 6) isUpperAdjacentTo interval3d(1, 2, open(2), 4, 5, 6)))
     assert(!(interval3d(1, 2, 2, 4, 5, 6) isUpperAdjacentTo interval3d(1, 2, 1, 3, 5, 6)))
     assert(!(interval3d(1, 2, 3, 4, 5, 6) isUpperAdjacentTo interval3d(1, 2, 1, 3, 5, 6)))
     assert(interval3dFrom(3, 3, 3) isUpperAdjacentTo (intervalFrom(3) x intervalToBefore(3) x intervalFrom(3)))
     assert(!(interval3dTo(3, 3, 3) isUpperAdjacentTo interval3dFrom(2, 2, 2)))
 
-    assert(interval3d(3, 4, 1, 2, 5, 6) isBackAdjacentTo interval3d(3, 4, 1, 2, 7, 8))
-    assert(interval3d(3, 4, 1, 2, 5, 6) isAdjacentTo interval3d(3, 4, 1, 2, 7, 8))
-    assert(!(interval3d(3, 4, 3, 4, 5, 6) isBackAdjacentTo interval3d(3, 4, 3, 4, 3, 4)))
-    assert(!(interval3d(3, 4, 1, 3, 5, 6) isBackAdjacentTo interval3d(3, 4, 3, 4, 3, 4)))
+    assert(interval3d(3, 4, 1, 2, 5, 6) isBackAdjacentTo interval3d(3, 4, 1, 2, open(6), 8))
+    assert(interval3d(3, 4, 1, 2, 5, 6) isAdjacentTo interval3d(3, 4, 1, 2, open(6), 8))
+    assert(!(interval3d(3, 4, 3, 4, open(4), 6) isBackAdjacentTo interval3d(3, 4, 3, 4, 3, 4)))
+    assert(!(interval3d(3, 4, 1, 3, open(4), 6) isBackAdjacentTo interval3d(3, 4, 3, 4, 3, 4)))
     assert(interval3dTo(2, 2, 2) isBackAdjacentTo (intervalTo(2) x intervalTo(2) x intervalFromAfter(2)))
     assert(!(interval3dFrom(2, 2, 2) isBackAdjacentTo interval3dTo(3, 3, 3)))
 
-    assert(interval3d(3, 4, 1, 2, 5, 6) isFrontAdjacentTo interval3d(3, 4, 1, 2, 3, 4))
-    assert(interval3d(3, 4, 1, 2, 5, 6) isAdjacentTo interval3d(3, 4, 1, 2, 3, 4))
-    assert(!(interval3d(3, 4, 3, 4, 5, 6) isFrontAdjacentTo interval3d(3, 4, 3, 4, 7, 8)))
-    assert(!(interval3d(3, 4, 1, 3, 5, 6) isFrontAdjacentTo interval3d(3, 4, 3, 4, 3, 4)))
+    assert(interval3d(3, 4, 1, 2, open(4), 6) isFrontAdjacentTo interval3d(3, 4, 1, 2, 3, 4))
+    assert(interval3d(3, 4, 1, 2, open(4), 6) isAdjacentTo interval3d(3, 4, 1, 2, 3, 4))
+    assert(!(interval3d(3, 4, 3, 4, 5, 6) isFrontAdjacentTo interval3d(3, 4, 3, 4, open(6), 8)))
+    assert(!(interval3d(3, 4, 1, 3, 5, 6) isFrontAdjacentTo interval3d(3, 4, 3, 4, 3, open(5))))
     assert(interval3dFrom(2, 2, 2) isFrontAdjacentTo (intervalFrom(2) x intervalFrom(2) x intervalToBefore(2)))
     assert(!(interval3dFrom(2, 2, 2) isFrontAdjacentTo interval3dTo(3, 3, 3)))
 
-    interval3d(1, 2, 3, 4, 5, 6).after shouldBe Some(interval3dFrom(3, 5, 7))
-    interval3d(1, 2, 3, 4, 5, 6).before shouldBe Some(interval3dTo(0, 2, 4))
+    interval3d(1, 2, 3, 4, 5, 6).after shouldBe Some(interval3dFrom(open(2), open(4), open(6)))
+    interval3d(1, 2, 3, 4, 5, 6).before shouldBe Some(interval3dTo(open(1), open(3), open(5)))
     interval3dFrom(2, 2, 2).after shouldBe None
     interval3dTo(2, 2, 2).before shouldBe None
-    interval3d(1, 2, 1, 2, 1, 2).points.toList shouldBe List(
-      (1, 1, 1),
-      (1, 1, 2),
-      (1, 2, 1),
-      (1, 2, 2),
-      (2, 1, 1),
-      (2, 1, 2),
-      (2, 2, 1),
-      (2, 2, 2)
-    ).map((t1, t2, t3) => Point(t1) x Point(t2) x Point(t3))
+    interval3d(1, 2, 1, 2, 1, 2).points.toList shouldBe List.empty
 
     assert(interval3d(1, 2, 3, 4, 5, 6) hasSameStartAs interval3dFrom(1, 3, 5))
     assert(interval3d(1, 2, 3, 4, 5, 6) hasSameEndAs interval3dTo(2, 4, 6))
     (intervalFrom(0) x intervalTo(0) x intervalAt(0)).toCodeLikeString shouldBe
       "intervalFrom(0) x intervalTo(0) x intervalAt(0)"
-    Interval3D.intervalAt(0, 0, 0).toCodeLikeString shouldBe
-      "intervalAt(0) x intervalAt(0) x intervalAt(0)"
 
     assertResult(interval3d(0, 2, 3, 4, 5, 6))(interval3d(1, 2, 3, 4, 5, 6).withHorizontalUpdate(_.from(0)))
     assertResult(interval3d(1, 2, 0, 4, 5, 6))(interval3d(1, 2, 3, 4, 5, 6).withVerticalUpdate(_.from(0)))
@@ -251,14 +241,15 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
     interval3d(1, 2, 3, 4, 5, 6).fromBottom shouldBe interval3dTo(2, 4, 6)
     interval3d(1, 2, 3, 4, 5, 6).toTop shouldBe interval3dFrom(1, 3, 5)
     interval3d(1, 2, 3, 4, 5, 6).from(0, 0, 0) shouldBe interval3d(0, 2, 0, 4, 0, 6)
-    interval3d(1, 2, 3, 4, 5, 6).fromAfter(1, 1, 1) shouldBe interval3d(2, 2, 2, 4, 2, 6)
+    interval3d(1, 2, 3, 4, 5, 6).fromAfter(1, 1, 1) shouldBe interval3d(open(1), 2, open(1), 4, open(1), 6)
     interval3d(1, 2, 3, 4, 5, 6).to(5, 5, 5) shouldBe interval3d(1, 5, 3, 5, 5, 5)
-    interval3d(1, 2, 3, 4, 5, 6).toBefore(7, 7, 7) shouldBe interval3d(1, 6, 3, 6, 5, 6)
+    interval3d(1, 2, 3, 4, 5, 6).toBefore(7, 7, 7) shouldBe interval3d(1, open(7), 3, open(7), 5, open(7))
     interval3d(1, 2, 3, 4, 5, 6).atStart shouldBe interval3d(1, 1, 3, 3, 5, 5)
     interval3d(1, 2, 3, 4, 5, 6).atEnd shouldBe interval3d(2, 2, 4, 4, 6, 6)
-    interval3d(1, 2, 3, 4, 5, 6).gapWith(interval3d(5, 6, 7, 8, 9, 10)) shouldBe Some(interval3d(3, 4, 5, 6, 7, 8))
+    interval3d(1, 2, 3, 4, 5, 6).gapWith(interval3d(open(5), 6, open(7), 8, open(9), 10)) shouldBe
+      Some(interval3d(open(2), 5, open(4), 7, open(6), 9))
     // even though neither adjacent nor intersecting in 3D, no gap in _all_ dimensions
-    interval3d(1, 2, 3, 4, 5, 6).gapWith(interval3d(5, 6, 5, 6, 8, 9)) shouldBe None
+    interval3d(1, 2, 3, 4, 5, 6).gapWith(interval3d(5, 6, open(4), 6, 8, 9)) shouldBe None
 
   test("Int interval intersections"):
     assert(!(interval(3, 4) intersects interval(1, 2)))
@@ -296,6 +287,7 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
 
   test("Int interval contains, etc."):
     assert(intervalTo(5) contains 3)
+    assert(!(intervalTo(5) contains open(3)))
     assert(Point(3) ∈ intervalTo(5))
     assert(!intervalFrom(5).contains(3))
     assert(interval(3, 5).contains(3))
@@ -314,9 +306,11 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
     interval(3, 5).fromBottom shouldBe intervalTo(5)
     interval(3, 5).toTop shouldBe intervalFrom(3)
     interval(3, 5).from(4) shouldBe interval(4, 5)
-    interval(3, 5).fromAfter(4) shouldBe intervalAt(5)
+    interval(3, 5).fromAfter(4) shouldBe intervalFromAfter(4).to(5)
+    interval(3, 5).from(5) shouldBe intervalAt(5)
     interval(3, 5).to(4) shouldBe interval(3, 4)
-    interval(3, 5).toBefore(4) shouldBe intervalAt(3)
+    interval(3, 5).toBefore(4) shouldBe intervalFrom(3).toBefore(4)
+    interval(3, 5).to(3) shouldBe intervalAt(3)
     interval(3, 5).atStart shouldBe intervalAt(3)
     interval(3, 5).atEnd shouldBe intervalAt(5)
 

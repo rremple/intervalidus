@@ -10,15 +10,15 @@ import scala.collection.mutable
   * Constructs data in two-dimensional intervals.
   */
 object DataIn2D extends DataIn2DBaseObject:
-  override def of[V, R1: DiscreteValue, R2: DiscreteValue](
+  override def of[V, R1: DomainValueLike, R2: DomainValueLike](
     data: ValidData2D[V, R1, R2]
   )(using Experimental): DataIn2D[V, R1, R2] = DataIn2D(Iterable(data))
 
-  override def of[V, R1: DiscreteValue, R2: DiscreteValue](
+  override def of[V, R1: DomainValueLike, R2: DomainValueLike](
     value: V
   )(using Experimental): DataIn2D[V, R1, R2] = of(Interval2D.unbounded[R1, R2] -> value)
 
-  override def apply[V, R1: DiscreteValue, R2: DiscreteValue](
+  override def apply[V, R1: DomainValueLike, R2: DomainValueLike](
     initialData: Iterable[ValidData2D[V, R1, R2]] = Iterable.empty[ValidData2D[V, R1, R2]]
   )(using Experimental): DataIn2D[V, R1, R2] =
     val (byStartAsc, byStartDesc, byValue, inSearchTree) = constructorParams(initialData)
@@ -44,7 +44,7 @@ object DataIn2D extends DataIn2DBaseObject:
   * @tparam R2
   *   the type of discrete domain used in the vertical interval assigned to each value.
   */
-class DataIn2D[V, R1: DiscreteValue, R2: DiscreteValue] private (
+class DataIn2D[V, R1: DomainValueLike, R2: DomainValueLike] private (
   override val dataByStartAsc: mutable.TreeMap[Domain2D[R1, R2], ValidData2D[V, R1, R2]],
   override val dataByStartDesc: mutable.TreeMap[Domain2D[R1, R2], ValidData2D[V, R1, R2]],
   override val dataByValue: MultiMapSorted[V, ValidData2D[V, R1, R2]],

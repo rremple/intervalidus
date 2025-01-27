@@ -1,6 +1,7 @@
 package intervalidus.immutable
 
 import intervalidus.*
+import intervalidus.DiscreteValue.given
 import org.scalatest.compatible.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
@@ -45,7 +46,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
   )(
     removeOrUpdateInterval: Interval1D[Int],
     updateValue: String = "update"
-  )(using Experimental): Assertion =
+  )(using Experimental, DomainValueLike[Int]): Assertion =
     val fixtureInterval = interval(-7, 7)
     val fixture = DataIn1D.of(fixtureInterval -> "World")
     val expectedUpdateInterval = removeOrUpdateInterval ∩ fixtureInterval match
@@ -159,7 +160,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
     val fixture1 = DataIn1D(allData)
     fixture1.copy.getAll.toList shouldBe fixture1.getAll.toList
 
-    val fixture2 = fixture1.map(d => d.interval.toAfter(d.interval.end) -> (d.value + "!"))
+    val fixture2 = fixture1.map(d => d.interval.to(d.interval.end.rightAdjacent) -> (d.value + "!"))
     val expectedData2 = List(intervalTo(5) -> "Hey!", intervalFrom(16) -> "World!")
     fixture2.getAll.toList shouldBe expectedData2
 
@@ -185,6 +186,6 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
     val allData = List(intervalTo(4) -> "Hey", intervalFrom(16) -> "World")
 
     val fixture1 = DataIn1D(allData)
-    val fixture2 = fixture1.map(d => d.interval.toAfter(d.interval.end) -> (d.value + "!"))
+    val fixture2 = fixture1.map(d => d.interval.to(d.interval.end.rightAdjacent) -> (d.value + "!"))
     val expectedData2 = List(intervalTo(5) -> "Hey!", intervalFrom(16) -> "World!")
     fixture2.getAll.toList shouldBe expectedData2

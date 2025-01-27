@@ -5,10 +5,10 @@ import intervalidus.collection.Box
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 /**
-  * An interval over a contiguous set of ordered elements of a discrete domain.
+  * An interval over a contiguous set of ordered elements of a domain.
   *
   * @tparam D
-  *   the type of discrete domain used in the discrete interval (e.g., DiscreteDomain1D[Int]).
+  *   the type of domain used in the interval (e.g., Domain1D[Int]).
   * @tparam Self
   *   F-bounded self type.
   */
@@ -58,7 +58,7 @@ trait IntervalLike[D: DomainLike: Ordering, Self <: IntervalLike[D, Self]]:
   infix def contains(domainIndex: D): Boolean
 
   /**
-    * Returns individual discrete domain points in this interval.
+    * Returns individual discrete domain points in this interval. (Empty if domain values are continuous.)
     */
   def points: Iterable[D]
 
@@ -131,6 +131,14 @@ trait IntervalLike[D: DomainLike: Ordering, Self <: IntervalLike[D, Self]]:
   def from(newStart: D): Self
 
   /**
+    * Returns a new interval starting adjacent to the provided value.
+    *
+    * @param adjacentDomain
+    *   the domain with which the new start of the new interval should be adjacent
+    */
+  def fromAfter(adjacentDomain: D): Self = from(adjacentDomain.rightAdjacent)
+
+  /**
     * Returns a new interval with the same end as this interval but with an unbounded start.
     */
   def fromBottom: Self
@@ -142,6 +150,14 @@ trait IntervalLike[D: DomainLike: Ordering, Self <: IntervalLike[D, Self]]:
     *   the end of the new interval
     */
   def to(newEnd: D): Self
+
+  /**
+    * Returns a new interval ending adjacent to the provided value.
+    *
+    * @param adjacentDomain
+    *   the domain with which the new end of the new interval should be adjacent
+    */
+  def toBefore(adjacentDomain: D): Self = to(adjacentDomain.leftAdjacent)
 
   /**
     * Returns a new interval with the same start as this interval but with an unbounded end.
@@ -177,8 +193,6 @@ trait IntervalLike[D: DomainLike: Ordering, Self <: IntervalLike[D, Self]]:
     */
   infix def gapWith(that: Self): Option[Self]
 
-  // this equivalent symbolic method must be implemented by the inheritor to fill in type wildcard
-
   /**
     * Same as [[withValue]]
     *
@@ -200,38 +214,6 @@ trait IntervalLike[D: DomainLike: Ordering, Self <: IntervalLike[D, Self]]:
     *   a new box that can be managed in a box search tree
     */
   def asBox: Box = Box(start.asCoordinate, end.asCoordinate)
-
-  /**
-    * Returns a new interval starting at the predecessor of the provided value.
-    *
-    * @param newStartSuccessor
-    *   the successor of the start of the new interval
-    */
-  def fromBefore(newStartSuccessor: D): Self = from(newStartSuccessor.predecessor)
-
-  /**
-    * Returns a new interval starting at the successor of the provided value.
-    *
-    * @param newStartPredecessor
-    *   the predecessor of the start of the new interval
-    */
-  def fromAfter(newStartPredecessor: D): Self = from(newStartPredecessor.successor)
-
-  /**
-    * Returns a new interval ending at the predecessor of the provided value.
-    *
-    * @param newEndSuccessor
-    *   the successor of the end of the new interval
-    */
-  def toBefore(newEndSuccessor: D): Self = to(newEndSuccessor.predecessor)
-
-  /**
-    * Returns a new interval ending at the successor of the provided value.
-    *
-    * @param newEndPredecessor
-    *   the predecessor of the end of the new interval
-    */
-  def toAfter(newEndPredecessor: D): Self = to(newEndPredecessor.successor)
 
   /**
     * Tests if there is no fixed start or end - spans the entire domain.

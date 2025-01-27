@@ -1,14 +1,14 @@
 package intervalidus.mutable
 
 import intervalidus.*
-import intervalidus.DiscreteValue.given
+import intervalidus.ContinuousValue.given
 import org.scalatest.compatible.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
 import scala.language.implicitConversions
 
-class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors with MutableBaseBehaviors:
+class DataIn1DContinuousTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors with MutableBaseBehaviors:
 
   import Interval1D.*
 
@@ -77,19 +77,19 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
 
     val concat = f1.foldLeft(StringBuilder()): (b, d) =>
       b.append(d.value).append("->").append(d.interval.toString).append(" ")
-    concat.result() shouldBe "Hello->[0..9] World->[10..+∞) "
+    concat.result() shouldBe "Hello->[0, 9] World->[10, +∞) "
 
     val expectedData2 = List(
-      interval(0, 4) -> "Hello",
-      interval(5, 15) -> "to",
-      interval(16, 19) -> "World",
-      interval(20, 25) -> "!",
+      intervalFrom(0).toBefore(5) -> "Hello",
+      intervalFrom(5).toBefore(16) -> "to",
+      intervalFrom(16).toBefore(20) -> "World",
+      intervalFrom(20).toBefore(26) -> "!",
       intervalFrom(26) -> "World"
     )
     val fixture = DataIn1D(expectedData2)
 
     val expectedString =
-      """|| 0 .. 4   | 5 .. 15  | 16 .. 19 | 20 .. 25 | 26 .. +∞ |
+      """|[ 0, 5 )   [ 5, 16 )  [ 16, 20 ) [ 20, 26 ) [ 26, +∞ ) |
          || Hello    |
          |           | to       |
          |                      | World    |
@@ -102,12 +102,16 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
     fixture.toString shouldBe expectedString
 
     val fixture2 = fixture.copy
-    val expectedData3 = List(intervalTo(4) -> "Hey", interval(5, 15) -> "to", intervalFrom(16) -> "World")
+    val expectedData3 = List(
+      intervalToBefore(5) -> "Hey",
+      intervalFrom(5).toBefore(16) -> "to",
+      intervalFrom(16) -> "World"
+    )
     val fixture3 = DataIn1D(expectedData3)
 
     fixture.syncWith(fixture3)
-    fixture.set(intervalFrom(1) -> "remove me")
-    fixture.remove(intervalFrom(1))
+    fixture.set(intervalFromAfter(0) -> "remove me")
+    fixture.remove(intervalFromAfter(0))
     val expectedData4 = List(intervalTo(0) -> "Hey")
     fixture.getAll.toList shouldBe expectedData4
 
@@ -117,14 +121,14 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
 
     val actionsFrom2To3 = fixture3.diffActionsFrom(fixture2)
     actionsFrom2To3.toList shouldBe List(
-      Create(intervalTo(4) -> "Hey"),
+      Create(intervalToBefore(5) -> "Hey"),
       Delete(0),
       Update(intervalFrom(16) -> "World"),
       Delete(20),
       Delete(26)
     )
     actionsFrom2To3.toList.map(_.toCodeLikeString) shouldBe List(
-      "DiffAction1D.Create(intervalTo(4) -> \"Hey\")",
+      "DiffAction1D.Create(intervalToBefore(5) -> \"Hey\")",
       "DiffAction1D.Delete(Point(0))",
       "DiffAction1D.Update(intervalFrom(16) -> \"World\")",
       "DiffAction1D.Delete(Point(20))",
