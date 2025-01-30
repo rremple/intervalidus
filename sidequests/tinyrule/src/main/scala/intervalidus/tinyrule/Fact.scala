@@ -2,7 +2,8 @@ package intervalidus.tinyrule
 
 import java.time.LocalDate
 import java.util.UUID
-import scala.compiletime.{erasedValue, summonAll}
+import scala.compiletime.{constValueTuple, erasedValue}
+
 import scala.deriving.Mirror
 
 enum FactMergeStyle:
@@ -122,8 +123,7 @@ case class Fact(id: String, attributes: Set[Attribute[?]]):
       * Get the attribute values as a tuple of product element values.
       *
       * @param labels
-      *   tuple of product element labels where each element of the product label tuple will be a `ValueOf[String]` (the
-      *   match is unchecked because the `String` type parameter is erased)
+      *   tuple of product element labels
       * @param fromAttributeValues
       *   list of functions from a label name (for error reporting) and a set of attribute values to the corresponding
       *   product element value, in the same order as the elements
@@ -135,14 +135,13 @@ case class Fact(id: String, attributes: Set[Attribute[?]]):
       fromAttributeValues: List[(String, Set[Any]) => Any]
     ): Tuple = labels match
       case EmptyTuple => EmptyTuple
-      case (valueOfLabel: ValueOf[String] @unchecked) *: labelsTail =>
-        val label = valueOfLabel.value
+      case (label: String) *: labelsTail =>
         val attributeValues = attributeValuesByName.getOrElse(label, Set.empty)
         val elementValue = fromAttributeValues.head.apply(label, attributeValues)
         elementValue *: elementsFromAttributes(labelsTail, fromAttributeValues.tail)
       case other => throw new Exception(s"Unexpected case: $other")
 
-    val productElemLabels = summonAll[Tuple.Map[mirror.MirroredElemLabels, ValueOf]]
+    val productElemLabels = constValueTuple[mirror.MirroredElemLabels]
     val productElemValuesFromAttributeValues = attributeValuesToElementValues[mirror.MirroredElemTypes]
     mirror.fromProduct(elementsFromAttributes(productElemLabels, productElemValuesFromAttributeValues))
 

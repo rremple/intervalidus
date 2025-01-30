@@ -1,5 +1,8 @@
 package intervalidus
 
+import scala.compiletime.constValueTuple
+import scala.deriving.Mirror
+
 /**
   * Type class template for a discrete value.
   *
@@ -166,7 +169,7 @@ object DiscreteValue:
 
   /**
     * Constructs a type class from a non-empty, distinct sequence of values. Useful when representing enums as discrete
-    * values, for example:
+    * values when auto-derivation is not possible or not desired, for example:
     * {{{
     *   enum Color:
     *     case Red, Yellow, Green, Cyan, Blue, Magenta
@@ -198,3 +201,22 @@ object DiscreteValue:
     override def compare(lhs: E, rhs: E): Int = values.indexOf(lhs).compareTo(values.indexOf(rhs))
 
     override def orderedHashOf(x: E): Double = values.indexOf(x).toDouble
+
+  /**
+    * Auto-derives a DiscreteValue type class from an enum type, for example:
+    * {{{
+    *   enum Color derives DiscreteValue:
+    *     case Red, Yellow, Green, Cyan, Blue, Magenta
+    * }}}
+    *
+    * @param mirror
+    *   the `Mirror.SumOf` mirror of the enum, which should be given automatically
+    * @tparam E
+    *   the enum type
+    * @return
+    *   a discrete value type class based on the enum values
+    */
+  inline def derived[E <: scala.reflect.Enum](using mirror: Mirror.SumOf[E]): DiscreteValue[E] =
+    val labels = constValueTuple[mirror.MirroredElemLabels].productIterator.map(_.toString)
+    val labelToEnum = EnumMacro.enumValueOf[E]
+    fromSeq(labels.map(labelToEnum).toIndexedSeq)

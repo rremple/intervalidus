@@ -43,10 +43,10 @@ You could use Intervalidus `DataIn1D` to represent the above as a one-dimensiona
 discrete values like this:
 
 ```scala 3
+import java.time.LocalDate.of as date
 import intervalidus.DiscreteValue.given
 import intervalidus.Interval1D.*
 import intervalidus.mutable.DataIn1D
-import java.time.LocalDate.of as date
 
 val plan1d = DataIn1D.of(intervalFrom(date(2024, 1, 1)) -> "Basic")
 plan1d.set(intervalFrom(date(2024, 4, 1)) -> "Premium")
@@ -75,6 +75,7 @@ We could have just as easily used the immutable variant of `DataIn1D`, and the o
 the above output:
 
 ```scala 3
+import java.time.LocalDate.of as date
 import intervalidus.DiscreteValue.given
 import intervalidus.Interval1D.*
 import intervalidus.immutable.DataIn1D
@@ -91,6 +92,7 @@ were known. For that, you could use Intervalidus `DataIn2D` to represent the abo
 this:
 
 ```scala 3
+import java.time.LocalDate.of as date
 import intervalidus.DiscreteValue.given
 import intervalidus.Interval1D.*
 import intervalidus.immutable.DataIn2D
@@ -127,24 +129,24 @@ bit easier to decipher:
 
 ![2D data visualization](/doc/intervalidus-visualize.png)
 
-One might query this structure to find what was known about expected August effective tiers at various sampled dates in
-the past or future. For example, leveraging `plan2d` as a partial function (with an `unapply`):
+One might query this structure to find what the August forecast was at various sampled dates in
+the past (or future). For example, leveraging `plan2d` as a partial function (with an `unapply`):
 
 ```scala 3
 val futureEffectiveDate: Domain1D[LocalDate] = date(2024, 8, 1)
 List(date(2023, 12, 15), date(2024, 1, 15), date(2024, 5, 15), date(2024, 7, 15)).foreach: knownDate => 
   futureEffectiveDate x knownDate match
-    case plan2d(tier) => println(s"On $knownDate, expected $tier tier on $futureEffectiveDate")
-    case _            => println(s"On $knownDate, no expected tier on $futureEffectiveDate")
+    case plan2d(tier) => println(s"On $knownDate, forecasted $tier tier on $futureEffectiveDate")
+    case _            => println(s"On $knownDate, no forecasted tier on $futureEffectiveDate")
 ```
 
-The result shows how what is known about this expected future effectivity changed over time:
+The result shows how this August forecast changed over time:
 
 ```text
-On 2023-12-15, no expected tier on 2024-08-01
-On 2024-01-15, expected Basic tier on 2024-08-01
-On 2024-05-15, expected Premium tier on 2024-08-01
-On 2024-07-15, no expected tier on 2024-08-01
+On 2023-12-15, no forecasted tier on 2024-08-01
+On 2024-01-15, forecasted Basic tier on 2024-08-01
+On 2024-05-15, forecasted Premium tier on 2024-08-01
+On 2024-07-15, no forecasted tier on 2024-08-01
 ```
 
 Going further, lets say tracking the known date is not enough. There are transactions that drive this new knowledge, 
@@ -154,6 +156,7 @@ So we can use a continuous value in the knowledge dimension, and continue to use
 dimension.
 
 ```scala 3
+import java.time.LocalDate.of as date
 import intervalidus.DiscreteValue.LocalDateDiscreteValue
 import intervalidus.ContinuousValue.LocalDateTimeContinuousValue
 import intervalidus.Interval1D.*
@@ -205,6 +208,7 @@ Sometimes one wants to treat multiple values as valid in the same interval. For 
 features in each numbered release of a product. `DataIn1DMulti` could be used to model what features belong in what
 releases, this time using intervals based on integers rather than dates.
 ```scala 3
+import intervalidus.DiscreteValue.given
 import intervalidus.Interval1D.*
 import intervalidus.immutable.DataIn1DMulti
 
@@ -238,7 +242,31 @@ Set(Feat(A), Feat(C))
 ```
 
 For the same reasons explained earlier, one might want to use `DataIn2DMulti` instead to model what features belong in
-what release as well as when the product management decision was made to include/exclude a feature in a release.
+what releases as well as when the product management decisions were made to include/exclude features in each release.
+
+Another example might be representing [piecewise functions](https://en.wikipedia.org/wiki/Piecewise_function) coherently
+by using a function type as the value where different function pieces are valid in different domain intervals. The reLU
+([rectified linear unit](https://en.wikipedia.org/wiki/Rectifier_(neural_networks))) function is a simple piecewise
+function which, given some `x`, returns `x` when `x` is greater than zero and zero otherwise. This can be expressed
+directly using intervalidus to manage the function pieces as follows:
+
+```scala 3
+import intervalidus.ContinuousValue.given
+import intervalidus.Interval1D.*
+import intervalidus.immutable.DataIn1D
+
+val reLU = new (Double => Double):
+  private val pieceAt = DataIn1D[Double => Double, Double]()
+    .set(intervalFrom(0.0) -> identity)
+    .set(intervalToBefore(0.0) -> (_ => 0.0))
+  override def apply(d: Double): Double = pieceAt(d).apply(d)
+
+println(s"reLU at -1 = ${reLU(-1)}") // reLU at -1 = 0
+println(s"reLU at  0 = ${reLU( 0)}") // reLU at  0 = 0
+println(s"reLU at  1 = ${reLU( 1)}") // reLU at  1 = 1
+```
+
+---
 
 The same methods are available in both mutable/immutable and one-/two-/three-dimensional forms (though parameter and
 return types vary). See the [full API documentation](https://rremple.github.io/intervalidus/latest/api/intervalidus) for details on
@@ -276,11 +304,13 @@ These mutation methods return a new structure when using immutable and `Unit` wh
 
 ## Using and Extending
 
-There is nothing remarkable about `LocalDate` here. It is an example of something called a "domain value" upon which a
+There is nothing remarkable about `LocalDate` and the other types used in the examples above. It is an example of
+something called a "domain value" upon which a
 "domain" can be defined. Domain values are finite with min/max values, an order, and an ordered hash function. There are
 two kinds of domain values: discrete and continuous. Discrete values have methods for finding successors/predecessors
 where continuous values do not. It is the domain built on top of the domain value that is used to define "interval"
-boundaries. Intervals using a continuous domain values have boundaries that are either open or closed. Note that
+boundaries. Intervals using a continuous domain values have boundaries that are either open or closed where discrete 
+domain boundaries (apart from -∞ and +∞) are always closed. Note that
 intervals with more than one dimension may include both discrete and continuous dimensions, as was shown in an example
 earlier.
 
@@ -371,8 +401,8 @@ given DiscreteValue[Color] with
   override def orderedHashOf(x: Color): Double = x.ordinal
 
 val thoughtsByColor = DataIn1D[String, Color]()
-        .set(intervalFrom(Color.Violet).to(Color.Green) -> "I like violet, blue, and green")
-        .set(intervalAt(Color.Red) -> "I like this too")
+  .set(intervalFrom(Color.Violet).to(Color.Green) -> "I like violet, blue, and green")
+  .set(intervalAt(Color.Red) -> "I like this too")
 println(thoughtsByColor)
 ```
 This associates our thoughts with color-based intervals rather than a wavelength-based intervals, with the following
@@ -399,6 +429,16 @@ given DiscreteValue[Color] = DiscreteValue.fromSeq(Color.values.toIndexedSeq)
 
 val thoughtsByColor = DataIn1D[String, Color]() //...
 ```
+
+Or, even briefer, most enums can have the discrete value type class derived automatically (some restrictions apply, 
+e.g., the enum cannot be declared inside a function).
+```scala 3
+enum Color derives DiscreteValue:
+  case Violet, Indigo, Blue, Green, Yellow, Orange, Red
+
+val thoughtsByColor = DataIn1D[String, Color]() //...
+```
+
 
 You can extend through composition. For example `DataIn1DVersioned` mimics the `DataIn1D` API but uses an
 underlying `DataIn2D` structure with an integer vertical dimension to create a versioned data structure. The "current"
