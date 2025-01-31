@@ -1,6 +1,6 @@
 ThisBuild / version := "0.1.0-SNAPSHOT"
 
-ThisBuild / scalaVersion := "3.3.4"
+ThisBuild / scalaVersion := "3.3.5"
 def commonSettings = Seq(
   scalacOptions ++= Seq("-feature", "-deprecation"), // , "-Wunused:all"),
   coverageFailOnMinimum := true,

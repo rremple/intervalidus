@@ -14,6 +14,11 @@ object EnumMacro:
 
   inline def enumValueOf[T <: scala.reflect.Enum]: String => T = ${ enumValueOfImpl[T] }
 
+  /**
+    * All the compile-time error trapping is commented out because the type parameter constraint `<: scala.reflect.Enum`
+    * in [[enumValueOf]] should prevent these exception cases from occurring, and their presence just causes test
+    * coverage issues.
+    */
   private def enumValueOfImpl[T](using Quotes, Type[T]): Expr[String => T] =
     import quotes.reflect._
     // val errorPrefix = "derivation not supported"
