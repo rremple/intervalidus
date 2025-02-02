@@ -40,6 +40,7 @@ trait DataIn1DBaseBehaviors:
     single.get shouldBe "Hello world"
     single.getOption shouldBe Some("Hello world")
     single.domain.toList shouldBe List(unbounded[Int])
+    single.domainComplement.toList shouldBe List.empty
 
     val bracePunctuation = domainValue.bracePunctuation
     val boundedInt = intervalFrom(0) -> 1
@@ -66,6 +67,7 @@ trait DataIn1DBaseBehaviors:
     val allData2 = List(interval(0, 10) -> "Hello", intervalFromAfter(10) -> "World")
     val fixture2 = dataIn1DFrom(allData2)
     fixture2.domain.toList shouldBe List(intervalFrom(0))
+    fixture2.domainComplement.toList shouldBe List(intervalToBefore(0))
     fixture2.getAt(5) shouldBe Some("Hello")
     fixture2.getAt(15) shouldBe Some("World")
     fixture2.getAt(-1) shouldBe None

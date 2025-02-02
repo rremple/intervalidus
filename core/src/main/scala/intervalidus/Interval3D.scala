@@ -444,3 +444,25 @@ object Interval3D:
       vertical <- Interval1D.uniqueIntervals(intervals.map(_.vertical))
       depth <- Interval1D.uniqueIntervals(intervals.map(_.depth))
     yield horizontal x vertical x depth
+
+  /**
+    * Given a collection of intervals, finds the complement intervals (i.e., the gaps). See
+    * [[https://en.wikipedia.org/wiki/Complement_(set_theory)]]. Result invariants:
+    *   - `isDisjoint(intervals ++ complement(intervals)) == true`
+    *   - `compress(intervals ++ complement(intervals)).toSeq == Seq(unbounded)`
+    *
+    * @param intervals
+    *   a collection of intervals -- must be disjoint.
+    * @tparam T1
+    *   a domain value type for this interval's horizontal domain.
+    * @tparam T2
+    *   a domain value type for this interval's vertical domain.
+    * @tparam T3
+    *   a domain value type for this interval's depth domain.
+    * @return
+    *   a new collection of intervals representing disjoint complement of the input.
+    */
+  def complement[T1: DomainValueLike, T2: DomainValueLike, T3: DomainValueLike](
+    intervals: Iterable[Interval3D[T1, T2, T3]]
+  ): Iterable[Interval3D[T1, T2, T3]] =
+    immutable.DataIn3D(intervals.map(_ -> false)).fill(unbounded -> true).filter(_.value).domain

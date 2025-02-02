@@ -291,6 +291,11 @@ trait DimensionalVersionedBase[
   def domain(using VersionSelection): Iterable[I] = getSelectedDataMutable.domain
 
   /**
+    * Returns all the intervals (compressed) in which there are no valid values given some version selection context.
+    */
+  def domainComplement(using VersionSelection): Iterable[I] = getSelectedDataMutable.domainComplement
+
+  /**
     * Applies a binary operator to a start value and all valid data, going left to right. Does not use a version
     * selection context -- the function is applied to the underlying data, so it can operate on the underlying version
     * information as well as the valid interval/value.

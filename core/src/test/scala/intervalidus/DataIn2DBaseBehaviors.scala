@@ -49,6 +49,7 @@ trait DataIn2DBaseBehaviors:
     single.get shouldBe "Hello world"
     single.getOption shouldBe Some("Hello world")
     single.domain.toList shouldBe List(Interval2D.unbounded[Int, Int])
+    single.domainComplement.toList shouldBe List.empty
 
     val bounded = (intervalFrom(0) x intervalTo(0)) -> "Hello world"
     bounded.toString shouldBe "{[0..+∞), (-∞..0]} -> Hello world"
@@ -80,6 +81,7 @@ trait DataIn2DBaseBehaviors:
 
     val fixture2 = dataIn2DFrom(allData2)
     fixture2.domain.toList shouldBe List(unboundedDate x intervalFrom(0))
+    fixture2.domainComplement.toList shouldBe List(unboundedDate x intervalToBefore(0))
     fixture2.getAt(now, 5) shouldBe Some("Hello")
     fixture2.getAt(now, 15) shouldBe Some("World")
     fixture2.getAt(now, -1) shouldBe None

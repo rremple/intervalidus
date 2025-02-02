@@ -328,6 +328,9 @@ trait DataIn3DBase[V, R1: DomainValueLike, R2: DomainValueLike, R3: DomainValueL
   override def domain: Iterable[Interval3D[R1, R2, R3]] =
     Interval3D.compress(Interval3D.uniqueIntervals(getAll.map(_.interval)).filter(intersects))
 
+  override def domainComplement: Iterable[Interval3D[R1, R2, R3]] =
+    Interval3D.complement(domain)
+
   override def diffActionsFrom(old: DataIn3DBase[V, R1, R2, R3]): Iterable[DiffAction3D[V, R1, R2, R3]] =
     (dataByStartAsc.keys.toSet ++ old.dataByStartAsc.keys).toList.sorted.flatMap: key =>
       (old.dataByStartAsc.get(key), dataByStartAsc.get(key)) match

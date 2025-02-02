@@ -51,6 +51,7 @@ trait DataIn1DVersionedBaseBehaviors:
       single.get shouldBe "Hello world"
       single.getOption shouldBe Some("Hello world")
       single.domain.toList shouldBe List(unbounded[Int])
+      single.domainComplement.toList shouldBe List.empty
 
       val fixture1: S = dataIn1DVersionedFrom1D(List(intervalFrom(0) -> "Hello world"))
       fixture1.getOption shouldBe None
@@ -65,6 +66,7 @@ trait DataIn1DVersionedBaseBehaviors:
       val allData2 = List(interval(0, 10) -> "Hello", intervalFrom(11) -> "World")
       val fixture2 = dataIn1DVersionedFrom2D(testDataIn2D(0, allData2))
       fixture2.domain.toList shouldBe List(intervalFrom(0))
+      fixture2.domainComplement.toList shouldBe List(intervalToBefore(0))
       fixture2.getAt(5) shouldBe Some("Hello")
       fixture2.getAt(15) shouldBe Some("World")
       fixture2.getAt(-1) shouldBe None

@@ -261,6 +261,9 @@ trait DataIn2DBase[V, R1: DomainValueLike, R2: DomainValueLike](using experiment
   override def domain: Iterable[Interval2D[R1, R2]] =
     Interval2D.compress(Interval2D.uniqueIntervals(getAll.map(_.interval)).filter(intersects))
 
+  override def domainComplement: Iterable[Interval2D[R1, R2]] =
+    Interval2D.complement(domain)
+
   override def diffActionsFrom(old: DataIn2DBase[V, R1, R2]): Iterable[DiffAction2D[V, R1, R2]] =
     (dataByStartAsc.keys.toSet ++ old.dataByStartAsc.keys).toList.sorted.flatMap: key =>
       (old.dataByStartAsc.get(key), dataByStartAsc.get(key)) match

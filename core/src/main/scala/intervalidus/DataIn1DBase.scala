@@ -212,6 +212,8 @@ trait DataIn1DBase[V, R: DomainValueLike](using experimental: Experimental)
 
   override def domain: Iterable[Interval1D[R]] = Interval1D.compress(getAll.map(_.interval))
 
+  override def domainComplement: Iterable[Interval1D[R]] = Interval1D.complement(domain)
+
   /**
     * @inheritdoc
     *

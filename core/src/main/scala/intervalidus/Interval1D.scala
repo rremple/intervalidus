@@ -334,7 +334,9 @@ object Interval1D:
 
   /**
     * Given a collection of intervals, finds the complement intervals (i.e., the gaps). See
-    * [[https://en.wikipedia.org/wiki/Complement_(set_theory)]].
+    * [[https://en.wikipedia.org/wiki/Complement_(set_theory)]]. Result invariants:
+    *   - `isDisjoint(intervals ++ complement(intervals)) == true`
+    *   - `compress(intervals ++ complement(intervals)).toSeq == Seq(unbounded)`
     *
     * @param intervals
     *   a collection of intervals -- must be disjoint and ordered by start.

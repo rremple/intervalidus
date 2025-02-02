@@ -278,7 +278,7 @@ These query methods provide various data, difference, and Boolean results:
 - `intersects`
 - `foldLeft`
 - `isEmpty`
-- `domain`
+- `domain` / `domainComplement`
 - `diffActionsFrom`
 
 These methods return a new structure:

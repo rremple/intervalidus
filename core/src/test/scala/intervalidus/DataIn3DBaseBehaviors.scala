@@ -48,6 +48,7 @@ trait DataIn3DBaseBehaviors:
     single.get shouldBe "Hello world"
     single.getOption shouldBe Some("Hello world")
     single.domain.toList shouldBe List(Interval3D.unbounded[LocalDate, LocalDate, Int])
+    single.domainComplement.toList shouldBe List.empty
 
     val bounded = (intervalFrom(0) x intervalTo(0) x intervalTo(0)) -> "Hello world"
     bounded.toString shouldBe "{[0..+∞), (-∞..0], (-∞..0]} -> Hello world"
@@ -84,6 +85,7 @@ trait DataIn3DBaseBehaviors:
     )
     val fixture2 = dataIn3DFrom(allData2)
     fixture2.domain.toList shouldBe List(unbounded[Int] x unbounded[Int] x intervalFrom(0))
+    fixture2.domainComplement.toList shouldBe List(unbounded[Int] x unbounded[Int] x intervalToBefore(0))
     fixture2.getAt(now x now x 5) shouldBe Some("Hello")
     fixture2.getAt(now x now x 15) shouldBe Some("World")
     fixture2.getAt(now x now x -1) shouldBe None

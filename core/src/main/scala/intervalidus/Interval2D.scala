@@ -353,3 +353,23 @@ object Interval2D:
       horizontal <- Interval1D.uniqueIntervals(intervals.map(_.horizontal))
       vertical <- Interval1D.uniqueIntervals(intervals.map(_.vertical))
     yield horizontal x vertical
+
+  /**
+    * Given a collection of intervals, finds the complement intervals (i.e., the gaps). See
+    * [[https://en.wikipedia.org/wiki/Complement_(set_theory)]]. Result invariants:
+    *   - `isDisjoint(intervals ++ complement(intervals)) == true`
+    *   - `compress(intervals ++ complement(intervals)).toSeq == Seq(unbounded)`
+    *
+    * @param intervals
+    *   a collection of intervals -- must be disjoint.
+    * @tparam T1
+    *   a domain value type for this interval's horizontal domain.
+    * @tparam T2
+    *   a domain value type for this interval's vertical domain.
+    * @return
+    *   a new collection of intervals representing disjoint complement of the input.
+    */
+  def complement[T1: DomainValueLike, T2: DomainValueLike](
+    intervals: Iterable[Interval2D[T1, T2]]
+  ): Iterable[Interval2D[T1, T2]] =
+    immutable.DataIn2D(intervals.map(_ -> false)).fill(unbounded -> true).filter(_.value).domain

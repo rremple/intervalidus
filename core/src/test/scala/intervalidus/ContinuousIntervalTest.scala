@@ -401,6 +401,42 @@ class ContinuousIntervalTest extends AnyFunSuite with Matchers:
       )
     )
 
+    uniqueIntervals[Int, Int](Nil) shouldBe Nil
+
+    // | -∞ ........... 5 |        |        | 10 ........................ 20 |          | 30 .. +∞ |
+    //           | 3 ........... 7 |                   | 14 .. 16 |
+    val intervals2 = List(
+      intervalTo(0) x intervalTo(5),
+      Interval1D.unbounded[Int] x interval(10, 20),
+      Interval1D.unbounded[Int] x intervalFrom(30),
+      intervalFromAfter(0) x interval(3, 7)
+    )
+    val intervals3 = compress(intervals2)
+    intervals3.toList shouldBe List(
+      intervalTo(0) x intervalTo(5),
+      Interval1D.unbounded[Int] x interval(10, 20),
+      Interval1D.unbounded[Int] x intervalFrom(30),
+      intervalFromAfter(0) x interval(3, 7)
+    )
+
+    complement(intervals3).toList shouldBe List(
+      intervalTo(0) x intervalFromAfter(5).toBefore(10),
+      Interval1D.unbounded[Int] x intervalFromAfter(20).toBefore(30),
+      intervalFromAfter(0) x intervalToBefore(3),
+      intervalFromAfter(0) x intervalFromAfter(7).toBefore(10)
+    )
+    complement(intervals3.dropRight(1)).toList shouldBe List(
+      Interval1D.unbounded[Int] x intervalFromAfter(5).toBefore(10),
+      Interval1D.unbounded[Int] x intervalFromAfter(20).toBefore(30),
+      intervalFromAfter(0) x intervalTo(5)
+    )
+    complement(intervals3.drop(1)).toList shouldBe List(
+      Interval1D.unbounded[Int] x intervalToBefore(3),
+      intervalTo(0) x intervalFrom(3).toBefore(10),
+      Interval1D.unbounded[Int] x intervalFromAfter(20).toBefore(30),
+      intervalFromAfter(0) x intervalFromAfter(7).toBefore(10)
+    )
+
   test("Int interval 3D collection operations"):
     import Interval3D.*
 
@@ -439,4 +475,44 @@ class ContinuousIntervalTest extends AnyFunSuite with Matchers:
           Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x interval(11, 20) // overlap
         )
       )
+    )
+
+    uniqueIntervals[Int, Int, Int](Nil) shouldBe Nil
+
+    // | -∞ ........... 5 |        |        | 10 ........................ 20 |          | 30 .. +∞ |
+    //           | 3 ........... 7 |                   | 14 .. 16 |
+    val intervals2 = List(
+      Interval1D.unbounded[Int] x intervalTo(0) x intervalTo(5),
+      intervalTo(0) x Interval1D.unbounded[Int] x interval(10, 20),
+      Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x intervalFrom(30),
+      Interval1D.unbounded[Int] x intervalFromAfter(0) x interval(3, 7)
+    )
+    val intervals3 = compress(intervals2)
+    intervals3.toList shouldBe List(
+      Interval1D.unbounded[Int] x intervalTo(0) x intervalTo(5),
+      intervalTo(0) x Interval1D.unbounded[Int] x interval(10, 20),
+      Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x intervalFrom(30),
+      Interval1D.unbounded[Int] x intervalFromAfter(0) x interval(3, 7)
+    )
+
+    complement(intervals3).toList shouldBe List(
+      Interval1D.unbounded[Int] x intervalTo(0) x intervalFromAfter(5).toBefore(10),
+      Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x intervalFromAfter(20).toBefore(30),
+      Interval1D.unbounded[Int] x intervalFromAfter(0) x intervalToBefore(3),
+      Interval1D.unbounded[Int] x intervalFromAfter(0) x intervalFromAfter(7).toBefore(10),
+      intervalFromAfter(0) x Interval1D.unbounded[Int] x interval(10, 20)
+    )
+
+    complement(intervals3.dropRight(1)).toList shouldBe List(
+      Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x intervalFromAfter(5).toBefore(10),
+      Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x intervalFromAfter(20).toBefore(30),
+      Interval1D.unbounded[Int] x intervalFromAfter(0) x intervalTo(5),
+      intervalFromAfter(0) x Interval1D.unbounded[Int] x interval(10, 20)
+    )
+    complement(intervals3.drop(1)).toList shouldBe List(
+      Interval1D.unbounded[Int] x intervalTo(0) x intervalToBefore(10),
+      Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x intervalFromAfter(20).toBefore(30),
+      Interval1D.unbounded[Int] x intervalFromAfter(0) x intervalToBefore(3),
+      Interval1D.unbounded[Int] x intervalFromAfter(0) x intervalFromAfter(7).toBefore(10),
+      intervalFromAfter(0) x Interval1D.unbounded[Int] x interval(10, 20)
     )

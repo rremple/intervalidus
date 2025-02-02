@@ -223,6 +223,13 @@ trait DimensionalBase[
   def domain: Iterable[I]
 
   /**
+    * Returns all the intervals (compressed) in which there are no valid values. That is, all intervals that are not in
+    * the [[domain]]. See [[https://en.wikipedia.org/wiki/Domain_of_a_function]] and
+    * [[https://en.wikipedia.org/wiki/Complement_(set_theory)]].
+    */
+  def domainComplement: Iterable[I]
+
+  /**
     * Returns this as a mutable structure.
     */
   def toMutable: Self & intervalidus.mutable.MutableBase[V, D, I, ValidData, DiffAction, ?]

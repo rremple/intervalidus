@@ -273,3 +273,6 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
       vertical3D(intervalFrom(10)), // the 6th plus a bit of the 7th and 8th
       intervalFrom(day(0)) x unboundedDate x interval(2, 9) // the remaining bits of the 7th and 8th
     )
+    fixture4.domainComplement.toList shouldBe List(
+      intervalToBefore(day(0)) x unboundedDate x interval(2, 9)
+    )

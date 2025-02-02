@@ -156,6 +156,7 @@ trait ImmutableBaseBehaviors:
 
       val fixture0: S = immutableFrom(allData)
       fixture0.domain.toList shouldBe List(fullyUnbound)
+      fixture0.domainComplement.toList shouldBe List.empty
       val fixture1 = fixture0.compress("Hello")
       val expectedData1 = List(
         dataFrom1D(intervalTo(4), "Hello"),
@@ -165,6 +166,7 @@ trait ImmutableBaseBehaviors:
       )
       fixture1.getAll.toList shouldBe expectedData1
       fixture1.domain.toList shouldBe List(fullyUnbound)
+      fixture1.domainComplement.toList shouldBe List.empty
 
       val fixture2 = immutableFrom(allData)
         .compressAll()
@@ -175,6 +177,7 @@ trait ImmutableBaseBehaviors:
       )
       fixture2.getAll.toList shouldBe expectedData2
       fixture2.domain.toList shouldBe List(fullyUnbound)
+      fixture2.domainComplement.toList shouldBe List.empty
 
     test("Immutable: Updating data in intervals"):
       val allData = List(
@@ -206,6 +209,9 @@ trait ImmutableBaseBehaviors:
         intervalFrom1D(intervalTo(2)),
         intervalFrom1D(intervalFrom(6))
       )
+      fixture2.domainComplement.toList shouldBe List(
+        intervalFrom1D(intervalFromAfter(2).toBefore(6))
+      )
 
       val fixture3 = fixture2
         .remove(intervalFrom1D(interval(2, 9)))
@@ -220,4 +226,8 @@ trait ImmutableBaseBehaviors:
       fixture3.domain.toList shouldBe List(
         intervalFrom1D(intervalTo(1)),
         intervalFrom1D(intervalFrom(10))
+      )
+
+      fixture3.domainComplement.toList shouldBe List(
+        intervalFrom1D(intervalFromAfter(1).toBefore(10))
       )
