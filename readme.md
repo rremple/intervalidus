@@ -62,7 +62,8 @@ Which outputs a handy little Ascii Gantt of the valid values in the structure:
                            | Premium                  |
 ```
 
-Since `DataIn1D` is a partial function, you can query individual valid values using that interface (many other query
+Since `DataIn1D` is a [partial function](https://docs.scala-lang.org/scala3/book/fun-partial-functions.html),
+you can query individual valid values using that interface (many other query
 methods exist as well). For example, using function application:
 
 ```scala 3 
@@ -88,7 +89,8 @@ println(plan1d)
 ```
 
 On the other hand, you may want two dimensions of time: one to track what is effective and one to track when these facts
-were known. For that, you could use Intervalidus `DataIn2D` to represent the above as a two-dimensional structure like
+were known (sometimes referred to as [bitemporal modeling](https://en.wikipedia.org/wiki/Bitemporal_modeling)).
+For that, you could use Intervalidus `DataIn2D` to represent the above as a two-dimensional structure like
 this:
 
 ```scala 3
@@ -183,6 +185,8 @@ The two main differences are:
   closed (denoted with brackets) or open (denoted with parens), and the start and end of each interval is separated by
   a comma rather than two dots. 
 
+(How discrete and continuous domain values differ in behavior is discussed later.)
+
 These notational differences are carried in the representation of the horizontal dimension too. For example, if we flip
 the dimensions and print the result:
 
@@ -229,7 +233,7 @@ println(multi) // what are all the feature combinations in all release intervals
 ```
 
 The result shows the unique feature combinations in each release-based interval (note that releases 3, 4, and 5 share
-the same feature set, i.e., the combination of feature A and C is "valid" in all in the [3..5] release interval):
+the same feature set, i.e., the combination of feature A and C is "valid" in the [3..5] release interval):
 
 ```text
 Set(Feat(A), Feat(C))
@@ -305,16 +309,30 @@ These mutation methods return a new structure when using immutable and `Unit` wh
 ## Using and Extending
 
 There is nothing remarkable about `LocalDate` and the other types used in the examples above. It is an example of
-something called a "domain value" upon which a
+something called a "domain value" over which a
 "domain" can be defined. Domain values are finite with min/max values, an order, and an ordered hash function. There are
 two kinds of domain values: discrete and continuous. Discrete values have methods for finding successors/predecessors
 where continuous values do not. It is the domain built on top of the domain value that is used to define "interval"
-boundaries. Intervals using a continuous domain values have boundaries that are either open or closed where discrete 
-domain boundaries (apart from -∞ and +∞) are always closed. Note that
+boundaries. Intervals using continuous domain values have boundaries that are either open or closed where those using
+discrete domain boundaries (apart from -∞ and +∞) are always closed. Note that
 intervals with more than one dimension may include both discrete and continuous dimensions, as was shown in an example
 earlier.
 
-A discrete value is a type class, and there are implementations given for the following types:
+Discrete and continuous domain values have different notions of adjacency.
+
+- Two elements of a domain over a set of discrete values are adjacent only if one of the elements is the successor (or
+  predecessor) of the other. For example, in a domain over discrete integers, `domain(1)` is adjacent to `domain(2)`
+  because there are no domain elements between `1` and `2`. The general notions of `leftAdjacent` (i.e., before) and
+  `rightAdjacent` (i.e., after) are based on the `successorOf` and `predecessorOf` methods of the discrete value type
+  class respectively.
+
+- Two elements of a domain over a set of continuous values are adjacent only if the two elements have the same value and
+  one is open and the other is closed. For example, in a domain over continuous doubles, `domain(1.0)` is adjacent to
+  `open(1.0)` because there are no domain elements between them. The general notions of `leftAdjacent` (i.e., before)
+  and `rightAdjacent` (i.e., after) yield the same result for a point: open if closed, and closed if open.
+
+A discrete value is a [type class](https://docs.scala-lang.org/scala3/book/ca-type-classes.html),
+and there are implementations given for the following types:
 
 - `Int`
 - `Long`
@@ -430,7 +448,9 @@ given DiscreteValue[Color] = DiscreteValue.fromSeq(Color.values.toIndexedSeq)
 val thoughtsByColor = DataIn1D[String, Color]() //...
 ```
 
-Or, even briefer, most enums can have the discrete value type class derived automatically (some restrictions apply, 
+Or, even briefer, most enums can have the discrete value 
+[type class derived automatically](https://docs.scala-lang.org/scala3/reference/contextual/derivation.html)
+(some restrictions apply, 
 e.g., the enum cannot be declared inside a function).
 ```scala 3
 enum Color derives DiscreteValue:
@@ -442,7 +462,8 @@ val thoughtsByColor = DataIn1D[String, Color]() //...
 
 You can extend through composition. For example `DataIn1DVersioned` mimics the `DataIn1D` API but uses an
 underlying `DataIn2D` structure with an integer vertical dimension to create a versioned data structure. The "current"
-version is tracked as internal state and methods accept version selection as a context parameter, with "current" as the
+version is tracked as internal state and methods accept version selection as a 
+[context parameter](https://docs.scala-lang.org/scala3/book/ca-context-parameters.html), with "current" as the
 default version selection applied. Also, a notion of approval is supported by specifying a specific future version for
 anything unapproved. Similarly, there is a `DataIn2DVersioned` mimicking the `DataIn2D` API using an
 underlying `DataIn3D` structure.
@@ -495,7 +516,8 @@ structures internally for managing state, two of which are custom:
   standard library `Map` and `SortedSet`) which is somewhat similar to `SortedMultiDict` in `scala-collection-contrib`,
   but returns the _values_ in order, not the _keys_. Having values in order is essential for deterministic results from
   `compress` and all mutation operations relying on `compress`. Only the mutable variant is used internally, but an
-  immutable variant is also provided.
+  immutable variant is also provided. Note that the sample billing application uses this multimap directly for managing
+  customer transactions.
 
 - A "box search tree" -- like a B-tree, quadtree, or octree, depending on the dimension -- that supports quick
   retrieval by interval. Box search trees manage boxed data structures in multidimensional double space. Unlike classic

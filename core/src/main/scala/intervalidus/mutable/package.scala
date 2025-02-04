@@ -1,9 +1,9 @@
 package intervalidus
 
 /**
-  * Intervalidus's main traits and classes for defining mutable dimensional data, including:
-  *   - Base traits for all mutable dimensional data, and all mutable versioned dimensional data.
-  *   - Classes defining mutable data in one, two, and three dimensions
-  *   - Classes defining mutable versioned data in one and two dimensions
+  * Intervalidus's main traits and classes for defining mutable dimensional data, including versioned and multivalued
+  * data:
+  *   - Base traits for all mutable dimensional data.
+  *   - Classes defining mutable data in one, two, and three dimensions.
   */
 package object mutable

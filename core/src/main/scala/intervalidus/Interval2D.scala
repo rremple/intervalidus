@@ -185,7 +185,7 @@ object Interval2D:
     Interval1D.unbounded[T1] x Interval1D.unbounded[T2]
 
   /**
-    * Generic compression algorithm used by both `compress` and `Data3DBase.compressInPlace`.
+    * Generic compression algorithm used by both `compress` and `Data2DBase.compressInPlace`.
     *
     * @param initialState
     *   initial state
