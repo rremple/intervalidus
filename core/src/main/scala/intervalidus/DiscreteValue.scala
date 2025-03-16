@@ -209,14 +209,10 @@ object DiscreteValue:
     *     case Red, Yellow, Green, Cyan, Blue, Magenta
     * }}}
     *
-    * @param mirror
-    *   the `Mirror.SumOf` mirror of the enum, which should be given automatically
     * @tparam E
     *   the enum type
     * @return
     *   a discrete value type class based on the enum values
     */
-  inline def derived[E <: scala.reflect.Enum](using mirror: Mirror.SumOf[E]): DiscreteValue[E] =
-    val labels = constValueTuple[mirror.MirroredElemLabels].productIterator.map(_.toString)
-    val labelToEnum = EnumMacro.enumValueOf[E]
-    fromSeq(labels.map(labelToEnum).toIndexedSeq)
+  inline def derived[E <: scala.reflect.Enum]: DiscreteValue[E] =
+    fromSeq(EnumMacro.enumValues[E].toIndexedSeq)
