@@ -159,22 +159,14 @@ object Fact:
     */
   private inline def attributesFromOneElement[T](elementName: String, elementValue: T): Iterable[Attribute[?]] =
     inline elementValue match
-      case a: Boolean           => Seq(BooleanAttribute(elementName, a))
-      case a: Int               => Seq(IntAttribute(elementName, a))
-      case a: Double            => Seq(DoubleAttribute(elementName, a))
-      case a: String            => Seq(StringAttribute(elementName, a))
-      case a: LocalDate         => Seq(DateAttribute(elementName, a))
-      case a: Option[Boolean]   => a.map(BooleanAttribute(elementName, _))
-      case a: Option[Int]       => a.map(IntAttribute(elementName, _))
-      case a: Option[Double]    => a.map(DoubleAttribute(elementName, _))
-      case a: Option[String]    => a.map(StringAttribute(elementName, _))
-      case a: Option[LocalDate] => a.map(DateAttribute(elementName, _))
-      case a: Set[Boolean]      => a.map(BooleanAttribute(elementName, _))
-      case a: Set[Int]          => a.map(IntAttribute(elementName, _))
-      case a: Set[Double]       => a.map(DoubleAttribute(elementName, _))
-      case a: Set[String]       => a.map(StringAttribute(elementName, _))
-      case a: Set[LocalDate]    => a.map(DateAttribute(elementName, _))
-      case a                    => Seq(StringAttribute(elementName, a.toString)) // fallback to String
+      case a: Boolean   => Seq(BooleanAttribute(elementName, a))
+      case a: Int       => Seq(IntAttribute(elementName, a))
+      case a: Double    => Seq(DoubleAttribute(elementName, a))
+      case a: String    => Seq(StringAttribute(elementName, a))
+      case a: LocalDate => Seq(DateAttribute(elementName, a))
+      case a: Option[?] => a.toSeq.flatMap(attributesFromOneElement(elementName, _))
+      case a: Set[?]    => a.toSeq.flatMap(attributesFromOneElement(elementName, _))
+      case a            => Seq(StringAttribute(elementName, a.toString)) // fallback to String
 
   /**
     * Recursively deconstructs the product elements as a set of attributes. Unfortunately deconstructing
