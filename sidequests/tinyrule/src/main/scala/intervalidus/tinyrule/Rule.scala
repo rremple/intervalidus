@@ -4,7 +4,7 @@ import java.time.LocalDate
 
 /**
   * A rule can be applied to a fact with a boolean result (i.e., in the language of predicate logic, rules are
-  * predicates, fact are subjects, and the applications of rules to facts are propositions). Rules can be combined
+  * predicates, facts are subjects, and the applications of rules to facts are propositions). Rules can be combined
   * through conjunction, disjunction, and negation.
   */
 sealed trait Rule:

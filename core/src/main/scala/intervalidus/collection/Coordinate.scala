@@ -34,6 +34,14 @@ object Coordinate:
     private def combineWith(other: Coordinate)(f: ((Double, Double)) => Double) =
       coordinates.zip(other).map(f)
 
+    private def combineWithBounded(other: Coordinate, fromUnbounded: Boolean*)(
+      f: ((Double, Double)) => Double
+    ): Coordinate = coordinates
+      .zip(other)
+      .zip(fromUnbounded)
+      .map:
+        case ((thisDim, otherDim), unbounded) => if unbounded then thisDim else f(thisDim, otherDim)
+
     /**
       * Treating the other coordinate as the opposite corner of a box, return a vector of coordinate pairs that
       * represent the corners of boxes which make a binary split in all dimensions.
@@ -80,6 +88,22 @@ object Coordinate:
     def projectBefore(other: Coordinate): Coordinate = combineWith(other)(_ min _)
 
     /**
+      * Used by Visualize3D for clipping the boxed coordinate space plotted. Returns the point where each dimension is
+      * the min of this and the other point excluding values derived from unbounded domain value (Top or Bottom). It is
+      * less than or equal to the other point in every dimension, apart from these exclusions.
+      *
+      * @param other
+      *   coordinate
+      * @param fromUnbounded
+      *   a corresponding sequence of booleans indicating if the coordinate component was derived from an unbounded
+      *   domain value.
+      * @return
+      *   a new coordinate point with minimum coordinates, apart from these exclusions.
+      */
+    def projectBeforeBounded(other: Coordinate, fromUnbounded: Boolean*): Coordinate =
+      combineWithBounded(other, fromUnbounded*)(_ min _)
+
+    /**
       * Returns midpoint between this and other.
       *
       * @param other
@@ -96,10 +120,57 @@ object Coordinate:
       * @param other
       *   coordinate
       * @return
-      *   a new coordinate point with minimum coordinates.
+      *   a new coordinate point with maximum coordinates.
       */
     def projectAfter(other: Coordinate): Coordinate = combineWith(other)(_ max _)
+
+    /**
+      * Used by Visualize3D for clipping the boxed coordinate space plotted. Returns the point where each dimension is
+      * the max of this and the other point excluding values derived from unbounded domain value (Top or Bottom). It is
+      * greater than or equal to the other point in every dimension, apart from these exclusions.
+      *
+      * @param other
+      *   coordinate
+      * @param fromUnbounded
+      *   a corresponding sequence of booleans indicating if the coordinate component was derived from an unbounded
+      *   domain value.
+      * @return
+      *   a new coordinate point with maximum coordinates, apart from these exclusions.
+      */
+    def projectAfterBounded(other: Coordinate, fromUnbounded: Boolean*): Coordinate =
+      combineWithBounded(other, fromUnbounded*)(_ max _)
 
     // can't override toString in an extension method -- only used by Box.toString
     def asString: String =
       if coordinates.size == 1 then coordinates(0).toString else coordinates.mkString("(", ",", ")")
+
+    /**
+      * Used by Visualize3D for clipping the boxed coordinate space plotted. Returns a string representation of this
+      * coordinate using JavaScript array syntax clipped within a more limited coordinate space.
+      * @param clipWithin
+      *   clipped coordinate space to consider
+      * @return
+      *   a string representation suitable to use as a visualization URL parameter.
+      */
+    def toUrlFragment(clipWithin: Box): String = coordinates
+      .projectAfter(clipWithin.minPoint)
+      .projectBefore(clipWithin.maxPoint)
+      .mkString("[", ",", "]")
+
+    /**
+      * Translate this point (vector addition).
+      * @param other
+      *   a coordinate to add.
+      * @return
+      *   The sum of the two coordinates as vectors.
+      */
+    infix def +(other: Coordinate): Coordinate = combineWith(other)(_ + _)
+
+    /**
+      * Translate this point (vector subtraction).
+      * @param other
+      *   a coordinate to subtract.
+      * @return
+      *   The difference of the two coordinates as vectors.
+      */
+    infix def -(other: Coordinate): Coordinate = combineWith(other)(_ - _)

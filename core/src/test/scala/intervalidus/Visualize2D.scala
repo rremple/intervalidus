@@ -8,12 +8,12 @@ import javax.swing.{JFrame, JPanel, WindowConstants}
 import scala.language.implicitConversions
 import scala.util.chaining.*
 
-object Visualize:
+object Visualize2D:
   def apply[V, R1: DomainValueLike, R2: DomainValueLike](
     validData: Iterable[ValidData2D[V, R1, R2]],
     title: String
   ): Unit =
-    val mainPanel = new Visualize(validData, title)
+    val mainPanel = new Visualize2D(validData, title)
     val frame = new JFrame("Visualize 2D Data")
     frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
     frame.getContentPane.add(mainPanel)
@@ -29,7 +29,7 @@ object Visualize:
     apply(dataIn2D.getAll, title)
     Thread.sleep(millis)
 
-protected class Visualize[V, R1: DomainValueLike, R2: DomainValueLike](
+protected class Visualize2D[V, R1: DomainValueLike, R2: DomainValueLike](
   validData: Iterable[ValidData2D[V, R1, R2]],
   title: String
 ) extends JPanel:
@@ -166,9 +166,9 @@ def tryIt(): Unit =
   val mutableFixture = mutable.DataIn2D[String, LocalDate, Int]()
   allData.foreach(mutableFixture.set)
 
-  Visualize(mutableFixture, 5)
+  Visualize2D(mutableFixture, 5)
 
   val immutableFixture = allData.foldLeft(immutable.DataIn2D[String, LocalDate, Int]()): (prev, d) =>
     prev.set(d)
 
-  Visualize(immutableFixture, 5)
+  Visualize2D(immutableFixture, 5)

@@ -106,7 +106,7 @@ trait DataIn2DConstructorParams:
   * especially important for managing mutation, which can be a bit complex in two dimensions.
   * @note
   *   Visualizing two-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt
-  *   chart and there is a simple Visualize tool provided (in the test package... though maybe this should be its own
+  *   chart and there is a simple Visualize2D tool provided (in the test package... though maybe this should be its own
   *   separate subproject).
   *
   * @tparam V
@@ -249,7 +249,7 @@ trait DataIn2DBase[V, R1: DomainValueLike, R2: DomainValueLike](using experiment
 
   // ---------- Implement methods not defined in DimensionalBase ----------
 
-  // from Object - use Visualize (in the test package) if you want something fancier
+  // from Object - use Visualize2D (in the test package) if you want something fancier
   override def toString: String = toStringGrid(
     dataToString = v => s"${v.value} ${v.interval.vertical}",
     dataToInterval = _.interval.horizontal,

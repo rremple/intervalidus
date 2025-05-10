@@ -46,8 +46,9 @@ object DataIn3DMulti extends DataIn3DMultiBaseObject:
   *
   * @note
   *   Visualizing three-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt
-  *   chart and there is a simple 2D Visualize tool provided where you can visualize 2D slices of the 3D structure (in
-  *   the test package... though maybe this should be its own separate subproject).
+  *   chart and there is a simple Visualize3D tool which shows a numerically boxed representation of data, as well as a
+  *   Visualize2D tool provided where you can visualize 2D slices of the 3D structure (in the test package... though
+  *   maybe this should be its own separate subproject).
   *
   * @tparam V
   *   the type of the value managed as data.

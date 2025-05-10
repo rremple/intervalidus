@@ -34,7 +34,7 @@ object DataIn2D extends DataIn2DBaseObject:
   * especially important for managing mutation, which can be a bit complex in two dimensions.
   * @note
   *   Visualizing two-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt
-  *   chart and there is a simple Visualize tool provided (in the test package... though maybe this should be its own
+  *   chart and there is a simple Visualize2D tool provided (in the test package... though maybe this should be its own
   *   separate subproject).
   *
   * @tparam V

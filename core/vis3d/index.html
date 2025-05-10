@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Data Visualizer</title>
+    <style>
+        body { margin: 0; font-family: Arial, sans-serif; overflow: hidden; }
+        #container { width: 100vw; height: 100vh; display: block; }
+        #controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.7);
+            padding: 15px;
+            border-radius: 5px;
+            color: white;
+        }
+        /* Default for most controls - keep them as blocks */
+        #controls > div > label, /* Target direct child labels of the wrapping div */
+        #controls select,
+        #controls input[type="range"] { /* Keep range slider as block */
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        /* Specific styling for checkboxes and their labels */
+        #controls input[type="checkbox"] {
+            display: inline-block;
+            vertical-align: middle; /* Align checkbox with text */
+            margin-right: 5px;     /* Add some space before the label */
+            margin-bottom: 8px;    /* Keep consistent bottom margin */
+        }
+        #controls input[type="checkbox"] + label { /* Target labels immediately following a checkbox */
+            display: inline-block;
+            vertical-align: middle;
+            margin-bottom: 8px;    /* Keep consistent bottom margin */
+        }
+
+        #controls input[type="range"] { /* Explicitly keep range slider as block, already covered but good for clarity */
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+<div id="container"></div>
+<div id="controls">
+    <div>
+        <label for="sliceAxis">Slice Axis:</label>
+        <select id="sliceAxis">
+            <option value="none">None (Show All)</option>
+            <option value="x">X-Axis</option>
+            <option value="y">Y-Axis</option>
+            <option value="z">Z-Axis</option>
+        </select>
+    </div>
+    <div>
+        <label for="sliceCoordinate">Slice Coordinate (<span id="sliceCoordValue">0</span>):</label>
+        <input type="range" id="sliceCoordinate" min="0" max="10" value="0" step="0.1">
+    </div>
+    <div>
+        <input type="checkbox" id="showSlicePlane" checked>
+        <label for="showSlicePlane">Show Slice Plane Helper</label>
+    </div>
+    <div>
+        <input type="checkbox" id="show2DProjection" checked>
+        <label for="show2DProjection">Show Slice as 2D Projection</label>
+    </div>
+</div>
+
+<script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+</script>
+<script type="module" src="app.js"></script>
+</body>
+</html>

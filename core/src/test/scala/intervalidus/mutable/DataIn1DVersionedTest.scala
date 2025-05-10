@@ -347,13 +347,13 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     val fixture = timeboundVersionedString(allData)
     val zoinks = validString("Zoinks!", interval(day(-30), day(0)))
     fixture.set(zoinks)(using VersionSelection.Unapproved)
-    // Visualize(fixture.underlying2D, 5000, "gets")
+    // Visualize2D(fixture.getDataIn2D, 5000, "gets")
 
     fixture.getAt(day(5)) shouldBe Some("Hello")
     fixture.getAt(day(15)) shouldBe Some("World")
     fixture.getAt(day(0)) shouldBe Some("Testing")
 
-    // Visualize(fixture.underlying2D, 15000, "before zoinks is approved")
+    // Visualize2D(fixture.getDataIn2D, 15000, "before zoinks is approved")
 
     fixture.incrementCurrentVersion()
     // fixture.approveAll(unbounded) // approves zoinks
@@ -361,7 +361,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     assert(!fixture.approve(zoinks)) // already approved
 
     fixture.remove(interval(day(-5), day(5)))(using VersionSelection.Unapproved)
-    // Visualize(fixture.underlying2D, 15000, "after zoinks approved, before remove is approved")
+    // Visualize2D(fixture.getDataIn2D, 15000, "after zoinks approved, before remove is approved")
 
     fixture.getAt(day(0)) shouldBe Some(zoinks.value)
     fixture.getIntersecting(interval(day(5), day(15))) should contain theSameElementsAs List(
@@ -371,7 +371,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
 
     fixture.incrementCurrentVersion()
     fixture.approveAll(unbounded) // approves the unapproved remove
-    // Visualize(fixture.underlying2D, 15000, "after remove is approved")
+    // Visualize2D(fixture.getDataIn2D, 15000, "after remove is approved")
 
     fixture.getAt(day(0)) shouldBe None
     fixture.getIntersecting(interval(day(5), day(15))) should contain theSameElementsAs List(

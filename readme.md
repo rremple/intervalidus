@@ -125,11 +125,15 @@ Here, the second time dimension is shown next to each valid value. Reading this 
 - From 6/28 and thereafter, the user was known to have the Premium tier effective only from 4/1 until 6/30.
 
 Since decoding the `toString` output of `DataIn2D` can get complicated as more intervals are present, there is a utility
-(in the test package) called `Visualize` that can assist with debugging and testing tasks. It uses 2D graphics to render
-the horizontal and vertical dimensions more clearly. For example, `Visualize(plan2d)` displays the following, which is a
+(in the test package) called `Visualize2D` that can help with debugging and testing tasks. It uses 2D graphics to render
+the horizontal and vertical dimensions more clearly. For example, `Visualize2D(plan2d)` displays the following, which is a
 bit easier to decipher:
 
 ![2D data visualization](/doc/intervalidus-visualize.png)
+
+(A similar `Visualize3D` is provided for visualizing 3D data. It is a [Three.js](https://threejs.org/) app -- 100% 
+vibe-coded using Gemini 2.5 Pro Preview 05-06 -- that renders the numerically boxed representation of data, allowing it
+to be rotated, sliced, and understood.)
 
 One might query this structure to find what the August forecast was at various sampled dates in
 the past (or future). For example, leveraging `plan2d` as a partial function (with an `unapply`):

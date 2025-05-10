@@ -106,7 +106,7 @@ trait DataIn2DMultiBaseObject extends DataIn2DConstructorParams:
   */
 // Base for all 2D multi-data, both mutable and immutable
 trait DataIn2DMultiBase[V, R1: DomainValueLike, R2: DomainValueLike] extends DataIn2DBase[Set[V], R1, R2]:
-  // from Object - use Visualize (in the test package) if you want something fancier
+  // from Object - use Visualize2D (in the test package) if you want something fancier
   override def toString: String = toStringGrid(
     dataToString = v => s"${v.value.map(_.toString).mkString("{", ",", "}")} ${v.interval.vertical}",
     dataToInterval = _.interval.horizontal,

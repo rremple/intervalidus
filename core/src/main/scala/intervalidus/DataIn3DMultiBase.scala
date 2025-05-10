@@ -119,7 +119,7 @@ trait DataIn3DMultiBaseObject extends DataIn3DConstructorParams:
 // Base for all 3D multi-data, both mutable and immutable
 trait DataIn3DMultiBase[V, R1: DomainValueLike, R2: DomainValueLike, R3: DomainValueLike]
   extends DataIn3DBase[Set[V], R1, R2, R3]:
-  // from Object - use Visualize (in the test package) if you want something fancier
+  // from Object - use Visualize3D (in the test package) if you want something fancier
   override def toString: String = toStringGrid(
     dataToString =
       v => s"${v.value.map(_.toString).mkString("{", ",", "}")} ${v.interval.vertical} x ${v.interval.depth}",

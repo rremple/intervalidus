@@ -44,7 +44,7 @@ object DataIn2DMulti extends DataIn2DMultiBaseObject:
   *
   * @note
   *   Visualizing two-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt
-  *   chart and there is a simple Visualize tool provided (in the test package... though maybe this should be its own
+  *   chart and there is a simple Visualize2D tool provided (in the test package... though maybe this should be its own
   *   separate subproject).
   *
   * @tparam V
