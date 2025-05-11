@@ -11,8 +11,6 @@ try {
     if (customTitle && customTitle.trim() !== '') {
         document.title = decodeURIComponent(customTitle.trim());
         //console.log(`Set page title to: "${document.title}"`);
-    } else {
-        //console.log("No custom title parameter found or it was empty. Using default title.");
     }
 } catch (error) {
     console.error("Error processing title URL parameter:", error);
@@ -22,9 +20,10 @@ let scene, camera, renderer, controls;
 let allVisualsGroup;
 let slicePlaneHelper;
 let dataBoxes = [];
-let sceneMinBounds, sceneMaxBounds, sceneSize; // Added sceneSize
+let sceneMinBounds, sceneMaxBounds, sceneSize;
 let projectionVisualsGroup;
-let axisVisualsGroup; // Group for AxesHelper and tick labels
+let axisVisualsGroup;
+let sliceAxisIntersectionDot;
 
 // --- UI Elements ---
 const sliceAxisSelect = document.getElementById('sliceAxis');
@@ -36,8 +35,9 @@ const show2DProjectionCheckbox = document.getElementById('show2DProjection');
 // --- Constants ---
 const LABEL_FONT_SIZE = 20;
 const PROJECTION_LABEL_FONT_SIZE = 18;
-const AXIS_TICK_LABEL_FONT_SIZE = 14; // Font size for axis tick labels
+const AXIS_TICK_LABEL_FONT_SIZE = 14;
 const AXIS_TICK_LABEL_COLOR = 'lightgray';
+const LINE_SPACING_FACTOR = 0.3;
 const LABEL_TEXT_COLOR = 'white';
 const LABEL_BG_COLOR = 'rgba(0, 0, 0, 0.6)';
 const BOX_HELPER_COLOR = 0x00ff00;
@@ -45,13 +45,15 @@ const PROJECTION_OUTLINE_COLOR = 0xffa500;
 const PROJECTION_TEXT_COLOR = 'black';
 const PROJECTION_TEXT_BG_COLOR = 'rgba(255, 165, 0, 0.7)';
 const SLICE_PLANE_VISIBILITY_OFFSET = 0.005;
-const AXIS_LABEL_OFFSET = 0.5; // How far axis labels are offset from the axis line
-const AXIS_TICK_LINE_LENGTH = 0.2; // Length of the small tick mark lines, scaled later
+const AXIS_LABEL_OFFSET = 0.5;
+const AXIS_TICK_LINE_BASE_LENGTH = 0.2;
 const AXIS_TICK_LINE_COLOR = 0xaaaaaa;
-const AXIS_TICK_LINE_BASE_LENGTH = 0.2; // Base length for tick marks
 
-const MIN_AXIS_LENGTH_FACTOR = 1.2; // Axes extend at least this factor beyond max data coord from origin
-const TARGET_TICKS_PER_AXIS_SIDE = 4; // Aim for roughly this many ticks on positive/negative side
+const MIN_AXIS_LENGTH_FACTOR = 1.2;
+const TARGET_TICKS_PER_AXIS_SIDE = 4;
+const SLICE_AXIS_DOT_SIZE = 1.0; // Relative to overall scene scale, adjust as needed
+const SLICE_AXIS_DOT_COLOR = 0xffffff; // White dot
+
 // --- Dragging State ---
 const raycaster = new THREE.Raycaster(); const mouse = new THREE.Vector2();
 let isDraggingSlicePlane = false; let dragPlane = new THREE.Plane();
@@ -67,14 +69,14 @@ function init() {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x222222);
 
-    defineDataBoxes(); // Calculates sceneMinBounds, sceneMaxBounds, sceneSize
+    defineDataBoxes();
 
     const center = new THREE.Vector3();
     new THREE.Box3(sceneMinBounds, sceneMaxBounds).getCenter(center);
     const maxDim = Math.max(sceneSize.x, sceneSize.y, sceneSize.z, 1);
 
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, Math.max(2000, maxDim * 5)); // Increased far plane
-    camera.position.set(center.x + maxDim * 1.1, center.y + maxDim * 1.1, center.z + maxDim * 1.8); // Adjusted camera pos
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, Math.max(2000, maxDim * 5));
+    camera.position.set(center.x + maxDim * 1.1, center.y + maxDim * 1.1, center.z + maxDim * 1.8);
     camera.lookAt(center);
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -116,7 +118,15 @@ function init() {
     scene.add(slicePlaneHelper);
     slicePlaneHelper.visible = false;
 
-    createAxisVisuals(); // Create axes helper and tick labels
+    // --- Create Slice Axis Intersection Dot ---
+    const dotGeometry = new THREE.SphereGeometry(SLICE_AXIS_DOT_SIZE, 16, 8); // Small sphere
+    const dotMaterial = new THREE.MeshBasicMaterial({ color: SLICE_AXIS_DOT_COLOR });
+    sliceAxisIntersectionDot = new THREE.Mesh(dotGeometry, dotMaterial);
+    sliceAxisIntersectionDot.visible = false; // Initially hidden
+    scene.add(sliceAxisIntersectionDot);
+    // --- End Dot Creation ---
+
+    createAxisVisuals();
 
     // Event Listeners
     sliceAxisSelect.addEventListener('change', () => { updateSliderRange(); updateSlice(); });
@@ -147,16 +157,18 @@ function defineDataBoxes() {
                 for (const item of parsedData) {
                     if (item && item.min && Array.isArray(item.min) && item.min.length === 3 &&
                         item.max && Array.isArray(item.max) && item.max.length === 3 &&
-                        typeof item.text === 'string') {
+                        (typeof item.text === 'string' || typeof item.text1 === 'string')
+                    ) {
                         validatedBoxes.push({
                             minBounds: new THREE.Vector3().fromArray(item.min),
                             maxBounds: new THREE.Vector3().fromArray(item.max),
-                            text: item.text
+                            text1: item.text1 || item.text || "",
+                            text2: item.text2 || ""
                         });
                     } else { console.warn("Invalid item in URL data:", item); }
                 }
                 if (validatedBoxes.length > 0) {
-                    dataBoxes = validatedBoxes; customDataProvided = true; //console.log("Loaded data from URL.");
+                    dataBoxes = validatedBoxes; customDataProvided = true; console.log("Loaded data from URL.");
                 } else { console.warn("URL data valid JSON but no valid boxes. Using default."); }
             } else { console.warn("URL data not valid array. Using default."); }
         }
@@ -165,12 +177,12 @@ function defineDataBoxes() {
     if (!customDataProvided) {
         //console.log("Using default data set.");
         dataBoxes = [
-            { minBounds: new THREE.Vector3(0,0,0), maxBounds: new THREE.Vector3(5,5,5), text: "Hello gyp" },
-            { minBounds: new THREE.Vector3(5,0,0), maxBounds: new THREE.Vector3(10,5,5), text: "World qjp" },
-            { minBounds: new THREE.Vector3(2,6,2), maxBounds: new THREE.Vector3(8,10,8), text: "3D Data XYZ" },
-            { minBounds: new THREE.Vector3(-5,-5,-2), maxBounds: new THREE.Vector3(0,0,3), text: "Zone Alpha" },
-            { minBounds: new THREE.Vector3(6,-4,1), maxBounds: new THREE.Vector3(9,-1,4), text: "Region Beta" },
-            { minBounds: new THREE.Vector3(3,3,-3), maxBounds: new THREE.Vector3(7,7,2), text: "Slice Me!" }
+            { minBounds: new THREE.Vector3(0,0,0), maxBounds: new THREE.Vector3(5,5,5), text1: "Hello gyp", text2: "Main Zone" },
+            { minBounds: new THREE.Vector3(5,0,0), maxBounds: new THREE.Vector3(10,5,5), text1: "World qjp", text2: "(Part A)" },
+            { minBounds: new THREE.Vector3(2,6,2), maxBounds: new THREE.Vector3(8,10,8), text1: "3D Data XYZ" },
+            { minBounds: new THREE.Vector3(-5,-5,-2), maxBounds: new THREE.Vector3(0,0,3), text1: "Zone Alpha", text2: "ID: ZA-001" },
+            { minBounds: new THREE.Vector3(6,-4,1), maxBounds: new THREE.Vector3(9,-1,4), text1: "Region Beta"},
+            { minBounds: new THREE.Vector3(3,3,-3), maxBounds: new THREE.Vector3(7,7,2), text1: "Slice Me!", text2: "Layer 1" }
         ];
     }
 
@@ -181,7 +193,7 @@ function defineDataBoxes() {
     } else {
         console.warn("No data boxes. Setting default bounds.");
         sceneMinBounds.set(-1,-1,-1); sceneMaxBounds.set(1,1,1);
-        dataBoxes.push({ minBounds: new THREE.Vector3(-0.5,-0.5,-0.5), maxBounds: new THREE.Vector3(0.5,0.5,0.5), text: "No Data" });
+        dataBoxes.push({ minBounds: new THREE.Vector3(-0.5,-0.5,-0.5), maxBounds: new THREE.Vector3(0.5,0.5,0.5), text1: "No Data", text2:"" });
         sceneMinBounds.min(dataBoxes[0].minBounds); sceneMaxBounds.max(dataBoxes[0].maxBounds);
     }
     // Calculate overall size of the data bounding box
@@ -189,12 +201,35 @@ function defineDataBoxes() {
 }
 
 // --- Visualization Creation ---
-function createTextLabel(text, position, fontSize = LABEL_FONT_SIZE, textColor = LABEL_TEXT_COLOR, bgColor = null, textScaleFactor = 1.0, bold = true) { // Added bold param, default bgColor to null
+function createTextLabel(
+    textLine1, textLine2, position,
+    fontSize = LABEL_FONT_SIZE, textColor = LABEL_TEXT_COLOR, bgColor = null,
+    textScaleFactor = 1.0, bold = true
+) {
     const canvas = document.createElement('canvas'); const context = canvas.getContext('2d');
     const fontWeight = bold ? 'Bold ' : '';
-    context.font = `${fontWeight}${fontSize}px Arial`; const textMetrics = context.measureText(text);
-    const textWidth = textMetrics.width; const vPad = fontSize * 0.4; const hPad = fontSize * (bgColor ? 0.3 : 0); // No horizontal padding if no BG
-    canvas.width = Math.ceil(textWidth + hPad * 2); canvas.height = Math.ceil(fontSize + vPad * 2);
+    context.font = `${fontWeight}${fontSize}px Arial`;
+
+    const lines = [];
+    if (textLine1 && String(textLine1).trim() !== "") lines.push(String(textLine1).trim()); // Ensure string conversion
+    if (textLine2 && String(textLine2).trim() !== "") lines.push(String(textLine2).trim());
+    if (lines.length === 0) lines.push(" "); // Default to a space if no text
+
+    let maxWidth = 0;
+    lines.forEach(line => {
+        const metrics = context.measureText(line);
+        if (metrics.width > maxWidth) maxWidth = metrics.width;
+    });
+
+    const lineHeight = fontSize;
+    const lineSpacing = lineHeight * LINE_SPACING_FACTOR;
+    const totalTextHeight = (lines.length * lineHeight) + (Math.max(0, lines.length - 1) * lineSpacing);
+    const verticalPadding = fontSize * 0.4;
+    const horizontalPadding = fontSize * (bgColor ? 0.3 : 0.05);
+
+    canvas.width = Math.ceil(maxWidth + horizontalPadding * 2);
+    canvas.height = Math.ceil(totalTextHeight + verticalPadding * 2);
+
     if (bgColor) { // Only draw background if bgColor is provided
         context.fillStyle = bgColor; context.beginPath(); const r = fontSize / 2.5;
         context.moveTo(r, 0); context.lineTo(canvas.width - r, 0); context.quadraticCurveTo(canvas.width, 0, canvas.width, r);
@@ -202,27 +237,47 @@ function createTextLabel(text, position, fontSize = LABEL_FONT_SIZE, textColor =
         context.lineTo(r, canvas.height); context.quadraticCurveTo(0, canvas.height, 0, canvas.height - r);
         context.lineTo(0, r); context.quadraticCurveTo(0, 0, r, 0); context.closePath(); context.fill();
     }
-    context.font = `${fontWeight}${fontSize}px Arial`; context.fillStyle = textColor; context.textAlign = 'center';
-    context.textBaseline = 'middle'; context.fillText(text, canvas.width / 2, canvas.height / 2);
+
+    context.font = `${fontWeight}${fontSize}px Arial`;
+    context.fillStyle = textColor;
+    context.textAlign = 'center';
+    context.textBaseline = 'middle'; // Crucial for vertical centering
+
+    let startY = canvas.height / 2 - totalTextHeight / 2 + lineHeight / 2; // Center the whole block
+
+    lines.forEach((line, index) => {
+        const yPos = startY + index * (lineHeight + lineSpacing);
+        context.fillText(line, canvas.width / 2, yPos);
+    });
+
     const texture = new THREE.CanvasTexture(canvas); texture.needsUpdate = true;
     const material = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: true, depthWrite: true, sizeAttenuation: true });
     const sprite = new THREE.Sprite(material);
-    const spriteH = 0.6 * textScaleFactor * (fontSize / LABEL_FONT_SIZE); // Scale sprite height a bit based on font size
+    // Adjust sprite height scale: base on font size, scale factor, and slightly more if two lines
+    const baseSpriteHeight = 0.6 * (fontSize / LABEL_FONT_SIZE);
+    const multiLineFactor = lines.length > 1 ? 1.4 : 1.0; // Increase height more for 2 lines
+    const spriteH = baseSpriteHeight * textScaleFactor * multiLineFactor;
+
     sprite.scale.set((spriteH * canvas.width) / canvas.height, spriteH, 1);
-    sprite.position.copy(position); return sprite;
+    sprite.position.copy(position);
+    return sprite;
 }
+
 function createBoxVisual(boxData) {
     const group = new THREE.Group(); group.userData.boxData = boxData;
     const box3 = new THREE.Box3(boxData.minBounds, boxData.maxBounds);
     const boxHelper = new THREE.Box3Helper(box3, BOX_HELPER_COLOR); group.add(boxHelper);
     const center = new THREE.Vector3(); box3.getCenter(center);
-    const label = createTextLabel(boxData.text, center, LABEL_FONT_SIZE, LABEL_TEXT_COLOR, LABEL_BG_COLOR, 1.0);
+    const label = createTextLabel(
+        boxData.text1, boxData.text2, center,
+        LABEL_FONT_SIZE, LABEL_TEXT_COLOR, LABEL_BG_COLOR, 1.0, true
+    );
     group.add(label); return group;
 }
 
 // Helper function to calculate "nice" step for axis ticks
 function getNiceTickStep(maxValue) {
-    if (maxValue === 0) return 1; // Default step if range is zero
+    if (maxValue <= 0) return 1; // Handle non-positive max value gracefully
     const exponent = Math.floor(Math.log10(maxValue));
     const significand = maxValue / Math.pow(10, exponent);
 
@@ -236,7 +291,7 @@ function getNiceTickStep(maxValue) {
     let step = (niceSignificand * Math.pow(10, exponent)) / TARGET_TICKS_PER_AXIS_SIDE;
 
     // Further refine step to be a "nicer" number (e.g. 1, 2, 5, 10, 20, 50 ...)
-    const stepExponent = Math.floor(Math.log10(step));
+    const stepExponent = Math.floor(Math.log10(Math.max(step, 0.00001))); // Avoid log(0)
     const stepSignificand = step / Math.pow(10, stepExponent);
 
     if (stepSignificand > 5) step = 10 * Math.pow(10, stepExponent);
@@ -250,18 +305,13 @@ function getNiceTickStep(maxValue) {
 function createAxisVisuals() {
     if (axisVisualsGroup) {
         while (axisVisualsGroup.children.length > 0) {
-            const child = axisVisualsGroup.children[0];
-            axisVisualsGroup.remove(child);
+            const child = axisVisualsGroup.children[0]; axisVisualsGroup.remove(child);
             if (child.geometry) child.geometry.dispose();
-            if (child.material) {
-                if (child.material.map) child.material.map.dispose();
-                child.material.dispose();
-            }
+            if (child.material) { if (child.material.map) child.material.map.dispose(); child.material.dispose(); }
         }
         scene.remove(axisVisualsGroup);
     }
-    axisVisualsGroup = new THREE.Group();
-    axisVisualsGroup.name = "AxisVisuals";
+    axisVisualsGroup = new THREE.Group(); axisVisualsGroup.name = "AxisVisuals";
 
     const defaultVisualExtent = 5; // Minimum visual length for an axis segment from origin if data is small
 
@@ -270,56 +320,36 @@ function createAxisVisuals() {
     const yAxisMat = new THREE.LineBasicMaterial({ color: 0x008f00 });
     const zAxisMat = new THREE.LineBasicMaterial({ color: 0x0000ff });
 
-    let visualStartX, visualEndX;
-    if (sceneMinBounds.x === 0 && sceneMaxBounds.x === 0) { // Data is exactly at X=0
-        visualStartX = -defaultVisualExtent;
-        visualEndX = defaultVisualExtent;
-    } else {
-        visualStartX = (sceneMinBounds.x < 0) ? -Math.max(Math.abs(sceneMinBounds.x) * MIN_AXIS_LENGTH_FACTOR, defaultVisualExtent) : 0;
-        visualEndX = (sceneMaxBounds.x > 0) ? Math.max(sceneMaxBounds.x * MIN_AXIS_LENGTH_FACTOR, defaultVisualExtent) : 0;
-        // Ensure at least defaultVisualExtent if data is one-sided and small
-        if (sceneMinBounds.x >= 0 && sceneMaxBounds.x > 0 && visualEndX < defaultVisualExtent) visualEndX = defaultVisualExtent;
-        if (sceneMaxBounds.x <= 0 && sceneMinBounds.x < 0 && Math.abs(visualStartX) < defaultVisualExtent) visualStartX = -defaultVisualExtent;
-    }
-    if (visualStartX !== visualEndX) { // Only draw if there's a length
-         axisVisualsGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(visualStartX, 0, 0), new THREE.Vector3(visualEndX, 0, 0)]), xAxisMat));
-    }
-
-
-    let visualStartY, visualEndY;
-    if (sceneMinBounds.y === 0 && sceneMaxBounds.y === 0) {
-        visualStartY = -defaultVisualExtent;
-        visualEndY = defaultVisualExtent;
-    } else {
-        visualStartY = (sceneMinBounds.y < 0) ? -Math.max(Math.abs(sceneMinBounds.y) * MIN_AXIS_LENGTH_FACTOR, defaultVisualExtent) : 0;
-        visualEndY = (sceneMaxBounds.y > 0) ? Math.max(sceneMaxBounds.y * MIN_AXIS_LENGTH_FACTOR, defaultVisualExtent) : 0;
-        if (sceneMinBounds.y >= 0 && sceneMaxBounds.y > 0 && visualEndY < defaultVisualExtent) visualEndY = defaultVisualExtent;
-        if (sceneMaxBounds.y <= 0 && sceneMinBounds.y < 0 && Math.abs(visualStartY) < defaultVisualExtent) visualStartY = -defaultVisualExtent;
-    }
-    if (visualStartY !== visualEndY) {
-        axisVisualsGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, visualStartY, 0), new THREE.Vector3(0, visualEndY, 0)]), yAxisMat));
+    function calculateVisualRange(dataMin, dataMax) {
+        let visualMin = 0, visualMax = 0;
+        if (dataMin === 0 && dataMax === 0) {
+            visualMin = -defaultVisualExtent; visualMax = defaultVisualExtent;
+        } else {
+            visualMin = (dataMin < 0) ? -Math.max(Math.abs(dataMin) * MIN_AXIS_LENGTH_FACTOR, defaultVisualExtent) : 0;
+            visualMax = (dataMax > 0) ? Math.max(dataMax * MIN_AXIS_LENGTH_FACTOR, defaultVisualExtent) : 0;
+            if (dataMin >= 0 && dataMax > 0 && visualMax < defaultVisualExtent && visualMin === 0) visualMax = defaultVisualExtent;
+            if (dataMax <= 0 && dataMin < 0 && Math.abs(visualMin) < defaultVisualExtent && visualMax === 0) visualMin = -defaultVisualExtent;
+            // If one side is 0 and the other is not, ensure the 0 side remains 0 unless data is exactly at 0
+            if (dataMin === 0 && dataMax > 0) visualMin = 0;
+            if (dataMax === 0 && dataMin < 0) visualMax = 0;
+        }
+        return { visualMin, visualMax };
     }
 
-    let visualStartZ, visualEndZ;
-    if (sceneMinBounds.z === 0 && sceneMaxBounds.z === 0) {
-        visualStartZ = -defaultVisualExtent;
-        visualEndZ = defaultVisualExtent;
-    } else {
-        visualStartZ = (sceneMinBounds.z < 0) ? -Math.max(Math.abs(sceneMinBounds.z) * MIN_AXIS_LENGTH_FACTOR, defaultVisualExtent) : 0;
-        visualEndZ = (sceneMaxBounds.z > 0) ? Math.max(sceneMaxBounds.z * MIN_AXIS_LENGTH_FACTOR, defaultVisualExtent) : 0;
-        if (sceneMinBounds.z >= 0 && sceneMaxBounds.z > 0 && visualEndZ < defaultVisualExtent) visualEndZ = defaultVisualExtent;
-        if (sceneMaxBounds.z <= 0 && sceneMinBounds.z < 0 && Math.abs(visualStartZ) < defaultVisualExtent) visualStartZ = -defaultVisualExtent;
-    }
-    if (visualStartZ !== visualEndZ) {
-        axisVisualsGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, visualStartZ), new THREE.Vector3(0, 0, visualEndZ)]), zAxisMat));
-    }
+    const rangeX = calculateVisualRange(sceneMinBounds.x, sceneMaxBounds.x);
+    if (rangeX.visualMin !== rangeX.visualMax) axisVisualsGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(rangeX.visualMin,0,0), new THREE.Vector3(rangeX.visualMax,0,0)]), xAxisMat));
 
-    // --- Ticks and Labels ---
-    // Use the largest absolute visual extent for determining a common tick step
+    const rangeY = calculateVisualRange(sceneMinBounds.y, sceneMaxBounds.y);
+    if (rangeY.visualMin !== rangeY.visualMax) axisVisualsGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,rangeY.visualMin,0), new THREE.Vector3(0,rangeY.visualMax,0)]), yAxisMat));
+
+    const rangeZ = calculateVisualRange(sceneMinBounds.z, sceneMaxBounds.z);
+    if (rangeZ.visualMin !== rangeZ.visualMax) axisVisualsGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,rangeZ.visualMin), new THREE.Vector3(0,0,rangeZ.visualMax)]), zAxisMat));
+
+
     const maxVisualExtentForStep = Math.max(
-        Math.abs(visualStartX), Math.abs(visualEndX),
-        Math.abs(visualStartY), Math.abs(visualEndY),
-        Math.abs(visualStartZ), Math.abs(visualEndZ),
+        Math.abs(rangeX.visualMin), Math.abs(rangeX.visualMax),
+        Math.abs(rangeY.visualMin), Math.abs(rangeY.visualMax),
+        Math.abs(rangeZ.visualMin), Math.abs(rangeZ.visualMax),
         defaultVisualExtent // Ensure a minimum step basis if all extents are tiny
     );
     const tickStep = getNiceTickStep(maxVisualExtentForStep / TARGET_TICKS_PER_AXIS_SIDE);
@@ -330,32 +360,22 @@ function createAxisVisuals() {
     function addTicks(axisChar, visualMin, visualMax, color) {
         if (tickStep === 0 || visualMin === visualMax) return; // No ticks if no step or no length
 
-        // Iterate from visualMin up to visualMax, generating ticks
-        // Start iteration from the first multiple of tickStep at or after visualMin
-        // or at or before visualMax for the negative direction.
-
-        // Ticks from 0 towards visualMax (positive or less negative direction)
+        // Positive Ticks (including 0 if in range [visualMin, visualMax])
         for (let val = 0; ; val += tickStep) {
-            if (val > visualMax && val !== 0) break; // Stop if beyond visualMax, unless val is 0 and visualMax is negative
-            if (val < visualMin && val !== 0) { // If 0 is beyond visualMin, start from next tick
-                 if (val + tickStep > visualMin) { /* allow if next step is in range */ } else {
-                    if (tickStep === 0) break;
-                    continue;
-                 }
+            if (val > visualMax + tickStep * 0.01) break; // Stop if clearly beyond visualMax
+            if (val < visualMin - tickStep * 0.01 && val !== 0) { // If 0 is beyond visualMin, this val is not needed
+                 if (tickStep === 0) break; continue;
             }
 
-
-            const tickPos = new THREE.Vector3();
-            tickPos[axisChar] = val;
-
-            // Tick Lines
-            if (axisChar === 'x') {
+            // Draw tick and label for val
+            const tickPos = new THREE.Vector3(); tickPos[axisChar] = val;
+            if (axisChar === 'x') { /* ... tick lines ... */
                 axisVisualsGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(val, -scaledTickLineLength/2, 0), new THREE.Vector3(val, scaledTickLineLength/2, 0)]), tickLineMaterial));
                 axisVisualsGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(val, 0, -scaledTickLineLength/2), new THREE.Vector3(val, 0, scaledTickLineLength/2)]), tickLineMaterial));
-            } else if (axisChar === 'y') {
+            } else if (axisChar === 'y') { /* ... tick lines ... */
                 axisVisualsGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-scaledTickLineLength/2, val, 0), new THREE.Vector3(scaledTickLineLength/2, val, 0)]), tickLineMaterial));
                 axisVisualsGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, val, -scaledTickLineLength/2), new THREE.Vector3(0, val, scaledTickLineLength/2)]), tickLineMaterial));
-            } else {
+            } else { /* ... tick lines ... */
                 axisVisualsGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-scaledTickLineLength/2, 0, val), new THREE.Vector3(scaledTickLineLength/2, 0, val)]), tickLineMaterial));
                 axisVisualsGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, -scaledTickLineLength/2, val), new THREE.Vector3(0, scaledTickLineLength/2, val)]), tickLineMaterial));
             }
@@ -364,37 +384,30 @@ function createAxisVisuals() {
             if (axisChar === 'x') { labelPos.y -= tickLabelOffsetFromLine; labelPos.z -= tickLabelOffsetFromLine; }
             else if (axisChar === 'y') { labelPos.x -= tickLabelOffsetFromLine; labelPos.z -= tickLabelOffsetFromLine; }
             else { labelPos.x -= tickLabelOffsetFromLine; labelPos.y -= tickLabelOffsetFromLine; }
+            if (val === 0 && axisChar !== 'x') {}
+            else axisVisualsGroup.add(createTextLabel(String(val), null, labelPos, AXIS_TICK_LABEL_FONT_SIZE, AXIS_TICK_LABEL_COLOR, null, 1.0, false));
 
-            if (val === 0 && axisChar !== 'x') { /* Only X draws '0' */ }
-            else {
-                axisVisualsGroup.add(createTextLabel(String(val), labelPos, AXIS_TICK_LABEL_FONT_SIZE, AXIS_TICK_LABEL_COLOR, null, 1.0, false));
-            }
-            if (val === 0 && visualMax === 0 && visualMin === 0) break; // Only origin point
-            if (val === visualMax) break; // Reached the end
-            if (tickStep === 0) break;
-            if (val > visualMax && val !== 0) break; // Ensure termination if overshoot
+            if (val === 0 && visualMax === 0 && visualMin === 0) break;
+            if (val >= visualMax && val !==0) break; // Stop if we've reached or passed visualMax (and not at origin)
+             if (tickStep === 0) break;
         }
 
-        // Ticks from -tickStep towards visualMin (negative direction)
+        // Negative Ticks (excluding 0, as it's handled by positive loop)
         for (let val = -tickStep; ; val -= tickStep) {
-            if (val < visualMin && val !== 0 ) break; // Stop if beyond visualMin
-            if (val > visualMax && val !== 0) { // If -0 is beyond visualMax (e.g. visualMax is -10)
-                if (val - tickStep < visualMax) { /* allow */ } else {
-                    if (tickStep === 0) break;
-                    continue;
-                }
+            if (val < visualMin - tickStep * 0.01) break; // Stop if clearly beyond visualMin
+            if (val > visualMax + tickStep * 0.01) { // If -tickStep is beyond visualMax (e.g. visualMax is very negative)
+                 if (tickStep === 0) break; continue;
             }
 
-            const tickPos = new THREE.Vector3();
-            tickPos[axisChar] = val;
-            // Tick Lines
-             if (axisChar === 'x') {
+            const tickPos = new THREE.Vector3(); tickPos[axisChar] = val;
+            // Draw tick and label for val
+            if (axisChar === 'x') { /* ... tick lines ... */
                 axisVisualsGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(val, -scaledTickLineLength/2, 0), new THREE.Vector3(val, scaledTickLineLength/2, 0)]), tickLineMaterial));
                 axisVisualsGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(val, 0, -scaledTickLineLength/2), new THREE.Vector3(val, 0, scaledTickLineLength/2)]), tickLineMaterial));
-            } else if (axisChar === 'y') {
+            } else if (axisChar === 'y') { /* ... tick lines ... */
                 axisVisualsGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-scaledTickLineLength/2, val, 0), new THREE.Vector3(scaledTickLineLength/2, val, 0)]), tickLineMaterial));
                 axisVisualsGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, val, -scaledTickLineLength/2), new THREE.Vector3(0, val, scaledTickLineLength/2)]), tickLineMaterial));
-            } else {
+            } else { /* ... tick lines ... */
                 axisVisualsGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-scaledTickLineLength/2, 0, val), new THREE.Vector3(scaledTickLineLength/2, 0, val)]), tickLineMaterial));
                 axisVisualsGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, -scaledTickLineLength/2, val), new THREE.Vector3(0, scaledTickLineLength/2, val)]), tickLineMaterial));
             }
@@ -403,25 +416,25 @@ function createAxisVisuals() {
             if (axisChar === 'x') { labelPos.y -= tickLabelOffsetFromLine; labelPos.z -= tickLabelOffsetFromLine; }
             else if (axisChar === 'y') { labelPos.x -= tickLabelOffsetFromLine; labelPos.z -= tickLabelOffsetFromLine; }
             else { labelPos.x -= tickLabelOffsetFromLine; labelPos.y -= tickLabelOffsetFromLine; }
-            axisVisualsGroup.add(createTextLabel(String(val), labelPos, AXIS_TICK_LABEL_FONT_SIZE, AXIS_TICK_LABEL_COLOR, null, 1.0, false));
+            axisVisualsGroup.add(createTextLabel(String(val), null, labelPos, AXIS_TICK_LABEL_FONT_SIZE, AXIS_TICK_LABEL_COLOR, null, 1.0, false));
 
-            if (val === visualMin) break; // Reached the end
+            if (val === 0 && visualMax === 0 && visualMin === 0) break;
+            if (val <= visualMin && val !== 0) break; // Stop if we've reached or passed visualMin (and not at origin)
             if (tickStep === 0) break;
-            if (val < visualMin && val !==0) break; // Ensure termination
         }
 
         // Axis Name Label (X, Y, Z)
         const axisNameLabelPos = new THREE.Vector3();
         // Position name label at the positive extent of THIS axis's *actual drawn line* (visualMax)
         // If visualMax is 0 (e.g. data only negative), use defaultVisualExtent for label position
-        const labelEndPos = (visualMax === 0 && visualMin < 0) ? defaultVisualExtent : visualMax;
+        const labelEndPos = (visualMax === 0 && visualMin < 0) ? Math.max(defaultVisualExtent, Math.abs(visualMin)) : visualMax; // Ensure label is at a visible positive end
         axisNameLabelPos[axisChar] = labelEndPos + tickLabelOffsetFromLine * 1.5;
-        axisVisualsGroup.add(createTextLabel(axisChar.toUpperCase(), axisNameLabelPos, AXIS_TICK_LABEL_FONT_SIZE * 1.2, color, null, 1.2, true));
+        axisVisualsGroup.add(createTextLabel(axisChar.toUpperCase(), null, axisNameLabelPos, AXIS_TICK_LABEL_FONT_SIZE * 1.2, color, null, 1.2, true));
     }
 
-    addTicks('x', visualStartX, visualEndX, new THREE.Color(0xff0000));
-    addTicks('y', visualStartY, visualEndY, new THREE.Color(0x00ff00));
-    addTicks('z', visualStartZ, visualEndZ, new THREE.Color(0x0000ff));
+    addTicks('x', rangeX.visualMin, rangeX.visualMax, new THREE.Color(0xff0000));
+    addTicks('y', rangeY.visualMin, rangeY.visualMax, new THREE.Color(0x00ff00));
+    addTicks('z', rangeZ.visualMin, rangeZ.visualMax, new THREE.Color(0x0000ff));
 
     scene.add(axisVisualsGroup);
 }
@@ -453,6 +466,7 @@ function updateSlice() {
     updateSlicePlaneHelper(axis, coord);
     projectionVisualsGroup.visible = do2DProjection;
 }
+
 function clearProjectionVisuals() {
     while (projectionVisualsGroup.children.length > 0) {
         const child = projectionVisualsGroup.children[0]; projectionVisualsGroup.remove(child);
@@ -460,6 +474,7 @@ function clearProjectionVisuals() {
         if (child.material) { if (child.material.map) child.material.map.dispose(); child.material.dispose(); }
     }
 }
+
 function create2DProjection(boxData, axis, sliceCoord) {
     let projMin = new THREE.Vector2(), projMax = new THREE.Vector2();
     let textPos3D = new THREE.Vector3(), outlinePoints = [];
@@ -481,33 +496,72 @@ function create2DProjection(boxData, axis, sliceCoord) {
     const outlineMat = new THREE.LineBasicMaterial({ color: PROJECTION_OUTLINE_COLOR, linewidth: 2, transparent: true, opacity: 0.8 });
     const outline = new THREE.LineLoop(outlineGeom, outlineMat);
     outline.position[axis] += SLICE_PLANE_VISIBILITY_OFFSET; projectionVisualsGroup.add(outline);
-    const labelPos = textPos3D.clone(); labelPos[axis] += SLICE_PLANE_VISIBILITY_OFFSET * 2;
-    const projLabel = createTextLabel(boxData.text, labelPos, PROJECTION_LABEL_FONT_SIZE, PROJECTION_TEXT_COLOR, PROJECTION_TEXT_BG_COLOR, 0.8);
+    const labelPosition = textPos3D.clone(); labelPosition[axis] += SLICE_PLANE_VISIBILITY_OFFSET * 2;
+    const projLabel = createTextLabel(
+        boxData.text1, boxData.text2, labelPosition,
+        PROJECTION_LABEL_FONT_SIZE, PROJECTION_TEXT_COLOR, PROJECTION_TEXT_BG_COLOR, 0.8, true
+    );
     projLabel.renderOrder = 1; projectionVisualsGroup.add(projLabel);
 }
+
 function updateSlicePlaneHelper(axis, coord) {
     let isHelperVisible = showSlicePlaneCheckbox.checked && axis !== 'none';
-    if (show2DProjectionCheckbox.checked && axis !== 'none') isHelperVisible = true;
-    slicePlaneHelper.visible = isHelperVisible; if (!isHelperVisible) return;
+    if (show2DProjectionCheckbox.checked && axis !== 'none') {
+        isHelperVisible = true;
+    }
+    slicePlaneHelper.visible = isHelperVisible;
+
+    // --- Update Slice Axis Intersection Dot ---
+    if (isHelperVisible && axis !== 'none') {
+        sliceAxisIntersectionDot.visible = true;
+        const dotPosition = new THREE.Vector3(0, 0, 0); // Start at origin
+        dotPosition[axis] = coord; // Set the coordinate along the slice axis
+        sliceAxisIntersectionDot.position.copy(dotPosition);
+
+        // Scale dot size based on distance to camera to maintain somewhat constant screen size
+        // This is a simple heuristic; more robust methods exist.
+        const distance = camera.position.distanceTo(dotPosition);
+        const scale = distance / 200; // Adjust divisor for desired screen size effect
+        sliceAxisIntersectionDot.scale.set(scale, scale, scale);
+
+    } else {
+        sliceAxisIntersectionDot.visible = false;
+    }
+    // --- End Dot Update ---
+
+
+    if (!isHelperVisible) return; // If helper plane isn't visible, nothing more to do
+
     const overallSize = new THREE.Vector3(); new THREE.Box3(sceneMinBounds, sceneMaxBounds).getSize(overallSize);
     const overallCenter = new THREE.Vector3(); new THREE.Box3(sceneMinBounds, sceneMaxBounds).getCenter(overallCenter);
-    slicePlaneHelper.rotation.set(0,0,0); slicePlaneHelper.position.copy(overallCenter);
+
+    slicePlaneHelper.rotation.set(0,0,0);
+    // The slice plane helper's position IS the coordinate along the axis,
+    // but its geometry is centered, so we offset its geometry's center.
+    // For simplicity, we set its position and let its geometry extend.
+
     if (slicePlaneHelper.geometry) slicePlaneHelper.geometry.dispose();
-    let pw = 1, ph = 1;
+
+    let planeWidth = 1, planeHeight = 1;
+    const planeCenterOffset = new THREE.Vector3(0,0,0); // Used to keep geometry centered for rotation
+
     if (axis === 'x') {
-        pw = Math.max(1, overallSize.y); ph = Math.max(1, overallSize.z);
-        slicePlaneHelper.geometry = new THREE.PlaneGeometry(pw * 1.05, ph * 1.05);
-        slicePlaneHelper.rotation.y = Math.PI / 2; slicePlaneHelper.position.set(coord, overallCenter.y, overallCenter.z);
+        planeWidth = Math.max(1, overallSize.y); planeHeight = Math.max(1, overallSize.z);
+        slicePlaneHelper.geometry = new THREE.PlaneGeometry(planeWidth * 1.05, planeHeight * 1.05);
+        slicePlaneHelper.rotation.y = Math.PI / 2;
+        slicePlaneHelper.position.set(coord, overallCenter.y, overallCenter.z);
     } else if (axis === 'y') {
-        pw = Math.max(1, overallSize.x); ph = Math.max(1, overallSize.z);
-        slicePlaneHelper.geometry = new THREE.PlaneGeometry(pw * 1.05, ph * 1.05);
-        slicePlaneHelper.rotation.x = Math.PI / 2; slicePlaneHelper.position.set(overallCenter.x, coord, overallCenter.z);
+        planeWidth = Math.max(1, overallSize.x); planeHeight = Math.max(1, overallSize.z);
+        slicePlaneHelper.geometry = new THREE.PlaneGeometry(planeWidth * 1.05, planeHeight * 1.05);
+        slicePlaneHelper.rotation.x = Math.PI / 2;
+        slicePlaneHelper.position.set(overallCenter.x, coord, overallCenter.z);
     } else if (axis === 'z') {
-        pw = Math.max(1, overallSize.x); ph = Math.max(1, overallSize.y);
-        slicePlaneHelper.geometry = new THREE.PlaneGeometry(pw * 1.05, ph * 1.05);
+        planeWidth = Math.max(1, overallSize.x); planeHeight = Math.max(1, overallSize.y);
+        slicePlaneHelper.geometry = new THREE.PlaneGeometry(planeWidth * 1.05, planeHeight * 1.05);
         slicePlaneHelper.position.set(overallCenter.x, overallCenter.y, coord);
     }
 }
+
 function updateSliderRange() {
     const axis = sliceAxisSelect.value; let minVal = 0, maxVal = 0, step = 0.1;
     if (dataBoxes.length > 0 && axis !== 'none') {
@@ -517,7 +571,7 @@ function updateSliderRange() {
         step = (maxVal - minVal === 0) ? 0.1 : Math.max(0.001, (maxVal - minVal) / 200);
     } else { minVal = 0; maxVal = 1; step = 0.1; }
     sliceCoordinateSlider.min = minVal; sliceCoordinateSlider.max = maxVal; sliceCoordinateSlider.step = step;
-    if (axis === 'none' || (maxVal === minVal && minVal === 0 && maxVal === 0 )) {
+    if (axis === 'none' || (minVal === 0 && maxVal === 0 && step === 0.1) ) { // Simpler check for disabled state
         sliceCoordinateSlider.disabled = true; sliceCoordinateSlider.value = minVal;
     } else {
         sliceCoordinateSlider.disabled = false; const currentVal = parseFloat(sliceCoordinateSlider.value);
@@ -528,7 +582,7 @@ function updateSliderRange() {
 
 // --- Mouse Dragging Logic ---
 function onDocumentMouseDown(event) {
-    event.preventDefault(); mouse.x = (event.clientX / window.innerWidth) * 2 - 1; mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    event.preventDefault(); mouse.x = (event.clientX/window.innerWidth)*2-1; mouse.y = -(event.clientY/window.innerHeight)*2+1;
     raycaster.setFromCamera(mouse, camera); const currentSliceAxis = sliceAxisSelect.value;
     if (currentSliceAxis === 'none' || !slicePlaneHelper.visible) return;
     const intersects = raycaster.intersectObject(slicePlaneHelper, false);
@@ -557,13 +611,14 @@ function onDocumentMouseMove(event) {
         else if (dragActiveAxis === 'y') { min = sceneMinBounds.y; max = sceneMaxBounds.y; }
         else if (dragActiveAxis === 'z') { min = sceneMinBounds.z; max = sceneMaxBounds.z; }
         newCoord = Math.max(min, Math.min(max, newCoord));
-        if (Math.abs(parseFloat(sliceCoordinateSlider.value) - newCoord) > (parseFloat(sliceCoordinateSlider.step) / 2) || sliceCoordinateSlider.value == min || sliceCoordinateSlider.value == max) {
-            sliceCoordinateSlider.value = newCoord.toFixed(Math.max(2, (sliceCoordinateSlider.step.split('.')[1] || '').length));
+        const sliderStepVal = parseFloat(sliceCoordinateSlider.step);
+        if (Math.abs(parseFloat(sliceCoordinateSlider.value) - newCoord) > sliderStepVal / 2 || sliceCoordinateSlider.value == min || sliceCoordinateSlider.value == max) {
+            sliceCoordinateSlider.value = newCoord.toFixed(Math.max(2, (String(sliderStepVal).split('.')[1] || '').length));
             updateSlice();
         }
     }
 }
-function onDocumentMouseUp(event) {
+function onDocumentMouseUp() {
     if (isDraggingSlicePlane) {
         isDraggingSlicePlane = false; controls.enabled = true;
         renderer.domElement.style.cursor = (sliceAxisSelect.value !== 'none' && slicePlaneHelper.visible) ? 'grab' : 'default';

@@ -54,7 +54,8 @@ object Visualize3D:
       val dataParameters = validData.map: d =>
         val box = d.interval.asBox
         val (minParam, maxParam) = (box.minPoint.toUrlFragment(clipWithin), box.maxPoint.toUrlFragment(clipWithin))
-        val param = s"""{"min":$minParam,"max":$maxParam,"text":"${d.toString}"}"""
+        val (text1Param, text2Param) = (d.value.toString, d.interval.toString)
+        val param = s"""{"min":$minParam,"max":$maxParam,"text1":"$text1Param","text2":"$text2Param"}"""
         URLEncoder.encode(param, StandardCharsets.UTF_8)
 
       val titleParameter = URLEncoder.encode(title, StandardCharsets.UTF_8)
