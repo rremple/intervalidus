@@ -61,7 +61,7 @@
             <div class="doc">
              <p>Intervalidus's custom data structures for optimizing one-, two-, and three-dimensional interval retrieval. Built for internal use, but use them if they are useful. There are both immutable and mutable versions of each data structure, but only the mutable versions are used internally (for performance reasons).</p>
              <ul>
-              <li>Box search trees manage boxed data structures in multidimensional double space (B-trees, quadtrees, and octrees, depending on the dimension). They hold boxes rather than individual points, where boxes are split to fit into the subtrees of the data structure. Intervalidus uses the ordered hashes defined on the discrete domain components of intervals to approximate all intervals as boxes in double space, and manages valid data associated with these boxes in box search trees, resulting in dramatically faster intersection retrieval (in most cases).</li>
+              <li>Box search trees manage boxed data structures in multidimensional double space (B-trees, quadtrees, and octrees, depending on the dimension). They hold boxes rather than individual points, where boxes are split to fit into the subtrees of the data structure. Intervalidus uses the ordered hashes defined on the domain value components of intervals to approximate all intervals as boxes in double space, and manages valid data associated with these boxes in box search trees, resulting in dramatically faster intersection retrieval (in most cases).</li>
               <li>Multimaps (a.k.a., multi-dictionaries) allow multiple values to be associated with the same key. Intervalidus uses multimaps to store the association of each valid value with all the intervals where it is valid. This allows value-driven functions like compression to operate on a smaller subset of valid values and to be substantially faster.</li>
              </ul>
             </div>
@@ -901,7 +901,7 @@
               <dd class="body-medium">
                <div>
                 <div>
-                 <p>Visualizing two-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there is a simple Visualize tool provided (in the test package... though maybe this should be its own separate subproject).</p>
+                 <p>Visualizing two-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there is a simple Visualize2D tool provided (in the test package... though maybe this should be its own separate subproject).</p>
                 </div>
                </div>
               </dd>
@@ -1472,7 +1472,7 @@
               <dd class="body-medium">
                <div>
                 <div>
-                 <p>Visualizing three-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there is a simple 2D Visualize tool provided where you can visualize 2D slices of the 3D structure (in the test package... though maybe this should be its own separate subproject).</p>
+                 <p>Visualizing three-dimensional data can be a bit daunting as well, so the toString method outputs a little Gantt chart and there is a simple Visualize3D tool which shows a numerically boxed representation of data, as well as a Visualize2D tool provided where you can visualize 2D slices of the 3D structure (in the test package... though maybe this should be its own separate subproject).</p>
                 </div>
                </div>
               </dd>
@@ -3011,11 +3011,11 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Domains are based on an underlying domain value type and used to define the boundaries of an interval. It describes specific data points in the domain value range as well as the special "<code>Bottom</code>" and "<code>Top</code>" cases which conceptually lie below and above this finite range of data points (logically below and above <code>minValue</code> and <code>maxValue</code> respectively). Domains can be based on domain values that are discrete or continuous. When continuous, a boundary point can either be open or closed, where discrete points must always be closed. This also gives a way to completely describe adjacency. When domains values are discrete, the left and right adjacent domains of a point are the respective predecessors and successors of the domain value -- this also gives us a way to accommodate having a predecessor or successor on a boundary (i.e., <code>maxValue.rightAdjacent == Top</code> and <code>minValue.leftAdjacent == Bottom</code>). When domains are continuous, the left and right adjacent domains are always the same: open if the point is closed and closed if the point is open.</p>
+             <p>Domains are based on an underlying domain value type and used to define the boundaries of an interval. It describes specific data points in the domain value range as well as the special "<code>Bottom</code>" and "<code>Top</code>" cases which conceptually lie below and above this finite range of data points (logically below and above <code>minValue</code> and <code>maxValue</code> respectively). Domains can be based on domain values that are discrete or continuous. When continuous, a boundary point can either be open or closed, where discrete points must always be closed. This also gives a way to completely describe adjacency. When domain values are discrete, the left and right adjacent domains of a point are the respective predecessors and successors of the domain value -- this also gives us a way to accommodate having a predecessor or successor on a boundary (i.e., <code>maxValue.rightAdjacent == Top</code> and <code>minValue.leftAdjacent == Bottom</code>). When domains are continuous, the left and right adjacent domains are always the same: open if the point is closed and closed if the point is open.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Domains are based on an underlying domain value type and used to define the boundaries of an interval. It describes specific data points in the domain value range as well as the special "<code>Bottom</code>" and "<code>Top</code>" cases which conceptually lie below and above this finite range of data points (logically below and above <code>minValue</code> and <code>maxValue</code> respectively). Domains can be based on domain values that are discrete or continuous. When continuous, a boundary point can either be open or closed, where discrete points must always be closed. This also gives a way to completely describe adjacency. When domains values are discrete, the left and right adjacent domains of a point are the respective predecessors and successors of the domain value -- this also gives us a way to accommodate having a predecessor or successor on a boundary (i.e., <code>maxValue.rightAdjacent == Top</code> and <code>minValue.leftAdjacent == Bottom</code>). When domains are continuous, the left and right adjacent domains are always the same: open if the point is closed and closed if the point is open.</p>
+              <p>Domains are based on an underlying domain value type and used to define the boundaries of an interval. It describes specific data points in the domain value range as well as the special "<code>Bottom</code>" and "<code>Top</code>" cases which conceptually lie below and above this finite range of data points (logically below and above <code>minValue</code> and <code>maxValue</code> respectively). Domains can be based on domain values that are discrete or continuous. When continuous, a boundary point can either be open or closed, where discrete points must always be closed. This also gives a way to completely describe adjacency. When domain values are discrete, the left and right adjacent domains of a point are the respective predecessors and successors of the domain value -- this also gives us a way to accommodate having a predecessor or successor on a boundary (i.e., <code>maxValue.rightAdjacent == Top</code> and <code>minValue.leftAdjacent == Bottom</code>). When domains are continuous, the left and right adjacent domains are always the same: open if the point is closed and closed if the point is open.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -3642,12 +3642,11 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Lifted from https://github.com/rallyhealth/weePickle/blob/v1/weepickle-implicits/src/main/scala-3/com/rallyhealth/weepickle /v1/implicits/macros.scala#L158</p>
+             <p>Gets the <code>values</code> field from the companion of the sealed trait for this enum to retrieve all enums values.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Lifted from <a href="https://github.com/rallyhealth/weePickle/blob/v1/weepickle-implicits/src/main/scala-3/com/rallyhealth/weepickle">https://github.com/rallyhealth/weePickle/blob/v1/weepickle-implicits/src/main/scala-3/com/rallyhealth/weepickle</a> /v1/implicits/macros.scala#L158</p>
-              <p>Finds the valueOf method (a DefDef) in the companion of the sealed trait for this enum which is used to decode a string as an enum value.</p>
+              <p>Gets the <code>values</code> field from the companion of the sealed trait for this enum to retrieve all enums values.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
