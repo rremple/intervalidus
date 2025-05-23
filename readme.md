@@ -553,7 +553,7 @@ There are a few other subprojects that are worth mentioning:
   Intervalidus structures can be used to support time-oriented logic like billing directly.
 
 - Also in the `intervalidus-examples` subproject there is a sample rules-based application that shows how Intervalidus
-  structures can be used to capture the outcomes of patients in a clinical trial. It uses a toy rules engine rules to
+  structures can be used to capture the outcomes of patients in a clinical trial. It uses a toy rules engine to
   interpret daily measurements, and Intervalidus to capture progress in a concise way.
 
 - The above example leverages a toy rules engine that is available in a separate subproject: `intervalidus-tinyrule`.

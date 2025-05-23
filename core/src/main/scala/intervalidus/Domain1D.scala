@@ -12,7 +12,7 @@ import scala.math.Ordering.Implicits.infixOrderingOps
   * conceptually lie below and above this finite range of data points (logically below and above `minValue` and
   * `maxValue` respectively). Domains can be based on domain values that are discrete or continuous. When continuous, a
   * boundary point can either be open or closed, where discrete points must always be closed. This also gives a way to
-  * completely describe adjacency. When domains values are discrete, the left and right adjacent domains of a point are
+  * completely describe adjacency. When domain values are discrete, the left and right adjacent domains of a point are
   * the respective predecessors and successors of the domain value -- this also gives us a way to accommodate having a
   * predecessor or successor on a boundary (i.e., `maxValue.rightAdjacent == Top` and `minValue.leftAdjacent ==
   * Bottom`). When domains are continuous, the left and right adjacent domains are always the same: open if the point is

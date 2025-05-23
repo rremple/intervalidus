@@ -25,9 +25,9 @@ object DataIn3D extends DataIn3DBaseObject:
     new DataIn3D(byStartAsc, byStartDesc, byValue, inSearchTree)
 
 /**
-  * Like [[DataIn1D]] and [[DataIn2D]], data here have different values in different discrete intervals. But here data
-  * values vary in three dimensions. For example, one may want to represent when data are valid in two dimensions of
-  * time and over certain versions simultaneously.
+  * Like [[DataIn1D]] and [[DataIn2D]], data here have different values in different intervals. But here data values
+  * vary in three dimensions. For example, one may want to represent when data are valid in two dimensions of time and
+  * over certain versions simultaneously.
   *
   * We can capture the dependency between various values and related three-dimensional intervals cohesively in this
   * structure rather than in separate data structures using distributed (and potentially inconsistent) logic. This is
@@ -41,11 +41,11 @@ object DataIn3D extends DataIn3DBaseObject:
   * @tparam V
   *   the type of the value managed as data.
   * @tparam R1
-  *   the type of discrete domain used in the horizontal interval assigned to each value.
+  *   the type of domain value used in the horizontal interval assigned to each value.
   * @tparam R2
-  *   the type of discrete domain used in the vertical interval assigned to each value.
+  *   the type of domain value used in the vertical interval assigned to each value.
   * @tparam R3
-  *   the type of discrete domain used in the depth interval assigned to each value.
+  *   the type of domain value used in the depth interval assigned to each value.
   */
 class DataIn3D[V, R1: DomainValueLike, R2: DomainValueLike, R3: DomainValueLike] private (
   override val dataByStartAsc: mutable.TreeMap[Domain3D[R1, R2, R3], ValidData3D[V, R1, R2, R3]],

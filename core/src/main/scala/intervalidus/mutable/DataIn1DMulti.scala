@@ -46,7 +46,7 @@ object DataIn1DMulti extends DataIn1DMultiBaseObject:
   * @tparam V
   *   the type of the value managed as data.
   * @tparam R
-  *   the type of discrete domain used in the interval assigned to each value.
+  *   the type of domain value used in the interval assigned to each value.
   */
 class DataIn1DMulti[V, R: DomainValueLike] private (
   override val dataByStartAsc: mutable.TreeMap[Domain1D[R], ValidData1D[Set[V], R]],

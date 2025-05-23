@@ -52,9 +52,9 @@ object DataIn2DMulti extends DataIn2DMultiBaseObject:
   * @tparam V
   *   the type of the value managed as data.
   * @tparam R1
-  *   the type of discrete domain used in the horizontal interval assigned to each value.
+  *   the type of domain value used in the horizontal interval assigned to each value.
   * @tparam R2
-  *   the type of discrete domain used in the vertical interval assigned to each value.
+  *   the type of domain value used in the vertical interval assigned to each value.
   */
 class DataIn2DMulti[V, R1: DomainValueLike, R2: DomainValueLike] private (
   override val dataByStartAsc: mutable.TreeMap[Domain2D[R1, R2], ValidData2D[Set[V], R1, R2]],

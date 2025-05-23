@@ -25,7 +25,7 @@ object DataIn2D extends DataIn2DBaseObject:
     new DataIn2D(byStartAsc, byStartDesc, byValue, inSearchTree)
 
 /**
-  * Like [[DataIn1D]], data here have different values in different discrete intervals. But here data values vary in two
+  * Like [[DataIn1D]], data here have different values in different intervals. But here data values vary in two
   * dimensions. For example, one may want to represent when the data are valid in time and over certain versions, or in
   * two dimensions of time, simultaneously.
   *
@@ -40,9 +40,9 @@ object DataIn2D extends DataIn2DBaseObject:
   * @tparam V
   *   the type of the value managed as data.
   * @tparam R1
-  *   the type of discrete domain used in the horizontal interval assigned to each value.
+  *   the type of domain value used in the horizontal interval assigned to each value.
   * @tparam R2
-  *   the type of discrete domain used in the vertical interval assigned to each value.
+  *   the type of domain value used in the vertical interval assigned to each value.
   */
 class DataIn2D[V, R1: DomainValueLike, R2: DomainValueLike] private (
   override val dataByStartAsc: mutable.TreeMap[Domain2D[R1, R2], ValidData2D[V, R1, R2]],
