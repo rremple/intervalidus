@@ -32,8 +32,26 @@ object Visualize3D:
           i.end.verticalIndex.isUnbounded ||
           i.end.depthIndex.isUnbounded
 
+      // a sample coordinate in the space of bounded values, with the origin as the default for unbounded
+      val sample = intervals
+        .foldLeft(origin): (prior, i) =>
+          val beforePrior = prior.projectBeforeBounded(
+            i.asBox.minPoint,
+            i.start.horizontalIndex.isUnbounded,
+            i.start.verticalIndex.isUnbounded,
+            i.start.depthIndex.isUnbounded
+          )
+          val afterPrior = beforePrior.projectAfterBounded(
+            i.asBox.maxPoint,
+            i.end.horizontalIndex.isUnbounded,
+            i.end.verticalIndex.isUnbounded,
+            i.end.depthIndex.isUnbounded
+          )
+          afterPrior
+
+      println(s"sample = $sample")
       val (minBounded, maxBounded) = intervals
-        .foldLeft((origin, origin)):
+        .foldLeft((sample, sample)):
           case ((priorMin, priorMax), i) =>
             val newMin = priorMin.projectBeforeBounded(
               i.asBox.minPoint,
@@ -48,6 +66,7 @@ object Visualize3D:
               i.end.depthIndex.isUnbounded
             )
             (newMin, newMax)
+
       val margin = Coordinate(1, 1, 1)
       val clipWithin = Box(minBounded - margin, maxBounded + margin)
       if hasUnbounded then println(s"Unbounded intervals clipped to coordinate box $clipWithin")
@@ -67,8 +86,11 @@ object Visualize3D:
 
   def apply[V, R1: DomainValueLike, R2: DomainValueLike, R3: DomainValueLike](
     dataIn3D: DataIn3DBase[V, R1, R2, R3],
+    delay: Long = 0,
     title: String = "Visualize 3D data"
-  ): Unit = apply(dataIn3D.getAll, title)
+  ): Unit =
+    apply(dataIn3D.getAll, title)
+    Thread.sleep(delay)
 
   private def openInBrowser(url: String): Try[Unit] =
     val result = Try:
