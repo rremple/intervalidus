@@ -1,0 +1,25 @@
+name: Publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      PUBLISH_TO_PACKAGES: ${{ secrets.PUBLISH_TO_PACKAGES }}
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Restore cache
+      uses: coursier/cache-action@v6
+    - name: Set up JDK 17 & Scala
+      uses: coursier/setup-action@v1
+      with:
+        jvm: 17
+        apps: sbt
+    - name: Publish
+      run: sbt publish
+

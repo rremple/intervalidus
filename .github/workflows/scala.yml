@@ -17,6 +17,8 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      PUBLISH_TO_PACKAGES: ${{ secrets.PUBLISH_TO_PACKAGES }}
 
     steps:
     - uses: actions/checkout@v4

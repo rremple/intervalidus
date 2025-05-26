@@ -1,8 +1,17 @@
-ThisBuild / version := "0.1.0-SNAPSHOT"
-
 ThisBuild / scalaVersion := "3.3.5"
+
+ThisBuild / organization := "rremple" // necessary for the sbt-ghpages and sbt-github-packages
+ThisBuild / githubOwner := "rremple"
+ThisBuild / githubRepository := "intervalidus"
+ThisBuild / publishTo := Some(
+  MavenRepository("GitHub Packages", s"https://maven.pkg.github.com/${githubOwner.value}/${githubRepository.value}")
+)
+publishMavenStyle := true
+githubTokenSource := TokenSource.GitConfig("github.token") || TokenSource.Environment("PUBLISH_TO_PACKAGES")
+
 def commonSettings = Seq(
   scalacOptions ++= Seq("-feature", "-deprecation"), // , "-Wunused:all"),
+  githubTokenSource := TokenSource.GitConfig("github.token") || TokenSource.Environment("PUBLISH_TO_PACKAGES"),
   coverageFailOnMinimum := true,
   coverageMinimumStmtTotal := 99,
   coverageMinimumBranchTotal := 99,
@@ -14,7 +23,6 @@ lazy val core = project
   .settings(commonSettings)
   .settings(
     name := "intervalidus",
-    organization := "rremple", // necessary for the GhpagesPlugin
     git.remoteRepo := "git@github.com:rremple/intervalidus.git"
   )
 
@@ -53,8 +61,11 @@ lazy val `intervalidus-examples` = (project in file("examples"))
 lazy val bench = project
   .enablePlugins(JmhPlugin)
   .dependsOn(core)
+  .settings(commonSettings)
   .settings(
     publish / skip := true,
     Compile / packageDoc / publishArtifact := false,
     coverageEnabled := false
   )
+
+publish / skip := true // ROOT
