@@ -6,6 +6,18 @@ A Scala library with zero dependencies for representing data as valid only in di
 two-, and three-dimensional. This seems to come up a lot in application design both in terms of effective dating and
 versioning data.
 
+## Usage
+
+Add the following to your **build.sbt** file:
+
+```sbt
+resolvers += "Intervalidus" at "https://maven.pkg.github.com/rremple/intervalidus"
+libraryDependencies += "rremple" %% "intervalidus" % "<version>"
+```
+
+For more on usage including other artifacts, Scala 2 considerations, GitHub Package authentication, etc., see 
+[expanded usage](usage.md).
+
 ### Goals, Non-Goals, Background, and Motivation:
 
 This is more of a personal exploration than anything. Mostly just revisiting my many decades of past enterprise
