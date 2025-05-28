@@ -57,7 +57,7 @@ object Experimental:
       * @param feature
       *   name of the experimental feature
       * @return
-      *   is the feature is enabled?
+      *   is the feature enabled?
       */
     def enabled(feature: String): Boolean = enabledExperimental(feature)
 

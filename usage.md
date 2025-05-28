@@ -1,11 +1,13 @@
 ## Expanded Usage
 
-Assuming you are using Scala 3, add the following to your **build.sbt** file:
+Assuming you are using Scala 3.3 or above, add the following to your **build.sbt** file:
 
 ```sbt
 resolvers += "Intervalidus" at "https://maven.pkg.github.com/rremple/intervalidus"
 libraryDependencies += "rremple" %% "intervalidus" % "<version>"
 ```
+
+### Other Artifacts
 
 You probably aren't going to need them, but just in case you do, there are also these artifacts:
 
@@ -17,23 +19,30 @@ libraryDependencies ++= Seq(
 )
 ```
 
-If you are still on Scala 2, use `CrossVersion.for2_13Use3` as described in
-[The Book of sbt](https://www.scala-sbt.org/2.x/docs/en/reference/cross-building-setup.html). Note that, because
-`intervalidus-tinyrule` uses macros, you can't use it from Scala 2. Similarly, some aspects of`intervalidus` itself will
-not function in Scala 2 (like the auto-derivation of a discrete value type class from an `enum`).
+### Scala Versions
 
-Note that no testing on Scala 2 has been done... you really ought to upgrade to Scala 3!
+This library is meant to be consumed by other Scala 3 applications. Though it is _theoretically_ possible to consume a
+library like this from a Scala 2.13 application by using `CrossVersion.for2_13Use3` (as described in
+["The Book of sbt"](https://www.scala-sbt.org/2.x/docs/en/reference/cross-building-setup.html)), it doesn't seem to work
+well here. (Not even when using the scalac option `-Ytasty-reader`.) The compatibility seems to get broken by the
+extensive use of Scala 3 features like opaque types, extension methods, givens (some of which don't seem to translate
+well to Scala 2 implicits), and some use of macros (which are very lightly used in core `intervalidus`, only for the
+auto-derivation of a discrete value type class from an `enum`, but are more heavily used in the `intervalidus-tinyrule`
+subproject). You really ought to upgrade to Scala 3!
+
+### GitHub Package Registry
 
 As indicated by the resolver above, I'm using the GitHub Package Registry for this. A decision I immediately regretted
 when I learned that it does not, and probably never will, support unauthenticated access! Sorry for the extra friction,
 but you'll need the resolver above plus some credentials for GitHub that can read packages. For this, you will need to
-use a Personal Access Token (PAT) with at least the ability to read packages. For more information on PATs, see
+use a Personal Access Token (PAT) with at least the ability to read packages. For more information on PATs, see the
 [GitHub docs](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens).
 
 A good way is to configure this is by using an environment variable for your Personal Access Token. `GITHUB_TOKEN` is a
 good choice as a secret with the same name is defined automatically in GitHub Actions CI builds. (Note that, although
-the `Credentials` class requires a `user` argument, it is apparently ignored in GitHub authentication, so we can just
-pass in `"_"` along with the PAT.) For example, add the following to your **build.sbt** file:
+the `Credentials` class requires a `user` argument, it is apparently ignored in GitHub authentication when using a 
+PAT as the password, so we can just pass in `"_"` along with the PAT.) For example, add the following to your
+**build.sbt** file:
 
 ```sbt
 credentials += Credentials("GitHub Package Registry", "maven.pkg.github.com", "_", System.getenv("GITHUB_TOKEN"))
