@@ -26,7 +26,7 @@ case class Box(minPoint: Coordinate, maxPoint: Coordinate):
     *   true or false
     */
   def contains(other: Box): Boolean = Coordinate.minMaxForall(this.corners, other.corners):
-    case ((thisMin, thisMax), (otherMin, otherMax)) =>
+    case (thisMin, thisMax, otherMin, otherMax) =>
       otherMin >= thisMin && otherMax <= thisMax
 
   /**
@@ -40,7 +40,7 @@ case class Box(minPoint: Coordinate, maxPoint: Coordinate):
     *   true or false
     */
   def intersects(other: Box): Boolean = Coordinate.minMaxForall(this.corners, other.corners):
-    case ((thisMin, thisMax), (otherMin, otherMax)) =>
+    case (thisMin, thisMax, otherMin, otherMax) =>
       otherMin <= thisMax && otherMax >= thisMin
 
   /**

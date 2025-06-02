@@ -233,8 +233,8 @@ class ContinuousValueTest extends AnyFunSuite:
     import ContinuousValue.LocalDateContinuousValue
 
     val date0 = LocalDate.of(2024, 5, 31)
-    val date1 = LocalDate.of(2024, 6, 1)
-    val date2 = LocalDate.of(2024, 6, 2)
+    // val date1 = LocalDate.of(2024, 6, 1)
+    // val date2 = LocalDate.of(2024, 6, 2)
     val date3 = LocalDate.of(2024, 6, 3)
     val date4 = LocalDate.of(2024, 6, 4)
     assert(date3 equiv date3)
@@ -290,8 +290,8 @@ class ContinuousValueTest extends AnyFunSuite:
     import ContinuousValue.LocalDateTimeContinuousValue
 
     val date0 = LocalDate.of(2024, 5, 31).atTime(1, 2, 3, 4)
-    val date1 = LocalDate.of(2024, 6, 1).atTime(1, 2, 3, 4)
-    val date2 = LocalDate.of(2024, 6, 2).atTime(1, 2, 3, 4)
+    // val date1 = LocalDate.of(2024, 6, 1).atTime(1, 2, 3, 4)
+    // val date2 = LocalDate.of(2024, 6, 2).atTime(1, 2, 3, 4)
     val date3 = LocalDate.of(2024, 6, 3).atTime(1, 2, 3, 4)
     val date4 = LocalDate.of(2024, 6, 4).atTime(1, 2, 3, 4)
     assert(date3 equiv date3)

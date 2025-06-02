@@ -117,7 +117,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     val fixture6 = fixture5
       .set(intervalFrom(1) -> "remove me")
       .remove(intervalFrom(1))
-    // needed? .recompressAll()
+      .recompressAll()
     val expectedData6 = List(intervalTo(0) -> "Hey")
     fixture6.getAll.toList shouldBe expectedData6
 
@@ -299,7 +299,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     val fixture3 = fixture2
       .update(intervalFrom(6) -> "World!")
       .incrementCurrentVersion()
-    // needed? .recompressAll()
+      .recompressAll()
     val expectedData3 = List(intervalTo(5) -> "Hello", intervalFrom(6) -> "World!")
     fixture3.getAll.toList shouldBe expectedData3
 

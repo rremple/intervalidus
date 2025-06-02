@@ -161,6 +161,36 @@ case class Interval1D[T](
           case _ => // common start and end -- nothing remains
             Remainder.None
 
+  /**
+    * Similar to [[excluding]], separates the current interval into the intersection with that interval along with the
+    * remainder intervals covering this, i.e., the union of all the returned intervals will match this. The interval
+    * collection returned will be ordered by interval starts and will be disjoint. There are three possible outcomes:
+    *   1. just one interval (this interval) is returned if this is a subset of that or this doesn't intersect that.
+    *   1. two intervals (the intersection with that along with the portion of this lying outside of that) are returned
+    *      if this has a simple edge intersection.
+    *   1. three intervals (the intersection with that along with both portions of this that are before and after that)
+    *      are returned if that is a proper subset of this, containing neither the start nor the end of this.
+    *
+    * @param that
+    *   the interval to exclude.
+    * @return
+    *   The remainder after exclusion.
+    */
+  infix def separateUsing(that: Interval1D[T]): Iterable[Interval1D[T]] =
+    this intersectionWith that match
+      case None => // no intersection, nothing to separate
+        Seq(this)
+      case Some(commonBit) =>
+        commonBit match
+          case Interval1D(midStart, midEnd) if (midStart afterStart start) && (midEnd beforeEnd end) => // split
+            Seq(toBefore(midStart), commonBit, fromAfter(midEnd))
+          case Interval1D(midStart, _) if midStart afterStart start => // later start, common end
+            Seq(toBefore(midStart), commonBit)
+          case Interval1D(_, midEnd) if midEnd beforeEnd end => // common start, earlier end
+            Seq(commonBit, fromAfter(midEnd))
+          case _ => // common start and end -- nothing to separate
+            Seq(commonBit)
+
   override infix def gapWith(that: Interval1D[T]): Option[Interval1D[T]] =
     if this intersects that then None
     else if this isAdjacentTo that then None

@@ -6,10 +6,11 @@ import org.openjdk.jmh.annotations.*
 
 import java.util.concurrent.TimeUnit
 import scala.language.implicitConversions
+import scala.util.Random
 
-object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature = Some("bruteForceUpdate")):
+object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature = Some("noBruteForceUpdate")):
 
-  // benchmark only the remove method to see what affect bruteForceUpdate has on updateOrRemove performance.
+  // benchmark only the remove method to see what affect noBruteForceUpdate has on updateOrRemove performance.
 
   // In general, bench all the applicable methods
   //
@@ -73,16 +74,7 @@ object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature
     DiffAction: DiffActionLike,
     DimData <: mutable.MutableBase[String, D, I, ValidData, DiffAction, DimData] &
       DimensionalBase[String, D, I, ValidData, DiffAction, ?]
-  ](
-    intervalRange: Int,
-    data: Vector[ValidData],
-    baselineData: => DimData,
-    featuredData: => DimData,
-    randDomain: () => D,
-    randInterval: Int => I,
-    randValue: Int => ValidData,
-    randValueWithKey: ValidData => ValidData
-  ):
+  ](data: Vector[ValidData], baselineData: => DimData, featuredData: => DimData):
     // For replace and replaceByKey, as using totally random data may have unrealistically low hit rates.
     // (vector random access should be superfast)
     val dataSize = data.size
@@ -99,13 +91,12 @@ object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature
         case whoops => throw new Exception(s"why not a point? $whoops")
 
     @Benchmark
-    def baselineRemove: Unit = baselineData.remove(randExistingTiny())
+    def baselineRemove(): Unit = baselineData.remove(randExistingTiny())
 
     @Benchmark
-    def featuredRemove: Unit = featuredData.remove(randExistingTiny())
+    def featuredRemove(): Unit = featuredData.remove(randExistingTiny())
 
   abstract class GenericMutable1dBench(
-    intervalRange: Int,
     data: Vector[ValidData1D[String, Int]],
     baselineData: => mutable.DataIn1D[String, Int],
     featuredData: => mutable.DataIn1D[String, Int]
@@ -115,13 +106,12 @@ object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature
       ValidData1D[String, Int],
       DiffAction1D[String, Int],
       mutable.DataIn1D[String, Int]
-    ](intervalRange, data, baselineData, featuredData, randDomain1d, randInterval1d, randValue1d, randValue1dWithKey):
+    ](data, baselineData, featuredData):
 
     override def randExistingTiny(): Interval1D[Int] =
       randPoint(useExisting().interval)
 
   abstract class GenericMutable2dBench(
-    intervalRange: Int,
     data: Vector[ValidData2D[String, Int, Int]],
     baselineData: => mutable.DataIn2D[String, Int, Int],
     featuredData: => mutable.DataIn2D[String, Int, Int]
@@ -131,14 +121,13 @@ object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature
       ValidData2D[String, Int, Int],
       DiffAction2D[String, Int, Int],
       mutable.DataIn2D[String, Int, Int]
-    ](intervalRange, data, baselineData, featuredData, randDomain2d, randInterval2d, randValue2d, randValue2dWithKey):
+    ](data, baselineData, featuredData):
 
     override def randExistingTiny(): Interval2D[Int, Int] =
       val existing = useExisting().interval
       Interval2D(randPoint(existing.horizontal), randPoint(existing.vertical))
 
   abstract class GenericMutable3dBench(
-    intervalRange: Int,
     data: Vector[ValidData3D[String, Int, Int, Int]],
     baselineData: => mutable.DataIn3D[String, Int, Int, Int],
     featuredData: => mutable.DataIn3D[String, Int, Int, Int]
@@ -148,7 +137,7 @@ object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature
       ValidData3D[String, Int, Int, Int],
       DiffAction3D[String, Int, Int, Int],
       mutable.DataIn3D[String, Int, Int, Int]
-    ](intervalRange, data, baselineData, featuredData, randDomain3d, randInterval3d, randValue3d, randValue3dWithKey):
+    ](data, baselineData, featuredData):
 
     override def randExistingTiny(): Interval3D[Int, Int, Int] =
       val existing = useExisting().interval
@@ -172,14 +161,9 @@ object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature
     DiffAction: DiffActionLike,
     DimData <: immutable.ImmutableBase[String, D, I, ValidData, DiffAction, DimData]
   ](
-    intervalRange: Int,
     data: Vector[ValidData],
     baselineData: => DimData,
-    featuredData: => DimData,
-    randDomain: () => D,
-    randInterval: Int => I,
-    randValue: Int => ValidData,
-    randValueWithKey: ValidData => ValidData
+    featuredData: => DimData
   ):
     // For replace and replaceByKey, as using totally random data may have unrealistically low hit rates.
     // (vector random access should be superfast)
@@ -203,7 +187,6 @@ object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature
     def featuredRemove: DimData = featuredData.remove(randExistingTiny())
 
   abstract class GenericImmutable1dBench(
-    intervalRange: Int,
     data: Vector[ValidData1D[String, Int]],
     baselineData: => immutable.DataIn1D[String, Int],
     featuredData: => immutable.DataIn1D[String, Int]
@@ -213,13 +196,12 @@ object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature
       ValidData1D[String, Int],
       DiffAction1D[String, Int],
       immutable.DataIn1D[String, Int]
-    ](intervalRange, data, baselineData, featuredData, randDomain1d, randInterval1d, randValue1d, randValue1dWithKey):
+    ](data, baselineData, featuredData):
 
     override def randExistingTiny(): Interval1D[Int] =
       randPoint(useExisting().interval)
 
   abstract class GenericImmutable2dBench(
-    intervalRange: Int,
     data: Vector[ValidData2D[String, Int, Int]],
     baselineData: => immutable.DataIn2D[String, Int, Int],
     featuredData: => immutable.DataIn2D[String, Int, Int]
@@ -229,14 +211,13 @@ object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature
       ValidData2D[String, Int, Int],
       DiffAction2D[String, Int, Int],
       immutable.DataIn2D[String, Int, Int]
-    ](intervalRange, data, baselineData, featuredData, randDomain2d, randInterval2d, randValue2d, randValue2dWithKey):
+    ](data, baselineData, featuredData):
 
     override def randExistingTiny(): Interval2D[Int, Int] =
       val existing = useExisting().interval
       Interval2D(randPoint(existing.horizontal), randPoint(existing.vertical))
 
   abstract class GenericImmutable3dBench(
-    intervalRange: Int,
     data: Vector[ValidData3D[String, Int, Int, Int]],
     baselineData: => immutable.DataIn3D[String, Int, Int, Int],
     featuredData: => immutable.DataIn3D[String, Int, Int, Int]
@@ -246,7 +227,7 @@ object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature
       ValidData3D[String, Int, Int, Int],
       DiffAction3D[String, Int, Int, Int],
       immutable.DataIn3D[String, Int, Int, Int]
-    ](intervalRange, data, baselineData, featuredData, randDomain3d, randInterval3d, randValue3d, randValue3dWithKey):
+    ](data, baselineData, featuredData):
 
     override def randExistingTiny(): Interval3D[Int, Int, Int] =
       val existing = useExisting().interval
@@ -256,85 +237,72 @@ object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature
 
   // Mutable
 
-  class Mutable1dBench100x1k
-    extends GenericMutable1dBench(100 * 100, validDataIn1d100x1k, baselineMutable1d100x1k, featuredMutable1d100x1k)
-  class Mutable1dBench10x10k
-    extends GenericMutable1dBench(10 * 100, validDataIn1d10x10k, baselineMutable1d10x10k, featuredMutable1d10x10k)
-  class Mutable1dBench10x1k
-    extends GenericMutable1dBench(10 * 100, validDataIn1d10x1k, baselineMutable1d10x1k, featuredMutable1d10x1k)
-  class Mutable1dBench1x10k
-    extends GenericMutable1dBench(1 * 100, validDataIn1d1x10k, baselineMutable1d1x10k, featuredMutable1d1x10k)
-  class Mutable1dBench1x1k
-    extends GenericMutable1dBench(1 * 100, validDataIn1d1x1k, baselineMutable1d1x1k, featuredMutable1d1x1k)
+  // no 1D diff, nothing to bench
+  //  class Mutable1dBench100x1k
+  //    extends GenericMutable1dBench(validDataIn1d100x1k, baselineMutable1d100x1k, featuredMutable1d100x1k)
+  //  class Mutable1dBench10x10k
+  //    extends GenericMutable1dBench(validDataIn1d10x10k, baselineMutable1d10x10k, featuredMutable1d10x10k)
+  //  class Mutable1dBench10x1k
+  //    extends GenericMutable1dBench(validDataIn1d10x1k, baselineMutable1d10x1k, featuredMutable1d10x1k)
+  //  class Mutable1dBench1x10k
+  //    extends GenericMutable1dBench(validDataIn1d1x10k, baselineMutable1d1x10k, featuredMutable1d1x10k)
+  //  class Mutable1dBench1x1k
+  //    extends GenericMutable1dBench(validDataIn1d1x1k, baselineMutable1d1x1k, featuredMutable1d1x1k)
 
   class Mutable2dBench100x1k
-    extends GenericMutable2dBench(100 * 100, validDataIn2d100x1k, baselineMutable2d100x1k, featuredMutable2d100x1k)
+    extends GenericMutable2dBench(validDataIn2d100x1k, baselineMutable2d100x1k, featuredMutable2d100x1k)
   class Mutable2dBench10x10k
-    extends GenericMutable2dBench(10 * 100, validDataIn2d10x10k, baselineMutable2d10x10k, featuredMutable2d10x10k)
+    extends GenericMutable2dBench(validDataIn2d10x10k, baselineMutable2d10x10k, featuredMutable2d10x10k)
   class Mutable2dBench10x1k
-    extends GenericMutable2dBench(10 * 100, validDataIn2d10x1k, baselineMutable2d10x1k, featuredMutable2d10x1k)
+    extends GenericMutable2dBench(validDataIn2d10x1k, baselineMutable2d10x1k, featuredMutable2d10x1k)
   class Mutable2dBench1x10k
-    extends GenericMutable2dBench(1 * 100, validDataIn2d1x10k, baselineMutable2d1x10k, featuredMutable2d1x10k)
+    extends GenericMutable2dBench(validDataIn2d1x10k, baselineMutable2d1x10k, featuredMutable2d1x10k)
   class Mutable2dBench1x1k
-    extends GenericMutable2dBench(1 * 100, validDataIn2d1x1k, baselineMutable2d1x1k, featuredMutable2d1x1k)
+    extends GenericMutable2dBench(validDataIn2d1x1k, baselineMutable2d1x1k, featuredMutable2d1x1k)
 
   class Mutable3dBench100x1k
-    extends GenericMutable3dBench(100 * 100, validDataIn3d100x1k, baselineMutable3d100x1k, featuredMutable3d100x1k)
+    extends GenericMutable3dBench(validDataIn3d100x1k, baselineMutable3d100x1k, featuredMutable3d100x1k)
   class Mutable3dBench10x10k
-    extends GenericMutable3dBench(10 * 100, validDataIn3d10x10k, baselineMutable3d10x10k, featuredMutable3d10x10k)
+    extends GenericMutable3dBench(validDataIn3d10x10k, baselineMutable3d10x10k, featuredMutable3d10x10k)
   class Mutable3dBench10x1k
-    extends GenericMutable3dBench(10 * 100, validDataIn3d10x1k, baselineMutable3d10x1k, featuredMutable3d10x1k)
+    extends GenericMutable3dBench(validDataIn3d10x1k, baselineMutable3d10x1k, featuredMutable3d10x1k)
   class Mutable3dBench1x10k
-    extends GenericMutable3dBench(1 * 100, validDataIn3d1x10k, baselineMutable3d1x10k, featuredMutable3d1x10k)
+    extends GenericMutable3dBench(validDataIn3d1x10k, baselineMutable3d1x10k, featuredMutable3d1x10k)
   class Mutable3dBench1x1k
-    extends GenericMutable3dBench(1 * 100, validDataIn3d1x1k, baselineMutable3d1x1k, featuredMutable3d1x1k)
+    extends GenericMutable3dBench(validDataIn3d1x1k, baselineMutable3d1x1k, featuredMutable3d1x1k)
 
   // Immutable
 
-  class Immutable1dBench100x1k
-    extends GenericImmutable1dBench(
-      100 * 100,
-      validDataIn1d100x1k,
-      baselineImmutable1d100x1k,
-      featuredImmutable1d100x1k
-    )
-  class Immutable1dBench10x10k
-    extends GenericImmutable1dBench(10 * 100, validDataIn1d10x10k, baselineImmutable1d10x10k, featuredImmutable1d10x10k)
-  class Immutable1dBench10x1k
-    extends GenericImmutable1dBench(10 * 100, validDataIn1d10x1k, baselineImmutable1d10x1k, featuredImmutable1d10x1k)
-  class Immutable1dBench1x10k
-    extends GenericImmutable1dBench(1 * 100, validDataIn1d1x10k, baselineImmutable1d1x10k, featuredImmutable1d1x10k)
-  class Immutable1dBench1x1k
-    extends GenericImmutable1dBench(1 * 100, validDataIn1d1x1k, baselineImmutable1d1x1k, featuredImmutable1d1x1k)
+  // no 1D diff, nothing to bench
+  //  class Immutable1dBench100x1k
+  //    extends GenericImmutable1dBench(validDataIn1d100x1k, baselineImmutable1d100x1k, featuredImmutable1d100x1k)
+  //  class Immutable1dBench10x10k
+  //    extends GenericImmutable1dBench(validDataIn1d10x10k, baselineImmutable1d10x10k, featuredImmutable1d10x10k)
+  //  class Immutable1dBench10x1k
+  //    extends GenericImmutable1dBench(validDataIn1d10x1k, baselineImmutable1d10x1k, featuredImmutable1d10x1k)
+  //  class Immutable1dBench1x10k
+  //    extends GenericImmutable1dBench(validDataIn1d1x10k, baselineImmutable1d1x10k, featuredImmutable1d1x10k)
+  //  class Immutable1dBench1x1k
+  //    extends GenericImmutable1dBench(validDataIn1d1x1k, baselineImmutable1d1x1k, featuredImmutable1d1x1k)
 
   class Immutable2dBench100x1k
-    extends GenericImmutable2dBench(
-      100 * 100,
-      validDataIn2d100x1k,
-      baselineImmutable2d100x1k,
-      featuredImmutable2d100x1k
-    )
+    extends GenericImmutable2dBench(validDataIn2d100x1k, baselineImmutable2d100x1k, featuredImmutable2d100x1k)
   class Immutable2dBench10x10k
-    extends GenericImmutable2dBench(10 * 100, validDataIn2d10x10k, baselineImmutable2d10x10k, featuredImmutable2d10x10k)
+    extends GenericImmutable2dBench(validDataIn2d10x10k, baselineImmutable2d10x10k, featuredImmutable2d10x10k)
   class Immutable2dBench10x1k
-    extends GenericImmutable2dBench(10 * 100, validDataIn2d10x1k, baselineImmutable2d10x1k, featuredImmutable2d10x1k)
+    extends GenericImmutable2dBench(validDataIn2d10x1k, baselineImmutable2d10x1k, featuredImmutable2d10x1k)
   class Immutable2dBench1x10k
-    extends GenericImmutable2dBench(1 * 100, validDataIn2d1x10k, baselineImmutable2d1x10k, featuredImmutable2d1x10k)
+    extends GenericImmutable2dBench(validDataIn2d1x10k, baselineImmutable2d1x10k, featuredImmutable2d1x10k)
   class Immutable2dBench1x1k
-    extends GenericImmutable2dBench(1 * 100, validDataIn2d1x1k, baselineImmutable2d1x1k, featuredImmutable2d1x1k)
+    extends GenericImmutable2dBench(validDataIn2d1x1k, baselineImmutable2d1x1k, featuredImmutable2d1x1k)
 
   class Immutable3dBench100x1k
-    extends GenericImmutable3dBench(
-      100 * 100,
-      validDataIn3d100x1k,
-      baselineImmutable3d100x1k,
-      featuredImmutable3d100x1k
-    )
+    extends GenericImmutable3dBench(validDataIn3d100x1k, baselineImmutable3d100x1k, featuredImmutable3d100x1k)
   class Immutable3dBench10x10k
-    extends GenericImmutable3dBench(10 * 100, validDataIn3d10x10k, baselineImmutable3d10x10k, featuredImmutable3d10x10k)
+    extends GenericImmutable3dBench(validDataIn3d10x10k, baselineImmutable3d10x10k, featuredImmutable3d10x10k)
   class Immutable3dBench10x1k
-    extends GenericImmutable3dBench(10 * 100, validDataIn3d10x1k, baselineImmutable3d10x1k, featuredImmutable3d10x1k)
+    extends GenericImmutable3dBench(validDataIn3d10x1k, baselineImmutable3d10x1k, featuredImmutable3d10x1k)
   class Immutable3dBench1x10k
-    extends GenericImmutable3dBench(1 * 100, validDataIn3d1x10k, baselineImmutable3d1x10k, featuredImmutable3d1x10k)
+    extends GenericImmutable3dBench(validDataIn3d1x10k, baselineImmutable3d1x10k, featuredImmutable3d1x10k)
   class Immutable3dBench1x1k
-    extends GenericImmutable3dBench(1 * 100, validDataIn3d1x1k, baselineImmutable3d1x1k, featuredImmutable3d1x1k)
+    extends GenericImmutable3dBench(validDataIn3d1x1k, baselineImmutable3d1x1k, featuredImmutable3d1x1k)

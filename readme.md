@@ -619,9 +619,8 @@ Other experimental features that can be toggled are:
   actually help performance in some limited circumstances, e.g., if all the structures being used are one-dimensional.
   So it may be useful to toggle when micro-benchmarking the client app.
 
-- **"bruteForceUpdate"** It was easy to specify all the cases directly for removing the intersection of an interval with
-  all existing intervals in one dimension: there are only a few cases. In two dimensions it got more complicated, and
-  even more so in three dimensions. There is a simpler brute force approach (code is about 10x shorter in 3D!) that
-  eliminates all this complexity. Unfortunately it runs 2x - 5x slower in micro-benchmarks. It is unlikely this
-  feature would be useful to anyone except an Intervalidus committer trying to close this performance gap -- it would be
-  really nice if the shorter code was also the faster code!
+- **"noBruteForceUpdate"** It was easy to specify all the cases directly for removing the intersection of an interval
+  with all existing intervals in one dimension: there are only a few cases. In two dimensions it got more complicated,
+  and even more so in three dimensions. Now there is a simpler brute force method that eliminates all this complexity
+  and performs on par (maybe ~2% slower in general) with all the complex code. Although that complex legacy code is now
+  deprecated, you can access it though this experimental feature. It will be removed in a future release.

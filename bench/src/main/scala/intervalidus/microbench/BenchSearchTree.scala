@@ -10,7 +10,7 @@ import scala.language.implicitConversions
 
 object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"), featuredFeature = None):
 
-  // benchmark only the remove method to see what affect bruteForceUpdate has on updateOrRemove performance.
+  // benchmark only the remove method to see what affect noSearchTree has on updateOrRemove performance.
 
   //// --- Mutable Bases ---
 

@@ -135,7 +135,7 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     val fixture6 = fixture5
       .set((intervalFrom(1) x unbounded[Int]) -> "remove me")
       .remove(intervalFrom(1) x unbounded[Int])
-    // needed? .recompressAll()
+      .recompressAll()
     val expectedData6 = List((intervalTo(0) x unbounded[Int]) -> "Hey")
     fixture6.getAll.toList shouldBe expectedData6
 
@@ -349,7 +349,7 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     val fixture3 = fixture2
       .update((intervalFrom(6) x unbounded[Int]) -> "World!")
       .incrementCurrentVersion()
-    // needed? .recompressAll()
+      .recompressAll()
     val expectedData3 = List(
       (intervalTo(5) x unbounded[Int]) -> "Hello",
       (intervalFrom(6) x unbounded[Int]) -> "World!"

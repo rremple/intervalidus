@@ -156,6 +156,59 @@ trait DimensionalBase[
   protected def updateOrRemove(targetInterval: I, updateValue: V => Option[V]): Unit
 
   /**
+    * Generic implementation to remove, and possibly update, valid values on the target interval. Each
+    * dimension-specific implementation provides its own way to construct atomic non-intersecting intervals.
+    *
+    * @param targetInterval
+    *   the interval where any valid values are updated or removed.
+    * @param updateValue
+    *   maps a current value to some updated value, or None if the value should be removed.
+    * @param atomic
+    *   maps the overlap and its intersection with target to its atomic deconstruction -- a collection of intervals
+    *   covering the overlap that is "separated" by the intersection. (See dimension-specific implementations of
+    *   [[updateOrRemove]] and [[Interval1D.separateUsing]] for details.)
+    */
+  protected def updateOrRemoveGeneric(targetInterval: I, updateValue: V => Option[V])(
+    atomic: (I, I) => Iterable[I]
+  ): Unit = synchronized:
+    val intersectingValues = getIntersecting(targetInterval).map: overlap =>
+      overlap.interval
+        .intersectionWith(targetInterval)
+        .foreach: intersection => // always one
+          val atomicNonIntersections = atomic(overlap.interval, intersection)
+
+          // fast compression to minimize adds/updates (which are expensive) without having to build a TreeMap
+          // (note that the result is in reverse order, but that shouldn't matter in later steps)
+          val nonIntersections = atomicNonIntersections.foldLeft(List.empty[I]):
+            case (lastInterval1 :: tail1, nextInterval) if lastInterval1 isAdjacentTo nextInterval =>
+              val merged = nextInterval ∪ lastInterval1
+              tail1 match // go back one more
+                case lastInterval2 :: tail2 if lastInterval2 isAdjacentTo merged => (lastInterval2 ∪ merged) :: tail2
+                case _                                                           => merged :: tail1
+            case (priorIntervals, nextInterval) => nextInterval :: priorIntervals
+
+          // remove the intersecting region if it happens to have the same key as the overlap
+          if intersection hasSameStartAs overlap.interval then removeValidData(overlap)
+
+          // add/update non-intersecting regions
+          nonIntersections.foreach: subinterval =>
+            if subinterval hasSameStartAs overlap.interval
+            then updateValidData(newValidData(overlap.value, subinterval))
+            else addValidData(newValidData(overlap.value, subinterval))
+
+          // if there is an updated value, add it back in
+          updateValue(overlap.value).foreach: newValue =>
+            addValidData(newValidData(newValue, intersection))
+
+      // intersecting value result for compression later
+      overlap.value
+
+    // compress all potentially affected values
+    val intersectingValueSet = intersectingValues.toSet
+    val potentiallyAffectedValues = intersectingValueSet ++ intersectingValueSet.flatMap(updateValue)
+    potentiallyAffectedValues.foreach(compressInPlace)
+
+  /**
     * Adds a value as valid in portions of the interval where there aren't already valid values.
     *
     * @param interval
@@ -326,13 +379,9 @@ trait DimensionalBase[
   protected def removeValidData(oldData: ValidData): Unit =
     val key = oldData.interval.start
     dataByValue.subtractOne(oldData.value -> oldData)
-    val previousAsc = dataByStartAsc.remove(key)
-    // assert(previousDesc.isDefined)
+    dataByStartAsc.remove(key)
     experimental.control("noSearchTree")(
-      experimentalResult =
-        val previousDesc = dataByStartDesc.remove(key)
-        // assert(previousAsc.isDefined)
-      ,
+      experimentalResult = dataByStartDesc.remove(key),
       nonExperimentalResult = dataInSearchTreeRemove(oldData)
     )
 

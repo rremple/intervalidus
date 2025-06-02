@@ -26,21 +26,22 @@ object Coordinate:
     *   true if f applied to each corresponding dimension of the coordinate pairs is true, false otherwise
     */
   def minMaxForall(minMax1: MinMaxCoordinates, minMax2: MinMaxCoordinates)(
-    f: (((Double, Double), (Double, Double))) => Boolean
+    f: (Double, Double, Double, Double) => Boolean
   ): Boolean = (minMax1, minMax2) match
-    case ((min1, max1), (min2, max2)) => min1.zip(max1).zip(min2.zip(max2)).forall(f)
+    case ((min1, max1), (min2, max2)) =>
+      min1.indices.forall: i =>
+        f(min1(i), max1(i), min2(i), max2(i))
 
   extension (coordinates: Coordinate)
-    private def combineWith(other: Coordinate)(f: ((Double, Double)) => Double) =
-      coordinates.zip(other).map(f)
+    private def combineWith(other: Coordinate)(
+      f: (Double, Double) => Double
+    ): Coordinate = coordinates.indices.toVector.map: i =>
+      f(coordinates(i), other(i))
 
     private def combineWithBounded(other: Coordinate, fromUnbounded: Boolean*)(
-      f: ((Double, Double)) => Double
-    ): Coordinate = coordinates
-      .zip(other)
-      .zip(fromUnbounded)
-      .map:
-        case ((thisDim, otherDim), unbounded) => if unbounded then thisDim else f(thisDim, otherDim)
+      f: (Double, Double) => Double
+    ): Coordinate = coordinates.indices.toVector.map: i =>
+      if fromUnbounded(i) then coordinates(i) else f(coordinates(i), other(i))
 
     /**
       * Treating the other coordinate as the opposite corner of a box, return a vector of coordinate pairs that
@@ -68,11 +69,9 @@ object Coordinate:
 
         case None => protoBoxes
 
-      val minMidMax = coordinates
-        .zip(other)
-        .zip(mid(other))
-        .map:
-          case ((min, max), mid) => (min, mid, max)
+      val otherMid = mid(other)
+      val minMidMax = coordinates.indices.toVector.map: i =>
+        (coordinates(i), otherMid(i), other(i))
 
       helper(minMidMax)
 

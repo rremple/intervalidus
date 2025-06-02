@@ -99,9 +99,11 @@ trait BenchBase(baselineFeature: Option[String], featuredFeature: Option[String]
   lazy val validDataIn3d1x10k = validDataIn3d(1 * 100, 10 * 1_000)
   lazy val validDataIn3d1x1k = validDataIn3d(1 * 100, 1 * 1_000)
 
-  // note the ?=> is important so the context parameter given gets passed along
+  // note the ?=> is important, so the given context parameter gets passed along
+  type Build[F, T] = Experimental ?=> F => T
+
   def baselineFromData[T, D](
-    buildFrom: Experimental ?=> Iterable[D] => T,
+    buildFrom: Build[Iterable[D], T],
     validData: Iterable[D]
   ): T =
     println("Creating baseline fixture...")
@@ -113,9 +115,8 @@ trait BenchBase(baselineFeature: Option[String], featuredFeature: Option[String]
     println(s"Baseline fixture created, ${System.currentTimeMillis() - start} ms.")
     baselineFixture
 
-  // note the ?=> is important so the context parameter given gets passed along
   def featuredFromData[T, D](
-    buildFrom: Experimental ?=> Iterable[D] => T,
+    buildFrom: Build[Iterable[D], T],
     validData: Iterable[D]
   ): T =
     println("Creating featured fixture...")
@@ -127,20 +128,17 @@ trait BenchBase(baselineFeature: Option[String], featuredFeature: Option[String]
     println(s"Featured fixture created, ${System.currentTimeMillis() - start} ms.")
     featuredFixture
 
-  val buildMutable1d: Experimental ?=> Iterable[ValidData1D[String, Int]] => mutable.DataIn1D[String, Int] =
+  val buildMutable1d: Build[Iterable[ValidData1D[String, Int]], mutable.DataIn1D[String, Int]] =
     mutable.DataIn1D[String, Int](_)
-  val buildMutable2d: Experimental ?=> Iterable[ValidData2D[String, Int, Int]] => mutable.DataIn2D[String, Int, Int] =
+  val buildMutable2d: Build[Iterable[ValidData2D[String, Int, Int]], mutable.DataIn2D[String, Int, Int]] =
     mutable.DataIn2D[String, Int, Int](_)
-  val buildMutable3d
-    : Experimental ?=> Iterable[ValidData3D[String, Int, Int, Int]] => mutable.DataIn3D[String, Int, Int, Int] =
+  val buildMutable3d: Build[Iterable[ValidData3D[String, Int, Int, Int]], mutable.DataIn3D[String, Int, Int, Int]] =
     mutable.DataIn3D[String, Int, Int, Int](_)
-  val buildImmutable1d: Experimental ?=> Iterable[ValidData1D[String, Int]] => immutable.DataIn1D[String, Int] =
+  val buildImmutable1d: Build[Iterable[ValidData1D[String, Int]], immutable.DataIn1D[String, Int]] =
     immutable.DataIn1D[String, Int](_)
-  val buildImmutable2d
-    : Experimental ?=> Iterable[ValidData2D[String, Int, Int]] => immutable.DataIn2D[String, Int, Int] =
+  val buildImmutable2d: Build[Iterable[ValidData2D[String, Int, Int]], immutable.DataIn2D[String, Int, Int]] =
     immutable.DataIn2D[String, Int, Int](_)
-  val buildImmutable3d
-    : Experimental ?=> Iterable[ValidData3D[String, Int, Int, Int]] => immutable.DataIn3D[String, Int, Int, Int] =
+  val buildImmutable3d: Build[Iterable[ValidData3D[String, Int, Int, Int]], immutable.DataIn3D[String, Int, Int, Int]] =
     immutable.DataIn3D[String, Int, Int, Int](_)
 
   // hundreds by thousands, all lazy so we only create the data we use

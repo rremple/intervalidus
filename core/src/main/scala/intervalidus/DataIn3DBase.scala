@@ -388,16 +388,16 @@ trait DataIn3DBase[V, R1: DomainValueLike, R2: DomainValueLike, R3: DomainValueL
   override protected def updateOrRemove(
     targetInterval: Interval3D[R1, R2, R3],
     updateValue: V => Option[V]
-  ): Unit = experimental.control("bruteForceUpdate")(
-    nonExperimentalResult = updateOrRemoveOptimized(targetInterval, updateValue),
-    experimentalResult = updateOrRemoveBruteForce(targetInterval, updateValue)
+  ): Unit = experimental.control("noBruteForceUpdate")(
+    nonExperimentalResult = updateOrRemoveBruteForce(targetInterval, updateValue),
+    experimentalResult = updateOrRemoveLegacy(targetInterval, updateValue)
   )
 
   /*
-   * The normal, way faster (2.8 - 4.5 times faster), but way more complex implementation.
-   * Considers each case separately.
+   * The more complex legacy implementation that considers each case separately.
    */
-  private def updateOrRemoveOptimized(
+  @deprecated("replaced by updateOrRemoveBruteForce", "0.0.2")
+  private def updateOrRemoveLegacy(
     targetInterval: Interval3D[R1, R2, R3],
     updateValue: V => Option[V]
   ): Unit = synchronized:
@@ -953,68 +953,19 @@ trait DataIn3DBase[V, R1: DomainValueLike, R2: DomainValueLike, R3: DomainValueL
     potentiallyAffectedValues.foreach(compressInPlace)
 
   /*
-   * The simpler but slower and less efficient implementation.
-   * Benchmarks show this makes the remove operation 2.8 to 4.5 times slower.
+   * The default brute-force algorithm that performs on par with the legacy complex code, but is much simpler.
    */
   private def updateOrRemoveBruteForce(
     targetInterval: Interval3D[R1, R2, R3],
     updateValue: V => Option[V]
-  ): Unit = synchronized:
-    import Interval1D.Remainder
-
-    val intersecting = getIntersecting(targetInterval)
-    val potentiallyAffectedValues = intersecting.map(_.value).toSet ++ intersecting.map(_.value).flatMap(updateValue)
-
-    intersecting.foreach: overlap =>
-      val newValueOption = updateValue(overlap.value)
-
-      def excludeOverlapRemainder1D[T: DomainValueLike](
-        extractFromOverlap: Interval3D[R1, R2, R3] => Interval1D[T],
-        remainder: Remainder[Interval1D[T]]
-      ): Interval1D[T] =
-        val full = extractFromOverlap(overlap.interval)
-        remainder match
-          case Remainder.None =>
-            full
-          case Remainder.Single(remaining) if remaining hasSameStartAs full =>
-            full.fromAfter(remaining.end)
-          case Remainder.Single(remaining) =>
-            full.toBefore(remaining.start)
-          case Remainder.Split(leftRemaining, rightRemaining) =>
-            between(leftRemaining, rightRemaining)
-
-      def allOverlapSubintevals1D[T: DomainValueLike](
-        extractFromOverlap: Interval3D[R1, R2, R3] => Interval1D[T],
-        remainder: Remainder[Interval1D[T]]
-      ): Seq[Interval1D[T]] =
-        val excluded = excludeOverlapRemainder1D(extractFromOverlap, remainder)
-        remainder match
-          case Remainder.None                                 => Seq(excluded)
-          case Remainder.Single(remaining)                    => Seq(remaining, excluded).sorted
-          case Remainder.Split(leftRemaining, rightRemaining) => Seq(leftRemaining, excluded, rightRemaining)
-
-      val (horizontalRemainder, verticalRemainder, depthRemainder) = overlap.interval \ targetInterval
-      val excludedSubinterval =
-        excludeOverlapRemainder1D(_.horizontal, horizontalRemainder) x
-          excludeOverlapRemainder1D(_.vertical, verticalRemainder) x
-          excludeOverlapRemainder1D(_.depth, depthRemainder)
-      if excludedSubinterval hasSameStartAs overlap.interval then removeValidData(overlap)
-      for
-        horizontal <- allOverlapSubintevals1D(_.horizontal, horizontalRemainder)
-        vertical <- allOverlapSubintevals1D(_.vertical, verticalRemainder)
-        depth <- allOverlapSubintevals1D(_.depth, depthRemainder)
-      do
-        val subinterval = horizontal x vertical x depth
-        if subinterval != excludedSubinterval
-        then
-          if subinterval hasSameStartAs overlap.interval
-          then updateValidData(subinterval -> overlap.value)
-          else addValidData(subinterval -> overlap.value)
-
-      newValueOption.foreach: newValue =>
-        addValidData(excludedSubinterval -> newValue)
-
-    potentiallyAffectedValues.foreach(compressInPlace)
+  ): Unit = updateOrRemoveGeneric(targetInterval, updateValue): (overlap, intersection) =>
+    for
+      horizontal <- overlap.horizontal.separateUsing(intersection.horizontal)
+      vertical <- overlap.vertical.separateUsing(intersection.vertical)
+      depth <- overlap.depth.separateUsing(intersection.depth)
+      subinterval = horizontal x vertical x depth
+      if subinterval != intersection
+    yield subinterval
 
   override protected def fillInPlace[B <: V](interval: Interval3D[R1, R2, R3], value: B): Unit = synchronized:
     val intersectingIntervals = getIntersecting(interval).map(_.interval)

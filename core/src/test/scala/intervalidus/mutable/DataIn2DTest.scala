@@ -74,7 +74,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
 
   testsFor(removeOrUpdateTests("Mutable"))
   testsFor(removeOrUpdateTests("Mutable [experimental noSearchTree]")(using Experimental("noSearchTree")))
-  testsFor(removeOrUpdateTests("Mutable [experimental bruteForceUpdate]")(using Experimental("bruteForceUpdate")))
+  testsFor(removeOrUpdateTests("Mutable [experimental noBruteForceUpdate]")(using Experimental("noBruteForceUpdate")))
 
   def vertical2D[T: DiscreteValue](interval2: Interval1D[T]): Interval2D[LocalDate, T] =
     unbounded[LocalDate] x interval2
@@ -127,7 +127,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     val fixture = DataIn2D(expectedData4)
     fixture.set((intervalFrom(day(1)) x intervalFrom(1)) -> "remove me")
     fixture.remove(intervalFrom(day(1)) x intervalFrom(1))
-    // needed? fixture.recompressAll()
+    fixture.recompressAll()
     val expectedData5 = List(
       (unbounded[LocalDate] x intervalTo(0)) -> "Hey",
       (intervalTo(day(0)) x interval(1, 4)) -> "Hey",
@@ -180,7 +180,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     val fixture = DataIn2D(expectedData3)
     fixture.set((intervalFrom(day(0)) x intervalFrom(1)) -> "update me")
     fixture.update((intervalFrom(day(1)) x intervalFrom(0)) -> "update me")
-    // needed? fixture.recompressAll()
+    fixture.recompressAll()
     val expectedData4 = List(
       (unbounded[LocalDate] x intervalTo(-6)) -> "Hello",
       (unbounded[LocalDate] x interval(-5, -2)) -> "World!",

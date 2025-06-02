@@ -230,10 +230,7 @@ trait DataIn1DBase[V, R: DomainValueLike](using experimental: Experimental)
   ): Unit = synchronized:
     import Interval1D.Remainder
 
-    val intersecting = getIntersecting(targetInterval)
-    val potentiallyAffectedValues = intersecting.map(_.value).toSet ++ intersecting.map(_.value).flatMap(updateValue)
-
-    intersecting.foreach: overlap =>
+    val intersectingValues = getIntersecting(targetInterval).map: overlap =>
       val newValueOption = updateValue(overlap.value)
       overlap.interval \ targetInterval match
 
@@ -264,6 +261,12 @@ trait DataIn1DBase[V, R: DomainValueLike](using experimental: Experimental)
             addValidData(between(leftRemaining, rightRemaining) -> newValue)
           addValidData(rightRemaining -> overlap.value)
 
+      // intersecting value result for compression later
+      overlap.value
+
+    // compress all potentially affected values
+    val intersectingValueSet = intersectingValues.toSet
+    val potentiallyAffectedValues = intersectingValueSet ++ intersectingValueSet.flatMap(updateValue)
     potentiallyAffectedValues.foreach(compressInPlace)
 
   override protected def fillInPlace[B <: V](interval: Interval1D[R], value: B): Unit = synchronized:

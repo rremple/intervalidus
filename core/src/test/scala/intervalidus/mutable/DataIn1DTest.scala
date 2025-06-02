@@ -43,7 +43,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
 
   testsFor(removeOrUpdateTests("Mutable"))
   testsFor(removeOrUpdateTests("Mutable [experimental noSearchTree]")(using Experimental("noSearchTree")))
-  testsFor(removeOrUpdateTests("Mutable [experimental bruteForceUpdate]")(using Experimental("bruteForceUpdate")))
+  testsFor(removeOrUpdateTests("Mutable [experimental noBruteForceUpdate]")(using Experimental("noBruteForceUpdate")))
 
   override def assertRemoveOrUpdateResult(
     removeExpectedUnsorted: ValidData1D[String, Int]*

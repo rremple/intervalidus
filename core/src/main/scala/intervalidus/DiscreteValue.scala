@@ -1,8 +1,5 @@
 package intervalidus
 
-import scala.compiletime.constValueTuple
-import scala.deriving.Mirror
-
 /**
   * Type class template for a discrete value.
   *

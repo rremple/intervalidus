@@ -64,7 +64,7 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
 
   testsFor(removeOrUpdateTests("Immutable"))
   testsFor(removeOrUpdateTests("Immutable [experimental noSearchTree]")(using Experimental("noSearchTree")))
-  testsFor(removeOrUpdateTests("Immutable [experimental bruteForceUpdate]")(using Experimental("bruteForceUpdate")))
+  testsFor(removeOrUpdateTests("Immutable [experimental noBruteForceUpdate]")(using Experimental("noBruteForceUpdate")))
 
   def vertical3D[T2: DiscreteValue](
     interval3: Interval1D[T2]

@@ -294,6 +294,17 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers:
     (intervalTo(4) \ intervalTo(0)) shouldBe Remainder.Single(intervalFromAfter(0).to(4))
     (intervalTo(4) \ intervalTo(4)) shouldBe Remainder.None
 
+    (intervalTo(4) separateUsing intervalFrom(5)) shouldBe Seq(intervalTo(4))
+    (intervalTo(4) separateUsing intervalFrom(1)) shouldBe Seq(intervalToBefore(1), intervalFrom(1).to(4))
+    (intervalTo(4) separateUsing interval(1, 2)) shouldBe Seq(
+      intervalToBefore(1),
+      interval(1, 2),
+      intervalFromAfter(2).to(4)
+    )
+    (intervalTo(4) separateUsing interval(1, 4)) shouldBe Seq(intervalToBefore(1), interval(1, 4))
+    (intervalTo(4) separateUsing intervalTo(0)) shouldBe Seq(intervalTo(0), intervalFromAfter(0).to(4))
+    (intervalTo(4) separateUsing intervalTo(4)) shouldBe Seq(intervalTo(4))
+
   test("Int interval contains, etc."):
     assert(intervalTo(5) contains 3)
     assert(Point(3) ∈ intervalTo(5))

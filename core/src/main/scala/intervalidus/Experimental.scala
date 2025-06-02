@@ -21,7 +21,7 @@ object Experimental:
     * Only specific experimental features are enabled
     *
     * @param features
-    *   string description of experimental features to enable, e.g., "noSearchTree", "bruteForceUpdate",
+    *   string description of experimental features to enable, e.g., "noSearchTree", "noBruteForceUpdate",
     *   "requireDisjoint"
     * @return
     *   configuration for these experimental features enabled, and all others disabled
@@ -40,7 +40,7 @@ object Experimental:
     * Only specific experimental features are disabled
     *
     * @param features
-    *   string description of experimental features to disable, e.g., "noSearchTree", "bruteForceUpdate",
+    *   string description of experimental features to disable, e.g., "noSearchTree", "noBruteForceUpdate",
     *   "requireDisjoint"
     * @return
     *   configuration for having all experimental features enabled except those specified
