@@ -870,6 +870,55 @@ node7 -> node2;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="separateUsing-bb2" data-f-keywords="infix">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">infix </span></span><span class="kind"><span t="k">def </span></span><a href="Interval1D.html#separateUsing-bb2" t="n" class="documentableName ">separateUsing</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="Interval1D.html" t="t">Interval1D</a>[<span t="t">T</span>]): <span data-unresolved-link="" t="t">Iterable</span>[<a href="Interval1D.html" t="t">Interval1D</a>[<span t="t">T</span>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Similar to <a href="Interval1D.html#excluding-9bb">excluding</a>, separates the current interval into the intersection with that interval along with the remainder intervals covering this, i.e., the union of all the returned intervals will match this. The interval collection returned will be ordered by interval starts and will be disjoint. There are three possible outcomes:</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Similar to <a href="Interval1D.html#excluding-9bb">excluding</a>, separates the current interval into the intersection with that interval along with the remainder intervals covering this, i.e., the union of all the returned intervals will match this. The interval collection returned will be ordered by interval starts and will be disjoint. There are three possible outcomes:</p>
+              <ol>
+               <li>just one interval (this interval) is returned if this is a subset of that or this doesn't intersect that.</li>
+               <li>two intervals (the intersection with that along with the portion of this lying outside of that) are returned if this has a simple edge intersection.</li>
+               <li>three intervals (the intersection with that along with both portions of this that are before and after that) are returned if that is a proper subset of this, containing neither the start nor the end of this.</li>
+              </ol>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               that
+              </dt>
+              <dd class="body-medium">
+               <p>the interval to exclude.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>The remainder after exclusion.</p>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="to-ffffffe1" data-f-keywords="override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>

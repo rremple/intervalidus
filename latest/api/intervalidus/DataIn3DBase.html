@@ -2230,6 +2230,62 @@ node11 -> node9;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="updateOrRemoveGeneric-ab9" data-f-visibility="protected" data-f-inherited="DimensionalBase">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">protected </span></span><span class="kind"><span t="k">def </span></span><a href="DataIn3DBase.html#updateOrRemoveGeneric-ab9" t="n" class="documentableName ">updateOrRemoveGeneric</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">targetInterval</span>: <a href="Interval3D.html" t="t">Interval3D</a>[<span t="t">R1</span>, <span t="t">R2</span>, <span t="t">R3</span>], <span t="k"></span><span data-unresolved-link="" t="n">updateValue</span>: <span t="t">V</span><span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Option</span>[<span t="t">V</span>])(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">atomic</span>: (<a href="Interval3D.html" t="t">Interval3D</a>[<span t="t">R1</span>, <span t="t">R2</span>, <span t="t">R3</span>], <a href="Interval3D.html" t="t">Interval3D</a>[<span t="t">R1</span>, <span t="t">R2</span>, <span t="t">R3</span>])<span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Iterable</span>[<a href="Interval3D.html" t="t">Interval3D</a>[<span t="t">R1</span>, <span t="t">R2</span>, <span t="t">R3</span>]]): <span data-unresolved-link="" t="t">Unit</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Generic implementation to remove, and possibly update, valid values on the target interval. Each dimension-specific implementation provides its own way to construct atomic non-intersecting intervals.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Generic implementation to remove, and possibly update, valid values on the target interval. Each dimension-specific implementation provides its own way to construct atomic non-intersecting intervals.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               atomic
+              </dt>
+              <dd class="body-medium">
+               <p>maps the overlap and its intersection with target to its atomic deconstruction -- a collection of intervals covering the overlap that is "separated" by the intersection. (See dimension-specific implementations of <a href="DimensionalBase.html#updateOrRemove-fffff351">updateOrRemove</a> and <a href="Interval1D.html#separateUsing-bb2">Interval1D.separateUsing</a> for details.)</p>
+              </dd>
+              <dt class="body-small">
+               targetInterval
+              </dt>
+              <dd class="body-medium">
+               <p>the interval where any valid values are updated or removed.</p>
+              </dd>
+              <dt class="body-small">
+               updateValue
+              </dt>
+              <dd class="body-medium">
+               <p>maps a current value to some updated value, or None if the value should be removed.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="DimensionalBase.html#updateOrRemoveGeneric-ab9">DimensionalBase</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="updateValidData-fffffcb9" data-f-visibility="protected" data-f-inherited="DimensionalBase">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
