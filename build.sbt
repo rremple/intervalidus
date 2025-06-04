@@ -7,7 +7,6 @@ ThisBuild / publishTo := Some(
   "GitHub Packages" at s"https://maven.pkg.github.com/${githubOwner.value}/${githubRepository.value}"
 )
 publishMavenStyle := true
-githubTokenSource := TokenSource.GitConfig("github.token") || TokenSource.Environment("PUBLISH_TO_PACKAGES")
 
 def commonSettings = Seq(
   scalacOptions ++= Seq("-feature", "-deprecation"), // , "-Wunused:all"),
@@ -17,10 +16,35 @@ def commonSettings = Seq(
   coverageMinimumBranchTotal := 99,
   libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.19" % Test
 )
+def commonPublishSettings = commonSettings ++ Seq(
+  versionScheme := Some("early-semver"),
+  mimaPreviousArtifacts := previousStableVersion.value.map(organization.value %% moduleName.value % _).toSet,
+  tastyMiMaPreviousArtifacts := mimaPreviousArtifacts.value
+)
+def commonNoPublishSettings = commonSettings ++ Seq(
+  publish / skip := true,
+  Compile / packageDoc / publishArtifact := false,
+  coverageEnabled := false
+)
+
+lazy val root = (project in file("."))
+  .disablePlugins(MimaPlugin, TastyMiMaPlugin)
+  .aggregate(
+    core,
+    `intervalidus-weepickle`,
+    `intervalidus-upickle`,
+    `intervalidus-tinyrule`,
+    `intervalidus-examples`,
+    `bench`
+  )
+  .settings(
+    githubTokenSource := TokenSource.GitConfig("github.token") || TokenSource.Environment("PUBLISH_TO_PACKAGES"),
+    publish / skip := true
+  )
 
 lazy val core = project
   .enablePlugins(GhpagesPlugin, SiteScaladocPlugin)
-  .settings(commonSettings)
+  .settings(commonPublishSettings)
   .settings(
     name := "intervalidus",
     git.remoteRepo := "git@github.com:rremple/intervalidus.git"
@@ -28,7 +52,7 @@ lazy val core = project
 
 lazy val `intervalidus-weepickle` = (project in file("json/weepickle"))
   .dependsOn(core)
-  .settings(commonSettings)
+  .settings(commonPublishSettings)
   .settings(
     name := "intervalidus-weepickle",
     libraryDependencies += "com.rallyhealth" %% "weepickle-v1" % "1.9.1"
@@ -36,7 +60,7 @@ lazy val `intervalidus-weepickle` = (project in file("json/weepickle"))
 
 lazy val `intervalidus-upickle` = (project in file("json/upickle"))
   .dependsOn(core)
-  .settings(commonSettings)
+  .settings(commonPublishSettings)
   .settings(
     name := "intervalidus-upickle",
     libraryDependencies += "com.lihaoyi" %% "upickle" % "4.2.1"
@@ -44,28 +68,18 @@ lazy val `intervalidus-upickle` = (project in file("json/upickle"))
 
 lazy val `intervalidus-tinyrule` = (project in file("sidequests/tinyrule"))
   .dependsOn(core)
-  .settings(commonSettings)
+  .settings(commonPublishSettings)
   .settings(
     name := "intervalidus-tinyrule"
   )
 
 lazy val `intervalidus-examples` = (project in file("examples"))
+  .disablePlugins(MimaPlugin, TastyMiMaPlugin)
   .dependsOn(core, `intervalidus-tinyrule`)
-  .settings(commonSettings)
-  .settings(
-    publish / skip := true,
-    Compile / packageDoc / publishArtifact := false,
-    coverageEnabled := false
-)
+  .settings(commonNoPublishSettings)
 
 lazy val bench = project
   .enablePlugins(JmhPlugin)
+  .disablePlugins(MimaPlugin, TastyMiMaPlugin)
   .dependsOn(core)
-  .settings(commonSettings)
-  .settings(
-    publish / skip := true,
-    Compile / packageDoc / publishArtifact := false,
-    coverageEnabled := false
-  )
-
-publish / skip := true // ROOT
+  .settings(commonNoPublishSettings)
