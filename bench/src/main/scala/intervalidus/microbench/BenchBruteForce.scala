@@ -3,306 +3,396 @@ package intervalidus.microbench
 import intervalidus.DiscreteValue.given
 import intervalidus.*
 import org.openjdk.jmh.annotations.*
+import org.openjdk.jmh.infra.Blackhole
 
 import java.util.concurrent.TimeUnit
 import scala.language.implicitConversions
-import scala.util.Random
 
+/**
+  * Benchmarks only the remove method to see what affect noBruteForceUpdate has on updateOrRemove performance.
+  *
+  * The earlier version of this benchmark was constructed similar to BenchSearchTree, but this was refactored to use
+  * State instead. This was because, particularly in tests on mutable structures, as data were removed, the structure
+  * would get depleted, and later operations would become (unrealistically) faster than earlier operations as the
+  * structures got smaller and the miss rates increased. Also because the intervals to be removed were created randomly
+  * along the way and not established up front, the differences between iterations were more random, leading to higher
+  * error rates (which is still true in BenchSearchTree). Although using State makes the benchmark a bit more complex,
+  * the results are more realistic with smaller errors.
+  */
 object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature = Some("noBruteForceUpdate")):
-
-  // benchmark only the remove method to see what affect noBruteForceUpdate has on updateOrRemove performance.
-
-  // In general, bench all the applicable methods
+  // Sample results, where "baseline" is the new brute force algorithm and "featured" is the legacy logic. This shows
+  // that the new brute force algorithm has about the same throughput on average as legacy for 2d and about 30% higher
+  // for 3d, which is great (though the error rates are still pretty high relative to the scores)!
   //
-  // Not applicable to test data set:
-  //  def get: V
-  //  def getOption: Option[V]
-  //
-  // Unlikely to be important:
-  //  def toImmutable: DataIn2D[V, R1, R2]
-  //  def toMutable: DataIn2D[V, R1, R2]
-  //  def copy: DataIn2D[V, R1, R2]
-  //  def applyDiffActions(diffActions: Iterable[DiffAction2D[V, R1, R2]]): Unit
-  //  def diffActionsFrom(old: DataIn2DBase[V, R1, R2]): Iterable[DiffAction2D[V, R1, R2]]
-  //  def syncWith(that: DataIn2D[V, R1, R2]): Unit
-  //  def isDefinedAt(key: Domain2D[R1, R2]): Boolean // same profile as getAt
-  //
-  // Operates on the full structure every time -- unlikely to be important, but maybe validate that later:
-  //  def getAll: Iterable[ValidData2D[V, R1, R2]]
-  //  def compress(value: V): Unit
-  //  def compressAll(): Unit
-  //  def recompressAll(): Unit
-  //  def domain: Iterable[Interval2D[R1, R2]]
-  //  def flip: DataIn2D[V, R2, R1]
-  //  def map(f: (ValidData2D[V, R1, R2]) => ValidData2D[V, R1, R2]): Unit
-  //  def mapValues(f: V => V): Unit
-  //  def flatMap(f: (ValidData2D[V, R1, R2]) =>
-  //    DimensionalBase[V, Domain2D[R1, R2], Interval2D[R1, R2], ValidData2D[V, R1, R2]]): Unit
-  //  def filter(p: (ValidData2D[V, R1, R2]) => Boolean): Unit
-  //  def foldLeft[B](z: B)(op: (B, ValidData2D[V, R1, R2]) => B): B
-  //  def zip[B](that: DataIn2DBase[B, R1, R2]): DataIn2D[(V, B), R1, R2]
-  //  def zipAll[B](that: DataIn2DBase[B, R1, R2], thisElem: V, thatElem: B): DataIn2D[(V, B), R1, R2]
-  //
-  // Targeting these for benchmarking (note that mutable signatures are shown below):
-  //  def getAt(domainIndex: Domain2D[R1, R2]): Option[V]
-  //  def getByHorizontalIndex(horizontalIndex: Domain1D[R1]): DataIn1D[V, R2]
-  //  def getByVerticalIndex(verticalIndex: Domain1D[R2]): DataIn1D[V, R1]
-  //  def intersects(interval: Interval2D[R1, R2]): Boolean
-  //  def getIntersecting(interval: Interval2D[R1, R2]): Iterable[ValidData2D[V, R1, R2]]
-  //  def remove(interval: Interval2D[R1, R2]): Unit
-  //  def replace(oldData: ValidData2D[V, R1, R2], newData: ValidData2D[V, R1, R2]): Unit
-  //  def replaceByKey(key: Domain2D[R1, R2], newData: ValidData2D[V, R1, R2]): Unit
-  //  def set(newData: ValidData2D[V, R1, R2]): Unit
-  //  def setIfNoConflict(newData: ValidData2D[V, R1, R2]): Boolean
-  //  def update(data: ValidData2D[V, R1, R2]): Unit
+  // Benchmark                                               Mode  Cnt      Score       Error  Units
+  // BenchBruteForce.Immutable2dBench100x1k.baselineRemove  thrpt    3   3095.083 ±   441.526  ops/s
+  // BenchBruteForce.Immutable2dBench100x1k.featuredRemove  thrpt    3   2821.159 ±   596.099  ops/s
+  // BenchBruteForce.Immutable2dBench10x10k.baselineRemove  thrpt    3    245.656 ±   234.323  ops/s
+  // BenchBruteForce.Immutable2dBench10x10k.featuredRemove  thrpt    3    235.570 ±    51.791  ops/s
+  // BenchBruteForce.Immutable2dBench10x1k.baselineRemove   thrpt    3   3727.431 ±  1794.557  ops/s
+  // BenchBruteForce.Immutable2dBench10x1k.featuredRemove   thrpt    3   3545.460 ±  2634.781  ops/s
+  // BenchBruteForce.Immutable2dBench1x10k.baselineRemove   thrpt    3    225.502 ±   244.597  ops/s
+  // BenchBruteForce.Immutable2dBench1x10k.featuredRemove   thrpt    3    237.361 ±   133.653  ops/s
+  // BenchBruteForce.Immutable2dBench1x1k.baselineRemove    thrpt    3   3248.537 ±  8151.912  ops/s
+  // BenchBruteForce.Immutable2dBench1x1k.featuredRemove    thrpt    3   3820.453 ±  2486.453  ops/s
+  // BenchBruteForce.Immutable3dBench100x1k.baselineRemove  thrpt    3   4031.008 ±   815.005  ops/s
+  // BenchBruteForce.Immutable3dBench100x1k.featuredRemove  thrpt    3   3801.927 ±  5715.230  ops/s
+  // BenchBruteForce.Immutable3dBench10x10k.baselineRemove  thrpt    3    167.186 ±   401.543  ops/s
+  // BenchBruteForce.Immutable3dBench10x10k.featuredRemove  thrpt    3    159.265 ±    37.928  ops/s
+  // BenchBruteForce.Immutable3dBench10x1k.baselineRemove   thrpt    3   3292.757 ±  8985.938  ops/s
+  // BenchBruteForce.Immutable3dBench10x1k.featuredRemove   thrpt    3   3063.075 ±  8911.468  ops/s
+  // BenchBruteForce.Immutable3dBench1x10k.baselineRemove   thrpt    3    136.896 ±  1183.792  ops/s
+  // BenchBruteForce.Immutable3dBench1x10k.featuredRemove   thrpt    3    195.974 ±   347.604  ops/s
+  // BenchBruteForce.Immutable3dBench1x1k.baselineRemove    thrpt    3   3898.269 ±  4811.437  ops/s
+  // BenchBruteForce.Immutable3dBench1x1k.featuredRemove    thrpt    3   3773.145 ±  1344.074  ops/s
+  // BenchBruteForce.Mutable2dBench100x1k.baselineRemove    thrpt    3  26556.278 ±  1592.243  ops/s
+  // BenchBruteForce.Mutable2dBench100x1k.featuredRemove    thrpt    3  27463.580 ± 16814.197  ops/s
+  // BenchBruteForce.Mutable2dBench10x10k.baselineRemove    thrpt    3  24414.444 ±  3997.465  ops/s
+  // BenchBruteForce.Mutable2dBench10x10k.featuredRemove    thrpt    3  25385.657 ±  3838.907  ops/s
+  // BenchBruteForce.Mutable2dBench10x1k.baselineRemove     thrpt    3  34221.037 ±  1547.105  ops/s
+  // BenchBruteForce.Mutable2dBench10x1k.featuredRemove     thrpt    3  33760.539 ±  4864.149  ops/s
+  // BenchBruteForce.Mutable2dBench1x10k.baselineRemove     thrpt    3  24051.553 ± 23012.724  ops/s
+  // BenchBruteForce.Mutable2dBench1x10k.featuredRemove     thrpt    3  23926.517 ± 29100.351  ops/s
+  // BenchBruteForce.Mutable2dBench1x1k.baselineRemove      thrpt    3  38223.987 ± 13898.599  ops/s
+  // BenchBruteForce.Mutable2dBench1x1k.featuredRemove      thrpt    3  36679.529 ± 12825.836  ops/s
+  // BenchBruteForce.Mutable3dBench100x1k.baselineRemove    thrpt    3  45686.135 ± 19168.964  ops/s
+  // BenchBruteForce.Mutable3dBench100x1k.featuredRemove    thrpt    3  32260.005 ±  2994.092  ops/s
+  // BenchBruteForce.Mutable3dBench10x10k.baselineRemove    thrpt    3  14751.838 ± 11272.689  ops/s
+  // BenchBruteForce.Mutable3dBench10x10k.featuredRemove    thrpt    3  10589.908 ±  7093.991  ops/s
+  // BenchBruteForce.Mutable3dBench10x1k.baselineRemove     thrpt    3  47007.348 ±  7869.783  ops/s
+  // BenchBruteForce.Mutable3dBench10x1k.featuredRemove     thrpt    3  34541.463 ± 21038.057  ops/s
+  // BenchBruteForce.Mutable3dBench1x10k.baselineRemove     thrpt    3  15467.590 ±  4635.707  ops/s
+  // BenchBruteForce.Mutable3dBench1x10k.featuredRemove     thrpt    3   9567.279 ± 21137.488  ops/s
+  // BenchBruteForce.Mutable3dBench1x1k.baselineRemove      thrpt    3  40664.705 ±  2540.047  ops/s
+  // BenchBruteForce.Mutable3dBench1x1k.featuredRemove      thrpt    3  33470.399 ± 41855.520  ops/s
 
-  //// --- Mutable Bases ---
+  // Returns an interval overlapping an existing interval in some random way
+  def randSubinterval(existing: Interval1D[Int]): Interval1D[Int] =
+    existing match
+      case Interval1D(Domain1D.Point(start), Domain1D.Point(end)) =>
+        val size = end - start + 1
+        // offset 0 half the time to not oversample "splits"
+        val startOffset = if rand.nextBoolean() then 0 else rand.nextInt(size)
+        val endOffset = if rand.nextBoolean() then 0 else rand.nextInt(size - startOffset)
+        Interval1D.interval(start + startOffset, end + endOffset)
+      case whoops => throw new Exception(s"why not a point? $whoops")
 
-  @Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
-  @Measurement(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
-  @State(Scope.Benchmark)
-  @BenchmarkMode(Array(Mode.Throughput))
-  @OutputTimeUnit(TimeUnit.SECONDS)
-  @Fork(
-    jvmArgsAppend = Array("-Xmx3g", "-XX:+HeapDumpOnOutOfMemoryError"),
-    value = 1
-  )
-  abstract class GenericMutableBench[
-    D: DomainLike,
-    I <: IntervalLike[D, I],
-    ValidData <: ValidDataLike[String, D, I, ValidData],
-    DiffAction: DiffActionLike,
-    DimData <: mutable.MutableBase[String, D, I, ValidData, DiffAction, DimData] &
-      DimensionalBase[String, D, I, ValidData, DiffAction, ?]
-  ](data: Vector[ValidData], baselineData: => DimData, featuredData: => DimData):
-    // For replace and replaceByKey, as using totally random data may have unrealistically low hit rates.
-    // (vector random access should be superfast)
-    val dataSize = data.size
+  private def removeIntervals1D(dataIntervals: Vector[Interval1D[Int]]): Vector[Interval1D[Int]] =
+    dataIntervals.map(randSubinterval)
 
-    def useExisting(): ValidData = data(rand.nextInt(dataSize))
+  private def removeIntervals2D(dataIntervals: Vector[Interval2D[Int, Int]]): Vector[Interval2D[Int, Int]] =
+    dataIntervals.map: i =>
+      Interval2D(randSubinterval(i.horizontal), randSubinterval(i.vertical))
 
-    def randExistingTiny(): I
+  private def removeIntervals3D(dataIntervals: Vector[Interval3D[Int, Int, Int]]): Vector[Interval3D[Int, Int, Int]] =
+    dataIntervals.map: i =>
+      Interval3D(randSubinterval(i.horizontal), randSubinterval(i.vertical), randSubinterval(i.depth))
 
-    def randPoint(existing: Interval1D[Int]): Interval1D[Int] =
-      existing match
-        case Interval1D(Domain1D.Point(start), Domain1D.Point(end)) =>
-          val size = end - start + 1
-          Interval1D.intervalAt(rand.nextInt(size) + start)
-        case whoops => throw new Exception(s"why not a point? $whoops")
+  lazy val testIntervalsIn2d100x1k = removeIntervals2D(baselineMutable2d100x1k.getAll.map(_.interval).toVector)
+  lazy val testIntervalsIn2d10x10k = removeIntervals2D(baselineMutable2d10x10k.getAll.map(_.interval).toVector)
+  lazy val testIntervalsIn2d10x1k = removeIntervals2D(baselineMutable2d10x1k.getAll.map(_.interval).toVector)
+  lazy val testIntervalsIn2d1x10k = removeIntervals2D(baselineMutable2d1x10k.getAll.map(_.interval).toVector)
+  lazy val testIntervalsIn2d1x1k = removeIntervals2D(baselineMutable2d1x1k.getAll.map(_.interval).toVector)
+  lazy val testIntervalsIn3d100x1k = removeIntervals3D(baselineMutable3d100x1k.getAll.map(_.interval).toVector)
+  lazy val testIntervalsIn3d10x10k = removeIntervals3D(baselineMutable3d10x10k.getAll.map(_.interval).toVector)
+  lazy val testIntervalsIn3d10x1k = removeIntervals3D(baselineMutable3d10x1k.getAll.map(_.interval).toVector)
+  lazy val testIntervalsIn3d1x10k = removeIntervals3D(baselineMutable3d1x10k.getAll.map(_.interval).toVector)
+  lazy val testIntervalsIn3d1x1k = removeIntervals3D(baselineMutable3d1x1k.getAll.map(_.interval).toVector)
 
-    @Benchmark
-    def baselineRemove(): Unit = baselineData.remove(randExistingTiny())
-
-    @Benchmark
-    def featuredRemove(): Unit = featuredData.remove(randExistingTiny())
-
-  abstract class GenericMutable1dBench(
-    data: Vector[ValidData1D[String, Int]],
-    baselineData: => mutable.DataIn1D[String, Int],
-    featuredData: => mutable.DataIn1D[String, Int]
-  ) extends GenericMutableBench[
-      Domain1D[Int],
-      Interval1D[Int],
-      ValidData1D[String, Int],
-      DiffAction1D[String, Int],
-      mutable.DataIn1D[String, Int]
-    ](data, baselineData, featuredData):
-
-    override def randExistingTiny(): Interval1D[Int] =
-      randPoint(useExisting().interval)
-
-  abstract class GenericMutable2dBench(
-    data: Vector[ValidData2D[String, Int, Int]],
-    baselineData: => mutable.DataIn2D[String, Int, Int],
-    featuredData: => mutable.DataIn2D[String, Int, Int]
-  ) extends GenericMutableBench[
-      Domain2D[Int, Int],
-      Interval2D[Int, Int],
-      ValidData2D[String, Int, Int],
-      DiffAction2D[String, Int, Int],
-      mutable.DataIn2D[String, Int, Int]
-    ](data, baselineData, featuredData):
-
-    override def randExistingTiny(): Interval2D[Int, Int] =
-      val existing = useExisting().interval
-      Interval2D(randPoint(existing.horizontal), randPoint(existing.vertical))
-
-  abstract class GenericMutable3dBench(
-    data: Vector[ValidData3D[String, Int, Int, Int]],
-    baselineData: => mutable.DataIn3D[String, Int, Int, Int],
-    featuredData: => mutable.DataIn3D[String, Int, Int, Int]
-  ) extends GenericMutableBench[
-      Domain3D[Int, Int, Int],
-      Interval3D[Int, Int, Int],
-      ValidData3D[String, Int, Int, Int],
-      DiffAction3D[String, Int, Int, Int],
-      mutable.DataIn3D[String, Int, Int, Int]
-    ](data, baselineData, featuredData):
-
-    override def randExistingTiny(): Interval3D[Int, Int, Int] =
-      val existing = useExisting().interval
-      Interval3D(randPoint(existing.horizontal), randPoint(existing.vertical), randPoint(existing.depth))
-
-  //// --- Immutable Bases ---
-
-  @Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
-  @Measurement(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
-  @State(Scope.Benchmark)
-  @BenchmarkMode(Array(Mode.Throughput))
-  @OutputTimeUnit(TimeUnit.SECONDS)
-  @Fork(
-    jvmArgsAppend = Array("-Xmx3g", "-XX:+HeapDumpOnOutOfMemoryError"),
-    value = 1
-  )
-  abstract class GenericImmutableBench[
-    D: DomainLike,
-    I <: IntervalLike[D, I],
-    ValidData <: ValidDataLike[String, D, I, ValidData],
-    DiffAction: DiffActionLike,
-    DimData <: immutable.ImmutableBase[String, D, I, ValidData, DiffAction, DimData]
-  ](
-    data: Vector[ValidData],
-    baselineData: => DimData,
-    featuredData: => DimData
+  @State(Scope.Benchmark) abstract class GenericBenchmarkState[I, DimData](
+    testIntervals: Vector[I],
+    newBaselineData: () => DimData,
+    newFeaturedData: () => DimData
   ):
-    // For replace and replaceByKey, as using totally random data may have unrealistically low hit rates.
-    // (vector random access should be superfast)
-    val dataSize = data.size
+    var testIntervalIndex: Int = 0
 
-    def useExisting(): ValidData = data(rand.nextInt(dataSize))
+    def testInterval(): I = testIntervals(testIntervalIndex)
 
-    def randExistingTiny(): I
+    var baselineData: DimData = newBaselineData()
+    var featuredData: DimData = newFeaturedData()
 
-    def randPoint(existing: Interval1D[Int]): Interval1D[Int] =
-      existing match
-        case Interval1D(Domain1D.Point(start), Domain1D.Point(end)) =>
-          val size = end - start + 1
-          Interval1D.intervalAt(rand.nextInt(size) + start)
-        case whoops => throw new Exception(s"why not a point? $whoops")
+    def newData(): Unit =
+      baselineData = newBaselineData()
+      featuredData = newFeaturedData()
 
-    @Benchmark
-    def baselineRemove: DimData = baselineData.remove(randExistingTiny())
+    @Setup(Level.Iteration) def setUpIteration(): Unit =
+      newData()
+      testIntervalIndex = -1 // incremented to 0 by setUpInvocation
 
-    @Benchmark
-    def featuredRemove: DimData = featuredData.remove(randExistingTiny())
+    @Setup(Level.Invocation) def setUpInvocation(): Unit =
+      testIntervalIndex += 1
+      if testIntervalIndex == testIntervals.length then
+        newData()
+        testIntervalIndex = 0
 
-  abstract class GenericImmutable1dBench(
-    data: Vector[ValidData1D[String, Int]],
-    baselineData: => immutable.DataIn1D[String, Int],
-    featuredData: => immutable.DataIn1D[String, Int]
-  ) extends GenericImmutableBench[
-      Domain1D[Int],
-      Interval1D[Int],
-      ValidData1D[String, Int],
-      DiffAction1D[String, Int],
-      immutable.DataIn1D[String, Int]
-    ](data, baselineData, featuredData):
+  //// --- Concrete Benchmark State Classes ---
 
-    override def randExistingTiny(): Interval1D[Int] =
-      randPoint(useExisting().interval)
+  // Mutable
 
-  abstract class GenericImmutable2dBench(
-    data: Vector[ValidData2D[String, Int, Int]],
-    baselineData: => immutable.DataIn2D[String, Int, Int],
-    featuredData: => immutable.DataIn2D[String, Int, Int]
-  ) extends GenericImmutableBench[
-      Domain2D[Int, Int],
-      Interval2D[Int, Int],
-      ValidData2D[String, Int, Int],
-      DiffAction2D[String, Int, Int],
-      immutable.DataIn2D[String, Int, Int]
-    ](data, baselineData, featuredData):
+  class BenchmarkStateMutable2d100x1k
+    extends GenericBenchmarkState(
+      testIntervalsIn2d100x1k,
+      () => baselineMutable2d100x1k.copy,
+      () => featuredMutable2d100x1k.copy
+    )
 
-    override def randExistingTiny(): Interval2D[Int, Int] =
-      val existing = useExisting().interval
-      Interval2D(randPoint(existing.horizontal), randPoint(existing.vertical))
+  class BenchmarkStateMutable2d10x10k
+    extends GenericBenchmarkState(
+      testIntervalsIn2d10x10k,
+      () => baselineMutable2d10x10k.copy,
+      () => featuredMutable2d10x10k.copy
+    )
 
-  abstract class GenericImmutable3dBench(
-    data: Vector[ValidData3D[String, Int, Int, Int]],
-    baselineData: => immutable.DataIn3D[String, Int, Int, Int],
-    featuredData: => immutable.DataIn3D[String, Int, Int, Int]
-  ) extends GenericImmutableBench[
-      Domain3D[Int, Int, Int],
-      Interval3D[Int, Int, Int],
-      ValidData3D[String, Int, Int, Int],
-      DiffAction3D[String, Int, Int, Int],
-      immutable.DataIn3D[String, Int, Int, Int]
-    ](data, baselineData, featuredData):
+  class BenchmarkStateMutable2d10x1k
+    extends GenericBenchmarkState(
+      testIntervalsIn2d10x1k,
+      () => baselineMutable2d10x1k.copy,
+      () => featuredMutable2d10x1k.copy
+    )
 
-    override def randExistingTiny(): Interval3D[Int, Int, Int] =
-      val existing = useExisting().interval
-      Interval3D(randPoint(existing.horizontal), randPoint(existing.vertical), randPoint(existing.depth))
+  class BenchmarkStateMutable2d1x10k
+    extends GenericBenchmarkState(
+      testIntervalsIn2d1x10k,
+      () => baselineMutable2d1x10k.copy,
+      () => featuredMutable2d1x10k.copy
+    )
+
+  class BenchmarkStateMutable2d1x1k
+    extends GenericBenchmarkState(
+      testIntervalsIn2d1x1k,
+      () => baselineMutable2d1x1k.copy,
+      () => featuredMutable2d1x1k.copy
+    )
+
+  class BenchmarkStateMutable3d100x1k
+    extends GenericBenchmarkState(
+      testIntervalsIn3d100x1k,
+      () => baselineMutable3d100x1k.copy,
+      () => featuredMutable3d100x1k.copy
+    )
+
+  class BenchmarkStateMutable3d10x10k
+    extends GenericBenchmarkState(
+      testIntervalsIn3d10x10k,
+      () => baselineMutable3d10x10k.copy,
+      () => featuredMutable3d10x10k.copy
+    )
+
+  class BenchmarkStateMutable3d10x1k
+    extends GenericBenchmarkState(
+      testIntervalsIn3d10x1k,
+      () => baselineMutable3d10x1k.copy,
+      () => featuredMutable3d10x1k.copy
+    )
+
+  class BenchmarkStateMutable3d1x10k
+    extends GenericBenchmarkState(
+      testIntervalsIn3d1x10k,
+      () => baselineMutable3d1x10k.copy,
+      () => featuredMutable3d1x10k.copy
+    )
+
+  class BenchmarkStateMutable3d1x1k
+    extends GenericBenchmarkState(
+      testIntervalsIn3d1x1k,
+      () => baselineMutable3d1x1k.copy,
+      () => featuredMutable3d1x1k.copy
+    )
+
+  // Immutable
+
+  class BenchmarkStateImmutable2d100x1k
+    extends GenericBenchmarkState(
+      testIntervalsIn2d100x1k,
+      () => baselineImmutable2d100x1k.copy,
+      () => featuredImmutable2d100x1k.copy
+    )
+
+  class BenchmarkStateImmutable2d10x10k
+    extends GenericBenchmarkState(
+      testIntervalsIn2d10x10k,
+      () => baselineImmutable2d10x10k.copy,
+      () => featuredImmutable2d10x10k.copy
+    )
+
+  class BenchmarkStateImmutable2d10x1k
+    extends GenericBenchmarkState(
+      testIntervalsIn2d10x1k,
+      () => baselineImmutable2d10x1k.copy,
+      () => featuredImmutable2d10x1k.copy
+    )
+
+  class BenchmarkStateImmutable2d1x10k
+    extends GenericBenchmarkState(
+      testIntervalsIn2d1x10k,
+      () => baselineImmutable2d1x10k.copy,
+      () => featuredImmutable2d1x10k.copy
+    )
+
+  class BenchmarkStateImmutable2d1x1k
+    extends GenericBenchmarkState(
+      testIntervalsIn2d1x1k,
+      () => baselineImmutable2d1x1k.copy,
+      () => featuredImmutable2d1x1k.copy
+    )
+
+  class BenchmarkStateImmutable3d100x1k
+    extends GenericBenchmarkState(
+      testIntervalsIn3d100x1k,
+      () => baselineImmutable3d100x1k.copy,
+      () => featuredImmutable3d100x1k.copy
+    )
+
+  class BenchmarkStateImmutable3d10x10k
+    extends GenericBenchmarkState(
+      testIntervalsIn3d10x10k,
+      () => baselineImmutable3d10x10k.copy,
+      () => featuredImmutable3d10x10k.copy
+    )
+
+  class BenchmarkStateImmutable3d10x1k
+    extends GenericBenchmarkState(
+      testIntervalsIn3d10x1k,
+      () => baselineImmutable3d10x1k.copy,
+      () => featuredImmutable3d10x1k.copy
+    )
+
+  class BenchmarkStateImmutable3d1x10k
+    extends GenericBenchmarkState(
+      testIntervalsIn3d1x10k,
+      () => baselineImmutable3d1x10k.copy,
+      () => featuredImmutable3d1x10k.copy
+    )
+
+  class BenchmarkStateImmutable3d1x1k
+    extends GenericBenchmarkState(
+      testIntervalsIn3d1x1k,
+      () => baselineImmutable3d1x1k.copy,
+      () => featuredImmutable3d1x1k.copy
+    )
 
   //// --- Concrete Benchmark Classes ---
 
   // Mutable
 
-  // no 1D diff, nothing to bench
-  //  class Mutable1dBench100x1k
-  //    extends GenericMutable1dBench(validDataIn1d100x1k, baselineMutable1d100x1k, featuredMutable1d100x1k)
-  //  class Mutable1dBench10x10k
-  //    extends GenericMutable1dBench(validDataIn1d10x10k, baselineMutable1d10x10k, featuredMutable1d10x10k)
-  //  class Mutable1dBench10x1k
-  //    extends GenericMutable1dBench(validDataIn1d10x1k, baselineMutable1d10x1k, featuredMutable1d10x1k)
-  //  class Mutable1dBench1x10k
-  //    extends GenericMutable1dBench(validDataIn1d1x10k, baselineMutable1d1x10k, featuredMutable1d1x10k)
-  //  class Mutable1dBench1x1k
-  //    extends GenericMutable1dBench(validDataIn1d1x1k, baselineMutable1d1x1k, featuredMutable1d1x1k)
+  class Mutable2dBench100x1k extends GenericBench:
+    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateMutable2d100x1k): Unit =
+      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateMutable2d100x1k): Unit =
+      blackhole.consume(state.featuredData.remove(state.testInterval()))
 
-  class Mutable2dBench100x1k
-    extends GenericMutable2dBench(validDataIn2d100x1k, baselineMutable2d100x1k, featuredMutable2d100x1k)
-  class Mutable2dBench10x10k
-    extends GenericMutable2dBench(validDataIn2d10x10k, baselineMutable2d10x10k, featuredMutable2d10x10k)
-  class Mutable2dBench10x1k
-    extends GenericMutable2dBench(validDataIn2d10x1k, baselineMutable2d10x1k, featuredMutable2d10x1k)
-  class Mutable2dBench1x10k
-    extends GenericMutable2dBench(validDataIn2d1x10k, baselineMutable2d1x10k, featuredMutable2d1x10k)
-  class Mutable2dBench1x1k
-    extends GenericMutable2dBench(validDataIn2d1x1k, baselineMutable2d1x1k, featuredMutable2d1x1k)
+  class Mutable2dBench10x10k extends GenericBench:
+    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateMutable2d10x10k): Unit =
+      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateMutable2d10x10k): Unit =
+      blackhole.consume(state.featuredData.remove(state.testInterval()))
 
-  class Mutable3dBench100x1k
-    extends GenericMutable3dBench(validDataIn3d100x1k, baselineMutable3d100x1k, featuredMutable3d100x1k)
-  class Mutable3dBench10x10k
-    extends GenericMutable3dBench(validDataIn3d10x10k, baselineMutable3d10x10k, featuredMutable3d10x10k)
-  class Mutable3dBench10x1k
-    extends GenericMutable3dBench(validDataIn3d10x1k, baselineMutable3d10x1k, featuredMutable3d10x1k)
-  class Mutable3dBench1x10k
-    extends GenericMutable3dBench(validDataIn3d1x10k, baselineMutable3d1x10k, featuredMutable3d1x10k)
-  class Mutable3dBench1x1k
-    extends GenericMutable3dBench(validDataIn3d1x1k, baselineMutable3d1x1k, featuredMutable3d1x1k)
+  class Mutable2dBench10x1k extends GenericBench:
+    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateMutable2d10x1k): Unit =
+      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateMutable2d10x1k): Unit =
+      blackhole.consume(state.featuredData.remove(state.testInterval()))
+
+  class Mutable2dBench1x10k extends GenericBench:
+    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateMutable2d1x10k): Unit =
+      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateMutable2d1x10k): Unit =
+      blackhole.consume(state.featuredData.remove(state.testInterval()))
+
+  class Mutable2dBench1x1k extends GenericBench:
+    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateMutable2d1x1k): Unit =
+      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateMutable2d1x1k): Unit =
+      blackhole.consume(state.featuredData.remove(state.testInterval()))
+
+  class Mutable3dBench100x1k extends GenericBench:
+    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateMutable3d100x1k): Unit =
+      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateMutable3d100x1k): Unit =
+      blackhole.consume(state.featuredData.remove(state.testInterval()))
+
+  class Mutable3dBench10x10k extends GenericBench:
+    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateMutable3d10x10k): Unit =
+      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateMutable3d10x10k): Unit =
+      blackhole.consume(state.featuredData.remove(state.testInterval()))
+
+  class Mutable3dBench10x1k extends GenericBench:
+    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateMutable3d10x1k): Unit =
+      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateMutable3d10x1k): Unit =
+      blackhole.consume(state.featuredData.remove(state.testInterval()))
+
+  class Mutable3dBench1x10k extends GenericBench:
+    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateMutable3d1x10k): Unit =
+      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateMutable3d1x10k): Unit =
+      blackhole.consume(state.featuredData.remove(state.testInterval()))
+
+  class Mutable3dBench1x1k extends GenericBench:
+    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateMutable3d1x1k): Unit =
+      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateMutable3d1x1k): Unit =
+      blackhole.consume(state.featuredData.remove(state.testInterval()))
 
   // Immutable
 
-  // no 1D diff, nothing to bench
-  //  class Immutable1dBench100x1k
-  //    extends GenericImmutable1dBench(validDataIn1d100x1k, baselineImmutable1d100x1k, featuredImmutable1d100x1k)
-  //  class Immutable1dBench10x10k
-  //    extends GenericImmutable1dBench(validDataIn1d10x10k, baselineImmutable1d10x10k, featuredImmutable1d10x10k)
-  //  class Immutable1dBench10x1k
-  //    extends GenericImmutable1dBench(validDataIn1d10x1k, baselineImmutable1d10x1k, featuredImmutable1d10x1k)
-  //  class Immutable1dBench1x10k
-  //    extends GenericImmutable1dBench(validDataIn1d1x10k, baselineImmutable1d1x10k, featuredImmutable1d1x10k)
-  //  class Immutable1dBench1x1k
-  //    extends GenericImmutable1dBench(validDataIn1d1x1k, baselineImmutable1d1x1k, featuredImmutable1d1x1k)
+  class Immutable2dBench100x1k extends GenericBench:
+    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateImmutable2d100x1k): Unit =
+      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateImmutable2d100x1k): Unit =
+      blackhole.consume(state.featuredData.remove(state.testInterval()))
 
-  class Immutable2dBench100x1k
-    extends GenericImmutable2dBench(validDataIn2d100x1k, baselineImmutable2d100x1k, featuredImmutable2d100x1k)
-  class Immutable2dBench10x10k
-    extends GenericImmutable2dBench(validDataIn2d10x10k, baselineImmutable2d10x10k, featuredImmutable2d10x10k)
-  class Immutable2dBench10x1k
-    extends GenericImmutable2dBench(validDataIn2d10x1k, baselineImmutable2d10x1k, featuredImmutable2d10x1k)
-  class Immutable2dBench1x10k
-    extends GenericImmutable2dBench(validDataIn2d1x10k, baselineImmutable2d1x10k, featuredImmutable2d1x10k)
-  class Immutable2dBench1x1k
-    extends GenericImmutable2dBench(validDataIn2d1x1k, baselineImmutable2d1x1k, featuredImmutable2d1x1k)
+  class Immutable2dBench10x10k extends GenericBench:
+    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateImmutable2d10x10k): Unit =
+      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateImmutable2d10x10k): Unit =
+      blackhole.consume(state.featuredData.remove(state.testInterval()))
 
-  class Immutable3dBench100x1k
-    extends GenericImmutable3dBench(validDataIn3d100x1k, baselineImmutable3d100x1k, featuredImmutable3d100x1k)
-  class Immutable3dBench10x10k
-    extends GenericImmutable3dBench(validDataIn3d10x10k, baselineImmutable3d10x10k, featuredImmutable3d10x10k)
-  class Immutable3dBench10x1k
-    extends GenericImmutable3dBench(validDataIn3d10x1k, baselineImmutable3d10x1k, featuredImmutable3d10x1k)
-  class Immutable3dBench1x10k
-    extends GenericImmutable3dBench(validDataIn3d1x10k, baselineImmutable3d1x10k, featuredImmutable3d1x10k)
-  class Immutable3dBench1x1k
-    extends GenericImmutable3dBench(validDataIn3d1x1k, baselineImmutable3d1x1k, featuredImmutable3d1x1k)
+  class Immutable2dBench10x1k extends GenericBench:
+    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateImmutable2d10x1k): Unit =
+      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateImmutable2d10x1k): Unit =
+      blackhole.consume(state.featuredData.remove(state.testInterval()))
+
+  class Immutable2dBench1x10k extends GenericBench:
+    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateImmutable2d1x10k): Unit =
+      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateImmutable2d1x10k): Unit =
+      blackhole.consume(state.featuredData.remove(state.testInterval()))
+
+  class Immutable2dBench1x1k extends GenericBench:
+    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateImmutable2d1x1k): Unit =
+      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateImmutable2d1x1k): Unit =
+      blackhole.consume(state.featuredData.remove(state.testInterval()))
+
+  class Immutable3dBench100x1k extends GenericBench:
+    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateImmutable3d100x1k): Unit =
+      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateImmutable3d100x1k): Unit =
+      blackhole.consume(state.featuredData.remove(state.testInterval()))
+
+  class Immutable3dBench10x10k extends GenericBench:
+    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateImmutable3d10x10k): Unit =
+      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateImmutable3d10x10k): Unit =
+      blackhole.consume(state.featuredData.remove(state.testInterval()))
+
+  class Immutable3dBench10x1k extends GenericBench:
+    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateImmutable3d10x1k): Unit =
+      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateImmutable3d10x1k): Unit =
+      blackhole.consume(state.featuredData.remove(state.testInterval()))
+
+  class Immutable3dBench1x10k extends GenericBench:
+    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateImmutable3d1x10k): Unit =
+      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateImmutable3d1x10k): Unit =
+      blackhole.consume(state.featuredData.remove(state.testInterval()))
+
+  class Immutable3dBench1x1k extends GenericBench:
+    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateImmutable3d1x1k): Unit =
+      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateImmutable3d1x1k): Unit =
+      blackhole.consume(state.featuredData.remove(state.testInterval()))

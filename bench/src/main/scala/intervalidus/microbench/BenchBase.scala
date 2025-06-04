@@ -3,7 +3,9 @@ package intervalidus.microbench
 import intervalidus.*
 import intervalidus.DiscreteValue.given
 import intervalidus.Interval1D.interval
+import org.openjdk.jmh.annotations.*
 
+import java.util.concurrent.TimeUnit
 import scala.language.implicitConversions
 import scala.math.Ordering.Implicits.infixOrderingOps
 import scala.util.Random
@@ -12,6 +14,17 @@ import scala.util.Random
   * Common data and methods useful in benchmarking intervalidus
   */
 trait BenchBase(baselineFeature: Option[String], featuredFeature: Option[String]):
+  @Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+  @Measurement(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
+  @State(Scope.Benchmark)
+  @BenchmarkMode(Array(Mode.Throughput))
+  @OutputTimeUnit(TimeUnit.SECONDS)
+  @Fork(
+    jvmArgsAppend = Array("-Xmx3g", "-XX:+HeapDumpOnOutOfMemoryError"),
+    value = 1
+  )
+  abstract class GenericBench
+
   val rand = Random()
   val (fullRangeMin, fullRangeMax) = (-500_000, 500_000)
   def fullRangeSize = fullRangeMax - fullRangeMin
@@ -100,10 +113,10 @@ trait BenchBase(baselineFeature: Option[String], featuredFeature: Option[String]
   lazy val validDataIn3d1x1k = validDataIn3d(1 * 100, 1 * 1_000)
 
   // note the ?=> is important, so the given context parameter gets passed along
-  type Build[F, T] = Experimental ?=> F => T
+  type BuildFrom[F, T] = Experimental ?=> Iterable[F] => T
 
   def baselineFromData[T, D](
-    buildFrom: Build[Iterable[D], T],
+    buildFrom: BuildFrom[D, T],
     validData: Iterable[D]
   ): T =
     println("Creating baseline fixture...")
@@ -116,7 +129,7 @@ trait BenchBase(baselineFeature: Option[String], featuredFeature: Option[String]
     baselineFixture
 
   def featuredFromData[T, D](
-    buildFrom: Build[Iterable[D], T],
+    buildFrom: BuildFrom[D, T],
     validData: Iterable[D]
   ): T =
     println("Creating featured fixture...")
@@ -128,17 +141,17 @@ trait BenchBase(baselineFeature: Option[String], featuredFeature: Option[String]
     println(s"Featured fixture created, ${System.currentTimeMillis() - start} ms.")
     featuredFixture
 
-  val buildMutable1d: Build[Iterable[ValidData1D[String, Int]], mutable.DataIn1D[String, Int]] =
+  val buildMutable1d: BuildFrom[ValidData1D[String, Int], mutable.DataIn1D[String, Int]] =
     mutable.DataIn1D[String, Int](_)
-  val buildMutable2d: Build[Iterable[ValidData2D[String, Int, Int]], mutable.DataIn2D[String, Int, Int]] =
+  val buildMutable2d: BuildFrom[ValidData2D[String, Int, Int], mutable.DataIn2D[String, Int, Int]] =
     mutable.DataIn2D[String, Int, Int](_)
-  val buildMutable3d: Build[Iterable[ValidData3D[String, Int, Int, Int]], mutable.DataIn3D[String, Int, Int, Int]] =
+  val buildMutable3d: BuildFrom[ValidData3D[String, Int, Int, Int], mutable.DataIn3D[String, Int, Int, Int]] =
     mutable.DataIn3D[String, Int, Int, Int](_)
-  val buildImmutable1d: Build[Iterable[ValidData1D[String, Int]], immutable.DataIn1D[String, Int]] =
+  val buildImmutable1d: BuildFrom[ValidData1D[String, Int], immutable.DataIn1D[String, Int]] =
     immutable.DataIn1D[String, Int](_)
-  val buildImmutable2d: Build[Iterable[ValidData2D[String, Int, Int]], immutable.DataIn2D[String, Int, Int]] =
+  val buildImmutable2d: BuildFrom[ValidData2D[String, Int, Int], immutable.DataIn2D[String, Int, Int]] =
     immutable.DataIn2D[String, Int, Int](_)
-  val buildImmutable3d: Build[Iterable[ValidData3D[String, Int, Int, Int]], immutable.DataIn3D[String, Int, Int, Int]] =
+  val buildImmutable3d: BuildFrom[ValidData3D[String, Int, Int, Int], immutable.DataIn3D[String, Int, Int, Int]] =
     immutable.DataIn3D[String, Int, Int, Int](_)
 
   // hundreds by thousands, all lazy so we only create the data we use

@@ -14,15 +14,6 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
 
   //// --- Mutable Bases ---
 
-  @Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
-  @Measurement(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
-  @State(Scope.Benchmark)
-  @BenchmarkMode(Array(Mode.Throughput))
-  @OutputTimeUnit(TimeUnit.SECONDS)
-  @Fork(
-    jvmArgsAppend = Array("-Xmx3g", "-XX:+HeapDumpOnOutOfMemoryError"),
-    value = 1
-  )
   abstract class GenericMutableBench[
     D: DomainLike,
     I <: IntervalLike[D, I],
@@ -39,7 +30,7 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
     randInterval: Int => I,
     randValue: Int => ValidData,
     randValueWithKey: ValidData => ValidData
-  ):
+  ) extends GenericBench:
     // For replace and replaceByKey, as using totally random data may have unrealistically low hit rates.
     // (vector random access should be superfast)
     val dataSize = data.size
@@ -216,15 +207,6 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
 
   //// --- Immutable Bases ---
 
-  @Warmup(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
-  @Measurement(iterations = 3, time = 5, timeUnit = TimeUnit.SECONDS)
-  @State(Scope.Benchmark)
-  @BenchmarkMode(Array(Mode.Throughput))
-  @OutputTimeUnit(TimeUnit.SECONDS)
-  @Fork(
-    jvmArgsAppend = Array("-Xmx3g", "-XX:+HeapDumpOnOutOfMemoryError"),
-    value = 1
-  )
   abstract class GenericImmutableBench[
     D: DomainLike,
     I <: IntervalLike[D, I],
@@ -240,7 +222,7 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
     randInterval: Int => I,
     randValue: Int => ValidData,
     randValueWithKey: ValidData => ValidData
-  ):
+  ) extends GenericBench:
     // For replace and replaceByKey, as using totally random data may have unrealistically low hit rates.
     // (vector random access should be superfast)
     val dataSize = data.size

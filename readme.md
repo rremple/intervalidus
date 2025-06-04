@@ -622,5 +622,5 @@ Other experimental features that can be toggled are:
 - **"noBruteForceUpdate"** It was easy to specify all the cases directly for removing the intersection of an interval
   with all existing intervals in one dimension: there are only a few cases. In two dimensions it got more complicated,
   and even more so in three dimensions. Now there is a simpler brute force method that eliminates all this complexity
-  and performs on par (maybe ~2% slower in general) with all the complex code. Although that complex legacy code is now
+  and performs on par or better than all that complex code. Although that complex legacy code is now
   deprecated, you can access it though this experimental feature. It will be removed in a future release.
