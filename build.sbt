@@ -1,10 +1,10 @@
-ThisBuild / scalaVersion := "3.3.5"
+ThisBuild / scalaVersion := "3.3.6"
 
 ThisBuild / organization := "rremple" // necessary for the sbt-ghpages and sbt-github-packages
 ThisBuild / githubOwner := "rremple"
 ThisBuild / githubRepository := "intervalidus"
 ThisBuild / publishTo := Some(
-  MavenRepository("GitHub Packages", s"https://maven.pkg.github.com/${githubOwner.value}/${githubRepository.value}")
+  "GitHub Packages" at s"https://maven.pkg.github.com/${githubOwner.value}/${githubRepository.value}"
 )
 publishMavenStyle := true
 githubTokenSource := TokenSource.GitConfig("github.token") || TokenSource.Environment("PUBLISH_TO_PACKAGES")
@@ -39,7 +39,7 @@ lazy val `intervalidus-upickle` = (project in file("json/upickle"))
   .settings(commonSettings)
   .settings(
     name := "intervalidus-upickle",
-    libraryDependencies += "com.lihaoyi" %% "upickle" % "4.0.2"
+    libraryDependencies += "com.lihaoyi" %% "upickle" % "4.2.1"
   )
 
 lazy val `intervalidus-tinyrule` = (project in file("sidequests/tinyrule"))
