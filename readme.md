@@ -3,7 +3,7 @@
 ## In what intervals are your data valid?
 
 A Scala library with zero dependencies for representing data as valid only in discrete or continuous intervals, one-,
-two-, and three-dimensional. This seems to come up a lot in application design both in terms of effective dating and
+two-, three-, and four-dimensional. This seems to come up a lot in application design both in terms of effective dating and
 versioning data.
 
 ## Usage
@@ -45,7 +45,7 @@ over time. (Here we use +∞ to represent no planned termination, or what is som
 | 3/15  | Basic: 1/1 – 3/31; Premium: 4/1 – +∞   |
 | 6/28  | Basic: 1/1 – 3/31; Premium: 4/1 – 6/30 |
 
-Intervalidus provides composable data structures -- one-, two-, and three-dimensional, both mutable and
+Intervalidus provides composable data structures -- one-, two-, three-, and four-dimensional, both mutable and
 immutable -- to address storage and management of data like this. For more information, see the
 [full API documentation](https://rremple.github.io/intervalidus/latest/api/intervalidus)
 
@@ -288,7 +288,7 @@ println(s"reLU at  1 = ${reLU( 1)}") // reLU at  1 = 1
 
 ---
 
-The same methods are available in both mutable/immutable and one-/two-/three-dimensional forms (though parameter and
+The same methods are available in both mutable/immutable and one-/two-/three-/four-dimensional forms (though parameter and
 return types vary). See the [full API documentation](https://rremple.github.io/intervalidus/latest/api/intervalidus) for details on
 these methods.
 
@@ -364,7 +364,7 @@ A continuous value is also a type class, and there are implementations given for
 - `LocalDate`
 
 But if you have your own type with these properties, you can certainly give a `DiscreteValue` or `ContinuousValue` type
-class definition for that type and use it in the definition of one-, two-, or three-dimensional intervals. To motivate
+class definition for that type and use it in the definition of one-, two-, three-, or four-dimensional intervals. To motivate
 an example where this makes sense, first consider a structure that represents the different colors of visible light as 
 intervals of integer-valued nanometer wavelengths.
 
@@ -495,7 +495,7 @@ values structures).
 ## Software Structure
 
 Below is the class diagram for the core bits of Intervalidus
-(three-dimensional is not shown, but it is very similar to two-dimensional):
+(three- and four-dimensional are not shown, but they are very similar to two-dimensional):
 
 ![core class diagram](/doc/intervalidus-core.svg)
 
@@ -504,12 +504,12 @@ functionality you might want when versioning data (such as approval). Below is t
 
 ![versioned class diagram](/doc/intervalidus-versioned.svg)
 
-Lastly, the definitions and implementations of methods across mutable/immutable and one-/two-/three-dimensional 
+Lastly, the definitions and implementations of methods across mutable/immutable and one-/two-/three/four-dimensional 
 variants have been made as generic as possible to avoid repetitive code/scaladoc (DRY). However, this can make it
 harder to navigate to these methods. The following (rather unorthodox) diagram shows where to find each method in a
 kind of Venn-like way, where overlaps indicate a definition (and documentation) is in the lower trait with the
 implementation in the higher, inheriting trait/class
-(three-dimensional is not shown, but it is very similar to two-dimensional):
+(three- and four-dimensional are not shown, but they are very similar to two-dimensional):
 
 ![trait stack diagram](/doc/intervalidus-trait-stack.svg)
 
@@ -520,7 +520,7 @@ generic:
 
 ## Internals and extras
 
-Both the mutable and immutable variants of `DataIn#` (where `#` is `1D`, `2D`, and `3D`) use three mutable data
+Both the mutable and immutable variants of `DataIn#` (where `#` is `1D`, `2D`, `3D`, and `4D`) use three mutable data
 structures internally for managing state, two of which are custom:
 
 - A mutable standard library `TreeMap`, ordered by the start of each interval. This allows for fast in-order retrieval
@@ -535,7 +535,7 @@ structures internally for managing state, two of which are custom:
   immutable variant is also provided. Note that the sample billing application uses this multimap directly for managing
   customer transactions.
 
-- A "box search tree" -- like a B-tree, quadtree, or octree, depending on the dimension -- that supports quick
+- A "box search tree" (like a B-tree, quadtree, octree, or hyperoctree, depending on the dimension) that supports quick
   retrieval by interval. Box search trees manage boxed data structures in multidimensional double space. Unlike classic
   spacial search trees (used in collision detection and the like), these data structures manage "boxes" rather than
   individual points, where boxes are split and stored in all applicable subtrees of the data structure as subtrees are
@@ -621,6 +621,6 @@ Other experimental features that can be toggled are:
 
 - **"noBruteForceUpdate"** It was easy to specify all the cases directly for removing the intersection of an interval
   with all existing intervals in one dimension: there are only a few cases. In two dimensions it got more complicated,
-  and even more so in three dimensions. Now there is a simpler brute force method that eliminates all this complexity
+  and even more so in three dimensions. (Four dimensions was not even attempted.) Now there is a simpler brute force method that eliminates all this complexity
   and performs on par or better than all that complex code. Although that complex legacy code is now
   deprecated, you can access it though this experimental feature. It will be removed in a future release.

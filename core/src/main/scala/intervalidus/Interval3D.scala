@@ -216,6 +216,19 @@ case class Interval3D[T1: DomainValueLike, T2: DomainValueLike, T3: DomainValueL
   infix def isUpperAdjacentTo(that: Interval3D[T1, T2, T3]): Boolean = that isLowerAdjacentTo this
 
   /**
+    * Cross this interval with that interval to arrive at a new four-dimensional interval.
+    * @param that
+    *   a one-dimensional interval to be used in the fourth dimension
+    * @tparam T4
+    *   domain value type for that interval
+    * @return
+    *   a new four-dimensional interval with this interval as the horizontal, vertical, and depth components and that
+    *   interval as the fourth component.
+    */
+  infix def x[T4: DomainValueLike](that: Interval1D[T4]): Interval4D[T1, T2, T3, T4] =
+    Interval4D(this.horizontal, this.vertical, this.depth, that)
+
+  /**
     * Tests if this interval is in front of that interval, and there is no gap between them, and their vertical and
     * horizontal intervals are equivalent.
     *

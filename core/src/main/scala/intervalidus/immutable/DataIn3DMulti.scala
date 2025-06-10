@@ -35,7 +35,7 @@ object DataIn3DMulti extends DataIn3DMultiBaseObject:
 
 /**
   * Like [[DataIn1DMulti]] and [[DataIn2DMulti]], data may have multiple values valid in different intervals,
-  * conceptually similar to a multimap. But here data values vary in two dimensions. For example, one may want to
+  * conceptually similar to a multimap. But here data values vary in three dimensions. For example, one may want to
   * represent when data are valid in two dimensions of time and over certain versions simultaneously. When queried,
   * values are returned as a set. The standard mutation methods operate on these sets of values. There are also add and
   * remove methods allow mutation of individual values across intervals, and a merge method for combining two structures

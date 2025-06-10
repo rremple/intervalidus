@@ -94,8 +94,8 @@ object Domain2D:
   /**
     * This allows a client to use a tuple of domain values in methods requiring a two-dimensional domain element by
     * implicitly converting. For example, a client can write `dataIn2D.getAt(Domain2D(1, 2))` (or even
-    * `dataIn2D.getAt(Point(1) x Point(2))`) or, simpler, `dataIn1D.getAt((1, 2))` (or, with auto-tupling, even the
-    * extra parens can be dropped: `dataIn1D.getAt(1, 2)`)
+    * `dataIn2D.getAt(Point(1) x Point(2))`) or, simpler, `dataIn2D.getAt((1, 2))` (or, with auto-tupling, even the
+    * extra parens can be dropped: `dataIn2D.getAt(1, 2)`)
     */
   given [T1, T2](using DomainValueLike[T1], DomainValueLike[T2]): Conversion[(T1, T2), Domain2D[T1, T2]] =
     (t: (T1, T2)) => Domain2D(t._1, t._2)

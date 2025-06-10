@@ -12,7 +12,7 @@ import scala.util.Properties
   *
   * These collections leverage the ordered hash functions on discrete domain components (which only support
   * successor/predecessor functions and not functions requiring distance calculations, e.g., midpoint) to improve
-  * performance of data structures in one-, two-, and three-dimensional discrete domain space.
+  * performance of data structures in one-, two-, three-, and four-dimensional discrete domain space.
   *
   * In particular, it makes querying faster for box intersections. However, duplicates can be returned (since boxes can
   * be split) as well as false positives (since ordered hashes of discrete values can have collisions). Benchmarks have

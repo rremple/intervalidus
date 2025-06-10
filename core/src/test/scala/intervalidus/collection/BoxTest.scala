@@ -29,6 +29,16 @@ class BoxTest extends AnyFunSuite with Matchers:
       Box(Coordinate(start, start), Coordinate(end, end))
 
     val boundary = box(0, 100)
+
+    // These methods are used in Visualize3D, and aren't tested with normal box tests
+    Coordinate(50, 50).projectBeforeBounded(Coordinate(0, -1000), false, true) shouldBe Coordinate(0, 50)
+    Coordinate(50, 50).projectAfterBounded(Coordinate(100, 1000), false, true) shouldBe Coordinate(100, 50)
+    Coordinate(50, 50).projectBeforeBounded(Coordinate(0, -1000), true, false) shouldBe Coordinate(50, -1000)
+    Coordinate(50, 50).projectAfterBounded(Coordinate(100, 1000), true, false) shouldBe Coordinate(50, 1000)
+    Coordinate(3, 4) + Coordinate(1, 2) shouldBe Coordinate(4, 6)
+    Coordinate(3, 4) - Coordinate(1, 2) shouldBe Coordinate(2, 2)
+    Coordinate(3, 400).toUrlFragment(boundary) shouldBe "[3.0,100.0]"
+
     boundary.midPoint shouldBe Coordinate(50, 50)
     assert(boundary.contains(box(50, 60)))
     assert(boundary.contains(box(50, 100)))

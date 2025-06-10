@@ -29,6 +29,20 @@ case class Domain3D[T1: DomainValueLike, T2: DomainValueLike, T3: DomainValueLik
   override def toString: String = s"{$horizontalIndex, $verticalIndex, $depthIndex}"
 
   /**
+    * Cross this domain element with that domain element to arrive at a new four-dimensional domain element.
+    *
+    * @param that
+    *   a one-dimensional domain element to be used as the fourth dimension.
+    * @tparam T4
+    *   domain value type for that domain.
+    * @return
+    *   a new four-dimensional domain element with this as the horizontal and vertical components and that as the depth
+    *   component.
+    */
+  infix def x[T4: DomainValueLike](that: Domain1D[T4]): Domain4D[T1, T2, T3, T4] =
+    Domain4D(horizontalIndex, verticalIndex, depthIndex, that)
+
+  /**
     * Flips this domain by swapping the vertical and horizontal components with one another and keeping the same depth
     * component.
     */
@@ -114,9 +128,9 @@ object Domain3D:
 
   /**
     * This allows a client to use a tuple of domain values in methods requiring a three-dimensional domain element by
-    * implicitly converting. For example, a client can write `dataIn2D.getAt(Domain3D(1, 2, 3))` (or even
-    * `dataIn2D.getAt(Point(1) x Point(2) x Point(3))`) or, simpler, `dataIn1D.getAt((1, 2, 3))` (or, with auto-tupling,
-    * even the extra parens can be dropped: `dataIn1D.getAt(1, 2, 3)`)
+    * implicitly converting. For example, a client can write `dataIn3D.getAt(Domain3D(1, 2, 3))` (or even
+    * `dataIn3D.getAt(Point(1) x Point(2) x Point(3))`) or, simpler, `dataIn3D.getAt((1, 2, 3))` (or, with auto-tupling,
+    * even the extra parens can be dropped: `dataIn3D.getAt(1, 2, 3)`)
     */
   given [T1, T2, T3](using
     DomainValueLike[T1],
