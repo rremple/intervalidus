@@ -12,11 +12,11 @@
 </div>
 <div class="cover">
  <div class="doc">
-  <p>Intervalidus is a Scala library with zero dependencies for representing data as valid only in discrete or continuous intervals, one-, two-, and three-dimensional. It answers the question "In what intervals are your data valid?"</p>
+  <p>Intervalidus is a Scala library with zero dependencies for representing data as valid only in discrete or continuous intervals, one-, two-, three-, and four-dimensional. It answers the question "In what intervals are your data valid?"</p>
   <p>This top-level package includes Intervalidus's main traits, classes, and other members:</p>
   <ul>
    <li>Type classes for common discrete and continuous domain values.</li>
-   <li>Foundational case classes, type classes, and enums for one-, two-, and three-dimensional domains, intervals, diff actions, and valid data.</li>
+   <li>Foundational case classes, type classes, and enums for one-, two-, three-, and four-dimensional domains, intervals, diff actions, and valid data.</li>
    <li>Both general and dimension-specific base traits for dimensional data, including versioned and multivalued data.</li>
   </ul>
  </div>
@@ -55,13 +55,13 @@
           <div class="originInfo"></div>
           <div class="memberDocumentation">
            <div class="documentableBrief doc">
-            <p>Intervalidus's custom data structures for optimizing one-, two-, and three-dimensional interval retrieval. Built for internal use, but use them if they are useful. There are both immutable and mutable versions of each data structure, but only the mutable versions are used internally (for performance reasons).</p>
+            <p>Intervalidus's custom data structures for optimizing one-, two-, three-, and four-dimensional interval retrieval. Built for internal use, but use them if they are useful. There are both immutable and mutable versions of each data structure, but only the mutable versions are used internally (for performance reasons).</p>
            </div>
            <div class="cover">
             <div class="doc">
-             <p>Intervalidus's custom data structures for optimizing one-, two-, and three-dimensional interval retrieval. Built for internal use, but use them if they are useful. There are both immutable and mutable versions of each data structure, but only the mutable versions are used internally (for performance reasons).</p>
+             <p>Intervalidus's custom data structures for optimizing one-, two-, three-, and four-dimensional interval retrieval. Built for internal use, but use them if they are useful. There are both immutable and mutable versions of each data structure, but only the mutable versions are used internally (for performance reasons).</p>
              <ul>
-              <li>Box search trees manage boxed data structures in multidimensional double space (B-trees, quadtrees, and octrees, depending on the dimension). They hold boxes rather than individual points, where boxes are split to fit into the subtrees of the data structure. Intervalidus uses the ordered hashes defined on the domain value components of intervals to approximate all intervals as boxes in double space, and manages valid data associated with these boxes in box search trees, resulting in dramatically faster intersection retrieval (in most cases).</li>
+              <li>Box search trees manage boxed data structures in multidimensional double space (B-trees, quadtrees, octrees, and hyper-octrees depending on the dimension). They hold boxes rather than individual points, where boxes are split to fit into the subtrees of the data structure. Intervalidus uses the ordered hashes defined on the domain value components of intervals to approximate all intervals as boxes in double space, and manages valid data associated with these boxes in box search trees, resulting in dramatically faster intersection retrieval (in most cases).</li>
               <li>Multimaps (a.k.a., multi-dictionaries) allow multiple values to be associated with the same key. Intervalidus uses multimaps to store the association of each valid value with all the intervals where it is valid. This allows value-driven functions like compression to operate on a smaller subset of valid values and to be substantially faster.</li>
              </ul>
             </div>
@@ -94,7 +94,7 @@
              <p>Intervalidus's main traits and classes for defining immutable dimensional data, including versioned and multivalued data:</p>
              <ul>
               <li>Base traits for all immutable dimensional data.</li>
-              <li>Classes defining immutable data in one, two, and three dimensions.</li>
+              <li>Classes defining immutable data in one, two, three, and four dimensions.</li>
              </ul>
             </div>
             <h2 class="h200">Attributes</h2>
@@ -126,7 +126,7 @@
              <p>Intervalidus's main traits and classes for defining mutable dimensional data, including versioned and multivalued data:</p>
              <ul>
               <li>Base traits for all mutable dimensional data.</li>
-              <li>Classes defining mutable data in one, two, and three dimensions.</li>
+              <li>Classes defining mutable data in one, two, three, and four dimensions.</li>
              </ul>
             </div>
             <h2 class="h200">Attributes</h2>
