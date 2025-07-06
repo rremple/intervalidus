@@ -1,20 +1,19 @@
 package intervalidus.immutable
 
 import intervalidus.*
-import intervalidus.DiscreteValue.given
-import org.scalatest.compatible.Assertion
+import intervalidus.DomainLike.given
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
 import scala.language.implicitConversions
 
 /**
-  * Behaviors that only depend on the immutable base trait methods (do not differ in 1D, 2D, or 3D).
+  * Behaviors that only depend on the immutable base trait methods (common in all dimensions).
   *
   * Methods tested here: set, setIfNoConflict, replace, replaceByKey, remove, fill, update, filter, compress,
   * compressAll
   *
-  * Methods not tested here: applyDiffActions, syncWith, recompressAll
+  * Methods not tested here: applyDiffActions, syncWith, recompressAll, map, mapValues, flatMap
   */
 trait ImmutableBaseBehaviors:
   this: AnyFunSuite & Matchers =>
@@ -22,17 +21,14 @@ trait ImmutableBaseBehaviors:
   import Interval1D.*
 
   def immutableBaseTests[
-    D: DomainLike,
-    I <: IntervalLike[D, I],
-    ValidData <: ValidDataLike[String, D, I, ValidData],
-    DiffAction: DiffActionLike,
-    S <: ImmutableBase[String, D, I, ValidData, DiffAction, S]
+    D <: NonEmptyTuple: DomainLike,
+    S <: Data[String, D]
   ](
-    immutableFrom: Experimental ?=> Iterable[ValidData] => S,
-    intervalFrom1D: Interval1D[Int] => I,
-    dataFrom1D: (Interval1D[Int], String) => ValidData,
-    fullyUnbound: I
-  )(using Experimental): Unit =
+    immutableFrom: Experimental ?=> Iterable[ValidData[String, D]] => S,
+    intervalFrom1D: Interval1D[Int] => Interval[D]
+  )(using Experimental, DomainValueLike[Int]): Unit =
+    def dataFrom1D(interval1D: Interval1D[Int], v: String): ValidData[String, D] =
+      intervalFrom1D(interval1D) -> v
     test("Immutable: Adding and removing data in intervals"):
       val allData = List(
         dataFrom1D(interval(0, 10), "Hello"),
@@ -48,7 +44,7 @@ trait ImmutableBaseBehaviors:
       )
       fixture1.getAll.toList shouldBe expectedData1
 
-      val fixture2a: S = fixture1.set(dataFrom1D(interval(20, 25), "!")) // split
+      val fixture2a: Data[String, D] = fixture1.set(dataFrom1D(interval(20, 25), "!")) // split
       val expectedData2 = List(
         dataFrom1D(interval(0, 4), "Hello"),
         dataFrom1D(interval(5, 15), "to"),
@@ -58,7 +54,7 @@ trait ImmutableBaseBehaviors:
       )
       fixture2a.getAll.toList shouldBe expectedData2
 
-      val fixture2b: S = fixture2a.setIfNoConflict(dataFrom1D(intervalTo(-1), "Hey")) match
+      val fixture2b: Data[String, D] = fixture2a.setIfNoConflict(dataFrom1D(intervalTo(-1), "Hey")) match
         case Some(f) =>
           f.getAll.toList shouldBe (dataFrom1D(intervalTo(-1), "Hey") :: expectedData2)
           f.setIfNoConflict(dataFrom1D(intervalTo(-1), "Hey")) shouldBe None
@@ -92,7 +88,7 @@ trait ImmutableBaseBehaviors:
       )
       fixture3a.getAll.toList shouldBe expectedData3a
 
-      val fixture4: S = fixture3
+      val fixture4: Data[String, D] = fixture3
         .set(dataFrom1D(intervalFrom(20), "World"))
       // needed? .recompressAll()
       val expectedData4 = List(
@@ -113,8 +109,8 @@ trait ImmutableBaseBehaviors:
       )
       fixture6.getAll.toList shouldBe expectedFilled
 
-      val data1 = DataIn1D[String, Int](Seq(intervalFrom(1).to(3) -> "A", intervalFrom(5) -> "B"))
-      val data2 = DataIn1D[String, Int](Seq(intervalFrom(2).to(4) -> "C", intervalFrom(6) -> "D"))
+      val data1 = Data(Seq(intervalFrom(1).to(3) -> "A", intervalFrom(5) -> "B"))
+      val data2 = Data(Seq(intervalFrom(2).to(4) -> "C", intervalFrom(6) -> "D"))
       // Default merge operation will "prioritize left"
       data1.merge(data2).getAll.toList shouldBe List(
         intervalFrom(1).to(3) -> "A",
@@ -155,7 +151,7 @@ trait ImmutableBaseBehaviors:
       )
 
       val fixture0: S = immutableFrom(allData)
-      fixture0.domain.toList shouldBe List(fullyUnbound)
+      fixture0.domain.toList shouldBe List(Interval.unbounded[D])
       fixture0.domainComplement.toList shouldBe List.empty
       val fixture1 = fixture0.compress("Hello")
       val expectedData1 = List(
@@ -165,7 +161,7 @@ trait ImmutableBaseBehaviors:
         dataFrom1D(intervalFrom(7), "Hello")
       )
       fixture1.getAll.toList shouldBe expectedData1
-      fixture1.domain.toList shouldBe List(fullyUnbound)
+      fixture1.domain.toList shouldBe List(Interval.unbounded[D])
       fixture1.domainComplement.toList shouldBe List.empty
 
       val fixture2 = immutableFrom(allData)
@@ -176,7 +172,7 @@ trait ImmutableBaseBehaviors:
         dataFrom1D(intervalFrom(7), "Hello")
       )
       fixture2.getAll.toList shouldBe expectedData2
-      fixture2.domain.toList shouldBe List(fullyUnbound)
+      fixture2.domain.toList shouldBe List(Interval.unbounded[D])
       fixture2.domainComplement.toList shouldBe List.empty
 
     test("Immutable: Updating data in intervals"):

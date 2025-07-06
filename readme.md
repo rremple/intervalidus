@@ -2,8 +2,8 @@
 
 ## In what intervals are your data valid?
 
-A Scala library with zero dependencies for representing data as valid only in discrete or continuous intervals, one-,
-two-, three-, and four-dimensional. This seems to come up a lot in application design both in terms of effective dating and
+A Scala library with zero dependencies for representing data as valid only in discrete or continuous intervals, in one,
+two, three, or more dimensions. This seems to come up a lot in application design both in terms of effective dating and
 versioning data.
 
 ## Usage
@@ -51,16 +51,16 @@ immutable -- to address storage and management of data like this. For more infor
 
 ### Usage:
 
-You could use Intervalidus `DataIn1D` to represent the above as a one-dimensional structure that treats dates as 
+You could use Intervalidus `Data` to represent the above as a one-dimensional structure that treats dates as 
 discrete values like this:
 
 ```scala 3
 import java.time.LocalDate.of as date
 import intervalidus.DiscreteValue.given
 import intervalidus.Interval1D.*
-import intervalidus.mutable.DataIn1D
+import intervalidus.mutable.Data
 
-val plan1d = DataIn1D.of(intervalFrom(date(2024, 1, 1)) -> "Basic")
+val plan1d = Data.of(intervalFrom(date(2024, 1, 1)) -> "Basic")
 plan1d.set(intervalFrom(date(2024, 4, 1)) -> "Premium")
 plan1d.remove(intervalFromAfter(date(2024, 6, 30)))
 println(plan1d)
@@ -74,7 +74,7 @@ Which outputs a handy little Ascii Gantt of the valid values in the structure:
                            | Premium                  |
 ```
 
-Since `DataIn1D` is a [partial function](https://docs.scala-lang.org/scala3/book/fun-partial-functions.html),
+Since `Data` is a [partial function](https://docs.scala-lang.org/scala3/book/fun-partial-functions.html),
 you can query individual valid values using that interface (many other query
 methods exist as well). For example, using function application:
 
@@ -84,16 +84,16 @@ plan1d(date(2024, 3, 15))
 
 will return `Basic` because the user had the Basic tier on 3/15.
 
-We could have just as easily used the immutable variant of `DataIn1D`, and the output would have been the same as
+We could have just as easily used the immutable variant of `Data`, and the output would have been the same as
 the above output:
 
 ```scala 3
 import java.time.LocalDate.of as date
 import intervalidus.DiscreteValue.given
 import intervalidus.Interval1D.*
-import intervalidus.immutable.DataIn1D
+import intervalidus.immutable.Data
 
-val plan1d = DataIn1D
+val plan1d = Data
   .of(intervalFrom(date(2024, 1, 1)) -> "Basic")
   .set(intervalFrom(date(2024, 4, 1)) -> "Premium")
   .remove(intervalFromAfter(date(2024, 6, 30)))
@@ -102,16 +102,16 @@ println(plan1d)
 
 On the other hand, you may want two dimensions of time: one to track what is effective and one to track when these facts
 were known (sometimes referred to as [bitemporal modeling](https://en.wikipedia.org/wiki/Bitemporal_modeling)).
-For that, you could use Intervalidus `DataIn2D` to represent the above as a two-dimensional structure like
+For that, you could use Intervalidus `Data` to represent the above as a two-dimensional structure like
 this:
 
 ```scala 3
 import java.time.LocalDate.of as date
 import intervalidus.DiscreteValue.given
 import intervalidus.Interval1D.*
-import intervalidus.immutable.DataIn2D
+import intervalidus.immutable.Data
 
-val plan2d = DataIn2D
+val plan2d = Data
   .of((intervalFrom(date(2024, 1, 1)) x intervalFrom(date(2023, 12, 25))) -> "Basic")
   .set((intervalFrom(date(2024, 4, 1)) x intervalFrom(date(2024, 3, 15))) -> "Premium")
   .remove(intervalFromAfter(date(2024, 6, 30)) x intervalFrom(date(2024, 6, 28)))
@@ -121,22 +121,23 @@ println(plan2d)
 Which results in the following (slightly less straightforward) output:
 
 ```text
-| 2024-01-01 .. 2024-03-31         | 2024-04-01 .. 2024-06-30         | 2024-07-01 .. +∞            |
-| Basic [2023-12-25..2024-03-14]                                                                    |
-                                   | Premium [2024-03-15..2024-06-27]                               |
-| Basic [2024-03-15..+∞)           |
-                                   | Premium [2024-06-28..+∞)         |
+| 2024-01-01 .. 2024-03-31         | 2024-04-01 .. 2024-06-30         | 2024-07-01 .. +∞                 |
+| Basic [2023-12-25..+∞)           |
+                                   | Basic [2023-12-25..2024-03-14]                                      |
+                                   | Premium [2024-03-15..+∞)         |
+                                                                      | Premium [2024-03-15..2024-06-27] |
 ```
 
 Here, the second time dimension is shown next to each valid value. Reading this line by line, the interpretation is:
 
-- From 12/25/2023 until 3/14, the user was known to have the Basic tier effective from 1/1, without any planned
+- From 12/25/2023 and thereafter, the user was known to have the Basic tier effective from 1/1 to 3/31.
+- From 12/25/2023 until 3/14/2024, the user was also known to have this Basic tier continuing from 4/1, without any planned
   termination.
-- From 3/15 until 6/27, the user was known to have the Premium tier effective from 4/1.
-- Also from 3/15 and thereafter, the user was known to have the Basic tier effective only from 1/1 until 3/31.
-- From 6/28 and thereafter, the user was known to have the Premium tier effective only from 4/1 until 6/30.
+- From 3/15 and thereafter, the user was known to have the Premium tier effective only from 4/1 until 6/30.
+- Only from 3/15 until 6/27 was the user known to have this Premium tier continue from 7/1, without any planned
+  termination.
 
-Since decoding the `toString` output of `DataIn2D` can get complicated as more intervals are present, there is a utility
+Since decoding the `toString` output of `Data` can get complicated as more intervals are present, there is a utility
 (in the test package) called `Visualize2D` that can help with debugging and testing tasks. It uses 2D graphics to render
 the horizontal and vertical dimensions more clearly. For example, `Visualize2D(plan2d)` displays the following, which is a
 bit easier to decipher:
@@ -178,9 +179,9 @@ import java.time.LocalDate.of as date
 import intervalidus.DiscreteValue.LocalDateDiscreteValue
 import intervalidus.ContinuousValue.LocalDateTimeContinuousValue
 import intervalidus.Interval1D.*
-import intervalidus.immutable.DataIn2D
+import intervalidus.immutable.Data
 
-val plan2d = DataIn2D
+val plan2d = Data
   .of((intervalFrom(date(2024, 1, 1)) x intervalFrom(date(2023, 12, 25).atTime(10, 23, 33, 123456789))) -> "Basic")
   .set((intervalFrom(date(2024, 4, 1)) x intervalFrom(date(2024, 3, 15).atTime(14, 10, 15, 987654321))) -> "Premium")
 println(plan2d)
@@ -189,10 +190,10 @@ println(plan2d)
 Which results in the following output, which is similar to what was shown in the previous example:
 
 ```text
-| 2024-01-01 .. 2024-03-31                                             | 2024-04-01 .. +∞                             |
-| Basic [2023-12-25T10:23:33.123456789, 2024-03-15T14:10:15.987654321)                                                |
-| Basic [2024-03-15T14:10:15.987654321, +∞)                            |
-                                                                       | Premium [2024-03-15T14:10:15.987654321, +∞)  |
+| 2024-01-01 .. 2024-03-31                                             | 2024-04-01 .. +∞                                                     |
+| Basic [2023-12-25T10:23:33.123456789, +∞)                            |
+                                                                       | Basic [2023-12-25T10:23:33.123456789, 2024-03-15T14:10:15.987654321) |
+                                                                       | Premium [2024-03-15T14:10:15.987654321, +∞)                          |
 ```
 
 The two main differences are:
@@ -207,17 +208,20 @@ These notational differences are carried in the representation of the horizontal
 the dimensions and print the result:
 
 ```scala 3
-println(plan2d.flip)
+val plan2d: Data.In2D[String, LocalDateTime, LocalDate] = Data
+  .of((intervalFrom(date(2023, 12, 25).atTime(10, 23, 33, 123456789)) x intervalFrom(date(2024, 1, 1))) -> "Basic")
+  .set((intervalFrom(date(2024, 3, 15).atTime(14, 10, 15, 987654321)) x intervalFrom(date(2024, 4, 1))) -> "Premium")
+println(plan2d)
 ```
 
 The result shows how the continuous notation is pulled to the top and the discrete notation is used with each piece of 
 effective-dated data:
 
 ```text
-[ 2023-12-25T10:23:33.123456789, 2024-03-15T14:10:15.987654321 ) [ 2024-03-15T14:10:15.987654321, +∞ )                |
-                                                                 | Basic [2024-01-01..2024-03-31]                     |
+[ 2023-12-25T10:23:33.123456789, 2024-03-15T14:10:15.987654321 ) [ 2024-03-15T14:10:15.987654321, +∞ )                            |
 | Basic [2024-01-01..+∞)                                         |
-                                                                 | Premium [2024-04-01..+∞)                           |
+                                                                 | Basic [2024-01-01..2024-03-31]                                 |
+                                                                 | Premium [2024-04-01..+∞)                                       |
 ```
 
 There is a sample billing application provided that demonstrates how both of these 1D and 2D structures could be used to 
@@ -225,16 +229,16 @@ support time-oriented logic, like billing, directly, including prospective calcu
 adjustments/refunds.
 
 Sometimes one wants to treat multiple values as valid in the same interval. For example, a product team may add/remove
-features in each numbered release of a product. `DataIn1DMulti` could be used to model what features belong in what
+features in each numbered release of a product. `DataMulti` could be used to model what features belong in what
 releases, this time using intervals based on integers rather than dates.
 ```scala 3
 import intervalidus.DiscreteValue.given
 import intervalidus.Interval1D.*
-import intervalidus.immutable.DataIn1DMulti
+import intervalidus.immutable.DataMulti
 
 case class Feat(id: String)
 
-val multi = DataIn1DMulti[Feat, Int]()
+val multi = DataMulti.In1D[Feat,Int]()
   .addOne(intervalFrom(1) -> Feat("A")) // release 1 includes only feature A
   .addOne(intervalFrom(2) -> Feat("B")) // release 2 adds feature B
   .addOne(intervalFrom(3) -> Feat("C")) // release 3 adds feature C...
@@ -261,7 +265,7 @@ Set(Feat(A), Feat(C))
                                                             | {Feat(C),Feat(D)} |
 ```
 
-For the same reasons explained earlier, one might want to use `DataIn2DMulti` instead to model what features belong in
+For the same reasons explained earlier, one might want to use `DataMulti` instead to model what features belong in
 what releases as well as when the product management decisions were made to include/exclude features in each release.
 
 Another example might be representing [piecewise functions](https://en.wikipedia.org/wiki/Piecewise_function) coherently
@@ -273,10 +277,10 @@ directly using intervalidus to manage the function pieces as follows:
 ```scala 3
 import intervalidus.ContinuousValue.given
 import intervalidus.Interval1D.*
-import intervalidus.immutable.DataIn1D
+import intervalidus.immutable.Data
 
 val reLU = new (Double => Double):
-  private val pieceAt = DataIn1D[Double => Double, Double]()
+  private val pieceAt = Data[Double => Double, Domain.In1D[Double]]()
     .set(intervalFrom(0.0) -> identity)
     .set(intervalToBefore(0.0) -> (_ => 0.0))
   override def apply(d: Double): Double = pieceAt(d).apply(d)
@@ -305,10 +309,7 @@ These methods return a new structure:
 
 - `copy` / `toImmutable` / `toMutable`
 - `zip` / `zipAll`
-- `flip` (only available on 2D)
-- `flipAboutHorizontal` / `flipAboutVertical` / `flipAboutDepth` /  (only available on 3D)
-- `getByHorizontalIndex` / `getByVerticalIndex` (only available on 2D and 3D)
-- `getByDepthIndex` (only available on 3D)
+- `getByHeadIndex`
 
 These mutation methods return a new structure when using immutable and `Unit` when using mutable:
 
@@ -324,13 +325,13 @@ These mutation methods return a new structure when using immutable and `Unit` wh
 
 ## Using and Extending
 
-There is nothing remarkable about `LocalDate` and the other types used in the examples above. It is an example of
-something called a "domain value" over which a
+There is nothing remarkable about `LocalDate` and the other types used in the examples above. These are examples of
+something called "domain values" over which a
 "domain" can be defined. Domain values are finite with min/max values, an order, and an ordered hash function. There are
 two kinds of domain values: discrete and continuous. Discrete values have methods for finding successors/predecessors
 where continuous values do not. It is the domain built on top of the domain value that is used to define "interval"
 boundaries. Intervals using continuous domain values have boundaries that are either open or closed where those using
-discrete domain boundaries (apart from -∞ and +∞) are always closed. Note that
+discrete domain boundaries (apart from -∞ and +∞) are always closed. Note that domains and
 intervals with more than one dimension may include both discrete and continuous dimensions, as was shown in an example
 earlier.
 
@@ -371,12 +372,12 @@ intervals of integer-valued nanometer wavelengths.
 ```scala 3
 import intervalidus.DiscreteValue.given
 import intervalidus.Interval1D.*
-import intervalidus.immutable.DataIn1D
+import intervalidus.immutable.Data
 
 enum Color:
   case Violet, Indigo, Blue, Green, Yellow, Orange, Red
 
-val colorByWavelength = DataIn1D[Color, Int]()
+val colorByWavelength = Data[Color, Domain.In1D[Int]]()
   .set(intervalFrom(380) -> Color.Violet)
   .set(intervalFrom(450) -> Color.Blue)
   .set(intervalFrom(495) -> Color.Green)
@@ -404,7 +405,7 @@ println(colorByWavelength(480)) // prints "Blue"
 Say we also want to track our thoughts about colors. We could make use of a similar structure that associates thoughts
 with these same integer-valued wavelength intervals like so.
 ```scala 3
-val thoughtsByWavelength = DataIn1D[String, Int]()
+val thoughtsByWavelength = Data[String, Domain.In1D[Int]]()
   .set(intervalFrom(380).toBefore(570) -> "I like violet, blue, and green")
   .set(intervalFrom(620).to(750) -> "I like this too")
 println(thoughtsByWavelength)
@@ -434,7 +435,7 @@ given DiscreteValue[Color] with
   override def compare(lhs: Color, rhs: Color): Int = lhs.ordinal.compareTo(rhs.ordinal)
   override def orderedHashOf(x: Color): Double = x.ordinal
 
-val thoughtsByColor = DataIn1D[String, Color]()
+val thoughtsByColor = Data[String, Domain.In1D[Color]]()
   .set(intervalFrom(Color.Violet).to(Color.Green) -> "I like violet, blue, and green")
   .set(intervalAt(Color.Red) -> "I like this too")
 println(thoughtsByColor)
@@ -461,7 +462,7 @@ enum Color:
 
 given DiscreteValue[Color] = DiscreteValue.fromSeq(Color.values.toIndexedSeq)
 
-val thoughtsByColor = DataIn1D[String, Color]() //...
+val thoughtsByColor = Data[String, Domain.In1D[Color]]() //...
 ```
 
 Or, even briefer, most enums can have the discrete value 
@@ -472,34 +473,32 @@ e.g., the enum cannot be declared inside a function).
 enum Color derives DiscreteValue:
   case Violet, Indigo, Blue, Green, Yellow, Orange, Red
 
-val thoughtsByColor = DataIn1D[String, Color]() //...
+val thoughtsByColor = Data[String, Domain.In1D[Color]]() //...
 ```
 
-
-You can extend through composition. For example `DataIn1DVersioned` mimics the `DataIn1D` API but uses an
-underlying `DataIn2D` structure with an integer vertical dimension to create a versioned data structure. The "current"
-version is tracked as internal state and methods accept version selection as a 
+You can extend through composition. For example `DataVersioned` mimics the `Data` API but uses an underlying `Data`
+structure of a higher dimension (i.e., with an additional integer head dimension) to create a versioned data structure.
+The "current" version is tracked as internal state and methods accept version selection as a
 [context parameter](https://docs.scala-lang.org/scala3/book/ca-context-parameters.html), with "current" as the
 default version selection applied. Also, a notion of approval is supported by specifying a specific future version for
-anything unapproved. Similarly, there is a `DataIn2DVersioned` mimicking the `DataIn2D` API using an
-underlying `DataIn3D` structure.
+anything unapproved.
 
-You can also extend through object-oriented inheritance. For example `DataIn1DMulti`, `DataIn2DMulti`, and
-`DataIn3DMulti` extend the underlying class hierarchy of normal 1D, 2D, and 3D structures to provide multimap-like
+You can also extend through object-oriented inheritance. For example `DataMulti` extends the underlying class hierarchy
+of normal `Data` structures to provide multimap-like
 capabilities. The inherited components store and operate on sets of values rather than individual values, which allows
 multiple values to be valid in the same interval. When queried, values are returned as sets. There are also `add` and
 `remove` methods which allow mutation of individual values across intervals, and a `merge` method for combining two
-structures (conceptually similar to `zip`, but operating on individual values, and more appropriate for these multiple
-values structures).
+structures (conceptually similar to `zip`, but operating on individual values, and more appropriate for a multi-value
+structure).
 
-## Software Structure
+## Software Structure //TODO: need to update diagrams/narrative based on new tupled dimension support
 
 Below is the class diagram for the core bits of Intervalidus
 (three- and four-dimensional are not shown, but they are very similar to two-dimensional):
 
 ![core class diagram](/doc/intervalidus-core.svg)
 
-As described above, `DataIn1DVersioned` and `DataIn2DVersioned` leverage the core classes to provide specific
+As described above, `DataVersioned` and `DataVersioned` leverage the core classes to provide specific
 functionality you might want when versioning data (such as approval). Below is the class diagram for them:
 
 ![versioned class diagram](/doc/intervalidus-versioned.svg)
@@ -535,10 +534,12 @@ structures internally for managing state, two of which are custom:
   immutable variant is also provided. Note that the sample billing application uses this multimap directly for managing
   customer transactions.
 
-- A "box search tree" (like a B-tree, quadtree, octree, or hyper-octree, depending on the dimension) that supports quick
+- A "box search tree" is a hyperoctree (i.e., a B-tree, quadtree, octree, etc., depending on the dimension) that
+  supports quick
   retrieval by interval. Box search trees manage boxed data structures in multidimensional double space. Unlike classic
   spacial search trees (used in collision detection and the like), these data structures manage "boxes" rather than
-  individual points, where boxes are split and stored in all applicable subtrees of the data structure as subtrees are
+  individual points, where boxes are split and stored in all applicable subtrees (hyperoctants) of the data structure
+  as subtrees are
   split. Intervalildus uses the ordered hashes defined on domain components of intervals to approximate all
   domain intervals as boxes in double space, and then manages valid data associated with these boxes in the box
   search tree. This not only results in dramatically faster retrieval (e.g., `getAt` and `getIntersecting`), since many
@@ -594,12 +595,12 @@ structures -- it may be worth doing during initial development and testing. So t
 ```scala 3
 import intervalidus.DiscreteValue.given
 import intervalidus.Interval1D.*
-import intervalidus.immutable.DataIn1D
+import intervalidus.immutable.Data
 import java.time.LocalDate.of as date
 
 given Experimental = Experimental("requireDisjoint")
 
-val plan1d = DataIn1D(
+val plan1d = Data(
   Seq(
     intervalFrom(date(2024, 4, 1)) -> "Premium",
     intervalFrom(date(2024, 1, 1)) -> "Basic" // <-- wrong, throws an IllegalArgumentException: requirement failed: data must be disjoint
@@ -608,19 +609,10 @@ val plan1d = DataIn1D(
 )
 ```
 
-Other experimental features that can be toggled are:
+Many experimental features such as **"noSearchTree"** and **"noBruteForceUpdate"** have come and gone. 
+Existing experimental features that can be toggled are:
+
+- **"requireDisjoint"** This is described above.
 
 - **"printExperimental"** This feature simply prints a line when an experimental feature is/isn't being used. Useful if
   there is uncertainty around if the context parameter is being set and passed along correctly in the correct scope.
-
-- **"noSearchTree"** Before adding support for higher-dimensional data, Intervalidus used a second reversed `TreeMap`
-  for interval retrieval of 1D data. Because of performance issues in higher dimensions, this was replaced with the "box
-  search tree" described above. Enabling this feature reverts Intervalidus to use the old `TreeMap` instead. This could
-  actually help performance in some limited circumstances, e.g., if all the structures being used are one-dimensional.
-  So it may be useful to toggle when micro-benchmarking the client app.
-
-- **"noBruteForceUpdate"** It was easy to specify all the cases directly for removing the intersection of an interval
-  with all existing intervals in one dimension: there are only a few cases. In two dimensions it got more complicated,
-  and even more so in three dimensions. (Four dimensions was not even attempted.) Now there is a simpler brute force method that eliminates all this complexity
-  and performs on par or better than all that complex code. Although that complex legacy code is now
-  deprecated, you can access it though this experimental feature. It will be removed in a future release.

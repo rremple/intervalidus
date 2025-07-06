@@ -1,88 +1,142 @@
 package intervalidus
 
+import intervalidus.Domain.NonEmptyTail
+import intervalidus.DomainLike.given
 import intervalidus.collection.*
 import intervalidus.collection.mutable.{BoxTree, MultiMapSorted}
 
-import scala.math.Ordering.Implicits.infixOrderingOps
+import scala.collection.mutable
 
 /**
-  * Base for all dimensional data, both mutable and immutable, both 1D and 2D.
+  * Constructs data in multidimensional intervals.
+  */
+trait DimensionalBaseObject:
+  /**
+    * Shorthand constructor for a single initial value that is valid in a particular interval.
+    *
+    * @tparam V
+    *   the type of the value managed as data.
+    * @tparam D
+    *   the type of domain assigned to each value.
+    * @param data
+    *   value in interval to start with.
+    * @return
+    *   [[DimensionalBase]] structure with a single valid value.
+    */
+  def of[V, D <: NonEmptyTuple: DomainLike](
+    data: ValidData[V, D]
+  )(using Experimental): DimensionalBase[V, D]
+
+  /**
+    * Shorthand constructor for a single initial value that is valid in all full interval domains.
+    *
+    * @tparam V
+    *   the type of the value managed as data.
+    * @tparam D
+    *   the type of domain assigned to each value.
+    * @param value
+    *   value to start with.
+    * @return
+    *   [[DimensionalBase]] structure with a single valid value.
+    */
+  def of[V, D <: NonEmptyTuple: DomainLike](
+    value: V
+  )(using Experimental): DimensionalBase[V, D]
+
+  /**
+    * Constructor for multiple (or no) initial values that are valid in the various intervals.
+    *
+    * @param initialData
+    *   a collection of valid data to start with -- intervals must be disjoint.
+    * @tparam V
+    *   the type of the value managed as data.
+    * @tparam D
+    *   the type of domain assigned to each value.
+    * @return
+    *   [[DimensionalBase]] structure with zero or more valid values.
+    */
+  def apply[V, D <: NonEmptyTuple: DomainLike](
+    initialData: Iterable[ValidData[V, D]]
+  )(using
+    Experimental
+  ): DimensionalBase[V, D]
+
+trait DimensionalBaseConstructorParams:
+  protected def constructorParams[V, D <: NonEmptyTuple](
+    initialData: Iterable[ValidData[V, D]]
+  )(using domainValue: DomainLike[D])(using Experimental): (
+    mutable.TreeMap[D, ValidData[V, D]],
+    MultiMapSorted[V, ValidData[V, D]],
+    BoxTree[ValidData[V, D]]
+  ) =
+    val dataByStartAsc: mutable.TreeMap[D, ValidData[V, D]] =
+      mutable.TreeMap.from(initialData.map(_.withKey))
+
+    val dataByValue: MultiMapSorted[V, ValidData[V, D]] =
+      collection.mutable.MultiMapSorted.from(initialData.map(v => v.value -> v))
+
+    val dataInSearchTree: BoxTree[ValidData[V, D]] =
+      BoxTree.from[ValidData[V, D]](
+        Interval(domainValue.bottom, domainValue.top).asBox,
+        initialData.map(_.asBoxedPayload)
+      )
+
+    (dataByStartAsc, dataByValue, dataInSearchTree)
+
+/**
+  * Base for all dimensional data, both mutable and immutable, of arbitrary dimensions.
   *
   * @tparam V
   *   the value type for valid data.
   * @tparam D
-  *   the domain type for intervals. Must be [[DomainLike]] and have an [[Ordering]].
-  * @tparam I
-  *   the interval type, based on the domain type. Must be [[IntervalLike]] based on [[D]].
-  * @tparam ValidData
-  *   the valid data type. Must be [[ValidDataLike]] based on [[V]], [[D]], and [[I]].
-  * @tparam DiffAction
-  *   the diff action type. Must be [[DiffActionLike]] based on [[V]], [[D]], and [[I]].
-  * @tparam Self
-  *   F-bounded self type.
+  *   the domain type for intervals, must be [[DomainLike]].
   */
-trait DimensionalBase[
-  V,
-  D: DomainLike: Ordering,
-  I <: IntervalLike[D, I],
-  ValidData <: ValidDataLike[V, D, I, ValidData],
-  DiffAction: DiffActionLike,
-  Self <: DimensionalBase[V, D, I, ValidData, DiffAction, Self]
-](using
-  experimental: Experimental
-) extends PartialFunction[D, V]:
+trait DimensionalBase[V, D <: NonEmptyTuple](using
+  domainLike: DomainLike[D]
+)(using Experimental)
+  extends PartialFunction[D, V]:
 
-  protected def newValidData(value: V, interval: I): ValidData
-
-  // For defining 1D and 2D toString methods - print a uniform grid representing the data.
-  protected def toStringGrid[R1, R2: DomainValueLike](
-    dataToString: ValidData => String,
-    dataToInterval: ValidData => Interval1D[R1],
-    dataToSortBy: ValidData => Domain1D[R2]
-  )(using horizontalDomainValue: DomainValueLike[R1]): String =
-
-    val validData = getAll.toList
-    val maxDataSize = validData.map(dataToString).map(_.length + 3).maxOption.getOrElse(3)
-    val horizontalIntervals = Interval1D.uniqueIntervals(validData.map(dataToInterval))
-    val punctuation = horizontalDomainValue match
-      case _: ContinuousValue[R1] => horizontalDomainValue.bracePunctuation
-      case _: DiscreteValue[R1]   => s" ${horizontalDomainValue.bracePunctuation} "
-
-    def formatInterval(interval: Interval1D[R1]): String = horizontalDomainValue match
-      case _: ContinuousValue[R1] =>
-        s"${interval.start.leftBrace} ${interval.start}$punctuation${interval.end} ${interval.end.rightBrace} "
-      case _: DiscreteValue[R1] =>
-        s"| ${interval.start}$punctuation${interval.end} "
-    val maxHorizontalIntervalsSize = horizontalIntervals
-      .map(formatInterval(_).length)
+  // from Object
+  // print a uniform grid representing the data.
+  override def toString: String =
+    // tuples of first dimension start string, first dimension end string, first dimension string (header)
+    val horizontalIntervalStrings = domainLike.intervalPreprocessForGrid(getAll.map(_.interval))
+    // tuples of first dimension start string, first dimension end string, value + remaining dimension string
+    val validDataStrings = getAll.map(_.preprocessForGrid)
+    val maxDataSize = validDataStrings
+      .map(_._3.length + 3)
+      .maxOption
+      .getOrElse(3)
+    val maxHorizontalIntervalsSize = horizontalIntervalStrings
+      .map(_._3.length)
       .maxOption
       .getOrElse(7)
+
     val cellSize = math.max(maxDataSize, maxHorizontalIntervalsSize)
 
     def pad(chars: Int, p: String = " "): String = p * chars
 
     val (horizontalStringBuilder, horizontalStartPositionBuilder, horizontalEndPositionBuilder) =
-      horizontalIntervals.zipWithIndex.foldLeft(
-        (StringBuilder(), Map.newBuilder[Domain1D[R1], Int], Map.newBuilder[Domain1D[R1], Int])
+      horizontalIntervalStrings.zipWithIndex.foldLeft(
+        (StringBuilder(), Map.newBuilder[String, Int], Map.newBuilder[String, Int])
       ):
-        case ((stringBuilder, startPositionBuilder, endPositionBuilder), (interval, index)) =>
-          startPositionBuilder.addOne(interval.start, stringBuilder.size)
-          stringBuilder.append(formatInterval(interval))
-          val padTo = cellSize * (index + 1)
+        case ((stringBuilder, startPositionBuilder, endPositionBuilder), ((startString, endString, formatted), pos)) =>
+          startPositionBuilder.addOne(startString, stringBuilder.size)
+          stringBuilder.append(formatted)
+          val padTo = cellSize * (pos + 1)
           if stringBuilder.size < padTo then stringBuilder.append(pad(padTo - stringBuilder.size))
-          endPositionBuilder.addOne(interval.end, stringBuilder.size)
+          endPositionBuilder.addOne(endString, stringBuilder.size)
           (stringBuilder, startPositionBuilder, endPositionBuilder)
 
     val horizontalStartPosition = horizontalStartPositionBuilder.result()
     val horizontalEndPosition = horizontalEndPositionBuilder.result()
     horizontalStringBuilder.append("|\n")
 
-    validData
-      .sortBy(dataToSortBy)
-      .foreach: v =>
-        val valueString = dataToString(v)
-        val leftPosition = horizontalStartPosition(dataToInterval(v).start)
-        val rightPosition = horizontalEndPosition(dataToInterval(v).end)
+    validDataStrings
+      // .sortBy(dataToSortBy) // if needed, could be hard to implement...
+      .foreach: (startString, endString, valueString) =>
+        val leftPosition = horizontalStartPosition(startString)
+        val rightPosition = horizontalEndPosition(endString)
         val valuePadding = rightPosition - leftPosition - valueString.length - 2
         horizontalStringBuilder.append(
           s"${pad(leftPosition)}| $valueString${pad(valuePadding)}|\n"
@@ -96,51 +150,42 @@ trait DimensionalBase[
     * Internal data structure where all the interval-bounded data are stored, always expected to be disjoint. TreeMap
     * maintains interval key order.
     */
-  protected def dataByStartAsc: scala.collection.mutable.TreeMap[D, ValidData]
-
-  /**
-    * Internal shadow data structure where all the interval-bounded data are also stored, but using the interval key in
-    * reverse order (for much quicker range lookups -- validated in 1D microbenchmarks).
-    *
-    * @deprecated
-    *   Only populated when legacy behavior is enabled through experimental feature 'noSearchTree'
-    */
-  protected def dataByStartDesc: scala.collection.mutable.TreeMap[D, ValidData]
+  protected def dataByStartAsc: scala.collection.mutable.TreeMap[D, ValidData[V, D]]
 
   /**
     * Another internal shadow data structure where all the interval-bounded data are also stored, but using the value
-    * itself as the key (for faster compression, which is done by value). The ValidData are stored in a sorted set, so
-    * they are retrieved in key order, making compression operations repeatable.
+    * itself as the key (for faster compression, which is done by value). The ValidData[V, D] are stored in a sorted
+    * set, so they are retrieved in key order, making compression operations repeatable.
     */
-  protected def dataByValue: MultiMapSorted[V, ValidData]
+  protected def dataByValue: MultiMapSorted[V, ValidData[V, D]]
 
-  protected def dataInSearchTree: BoxTree[ValidData]
+  protected def dataInSearchTree: BoxTree[ValidData[V, D]]
 
-  protected def dataInSearchTreeAdd(data: ValidData): Unit =
+  protected def dataInSearchTreeAdd(data: ValidData[V, D]): Unit =
     dataInSearchTree.addOne(data.asBoxedPayload)
 
-  protected def dataInSearchTreeRemove(data: ValidData): Unit =
+  protected def dataInSearchTreeRemove(data: ValidData[V, D]): Unit =
     dataInSearchTree.remove(data.asBoxedPayload)
 
   protected def dataInSearchTreeClear(): Unit =
     dataInSearchTree.clear()
 
-  protected def dataInSearchTreeAddAll(data: Iterable[ValidData]): Unit =
+  protected def dataInSearchTreeAddAll(data: Iterable[ValidData[V, D]]): Unit =
     dataInSearchTree.addAll(data.map(_.asBoxedPayload))
 
-  protected def dataInSearchTreeGet(interval: I): Iterable[ValidData] =
+  protected def dataInSearchTreeGet(interval: Interval[D]): Iterable[ValidData[V, D]] =
     BoxedPayload
       .deduplicate(dataInSearchTree.get(interval.asBox))
       .map(_.payload)
       .filter(_.interval intersects interval)
 
-  protected def dataInSearchTreeGetByDomain(domainIndex: D): Option[ValidData] =
+  protected def dataInSearchTreeGetByDomain(domainIndex: D): Option[ValidData[V, D]] =
     dataInSearchTree
       .get(Box.at(domainIndex.asCoordinate))
       .collectFirst:
         case d if d.payload.interval.contains(domainIndex) => d.payload
 
-  protected def dataInSearchTreeIntersects(interval: I): Boolean =
+  protected def dataInSearchTreeIntersects(interval: Interval[D]): Boolean =
     dataInSearchTree.get(interval.asBox).exists(_.payload.interval intersects interval)
 
   /**
@@ -148,38 +193,43 @@ trait DimensionalBase[
     * interval, those values have their interval adjusted (e.g., shortened, shifted, split) accordingly. The logic of
     * remove and update are similar, and this method supports both.
     *
-    * @param targetInterval
-    *   the interval where any valid values are updated or removed.
-    * @param updateValue
-    *   maps a current value to some updated value, or None if the value should be removed.
-    */
-  protected def updateOrRemove(targetInterval: I, updateValue: V => Option[V]): Unit
-
-  /**
-    * Generic implementation to remove, and possibly update, valid values on the target interval. Each
-    * dimension-specific implementation provides its own way to construct atomic non-intersecting intervals.
+    * More specifically, this gets even more complicated because there are multipledimensions. Exclusions in one
+    * dimension can have three remainders: none (simple), single (partial), and split. But multidimensional exclusions
+    * have these same three remainders in each dimension, so there are a total of 3<sup>n</sup> remainder cases. But
+    * there is symmetry because order doesn't matter, so actually there are only (3+n-1)! / (3! x (n-1)!) (we want the
+    * unique combinations of choosing from 3 remainder scenarios n times, where order doesn't matter).
+    *
+    * For example, with n = 4, this reduces to 6!/(3! x 3!) = 20 unique cases. But just giving these cases intuitive
+    * names would be hard enough. (Nothing in four dimensions is ever intuitive!)
+    *
+    * Falling back to more familiar space, using n = 3 this reduces to 5!/(2! x 3!) = 10 unique cases, enumerated below:
+    *   1. simple = none + none + none (1 case)
+    *   1. corner = single + single + single (1 case)
+    *   1. core = split + split + split (1 case)
+    *   1. face = single + none + none (3 symmetric cases)
+    *   1. edge = single + single + none (3 symmetric cases)
+    *   1. slice = split + none + none (3 symmetric cases)
+    *   1. hole = split + split + none (3 symmetric cases)
+    *   1. notch = split + single + single (3 symmetric cases)
+    *   1. divot = split + split + single (3 symmetric cases)
+    *   1. bite = split + single + none (6 symmetric cases)
     *
     * @param targetInterval
     *   the interval where any valid values are updated or removed.
     * @param updateValue
     *   maps a current value to some updated value, or None if the value should be removed.
-    * @param atomic
-    *   maps the overlap and its intersection with target to its atomic deconstruction -- a collection of intervals
-    *   covering the overlap that is "separated" by the intersection. (See dimension-specific implementations of
-    *   [[updateOrRemove]] and [[Interval1D.separateUsing]] for details.)
     */
-  protected def updateOrRemoveGeneric(targetInterval: I, updateValue: V => Option[V])(
-    atomic: (I, I) => Iterable[I]
-  ): Unit = synchronized:
+  protected def updateOrRemove(targetInterval: Interval[D], updateValue: V => Option[V]): Unit = synchronized:
     val intersectingValues = getIntersecting(targetInterval).map: overlap =>
       overlap.interval
         .intersectionWith(targetInterval)
         .foreach: intersection => // always one
-          val atomicNonIntersections = atomic(overlap.interval, intersection)
-
+          // maps the overlap and its intersection with target to its atomic deconstruction -- a collection of intervals
+          // covering the overlap that is "separated" by the intersection.
+          val atomicNonIntersections = overlap.interval.separateUsing(intersection).filter(_ != intersection)
           // fast compression to minimize adds/updates (which are expensive) without having to build a TreeMap
           // (note that the result is in reverse order, but that shouldn't matter in later steps)
-          val nonIntersections = atomicNonIntersections.foldLeft(List.empty[I]):
+          val nonIntersections = atomicNonIntersections.foldLeft(List.empty[Interval[D]]):
             case (lastInterval1 :: tail1, nextInterval) if lastInterval1 isAdjacentTo nextInterval =>
               val merged = nextInterval ∪ lastInterval1
               tail1 match // go back one more
@@ -193,12 +243,12 @@ trait DimensionalBase[
           // add/update non-intersecting regions
           nonIntersections.foreach: subinterval =>
             if subinterval hasSameStartAs overlap.interval
-            then updateValidData(newValidData(overlap.value, subinterval))
-            else addValidData(newValidData(overlap.value, subinterval))
+            then updateValidData(subinterval -> overlap.value)
+            else addValidData(subinterval -> overlap.value)
 
           // if there is an updated value, add it back in
           updateValue(overlap.value).foreach: newValue =>
-            addValidData(newValidData(newValue, intersection))
+            addValidData(intersection -> newValue)
 
       // intersecting value result for compression later
       overlap.value
@@ -216,7 +266,13 @@ trait DimensionalBase[
     * @param value
     *   new value to be valid in the interval where no existing value is already valid
     */
-  protected def fillInPlace[B <: V](interval: I, value: B): Unit
+  protected def fillInPlace[B <: V](interval: Interval[D], value: B): Unit = synchronized:
+    val intersectingIntervals = getIntersecting(interval).map(_.interval)
+    Interval
+      .uniqueIntervals(intersectingIntervals.toSeq :+ interval)
+      .foreach: i =>
+        if interval.intersects(i) && !this.intersects(i) then addValidData(i -> value)
+    compressInPlace(value)
 
   /**
     * Merges this structure with data from that structure. In intervals where both structures have valid values, the two
@@ -229,7 +285,7 @@ trait DimensionalBase[
     *   function that merges values where both this and that have valid values
     */
   protected def mergeInPlace(
-    that: Iterable[ValidData],
+    that: Iterable[ValidData[V, D]],
     mergeValues: (V, V) => V
   ): Unit = that.foreach: thatData =>
     updateOrRemove(thatData.interval, thisDataValue => Some(mergeValues(thisDataValue, thatData.value)))
@@ -246,20 +302,39 @@ trait DimensionalBase[
     * @return
     *   this structure once compressed (not a copy)
     */
-  protected def compressInPlace(value: V): Unit
+  protected def compressInPlace(value: V): Unit = Interval.compressGeneric(
+    initialState = (), // no state -- updates applied in place
+    result = identity, // no result -- updates applied in place
+    dataIterable = _ => dataByValue.get(value),
+    interval = _.interval,
+    valueMatch = _.value == _.value,
+    lookup = (_, start) => dataByStartAsc.get(start),
+    compressAdjacent = (r, s, intervalByStart) =>
+      removeValidData(s)
+      updateValidData(r.interval ∪ s.interval -> value)
+  )
 
   /**
     * Internal method, to recompress in place.
     *
-    * Unlike in 1D, there are no unique compressions in 2D and 3D. For example {[1..5], [1..2]} + {[1..2], [3..4]} could
-    * also be represented physically as {[1..2], [1..4]} + {[3..5], [1..2]}.
+    * Unlike in 1D, there are no unique compressions in higher dimensions. For example {[1..5], [1..2]} + {[1..2],
+    * [3..4]} could also be represented physically as {[1..2], [1..4]} + {[3..5], [1..2]}.
     *
     * This method decompresses data so there is a unique arrangement of "atomic" intervals. In the above example, that
     * would be the following "atomic" intervals: {[1..2], [1..2]} + {[3..5], [1..2]} + {[1..2], [3..4]}. Then it
     * recompresses the data, which results in a unique physical representation. It may be useful when comparing two
     * structures to see if they are logically equivalent even if, physically, they differ in how they are compressed.
     */
-  protected def recompressInPlace(): Unit
+  protected def recompressInPlace(): Unit = synchronized:
+    // decompress
+    val atomicData = for
+      atomicInterval <- Interval.uniqueIntervals(getAll.map(_.interval))
+      intersecting <- getIntersecting(atomicInterval) // always returns either one or zero results
+    yield intersecting.copy(interval = atomicInterval)
+    replaceValidData(atomicData)
+
+    // recompress
+    dataByValue.keySet.foreach(compressInPlace)
 
   /**
     * Creates a copy.
@@ -267,30 +342,34 @@ trait DimensionalBase[
     * @return
     *   a new structure with the same data.
     */
-  def copy: Self
+  def copy: DimensionalBase[V, D]
 
   /**
     * Returns all the intervals (compressed) in which there are valid values. See
     * [[https://en.wikipedia.org/wiki/Domain_of_a_function]].
     */
-  def domain: Iterable[I]
+  def domain: Iterable[Interval[D]] = Interval.compress(
+    Interval.uniqueIntervals(getAll.map(_.interval)).filter(intersects)
+  )
 
   /**
     * Returns all the intervals (compressed) in which there are no valid values. That is, all intervals that are not in
     * the [[domain]]. See [[https://en.wikipedia.org/wiki/Domain_of_a_function]] and
     * [[https://en.wikipedia.org/wiki/Complement_(set_theory)]].
     */
-  def domainComplement: Iterable[I]
+  def domainComplement: Iterable[Interval[D]] = Interval.compress(
+    Interval.uniqueIntervals(getAll.map(_.interval) ++ Iterable(Interval.unbounded[D])).filter(!intersects(_))
+  )
 
   /**
     * Returns this as a mutable structure.
     */
-  def toMutable: Self & intervalidus.mutable.MutableBase[V, D, I, ValidData, DiffAction, ?]
+  def toMutable: intervalidus.mutable.MutableBase[V, D]
 
   /**
     * Returns this as an immutable structure.
     */
-  def toImmutable: Self & intervalidus.immutable.ImmutableBase[V, D, I, ValidData, DiffAction, ?]
+  def toImmutable: intervalidus.immutable.ImmutableBase[V, D, ?]
 
   /**
     * Constructs a sequence of diff actions that, if applied to the old structure, would synchronize it with this one.
@@ -300,7 +379,13 @@ trait DimensionalBase[
     * @return
     *   a sequence of diff actions that would synchronize it with this.
     */
-  def diffActionsFrom(old: Self): Iterable[DiffAction]
+  def diffActionsFrom(old: DimensionalBase[V, D]): Iterable[DiffAction[V, D]] =
+    (dataByStartAsc.keys.toSet ++ old.dataByStartAsc.keys).toList.sorted.flatMap: key =>
+      (old.dataByStartAsc.get(key), dataByStartAsc.get(key)) match
+        case (Some(oldData), Some(newData)) if oldData != newData => Some(DiffAction.Update(newData))
+        case (None, Some(newData))                                => Some(DiffAction.Create(newData))
+        case (Some(oldData), None)                                => Some(DiffAction.Delete(oldData.interval.start))
+        case _                                                    => None
 
   // ---------- Implemented here based on the above ----------
 
@@ -312,11 +397,7 @@ trait DimensionalBase[
     * @return
     *   all data that are valid on some or all of the interval (some intersection).
     */
-  def getIntersecting(interval: I): Iterable[ValidData] =
-    experimental.control("noSearchTree")(
-      experimentalResult = getAll.filter(_.interval intersects interval),
-      nonExperimentalResult = dataInSearchTreeGet(interval)
-    )
+  def getIntersecting(interval: Interval[D]): Iterable[ValidData[V, D]] = dataInSearchTreeGet(interval)
 
   /**
     * Are there values that are valid on some or all of the provided interval?
@@ -326,11 +407,7 @@ trait DimensionalBase[
     * @return
     *   true if there are values that are valid somewhere on the interval.
     */
-  infix def intersects(interval: I): Boolean =
-    experimental.control("noSearchTree")(
-      experimentalResult = getAll.exists(_.interval intersects interval),
-      nonExperimentalResult = dataInSearchTreeIntersects(interval)
-    )
+  infix def intersects(interval: Interval[D]): Boolean = dataInSearchTreeIntersects(interval)
 
   /**
     * Internal mutator to add, where there is no existing overlapping data.
@@ -338,16 +415,11 @@ trait DimensionalBase[
     * @param data
     *   valid data to add.
     */
-  protected def addValidData(data: ValidData): Unit =
+  protected def addValidData(data: ValidData[V, D]): Unit =
     // assert(!dataByStartAsc.isDefinedAt(data.interval.start))
     dataByStartAsc.addOne(data.withKey)
     dataByValue.addOne(data.value -> data)
-    experimental.control("noSearchTree")(
-      experimentalResult =
-        // assert(!dataByStartDesc.isDefinedAt(data.interval.start))
-        dataByStartDesc.addOne(data.withKey),
-      nonExperimentalResult = dataInSearchTreeAdd(data)
-    )
+    dataInSearchTreeAdd(data)
 
   /**
     * Internal mutator to update, where a value with v.interval.start already exists.
@@ -355,20 +427,14 @@ trait DimensionalBase[
     * @param data
     *   valid data to update.
     */
-  protected def updateValidData(data: ValidData): Unit =
+  protected def updateValidData(data: ValidData[V, D]): Unit =
     // assert(dataByStartAsc.isDefinedAt(data.interval.start))
     val oldData = dataByStartAsc(data.interval.start)
     dataByValue.subtractOne(oldData.value -> oldData)
     dataByValue.addOne(data.value -> data)
     dataByStartAsc.update(data.interval.start, data)
-    experimental.control("noSearchTree")(
-      experimentalResult =
-        // assert(dataByStartDesc.isDefinedAt(data.interval.start))
-        dataByStartDesc.update(data.interval.start, data),
-      nonExperimentalResult =
-        dataInSearchTreeRemove(oldData)
-        dataInSearchTreeAdd(data)
-    )
+    dataInSearchTreeRemove(oldData)
+    dataInSearchTreeAdd(data)
 
   /**
     * Internal mutator to remove, where a known value already exists.
@@ -376,14 +442,11 @@ trait DimensionalBase[
     * @param oldData
     *   valid data to remove.
     */
-  protected def removeValidData(oldData: ValidData): Unit =
+  protected def removeValidData(oldData: ValidData[V, D]): Unit =
     val key = oldData.interval.start
     dataByValue.subtractOne(oldData.value -> oldData)
     dataByStartAsc.remove(key)
-    experimental.control("noSearchTree")(
-      experimentalResult = dataByStartDesc.remove(key),
-      nonExperimentalResult = dataInSearchTreeRemove(oldData)
-    )
+    dataInSearchTreeRemove(oldData)
 
   /**
     * Internal mutator to remove, where a value with a known key already exists.
@@ -394,20 +457,13 @@ trait DimensionalBase[
   protected def removeValidDataByKey(key: D): Unit =
     removeValidData(dataByStartAsc(key))
 
-  protected def replaceValidData(data: Iterable[ValidData]): Unit =
+  protected def replaceValidData(data: Iterable[ValidData[V, D]]): Unit =
     dataByStartAsc.clear()
     dataByStartAsc.addAll(data.map(_.withKey))
     dataByValue.clear()
     dataByValue.addAll(data.map(d => d.value -> d))
-    experimental.control("noSearchTree")(
-      experimentalResult =
-        dataByStartDesc.clear()
-        dataByStartDesc.addAll(dataByStartAsc)
-      ,
-      nonExperimentalResult =
-        dataInSearchTreeClear()
-        dataInSearchTreeAddAll(data)
-    )
+    dataInSearchTreeClear()
+    dataInSearchTreeAddAll(data)
 
   // from PartialFunction
   override def isDefinedAt(key: D): Boolean = getAt(key).isDefined
@@ -425,9 +481,9 @@ trait DimensionalBase[
     *   intervals).
     */
   def get: V = getAll.headOption match
-    case Some(d: ValidData) if d.interval.isUnbounded => d.value
-    case Some(_)                                      => throw new NoSuchElementException("bounded get")
-    case None                                         => throw new NoSuchElementException("empty get")
+    case Some(d: ValidData[V, D]) if d.interval.isUnbounded => d.value
+    case Some(_)                                            => throw new NoSuchElementException("bounded get")
+    case None                                               => throw new NoSuchElementException("empty get")
 
   /**
     * Returns Some value if a single, unbounded valid value, otherwise returns None.
@@ -444,15 +500,8 @@ trait DimensionalBase[
     * @return
     *   Some value and corresponding interval if valid at the specified domain element, otherwise None.
     */
-  def getDataAt(domainIndex: D): Option[ValidData] =
-    experimental.control("noSearchTree")(
-      experimentalResult = dataByStartDesc // Using reverse-key order allows us nearly O(1) for hits
-        .valuesIteratorFrom(domainIndex) // (starting at or before the index)
-        .filter(_.interval.end >= domainIndex) // but misses are still slow - this slightly improves miss performance
-        .collectFirst:
-          case d if d.interval.contains(domainIndex) => d,
-      nonExperimentalResult = dataInSearchTreeGetByDomain(domainIndex)
-    )
+  def getDataAt(domainIndex: D): Option[ValidData[V, D]] =
+    dataInSearchTreeGetByDomain(domainIndex)
 
   /**
     * Returns a value that is valid at the specified domain element. That is, where the specified domain element is a
@@ -486,9 +535,92 @@ trait DimensionalBase[
     *   the result of inserting op between consecutive valid data elements, going left to right with the start value z
     *   on the left. Returns z if there are no valid data elements.
     */
-  def foldLeft[B](z: B)(op: (B, ValidData) => B): B = getAll.foldLeft(z)(op)
+  def foldLeft[B](z: B)(op: (B, ValidData[V, D]) => B): B = getAll.foldLeft(z)(op)
 
   /**
     * Get all valid data in interval start order
     */
-  def getAll: Iterable[ValidData] = dataByStartAsc.values
+  def getAll: Iterable[ValidData[V, D]] = dataByStartAsc.values
+
+  protected def zipData[B](that: DimensionalBase[B, D]): Iterable[ValidData[(V, B), D]] =
+    for
+      subInterval <- Interval.uniqueIntervals(getAll.map(_.interval) ++ that.getAll.map(_.interval))
+      v <- getIntersecting(subInterval).headOption.map(_.value)
+      b <- that.getIntersecting(subInterval).headOption.map(_.value)
+    yield subInterval -> (v, b)
+
+  protected def zipAllData[B](
+    that: DimensionalBase[B, D],
+    thisElem: V,
+    thatElem: B
+  ): Iterable[ValidData[(V, B), D]] =
+    for
+      subInterval <- Interval.uniqueIntervals(getAll.map(_.interval) ++ that.getAll.map(_.interval))
+      vOption = getIntersecting(subInterval).headOption.map(_.value)
+      bOption = that.getIntersecting(subInterval).headOption.map(_.value)
+      valuePair <- (vOption, bOption) match
+        case (None, None)       => None
+        case (Some(v), Some(b)) => Some((v, b))
+        case (Some(v), None)    => Some((v, thatElem))
+        case (None, Some(b))    => Some((thisElem, b))
+    yield subInterval -> valuePair
+
+  /**
+    * Returns a new structure formed from this structure and another structure by combining the corresponding elements
+    * (all intersections) in a pair. The other structure can have a different value type but must have the same interval
+    * type.
+    *
+    * @param that
+    *   the structure which is going to be zipped.
+    * @tparam B
+    *   value type of that structure.
+    * @return
+    *   a new structure with this and that value type as a pair.
+    */
+  def zip[B](that: DimensionalBase[B, D]): DimensionalBase[(V, B), D]
+
+  /**
+    * Returns a new structure formed from this structure and another structure by combining the corresponding elements
+    * (all intersections) in a pair. If one of the two collections has a valid value in an interval where the other one
+    * doesn't, placeholder elements are used in the result. The other structure can have a different value type but must
+    * have the same interval type.
+    *
+    * @param that
+    *   the structure which is going to be zipped.
+    * @param thisElem
+    *   placeholder element used in intervals where data are valid in that but not this.
+    * @param thatElem
+    *   placeholder element used in intervals where data are valid in this but not that.
+    * @tparam B
+    *   value type of that structure.
+    * @return
+    *   a new structure with this and that value type as a pair.
+    */
+  def zipAll[B](that: DimensionalBase[B, D], thisElem: V, thatElem: B): DimensionalBase[(V, B), D]
+
+  protected def getByHeadIndexData[H: DomainValueLike](headIndex: Domain1D[H])(using
+    D =:= Domain1D[H] *: Tuple.Tail[D],
+    DomainLike[NonEmptyTail[D]]
+  ): Iterable[ValidData[V, NonEmptyTail[D]]] =
+    val lookup = Interval.unbounded[D].withHeadUpdate[H](_ => Interval1D.intervalAt(headIndex))
+    dataInSearchTreeGet(lookup).map:
+      case ValidData(value, interval) => interval.tailInterval[NonEmptyTail[D]] -> value
+
+  /**
+    * Project as lower dimensional data based on a head domain element
+    *
+    * @param headIndex
+    *   the first dimension domain element
+    * @return
+    *   a lower-dimensional (n-1) projection
+    */
+  def getByHeadIndex[H: DomainValueLike](headIndex: Domain1D[H])(using
+    D =:= Domain1D[H] *: Tuple.Tail[D],
+    DomainLike[NonEmptyTail[D]]
+  ): DimensionalBase[V, NonEmptyTail[D]]
+
+object DimensionalBase:
+  type In1D[V, R1] = DimensionalBase[V, Domain.In1D[R1]]
+  type In2D[V, R1, R2] = DimensionalBase[V, Domain.In2D[R1, R2]]
+  type In3D[V, R1, R2, R3] = DimensionalBase[V, Domain.In3D[R1, R2, R3]]
+  type In4D[V, R1, R2, R3, R4] = DimensionalBase[V, Domain.In4D[R1, R2, R3, R4]]

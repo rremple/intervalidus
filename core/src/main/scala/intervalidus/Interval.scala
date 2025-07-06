@@ -1,39 +1,37 @@
 package intervalidus
 
+import intervalidus.Domain.NonEmptyTail
 import intervalidus.collection.Box
 
+import scala.annotation.tailrec
+import scala.collection.immutable.TreeMap
+import scala.language.implicitConversions
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 /**
-  * An interval over a contiguous set of ordered elements of a domain.
+  * An interval in multiple dimensions over a contiguous set of domain values in D. See
+  * [[https://en.wikipedia.org/wiki/Interval_(mathematics)]] for more information.
   *
+  * @param start
+  *   the "infimum", i.e., the left (and/or below and/or back, depending on dimensions and context) boundary of the
+  *   interval
+  * @param end
+  *   the "supremum", i.e., the right (and/or above and/or front, depending on dimensions and context) boundary of the
+  *   interval -- must be greater than or equal to the start in all dimensions
   * @tparam D
-  *   the type of domain used in the interval (e.g., Domain1D[Int]).
-  * @tparam Self
-  *   F-bounded self type.
+  *   a domain type for this interval -- boundaries of the interval are defined in terms of a tuple that is
+  *   `DomainLike`, i.e., tuples of `Domain1D[T]` (with a different `T` in each dimension) where each value has a type
+  *   class of `DomainValueLike[T]`.
   */
-trait IntervalLike[D: DomainLike: Ordering, Self <: IntervalLike[D, Self]]:
-  this: Self =>
-
-  type ExclusionRemainder
-
+case class Interval[D <: NonEmptyTuple](
+  start: D,
+  end: D
+)(using domainLike: DomainLike[D]):
   /**
-    * The "infimum", i.e., the left/lower/back boundary of the interval (inclusive). When stored in a collection, this
-    * aspect of the interval can be used as the key. (E.g., the start of a 1D interval, the lower/left corner of a 2D
-    * interval).
+    * Either start is before end (by both start and end ordering), or, when equal, both bounds must be closed (i.e.,
+    * interval at a single point).
     */
-  def start: D
-
-  /**
-    * The "supremum", i.e., the right/upper/front boundary of the interval (inclusive). Must be greater than or equal to
-    * the start.
-    */
-  def end: D
-
-  /**
-    * Alternative to toString for something that looks more like code
-    */
-  def toCodeLikeString: String
+  require(domainLike.validIntervalBounds(start, end), s"Interval $this invalid")
 
   /**
     * Construct new valid data from this interval.
@@ -45,22 +43,13 @@ trait IntervalLike[D: DomainLike: Ordering, Self <: IntervalLike[D, Self]]:
     * @return
     *   valid data in this interval
     */
-  infix def withValue[V](value: V): ValidDataLike[V, D, Self, ?]
+  infix def withValue[V](value: V): ValidData[V, D] = ValidData(value, this)
 
   /**
-    * Tests if this interval contains a specific element of the domain.
-    *
-    * @param domainIndex
-    *   domain element to test.
-    * @return
-    *   true if the domain element is contained in this interval.
+    * Returns individual discrete domain points in this interval. (Empty if domain values are continuous in any
+    * dimension.)
     */
-  infix def contains(domainIndex: D): Boolean
-
-  /**
-    * Returns individual discrete domain points in this interval. (Empty if domain values are continuous.)
-    */
-  def points: Iterable[D]
+  def points: Iterable[D] = start.pointsTo(end)
 
   /**
     * Tests if there is no gap between this and that.
@@ -68,7 +57,23 @@ trait IntervalLike[D: DomainLike: Ordering, Self <: IntervalLike[D, Self]]:
     * @param that
     *   the interval to test for adjacency.
     */
-  infix def isAdjacentTo(that: Self): Boolean
+  infix def isAdjacentTo(that: Interval[D]): Boolean = isLeftAdjacentTo(that) || isRightAdjacentTo(that)
+
+  /**
+    * Tests if this interval is to the left/below/behind/etc. of that interval and there is no gap between them.
+    *
+    * @param that
+    *   the interval to test for adjacency.
+    */
+  infix def isLeftAdjacentTo(that: Interval[D]): Boolean = domainLike.intervalIsLeftAdjacentTo(this, that)
+
+  /**
+    * Tests if this interval is to the right/above/in front/etc. of that interval and there is no gap between them.
+    *
+    * @param that
+    *   the interval to test for adjacency.
+    */
+  infix def isRightAdjacentTo(that: Interval[D]): Boolean = that isLeftAdjacentTo this
 
   /**
     * Tests if this and that have elements of the domain in common (not disjoint).
@@ -76,17 +81,19 @@ trait IntervalLike[D: DomainLike: Ordering, Self <: IntervalLike[D, Self]]:
     * @param that
     *   the interval to test.
     */
-  infix def intersects(that: Self): Boolean
+  infix def intersects(that: Interval[D]): Boolean = intersectionWith(that).isDefined
 
   /**
-    * Finds the intersection between this and that. See [[https://en.wikipedia.org/wiki/Intersection_(set_theory)]].
+    * Finds the intersection of this with that. See [[https://en.wikipedia.org/wiki/Intersection_(set_theory)]].
     *
     * @param that
     *   the interval to intersect.
     * @return
     *   some interval representing the intersection if there is one, and None otherwise.
     */
-  infix def intersectionWith(that: Self): Option[Self]
+  infix def intersectionWith(that: Interval[D]): Option[Interval[D]] =
+    val (maxStart, minEnd) = (this.start maxStart that.start, this.end minEnd that.end)
+    if domainLike.validIntervalBounds(maxStart, minEnd) then Some(Interval(maxStart, minEnd)) else None
 
   /**
     * A kind of union between this and that interval. Includes the domain of both this and that plus any gaps that may
@@ -98,29 +105,26 @@ trait IntervalLike[D: DomainLike: Ordering, Self <: IntervalLike[D, Self]]:
     * @return
     *   the smallest interval including both this and that.
     */
-  infix def joinedWith(that: Self): Self
-
-  /**
-    * Tests if that is a subset (proper or improper) of this.
-    *
-    * @param that
-    *   the interval to test.
-    * @return
-    *   true if that is a subset of this.
-    */
-  infix def contains(that: Self): Boolean
+  infix def joinedWith(that: Interval[D]): Interval[D] =
+    Interval(this.start minStart that.start, this.end maxEnd that.end)
 
   /**
     * If there are intervals after each interval component (i.e., none of them end at Top), returns the interval after
     * this one in all dimensions, otherwise returns None.
     */
-  def after: Option[Self]
+  def after: Option[Interval[D]] =
+    val endComplement = end.rightAdjacent
+    if endComplement equiv domainLike.top then None
+    else Some(Interval.intervalFrom(endComplement))
 
   /**
     * If there are intervals before each interval component (i.e., none of them start at Bottom), returns the interval
     * before this one in all dimensions, otherwise returns None.
     */
-  def before: Option[Self]
+  def before: Option[Interval[D]] =
+    val startComplement = start.leftAdjacent
+    if startComplement equiv domainLike.bottom then None
+    else Some(Interval.intervalTo(startComplement))
 
   /**
     * Returns a new interval starting at the provided value.
@@ -128,7 +132,7 @@ trait IntervalLike[D: DomainLike: Ordering, Self <: IntervalLike[D, Self]]:
     * @param newStart
     *   the start of the new interval
     */
-  def from(newStart: D): Self
+  def from(newStart: D): Interval[D] = copy(start = newStart)
 
   /**
     * Returns a new interval starting adjacent to the provided value.
@@ -136,12 +140,12 @@ trait IntervalLike[D: DomainLike: Ordering, Self <: IntervalLike[D, Self]]:
     * @param adjacentDomain
     *   the domain with which the new start of the new interval should be adjacent
     */
-  def fromAfter(adjacentDomain: D): Self = from(adjacentDomain.rightAdjacent)
+  def fromAfter(adjacentDomain: D): Interval[D] = from(adjacentDomain.rightAdjacent)
 
   /**
     * Returns a new interval with the same end as this interval but with an unbounded start.
     */
-  def fromBottom: Self
+  def fromBottom: Interval[D] = from(domainLike.bottom)
 
   /**
     * Returns a new interval ending at the provided value.
@@ -149,7 +153,7 @@ trait IntervalLike[D: DomainLike: Ordering, Self <: IntervalLike[D, Self]]:
     * @param newEnd
     *   the end of the new interval
     */
-  def to(newEnd: D): Self
+  def to(newEnd: D): Interval[D] = copy(end = newEnd)
 
   /**
     * Returns a new interval ending adjacent to the provided value.
@@ -157,31 +161,63 @@ trait IntervalLike[D: DomainLike: Ordering, Self <: IntervalLike[D, Self]]:
     * @param adjacentDomain
     *   the domain with which the new end of the new interval should be adjacent
     */
-  def toBefore(adjacentDomain: D): Self = to(adjacentDomain.leftAdjacent)
+  def toBefore(adjacentDomain: D): Interval[D] = to(adjacentDomain.leftAdjacent)
 
   /**
     * Returns a new interval with the same start as this interval but with an unbounded end.
     */
-  def toTop: Self
+  def toTop: Interval[D] = to(domainLike.top)
 
   /**
-    * Tests if this interval is to the left of that interval and there is no gap between them.
-    *
-    * @param that
-    *   the interval to test for adjacency.
+    * Returns a new singleton interval containing only the start of this interval.
     */
-  infix def isLeftAdjacentTo(that: Self): Boolean
+  def atStart: Interval[D] = to(start)
+
+  /**
+    * Returns a new singleton interval containing only the end of this interval.
+    */
+  def atEnd: Interval[D] = from(end)
 
   /**
     * Excludes that interval from this one. See
     * [[https://en.wikipedia.org/wiki/Complement_(set_theory)#Relative_complement]].
     *
+    * There are three possible outcomes in each dimension:
+    *   1. this interval is a subset of that one, so once it is excluded, nothing remains. `Remainder.None` is returned.
+    *   1. that either lies outside of this or has a simple edge intersection (only contains the start or the end, but
+    *      not both), and a single interval remains. `Remainder.Single` is returned.
+    *   1. that interval is a proper subset of this one, containing neither the start nor the end of this, so this
+    *      interval gets split, and two intervals remain. `Remainder.Split` is returned
+    *
     * @param that
     *   the interval to exclude.
     * @return
-    *   The remainder in each dimension after exclusion.
+    *   A tuple of each dimension-specific `Remainder` after excluding that.
     */
-  infix def excluding(that: Self): ExclusionRemainder
+  infix def excluding(that: Interval[D]): NonEmptyTuple =
+    domainLike.intervalExcluding(this, that)
+
+  /**
+    * Similar to [[excluding]], separates each dimension of the current interval into the intersection with that
+    * interval along with the remainder intervals covering this, i.e., the union of all the returned intervals will
+    * match this. The interval collection returned will be ordered by interval starts and will be disjoint. In each
+    * dimension, there are three possible outcomes:
+    *   1. just one interval (this interval) is returned if this is a subset of that or this doesn't intersect that.
+    *   1. two intervals (the intersection with that along with the portion of this lying outside of that) are returned
+    *      if this has a simple edge intersection.
+    *   1. three intervals (the intersection with that along with both portions of this that are before and after that)
+    *      are returned if that is a proper subset of this, containing neither the start nor the end of this.
+    *
+    * So for n dimensions, the smallest possible returned collection will contain just one interval (i.e., case 1 in all
+    * dimensions), and the largest will contain 3<sup>n</sup> intervals (i.e., case 3 in all dimensions).
+    *
+    * @param that
+    *   the interval to exclude.
+    * @return
+    *   A collection of intervals covering this without overlaps after being separated by that.
+    */
+  infix def separateUsing(that: Interval[D]): Iterable[Interval[D]] =
+    domainLike.intervalSeparateUsing(this, that)
 
   /**
     * Returns gap between this and that interval, if one exists.
@@ -191,7 +227,184 @@ trait IntervalLike[D: DomainLike: Ordering, Self <: IntervalLike[D, Self]]:
     * @return
     *   if one exists, some interval representing the gap between this and that in all dimensions, and None otherwise.
     */
-  infix def gapWith(that: Self): Option[Self]
+  infix def gapWith(that: Interval[D]): Option[Interval[D]] =
+    domainLike.intervalGapWith(this, that)
+
+  /**
+    * Cross this interval with that interval to arrive at a new higher-dimensional interval.
+    * @param that
+    *   a one-dimensional interval to be appended
+    * @tparam X
+    *   domain value type for that interval
+    * @return
+    *   a new higher-dimensional interval with that interval appended.
+    */
+  infix def x[X: DomainValueLike](that: Interval1D[X])(using
+    DomainLike[Tuple.Append[D, Domain1D[X]]]
+  ): Interval[Tuple.Append[D, Domain1D[X]]] =
+    Interval(start x that.start, end x that.end)
+
+  /**
+    * Test for equivalence by comparing the start and end of this and that.
+    *
+    * @param that
+    *   the interval to test.
+    * @return
+    *   true if this and that have the same start and end.
+    */
+  infix def equiv(that: Interval[D]): Boolean = (start equiv that.start) && (end equiv that.end)
+
+  // Use mathematical interval notation -- default.
+  override def toString: String = domainLike.intervalToString(this, withBraces = true)
+
+  /**
+    * Alternative to toString for something that looks more like code
+    */
+  def toCodeLikeString: String =
+    domainLike.intervalToCodeLikeString(this, withParens = false)
+
+  /*
+   * Methods specific to Interval, not available in Interval1D (though Interval1D can be converted implicitly to
+   * Interval, and then all these will work).
+   */
+
+  /**
+    * Alternative to toString for something that looks more like code. Use when having an interval with more than one
+    * dimension enclosed in parens is preferred.
+    */
+  def toCodeLikeStringWithParens: String =
+    domainLike.intervalToCodeLikeString(this, withParens = true)
+
+  /**
+    * Prepend that interval to this interval to arrive at a new higher-dimensional interval.
+    *
+    * @param that
+    *   a one-dimensional interval to be prepended
+    * @tparam X
+    *   domain value type for that interval
+    * @return
+    *   a new higher-dimensional interval with that interval prepended.
+    */
+  infix def withHead[X: DomainValueLike](that: Interval1D[X])(using
+    DomainLike[Domain1D[X] *: D]
+  ): Interval[Domain1D[X] *: D] =
+    Interval(start withHead that.start, end withHead that.end)
+
+  /**
+    * Extract a one-dimensional interval based on the one-dimensional heads of the start and end.
+    *
+    * @tparam H
+    *   the domain value type of the head element. There is a type safety check that ensures the head start and end are
+    *   of type `Domain1D[H]`.
+    * @return
+    *   the one-dimensional head interval.
+    */
+  def headInterval1D[H: DomainValueLike](using
+    Domain1D[H] =:= Tuple.Head[D]
+  ): Interval1D[H] =
+    Interval1D(start.head.asInstanceOf[Domain1D[H]], end.head.asInstanceOf[Domain1D[H]])
+
+  /**
+    * For an n-dimensional interval where n > 1, extracts the interval of n-1 dimensions based on the tail of start and
+    * end.
+    *
+    * @tparam T
+    *   the domain type of the tail element. There is a type safety check that ensures the tail start and end form an
+    *   interval of type `DomainLike[Tuple.Tail[D]]` and the tail is not empty.
+    * @return
+    *   the tail interval of n-1 dimensions.
+    */
+  def tailInterval[T <: NonEmptyTuple: DomainLike](using
+    T =:= NonEmptyTail[D]
+  ): Interval[T] =
+    Interval(start.tail.asInstanceOf[T], end.tail.asInstanceOf[T])
+
+  /**
+    * Returns a new interval with an updated head interval and other dimensions unchanged.
+    *
+    * @param update
+    *   function to apply to this head interval, used in the head dimension of the returned interval.
+    */
+  def withHeadUpdate[H: DomainValueLike](update: Interval1D[H] => Interval1D[H])(using
+    D =:= Domain1D[H] *: Tuple.Tail[D]
+  ): Interval[D] =
+    type ExpandedDomain = Domain1D[H] *: Tuple.Tail[D] // safe cast to avoid unchecked warnings
+    // Note that both startTail and endTail will be an EmptyTuple if D is one-dimensional
+    (start: ExpandedDomain, end: ExpandedDomain) match
+      case ((startHead: Domain1D[H]) *: startTail, (endHead: Domain1D[H]) *: endTail) =>
+        val updatedHead = update(Interval1D(startHead, endHead))
+        Interval((updatedHead.start *: startTail).asInstanceOf[D], (updatedHead.end *: endTail).asInstanceOf[D])
+
+  /**
+    * Tests if this interval contains a specific element of the domain.
+    *
+    * @param domain
+    *   domain element to test.
+    * @return
+    *   true if the domain element is contained in this interval.
+    */
+  infix def contains(domain: D): Boolean =
+    domain.isClosedOrUnbounded && // strictly speaking, open points are not "contained" in anything
+      (domain afterOrAtStart start) && (domain beforeOrAtEnd end)
+
+  /**
+    * Tests if that is a subset (proper or improper) of this.
+    *
+    * @param that
+    *   the interval to test.
+    * @return
+    *   true if that is a subset of this.
+    */
+  infix def contains(that: Interval[D]): Boolean =
+    intersectionWith(that).contains(that)
+
+  /**
+    * Tests if this is a subset (proper or improper) of that. See [[https://en.wikipedia.org/wiki/Subset]].
+    *
+    * @param that
+    *   the interval to test.
+    * @return
+    *   true if this is a subset of that.
+    */
+  infix def isSubsetOf(that: Interval[D]): Boolean =
+    that contains this
+
+  /**
+    * Approximate this interval as a box in double space based on the domain ordered hash.
+    *
+    * @return
+    *   a new box that can be managed in a box search tree
+    */
+  def asBox: Box =
+    Box(start.asCoordinate, end.asCoordinate)
+
+  /**
+    * Tests if there is no fixed start or end - spans the entire domain.
+    */
+  def isUnbounded: Boolean =
+    start.isUnbounded && end.isUnbounded
+
+  /**
+    * Tests if this and that have the same start.
+    *
+    * @param that
+    *   the interval to test.
+    */
+  infix def hasSameStartAs(that: Interval[D]): Boolean =
+    start equiv that.start
+
+  /**
+    * Tests if this and that have the same end.
+    *
+    * @param that
+    *   the interval to test.
+    */
+  infix def hasSameEndAs(that: Interval[D]): Boolean =
+    end equiv that.end
+
+  /*
+   * Equivalent symbolic method names
+   */
 
   /**
     * Same as [[withValue]]
@@ -205,76 +418,7 @@ trait IntervalLike[D: DomainLike: Ordering, Self <: IntervalLike[D, Self]]:
     * @return
     *   valid data in this interval
     */
-  infix def ->[V](value: V): ValidDataLike[V, D, Self, ?]
-
-  /**
-    * Approximate this interval as a box in double space based on the domain ordered hash.
-    *
-    * @return
-    *   a new box that can be managed in a box search tree
-    */
-  def asBox: Box = Box(start.asCoordinate, end.asCoordinate)
-
-  /**
-    * Tests if there is no fixed start or end - spans the entire domain.
-    */
-  def isUnbounded: Boolean = start.isUnbounded && end.isUnbounded
-
-  /**
-    * Tests if this and that have the same start.
-    *
-    * @param that
-    *   the interval to test.
-    */
-  infix def hasSameStartAs(that: Self): Boolean = start equiv that.start
-
-  /**
-    * Tests if this and that have the same end.
-    *
-    * @param that
-    *   the interval to test.
-    */
-  infix def hasSameEndAs(that: Self): Boolean = end equiv that.end
-
-  /**
-    * Test for equivalence by comparing all interval components of this and that.
-    *
-    * @param that
-    *   the interval to test.
-    * @return
-    *   true if this and that have the same start and end.
-    */
-  infix def equiv(that: Self): Boolean = (start equiv that.start) && (end equiv that.end)
-
-  /**
-    * Tests if this is a subset (proper or improper) of that. See [[https://en.wikipedia.org/wiki/Subset]].
-    *
-    * @param that
-    *   the interval to test.
-    * @return
-    *   true if this is a subset of that.
-    */
-  infix def isSubsetOf(that: Self): Boolean = that contains this
-
-  /**
-    * Tests if this interval is to the right of that interval and there is no gap between them.
-    *
-    * @param that
-    *   the interval to test for adjacency.
-    */
-  infix def isRightAdjacentTo(that: Self): Boolean = that isLeftAdjacentTo this
-
-  /**
-    * Returns a new singleton interval containing only the end of this interval.
-    */
-  def atEnd: Self = from(end)
-
-  /**
-    * Returns a new singleton interval containing only the start of this interval.
-    */
-  def atStart: Self = to(start)
-
-  // equivalent symbolic method names and other implementations
+  infix def ->[V](value: V): ValidData[V, D] = withValue(value)
 
   /**
     * Same as [[intersectionWith]].
@@ -286,7 +430,7 @@ trait IntervalLike[D: DomainLike: Ordering, Self <: IntervalLike[D, Self]]:
     * @return
     *   some interval representing the intersection if there is one, and None otherwise.
     */
-  def ∩(that: Self): Option[Self] = this intersectionWith that
+  def ∩(that: Interval[D]): Option[Interval[D]] = this intersectionWith that
 
   /**
     * Same as [[joinedWith]].
@@ -300,7 +444,7 @@ trait IntervalLike[D: DomainLike: Ordering, Self <: IntervalLike[D, Self]]:
     * @return
     *   the smallest interval including both this and that.
     */
-  def ∪(that: Self): Self = this joinedWith that
+  def ∪(that: Interval[D]): Interval[D] = this joinedWith that
 
   /**
     * Same as [[isSubsetOf]].
@@ -312,7 +456,7 @@ trait IntervalLike[D: DomainLike: Ordering, Self <: IntervalLike[D, Self]]:
     * @return
     *   true if this is a subset of that.
     */
-  def ⊆(that: Self): Boolean = this isSubsetOf that
+  def ⊆(that: Interval[D]): Boolean = this isSubsetOf that
 
   /**
     * Same as [[excluding]].
@@ -323,16 +467,320 @@ trait IntervalLike[D: DomainLike: Ordering, Self <: IntervalLike[D, Self]]:
     * @param that
     *   the interval to exclude.
     * @return
-    *   The remainder in each dimension after exclusion.
+    *   The remainder in each dimension after exclusion (a tuple of Interval1D.ExclusionRemainder).
     */
-  def \(that: Self): ExclusionRemainder = this excluding that
+  def \(that: Interval[D]): NonEmptyTuple = this excluding that
 
-object IntervalLike:
+/**
+  * Companion for the multidimensional interval used in defining and operating on valid data.
+  */
+object Interval:
+  import DomainLike.given
+
+  object Patterns:
+    /**
+      * Decomposes a multidimensional interval by extracting its head 1D interval and its remaining tail interval. It is
+      * essentially the inverse of `Interval.withHead`. Useful when chaining a match on a fixed number of dimensions,
+      * where this pattern is used in all but the last place, e.g.,
+      * {{{
+      *   dataIntervals.collect:
+      *     case horizontal :+: vertical :+: depth :+|: fourth =>
+      *       randSubinterval(horizontal) x randSubinterval(vertical) x randSubinterval(depth) x randSubinterval(fourth)
+      * }}}
+      */
+    object :+: {
+      def unapply[D <: NonEmptyTuple, H](i: Interval[D])(using
+        Tuple.Head[D] =:= Domain1D[H],
+        Tuple.Tail[D] =:= NonEmptyTail[D],
+        DomainLike[NonEmptyTail[D]],
+        DomainValueLike[H]
+      ): Option[(Interval1D[H], Interval[NonEmptyTail[D]])] =
+        Some((Interval1D(i.start.head, i.end.head), Interval(i.start.tail, i.end.tail)))
+    }
+
+    /**
+      * Specific to a two-dimensional interval, decomposes it by extracting its two 1D intervals. It is essentially the
+      * inverse of `Interval1D.withHead`. Useful when chaining a match on a fixed number of dimensions, where this
+      * pattern is used in the last place, e.g.,
+      * {{{
+      *   dataIntervals.collect:
+      *     case horizontal :+: vertical :+: depth :+|: fourth =>
+      *       randSubinterval(horizontal) x randSubinterval(vertical) x randSubinterval(depth) x randSubinterval(fourth)
+      * }}}
+      */
+    object :+|: {
+      def unapply[H1: DomainValueLike, H2: DomainValueLike, D <: Domain.In2D[H1, H2]](
+        i: Interval[D]
+      ): Option[(Interval1D[H1], Interval1D[H2])] =
+        (i.start, i.end) match
+          case (s1 *: s2 *: EmptyTuple, e1 *: e2 *: EmptyTuple) => Some((Interval1D(s1, e1), Interval1D(s2, e2)))
+    }
+
+  // used in return type of excluding
+  enum Remainder[+G]:
+    case None
+    case Single(g: G)
+    case Split(left: G, right: G)
+
+  type In1D[R1] = Interval[Domain.In1D[R1]]
+  type In2D[R1, R2] = Interval[Domain.In2D[R1, R2]]
+  type In3D[R1, R2, R3] = Interval[Domain.In3D[R1, R2, R3]]
+  type In4D[R1, R2, R3, R4] = Interval[Domain.In4D[R1, R2, R3, R4]]
+
+  def in1D[T1: DomainValueLike](
+    horizontal: Interval1D[T1]
+  ): Interval.In1D[T1] = Interval(
+    horizontal.start,
+    horizontal.end
+  )
+  def in2D[T1: DomainValueLike, T2: DomainValueLike](
+    horizontal: Interval1D[T1],
+    vertical: Interval1D[T2]
+  ): Interval.In2D[T1, T2] = Interval(
+    horizontal.start x vertical.start,
+    horizontal.end x vertical.end
+  )
+  def in3D[T1: DomainValueLike, T2: DomainValueLike, T3: DomainValueLike](
+    horizontal: Interval1D[T1],
+    vertical: Interval1D[T2],
+    depth: Interval1D[T3]
+  ): Interval.In3D[T1, T2, T3] = Interval(
+    horizontal.start x vertical.start x depth.start,
+    horizontal.end x vertical.end x depth.end
+  )
+  def in4D[T1: DomainValueLike, T2: DomainValueLike, T3: DomainValueLike, T4: DomainValueLike](
+    horizontal: Interval1D[T1],
+    vertical: Interval1D[T2],
+    depth: Interval1D[T3],
+    fourth: Interval1D[T4]
+  ): Interval.In4D[T1, T2, T3, T4] = Interval(
+    horizontal.start x vertical.start x depth.start x fourth.start,
+    horizontal.end x vertical.end x depth.end x fourth.end
+  )
+
+  /**
+    * Returns an interval from the input value that is unbounded on the right.
+    */
+  def intervalFrom[T <: NonEmptyTuple](s: T)(using domainLike: DomainLike[T]): Interval[T] = apply(s, domainLike.top)
+
+  /**
+    * Returns an interval from after the input value that is unbounded on the right.
+    */
+  def intervalFromAfter[T <: NonEmptyTuple](s: T)(using domainLike: DomainLike[T]): Interval[T] =
+    apply(s.rightAdjacent, domainLike.top)
+
+  /**
+    * Returns an interval to the input value that is unbounded on the left.
+    */
+  def intervalTo[T <: NonEmptyTuple](e: T)(using domainLike: DomainLike[T]): Interval[T] = apply(domainLike.bottom, e)
+
+  /**
+    * Returns an interval to before the input value that is unbounded on the left.
+    */
+  def intervalToBefore[T <: NonEmptyTuple](e: T)(using domainLike: DomainLike[T]): Interval[T] =
+    apply(domainLike.bottom, e.leftAdjacent)
+
+  /**
+    * Returns an interval that starts and ends at the same value.
+    */
+  def intervalAt[T <: NonEmptyTuple: DomainLike](s: T): Interval[T] =
+    val closestPoint = s.closeIfOpen
+    interval(closestPoint, closestPoint)
+
+  /**
+    * Returns an interval that starts and ends at the different values.
+    */
+  def interval[T <: NonEmptyTuple: DomainLike](s: T, e: T): Interval[T] = apply(s, e)
+
+  /**
+    * Returns the interval between `before` and `after`. This is equivalent to `before.gapWith(after).get`, but without
+    * intersection and adjacency checks. Only use this function if you know there is a gap between `before` and `after`,
+    * e.g., they are exclusion remainders.
+    *
+    * @param before
+    *   interval on the left/bottom/back side
+    * @param after
+    *   interval on the right/top/front side
+    * @tparam T
+    *   domain value for interval
+    * @return
+    *   the interval made from the gap between the two inputs
+    */
+  def between[T <: NonEmptyTuple: DomainLike](
+    before: Interval[T],
+    after: Interval[T]
+  ): Interval[T] = interval(before.end.rightAdjacent, after.start.leftAdjacent)
+
+  /**
+    * Returns an interval unbounded on both the left and right.
+    */
+  def unbounded[T <: NonEmptyTuple](using domainLike: DomainLike[T]): Interval[T] =
+    Interval(domainLike.bottom, domainLike.top)
+
+  /*
+   * These methods operate on collections of intervals.
+   */
+
+  /**
+    * Generic compression algorithm used by both `compress` and `DimensionalBase.compressInPlace`.
+    *
+    * @param initialState
+    *   initial state
+    * @param result
+    *   extracts the result from the final state
+    * @param dataIterable
+    *   based on current state, extracts the data iterable
+    * @param interval
+    *   extracts the interval from the data
+    * @param valueMatch
+    *   checks if the values of two data elements match
+    * @param lookup
+    *   based on the current state, looks up data by domain
+    * @param compressAdjacent
+    *   based on the current state, applies a compression action to two adjacent data elements resulting in a new state
+    * @tparam State
+    *   the state type
+    * @tparam Data
+    *   the data type
+    * @tparam Result
+    *   the result type
+    * @tparam D
+    *   a domain type for this interval.
+    * @return
+    *   a result extracted from the final state
+    */
+  def compressGeneric[State, Data, Result, D <: NonEmptyTuple](
+    initialState: State,
+    result: State => Result,
+    dataIterable: State => Iterable[Data],
+    interval: Data => Interval[D],
+    valueMatch: (Data, Data) => Boolean,
+    lookup: (State, D) => Option[Data],
+    compressAdjacent: (Data, Data, State) => State
+  )(using domainLike: DomainLike[D]): Result =
+    /*
+     * Each mutation gives rise to other compression possibilities. And applying a compression action
+     * can invalidate the remainder of the actions (e.g., three-in-a-row). Unlike in one dimension, there
+     * is no safe order to fold over to avoid these issues. So, instead, we evaluate every entry with every
+     * other entry, get the first compression action, apply it, and recurse until there aren't anymore actions to apply.
+     */
+    @tailrec
+    def compressRecursively(state: State): Result =
+      val maybeUpdate: Option[() => State] = dataIterable(state)
+        .map: data =>
+          domainLike
+            .intervalAdjacentKeys(interval(data))
+            .map: adjacentKey =>
+              lookup(state, adjacentKey).filter: candidate =>
+                valueMatch(data, candidate) && (interval(candidate) isRightAdjacentTo interval(data))
+            .collectFirst:
+              case Some(adjacentData) => () => compressAdjacent(data, adjacentData, state)
+        .collectFirst:
+          case Some(updated) => updated
+      maybeUpdate match
+        case None              => result(state) // done
+        case Some(updateState) => compressRecursively(updateState())
+
+    compressRecursively(initialState)
+
+  /**
+    * Compresses a collection of intervals by joining all adjacent intervals.
+    *
+    * @param intervals
+    *   a collection of intervals.
+    * @tparam D
+    *   a domain type for this interval
+    * @return
+    *   a new (possibly smaller) collection of intervals covering the same domain as the input.
+    */
+  def compress[D <: NonEmptyTuple](
+    intervals: Iterable[Interval[D]]
+  )(using domainLike: DomainLike[D]): Iterable[Interval[D]] = compressGeneric(
+    initialState = TreeMap.from(intervals.map(i => i.start -> i)), // intervals by start
+    result = _.values,
+    dataIterable = _.values,
+    interval = identity, // data are just intervals
+    valueMatch = (_, _) => true, // no value to match
+    lookup = _.get(_),
+    compressAdjacent = (r, s, state) => state.removed(s.start).updated(r.start, r ∪ s)
+  )
+
+  /**
+    * Checks if the collection of intervals is compressible. That is, are there any intervals that are adjacent to, or
+    * intersecting with, their neighbors. If true, calling [[compress]] on the collection results in a smaller
+    * collection covering the same domain.
+    *
+    * @param intervals
+    *   a collection of intervals -- must be ordered by start.
+    * @tparam T
+    *   a domain value type for this interval's domain.
+    * @return
+    *   true if the collection is compressible, false otherwise.
+    */
+  def isCompressible[T <: NonEmptyTuple: DomainLike](intervals: Iterable[Interval[T]]): Boolean =
+    // evaluates every pair of intervals twice, so we only need to check for before adjacency
+    intervals.exists: r =>
+      intervals
+        .filter: d =>
+          !(d equiv r)
+        .exists: d =>
+          (d isLeftAdjacentTo r) || (d intersects r)
+
+  /**
+    * Checks if the collection of intervals is disjoint. That is, all neighboring intervals do not intersect. See
+    * [[https://en.wikipedia.org/wiki/Disjoint_sets]].
+    *
+    * @param intervals
+    *   a collection of intervals -- must be ordered by start.
+    * @tparam T
+    *   a domain value type for this interval's domain.
+    * @return
+    *   true if the collection is disjoint, false otherwise.
+    */
+  def isDisjoint[T <: NonEmptyTuple: DomainLike](intervals: Iterable[Interval[T]]): Boolean =
+    intervals.forall: r =>
+      intervals
+        .filter: d =>
+          r.start < d.start
+        .forall: d =>
+          !(d intersects r)
+
+  /**
+    * Finds all intervals, including all overlaps and gaps between intervals, as intervals. Inputs may be overlapping.
+    * The result is disjoint and covers the span of the input intervals.
+    *
+    * @param intervals
+    *   collection of intervals
+    * @tparam D
+    *   a domain value type for this interval's domain.
+    * @return
+    *   a new collection of intervals representing disjoint intervals covering the span of the input.
+    */
+  def uniqueIntervals[D <: NonEmptyTuple](
+    intervals: Iterable[Interval[D]]
+  )(using domainLike: DomainLike[D]): Iterable[Interval[D]] =
+    domainLike.intervalUniqueIntervals(intervals)
+
+  /**
+    * Given a collection of intervals, finds the complement intervals (i.e., the gaps). See
+    * [[https://en.wikipedia.org/wiki/Complement_(set_theory)]]. Result invariants:
+    *   - `isDisjoint(intervals ++ complement(intervals)) == true`
+    *   - `compress(intervals ++ complement(intervals)).toSeq == Seq(unbounded)`
+    *
+    * @param intervals
+    *   a collection of intervals -- must be disjoint and ordered by start.
+    * @tparam T
+    *   a domain value type for this interval's domain.
+    * @return
+    *   a new collection of intervals representing disjoint intervals covering the span of the input.
+    */
+  def complement[T <: NonEmptyTuple](
+    intervals: Iterable[Interval[T]]
+  )(using domainLike: DomainLike[T]): Iterable[Interval[T]] =
+    immutable.Data(intervals.map(_ -> false)).fill(unbounded -> true).filter(_.value).domain
+
   /**
     * Intervals are ordered by start
     */
-  given [
-    D: DomainLike,
-    I <: IntervalLike[D, I]
-  ](using domainOrder: Ordering[D]): Ordering[I] with
-    override def compare(x: I, y: I): Int = domainOrder.compare(x.start, y.start)
+  given [D <: NonEmptyTuple: DomainLike](using domainOrder: Ordering[D]): Ordering[Interval[D]] with
+    override def compare(x: Interval[D], y: Interval[D]): Int = domainOrder.compare(x.start, y.start)

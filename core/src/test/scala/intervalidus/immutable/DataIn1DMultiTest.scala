@@ -2,7 +2,8 @@ package intervalidus.immutable
 
 import intervalidus.*
 import intervalidus.DiscreteValue.given
-import org.scalatest.compatible.Assertion
+import intervalidus.Domain.In1D as Dim
+import intervalidus.DomainLike.given
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
@@ -17,41 +18,32 @@ class DataIn1DMultiTest
   import Interval1D.*
 
   testsFor(
-    basicAndZipTests("Immutable", DataIn1DMulti.from(_), DataIn1DMulti.from(_), DataIn1DMulti.of(_), DataIn1DMulti(_))
+    basicAndZipTests("Mutable", DataMulti.from(_), DataMulti.from(_), DataMulti.of(_), DataMulti(_))
   )
   testsFor(
     addAndRemoveTests[
-      Domain1D[Int],
-      Interval1D[Int],
-      ValidData1D[String, Int],
-      ValidData1D[Set[String], Int],
-      DiffAction1D[Set[String], Int],
-      DataIn1DMulti[String, Int]
+      Dim[Int],
+      DataMulti[String, Dim[Int]]
     ](
-      DataIn1DMulti.from(_),
-      (interval, value) => ValidData1D(value, interval),
-      (interval, valueSet) => ValidData1D(valueSet, interval)
+      DataMulti.from(_),
+      Interval.in1D
     )
   )
 
-  test("Immutable: Mapping, flatmapping, etc."):
-    val allData = List(intervalTo(4) -> "Hey", intervalFrom(16) -> "World")
+  testsFor(
+    mapAndFlatmapTests[
+      Dim[Int],
+      DataMulti[String, Dim[Int]]
+    ](
+      DataMulti.from(_),
+      Interval.in1D,
+      d => d.interval.to(d.interval.end.rightAdjacent) -> d.value.map(_ + "!"),
+      d => DataMulti.from[String, Dim[Int]](d.value.map(d.interval -> _))
+    )
+  )
 
-    val fixture1 = DataIn1DMulti.from(allData)
-    val fixture2 = fixture1.map(d => d.interval.to(d.interval.end.rightAdjacent) -> (d.value.map(_ + "!")))
-    val expectedData2 = List(intervalTo(5) -> Set("Hey!"), intervalFrom(16) -> Set("World!"))
-    fixture2.getAll.toList shouldBe expectedData2
-
-    val fixture3 = fixture2.mapValues(_.map(_ + "!!"))
-    val expectedData3 = List(intervalTo(5) -> Set("Hey!!!"), intervalFrom(16) -> Set("World!!!"))
-    fixture3.getAll.toList shouldBe expectedData3
-
-    val fixture4 = fixture3.flatMap(d => DataIn1DMulti.from[String, Int](d.value.map(d.interval -> _)))
-    val expectedData4 = List(intervalTo(5) -> Set("Hey!!!"), intervalFrom(16) -> Set("World!!!"))
-    fixture4.getAll.toList shouldBe expectedData4
-
-  test("Immutable: Applying diff actions"):
-    val fixture5 = DataIn1DMulti.from(
+  test("Mutable: Applying diff actions"):
+    val fixture5 = DataMulti.from(
       List(
         interval(0, 4) -> "Hello",
         interval(5, 15) -> "to",
@@ -61,7 +53,7 @@ class DataIn1DMultiTest
       )
     )
 
-    val fixture6 = DataIn1DMulti.from(
+    val fixture6 = DataMulti.from(
       List(
         intervalTo(4) -> "Hey",
         interval(5, 15) -> "to",
@@ -69,7 +61,7 @@ class DataIn1DMultiTest
       )
     )
 
-    val fixture7 = DataIn1DMulti.of(intervalTo(0) -> "Hey")
+    val fixture7 = DataMulti.of(intervalTo(0) -> "Hey")
 
     val f6sync = fixture5.applyDiffActions(fixture6.diffActionsFrom(fixture5))
     f6sync.getAll.toList shouldBe fixture6.getAll.toList

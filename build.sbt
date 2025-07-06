@@ -38,12 +38,14 @@ lazy val root = (project in file("."))
     `bench`
   )
   .settings(
+    name := "intervalidus-root",
     githubTokenSource := TokenSource.GitConfig("github.token") || TokenSource.Environment("PUBLISH_TO_PACKAGES"),
     publish / skip := true
   )
 
 lazy val core = project
   .enablePlugins(GhpagesPlugin, SiteScaladocPlugin)
+  .disablePlugins(MimaPlugin, TastyMiMaPlugin) // for now (pre 1.0)
   .settings(commonPublishSettings)
   .settings(
     name := "intervalidus",
@@ -51,6 +53,7 @@ lazy val core = project
   )
 
 lazy val `intervalidus-weepickle` = (project in file("json/weepickle"))
+  .disablePlugins(MimaPlugin, TastyMiMaPlugin) // for now (pre 1.0)
   .dependsOn(core)
   .settings(commonPublishSettings)
   .settings(
@@ -59,6 +62,7 @@ lazy val `intervalidus-weepickle` = (project in file("json/weepickle"))
   )
 
 lazy val `intervalidus-upickle` = (project in file("json/upickle"))
+  .disablePlugins(MimaPlugin, TastyMiMaPlugin) // for now (pre 1.0)
   .dependsOn(core)
   .settings(commonPublishSettings)
   .settings(

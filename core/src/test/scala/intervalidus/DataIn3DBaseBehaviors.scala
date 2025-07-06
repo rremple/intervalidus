@@ -1,6 +1,8 @@
 package intervalidus
 
 import intervalidus.DiscreteValue.given
+import intervalidus.Domain.In3D as Dim
+import intervalidus.DomainLike.given
 import org.scalatest.compatible.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
@@ -22,9 +24,9 @@ trait DataIn3DBaseBehaviors:
 
   protected val unboundedDate = unbounded[LocalDate]
 
-  def stringLookupTests[S <: DataIn3DBase[String, LocalDate, LocalDate, Int]](
+  def stringLookupTests[S <: DimensionalBase[String, Dim[LocalDate, LocalDate, Int]]](
     prefix: String,
-    dataIn3DFrom: Experimental ?=> Iterable[ValidData3D[String, LocalDate, LocalDate, Int]] => S,
+    dataIn3DFrom: Experimental ?=> Iterable[ValidData[String, Dim[LocalDate, LocalDate, Int]]] => S,
     dataIn3DOf: Experimental ?=> String => S
   )(using Experimental): Unit = test(s"$prefix: Looking up data in intervals"):
     {
@@ -47,7 +49,7 @@ trait DataIn3DBaseBehaviors:
     val single = dataIn3DOf("Hello world")
     single.get shouldBe "Hello world"
     single.getOption shouldBe Some("Hello world")
-    single.domain.toList shouldBe List(Interval3D.unbounded[LocalDate, LocalDate, Int])
+    single.domain.toList shouldBe List(Interval.unbounded[Dim[LocalDate, LocalDate, Int]])
     single.domainComplement.toList shouldBe List.empty
 
     val bounded = (intervalFrom(0) x intervalTo(0) x intervalTo(0)) -> "Hello world"
@@ -60,18 +62,12 @@ trait DataIn3DBaseBehaviors:
     assertThrows[Exception]:
       val _ = bounded(-1, 0, 0)
 
-    Domain3D(dayZero, day(1), 0).flipAboutHorizontal shouldBe Domain3D(dayZero, 0, day(1))
-    Domain3D(dayZero, day(1), 0).flipAboutVertical shouldBe Domain3D(0, day(1), dayZero)
-    Domain3D(dayZero, day(1), 0).flipAboutDepth shouldBe Domain3D(day(1), dayZero, 0)
     val fixture1 = dataIn3DFrom(
       List((intervalFrom(dayZero) x intervalTo(dayZero) x intervalFrom(0)) -> "Hello world")
     )
     fixture1.getOption shouldBe None
     assert(fixture1.isDefinedAt(day(1), dayZero, 0))
     fixture1(day(1), dayZero, 0) shouldBe "Hello world"
-    fixture1.flipAboutHorizontal(Domain3D(day(1), dayZero, 0).flipAboutHorizontal) shouldBe "Hello world"
-    fixture1.flipAboutVertical(Domain3D(day(1), dayZero, 0).flipAboutVertical) shouldBe "Hello world"
-    fixture1.flipAboutDepth(Domain3D(day(1), dayZero, 0).flipAboutDepth) shouldBe "Hello world"
     assert(!fixture1.isDefinedAt(day(-1), day(1), 0))
     assertThrows[Exception]:
       val _ = fixture1(day(-1), day(1), 0)
@@ -138,9 +134,9 @@ trait DataIn3DBaseBehaviors:
    * (10) bite = split + single + none (6 symmetric cases)
    */
   protected def assertRemoveOrUpdateResult(
-    removeExpectedUnsorted: ValidData3D[String, Int, Int, Int]*
+    removeExpectedUnsorted: ValidData[String, Dim[Int, Int, Int]]*
   )(
-    removeOrUpdateInterval: Interval3D[Int, Int, Int],
+    removeOrUpdateInterval: Interval[Dim[Int, Int, Int]],
     updateValue: String = "update"
   )(using Experimental): Assertion
 

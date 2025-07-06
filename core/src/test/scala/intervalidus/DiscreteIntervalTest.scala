@@ -1,6 +1,7 @@
 package intervalidus
 
 import intervalidus.DiscreteValue.given
+import intervalidus.DomainLike.given
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 

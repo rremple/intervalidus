@@ -1,5 +1,6 @@
 package intervalidus
 
+import intervalidus.DomainLike.given
 import org.scalatest.compatible.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 
@@ -7,6 +8,11 @@ import java.time.LocalDate
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 class DiscreteValueTest extends AnyFunSuite:
+  test("Auto-derive Discrete Value"):
+    enum Color derives DiscreteValue:
+      case Red, Yellow, Green, Cyan, Blue, Magenta
+
+    assertResult(Some(Color.Yellow))(Color.Red.successorValue)
 
   test("Ops on Ints"):
     import DiscreteValue.IntDiscreteValue

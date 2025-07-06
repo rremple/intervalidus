@@ -4,13 +4,24 @@ import java.awt.geom.{Line2D, Point2D, Rectangle2D}
 import java.awt.{Dimension, Graphics, Graphics2D}
 import java.time.LocalDate
 import javax.swing.{JFrame, JPanel, WindowConstants}
-
+import scala.annotation.nowarn
 import scala.language.implicitConversions
 import scala.util.chaining.*
 
 object Visualize2D:
+  import Interval.Patterns.*
+
+  // compatibility with old fixed Interval2D by using pattern match extractors
+  extension [R1: DomainValueLike, R2: DomainValueLike](interval: Interval.In2D[R1, R2])
+    @nowarn("msg=match may not be exhaustive")
+    def horizontal: Interval1D[R1] = interval match
+      case horizontal :+|: _ => horizontal
+    @nowarn("msg=match may not be exhaustive")
+    def vertical: Interval1D[R2] = interval match
+      case _ :+|: vertical => vertical
+
   def apply[V, R1: DomainValueLike, R2: DomainValueLike](
-    validData: Iterable[ValidData2D[V, R1, R2]],
+    validData: Iterable[ValidData.In2D[V, R1, R2]],
     title: String
   ): Unit =
     val mainPanel = new Visualize2D(validData, title)
@@ -22,7 +33,7 @@ object Visualize2D:
     frame.setVisible(true)
 
   def apply[V, R1: DomainValueLike, R2: DomainValueLike](
-    dataIn2D: DataIn2DBase[V, R1, R2],
+    dataIn2D: DimensionalBase.In2D[V, R1, R2],
     millis: Long = 0,
     title: String = "Visualize 2D data"
   ): Unit =
@@ -30,9 +41,10 @@ object Visualize2D:
     Thread.sleep(millis)
 
 protected class Visualize2D[V, R1: DomainValueLike, R2: DomainValueLike](
-  validData: Iterable[ValidData2D[V, R1, R2]],
+  validData: Iterable[ValidData.In2D[V, R1, R2]],
   title: String
 ) extends JPanel:
+  import Visualize2D.*
   private val verticalInterstitialMargin: Double = 20.0
   private val horizontalInterstitialMargin: Double = 20.0
   private val outsideMargin: Double = 40.0 // Note that the title is printed within this margin
@@ -157,18 +169,19 @@ def tryIt(): Unit =
 
   val now = LocalDate.now()
 
-  val allData: Seq[ValidData2D[String, LocalDate, Int]] = List(
+  val allData: Seq[ValidData.In2D[String, LocalDate, Int]] = List(
     (unbounded[LocalDate] x unbounded[Int]) -> "<default>",
     (intervalTo(now) x intervalTo(8)) -> "Hello",
     (interval(now.minusDays(7), now.plusDays(14)) x interval(5, 6)) -> "World",
     (intervalFrom(now.plusDays(7)) x intervalFrom(5)) -> "!"
   )
-  val mutableFixture = mutable.DataIn2D[String, LocalDate, Int]()
+  val mutableFixture: mutable.Data.In2D[String, LocalDate, Int] = mutable.Data()
   allData.foreach(mutableFixture.set)
 
   Visualize2D(mutableFixture, 5)
 
-  val immutableFixture = allData.foldLeft(immutable.DataIn2D[String, LocalDate, Int]()): (prev, d) =>
+  val emptyData: immutable.Data.In2D[String, LocalDate, Int] = immutable.Data()
+  val immutableFixture = allData.foldLeft(emptyData): (prev, d) =>
     prev.set(d)
 
   Visualize2D(immutableFixture, 5)

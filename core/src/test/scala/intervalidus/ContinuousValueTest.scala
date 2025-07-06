@@ -1,6 +1,7 @@
 package intervalidus
 
 import intervalidus.*
+import intervalidus.DomainLike.given
 import org.scalatest.compatible.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 

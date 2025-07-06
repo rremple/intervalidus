@@ -3,26 +3,28 @@ package intervalidus.collection
 import scala.util.Properties
 
 /**
-  * Collection that manages boxed data structures in multidimensional double space. This tree hold boxes rather than
-  * individual points. Boxes are split to fit into the subtrees of the data structures (B-trees, quadtrees, or octrees,
-  * depending on the dimension).
+  * Collection that manages boxed data structures in multidimensional double space. This tree holds boxes rather than
+  * individual points. The tree is a hyperoctree (i.e., a B-tree, quadtree, octree, etc., depending on the dimension).
+  * Boxes are split to fit into the subtrees (i.e., the hyperoctant/orthants) of the data structures.
   *
   * See [[https://en.wikipedia.org/wiki/Tree_(abstract_data_type)]], [[https://en.wikipedia.org/wiki/B-tree]],
-  * [[https://en.wikipedia.org/wiki/Quadtree]], and [[https://en.wikipedia.org/wiki/Octree]].
+  * [[https://en.wikipedia.org/wiki/Quadtree]], [[https://en.wikipedia.org/wiki/Octree]],
+  * [[https://en.wikipedia.org/wiki/Orthant]], and [[https://mathworld.wolfram.com/Hyperoctant.html]].
   *
-  * These collections leverage the ordered hash functions on discrete domain components (which only support
-  * successor/predecessor functions and not functions requiring distance calculations, e.g., midpoint) to improve
-  * performance of data structures in one-, two-, three-, and four-dimensional discrete domain space.
+  * These collections leverage the ordered hash functions on domain values to improve the performance of data structures
+  * in multidimensional domain space.
   *
   * In particular, it makes querying faster for box intersections. However, duplicates can be returned (since boxes can
   * be split) as well as false positives (since ordered hashes of discrete values can have collisions). Benchmarks have
-  * shown 10x-70x improvement in throughput of random `DataIn2D.set` and 10x-140x improvement in `DataIn2D.intersects`
-  * operations (depending on number and size of the intervals used), so clearly the speed benefit outweighs the cost of
-  * deduplicating results (at least in two dimensions). The mutable version was also faster than the immutable version,
-  * but only slightly (less than 5%).
+  * shown 10x-70x improvement in throughput of random `Data.set` and 10x-140x improvement in `Data.intersects`
+  * operations (depending on the number and size of the intervals used), so clearly the speed benefit outweighs the cost
+  * of deduplicating results (at least in two dimensions). The mutable version was also faster than the immutable
+  * version, but only slightly (less than 5%).
   *
   * @tparam A
   *   payload type
+  * @tparam Self
+  *   F-bounded self-type
   */
 trait BoxTreeLike[A, Self <: BoxTreeLike[A, Self]]:
   this: Self =>

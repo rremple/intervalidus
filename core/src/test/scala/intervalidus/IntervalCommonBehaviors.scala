@@ -1,7 +1,6 @@
 package intervalidus
 
 import intervalidus.*
-import org.scalatest.compatible.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
@@ -17,16 +16,22 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
 
   import Domain1D.{Bottom, Point, Top}
   import Interval1D.*
+  import DomainLike.given
+  import Domain1D.*
+
+  type Dim2Domain = Domain.In2D[Int, Int]
+  type Dim3Domain = Domain.In3D[Int, Int, Int]
+  type Dim4Domain = Domain.In4D[Int, Int, Int, Int]
 
   def before[T: DomainValueLike](t: Domain1D[T]): Domain1D[T] = t.leftAdjacent
   def after[T: DomainValueLike](t: Domain1D[T]): Domain1D[T] = t.rightAdjacent
 
-  def interval2d(hs: Domain1D[Int], he: Domain1D[Int], vs: Domain1D[Int], ve: Domain1D[Int]) =
+  def interval2d(hs: Domain1D[Int], he: Domain1D[Int], vs: Domain1D[Int], ve: Domain1D[Int]): Interval[Dim2Domain] =
     interval(hs, he) x interval(vs, ve)
 
-  def interval2dFrom(hs: Domain1D[Int], vs: Domain1D[Int]) = intervalFrom(hs) x intervalFrom(vs)
+  def interval2dFrom(hs: Domain1D[Int], vs: Domain1D[Int]): Interval[Dim2Domain] = intervalFrom(hs) x intervalFrom(vs)
 
-  def interval2dTo(he: Domain1D[Int], ve: Domain1D[Int]) = intervalTo(he) x intervalTo(ve)
+  def interval2dTo(he: Domain1D[Int], ve: Domain1D[Int]): Interval[Dim2Domain] = intervalTo(he) x intervalTo(ve)
 
   def interval3d(
     hs: Domain1D[Int],
@@ -35,12 +40,12 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
     ve: Domain1D[Int],
     ds: Domain1D[Int],
     de: Domain1D[Int]
-  ) = interval(hs, he) x interval(vs, ve) x interval(ds, de)
+  ): Interval[Dim3Domain] = interval(hs, he) x interval(vs, ve) x interval(ds, de)
 
-  def interval3dFrom(hs: Domain1D[Int], vs: Domain1D[Int], ds: Domain1D[Int]) =
+  def interval3dFrom(hs: Domain1D[Int], vs: Domain1D[Int], ds: Domain1D[Int]): Interval[Dim3Domain] =
     intervalFrom(hs) x intervalFrom(vs) x intervalFrom(ds)
 
-  def interval3dTo(he: Domain1D[Int], ve: Domain1D[Int], de: Domain1D[Int]) =
+  def interval3dTo(he: Domain1D[Int], ve: Domain1D[Int], de: Domain1D[Int]): Interval[Dim3Domain] =
     intervalTo(he) x intervalTo(ve) x intervalTo(de)
 
   def interval4d(
@@ -52,17 +57,31 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
     de: Domain1D[Int],
     fs: Domain1D[Int] = Bottom,
     fe: Domain1D[Int] = Top
-  ) = interval(hs, he) x interval(vs, ve) x interval(ds, de) x interval(fs, fe)
+  ): Interval[Dim4Domain] = interval(hs, he) x interval(vs, ve) x interval(ds, de) x interval(fs, fe)
 
-  def interval4dFrom(hs: Domain1D[Int], vs: Domain1D[Int], ds: Domain1D[Int], fs: Domain1D[Int] = Bottom) =
-    intervalFrom(hs) x intervalFrom(vs) x intervalFrom(ds) x intervalFrom(fs)
+  def interval4dFrom(
+    hs: Domain1D[Int],
+    vs: Domain1D[Int],
+    ds: Domain1D[Int],
+    fs: Domain1D[Int] = Bottom
+  ): Interval[Dim4Domain] = intervalFrom(hs) x intervalFrom(vs) x intervalFrom(ds) x intervalFrom(fs)
 
-  def interval4dTo(he: Domain1D[Int], ve: Domain1D[Int], de: Domain1D[Int], fe: Domain1D[Int] = Top) =
-    intervalTo(he) x intervalTo(ve) x intervalTo(de) x intervalTo(fe)
+  def interval4dTo(
+    he: Domain1D[Int],
+    ve: Domain1D[Int],
+    de: Domain1D[Int],
+    fe: Domain1D[Int] = Top
+  ): Interval[Dim4Domain] = intervalTo(he) x intervalTo(ve) x intervalTo(de) x intervalTo(fe)
 
   def commonBehaviors(prefix: String): Unit =
 
     test(s"$prefix: Int interval validity"):
+      val dv = summon[DomainLike[Domain.In2D[Int, Int]]]
+      dv.arity shouldBe 2
+
+      assertThrows[IllegalArgumentException]:
+        val _ = Interval[Domain.In2D[Int, Int]](dv.top, dv.bottom) // end before start
+
       assertThrows[IllegalArgumentException]:
         val _ = interval(2, 1) // end before start
 
@@ -98,6 +117,8 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       intervalFrom(2).after shouldBe None
       intervalTo(2).before shouldBe None
 
+      Interval1D.between(interval(1, 2), interval(10, 12)) shouldBe intervalFromAfter(2).toBefore(10)
+
       intervalFrom(0).toCodeLikeString shouldBe "intervalFrom(0)"
       intervalTo(0).toCodeLikeString shouldBe "intervalTo(0)"
       intervalAt(0).toCodeLikeString shouldBe "intervalAt(0)"
@@ -110,13 +131,14 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       interval(LocalDate.of(2025, 1, 10), LocalDate.of(2025, 1, 11)).toCodeLikeString shouldBe
         "interval(LocalDate.of(2025,1,10), LocalDate.of(2025,1,11))"
       unbounded[LocalDate].toCodeLikeString shouldBe "unbounded"
-      intervalFrom[LocalDate](Top).toCodeLikeString shouldBe "intervalFrom(Top)"
-      intervalTo[LocalDate](Bottom).toCodeLikeString shouldBe "intervalTo(Bottom)"
+//      intervalFrom[LocalDate](Top).toCodeLikeString shouldBe "intervalFrom(Top)"
+//      intervalTo[LocalDate](Bottom).toCodeLikeString shouldBe "intervalTo(Bottom)"
 
     test(s"$prefix: Int 2D interval adjacency, etc."):
       val now = LocalDate.now
-      val d: Interval2D[LocalDate, Int] = intervalTo(now) x intervalFrom(0)
-      d.flip shouldBe (intervalFrom(0) x intervalTo(now))
+      val d: Interval[(Domain1D[LocalDate], Domain1D[Int])] = intervalTo(now) x intervalFrom(0)
+      d.start shouldBe ((Bottom, 0): Domain.In2D[LocalDate, Int])
+      d.end shouldBe ((now, Top): Domain.In2D[LocalDate, Int])
 
       interval2d(1, 2, 3, 4) intersectionWith interval2d(2, 3, 4, 5) shouldBe Some(interval2d(2, 2, 4, 4))
       interval2d(1, 2, 3, 4) ∩ interval2d(2, 3, 4, 5) shouldBe Some(interval2d(2, 2, 4, 4))
@@ -140,21 +162,21 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       assert(interval2dFrom(after(2), 3) isRightAdjacentTo (intervalTo(2) x intervalFrom(3)))
       assert(!(interval2dTo(after(2), 3) isRightAdjacentTo interval2dFrom(2, 2)))
 
-      assert(interval2d(3, 4, 1, 2) isLowerAdjacentTo interval2d(3, 4, after(2), 4))
+      assert(interval2d(3, 4, 1, 2) isLeftAdjacentTo interval2d(3, 4, after(2), 4))
       assert(interval2d(3, 4, 1, 2) isAdjacentTo interval2d(3, 4, after(2), 4))
-      assert(!(interval2d(3, 4, 3, 4) isLowerAdjacentTo interval2d(3, 4, 1, 2)))
-      assert(!(interval2d(3, 4, 1, 3) isLowerAdjacentTo interval2d(3, 4, 2, 4)))
-      assert(!(interval2d(3, 4, 1, 3) isLowerAdjacentTo interval2d(3, 4, 3, 4)))
-      assert(interval2dTo(2, 2) isLowerAdjacentTo (intervalTo(2) x intervalFromAfter(2)))
-      assert(!(interval2dFrom(2, 2) isLowerAdjacentTo interval2dTo(3, 3)))
+      assert(!(interval2d(3, 4, 3, 4) isLeftAdjacentTo interval2d(3, 4, 1, 2)))
+      assert(!(interval2d(3, 4, 1, 3) isLeftAdjacentTo interval2d(3, 4, 2, 4)))
+      assert(!(interval2d(3, 4, 1, 3) isLeftAdjacentTo interval2d(3, 4, 3, 4)))
+      assert(interval2dTo(2, 2) isLeftAdjacentTo (intervalTo(2) x intervalFromAfter(2)))
+      assert(!(interval2dFrom(2, 2) isLeftAdjacentTo interval2dTo(3, 3)))
 
-      assert(interval2d(1, 2, after(2), 4) isUpperAdjacentTo interval2d(1, 2, 1, 2))
+      assert(interval2d(1, 2, after(2), 4) isRightAdjacentTo interval2d(1, 2, 1, 2))
       assert(interval2d(1, 2, after(2), 4) isAdjacentTo interval2d(1, 2, 1, 2))
-      assert(!(interval2d(1, 2, 1, 2) isUpperAdjacentTo interval2d(1, 2, 3, 4)))
-      assert(!(interval2d(1, 2, 2, 4) isUpperAdjacentTo interval2d(1, 2, 1, 3)))
-      assert(!(interval2d(1, 2, 3, 4) isUpperAdjacentTo interval2d(1, 2, 1, 3)))
-      assert(interval2dFrom(3, 3) isUpperAdjacentTo (intervalFrom(3) x intervalToBefore(3)))
-      assert(!(interval2dTo(3, 3) isUpperAdjacentTo interval2dFrom(2, 2)))
+      assert(!(interval2d(1, 2, 1, 2) isRightAdjacentTo interval2d(1, 2, 3, 4)))
+      assert(!(interval2d(1, 2, 2, 4) isRightAdjacentTo interval2d(1, 2, 1, 3)))
+      assert(!(interval2d(1, 2, 3, 4) isRightAdjacentTo interval2d(1, 2, 1, 3)))
+      assert(interval2dFrom(3, 3) isRightAdjacentTo (intervalFrom(3) x intervalToBefore(3)))
+      assert(!(interval2dTo(3, 3) isRightAdjacentTo interval2dFrom(2, 2)))
 
       interval2d(1, 2, 3, 4).after shouldBe Some(interval2dFrom(after(2), after(4)))
       interval2d(1, 2, 3, 4).before shouldBe Some(interval2dTo(before(1), before(3)))
@@ -174,19 +196,24 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       interval2d(1, 2, 3, 4).toBefore(7, 7) shouldBe interval2d(1, before(7), 3, before(7))
       interval2d(1, 2, 3, 4).atStart shouldBe interval2d(1, 1, 3, 3)
       interval2d(1, 2, 3, 4).atEnd shouldBe interval2d(2, 2, 4, 4)
+
+      Interval.intervalFromAfter(Domain.in2D(1, 1)) shouldBe Interval.intervalFrom(Domain.in2D(1, 1).rightAdjacent)
+      Interval.intervalToBefore(Domain.in2D(1, 1)) shouldBe Interval.intervalTo(Domain.in2D(1, 1).leftAdjacent)
+      Interval.between(interval(1, 2) x interval(1, 2), interval(10, 12) x interval(10, 12)) shouldBe
+        (intervalFromAfter(2).toBefore(10) x intervalFromAfter(2).toBefore(10))
+
       interval2d(1, 2, 3, 4).gapWith(interval2d(5, 6, 7, 8)) shouldBe Some(
         interval2d(after(2), before(5), after(4), before(7))
       )
       // even though neither adjacent nor intersecting in 2D, no gap in _all_ dimensions
       interval2d(1, 2, 3, 4).gapWith(interval2d(5, 6, after(4), 6)) shouldBe None
-      Interval2D.intervalAt(0, 0).toCodeLikeString shouldBe "intervalAt(0) x intervalAt(0)"
+      Interval.intervalAt(Domain.in2D(0, 0)).toCodeLikeString shouldBe "intervalAt(0) x intervalAt(0)"
 
     test(s"$prefix: Int 3D interval adjacency, etc."):
       val now = LocalDate.now
-      val d: Interval3D[LocalDate, LocalDate, Int] = intervalTo(now) x intervalFrom(now) x intervalFrom(0)
-      d.flipAboutHorizontal shouldBe (intervalTo(now) x intervalFrom(0) x intervalFrom(now))
-      d.flipAboutVertical shouldBe (intervalFrom(0) x intervalFrom(now) x intervalTo(now))
-      d.flipAboutDepth shouldBe (intervalFrom(now) x intervalTo(now) x intervalFrom(0))
+      val d: Interval.In3D[LocalDate, LocalDate, Int] = intervalTo(now) x intervalFrom(now) x intervalFrom(0)
+      d.start shouldBe ((Bottom, now, 0): Domain.In3D[LocalDate, LocalDate, Int])
+      d.end shouldBe ((now, Top, Top): Domain.In3D[LocalDate, LocalDate, Int])
 
       interval3d(1, 2, 3, 4, 5, 6) intersectionWith interval3d(2, 3, 4, 5, 6, 7) shouldBe Some(
         interval3d(2, 2, 4, 4, 6, 6)
@@ -212,35 +239,35 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       assert(interval3dFrom(3, 3, 3) isRightAdjacentTo (intervalToBefore(3) x intervalFrom(3) x intervalFrom(3)))
       assert(!(interval3dTo(3, 3, 3) isRightAdjacentTo interval3dFrom(after(3), after(3), after(3))))
 
-      assert(interval3d(3, 4, 1, 2, 5, 6) isLowerAdjacentTo interval3d(3, 4, after(2), 4, 5, 6))
+      assert(interval3d(3, 4, 1, 2, 5, 6) isLeftAdjacentTo interval3d(3, 4, after(2), 4, 5, 6))
       assert(interval3d(3, 4, 1, 2, 5, 6) isAdjacentTo interval3d(3, 4, after(2), 4, 5, 6))
-      assert(!(interval3d(3, 4, 3, 4, 5, 6) isLowerAdjacentTo interval3d(3, 4, 1, after(4), 5, 6)))
-      assert(!(interval3d(3, 4, 1, 3, 5, 6) isLowerAdjacentTo interval3d(3, 4, 2, 4, 5, 6)))
-      assert(!(interval3d(3, 4, 1, 3, 5, 6) isLowerAdjacentTo interval3d(3, 4, 3, 4, 5, 6)))
-      assert(interval3dTo(2, 2, 2) isLowerAdjacentTo (intervalTo(2) x intervalFromAfter(2) x intervalTo(2)))
-      assert(!(interval3dFrom(2, 2, 2) isLowerAdjacentTo interval3dTo(3, 3, 3)))
+      assert(!(interval3d(3, 4, 3, 4, 5, 6) isLeftAdjacentTo interval3d(3, 4, 1, after(4), 5, 6)))
+      assert(!(interval3d(3, 4, 1, 3, 5, 6) isLeftAdjacentTo interval3d(3, 4, 2, 4, 5, 6)))
+      assert(!(interval3d(3, 4, 1, 3, 5, 6) isLeftAdjacentTo interval3d(3, 4, 3, 4, 5, 6)))
+      assert(interval3dTo(2, 2, 2) isLeftAdjacentTo (intervalTo(2) x intervalFromAfter(2) x intervalTo(2)))
+      assert(!(interval3dFrom(2, 2, 2) isLeftAdjacentTo interval3dTo(3, 3, 3)))
 
-      assert(interval3d(1, 2, after(2), 4, 5, 6) isUpperAdjacentTo interval3d(1, 2, 1, 2, 5, 6))
+      assert(interval3d(1, 2, after(2), 4, 5, 6) isRightAdjacentTo interval3d(1, 2, 1, 2, 5, 6))
       assert(interval3d(1, 2, after(2), 4, 5, 6) isAdjacentTo interval3d(1, 2, 1, 2, 5, 6))
-      assert(!(interval3d(1, 2, 1, 2, 5, 6) isUpperAdjacentTo interval3d(1, 2, after(2), 4, 5, 6)))
-      assert(!(interval3d(1, 2, 2, 4, 5, 6) isUpperAdjacentTo interval3d(1, 2, 1, 3, 5, 6)))
-      assert(!(interval3d(1, 2, 3, 4, 5, 6) isUpperAdjacentTo interval3d(1, 2, 1, 3, 5, 6)))
-      assert(interval3dFrom(3, 3, 3) isUpperAdjacentTo (intervalFrom(3) x intervalToBefore(3) x intervalFrom(3)))
-      assert(!(interval3dTo(3, 3, 3) isUpperAdjacentTo interval3dFrom(2, 2, 2)))
+      assert(!(interval3d(1, 2, 1, 2, 5, 6) isRightAdjacentTo interval3d(1, 2, after(2), 4, 5, 6)))
+      assert(!(interval3d(1, 2, 2, 4, 5, 6) isRightAdjacentTo interval3d(1, 2, 1, 3, 5, 6)))
+      assert(!(interval3d(1, 2, 3, 4, 5, 6) isRightAdjacentTo interval3d(1, 2, 1, 3, 5, 6)))
+      assert(interval3dFrom(3, 3, 3) isRightAdjacentTo (intervalFrom(3) x intervalToBefore(3) x intervalFrom(3)))
+      assert(!(interval3dTo(3, 3, 3) isRightAdjacentTo interval3dFrom(2, 2, 2)))
 
-      assert(interval3d(3, 4, 1, 2, 5, 6) isBackAdjacentTo interval3d(3, 4, 1, 2, after(6), 8))
+      assert(interval3d(3, 4, 1, 2, 5, 6) isLeftAdjacentTo interval3d(3, 4, 1, 2, after(6), 8))
       assert(interval3d(3, 4, 1, 2, 5, 6) isAdjacentTo interval3d(3, 4, 1, 2, after(6), 8))
-      assert(!(interval3d(3, 4, 3, 4, after(4), 6) isBackAdjacentTo interval3d(3, 4, 3, 4, 3, 4)))
-      assert(!(interval3d(3, 4, 1, 3, after(4), 6) isBackAdjacentTo interval3d(3, 4, 3, 4, 3, 4)))
-      assert(interval3dTo(2, 2, 2) isBackAdjacentTo (intervalTo(2) x intervalTo(2) x intervalFromAfter(2)))
-      assert(!(interval3dFrom(2, 2, 2) isBackAdjacentTo interval3dTo(3, 3, 3)))
+      assert(!(interval3d(3, 4, 3, 4, after(4), 6) isLeftAdjacentTo interval3d(3, 4, 3, 4, 3, 4)))
+      assert(!(interval3d(3, 4, 1, 3, after(4), 6) isLeftAdjacentTo interval3d(3, 4, 3, 4, 3, 4)))
+      assert(interval3dTo(2, 2, 2) isLeftAdjacentTo (intervalTo(2) x intervalTo(2) x intervalFromAfter(2)))
+      assert(!(interval3dFrom(2, 2, 2) isLeftAdjacentTo interval3dTo(3, 3, 3)))
 
-      assert(interval3d(3, 4, 1, 2, after(4), 6) isFrontAdjacentTo interval3d(3, 4, 1, 2, 3, 4))
+      assert(interval3d(3, 4, 1, 2, after(4), 6) isRightAdjacentTo interval3d(3, 4, 1, 2, 3, 4))
       assert(interval3d(3, 4, 1, 2, after(4), 6) isAdjacentTo interval3d(3, 4, 1, 2, 3, 4))
-      assert(!(interval3d(3, 4, 3, 4, 5, 6) isFrontAdjacentTo interval3d(3, 4, 3, 4, after(6), 8)))
-      assert(!(interval3d(3, 4, 1, 3, 5, 6) isFrontAdjacentTo interval3d(3, 4, 3, 4, 3, after(5))))
-      assert(interval3dFrom(2, 2, 2) isFrontAdjacentTo (intervalFrom(2) x intervalFrom(2) x intervalToBefore(2)))
-      assert(!(interval3dFrom(2, 2, 2) isFrontAdjacentTo interval3dTo(3, 3, 3)))
+      assert(!(interval3d(3, 4, 3, 4, 5, 6) isRightAdjacentTo interval3d(3, 4, 3, 4, after(6), 8)))
+      assert(!(interval3d(3, 4, 1, 3, 5, 6) isRightAdjacentTo interval3d(3, 4, 3, 4, 3, after(5))))
+      assert(interval3dFrom(2, 2, 2) isRightAdjacentTo (intervalFrom(2) x intervalFrom(2) x intervalToBefore(2)))
+      assert(!(interval3dFrom(2, 2, 2) isRightAdjacentTo interval3dTo(3, 3, 3)))
 
       interval3d(1, 2, 3, 4, 5, 6).after shouldBe Some(interval3dFrom(after(2), after(4), after(6)))
       interval3d(1, 2, 3, 4, 5, 6).before shouldBe Some(interval3dTo(before(1), before(3), before(5)))
@@ -251,12 +278,10 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       assert(interval3d(1, 2, 3, 4, 5, 6) hasSameEndAs interval3dTo(2, 4, 6))
       (intervalFrom(0) x intervalTo(0) x intervalAt(0)).toCodeLikeString shouldBe
         "intervalFrom(0) x intervalTo(0) x intervalAt(0)"
-      Interval3D.intervalAt(0, 0, 0).toCodeLikeString shouldBe
+      Interval.in3D(intervalAt(0), intervalAt(0), intervalAt(0)).toCodeLikeString shouldBe
         "intervalAt(0) x intervalAt(0) x intervalAt(0)"
 
-      assertResult(interval3d(0, 2, 3, 4, 5, 6))(interval3d(1, 2, 3, 4, 5, 6).withHorizontalUpdate(_.from(0)))
-      assertResult(interval3d(1, 2, 0, 4, 5, 6))(interval3d(1, 2, 3, 4, 5, 6).withVerticalUpdate(_.from(0)))
-      assertResult(interval3d(1, 2, 3, 4, 0, 6))(interval3d(1, 2, 3, 4, 5, 6).withDepthUpdate(_.from(0)))
+      assertResult(interval3d(0, 2, 3, 4, 5, 6))(interval3d(1, 2, 3, 4, 5, 6).withHeadUpdate[Int](_.from(0)))
 
       interval3d(1, 2, 3, 4, 5, 6).fromBottom shouldBe interval3dTo(2, 4, 6)
       interval3d(1, 2, 3, 4, 5, 6).toTop shouldBe interval3dFrom(1, 3, 5)
@@ -271,10 +296,17 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       // even though neither adjacent nor intersecting in 3D, no gap in _all_ dimensions
       interval3d(1, 2, 3, 4, 5, 6).gapWith(interval3d(5, 6, after(4), 6, 8, 9)) shouldBe None
 
+      Interval.intervalFromAfter(Domain.in3D(1, 1, 1)) shouldBe Interval.intervalFrom(
+        Domain.in3D(1, 1, 1).rightAdjacent
+      )
+      Interval.intervalToBefore(Domain.in3D(1, 1, 1)) shouldBe Interval.intervalTo(Domain.in3D(1, 1, 1).leftAdjacent)
+
     test(s"$prefix: Int 4D interval adjacency, etc."):
       val now = LocalDate.now
-      val d: Interval4D[LocalDate, LocalDate, Int, Int] =
+      val d: Interval.In4D[LocalDate, LocalDate, Int, Int] =
         intervalTo(now) x intervalFrom(now) x intervalFrom(0) x intervalFrom(0)
+      d.start shouldBe ((Bottom, now, 0, 0): Domain.In4D[LocalDate, LocalDate, Int, Int])
+      d.end shouldBe ((now, Top, Top, Top): Domain.In4D[LocalDate, LocalDate, Int, Int])
 
       interval4d(1, 2, 3, 4, 5, 6) intersectionWith interval4d(2, 3, 4, 5, 6, 7) shouldBe Some(
         interval4d(2, 2, 4, 4, 6, 6)
@@ -306,47 +338,47 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       )
       assert(!(interval4dTo(3, 3, 3) isRightAdjacentTo interval4dFrom(after(3), after(3), after(3))))
 
-      assert(interval4d(3, 4, 1, 2, 5, 6) isLowerAdjacentTo interval4d(3, 4, after(2), 4, 5, 6))
+      assert(interval4d(3, 4, 1, 2, 5, 6) isLeftAdjacentTo interval4d(3, 4, after(2), 4, 5, 6))
       assert(interval4d(3, 4, 1, 2, 5, 6) isAdjacentTo interval4d(3, 4, after(2), 4, 5, 6))
-      assert(!(interval4d(3, 4, 3, 4, 5, 6) isLowerAdjacentTo interval4d(3, 4, 1, before(4), 5, 6)))
-      assert(!(interval4d(3, 4, 1, 3, 5, 6) isLowerAdjacentTo interval4d(3, 4, 2, 4, 5, 6)))
-      assert(!(interval4d(3, 4, 1, 3, 5, 6) isLowerAdjacentTo interval4d(3, 4, 3, 4, 5, 6)))
+      assert(!(interval4d(3, 4, 3, 4, 5, 6) isLeftAdjacentTo interval4d(3, 4, 1, before(4), 5, 6)))
+      assert(!(interval4d(3, 4, 1, 3, 5, 6) isLeftAdjacentTo interval4d(3, 4, 2, 4, 5, 6)))
+      assert(!(interval4d(3, 4, 1, 3, 5, 6) isLeftAdjacentTo interval4d(3, 4, 3, 4, 5, 6)))
       assert(
-        interval4dTo(2, 2, 2) isLowerAdjacentTo (intervalTo(2) x intervalFromAfter(2) x intervalTo(2) x unbounded[Int])
+        interval4dTo(2, 2, 2) isLeftAdjacentTo (intervalTo(2) x intervalFromAfter(2) x intervalTo(2) x unbounded[Int])
       )
-      assert(!(interval4dFrom(2, 2, 2) isLowerAdjacentTo interval4dTo(3, 3, 3)))
+      assert(!(interval4dFrom(2, 2, 2) isLeftAdjacentTo interval4dTo(3, 3, 3)))
 
-      assert(interval4d(1, 2, after(2), 4, 5, 6) isUpperAdjacentTo interval4d(1, 2, 1, 2, 5, 6))
+      assert(interval4d(1, 2, after(2), 4, 5, 6) isRightAdjacentTo interval4d(1, 2, 1, 2, 5, 6))
       assert(interval4d(1, 2, after(2), 4, 5, 6) isAdjacentTo interval4d(1, 2, 1, 2, 5, 6))
-      assert(!(interval4d(1, 2, 1, 2, 5, 6) isUpperAdjacentTo interval4d(1, 2, after(2), 4, 5, 6)))
-      assert(!(interval4d(1, 2, 2, 4, 5, 6) isUpperAdjacentTo interval4d(1, 2, 1, 3, 5, 6)))
-      assert(!(interval4d(1, 2, 3, 4, 5, 6) isUpperAdjacentTo interval4d(1, 2, 1, 3, 5, 6)))
+      assert(!(interval4d(1, 2, 1, 2, 5, 6) isRightAdjacentTo interval4d(1, 2, after(2), 4, 5, 6)))
+      assert(!(interval4d(1, 2, 2, 4, 5, 6) isRightAdjacentTo interval4d(1, 2, 1, 3, 5, 6)))
+      assert(!(interval4d(1, 2, 3, 4, 5, 6) isRightAdjacentTo interval4d(1, 2, 1, 3, 5, 6)))
       assert(
-        interval4dFrom(3, 3, 3) isUpperAdjacentTo (intervalFrom(3) x intervalToBefore(3) x intervalFrom(3) x unbounded[
+        interval4dFrom(3, 3, 3) isRightAdjacentTo (intervalFrom(3) x intervalToBefore(3) x intervalFrom(3) x unbounded[
           Int
         ])
       )
-      assert(!(interval4dTo(3, 3, 3) isUpperAdjacentTo interval4dFrom(2, 2, 2)))
+      assert(!(interval4dTo(3, 3, 3) isRightAdjacentTo interval4dFrom(2, 2, 2)))
 
-      assert(interval4d(3, 4, 1, 2, 5, 6) isBackAdjacentTo interval4d(3, 4, 1, 2, after(6), 8))
+      assert(interval4d(3, 4, 1, 2, 5, 6) isLeftAdjacentTo interval4d(3, 4, 1, 2, after(6), 8))
       assert(interval4d(3, 4, 1, 2, 5, 6) isAdjacentTo interval4d(3, 4, 1, 2, after(6), 8))
-      assert(!(interval4d(3, 4, 3, 4, after(4), 6) isBackAdjacentTo interval4d(3, 4, 3, 4, 3, 4)))
-      assert(!(interval4d(3, 4, 1, 3, after(4), 6) isBackAdjacentTo interval4d(3, 4, 3, 4, 3, 4)))
+      assert(!(interval4d(3, 4, 3, 4, after(4), 6) isLeftAdjacentTo interval4d(3, 4, 3, 4, 3, 4)))
+      assert(!(interval4d(3, 4, 1, 3, after(4), 6) isLeftAdjacentTo interval4d(3, 4, 3, 4, 3, 4)))
       assert(
-        interval4dTo(2, 2, 2) isBackAdjacentTo (intervalTo(2) x intervalTo(2) x intervalFromAfter(2) x unbounded[Int])
+        interval4dTo(2, 2, 2) isLeftAdjacentTo (intervalTo(2) x intervalTo(2) x intervalFromAfter(2) x unbounded[Int])
       )
-      assert(!(interval4dFrom(2, 2, 2) isBackAdjacentTo interval4dTo(3, 3, 3)))
+      assert(!(interval4dFrom(2, 2, 2) isLeftAdjacentTo interval4dTo(3, 3, 3)))
 
-      assert(interval4d(3, 4, 1, 2, after(4), 6) isFrontAdjacentTo interval4d(3, 4, 1, 2, 3, 4))
+      assert(interval4d(3, 4, 1, 2, after(4), 6) isRightAdjacentTo interval4d(3, 4, 1, 2, 3, 4))
       assert(interval4d(3, 4, 1, 2, after(4), 6) isAdjacentTo interval4d(3, 4, 1, 2, 3, 4))
-      assert(!(interval4d(3, 4, 3, 4, 5, 6) isFrontAdjacentTo interval4d(3, 4, 3, 4, after(6), 8)))
-      assert(!(interval4d(3, 4, 1, 3, 5, 6) isFrontAdjacentTo interval4d(3, 4, 3, 4, 3, before(5))))
+      assert(!(interval4d(3, 4, 3, 4, 5, 6) isRightAdjacentTo interval4d(3, 4, 3, 4, after(6), 8)))
+      assert(!(interval4d(3, 4, 1, 3, 5, 6) isRightAdjacentTo interval4d(3, 4, 3, 4, 3, before(5))))
       assert(
-        interval4dFrom(2, 2, 2) isFrontAdjacentTo (intervalFrom(2) x intervalFrom(2) x intervalToBefore(2) x unbounded[
+        interval4dFrom(2, 2, 2) isRightAdjacentTo (intervalFrom(2) x intervalFrom(2) x intervalToBefore(2) x unbounded[
           Int
         ])
       )
-      assert(!(interval4dFrom(2, 2, 2) isFrontAdjacentTo interval4dTo(3, 3, 3)))
+      assert(!(interval4dFrom(2, 2, 2) isRightAdjacentTo interval4dTo(3, 3, 3)))
 
       interval4d(1, 2, 3, 4, 5, 6, 7, 8).after shouldBe Some(interval4dFrom(after(2), after(4), after(6), after(8)))
       interval4d(1, 2, 3, 4, 5, 6, 7, 8).before shouldBe Some(interval4dTo(before(1), before(3), before(5), before(7)))
@@ -358,9 +390,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       (intervalFrom(0) x intervalTo(0) x intervalAt(0)).toCodeLikeString shouldBe
         "intervalFrom(0) x intervalTo(0) x intervalAt(0)"
 
-      assertResult(interval4d(0, 2, 3, 4, 5, 6))(interval4d(1, 2, 3, 4, 5, 6).withHorizontalUpdate(_.from(0)))
-      assertResult(interval4d(1, 2, 0, 4, 5, 6))(interval4d(1, 2, 3, 4, 5, 6).withVerticalUpdate(_.from(0)))
-      assertResult(interval4d(1, 2, 3, 4, 0, 6))(interval4d(1, 2, 3, 4, 5, 6).withDepthUpdate(_.from(0)))
+      assertResult(interval4d(0, 2, 3, 4, 5, 6))(interval4d(1, 2, 3, 4, 5, 6).withHeadUpdate[Int](_.from(0)))
 
       interval4d(1, 2, 3, 4, 5, 6).fromBottom shouldBe interval4dTo(2, 4, 6)
       interval4d(1, 2, 3, 4, 5, 6).toTop shouldBe interval4dFrom(1, 3, 5)
@@ -379,14 +409,18 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       // even though neither adjacent nor intersecting in 4D, no gap in _all_ dimensions
       interval4d(1, 2, 3, 4, 5, 6).gapWith(interval4d(5, 6, after(4), 6, 8, 9)) shouldBe None
 
-      interval4d(1, 4, 1, 4, 1, 4, 1, 4).excluding(interval4d(0, 1, 4, 5, 2, 3, 0, 5)) shouldBe (
+      val interval1 = interval4d(1, 4, 1, 4, 1, 4, 1, 4)
+      val interval2 = interval4d(0, 1, 4, 5, 2, 3, 0, 5)
+      val expected = (
         Remainder.Single(interval(after(1), 4)),
         Remainder.Single(interval(1, before(4))),
         Remainder.Split(interval(1, before(2)), interval(after(3), 4)),
         Remainder.None
       )
-      interval4d(1, 4, 1, 4, 1, 4).withFourthUpdate(_ => interval(1, 4)) shouldBe interval4d(1, 4, 1, 4, 1, 4, 1, 4)
-      Interval4D.intervalAt(1, 1, 1, 1) shouldBe interval4d(1, 1, 1, 1, 1, 1, 1, 1)
+      interval1.excluding(interval2) shouldBe expected
+      interval1 \ interval2 shouldBe expected
+
+      Interval.intervalAt(Domain.in4D(1, 1, 1, 1)) shouldBe interval4d(1, 1, 1, 1, 1, 1, 1, 1)
 
     test(s"$prefix: Int interval intersections"):
       assert(!(interval(3, 4) intersects interval(1, 2)))
@@ -435,15 +469,12 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
 
     test(s"$prefix: Int interval contains, etc."):
       assert(intervalTo(5) contains 3)
-      assert(Point(3) ∈ intervalTo(5))
       assert(!intervalFrom(5).contains(3))
       assert(interval(3, 5).contains(3))
       assert(!interval(3, 5).contains(interval(4, 6)))
       assert(interval(4, 5) isSubsetOf interval(3, 6))
       assert(interval(4, 5) ⊆ interval(3, 6))
       assert(!interval(3, 5).contains(Bottom))
-      assert(Bottom belongsTo unbounded[Int])
-      assert(Top ∈ unbounded[Int])
 
       assert((Point(3) x Point(5)) ∈ (intervalTo(5) x intervalTo(7)))
       assert((Point(3) x Point(5)) belongsTo (intervalTo(5) x intervalTo(7)))
@@ -518,7 +549,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       complement(expected2) shouldBe Nil
 
     test(s"$prefix: Int interval 2D collection operations"):
-      import Interval2D.*
+      import Interval.{isCompressible, uniqueIntervals, compress, complement}
 
       val intervalsUnsorted1 = List(
         intervalFrom(1).toBefore(11),
@@ -528,7 +559,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       )
       val intervals1 = intervalsUnsorted1.sorted
 
-      assert(!isCompressible[Int, Int](Nil))
+      assert(!isCompressible[Domain.In2D[Int, Int]](Nil))
       assert(isCompressible(intervals1.map(_ x Interval1D.unbounded[Int])))
       assert(isCompressible(intervals1.map(Interval1D.unbounded[Int] x _)))
       assert(
@@ -548,7 +579,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
         )
       )
 
-      uniqueIntervals[Int, Int](Nil) shouldBe Nil
+      uniqueIntervals[Domain.In2D[Int, Int]](Nil) shouldBe Nil
 
       // | -∞ ........... 5 |        |        | 10 ........................ 20 |          | 30 .. +∞ |
       //           | 3 ........... 7 |                   | 14 .. 16 |
@@ -585,7 +616,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       )
 
     test(s"$prefix: Int interval 3D collection operations"):
-      import Interval3D.*
+      import Interval.{isCompressible, uniqueIntervals, compress, complement}
 
       val intervalsUnsorted1 = List(
         intervalFrom(1).toBefore(11),
@@ -595,7 +626,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       )
       val intervals1 = intervalsUnsorted1.sorted
 
-      assert(!isCompressible[Int, Int, Int](Nil))
+      assert(!isCompressible[Domain.In3D[Int, Int, Int]](Nil))
       assert(isCompressible(intervals1.map(_ x Interval1D.unbounded[Int] x Interval1D.unbounded[Int])))
       assert(isCompressible(intervals1.map(Interval1D.unbounded[Int] x _ x Interval1D.unbounded[Int])))
       assert(isCompressible(intervals1.map(Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x _)))
@@ -624,7 +655,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
         )
       )
 
-      uniqueIntervals[Int, Int, Int](Nil) shouldBe Nil
+      uniqueIntervals[Domain.In3D[Int, Int, Int]](Nil) shouldBe Nil
 
       // | -∞ ........... 5 |        |        | 10 ........................ 20 |          | 30 .. +∞ |
       //           | 3 ........... 7 |                   | 14 .. 16 |
@@ -665,7 +696,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       )
 
     test(s"$prefix: Int interval 4D collection operations"):
-      import Interval4D.*
+      import Interval.{isCompressible, uniqueIntervals, compress, complement}
 
       val intervalsUnsorted1 = List(
         intervalFrom(1).toBefore(11),
@@ -675,7 +706,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       )
       val intervals1 = intervalsUnsorted1.sorted
 
-      assert(!isCompressible[Int, Int, Int, Int](Nil))
+      assert(!isCompressible[Domain.In4D[Int, Int, Int, Int]](Nil))
       assert(
         isCompressible(
           intervals1.map(_ x Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x Interval1D.unbounded[Int])
@@ -729,7 +760,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
         )
       )
 
-      uniqueIntervals[Int, Int, Int, Int](Nil) shouldBe Nil
+      uniqueIntervals[Domain.In4D[Int, Int, Int, Int]](Nil) shouldBe Nil
 
       val intervals2 = List(
         Interval1D.unbounded[Int] x intervalTo(0) x intervalTo(5) x Interval1D.unbounded[Int],

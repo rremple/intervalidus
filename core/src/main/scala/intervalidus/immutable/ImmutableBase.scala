@@ -3,81 +3,37 @@ package intervalidus.immutable
 import intervalidus.*
 
 /**
-  * Base for all immutable dimensional data.
+  * Immutable dimensional data.
   *
   * @tparam V
   *   the value type for valid data.
   * @tparam D
-  *   the domain type for intervals. Must be [[DomainLike]].
-  * @tparam I
-  *   the interval type, based on the domain type. Must be [[IntervalLike]] based on [[D]].
-  * @tparam ValidData
-  *   the valid data type. Must be [[ValidDataLike]] based on [[V]], [[D]], and [[I]].
-  * @tparam DiffAction
-  *   the diff action type. Must be [[DiffActionLike]] based on [[V]], [[D]], and [[I]].
+  *   the domain type for intervals, must be [[DomainLike]].
   * @tparam Self
-  *   F-bounded self type.
+  *   F-bounded self-type.
   */
-trait ImmutableBase[
-  V,
-  D: DomainLike,
-  I <: IntervalLike[D, I],
-  ValidData <: ValidDataLike[V, D, I, ValidData],
-  DiffAction: DiffActionLike,
-  Self <: ImmutableBase[V, D, I, ValidData, DiffAction, Self]
-] extends DimensionalBase[V, D, I, ValidData, DiffAction, ?]:
-  this: Self =>
-  // Unlike MutableBase, we have to extend DimensionalBase here rather than reference it as the self type because
-  // the results of copyAndModify operations need access to protected methods in that trait
+trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, D, Self]](using
+  Experimental
+) extends DimensionalBase[V, D]:
 
-  // ---------- To be implemented by inheritor ----------
+  override def copy: Self // to refine the result type for `copyAndModify`
 
-  protected def copyAndModify(f: Self => Unit): Self
+  protected def copyAndModify(f: Self => Unit): Self =
+    val result = copy
+    f(result)
+    result
+
+  // ---------- Implement methods not in DimensionalBase that have immutable signatures ----------
 
   /**
-    * Unlike in 1D, there is no unique compression in 2D and 3D. For example {[1..5], [1..2]} + {[1..2], [3..4]} could
-    * also be represented physically as {[1..2], [1..4]} + {[3..5], [1..2]}.
-    *
-    * This method decompresses data so there is a unique arrangement of "atomic" intervals. In the above example, that
-    * would be the following "atomic" intervals: {[1..2], [1..2]} + {[3..5], [1..2]} + {[1..2], [3..4]}. Then it
-    * recompresses the data, which results in a unique physical representation. It may be useful when comparing two
-    * structures to see if they are logically equivalent even if, physically, they differ in how they are compressed.
-    * @return
-    *   a new, updated structure.
-    */
-  def recompressAll(): Self = copyAndModify(_.recompressInPlace())
-
-  /**
-    * Applies a sequence of diff actions to this structure.
-    *
-    * @param diffActions
-    *   actions to be applied.
-    * @return
-    *   a new, updated structure.
-    */
-  def applyDiffActions(diffActions: Iterable[DiffAction]): Self
-
-  /**
-    * Synchronizes this with another structure by getting and applying the applicable diff actions.
-    *
-    * @param that
-    *   the structure with which this is synchronized.
-    * @return
-    *   a new, updated structure.
-    */
-  def syncWith(that: Self): Self
-
-  // ---------- Implement methods from DimensionalBase ----------
-
-  /**
-    * Selects all elements which satisfy a predicate.
+    * Selects all elements that satisfy a predicate.
     *
     * @param p
     *   the predicate used to test elements.
     * @return
     *   a new structure consisting of all elements that satisfy the provided predicate p.
     */
-  def filter(p: ValidData => Boolean): Self = copyAndModify: result =>
+  def filter(p: ValidData[V, D] => Boolean): Self = copyAndModify: result =>
     getAll.filterNot(p).foreach(result.removeValidData)
 
   /**
@@ -88,7 +44,7 @@ trait ImmutableBase[
     * @return
     *   a new, updated structure.
     */
-  def set(newData: ValidData): Self = copyAndModify: result =>
+  def set(newData: ValidData[V, D]): Self = copyAndModify: result =>
     result.updateOrRemove(newData.interval, _ => None)
     result.addValidData(newData)
     result.compressInPlace(newData.value)
@@ -101,7 +57,7 @@ trait ImmutableBase[
     * @return
     *   some new, updated structure if there were no conflicts and new data was set, None otherwise.
     */
-  def setIfNoConflict(newData: ValidData): Option[Self] =
+  def setIfNoConflict(newData: ValidData[V, D]): Option[Self] =
     if intersects(newData.interval) then None
     else
       Some(copyAndModify: result =>
@@ -118,7 +74,7 @@ trait ImmutableBase[
     * @return
     *   a new, updated structure.
     */
-  def update(data: ValidData): Self =
+  def update(data: ValidData[V, D]): Self =
     copyAndModify(_.updateOrRemove(data.interval, _ => Some(data.value)))
 
   /**
@@ -132,7 +88,7 @@ trait ImmutableBase[
     * @return
     *   a new, updated structure.
     */
-  def replace(oldData: ValidData, newData: ValidData): Self = copyAndModify: result =>
+  def replace(oldData: ValidData[V, D], newData: ValidData[V, D]): Self = copyAndModify: result =>
     result.removeValidData(oldData)
     result.updateOrRemove(newData.interval, _ => None)
     result.addValidData(newData)
@@ -149,7 +105,7 @@ trait ImmutableBase[
     * @return
     *   a new, updated structure.
     */
-  def replaceByKey(key: D, newData: ValidData): Self =
+  def replaceByKey(key: D, newData: ValidData[V, D]): Self =
     replace(dataByStartAsc(key), newData)
 
   /**
@@ -161,7 +117,7 @@ trait ImmutableBase[
     * @return
     *   a new, updated structure.
     */
-  def remove(interval: I): Self =
+  def remove(interval: Interval[D]): Self =
     copyAndModify(_.updateOrRemove(interval, _ => None))
 
   /**
@@ -185,6 +141,100 @@ trait ImmutableBase[
     dataByValue.keySet.foreach(result.compressInPlace)
 
   /**
+    * Unlike in 1D, there is no unique compression in higher dimensions. For example, {[1..5], [1..2]} + {[1..2],
+    * [3..4]} could also be represented physically as {[1..2], [1..4]} + {[3..5], [1..2]}.
+    *
+    * This method decompresses data so there is a unique arrangement of "atomic" intervals. In the above example, that
+    * would be the following "atomic" intervals: {[1..2], [1..2]} + {[3..5], [1..2]} + {[1..2], [3..4]}. Then it
+    * recompresses the data, which results in a unique physical representation. It may be useful when comparing two
+    * structures to see if they are logically equivalent even if, physically, they differ in how they are compressed.
+    *
+    * @return
+    *   a new, updated structure.
+    */
+  def recompressAll(): Self = copyAndModify(_.recompressInPlace())
+
+  /**
+    * Applies a sequence of diff actions to this structure.
+    *
+    * @param diffActions
+    *   actions to be applied.
+    * @return
+    *   a new, updated structure.
+    */
+  def applyDiffActions(diffActions: Iterable[DiffAction[V, D]]): Self =
+    copyAndModify: result =>
+      diffActions.foreach:
+        case DiffAction.Create(data: ValidData[V, D]) => result.addValidData(data)
+        case DiffAction.Update(data: ValidData[V, D]) => result.updateValidData(data)
+        case DiffAction.Delete(key: D @unchecked)     => result.removeValidDataByKey(key)
+
+  /**
+    * Synchronizes this with another structure by getting and applying the applicable diff actions.
+    *
+    * @param that
+    *   the structure with which this is synchronized.
+    * @return
+    *   a new, updated structure.
+    */
+  def syncWith(that: Self): Self =
+    applyDiffActions(that.diffActionsFrom(this))
+
+  /**
+    * Applies a function to all valid data. Both the valid data value and interval types can be changed in the mapping.
+    *
+    * @param f
+    *   the function to apply to each valid data element.
+    * @tparam B
+    *   the valid data value type of the returned structure.
+    * @tparam S
+    *   the valid data interval domain type of the returned structure.
+    * @return
+    *   a new structure resulting from applying the provided function f to each element of this structure.
+    */
+  def map[B, S <: NonEmptyTuple: DomainLike](
+    f: ValidData[V, D] => ValidData[B, S]
+  ): Data[B, S] = Data( // hard-coding this as `Data` because we can't use the Self type here!
+    getAll.map(f)
+  ).compressAll()
+
+  /**
+    * Applies a function to all valid data values. Only the valid data value type can be changed in the mapping.
+    *
+    * @param f
+    *   the function to apply to the value part of each valid data element.
+    * @tparam B
+    *   the valid data value type of the returned structure.
+    * @return
+    *   a new structure resulting from applying the provided function f to each element of this structure.
+    */
+  def mapValues[B](
+    f: V => B
+  ): Data[B, D] = Data( // hard-coding this as `Data` because we can't use the Self type here!
+    getAll.map(d => d.copy(value = f(d.value)))
+  ).compressAll()
+
+  /**
+    * Builds a new structure by applying a function to all elements of this collection and concatenating the elements of
+    * the resulting structures.
+    *
+    * @param f
+    *   the function to apply to each valid data element which results in a new structure.
+    * @tparam B
+    *   the valid data value type of the returned structure.
+    * @tparam S
+    *   the valid data interval domain type of the returned structure.
+    * @return
+    *   a new structure resulting from applying the provided function f to each element of this structure and
+    *   concatenating the results.
+    */
+  def flatMap[B, S <: NonEmptyTuple: DomainLike](
+    f: ValidData[V, D] => DimensionalBase[B, S]
+  ): Data[B, S] = Data( // hard-coding this as `Data` because we can't use the Self type here!
+    getAll.flatMap(f(_).getAll)
+  ).compressAll()
+
+  /**
     * Adds a value as valid in portions of the interval where there aren't already valid values.
     *
     * @param data
@@ -192,7 +242,7 @@ trait ImmutableBase[
     * @return
     *   a new, updated structure.
     */
-  def fill(data: ValidData): Self = copyAndModify: result =>
+  def fill(data: ValidData[V, D]): Self = copyAndModify: result =>
     result.fillInPlace(data.interval, data.value)
 
   /**

@@ -1,7 +1,8 @@
 package intervalidus
 
 import intervalidus.DiscreteValue.given
-import org.scalatest.compatible.Assertion
+import intervalidus.DomainLike.given
+import intervalidus.Domain.In4D as Dim
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
@@ -15,18 +16,18 @@ trait DataIn4DMultiBaseBehaviors:
 
   import Interval1D.*
 
-  def withHorizontal[T: DiscreteValue](i: Interval1D[T]): Interval4D[T, T, T, T] =
-    i x unbounded x unbounded x unbounded
+  def withHorizontal[T: DiscreteValue](i: Interval1D[T]): Interval[Dim[T, T, T, T]] =
+    Interval.in4D[T, T, T, T](i, unbounded, unbounded, unbounded)
 
-  def withHorizontal[T: DiscreteValue](d: Domain1D[T]): Domain4D[T, T, T, T] =
+  def withHorizontal[T: DiscreteValue](d: Domain1D[T]): Dim[T, T, T, T] =
     d x Domain1D.Bottom x Domain1D.Bottom x Domain1D.Bottom
 
-  def basicAndZipTests[S <: DataIn4DMultiBase[String, Int, Int, Int, Int]](
+  def basicAndZipTests[S <: DimensionalMultiBase[String, Dim[Int, Int, Int, Int]]](
     prefix: String,
-    multiFrom: Experimental ?=> Iterable[ValidData4D[String, Int, Int, Int, Int]] => S,
-    multiFrom4D: Experimental ?=> DataIn4DBase[Set[String], Int, Int, Int, Int] => S,
+    multiFrom: Experimental ?=> Iterable[ValidData[String, Dim[Int, Int, Int, Int]]] => S,
+    multiFrom4D: Experimental ?=> DimensionalBase[Set[String], Dim[Int, Int, Int, Int]] => S,
     multiOf: Experimental ?=> String => S,
-    multiApply: Experimental ?=> Iterable[ValidData4D[Set[String], Int, Int, Int, Int]] => S
+    multiApply: Experimental ?=> Iterable[ValidData[Set[String], Dim[Int, Int, Int, Int]]] => S
   )(using Experimental): Unit =
     test(s"$prefix: Basics"):
       val allData = List(
@@ -39,7 +40,7 @@ trait DataIn4DMultiBaseBehaviors:
       val fixture2 = multiApply(allData).toImmutable.toMutable.copy
       fixture2.getAll.toList shouldBe allData
 
-      val fixture3 = multiFrom4D(immutable.DataIn4D.of[Set[String], Int, Int, Int, Int](Set("Hello", "world")))
+      val fixture3 = multiFrom4D(immutable.Data.of[Set[String], Dim[Int, Int, Int, Int]](Set("Hello", "world")))
       fixture3.get shouldBe Set("Hello", "world")
 
       val f0: S = multiFrom(
@@ -100,7 +101,7 @@ trait DataIn4DMultiBaseBehaviors:
 
     test(s"$prefix: Getting diff actions"):
 
-      import DiffAction4D.*
+      import DiffAction.*
 
       val fixture5 = multiFrom(
         List(
@@ -144,11 +145,4 @@ trait DataIn4DMultiBaseBehaviors:
         (intervalFrom(1) x intervalFrom(11) x intervalFrom(21) x unbounded[Int]) -> "World"
       )
       val fixture1: S = multiFrom(allData)
-      fixture1.getByHorizontalIndex(0).getByHorizontalIndex(5).getByHorizontalIndex(10).getAt(10) shouldBe Some(
-        Set("Hello")
-      )
-      fixture1.getByVerticalIndex(11).getByHorizontalIndex(1).getByHorizontalIndex(21).getAt(21) shouldBe Some(
-        Set("World")
-      )
-      fixture1.getByDepthIndex(5).getByHorizontalIndex(14).getByVerticalIndex(5).getAt(0) shouldBe Some(Set("Hello"))
-      fixture1.getByFourthIndex(0).getByVerticalIndex(11).getByHorizontalIndex(1).getAt(21) shouldBe Some(Set("World"))
+      fixture1.getByHeadIndex(0).getByHeadIndex(5).getByHeadIndex(10).getAt(10) shouldBe Some(Set("Hello"))

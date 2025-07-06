@@ -1,6 +1,9 @@
 package intervalidus
 
-import org.scalatest.compatible.Assertion
+import intervalidus.DomainLike.given
+import intervalidus.Domain.In3D as Dim
+import intervalidus.DimensionalVersionedBase.Versioned
+import intervalidus.Interval.Patterns.*
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
@@ -13,28 +16,29 @@ import scala.language.implicitConversions
 trait DataIn3DVersionedBaseBehaviors:
   this: AnyFunSuite & Matchers =>
 
-  import Interval1D.*
   import DiscreteValue.IntDiscreteValue
+  import Interval1D.*
 
   val dayZero: LocalDate = LocalDate.of(2024, 6, 30)
 
   def day(offsetDays: Int): LocalDate = dayZero.plusDays(offsetDays)
 
-  def validString(
-    s: String,
-    validTime: Interval2D[LocalDate, LocalDate]
-  ): ValidData3D[String, LocalDate, LocalDate, Int] = (validTime x Interval1D.unbounded[Int]) -> s
+  def horizontal[H: DomainValueLike, V: DomainValueLike, D: DomainValueLike](
+    interval: Interval[Versioned[Domain.In3D[H, V, D]]]
+  ): Interval1D[H] = interval match
+    case _ :+: horizontal :+: _ :+|: _ => horizontal
+    case _ => throw Exception(s"Expected versioned three-dimensional interval, got $interval")
 
   protected def testDataIn4D[T](
     current: Domain1D[Int],
-    values: List[ValidData3D[T, Int, Int, Int]]
-  )(using DomainValueLike[Int]): List[ValidData4D[T, Int, Int, Int, Int]] =
-    values.map(d => (d.interval x intervalFrom(current)) -> d.value)
+    values: List[ValidData[T, Dim[Int, Int, Int]]]
+  )(using DomainValueLike[Int]): List[ValidData[T, Versioned[Dim[Int, Int, Int]]]] =
+    values.map(d => (d.interval withHead intervalFrom(current)) -> d.value)
 
-  def stringLookupTests[S <: DataIn3DVersionedBase[String, Int, Int, Int]](
+  def stringLookupTests[S <: DimensionalVersionedBase[String, Dim[Int, Int, Int]]](
     prefix: String,
-    dataIn3DVersionedFrom3D: Experimental ?=> Iterable[ValidData3D[String, Int, Int, Int]] => S,
-    dataIn3DVersionedFrom4D: Experimental ?=> Iterable[ValidData4D[String, Int, Int, Int, Int]] => S,
+    dataIn3DVersionedFrom3D: Experimental ?=> Iterable[ValidData[String, Dim[Int, Int, Int]]] => S,
+    dataIn3DVersionedFrom4D: Experimental ?=> Iterable[ValidData[String, Versioned[Dim[Int, Int, Int]]]] => S,
     dataIn3DVersionedOf: Experimental ?=> String => S
   )(using Experimental, DomainValueLike[Int]): Unit =
     test(s"$prefix: General setup"):
@@ -48,7 +52,7 @@ trait DataIn3DVersionedBaseBehaviors:
               0,
               List(
                 (interval(0, 10) x interval(0, 10) x unbounded[Int]) -> "Hello",
-                Interval3D.unbounded[Int, Int, Int] -> "World"
+                Interval.unbounded[Dim[Int, Int, Int]] -> "World"
               )
             )
           )
@@ -61,7 +65,7 @@ trait DataIn3DVersionedBaseBehaviors:
       val single = dataIn3DVersionedOf("Hello world")
       single.get shouldBe "Hello world"
       single.getOption shouldBe Some("Hello world")
-      single.domain.toList shouldBe List(Interval3D.unbounded[Int, Int, Int])
+      single.domain.toList shouldBe List(Interval.unbounded[Dim[Int, Int, Int]])
       single.domainComplement.toList shouldBe List.empty
 
       val fixture1: S =

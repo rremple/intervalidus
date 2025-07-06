@@ -4,6 +4,7 @@ import com.rallyhealth.weejson.v1.jackson.{FromJson, ToJson}
 import com.rallyhealth.weepickle.v1.WeePickle.*
 import intervalidus.*
 import intervalidus.DiscreteValue.given
+import intervalidus.DomainLike.given
 import intervalidus.Interval1D.*
 import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
@@ -38,174 +39,147 @@ class JsonTest extends AnyFunSuite with Matchers:
     assertThrows[Exception]("""{ "notpoint": 1 }""".as[Domain1D[Int]])
 
   test("Domains encoded as strings/objects - 2D"):
-    isomorphic(Domain2D[Int, Int](Top, Top), """{"horizontalIndex":"Top","verticalIndex":"Top"}""")
-    isomorphic(Domain2D[Int, Int](Bottom, 1), """{"horizontalIndex":"Bottom","verticalIndex":{"point":1}}""")
+    isomorphic(Domain.in2D[Int, Int](Top, Top), """["Top","Top"]""")
+    isomorphic(Domain.in2D[Int, Int](Bottom, 1), """["Bottom",{"point":1}]""")
 
-    // must be an object
-    assertThrows[Exception](quote("Top").as[Domain2D[Int, Int]])
+    // must be an array
+    assertThrows[Exception](quote("Top").as[Domain.In2D[Int, Int]])
 
   test("Domains encoded as strings/objects - 3D"):
     isomorphic(
-      Domain3D[Int, Int, Int](Top, Top, Top),
-      """{"horizontalIndex":"Top","verticalIndex":"Top","depthIndex":"Top"}"""
+      Domain.in3D[Int, Int, Int](Top, Top, Top),
+      """["Top","Top","Top"]"""
     )
     isomorphic(
-      Domain3D[Int, Int, Int](Bottom, 1, 2),
-      """{"horizontalIndex":"Bottom","verticalIndex":{"point":1},"depthIndex":{"point":2}}"""
+      Domain.in3D[Int, Int, Int](Bottom, 1, 2),
+      """["Bottom",{"point":1},{"point":2}]"""
     )
 
     // must be an object
-    assertThrows[Exception](quote("Top").as[Domain3D[Int, Int, Int]])
+    assertThrows[Exception](quote("Top").as[Domain.In3D[Int, Int, Int]])
 
   test("Intervals encoded as objects - 1D"):
-    isomorphic(intervalFrom(0), """{"start":{"point":0},"end":"Top"}""")
-    isomorphic(intervalTo(0), """{"start":"Bottom","end":{"point":0}}""")
+    isomorphic(intervalFrom(0): Interval.In1D[Int], """{"start":[{"point":0}],"end":["Top"]}""")
+    isomorphic(intervalTo(0): Interval.In1D[Int], """{"start":["Bottom"],"end":[{"point":0}]}""")
 
   test("Intervals encoded as objects - 2D"):
     isomorphic(
       intervalFrom(0) x intervalTo(0),
-      """{"horizontal":{"start":{"point":0},"end":"Top"}""" +
-        ""","vertical":{"start":"Bottom","end":{"point":0}}"""
-        + "}"
+      """{"start":[{"point":0},"Bottom"],"end":["Top",{"point":0}]}"""
     )
     isomorphic(
       intervalTo(0) x intervalFrom(0),
-      """{"horizontal":{"start":"Bottom","end":{"point":0}}""" +
-        ""","vertical":{"start":{"point":0},"end":"Top"}"""
-        + "}"
+      """{"start":["Bottom",{"point":0}],"end":[{"point":0},"Top"]}"""
     )
 
   test("Intervals encoded as objects - 3D"):
     isomorphic(
       intervalFrom(0) x intervalTo(0) x unbounded[Int],
-      """{"horizontal":{"start":{"point":0},"end":"Top"}""" +
-        ""","vertical":{"start":"Bottom","end":{"point":0}}""" +
-        ""","depth":{"start":"Bottom","end":"Top"}""" +
-        "}"
+      """{"start":[{"point":0},"Bottom","Bottom"],"end":["Top",{"point":0},"Top"]}"""
     )
     isomorphic(
       intervalFrom(0) x unbounded[Int] x intervalTo(0),
-      """{"horizontal":{"start":{"point":0},"end":"Top"}""" +
-        ""","vertical":{"start":"Bottom","end":"Top"}""" +
-        ""","depth":{"start":"Bottom","end":{"point":0}}""" +
-        "}"
+      """{"start":[{"point":0},"Bottom","Bottom"],"end":["Top","Top",{"point":0}]}"""
     )
 
   test("Valid data encoded as objects - 1D"):
     isomorphic(
       intervalFrom(0) -> "Hello",
-      """{"value":"Hello"""" +
-        ""","interval":{"start":{"point":0},"end":"Top"""" +
-        "}}"
+      """{"value":"Hello","interval":{"start":[{"point":0}],"end":["Top"]}}"""
     )
     isomorphic(
       intervalTo(0) -> "Goodbye",
-      """{"value":"Goodbye"""" +
-        ""","interval":{"start":"Bottom","end":{"point":0}""" +
-        "}}"
+      """{"value":"Goodbye","interval":{"start":["Bottom"],"end":[{"point":0}]}}"""
     )
 
   test("Valid data encoded as objects - 2D"):
     isomorphic(
       (intervalFrom(0) x intervalTo(0)) -> "Hello",
       """{"value":"Hello"""" +
-        ""","interval":{"horizontal":{"start":{"point":0},"end":"Top"}""" +
-        ""","vertical":{"start":"Bottom","end":{"point":0}}"""
-        + "}}"
+        ""","interval":{"start":[{"point":0},"Bottom"],"end":["Top",{"point":0}]}"""
+        + "}"
     )
     isomorphic(
       (intervalTo(0) x intervalFrom(0)) -> "Goodbye",
       """{"value":"Goodbye"""" +
-        ""","interval":{"horizontal":{"start":"Bottom","end":{"point":0}}""" +
-        ""","vertical":{"start":{"point":0},"end":"Top"}"""
-        + "}}"
+        ""","interval":{"start":["Bottom",{"point":0}],"end":[{"point":0},"Top"]}"""
+        + "}"
     )
 
   test("Valid data encoded as objects - 3D"):
     isomorphic(
       (intervalFrom(0) x intervalTo(0) x unbounded[Int]) -> "Hello",
       """{"value":"Hello"""" +
-        ""","interval":{"horizontal":{"start":{"point":0},"end":"Top"}""" +
-        ""","vertical":{"start":"Bottom","end":{"point":0}}""" +
-        ""","depth":{"start":"Bottom","end":"Top"}""" +
-        "}}"
+        ""","interval":{"start":[{"point":0},"Bottom","Bottom"],"end":["Top",{"point":0},"Top"]}""" +
+        "}"
     )
     isomorphic(
       (intervalFrom(0) x unbounded[Int] x intervalTo(0)) -> "Goodbye",
       """{"value":"Goodbye"""" +
-        ""","interval":{"horizontal":{"start":{"point":0},"end":"Top"}""" +
-        ""","vertical":{"start":"Bottom","end":"Top"}""" +
-        ""","depth":{"start":"Bottom","end":{"point":0}}""" +
-        "}}"
+        ""","interval":{"start":[{"point":0},"Bottom","Bottom"],"end":["Top","Top",{"point":0}]}""" +
+        "}"
     )
 
   test("Diff actions encoded as objects - 1D"):
-    isomorphic(
-      DiffAction1D.Create(intervalFrom(0) -> "Hello"),
+    isomorphic[DiffAction.In1D[String, Int]](
+      DiffAction.Create(intervalFrom(0) -> "Hello"),
       """{"action":"Create"""" +
         ""","validData":{"value":"Hello"""" +
-        ""","interval":{"start":{"point":0},"end":"Top"""" +
-        "}}}"
+        ""","interval":{"start":[{"point":0}],"end":["Top"]}""" +
+        "}}"
     )
-    isomorphic(
-      DiffAction1D.Update(intervalTo(0) -> "Goodbye"),
+    isomorphic[DiffAction.In1D[String, Int]](
+      DiffAction.Update(intervalTo(0) -> "Goodbye"),
       """{"action":"Update"""" +
         ""","validData":{"value":"Goodbye"""" +
-        ""","interval":{"start":"Bottom","end":{"point":0}""" +
-        "}}}"
+        ""","interval":{"start":["Bottom"],"end":[{"point":0}]}""" +
+        "}}"
     )
 
-    isomorphic[DiffAction1D[String, Int]](
-      DiffAction1D.Delete(Point(0)),
-      """{"action":"Delete","key":{"point":0}}"""
+    isomorphic[DiffAction.In1D[String, Int]](
+      DiffAction.Delete(Point(0)),
+      """{"action":"Delete","key":[{"point":0}]}"""
     )
 
   test("Diff actions encoded as objects - 2D"):
-    isomorphic(
-      DiffAction2D.Create((intervalFrom(0) x intervalTo(0)) -> "Hello"),
+    isomorphic[DiffAction.In2D[String, Int, Int]](
+      DiffAction.Create((intervalFrom(0) x intervalTo(0)) -> "Hello"),
       """{"action":"Create"""" +
         ""","validData":{"value":"Hello"""" +
-        ""","interval":{"horizontal":{"start":{"point":0},"end":"Top"}""" +
-        ""","vertical":{"start":"Bottom","end":{"point":0}}"""
-        + "}}}"
+        ""","interval":{"start":[{"point":0},"Bottom"],"end":["Top",{"point":0}]}""" +
+        "}}"
     )
-    isomorphic(
-      DiffAction2D.Update((intervalTo(0) x intervalFrom(0)) -> "Goodbye"),
+    isomorphic[DiffAction.In2D[String, Int, Int]](
+      DiffAction.Update((intervalTo(0) x intervalFrom(0)) -> "Goodbye"),
       """{"action":"Update"""" +
         ""","validData":{"value":"Goodbye"""" +
-        ""","interval":{"horizontal":{"start":"Bottom","end":{"point":0}}""" +
-        ""","vertical":{"start":{"point":0},"end":"Top"}"""
-        + "}}}"
+        ""","interval":{"start":["Bottom",{"point":0}],"end":[{"point":0},"Top"]}""" +
+        "}}"
     )
-    isomorphic[DiffAction2D[String, Int, Int]](
-      DiffAction2D.Delete(Point(0) x Point(1)),
-      """{"action":"Delete"""" +
-        ""","key":{"horizontalIndex":{"point":0},"verticalIndex":{"point":1}}}"""
+    isomorphic[DiffAction.In2D[String, Int, Int]](
+      DiffAction.Delete(Point(0) x Point(1)),
+      """{"action":"Delete","key":[{"point":0},{"point":1}]}"""
     )
 
   test("Diff actions encoded as objects - 3D"):
-    isomorphic(
-      DiffAction3D.Create((intervalFrom(0) x intervalTo(0) x unbounded[Int]) -> "Hello"),
+    isomorphic[DiffAction.In3D[String, Int, Int, Int]](
+      DiffAction.Create((intervalFrom(0) x intervalTo(0) x unbounded[Int]) -> "Hello"),
       """{"action":"Create"""" +
         ""","validData":{"value":"Hello"""" +
-        ""","interval":{"horizontal":{"start":{"point":0},"end":"Top"}""" +
-        ""","vertical":{"start":"Bottom","end":{"point":0}}""" +
-        ""","depth":{"start":"Bottom","end":"Top"}""" +
-        "}}}"
+        ""","interval":{"start":[{"point":0},"Bottom","Bottom"],"end":["Top",{"point":0},"Top"]}""" +
+        "}}"
     )
-    isomorphic(
-      DiffAction3D.Update((intervalFrom(0) x unbounded[Int] x intervalTo(0)) -> "Goodbye"),
+    isomorphic[DiffAction.In3D[String, Int, Int, Int]](
+      DiffAction.Update((intervalFrom(0) x unbounded[Int] x intervalTo(0)) -> "Goodbye"),
       """{"action":"Update"""" +
         ""","validData":{"value":"Goodbye"""" +
-        ""","interval":{"horizontal":{"start":{"point":0},"end":"Top"}""" +
-        ""","vertical":{"start":"Bottom","end":"Top"}""" +
-        ""","depth":{"start":"Bottom","end":{"point":0}}""" +
-        "}}}"
+        ""","interval":{"start":[{"point":0},"Bottom","Bottom"],"end":["Top","Top",{"point":0}]}""" +
+        "}}"
     )
-    isomorphic[DiffAction3D[String, Int, Int, Int]](
-      DiffAction3D.Delete(Point(0) x Point(1) x Point(3)),
+    isomorphic[DiffAction.In3D[String, Int, Int, Int]](
+      DiffAction.Delete(Point(0) x Point(1) x Point(3)),
       """{"action":"Delete"""" +
-        ""","key":{"horizontalIndex":{"point":0},"verticalIndex":{"point":1},"depthIndex":{"point":3}}}"""
+        ""","key":[{"point":0},{"point":1},{"point":3}]}"""
     )
 
   test("Dimensional data encoded as arrays - 1D"):
@@ -214,14 +188,22 @@ class JsonTest extends AnyFunSuite with Matchers:
       intervalTo(0) -> "Goodbye"
     )
     val json = """[{"value":"Goodbye"""" +
-      ""","interval":{"start":"Bottom","end":{"point":0}""" +
+      ""","interval":{"start":["Bottom"],"end":[{"point":0}]""" +
       "}}" +
       """,{"value":"Hello"""" +
-      ""","interval":{"start":{"point":1},"end":"Top"""" +
+      ""","interval":{"start":[{"point":1}],"end":["Top"]""" +
       "}}]"
 
-    isomorphicData(immutable.DataIn1D[String, Int](data), json, _.getAll)
-    isomorphicData(mutable.DataIn1D[String, Int](data), json, _.getAll)
+    isomorphicData[immutable.Data.In1D[String, Int], ValidData.In1D[String, Int]](
+      immutable.Data(data),
+      json,
+      _.getAll
+    )
+    isomorphicData[mutable.Data.In1D[String, Int], ValidData.In1D[String, Int]](
+      mutable.Data(data),
+      json,
+      _.getAll
+    )
 
   test("Dimensional data encoded as arrays - 2D"):
     val data = Seq(
@@ -230,16 +212,22 @@ class JsonTest extends AnyFunSuite with Matchers:
     )
     val json =
       """[{"value":"Goodbye"""" +
-        ""","interval":{"horizontal":{"start":"Bottom","end":{"point":0}}""" +
-        ""","vertical":{"start":{"point":1},"end":"Top"}"""
-        + "}}" +
+        ""","interval":{"start":["Bottom",{"point":1}],"end":[{"point":0},"Top"]}""" +
+        "}" +
         """,{"value":"Hello"""" +
-        ""","interval":{"horizontal":{"start":{"point":1},"end":"Top"}""" +
-        ""","vertical":{"start":"Bottom","end":{"point":0}}"""
-        + "}}]"
+        ""","interval":{"start":[{"point":1},"Bottom"],"end":["Top",{"point":0}]}""" +
+        "}]"
 
-    isomorphicData(immutable.DataIn2D[String, Int, Int](data), json, _.getAll)
-    isomorphicData(mutable.DataIn2D[String, Int, Int](data), json, _.getAll)
+    isomorphicData[immutable.Data.In2D[String, Int, Int], ValidData.In2D[String, Int, Int]](
+      immutable.Data(data),
+      json,
+      _.getAll
+    )
+    isomorphicData[mutable.Data.In2D[String, Int, Int], ValidData.In2D[String, Int, Int]](
+      mutable.Data(data),
+      json,
+      _.getAll
+    )
 
   test("Dimensional data encoded as arrays - 3D"):
     val data = Seq(
@@ -248,15 +236,19 @@ class JsonTest extends AnyFunSuite with Matchers:
     )
     val json =
       """[{"value":"Hello"""" +
-        ""","interval":{"horizontal":{"start":{"point":1},"end":"Top"}""" +
-        ""","vertical":{"start":"Bottom","end":{"point":0}}""" +
-        ""","depth":{"start":"Bottom","end":"Top"}""" +
-        "}}" +
+        ""","interval":{"start":[{"point":1},"Bottom","Bottom"],"end":["Top",{"point":0},"Top"]}""" +
+        "}" +
         """,{"value":"Goodbye"""" +
-        ""","interval":{"horizontal":{"start":{"point":1},"end":"Top"}""" +
-        ""","vertical":{"start":{"point":1},"end":"Top"}""" +
-        ""","depth":{"start":"Bottom","end":{"point":0}}""" +
-        "}}]"
+        ""","interval":{"start":[{"point":1},{"point":1},"Bottom"],"end":["Top","Top",{"point":0}]}""" +
+        "}]"
 
-    isomorphicData(immutable.DataIn3D[String, Int, Int, Int](data), json, _.getAll)
-    isomorphicData(mutable.DataIn3D[String, Int, Int, Int](data), json, _.getAll)
+    isomorphicData[immutable.Data.In3D[String, Int, Int, Int], ValidData.In3D[String, Int, Int, Int]](
+      immutable.Data(data),
+      json,
+      _.getAll
+    )
+    isomorphicData[mutable.Data.In3D[String, Int, Int, Int], ValidData.In3D[String, Int, Int, Int]](
+      mutable.Data(data),
+      json,
+      _.getAll
+    )

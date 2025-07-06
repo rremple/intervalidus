@@ -1,7 +1,5 @@
 package intervalidus
 
-import intervalidus.collection.Coordinate
-
 import java.time.{LocalDate, LocalDateTime}
 import scala.language.implicitConversions
 import scala.math.Ordering.Implicits.infixOrderingOps
@@ -50,7 +48,46 @@ enum Domain1D[+T]:
     case OpenPoint(t) => t.toString
     case Top          => "+∞"
 
-import Domain1D.{Bottom, OpenPoint, Point, Top}
+  def toCodeLikeString: String =
+    def codeFor(value: T): String = value match
+      case d: LocalDate => s"LocalDate.of(${d.getYear},${d.getMonthValue},${d.getDayOfMonth})"
+      case d: LocalDateTime =>
+        s"LocalDate.of(${d.getYear},${d.getMonthValue},${d.getDayOfMonth})" +
+          s".atTime(${d.getHour},${d.getMinute},${d.getSecond},${d.getNano})"
+      case _ => value.toString
+
+    this match
+      case Bottom       => "Bottom"
+      case Point(t)     => s"Point(${codeFor(t)})"
+      case OpenPoint(t) => s"OpenPoint(${codeFor(t)})"
+      case Top          => "Top"
+
+  def isUnbounded: Boolean = this match
+    case Point(_) | OpenPoint(_) => false
+    case _                       => true
+
+  def leftBrace: String = this match
+    case Point(_) => "["
+    case _        => "("
+
+  def rightBrace: String = this match
+    case Point(_) => "]"
+    case _        => ")"
+
+  /**
+    * Cross this domain element with that domain element to arrive at a new two-dimensional domain tuple.
+    *
+    * @param that
+    *   a one-dimensional domain element to be used as the vertical dimension.
+    * @tparam T2
+    *   domain value type for that domain.
+    * @return
+    *   a new two-dimensional domain tuple with this as the horizontal component and that as the vertical component.
+    */
+  infix def x[T2: DomainValueLike](that: Domain1D[T2]): Domain.In2D[T, T2] =
+    this *: that *: EmptyTuple
+
+import intervalidus.Domain1D.{Bottom, OpenPoint, Point, Top}
 
 /**
   * Companion for the one-dimensional domain used in defining and operating on intervals.
@@ -83,130 +120,121 @@ object Domain1D:
     case _: DiscreteValue[T]   => throw new IllegalArgumentException("discrete domains can't have open points")
 
   /**
-    * Type class instance for one-dimensional domains.
+    * Methods on Domain1D supportingType class instance for one-dimensional domains.
     */
-  given [T](using domainValueType: DomainValueLike[T]): DomainLike[Domain1D[T]] with
-    extension (domain: Domain1D[T])
-      override def isUnbounded: Boolean = domain match
-        case Point(_) | OpenPoint(_) => false
-        case _                       => true
+  extension [T](domain: Domain1D[T])(using domainValueType: DomainValueLike[T])
+    def isClosedOrUnbounded: Boolean =
+      domain match
+        case OpenPoint(_) => false
+        case _            => true
 
-      override def toCodeLikeString: String =
-        def codeFor(value: T): String = value match
-          case d: LocalDate => s"LocalDate.of(${d.getYear},${d.getMonthValue},${d.getDayOfMonth})"
-          case d: LocalDateTime =>
-            s"LocalDate.of(${d.getYear},${d.getMonthValue},${d.getDayOfMonth})" +
-              s".atTime(${d.getHour},${d.getMinute},${d.getSecond},${d.getNano})"
-          case _ => value.toString
+    def pointsTo(end: Domain1D[T]): Iterable[Domain1D[T]] = domainValueType match
+      case _: ContinuousValue[T] => Iterable.empty // undefined for continuous
+      case discrete: DiscreteValue[T] =>
+        def nearest(d: Domain1D[T]): Domain1D[T] = d match
+          case Bottom => Point(discrete.minValue)
+          case Top    => Point(discrete.maxValue)
+          case _      => d
 
+        val nearestStart: Option[Domain1D[T]] = Some(nearest(domain))
+        val nearestEnd = nearest(end)
+        Iterable.unfold(nearestStart):
+          case None => None
+          case Some(prevRemainingStart) =>
+            val nextStart =
+              if prevRemainingStart equiv nearestEnd then None
+              else Some(prevRemainingStart.rightAdjacent)
+            Some(prevRemainingStart, nextStart)
+
+    def leftAdjacent: Domain1D[T] = domainValueType match
+      case _: ContinuousValue[T] =>
         domain match
-          case Bottom       => "Bottom"
-          case Point(t)     => s"Point(${codeFor(t)})"
-          case OpenPoint(t) => s"OpenPoint(${codeFor(t)})"
-          case Top          => "Top"
-
-      override def asCoordinate: Coordinate =
-        Coordinate(domain.orderedHash)
-
-      override def leftAdjacent: Domain1D[T] = domainValueType match
-        case _: ContinuousValue[T] =>
-          domain match
-            case cp: Point[T] @unchecked     => OpenPoint(cp.value)
-            case op: OpenPoint[T] @unchecked => Point(op.value)
-            case noBound                     => noBound
-        case discrete: DiscreteValue[T] =>
-          domain match
-            case point: Point[T] @unchecked =>
-              discrete.predecessorOf(point.value).map(Point(_)).getOrElse(Bottom)
-            case topOrBottom => topOrBottom
-
-      override def rightAdjacent: Domain1D[T] = domainValueType match
-        case _: ContinuousValue[T] => domain.leftAdjacent // right and left are the same for continuous
-        case discrete: DiscreteValue[T] =>
-          domain match
-            case point: Point[T] @unchecked =>
-              discrete.successorOf(point.value).map(Point(_)).getOrElse(Top)
-            case topOrBottom => topOrBottom
-
-      /**
-        * A special totally-ordered hash of a domain used for mapping intervals to box search trees in double space. If
-        * `x1 < x2` (i.e., there are some number of `successorOf` functions that can be applied to `x1` to reach `x2`),
-        * then `orderedHashOf(x1) ≤ orderedHashOf(x2)`.
-        *
-        * @note
-        *   having equal `orderedHashOf` results for different inputs is allowed, but represents a hash collision. If
-        *   the `orderedHashOf` method has too many collisions, the performance of box search trees will suffer.
-        */
-      def orderedHash: Double =
+          case cp: Point[T] @unchecked     => OpenPoint(cp.value)
+          case op: OpenPoint[T] @unchecked => Point(op.value)
+          case noBound                     => noBound
+      case discrete: DiscreteValue[T] =>
         domain match
-          case Point(p)     => p.orderedHashValue
-          case OpenPoint(p) => p.orderedHashValue
-          case Top          => domainValueType.maxValue.orderedHashValue
-          case Bottom       => domainValueType.minValue.orderedHashValue
+          case point: Point[T] @unchecked =>
+            discrete.predecessorOf(point.value).map(Point(_)).getOrElse(Bottom)
+          case topOrBottom => topOrBottom
 
-      def leftBrace: String = domain match
-        case Point(_) => "["
-        case _        => "("
+    def closeIfOpen: Domain1D[T] = domain match
+      case op: OpenPoint[T] @unchecked => Point(op.value)
+      case other                       => other
 
-      def rightBrace: String = domain match
-        case Point(_) => "]"
-        case _        => ")"
+    def rightAdjacent: Domain1D[T] = domainValueType match
+      case _: ContinuousValue[T] => domain.leftAdjacent // before and after are the same for continuous
+      case discrete: DiscreteValue[T] =>
+        domain match
+          case point: Point[T] @unchecked => discrete.successorOf(point.value).map(Point(_)).getOrElse(Top)
+          case topOrBottom                => topOrBottom
 
-      infix def isAdjacentTo(that: Domain1D[T]): Boolean =
-        (domain isLeftAdjacentTo that) || (domain isRightAdjacentTo that)
+    /**
+      * A special totally-ordered hash of a domain used for mapping intervals to box search trees in double space. If
+      * `x1 < x2` (i.e., there are some number of `successorOf` functions that can be applied to `x1` to reach `x2`),
+      * then `orderedHashOf(x1) ≤ orderedHashOf(x2)`.
+      *
+      * @note
+      *   having equal `orderedHashOf` results for different inputs is allowed, but represents a hash collision. If the
+      *   `orderedHashOf` method has too many collisions, the performance of box search trees will suffer.
+      */
+    def orderedHash: Double =
+      domain match
+        case Point(p)     => p.orderedHashValue
+        case OpenPoint(p) => p.orderedHashValue
+        case Top          => domainValueType.maxValue.orderedHashValue
+        case Bottom       => domainValueType.minValue.orderedHashValue
 
-      infix def isLeftAdjacentTo(that: Domain1D[T]): Boolean =
-        that.leftAdjacent == domain
+    infix def isAdjacentTo(that: Domain1D[T]): Boolean =
+      (domain isLeftAdjacentTo that) || (domain isRightAdjacentTo that)
 
-      infix def isRightAdjacentTo(that: Domain1D[T]): Boolean =
-        that.rightAdjacent == domain
+    infix def isLeftAdjacentTo(that: Domain1D[T]): Boolean =
+      that.leftAdjacent == domain
 
-      // using default ordering to compare starts
-      infix def afterStart(that: Domain1D[T]): Boolean =
-        domain > that
+    infix def isRightAdjacentTo(that: Domain1D[T]): Boolean =
+      that.rightAdjacent == domain
 
-      // using default ordering to compare starts
-      infix def afterOrAtStart(that: Domain1D[T]): Boolean =
-        domain >= that
+    // using default ordering to compare starts
+    infix def afterStart(that: Domain1D[T]): Boolean =
+      domain > that
 
-      // using non-default ordering to compare ends
-      infix def beforeEnd(that: Domain1D[T]): Boolean =
-        given Ordering[Domain1D[T]] = Domain1D.endOrdering[T]
-        domain < that
+    // using default ordering to compare starts
+    infix def afterOrAtStart(that: Domain1D[T]): Boolean =
+      domain >= that
 
-      // using non-default ordering to compare ends
-      infix def beforeOrAtEnd(that: Domain1D[T]): Boolean =
-        given Ordering[Domain1D[T]] = Domain1D.endOrdering[T]
-        domain <= that
+    // using non-default ordering to compare ends
+    infix def beforeEnd(that: Domain1D[T]): Boolean =
+      given Ordering[Domain1D[T]] = Domain1D.endOrdering[T]
+      domain < that
 
-      // treat open > closed at the same point by using the default ordering
-      infix def maxStart(that: Domain1D[T]): Domain1D[T] =
-        domain max that
+    // using non-default ordering to compare ends
+    infix def beforeOrAtEnd(that: Domain1D[T]): Boolean =
+      given Ordering[Domain1D[T]] = Domain1D.endOrdering[T]
+      domain <= that
 
-      // treat open < closed at the same point
-      infix def maxEnd(that: Domain1D[T]): Domain1D[T] =
-        List(domain, that).max(using Domain1D.endOrdering)
+    // treat open > closed at the same point by using the default ordering
+    infix def maxStart(that: Domain1D[T]): Domain1D[T] =
+      domain max that
 
-      // treat open > closed at the same point by using the default ordering
-      infix def minStart(that: Domain1D[T]): Domain1D[T] = domain min that
+    // treat open < closed at the same point
+    infix def maxEnd(that: Domain1D[T]): Domain1D[T] =
+      List(domain, that).max(using Domain1D.endOrdering)
 
-      // treat open < closed at the same point
-      infix def minEnd(that: Domain1D[T]): Domain1D[T] =
-        List(domain, that).min(using Domain1D.endOrdering)
+    // treat open > closed at the same point by using the default ordering
+    infix def minStart(that: Domain1D[T]): Domain1D[T] = domain min that
 
-      /**
-        * Cross this domain element with that domain element to arrive at a new two-dimensional domain element.
-        *
-        * @param that
-        *   a one-dimensional domain element to be used as the vertical dimension.
-        * @tparam T2
-        *   domain value type for that domain.
-        * @return
-        *   a new two-dimensional domain element with this as the horizontal component and that as the vertical
-        *   component.
-        */
-      infix def x[T2: DomainValueLike](that: Domain1D[T2]): Domain2D[T, T2] =
-        Domain2D(domain, that)
+    // treat open < closed at the same point
+    infix def minEnd(that: Domain1D[T]): Domain1D[T] =
+      List(domain, that).min(using Domain1D.endOrdering)
+
+    def validIntervalStartWithEnd[D: DomainValueLike](end: Domain1D[T]): Boolean =
+      (domain, end) match
+        // strictly less than - excludes when values are equal
+        case _ if (domain beforeEnd end) && (end afterStart domain) => true
+        case (Point(cs), Point(ce)) if cs == ce => true // interval at a point is valid when bounds are closed,
+        // case (Top, Top) | (Bottom, Bottom)      => true // or the special cases where it is an interval at top or
+        // bottom
+        case _ => false // otherwise invalid: e is before s, or they're equal with open bound(s)
 
   /**
     * This ordering sorts Bottoms and Tops correctly and leverages the domain value ordering for the data points in
@@ -271,3 +299,16 @@ object Domain1D:
     * multitude of overloaded methods (which are especially problematic when combined with default parameters).
     */
   given [T](using domainValue: DomainValueLike[T]): Conversion[T, Domain1D[T]] = Point(_)
+
+  /**
+    * Wrap 1D domain as a tuple so 1D doesn't have to be domain-like itself to be used as a domain
+    */
+  given [T]: Conversion[Domain1D[T], Domain.In1D[T]] = _ *: EmptyTuple
+
+  /**
+    * Other conversions take domain values `T => Domain1D[T]` and `Domain1D[T] => Domain.In1D[T]` (which is
+    * `DomainLike`). But these conversions don't seem to stack, i.e., they aren't applied when a domain value of `T` is
+    * available in a context requiring something that is `DomainLike`. So this one goes strait from a domain value `T`
+    * directly to a domain, i.e., `T => Domain.In1D[T]`
+    */
+  given [T](using domainValue: DomainValueLike[T]): Conversion[T, Domain.In1D[T]] = Point(_) *: EmptyTuple

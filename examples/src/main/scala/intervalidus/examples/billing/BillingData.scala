@@ -1,8 +1,8 @@
 package intervalidus.examples.billing
 
 import intervalidus.DiscreteValue.given
-import intervalidus.Interval1D
-import intervalidus.immutable.DataIn1D
+import intervalidus.*
+import intervalidus.immutable.Data
 
 import java.time.LocalDate
 import scala.language.implicitConversions
@@ -42,13 +42,13 @@ object BillingData:
   import Interval1D.intervalFromAfter
 
   // Tiers, where rates can vary over time
-  case class Tier(id: TierId, description: String, dailyRates: DataIn1D[Dollars, LocalDate]):
+  case class Tier(id: TierId, description: String, dailyRates: Data.In1D[Dollars, LocalDate]):
     def withId: (TierId, Tier) = id -> this
     override def toString: String = s"[$description ($id)]"
 
   object Tier:
     // Test tiers, where on April 20, the rates go up 20% (basic from $1.00 to $1.20, premium from $1.50 to $1.80)
-    private val basicDailyRate = DataIn1D.of[Dollars, LocalDate](1.0).set(intervalFromAfter(Apr / 20) -> 1.2)
+    private val basicDailyRate = Data.of[Dollars, Domain.In1D[LocalDate]](1.0).set(intervalFromAfter(Apr / 20) -> 1.2)
     val basic: Tier = Tier(TierId(1), "basic", basicDailyRate)
     val premium: Tier = Tier(TierId(2), "premium", basicDailyRate.mapValues(_ * 1.5))
     val all: Map[TierId, Tier] = Map.from(Seq(basic.withId, premium.withId))

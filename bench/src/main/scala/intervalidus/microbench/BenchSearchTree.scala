@@ -5,7 +5,6 @@ import intervalidus.*
 import intervalidus.Interval1D.interval
 import org.openjdk.jmh.annotations.*
 
-import java.util.concurrent.TimeUnit
 import scala.language.implicitConversions
 
 object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"), featuredFeature = None):
@@ -14,28 +13,21 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
 
   //// --- Mutable Bases ---
 
-  abstract class GenericMutableBench[
-    D: DomainLike,
-    I <: IntervalLike[D, I],
-    ValidData <: ValidDataLike[String, D, I, ValidData],
-    DiffAction: DiffActionLike,
-    DimData <: mutable.MutableBase[String, D, I, ValidData, DiffAction, DimData] &
-      DimensionalBase[String, D, I, ValidData, DiffAction, ?]
-  ](
+  abstract class GenericMutableBench[D <: NonEmptyTuple: DomainLike, DimData <: mutable.Data[String, D]](
     intervalRange: Int,
-    data: Vector[ValidData],
+    data: Vector[ValidData[String, D]],
     baselineData: => DimData,
     featuredData: => DimData,
     randDomain: () => D,
-    randInterval: Int => I,
-    randValue: Int => ValidData,
-    randValueWithKey: ValidData => ValidData
+    randInterval: Int => Interval[D],
+    randValue: Int => ValidData[String, D],
+    randValueWithKey: ValidData[String, D] => ValidData[String, D]
   ) extends GenericBench:
     // For replace and replaceByKey, as using totally random data may have unrealistically low hit rates.
     // (vector random access should be superfast)
     val dataSize = data.size
 
-    def useExisting(): ValidData = data(rand.nextInt(dataSize))
+    def useExisting(): ValidData[String, D] = data(rand.nextInt(dataSize))
 
     //// Baseline
 
@@ -46,7 +38,7 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
     def baselineIntersects: Boolean = baselineData.intersects(randInterval(intervalRange))
 
     @Benchmark
-    def baselineGetIntersecting: Iterable[ValidData] =
+    def baselineGetIntersecting: Iterable[ValidData[String, D]] =
       baselineData.getIntersecting(randInterval(intervalRange))
 
     @Benchmark
@@ -83,7 +75,8 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
     def featuredIntersects: Boolean = featuredData.intersects(randInterval(intervalRange))
 
     @Benchmark
-    def featuredGetIntersecting: Iterable[ValidData] = featuredData.getIntersecting(randInterval(intervalRange))
+    def featuredGetIntersecting: Iterable[ValidData[String, D]] =
+      featuredData.getIntersecting(randInterval(intervalRange))
 
     @Benchmark
     def featuredSet: Unit = featuredData.set(randValue(intervalRange))
@@ -109,26 +102,22 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
 
   abstract class GenericMutable1dBench(
     intervalRange: Int,
-    data: Vector[ValidData1D[String, Int]],
-    baselineData: => mutable.DataIn1D[String, Int],
-    featuredData: => mutable.DataIn1D[String, Int]
+    data: Vector[ValidData.In1D[String, Int]],
+    baselineData: => mutable.Data.In1D[String, Int],
+    featuredData: => mutable.Data.In1D[String, Int]
   ) extends GenericMutableBench[
-      Domain1D[Int],
-      Interval1D[Int],
-      ValidData1D[String, Int],
-      DiffAction1D[String, Int],
-      mutable.DataIn1D[String, Int]
+      Domain.In1D[Int],
+      mutable.Data.In1D[String, Int]
     ](intervalRange, data, baselineData, featuredData, randDomain1d, randInterval1d, randValue1d, randValue1dWithKey):
     val fullRangeInterval = interval(fullRangeMin, fullRangeMax)
     val hits = data.map(_.interval)
     val hitsSize = hits.size
-    val gaps = Interval1D.complement(hits).flatMap(_.intersectionWith(fullRangeInterval)).toVector
+    val gaps = Interval.complement(hits).flatMap(_.intersectionWith(fullRangeInterval)).toVector
     val gapsSize = gaps.size
     println(s"hit intervals=$hitsSize; gap intervals=$gapsSize")
 
-    def randDomainInInterval1d(i: Interval1D[Int]): Domain1D[Int] = i match
-      case Interval1D(Domain1D.Point(start), Domain1D.Point(end)) =>
-        start + rand.nextInt(end - start + 1)
+    def randDomainInInterval1d(i: Interval.In1D[Int]): Domain1D[Int] = i.headInterval1D[Int] match
+      case Interval1D(Domain1D.Point(start), Domain1D.Point(end)) => start + rand.nextInt(end - start + 1)
       case unexpected => throw new Exception(s"unexpected result: $unexpected")
 
     def randHit(): Domain1D[Int] = randDomainInInterval1d(hits(rand.nextInt(hitsSize)))
@@ -149,85 +138,55 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
 
   abstract class GenericMutable2dBench(
     intervalRange: Int,
-    data: Vector[ValidData2D[String, Int, Int]],
-    baselineData: => mutable.DataIn2D[String, Int, Int],
-    featuredData: => mutable.DataIn2D[String, Int, Int]
+    data: Vector[ValidData.In2D[String, Int, Int]],
+    baselineData: => mutable.Data.In2D[String, Int, Int],
+    featuredData: => mutable.Data.In2D[String, Int, Int]
   ) extends GenericMutableBench[
-      Domain2D[Int, Int],
-      Interval2D[Int, Int],
-      ValidData2D[String, Int, Int],
-      DiffAction2D[String, Int, Int],
-      mutable.DataIn2D[String, Int, Int]
+      Domain.In2D[Int, Int],
+      mutable.Data.In2D[String, Int, Int]
     ](intervalRange, data, baselineData, featuredData, randDomain2d, randInterval2d, randValue2d, randValue2dWithKey):
 
     @Benchmark
-    def baselineGetByHorizontalIndex: mutable.DataIn1D[String, Int] = baselineData.getByHorizontalIndex(randDomain1d())
-
-    @Benchmark
-    def baselineGetByVerticalIndex: mutable.DataIn1D[String, Int] = baselineData.getByVerticalIndex(randDomain1d())
-
-    @Benchmark
-    def featuredGetByHorizontalIndex: mutable.DataIn1D[String, Int] = featuredData.getByHorizontalIndex(randDomain1d())
-
-    @Benchmark
-    def featuredGetByVerticalIndex: mutable.DataIn1D[String, Int] = featuredData.getByVerticalIndex(randDomain1d())
+    def baselineGetByHeadIndex: mutable.Data.In1D[String, Int] = baselineData.getByHeadIndex(randDomain1d())
 
   abstract class GenericMutable3dBench(
     intervalRange: Int,
-    data: Vector[ValidData3D[String, Int, Int, Int]],
-    baselineData: => mutable.DataIn3D[String, Int, Int, Int],
-    featuredData: => mutable.DataIn3D[String, Int, Int, Int]
+    data: Vector[ValidData.In3D[String, Int, Int, Int]],
+    baselineData: => mutable.Data.In3D[String, Int, Int, Int],
+    featuredData: => mutable.Data.In3D[String, Int, Int, Int]
   ) extends GenericMutableBench[
-      Domain3D[Int, Int, Int],
-      Interval3D[Int, Int, Int],
-      ValidData3D[String, Int, Int, Int],
-      DiffAction3D[String, Int, Int, Int],
-      mutable.DataIn3D[String, Int, Int, Int]
+      Domain.In3D[Int, Int, Int],
+      mutable.Data.In3D[String, Int, Int, Int]
     ](intervalRange, data, baselineData, featuredData, randDomain3d, randInterval3d, randValue3d, randValue3dWithKey):
 
     @Benchmark
-    def baselineGetByHorizontalIndex: mutable.DataIn2D[String, Int, Int] =
-      baselineData.getByHorizontalIndex(randDomain1d())
+    def baselineGetByHeadIndex: mutable.Data.In2D[String, Int, Int] =
+      baselineData.getByHeadIndex(randDomain1d())
 
     @Benchmark
-    def baselineGetByVerticalIndex: mutable.DataIn2D[String, Int, Int] = baselineData.getByVerticalIndex(randDomain1d())
-
-    @Benchmark
-    def baselineGetByDepthIndex: mutable.DataIn2D[String, Int, Int] = baselineData.getByDepthIndex(randDomain1d())
-
-    @Benchmark
-    def featuredGetByHorizontalIndex: mutable.DataIn2D[String, Int, Int] =
-      featuredData.getByHorizontalIndex(randDomain1d())
-
-    @Benchmark
-    def featuredGetByVerticalIndex: mutable.DataIn2D[String, Int, Int] = featuredData.getByVerticalIndex(randDomain1d())
-
-    @Benchmark
-    def featuredGetByDepthIndex: mutable.DataIn2D[String, Int, Int] = featuredData.getByDepthIndex(randDomain1d())
+    def featuredGetByHeadIndex: mutable.Data.In2D[String, Int, Int] =
+      featuredData.getByHeadIndex(randDomain1d())
 
   //// --- Immutable Bases ---
 
   abstract class GenericImmutableBench[
-    D: DomainLike,
-    I <: IntervalLike[D, I],
-    ValidData <: ValidDataLike[String, D, I, ValidData],
-    DiffAction: DiffActionLike,
-    DimData <: immutable.ImmutableBase[String, D, I, ValidData, DiffAction, DimData]
+    D <: NonEmptyTuple: DomainLike,
+    DimData <: immutable.Data[String, D]
   ](
     intervalRange: Int,
-    data: Vector[ValidData],
+    data: Vector[ValidData[String, D]],
     baselineData: => DimData,
     featuredData: => DimData,
     randDomain: () => D,
-    randInterval: Int => I,
-    randValue: Int => ValidData,
-    randValueWithKey: ValidData => ValidData
+    randInterval: Int => Interval[D],
+    randValue: Int => ValidData[String, D],
+    randValueWithKey: ValidData[String, D] => ValidData[String, D]
   ) extends GenericBench:
     // For replace and replaceByKey, as using totally random data may have unrealistically low hit rates.
     // (vector random access should be superfast)
     val dataSize = data.size
 
-    def useExisting(): ValidData = data(rand.nextInt(dataSize))
+    def useExisting(): ValidData[String, D] = data(rand.nextInt(dataSize))
 
     //// Baseline
 
@@ -238,31 +197,32 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
     def baselineIntersects: Boolean = baselineData.intersects(randInterval(intervalRange))
 
     @Benchmark
-    def baselineGetIntersecting: Iterable[ValidData] = baselineData.getIntersecting(randInterval(intervalRange))
+    def baselineGetIntersecting: Iterable[ValidData[String, D]] =
+      baselineData.getIntersecting(randInterval(intervalRange))
 
     @Benchmark
-    def baselineSet: DimData = baselineData.set(randValue(intervalRange))
+    def baselineSet: immutable.Data[String, D] = baselineData.set(randValue(intervalRange))
 
     @Benchmark
-    def baselineSetIfNoConflict: Option[DimData] =
+    def baselineSetIfNoConflict: Option[immutable.Data[String, D]] =
       baselineData.setIfNoConflict(randValue(intervalRange))
 
     @Benchmark
-    def baselineUpdate: DimData = baselineData.update(randValue(intervalRange))
+    def baselineUpdate: immutable.Data[String, D] = baselineData.update(randValue(intervalRange))
 
     // The problem with the remove benchmark was that, by using standard intervals in 1D, it winds up removing
     // all the data in warmup. So the benchmark winds up being unrealistically fast because it is running against
     // an empty structure. Here we limit the size of the intervals removed to allow for more data to be leftover.
     @Benchmark
-    def baselineRemove: DimData = baselineData.remove(randInterval(1)) // tiny interval
+    def baselineRemove: immutable.Data[String, D] = baselineData.remove(randInterval(1)) // tiny interval
 
     @Benchmark
-    def baselineReplace: DimData =
+    def baselineReplace: immutable.Data[String, D] =
       val existing = useExisting()
       baselineData.replace(existing, randValueWithKey(existing))
 
     @Benchmark
-    def baselineReplaceByKey: DimData =
+    def baselineReplaceByKey: immutable.Data[String, D] =
       val existing = useExisting()
       baselineData.replaceByKey(existing.interval.start, randValueWithKey(existing))
 
@@ -275,53 +235,50 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
     def featuredIntersects: Boolean = featuredData.intersects(randInterval(intervalRange))
 
     @Benchmark
-    def featuredGetIntersecting: Iterable[ValidData] = featuredData.getIntersecting(randInterval(intervalRange))
+    def featuredGetIntersecting: Iterable[ValidData[String, D]] =
+      featuredData.getIntersecting(randInterval(intervalRange))
 
     @Benchmark
-    def featuredSet: DimData = featuredData.set(randValue(intervalRange))
+    def featuredSet: immutable.Data[String, D] = featuredData.set(randValue(intervalRange))
 
     @Benchmark
-    def featuredSetIfNoConflict: Option[DimData] =
+    def featuredSetIfNoConflict: Option[immutable.Data[String, D]] =
       featuredData.setIfNoConflict(randValue(intervalRange))
 
     @Benchmark
-    def featuredUpdate: DimData = featuredData.update(randValue(intervalRange))
+    def featuredUpdate: immutable.Data[String, D] = featuredData.update(randValue(intervalRange))
 
     @Benchmark
-    def featuredRemove: DimData = featuredData.remove(randInterval(1))
+    def featuredRemove: immutable.Data[String, D] = featuredData.remove(randInterval(1))
 
     @Benchmark
-    def featuredReplace: DimData =
+    def featuredReplace: immutable.Data[String, D] =
       val existing = useExisting()
       featuredData.replace(existing, randValueWithKey(existing))
 
     @Benchmark
-    def featuredReplaceByKey: DimData =
+    def featuredReplaceByKey: immutable.Data[String, D] =
       val existing = useExisting()
       featuredData.replaceByKey(existing.interval.start, randValueWithKey(existing))
 
   abstract class GenericImmutable1dBench(
     intervalRange: Int,
-    data: Vector[ValidData1D[String, Int]],
-    baselineData: => immutable.DataIn1D[String, Int],
-    featuredData: => immutable.DataIn1D[String, Int]
+    data: Vector[ValidData.In1D[String, Int]],
+    baselineData: => immutable.Data.In1D[String, Int],
+    featuredData: => immutable.Data.In1D[String, Int]
   ) extends GenericImmutableBench[
-      Domain1D[Int],
-      Interval1D[Int],
-      ValidData1D[String, Int],
-      DiffAction1D[String, Int],
-      immutable.DataIn1D[String, Int]
+      Domain.In1D[Int],
+      immutable.Data.In1D[String, Int]
     ](intervalRange, data, baselineData, featuredData, randDomain1d, randInterval1d, randValue1d, randValue1dWithKey):
     val fullRangeInterval = interval(fullRangeMin, fullRangeMax)
     val hits = data.map(_.interval)
     val hitsSize = hits.size
-    val gaps = Interval1D.complement(hits).flatMap(_.intersectionWith(fullRangeInterval)).toVector
+    val gaps = Interval.complement(hits).flatMap(_.intersectionWith(fullRangeInterval)).toVector
     val gapsSize = gaps.size
     println(s"hit intervals=$hitsSize; gap intervals=$gapsSize")
 
-    def randDomainInInterval1d(i: Interval1D[Int]): Domain1D[Int] = i match
-      case Interval1D(Domain1D.Point(start), Domain1D.Point(end)) =>
-        start + rand.nextInt(end - start + 1)
+    def randDomainInInterval1d(i: Interval.In1D[Int]): Domain1D[Int] = i.headInterval1D[Int] match
+      case Interval1D(Domain1D.Point(start), Domain1D.Point(end)) => start + rand.nextInt(end - start + 1)
       case unexpected => throw new Exception(s"unexpected result: $unexpected")
 
     def randHit(): Domain1D[Int] = randDomainInInterval1d(hits(rand.nextInt(hitsSize)))
@@ -342,65 +299,39 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
 
   abstract class GenericImmutable2dBench(
     intervalRange: Int,
-    data: Vector[ValidData2D[String, Int, Int]],
-    baselineData: => immutable.DataIn2D[String, Int, Int],
-    featuredData: => immutable.DataIn2D[String, Int, Int]
+    data: Vector[ValidData.In2D[String, Int, Int]],
+    baselineData: => immutable.Data.In2D[String, Int, Int],
+    featuredData: => immutable.Data.In2D[String, Int, Int]
   ) extends GenericImmutableBench[
-      Domain2D[Int, Int],
-      Interval2D[Int, Int],
-      ValidData2D[String, Int, Int],
-      DiffAction2D[String, Int, Int],
-      immutable.DataIn2D[String, Int, Int]
+      Domain.In2D[Int, Int],
+      immutable.Data.In2D[String, Int, Int]
     ](intervalRange, data, baselineData, featuredData, randDomain2d, randInterval2d, randValue2d, randValue2dWithKey):
 
     @Benchmark
-    def baselineGetByHorizontalIndex: immutable.DataIn1D[String, Int] =
-      baselineData.getByHorizontalIndex(randDomain1d())
+    def baselineGetByHeadIndex: immutable.Data.In1D[String, Int] =
+      baselineData.getByHeadIndex(randDomain1d())
 
     @Benchmark
-    def baselineGetByVerticalIndex: immutable.DataIn1D[String, Int] = baselineData.getByVerticalIndex(randDomain1d())
-
-    @Benchmark
-    def featuredGetByHorizontalIndex: immutable.DataIn1D[String, Int] =
-      featuredData.getByHorizontalIndex(randDomain1d())
-
-    @Benchmark
-    def featuredGetByVerticalIndex: immutable.DataIn1D[String, Int] = featuredData.getByVerticalIndex(randDomain1d())
+    def featuredGetByHeadIndex: immutable.Data.In1D[String, Int] =
+      featuredData.getByHeadIndex(randDomain1d())
 
   abstract class GenericImmutable3dBench(
     intervalRange: Int,
-    data: Vector[ValidData3D[String, Int, Int, Int]],
-    baselineData: => immutable.DataIn3D[String, Int, Int, Int],
-    featuredData: => immutable.DataIn3D[String, Int, Int, Int]
+    data: Vector[ValidData.In3D[String, Int, Int, Int]],
+    baselineData: => immutable.Data.In3D[String, Int, Int, Int],
+    featuredData: => immutable.Data.In3D[String, Int, Int, Int]
   ) extends GenericImmutableBench[
-      Domain3D[Int, Int, Int],
-      Interval3D[Int, Int, Int],
-      ValidData3D[String, Int, Int, Int],
-      DiffAction3D[String, Int, Int, Int],
-      immutable.DataIn3D[String, Int, Int, Int]
+      Domain.In3D[Int, Int, Int],
+      immutable.Data.In3D[String, Int, Int, Int]
     ](intervalRange, data, baselineData, featuredData, randDomain3d, randInterval3d, randValue3d, randValue3dWithKey):
 
     @Benchmark
-    def baselineGetByHorizontalIndex: immutable.DataIn2D[String, Int, Int] =
-      baselineData.getByHorizontalIndex(randDomain1d())
+    def baselineGetByHeadIndex: immutable.Data.In2D[String, Int, Int] =
+      baselineData.getByHeadIndex[Int](randDomain1d())
 
     @Benchmark
-    def baselineGetByVerticalIndex: immutable.DataIn2D[String, Int, Int] =
-      baselineData.getByVerticalIndex(randDomain1d())
-
-    @Benchmark
-    def baselineGetByDepthIndex: immutable.DataIn2D[String, Int, Int] = baselineData.getByDepthIndex(randDomain1d())
-
-    @Benchmark
-    def featuredGetByHorizontalIndex: immutable.DataIn2D[String, Int, Int] =
-      featuredData.getByHorizontalIndex(randDomain1d())
-
-    @Benchmark
-    def featuredGetByVerticalIndex: immutable.DataIn2D[String, Int, Int] =
-      featuredData.getByVerticalIndex(randDomain1d())
-
-    @Benchmark
-    def featuredGetByDepthIndex: immutable.DataIn2D[String, Int, Int] = featuredData.getByDepthIndex(randDomain1d())
+    def featuredGetByHeadIndex: immutable.Data.In2D[String, Int, Int] =
+      featuredData.getByHeadIndex(randDomain1d())
 
   //// --- Concrete Benchmark Classes ---
 

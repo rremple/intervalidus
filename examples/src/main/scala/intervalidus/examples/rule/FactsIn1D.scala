@@ -1,7 +1,7 @@
 package intervalidus.examples.rule
 
 import intervalidus.DiscreteValue.given
-import intervalidus.immutable.DataIn1D
+import intervalidus.immutable.Data
 import intervalidus.Interval1D.*
 import intervalidus.tinyrule.*
 
@@ -96,16 +96,21 @@ object FactsIn1D:
   )
 
   /*
+   * Represent timebound data as data valid in discrete date intervals
+   */
+  type Timebound[V] = Data.In1D[V, LocalDate]
+
+  /*
    * Test data progress, where the value of each attribute can vary over time (apart from the id)
    */
   case class PatientProgress(
     patientId: String,
-    gender: DataIn1D[String, LocalDate],
-    trialGroup: DataIn1D[Int, LocalDate],
-    ageBracket: DataIn1D[String, LocalDate],
-    minor: DataIn1D[Boolean, LocalDate],
-    bloodPressureCategory: DataIn1D[String, LocalDate],
-    hypertension: DataIn1D[Boolean, LocalDate]
+    gender: Timebound[String],
+    trialGroup: Timebound[Int],
+    ageBracket: Timebound[String],
+    minor: Timebound[Boolean],
+    bloodPressureCategory: Timebound[String],
+    hypertension: Timebound[Boolean]
   ):
     override def toString: String = s"PatientProgress for $patientId:\n" +
       s"gender:\n$gender\n" +
@@ -185,7 +190,7 @@ object FactsIn1D:
 
   def main(args: Array[String]): Unit =
     val initialProgress = Map[String, PatientProgress]().withDefault: id =>
-      PatientProgress(id, DataIn1D(), DataIn1D(), DataIn1D(), DataIn1D(), DataIn1D(), DataIn1D())
+      PatientProgress(id, Data(), Data(), Data(), Data(), Data(), Data())
 
     // run through many days of turning records into results into progress
     val patientProgressById = (0 until 20).foldLeft(initialProgress)(updateProgress(LocalDate.now()))

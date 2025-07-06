@@ -1,14 +1,14 @@
 package intervalidus.mutable
 
 import intervalidus.*
-import org.scalatest.compatible.Assertion
+import intervalidus.DomainLike.given
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
 import scala.language.implicitConversions
 
 /**
-  * Behaviors that only depend on the mutable base trait methods (do not differ in 1D, 2D, or 3D).
+  * Behaviors that only depend on the mutable base trait methods (common in all dimensions).
   *
   * Methods tested here: set, setIfNoConflict, replace, replaceByKey, remove, fill, update, filter, compress,
   * compressAll, map, mapValues, flatMap
@@ -21,18 +21,16 @@ trait MutableBaseBehaviors:
   import Interval1D.*
 
   def mutableBaseTests[
-    D: DomainLike,
-    I <: IntervalLike[D, I],
-    ValidData <: ValidDataLike[String, D, I, ValidData],
-    DiffAction: DiffActionLike,
-    S <: MutableBase[String, D, I, ValidData, DiffAction, S] & DimensionalBase[String, D, I, ValidData, DiffAction, ?]
+    D <: NonEmptyTuple: DomainLike,
+    S <: Data[String, D]
   ](
-    mutableFrom: Experimental ?=> Iterable[ValidData] => S,
-    intervalFrom1D: Interval1D[Int] => I,
-    dataFrom1D: (Interval1D[Int], String) => ValidData,
-    mapF: ValidData => ValidData,
-    fullyUnbound: I
+    mutableFrom: Experimental ?=> Iterable[ValidData[String, D]] => S,
+    intervalFrom1D: Interval1D[Int] => Interval[D],
+    mapF: ValidData[String, D] => ValidData[String, D]
   )(using Experimental, DomainValueLike[Int]): Unit =
+    def dataFrom1D(interval1D: Interval1D[Int], v: String): ValidData[String, D] =
+      intervalFrom1D(interval1D) -> v
+
     test("Mutable: Adding and removing data in intervals"):
       val allData = List(
         dataFrom1D(interval(0, 10), "Hello"),
@@ -109,8 +107,8 @@ trait MutableBaseBehaviors:
       )
       fixture.getAll.toList shouldBe expectedFilled
 
-      val data1 = DataIn1D[String, Int](Seq(intervalFrom(1).to(3) -> "A", intervalFrom(5) -> "B"))
-      val data2 = DataIn1D[String, Int](Seq(intervalFrom(2).to(4) -> "C", intervalFrom(6) -> "D"))
+      val data1 = Data(Seq(intervalFrom(1).to(3) -> "A", intervalFrom(5) -> "B"))
+      val data2 = Data(Seq(intervalFrom(2).to(4) -> "C", intervalFrom(6) -> "D"))
       // Default merge operation will "prioritize left"
       val defaultMerge = data1.copy
       defaultMerge.merge(data2)
@@ -178,7 +176,7 @@ trait MutableBaseBehaviors:
       )
 
       val fixture1: S = mutableFrom(allData)
-      fixture1.domain.toList shouldBe List(fullyUnbound)
+      fixture1.domain.toList shouldBe List(Interval.unbounded[D])
       fixture1.domainComplement.toList shouldBe List.empty
       fixture1.compress("Hello")
       val expectedData1 = List(
@@ -188,7 +186,7 @@ trait MutableBaseBehaviors:
         dataFrom1D(intervalFrom(7), "Hello")
       )
       fixture1.getAll.toList shouldBe expectedData1
-      fixture1.domain.toList shouldBe List(fullyUnbound)
+      fixture1.domain.toList shouldBe List(Interval.unbounded[D])
       fixture1.domainComplement.toList shouldBe List.empty
 
       val fixture2 = mutableFrom(allData)
@@ -199,7 +197,7 @@ trait MutableBaseBehaviors:
         dataFrom1D(intervalFrom(7), "Hello")
       )
       fixture2.getAll.toList shouldBe expectedData2
-      fixture2.domain.toList shouldBe List(fullyUnbound)
+      fixture2.domain.toList shouldBe List(Interval.unbounded[D])
       fixture2.domainComplement.toList shouldBe List.empty
 
     test("Mutable: Updating data in intervals"):

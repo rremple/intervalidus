@@ -2,6 +2,8 @@ package intervalidus.mutable
 
 import intervalidus.*
 import intervalidus.DiscreteValue.given
+import intervalidus.DomainLike.given
+import intervalidus.Domain.In4D as Dim
 import org.scalatest.compatible.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
@@ -14,41 +16,29 @@ class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors 
   import Interval1D.*
 
   // shared
-  testsFor(stringLookupTests("Mutable", DataIn4D(_), DataIn4D.of(_)))
+  testsFor(stringLookupTests("Mutable", Data(_), Data.of(_)))
+
   testsFor(
-    stringLookupTests("Mutable [experimental noSearchTree]", DataIn4D(_), DataIn4D.of(_))(using
-      Experimental("noSearchTree")
-    )
-  )
-  testsFor(
-    mutableBaseTests[
-      Domain4D[LocalDate, LocalDate, Int, Int],
-      Interval4D[LocalDate, LocalDate, Int, Int],
-      ValidData4D[String, LocalDate, LocalDate, Int, Int],
-      DiffAction4D[String, LocalDate, LocalDate, Int, Int],
-      DataIn4D[String, LocalDate, LocalDate, Int, Int]
-    ](
-      ds => DataIn4D(ds),
+    mutableBaseTests[Dim[LocalDate, LocalDate, Int, Int], Data[String, Dim[LocalDate, LocalDate, Int, Int]]](
+      Data(_),
       i => unbounded[LocalDate] x unbounded[LocalDate] x i x unbounded[Int],
-      (i, s) => (unbounded[LocalDate] x unbounded[LocalDate] x i x unbounded[Int]) -> s,
       d =>
         d.copy(
           value = d.value + "!",
-          interval = d.interval.withDepthUpdate(_.to(d.interval.depth.end.leftAdjacent))
-        ),
-      Interval4D.unbounded
+          interval = d.interval.to(d.interval.end.leftAdjacent)
+        )
     )
   )
 
   override def assertRemoveOrUpdateResult(
-    removeExpectedUnsorted: ValidData4D[String, Int, Int, Int, Int]*
+    removeExpectedUnsorted: ValidData[String, Dim[Int, Int, Int, Int]]*
   )(
-    removeOrUpdateInterval: Interval4D[Int, Int, Int, Int],
+    removeOrUpdateInterval: Interval[Dim[Int, Int, Int, Int]],
     updateValue: String = "update"
   )(using Experimental): Assertion =
     val hypercube = interval(-9, 9) x interval(-9, 9) x interval(-9, 9) x interval(-9, 9)
-    val removeFixture = DataIn4D.of(hypercube -> "World")
-    val updateFixture = DataIn4D.of(hypercube -> "World")
+    val removeFixture = Data.of(hypercube -> "World")
+    val updateFixture = Data.of(hypercube -> "World")
     val expectedUpdateInterval = removeOrUpdateInterval ∩ hypercube match
       case Some(intersection) => intersection
       case None               => fail("Test failed, no intersection with the cube")
@@ -73,13 +63,12 @@ class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors 
         throw ex
 
   testsFor(removeOrUpdateTests("Mutable"))
-  testsFor(removeOrUpdateTests("Mutable [experimental noSearchTree]")(using Experimental("noSearchTree")))
 
-  def vertical4D[T2: DiscreteValue](interval3: Interval1D[T2]): Interval4D[LocalDate, LocalDate, T2, Int] =
+  def vertical4D[T2: DiscreteValue](interval3: Interval1D[T2]): Interval[Dim[LocalDate, LocalDate, T2, Int]] =
     unbounded[LocalDate] x unbounded[LocalDate] x interval3 x unbounded[Int]
 
   test("Mutable: Constructors and getting data by index"):
-    val empty: DataIn4D[String, Int, Int, Int, Int] = DataIn4D()
+    val empty: Data[String, Dim[Int, Int, Int, Int]] = Data()
     assert(empty.getAll.isEmpty)
     assert(empty.domain.isEmpty)
 
@@ -87,61 +76,33 @@ class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors 
       (intervalTo(day(14)) x intervalTo(day(14)) x interval(0, 10) x unbounded[Int]) -> "Hello",
       (intervalFrom(day(1)) x intervalFrom(day(1)) x intervalFrom(11) x unbounded[Int]) -> "World"
     )
-    val fixture = immutable.DataIn4D(allData).toImmutable.toMutable
+    val fixture = immutable.Data(allData).toImmutable.toMutable
+    fixture.getAll.toList shouldBe allData
 
-    fixture.getByHorizontalIndex(dayZero).getByHorizontalIndex(dayZero).getByHorizontalIndex(0).getAt(0) shouldBe Some(
-      "Hello"
-    )
-    fixture.getByVerticalIndex(dayZero).getByHorizontalIndex(dayZero).getByVerticalIndex(0).getAt(0) shouldBe Some(
-      "Hello"
-    )
-    fixture.getByDepthIndex(11).getByDepthIndex(0).getByHorizontalIndex(day(1)).getAt(day(1)) shouldBe Some("World")
-    fixture.getByFourthIndex(0).getByDepthIndex(11).getByHorizontalIndex(day(1)).getAt(day(1)) shouldBe Some("World")
-
-  test("Mutable [experimental noSearchTree]: Constructors and getting data by index"):
-    given Experimental = Experimental("noSearchTree")
-
-    val empty: DataIn4D[String, Int, Int, Int, Int] = DataIn4D()
-    assert(empty.getAll.isEmpty)
-    assert(empty.domain.isEmpty)
-
-    val allData = List(
-      (intervalTo(day(14)) x intervalTo(day(14)) x interval(0, 10) x unbounded[Int]) -> "Hello",
-      (intervalFrom(day(1)) x intervalFrom(day(1)) x intervalFrom(11) x unbounded[Int]) -> "World"
-    )
-    val fixture = mutable.DataIn4D(allData).toMutable.toImmutable
-
-    fixture.getByHorizontalIndex(dayZero).getByHorizontalIndex(dayZero).getByHorizontalIndex(0).getAt(0) shouldBe Some(
-      "Hello"
-    )
-    fixture.getByVerticalIndex(dayZero).getByHorizontalIndex(dayZero).getByVerticalIndex(0).getAt(0) shouldBe Some(
-      "Hello"
-    )
-    fixture.getByDepthIndex(11).getByDepthIndex(0).getByHorizontalIndex(day(1)).getAt(day(1)) shouldBe Some("World")
-    fixture.getByFourthIndex(0).getByDepthIndex(11).getByHorizontalIndex(day(1)).getAt(day(1)) shouldBe Some("World")
+    fixture.getByHeadIndex(dayZero).getByHeadIndex(dayZero).getByHeadIndex(0).getAt(0) shouldBe Some("Hello")
 
   test("Mutable: Simple toString"):
-    val fixturePadData = DataIn4D
-      .of[String, Int, Int, Int, Int]("H")
+    val fixturePadData = Data
+      .of[String, Dim[Int, Int, Int, Int]]("H")
     fixturePadData.set((intervalFrom(1) x intervalTo(0) x interval(1, 9) x unbounded[Int]) -> "W")
     fixturePadData.recompressAll()
     // println(fixturePadData.toString)
     fixturePadData.toString shouldBe
       """|| -∞ .. 0                          | 1 .. +∞                          |
-         |                                   | W (-∞..0] x [1..9] x (-∞..+∞)    |
          || H (-∞..+∞) x (-∞..0] x (-∞..+∞)                                     |
          || H (-∞..+∞) x [1..9] x (-∞..+∞)   |
          || H (-∞..+∞) x [10..+∞) x (-∞..+∞)                                    |
+         |                                   | W (-∞..0] x [1..9] x (-∞..+∞)    |
          |                                   | H [1..+∞) x [1..9] x (-∞..+∞)    |
          |""".stripMargin.replaceAll("\r", "")
 
     val concat = fixturePadData.foldLeft(StringBuilder()): (a, d) =>
-      a.append(d.value).append("->").append(d.interval.start.toString).append(" ")
+      a.append(d.value).append("->").append(d.interval.start.toStringly).append(" ")
     concat.result() shouldBe
       "H->{-∞, -∞, -∞, -∞} H->{-∞, -∞, 1, -∞} H->{-∞, -∞, 10, -∞} W->{1, -∞, 1, -∞} H->{1, 1, 1, -∞} "
 
-    val fixturePadLabel = DataIn4D
-      .of[String, Int, Int, Int, Int]("Helloooooooooo")
+    val fixturePadLabel = Data
+      .of[String, Dim[Int, Int, Int, Int]]("Helloooooooooo")
     fixturePadLabel.set((intervalFrom(1) x unbounded[Int] x unbounded[Int] x unbounded[Int]) -> "Wooooooorld")
     // println(fixturePadLabel.toString)
     fixturePadLabel.toString shouldBe
@@ -158,19 +119,19 @@ class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors 
       (unboundedDate x unboundedDate x interval(20, 25) x unbounded[Int]) -> "!",
       (unboundedDate x unboundedDate x intervalFrom(26) x unbounded[Int]) -> "World"
     )
-    val fixture2 = DataIn4D(expectedData2)
+    val fixture2 = Data(expectedData2)
     val expectedData3 = List(
       (unboundedDate x unboundedDate x intervalTo(4) x unbounded[Int]) -> "Hey",
       (unboundedDate x unboundedDate x interval(5, 15) x unbounded[Int]) -> "to",
       (unboundedDate x unboundedDate x intervalFrom(16) x unbounded[Int]) -> "World"
     )
-    val fixture3 = DataIn4D(expectedData3)
+    val fixture3 = Data(expectedData3)
     val expectedData4 = List(
       (unboundedDate x unboundedDate x intervalTo(4) x unbounded[Int]) -> "Hey",
       (unboundedDate x unboundedDate x intervalFrom(16) x unbounded[Int]) -> "World"
     )
 
-    val fixture = DataIn4D(expectedData4)
+    val fixture = Data(expectedData4)
     fixture.set((intervalFrom(day(1)) x unboundedDate x intervalFrom(1) x unbounded[Int]) -> "remove me")
     fixture.remove(intervalFrom(day(1)) x unboundedDate x intervalFrom(1) x unbounded[Int])
     fixture.recompressAll()
@@ -183,30 +144,30 @@ class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors 
 
     val fixture5 = fixture.copy
 
-    import DiffAction4D.*
-    import Domain1D.{Bottom, Point}
+    import DiffAction.*
+    val bottomInt: Domain1D[Int] = Domain1D.Bottom
 
     val actionsFrom2To3 = fixture3.diffActionsFrom(fixture2)
     actionsFrom2To3.toList shouldBe List(
       Create(vertical4D(intervalTo(4)) -> "Hey"),
-      Delete(Domain4D[Int, Int, Int, Int](Bottom, Bottom, 0, Bottom)),
+      Delete(bottomInt x bottomInt x 0 x bottomInt),
       Update(vertical4D(intervalFrom(16)) -> "World"),
-      Delete(Domain4D[Int, Int, Int, Int](Bottom, Bottom, 20, Bottom)),
-      Delete(Domain4D[Int, Int, Int, Int](Bottom, Bottom, 26, Bottom))
+      Delete(bottomInt x bottomInt x 20 x bottomInt),
+      Delete(bottomInt x bottomInt x 26 x bottomInt)
     )
     actionsFrom2To3.toList.map(_.toCodeLikeString) shouldBe List(
-      "DiffAction4D.Create((unbounded x unbounded x intervalTo(4) x unbounded) -> \"Hey\")",
-      "DiffAction4D.Delete(Bottom x Bottom x Point(0) x Bottom)",
-      "DiffAction4D.Update((unbounded x unbounded x intervalFrom(16) x unbounded) -> \"World\")",
-      "DiffAction4D.Delete(Bottom x Bottom x Point(20) x Bottom)",
-      "DiffAction4D.Delete(Bottom x Bottom x Point(26) x Bottom)"
+      "DiffAction.Create((unbounded x unbounded x intervalTo(4) x unbounded) -> \"Hey\")",
+      "DiffAction.Delete(Bottom x Bottom x Point(0) x Bottom)",
+      "DiffAction.Update((unbounded x unbounded x intervalFrom(16) x unbounded) -> \"World\")",
+      "DiffAction.Delete(Bottom x Bottom x Point(20) x Bottom)",
+      "DiffAction.Delete(Bottom x Bottom x Point(26) x Bottom)"
     )
 
     val actionsFrom3To5 = fixture5.diffActionsFrom(fixture3)
     actionsFrom3To5.toList shouldBe List(
       Update((unboundedDate x unboundedDate x intervalTo(0) x unbounded[Int]) -> "Hey"),
       Create((intervalTo(day(0)) x unboundedDate x interval(1, 4) x unbounded[Int]) -> "Hey"),
-      Delete(Domain4D[Int, Int, Int, Int](Bottom, Bottom, Point(5), Bottom)),
+      Delete(bottomInt x bottomInt x 5 x bottomInt),
       Update((intervalTo(day(0)) x unboundedDate x intervalFrom(16) x unbounded[Int]) -> "World")
     )
     fixture2.applyDiffActions(actionsFrom2To3)
@@ -222,7 +183,7 @@ class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors 
       (unboundedDate x unboundedDate x interval(-1, 1) x unbounded[Int]) -> "Hello",
       (unboundedDate x unboundedDate x intervalFrom(10) x unbounded[Int]) -> "Hello"
     )
-    val fixture = DataIn4D(expectedData3)
+    val fixture = Data(expectedData3)
 
     fixture.set((intervalFrom(day(0)) x unboundedDate x intervalFrom(1) x unbounded[Int]) -> "update me")
     fixture.update((intervalFrom(day(1)) x unboundedDate x intervalFrom(0) x unbounded[Int]) -> "updated me")

@@ -1,5 +1,6 @@
 package intervalidus
 
+import intervalidus.DomainLike.given
 import org.scalatest.compatible.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
@@ -15,13 +16,12 @@ trait DataIn1DBaseBehaviors:
   import Domain1D.Point
   import Interval1D.*
 
-  def stringLookupTests[S <: DataIn1DBase[String, Int]](
+  def stringLookupTests[S <: DimensionalBase.In1D[String, Int]](
     prefix: String,
-    dataIn1DFrom: Experimental ?=> Iterable[ValidData1D[String, Int]] => S,
+    dataIn1DFrom: Experimental ?=> Iterable[ValidData.In1D[String, Int]] => S,
     dataIn1DOf: Experimental ?=> String => S
   )(using Experimental, DomainValueLike[Int]): Unit = test(s"$prefix: Looking up data in intervals"):
     val domainValue = summon[DomainValueLike[Int]]
-
     {
       given Experimental = Experimental("requireDisjoint")
 
@@ -39,7 +39,7 @@ trait DataIn1DBaseBehaviors:
     val single = dataIn1DOf("Hello world")
     single.get shouldBe "Hello world"
     single.getOption shouldBe Some("Hello world")
-    single.domain.toList shouldBe List(unbounded[Int])
+    single.domain.toList shouldBe List(Interval.unbounded[Domain.In1D[Int]])
     single.domainComplement.toList shouldBe List.empty
 
     val bracePunctuation = domainValue.bracePunctuation
@@ -66,8 +66,8 @@ trait DataIn1DBaseBehaviors:
 
     val allData2 = List(interval(0, 10) -> "Hello", intervalFromAfter(10) -> "World")
     val fixture2 = dataIn1DFrom(allData2)
-    fixture2.domain.toList shouldBe List(intervalFrom(0))
-    fixture2.domainComplement.toList shouldBe List(intervalToBefore(0))
+    fixture2.domain.toList shouldBe List(Interval.in1D(intervalFrom(0)))
+    fixture2.domainComplement.toList shouldBe List(Interval.in1D(intervalToBefore(0)))
     fixture2.getAt(5) shouldBe Some("Hello")
     fixture2.getAt(15) shouldBe Some("World")
     fixture2.getAt(-1) shouldBe None
@@ -104,7 +104,7 @@ trait DataIn1DBaseBehaviors:
     fixture4.getAll.toList shouldBe expected4
 
   // https://www.fidelity.com/learning-center/personal-finance/tax-brackets
-  def taxBrackets(using DomainValueLike[Int]): Seq[ValidData1D[Double, Int]] = List( // value is tax rate (a double)
+  def taxBrackets(using DomainValueLike[Int]): Seq[ValidData.In1D[Double, Int]] = List( // value is tax rate (a double)
     interval(1, 23200) -> 0.1,
     interval(23201, 94300) -> 0.12,
     interval(94301, 201050) -> 0.22,
@@ -114,19 +114,19 @@ trait DataIn1DBaseBehaviors:
     intervalFrom(731201) -> 0.37
   )
 
-  def doubleUseCaseTests[S <: DataIn1DBase[Double, Int]](
+  def doubleUseCaseTests[S <: DimensionalBase.In1D[Double, Int]](
     prefix: String,
-    dataIn1DFrom: Iterable[ValidData1D[Double, Int]] => S
+    dataIn1DFrom: Iterable[ValidData.In1D[Double, Int]] => S
   )(using DomainValueLike[Int]): Unit = test(s"$prefix: Practical use case: tax brackets"):
     val fixture: S = dataIn1DFrom(taxBrackets)
 
     def taxUsingFold(income: Int): Double = fixture.foldLeft(0.0): (priorTax, bracket) =>
       bracket.interval match
-        case Interval1D(Point(start), _) if start > income => // bracket above income
+        case Interval(Point(start: Int) *: EmptyTuple, _) if start > income => // bracket above income
           priorTax // no tax in this bracket
-        case Interval1D(Point(start), _) if bracket.interval contains income => // income in bracket
+        case Interval(Point(start: Int) *: EmptyTuple, _) if bracket.interval contains income => // income in bracket
           priorTax + bracket.value * (income - start + 1) // add calculation based on income
-        case Interval1D(Point(start), Point(end)) => // income above bracket
+        case Interval(Point(start: Int) *: EmptyTuple, Point(end: Int) *: EmptyTuple) => // income above bracket
           priorTax + bracket.value * (end - start + 1) // add full tax in this bracket
         case unexpected => fail(s"invalid bracket: $unexpected")
 
@@ -144,7 +144,7 @@ trait DataIn1DBaseBehaviors:
    *  (3) split
    */
   protected def assertRemoveOrUpdateResult(
-    removeExpectedUnsorted: ValidData1D[String, Int]*
+    removeExpectedUnsorted: ValidData.In1D[String, Int]*
   )(
     removeOrUpdateInterval: Interval1D[Int],
     updateValue: String = "update"

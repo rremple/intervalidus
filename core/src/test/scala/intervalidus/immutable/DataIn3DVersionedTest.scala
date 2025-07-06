@@ -2,6 +2,8 @@ package intervalidus.immutable
 
 import intervalidus.*
 import intervalidus.DiscreteValue.given
+import intervalidus.DomainLike.given
+import intervalidus.Domain.In3D as Dim
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
@@ -15,29 +17,19 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
 
   // increment current version with each data element
   def newDataIn3DVersioned(
-    allData: Iterable[ValidData3D[String, Int, Int, Int]]
-  ): DataIn3DVersioned[String, Int, Int, Int] =
-    allData.foldLeft(DataIn3DVersioned[String, Int, Int, Int]()): (dataIn3DVersioned, validData) =>
+    allData: Iterable[ValidData[String, Dim[Int, Int, Int]]]
+  ): DataVersioned[String, Dim[Int, Int, Int]] =
+    allData.foldLeft(DataVersioned[String, Dim[Int, Int, Int]]()): (dataIn3DVersioned, validData) =>
       dataIn3DVersioned
         .set(validData)
         .incrementCurrentVersion()
 
   // shared
-  testsFor(stringLookupTests("Immutable", newDataIn3DVersioned, DataIn3DVersioned(_), DataIn3DVersioned.of(_)))
-  {
-    given Experimental = Experimental("noSearchTree")
-    testsFor(
-      stringLookupTests(
-        "Immutable [experimental noSearchTree]",
-        newDataIn3DVersioned,
-        DataIn3DVersioned(_),
-        DataIn3DVersioned.of(_)
-      )
-    )
-  }
+  testsFor(stringLookupTests("Immutable", newDataIn3DVersioned, DataVersioned(_), DataVersioned.of(_)))
 
   test("Immutable: Adding and removing data in intervals"):
-    val empty: DataIn3DVersioned[String, Int, Int, Int] = mutable.DataIn3DVersioned().toMutable.toImmutable
+    val empty: DataVersioned[String, Dim[Int, Int, Int]] =
+      mutable.DataVersioned[String, Dim[Int, Int, Int]]().toMutable.toImmutable
 
     assertThrows[Exception]: // version too large
       empty.setCurrentVersion(Int.MaxValue)
@@ -83,15 +75,15 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
     // format: off
     fixture2.toString shouldBe
       """current version = 4
-        || 0 .. 4                             | 5 .. 9                             | 10 .. 15                           | 16 .. 19                           | 20 .. 25                           | 26 .. +∞                           |
-        |                                                                          | World (-∞..0] x (-∞..+∞) x [1..1]                                                                                                                 |
-        |                                                                                                               | World (-∞..0] x (-∞..+∞) x [2..2]                                                                            |
-        |                                                                                                               | World (-∞..0] x (-∞..+∞) x [3..+∞) |
-        |                                                                                                                                                                                         | World (-∞..0] x (-∞..+∞) x [3..+∞) |
-        || Hello [0..+∞) x (-∞..+∞) x [0..1]                                       |
-        || Hello [0..+∞) x (-∞..+∞) x [2..+∞) |
-        |                                     | to (-∞..+∞) x (-∞..+∞) x [2..+∞)                                        |
-        |                                                                                                                                                    | ! (-∞..+∞) x (-∞..+∞) x [3..+∞)    |
+        || 0 .. 0                              | 1 .. 1                              | 2 .. 2                              | 3 .. +∞                             |
+        || Hello [0..4] x [0..+∞) x (-∞..+∞)                                                                                                                     |
+        || Hello [5..9] x [0..+∞) x (-∞..+∞)                                         |
+        |                                      | World [10..+∞) x (-∞..0] x (-∞..+∞) |
+        |                                                                            | to [5..15] x (-∞..+∞) x (-∞..+∞)                                          |
+        |                                                                            | World [16..19] x (-∞..0] x (-∞..+∞)                                       |
+        |                                                                            | World [20..+∞) x (-∞..0] x (-∞..+∞) |
+        |                                                                                                                  | ! [20..25] x (-∞..+∞) x (-∞..+∞)    |
+        |                                                                                                                  | World [26..+∞) x (-∞..0] x (-∞..+∞) |
         |""".stripMargin.replaceAll("\r", "")
     // format: on
 
@@ -141,28 +133,28 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
     val expectedData6 = List((intervalTo(0) x unbounded[Int] x unbounded[Int]) -> "Hey")
     fixture6.getAll.toList shouldBe expectedData6
 
-    import DiffAction4D.*
+    import DiffAction.*
 
     val actionsFrom2To4 = fixture4.diffActionsFrom(fixture2)
     actionsFrom2To4.toList shouldBe List(
-      Create((intervalTo(-1) x unbounded[Int] x unbounded[Int] x intervalAt(4)) -> "Hey"),
-      Create((intervalTo(4) x unbounded[Int] x unbounded[Int] x intervalFrom(5)) -> "Hey"),
-      Update((interval(0, 4) x intervalFrom(0) x unbounded[Int] x interval(2, 4)) -> "Hello"),
-      Update((interval(16, 19) x intervalTo(0) x unbounded[Int] x interval(3, 5)) -> "World"),
-      Create((intervalFrom(16) x intervalTo(0) x unbounded[Int] x intervalFrom(6)) -> "World"),
-      Update((interval(20, 25) x unbounded[Int] x unbounded[Int] x interval(3, 4)) -> "!"),
-      Create((intervalAt(20) x unbounded[Int] x unbounded[Int] x intervalAt(5)) -> "!"),
-      Create((intervalAt(20) x intervalFrom(1) x unbounded[Int] x intervalFrom(6)) -> "!"),
-      Update((intervalFrom(26) x intervalTo(0) x unbounded[Int] x interval(3, 4)) -> "World")
+      Update((interval(0, 4) x interval(0, 4) x intervalFrom(0) x unbounded[Int]) -> "Hello"),
+      Update((interval(3, 5) x intervalAt(20) x unbounded[Int] x unbounded[Int]) -> "!"),
+      Create((interval(3, 4) x interval(21, 25) x unbounded[Int] x unbounded[Int]) -> "!"),
+      Update((interval(3, 4) x intervalFrom(26) x intervalTo(0) x unbounded[Int]) -> "World"),
+      Create((intervalFrom(4) x intervalTo(-1) x unbounded[Int] x unbounded[Int]) -> "Hey"),
+      Create((intervalFrom(5) x interval(0, 4) x unbounded[Int] x unbounded[Int]) -> "Hey"),
+      Create((intervalFrom(6) x intervalFrom(20) x intervalTo(0) x unbounded[Int]) -> "World"),
+      Create((intervalFrom(6) x intervalAt(20) x intervalFrom(1) x unbounded[Int]) -> "!")
     )
 
     val actionsFrom4To6 = fixture6.diffActionsFrom(fixture4)
     actionsFrom4To6.toList shouldBe List(
-      Update((intervalTo(4) x unbounded[Int] x unbounded[Int] x interval(5, 7)) -> "Hey"),
-      Create((intervalTo(0) x unbounded[Int] x unbounded[Int] x intervalFrom(8)) -> "Hey"),
-      Update((interval(5, 15) x unbounded[Int] x unbounded[Int] x interval(2, 6)) -> "to"),
-      Update((intervalFrom(16) x intervalTo(0) x unbounded[Int] x interval(6, 7)) -> "World"),
-      Update((intervalAt(20) x intervalFrom(1) x unbounded[Int] x intervalAt(6)) -> "!")
+      Update((interval(2, 6) x interval(5, 15) x unbounded[Int] x unbounded[Int]) -> "to"),
+      Update((interval(2, 7) x interval(16, 19) x intervalTo(0) x unbounded[Int]) -> "World"),
+      Update((intervalFrom(5) x intervalAt(0) x unbounded[Int] x unbounded[Int]) -> "Hey"),
+      Create((interval(5, 7) x interval(1, 4) x unbounded[Int] x unbounded[Int]) -> "Hey"),
+      Update((interval(6, 7) x intervalFrom(20) x intervalTo(0) x unbounded[Int]) -> "World"),
+      Update((intervalAt(6) x intervalAt(20) x intervalFrom(1) x unbounded[Int]) -> "!")
     )
     val fixture2to4 = fixture2.applyDiffActions(actionsFrom2To4)
     fixture2to4.getAll(using VersionSelection(fixture4.getCurrentVersion)).toList shouldBe expectedData4
@@ -180,11 +172,11 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
     fixture1.copy.getAll.toList shouldBe fixture1.getAll.toList
 
     val concat = fixture1.foldLeft(StringBuilder()): (b, d) =>
-      b.append(d.value).append("->").append(d.interval.horizontal.toString).append(" ")
+      b.append(d.value).append("->").append(horizontal(d.interval).toString).append(" ")
     concat.result() shouldBe "Hey->(-∞..4] World->[16..+∞) "
 
     val fixture2 = fixture1.map: d =>
-      d.interval.withHorizontalUpdate(_.to(d.interval.horizontal.end.rightAdjacent)) -> (d.value + "!")
+      d.interval.to(d.interval.end.rightAdjacent) -> (d.value + "!")
     val expectedData2 = List(
       (intervalTo(5) x intervalFrom(0) x unbounded[Int]) -> "Hey!",
       (intervalFrom(16) x intervalFrom(0) x unbounded[Int]) -> "World!"
@@ -200,20 +192,20 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
     fixture3.getAll.toList shouldBe expectedData3
 
     val fixture4 = fixture3
-      .flatMap(d => DataIn3DVersioned.of[String, Int, Int, Int](d.value).map(x => d.interval -> x.value))
+      .flatMap(d => DataVersioned.of[String, Dim[Int, Int, Int]](d.value).map(x => d.interval -> x.value))
     val expectedData4 = expectedData3
     fixture4.getAll.toList shouldBe expectedData4
     assertThrows[NoSuchElementException]:
       fixture4.get
 
-    val fixture5 = fixture4.filter(_.interval.horizontal ⊆ intervalTo(10))
+    val fixture5 = fixture4.filter(v => horizontal(v.interval) ⊆ intervalTo(10))
     val expectedData5 = List((intervalTo(5) x intervalFrom(0) x unbounded[Int]) -> "Hey!!!")
     fixture5.getAll.toList shouldBe expectedData5
     assert(!fixture5.isEmpty)
     assertThrows[NoSuchElementException]:
       fixture5.get
 
-    val fixture6 = fixture5.flatMap(d => DataIn3DVersioned.of[String, Int, Int, Int](d.value))
+    val fixture6 = fixture5.flatMap(d => DataVersioned.of[String, Dim[Int, Int, Int]](d.value))
     val expectedData6 = List((unbounded[Int] x unbounded[Int] x unbounded[Int]) -> "Hey!!!")
     fixture6.getAll.toList shouldBe expectedData6
     fixture6.get shouldBe "Hey!!!"
@@ -233,7 +225,7 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
       (intervalFrom(10) x unbounded[Int] x unbounded[Int]) -> "Hello"
     )
 
-    val fixture1 = DataIn3DVersioned
+    val fixture1 = DataVersioned
       .from(allData)
       .compress("Hello")
     val expectedData1 = List(
@@ -244,7 +236,7 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
     )
     fixture1.getSelectedDataMutable.getAll.toList shouldBe expectedData1
 
-    val fixture2 = DataIn3DVersioned
+    val fixture2 = DataVersioned
       .from(allData)
       .compressAll()
     val expectedData2 = List(
@@ -255,7 +247,7 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
     fixture2.getSelectedDataMutable.getAll.toList shouldBe expectedData2
 
   test("Immutable: Updating data in intervals"):
-    val one: DataIn3DVersioned[String, Int, Int, Int] = DataIn3DVersioned
+    val one: DataVersioned[String, Dim[Int, Int, Int]] = DataVersioned
       .of("value")
       .incrementCurrentVersion()
 
@@ -288,12 +280,12 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
     // format: off
     fixture1.toString shouldBe
       """current version = 4
-        || -∞ .. 4                              | 5 .. 6                               | 7 .. 7                               | 8 .. +∞                              |
-        || Hello (-∞..+∞) x (-∞..+∞) x [0..+∞)  |
-        |                                       | World (-∞..+∞) x (-∞..+∞) x [1..2]   |
-        |                                       | World! (-∞..+∞) x (-∞..+∞) x [3..+∞)                                        |
-        |                                                                              | Hello (-∞..+∞) x (-∞..+∞) x [2..2]                                          |
-        |                                                                                                                     | Hello (-∞..+∞) x (-∞..+∞) x [3..+∞)  |
+        || 0 .. 0                              | 1 .. 1                              | 2 .. 2                              | 3 .. +∞                             |
+        || Hello (-∞..4] x (-∞..+∞) x (-∞..+∞)                                                                                                                   |
+        |                                      | World [5..6] x (-∞..+∞) x (-∞..+∞)                                        |
+        |                                                                            | Hello [7..+∞) x (-∞..+∞) x (-∞..+∞) |
+        |                                                                                                                  | World! [5..7] x (-∞..+∞) x (-∞..+∞) |
+        |                                                                                                                  | Hello [8..+∞) x (-∞..+∞) x (-∞..+∞) |
         |""".stripMargin.replaceAll("\r", "")
     // format: on
 
@@ -304,22 +296,22 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
     // format: off
     fixtureToReset.toString shouldBe
       """current version = 4
-        || -∞ .. 4                              | 5 .. 6                               | 7 .. 7                               | 8 .. +∞                              |
-        || Hello (-∞..+∞) x (-∞..+∞) x [0..0]   |
-        |                                       | World (-∞..+∞) x (-∞..+∞) x [1..2]   |
-        |                                       | World! (-∞..+∞) x (-∞..+∞) x [3..+∞)                                        |
-        |                                                                              | Hello (-∞..+∞) x (-∞..+∞) x [2..2]                                          |
-        |                                                                                                                     | Hello (-∞..+∞) x (-∞..+∞) x [3..+∞)  |
+        || 0 .. 0                              | 1 .. 1                              | 2 .. 2                              | 3 .. +∞                             |
+        || Hello (-∞..4] x (-∞..+∞) x (-∞..+∞) |
+        |                                      | World [5..6] x (-∞..+∞) x (-∞..+∞)                                        |
+        |                                                                            | Hello [7..+∞) x (-∞..+∞) x (-∞..+∞) |
+        |                                                                                                                  | World! [5..7] x (-∞..+∞) x (-∞..+∞) |
+        |                                                                                                                  | Hello [8..+∞) x (-∞..+∞) x (-∞..+∞) |
         |""".stripMargin.replaceAll("\r", "")
     // format: on
     val fixtureReset = fixtureToReset.resetToVersion(2)
     // println(fixtureReset.toString)
     fixtureReset.toString shouldBe
       """current version = 2
-        || -∞ .. 4                             | 5 .. 6                              | 7 .. +∞                             |
-        || Hello (-∞..+∞) x (-∞..+∞) x [0..0]  |
-        |                                      | World (-∞..+∞) x (-∞..+∞) x [1..+∞) |
-        |                                                                            | Hello (-∞..+∞) x (-∞..+∞) x [2..+∞) |
+        || 0 .. 0                              | 1 .. 1                              | 2 .. +∞                             |
+        || Hello (-∞..4] x (-∞..+∞) x (-∞..+∞) |
+        |                                      | World [5..6] x (-∞..+∞) x (-∞..+∞)                                        |
+        |                                                                            | Hello [7..+∞) x (-∞..+∞) x (-∞..+∞) |
         |""".stripMargin.replaceAll("\r", "")
 
     // println(fixture1.getSelectedData(using VersionSelection(2)).toString)
@@ -362,16 +354,17 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
     // format: off
     fixture3.toString shouldBe
       """current version = 6
-        || -∞ .. 4                              | 5 .. 5                               | 6 .. 6                               | 7 .. 7                               | 8 .. +∞                              |
-        || Hello (-∞..+∞) x (-∞..+∞) x [0..+∞)  |
-        |                                       | World (-∞..+∞) x (-∞..+∞) x [1..2]                                          |
-        |                                       | World! (-∞..+∞) x (-∞..+∞) x [3..3]                                                                                |
-        |                                       | Hello (-∞..+∞) x (-∞..+∞) x [4..4]                                          |
-        |                                       | Hello (-∞..+∞) x (-∞..+∞) x [5..+∞)  |
-        |                                                                              | World! (-∞..+∞) x (-∞..+∞) x [5..+∞)                                                                               |
-        |                                                                                                                     | Hello (-∞..+∞) x (-∞..+∞) x [2..2]                                          |
-        |                                                                                                                     | World! (-∞..+∞) x (-∞..+∞) x [4..4]  |
-        |                                                                                                                                                            | Hello (-∞..+∞) x (-∞..+∞) x [3..4]   |
+        || 0 .. 0                               | 1 .. 1                               | 2 .. 2                               | 3 .. 3                               | 4 .. 4                               | 5 .. +∞                              |
+        || Hello (-∞..4] x (-∞..+∞) x (-∞..+∞)                                                                                                                                                                                                     |
+        |                                       | World [5..6] x (-∞..+∞) x (-∞..+∞)                                          |
+        |                                                                              | Hello [7..+∞) x (-∞..+∞) x (-∞..+∞)  |
+        |                                                                                                                     | World! [5..7] x (-∞..+∞) x (-∞..+∞)  |
+        |                                                                                                                     | Hello [8..+∞) x (-∞..+∞) x (-∞..+∞)                                         |
+        |                                                                                                                                                            | Hello [5..5] x (-∞..+∞) x (-∞..+∞)                                          |
+        |                                                                                                                                                            | Hello [6..6] x (-∞..+∞) x (-∞..+∞)   |
+        |                                                                                                                                                            | World! [7..7] x (-∞..+∞) x (-∞..+∞)                                         |
+        |                                                                                                                                                                                                   | World! [6..6] x (-∞..+∞) x (-∞..+∞)  |
+        |                                                                                                                                                                                                   | World! [8..+∞) x (-∞..+∞) x (-∞..+∞) |
         |""".stripMargin.replaceAll("\r", "")
     // format: on
 
@@ -379,22 +372,22 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
     // println(fixture4.toString)
     fixture4.toString shouldBe
       """current version = 0
-        || -∞ .. 5                              | 6 .. +∞                              |
-        || Hello (-∞..+∞) x (-∞..+∞) x [0..+∞)  |
-        |                                       | World! (-∞..+∞) x (-∞..+∞) x [0..+∞) |
+        || 0 .. +∞                              |
+        || Hello (-∞..5] x (-∞..+∞) x (-∞..+∞)  |
+        || World! [6..+∞) x (-∞..+∞) x (-∞..+∞) |
         |""".stripMargin.replaceAll("\r", "")
 
   test("Immutable: Approvals"):
     // increment current version with each data element
     def timeboundVersionedString(
-      allData: Iterable[ValidData3D[String, LocalDate, LocalDate, Int]]
-    ): DataIn3DVersioned[String, LocalDate, LocalDate, Int] =
-      allData.foldLeft(DataIn3DVersioned[String, LocalDate, LocalDate, Int]()): (data, validData) =>
+      allData: Iterable[ValidData[String, Dim[LocalDate, LocalDate, Int]]]
+    ): DataVersioned[String, Dim[LocalDate, LocalDate, Int]] =
+      allData.foldLeft(DataVersioned[String, Dim[LocalDate, LocalDate, Int]]()): (data, validData) =>
         data
           .set(validData)
           .incrementCurrentVersion()
 
-    val fixture0: DataIn3DVersioned[String, LocalDate, LocalDate, Int] = DataIn3DVersioned()
+    val fixture0: DataVersioned[String, Dim[LocalDate, LocalDate, Int]] = DataVersioned()
     assert(fixture0.getAll.isEmpty)
 
     val allData = List(
@@ -404,7 +397,7 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
     )
     val fixture1 = timeboundVersionedString(allData)
     // Visualize4D(fixture1.getDataIn4D, 50000, "before Zoinks")
-    val zoinks = validString("Zoinks!", interval(day(-30), day(0)) x unbounded[LocalDate])
+    val zoinks = (interval(day(-30), day(0)) x unbounded[LocalDate] x unbounded[Int]) -> "Zoinks!"
     val fixture2 = fixture1.set(zoinks)(using VersionSelection.Unapproved)
 
     fixture2.getAt(day(5), day(0), 0) shouldBe Some("Hello")

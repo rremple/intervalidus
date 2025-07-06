@@ -2,7 +2,6 @@ package intervalidus.mutable
 
 import intervalidus.*
 import intervalidus.DiscreteValue.given
-import org.scalatest.compatible.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
@@ -17,18 +16,17 @@ trait MutableMultiBaseBehaviors:
   import Interval1D.*
 
   def addAndRemoveTests[
-    D: DomainLike,
-    I <: IntervalLike[D, I],
-    ValidDataOne <: ValidDataLike[String, D, I, ValidDataOne],
-    ValidData <: ValidDataLike[Set[String], D, I, ValidData],
-    DiffAction: DiffActionLike,
-    S <: MutableMultiBase[String, D, I, ValidDataOne, ValidData, DiffAction, S] &
-      DimensionalBase[Set[String], D, I, ValidData, DiffAction, ?]
+    D <: NonEmptyTuple: DomainLike,
+    S <: DataMulti[String, D]
   ](
-    multiFrom: Experimental ?=> Iterable[ValidDataOne] => S,
-    withHorizontalOne: (Interval1D[Int], String) => ValidDataOne,
-    withHorizontal: (Interval1D[Int], Set[String]) => ValidData
+    multiFrom: Experimental ?=> Iterable[ValidData[String, D]] => S,
+    intervalFrom1D: Interval1D[Int] => Interval[D]
   )(using Experimental): Unit =
+    def withHorizontalOne(interval: Interval1D[Int], value: String): ValidData[String, D] =
+      intervalFrom1D(interval) -> value
+    def withHorizontal(interval: Interval1D[Int], value: Set[String]): ValidData[Set[String], D] =
+      intervalFrom1D(interval) -> value
+
     test("Mutable: Element-wise adding and removing data in intervals"):
       val allData = List(
         withHorizontalOne(interval(0, 20), "A"),
@@ -117,20 +115,18 @@ trait MutableMultiBaseBehaviors:
       )
 
   def mapAndFlatmapTests[
-    D: DomainLike,
-    I <: IntervalLike[D, I],
-    ValidDataOne <: ValidDataLike[String, D, I, ValidDataOne],
-    ValidData <: ValidDataLike[Set[String], D, I, ValidData],
-    DiffAction: DiffActionLike,
-    S <: MutableMultiBase[String, D, I, ValidDataOne, ValidData, DiffAction, S] &
-      DimensionalBase[Set[String], D, I, ValidData, DiffAction, ?]
+    D <: NonEmptyTuple: DomainLike,
+    S <: DataMulti[String, D]
   ](
-    multiFrom: Experimental ?=> Iterable[ValidDataOne] => S,
-    withHorizontalOne: (Interval1D[Int], String) => ValidDataOne,
-    withHorizontal: (Interval1D[Int], Set[String]) => ValidData,
-    mapF: ValidData => ValidData,
-    flatMapF: ValidData => S
+    multiFrom: Experimental ?=> Iterable[ValidData[String, D]] => S,
+    intervalFrom1D: Interval1D[Int] => Interval[D],
+    mapF: ValidData[Set[String], D] => ValidData[Set[String], D],
+    flatMapF: ValidData[Set[String], D] => S
   )(using Experimental): Unit =
+    def withHorizontalOne(interval: Interval1D[Int], value: String): ValidData[String, D] =
+      intervalFrom1D(interval) -> value
+    def withHorizontal(interval: Interval1D[Int], value: Set[String]): ValidData[Set[String], D] =
+      intervalFrom1D(interval) -> value
     test("Mutable: Mapping, flatmapping, etc."):
       val allData = List(
         withHorizontalOne(intervalTo(4), "Hey"),
@@ -158,3 +154,40 @@ trait MutableMultiBaseBehaviors:
         withHorizontal(intervalFrom(16), Set("World!!!"))
       )
       fixture.getAll.toList shouldBe expectedData4
+
+  def applyingDiffActionTests[
+    D <: NonEmptyTuple: DomainLike,
+    S <: DataMulti[String, D]
+  ](
+    multiFrom: Experimental ?=> Iterable[ValidData[String, D]] => S,
+    multiOf: Experimental ?=> ValidData[String, D] => S,
+    intervalFrom1D: Interval1D[Int] => Interval[D]
+  )(using Experimental): Unit =
+    test("Mutable: Applying diff actions"):
+      val fixture5 = multiFrom(
+        List(
+          intervalFrom1D(interval(0, 4)) -> "Hello",
+          intervalFrom1D(interval(5, 15)) -> "to",
+          intervalFrom1D(interval(16, 19)) -> "World",
+          intervalFrom1D(interval(20, 25)) -> "!",
+          intervalFrom1D(intervalFrom(26)) -> "World"
+        )
+      )
+
+      val fixture6 = multiFrom(
+        List(
+          intervalFrom1D(intervalTo(4)) -> "Hey",
+          intervalFrom1D(interval(5, 15)) -> "to",
+          intervalFrom1D(intervalFrom(16)) -> "World"
+        )
+      )
+
+      val fixture7 = multiOf(intervalFrom1D(intervalTo(0)) -> "Hey")
+
+      val f6sync = fixture5.copy
+      f6sync.applyDiffActions(fixture6.diffActionsFrom(fixture5))
+      f6sync.getAll.toList shouldBe fixture6.getAll.toList
+
+      val f7sync = fixture5.copy
+      f7sync.syncWith(fixture7)
+      f7sync.getAll.toList shouldBe fixture7.getAll.toList

@@ -1,82 +1,74 @@
 package intervalidus.mutable
 
 import intervalidus.*
+import intervalidus.Domain.NonEmptyTail
 import intervalidus.collection.mutable.{BoxTree, MultiMapSorted}
-import intervalidus.immutable.DataIn1D as DataIn1DImmutable
 
 import scala.collection.mutable
 
 /**
-  * Constructs data in one-dimensional intervals.
+  * Constructs data in multidimensional intervals.
   */
-object DataIn1D extends DataIn1DBaseObject:
-  override def of[V, R: DomainValueLike](
-    data: ValidData1D[V, R]
-  )(using Experimental): DataIn1D[V, R] = DataIn1D(Iterable(data))
+object Data extends DimensionalBaseObject with DimensionalBaseConstructorParams:
 
-  override def of[V, R: DomainValueLike](
+  type In1D[V, R1] = Data[V, Domain.In1D[R1]]
+  type In2D[V, R1, R2] = Data[V, Domain.In2D[R1, R2]]
+  type In3D[V, R1, R2, R3] = Data[V, Domain.In3D[R1, R2, R3]]
+  type In4D[V, R1, R2, R3, R4] = Data[V, Domain.In4D[R1, R2, R3, R4]]
+
+  override def of[V, D <: NonEmptyTuple: DomainLike](
+    data: ValidData[V, D]
+  )(using Experimental): Data[V, D] = Data(Iterable(data))
+
+  override def of[V, D <: NonEmptyTuple: DomainLike](
     value: V
-  )(using Experimental): DataIn1D[V, R] = of(Interval1D.unbounded[R] -> value)
+  )(using Experimental): Data[V, D] = of(Interval.unbounded[D] -> value)
 
-  override def apply[V, R: DomainValueLike](
-    initialData: Iterable[ValidData1D[V, R]] = Iterable.empty[ValidData1D[V, R]]
-  )(using Experimental): DataIn1D[V, R] =
-    val (byStartAsc, byStartDesc, byValue, inSearchTree) = constructorParams(initialData)
-    new DataIn1D(byStartAsc, byStartDesc, byValue, inSearchTree)
+  override def apply[V, D <: NonEmptyTuple: DomainLike](
+    initialData: Iterable[ValidData[V, D]] = Iterable.empty[ValidData[V, D]]
+  )(using Experimental): Data[V, D] =
+    val (byStartAsc, byValue, inSearchTree) = constructorParams(initialData)
+    new Data(byStartAsc, byValue, inSearchTree)
 
 /**
-  * Data that may have different values in different intervals. These intervals may represent when the data are valid in
-  * time or over certain versions ranges or whatever. But we can capture the dependency between various values and
-  * related intervals cohesively in this structure rather than in separate data structures using distributed (and
-  * potentially inconsistent) logic.
+  * Mutable dimensional data.
   *
   * @tparam V
-  *   the type of the value managed as data.
-  * @tparam R
-  *   the type of domain value used in the interval assigned to each value.
+  *   the value type for valid data.
+  * @tparam D
+  *   the domain type for intervals, must be [[DomainLike]].
   */
-class DataIn1D[V, R: DomainValueLike] private (
-  override val dataByStartAsc: mutable.TreeMap[Domain1D[R], ValidData1D[V, R]],
-  override val dataByStartDesc: mutable.TreeMap[Domain1D[R], ValidData1D[V, R]],
-  override val dataByValue: MultiMapSorted[V, ValidData1D[V, R]],
-  override val dataInSearchTree: BoxTree[ValidData1D[V, R]]
-)(using Experimental)
-  extends DataIn1DBase[V, R]
-  with MutableBase[
-    V,
-    Domain1D[R],
-    Interval1D[R],
-    ValidData1D[V, R],
-    DiffAction1D[V, R],
-    DataIn1D[V, R]
-  ]:
+class Data[V, D <: NonEmptyTuple: DomainLike] protected (
+  override val dataByStartAsc: mutable.TreeMap[D, ValidData[V, D]],
+  override val dataByValue: MultiMapSorted[V, ValidData[V, D]],
+  override val dataInSearchTree: BoxTree[ValidData[V, D]]
+)(using experimental: Experimental)
+  extends MutableBase[V, D]:
 
-  // ---------- Implement methods from DataIn1DBase ----------
+  experimental.control("requireDisjoint")(
+    nonExperimentalResult = (),
+    experimentalResult = require(Interval.isDisjoint(getAll.map(_.interval)), "data must be disjoint")
+  )
 
-  override def zip[B](that: DataIn1DBase[B, R]): DataIn1D[(V, B), R] = DataIn1D(zipData(that))
+  // ---------- Implement methods from DimensionalBase that create new instances ----------
 
-  override def zipAll[B](
-    that: DataIn1DBase[B, R],
-    thisElem: V,
-    thatElem: B
-  ): DataIn1D[(V, B), R] = DataIn1D(zipAllData(that, thisElem, thatElem))
+  override def copy: Data[V, D] =
+    new Data(dataByStartAsc.clone(), dataByValue.clone(), dataInSearchTree.copy)
 
-  // ---------- Implement methods from MutableBase ----------
+  override def zip[B](that: DimensionalBase[B, D]): Data[(V, B), D] =
+    Data(zipData(that))
 
-  override def applyDiffActions(diffActions: Iterable[DiffAction1D[V, R]]): Unit = synchronized:
-    diffActions.foreach:
-      case DiffAction1D.Create(data) => addValidData(data)
-      case DiffAction1D.Update(data) => updateValidData(data)
-      case DiffAction1D.Delete(key)  => removeValidDataByKey(key)
+  override def zipAll[B](that: DimensionalBase[B, D], thisElem: V, thatElem: B): Data[(V, B), D] =
+    Data(zipAllData(that, thisElem, thatElem))
 
-  override def syncWith(that: DataIn1D[V, R]): Unit =
-    applyDiffActions(that.diffActionsFrom(this))
+  override def toMutable: intervalidus.mutable.Data[V, D] =
+    this
 
-  // ---------- Implement methods from DimensionalBase ----------
+  override def toImmutable: intervalidus.immutable.Data[V, D] =
+    intervalidus.immutable.Data(getAll)
 
-  override def copy: DataIn1D[V, R] =
-    new DataIn1D(dataByStartAsc.clone(), dataByStartDesc.clone(), dataByValue.clone(), dataInSearchTree.copy)
-
-  override def toMutable: DataIn1D[V, R] = this
-
-  override def toImmutable: DataIn1DImmutable[V, R] = DataIn1DImmutable(getAll)
+  override def getByHeadIndex[H: DomainValueLike](headIndex: Domain1D[H])(using
+    D =:= Domain1D[H] *: Tuple.Tail[D],
+    DomainLike[NonEmptyTail[D]]
+  ): Data[V, NonEmptyTail[D]] =
+    Data(getByHeadIndexData(headIndex))

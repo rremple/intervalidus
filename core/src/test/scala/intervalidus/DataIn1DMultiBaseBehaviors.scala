@@ -1,7 +1,8 @@
 package intervalidus
 
 import intervalidus.DiscreteValue.given
-import org.scalatest.compatible.Assertion
+import intervalidus.DomainLike.given
+import intervalidus.Domain.In1D as Dim
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
@@ -14,15 +15,25 @@ trait DataIn1DMultiBaseBehaviors:
   this: AnyFunSuite & Matchers =>
 
   import Interval1D.*
+  import Domain1D.Point
 
-  def basicAndZipTests[S <: DataIn1DMultiBase[String, Int]](
+  def basicAndZipTests[S <: DimensionalMultiBase[String, Dim[Int]]](
     prefix: String,
-    multiFrom: Experimental ?=> Iterable[ValidData1D[String, Int]] => S,
-    multiFrom1D: Experimental ?=> DataIn1DBase[Set[String], Int] => S,
+    multiFrom: Experimental ?=> Iterable[ValidData[String, Dim[Int]]] => S,
+    multiFrom1D: Experimental ?=> DimensionalBase[Set[String], Dim[Int]] => S,
     multiOf: Experimental ?=> String => S,
-    multiApply: Experimental ?=> Iterable[ValidData1D[Set[String], Int]] => S
+    multiApply: Experimental ?=> Iterable[ValidData[Set[String], Dim[Int]]] => S
   )(using Experimental): Unit =
     test(s"$prefix: Basics"):
+      {
+        given Experimental = Experimental("requireDisjoint")
+
+        assertThrows[IllegalArgumentException]:
+          // not valid as it overlaps on [10, +∞)
+          val _ =
+            multiApply(List(interval(0, 10) -> Set("Hello"), unbounded[Int] -> Set("World")))
+      }
+
       val allData = List(interval(0, 9) -> Set("Hello"), intervalFrom(10) -> Set("World"))
 
       val fixture1 = multiApply(allData).toMutable.toImmutable.copy
@@ -30,7 +41,7 @@ trait DataIn1DMultiBaseBehaviors:
       val fixture2 = multiApply(allData).toImmutable.toMutable.copy
       fixture2.getAll.toList shouldBe allData
 
-      val fixture3 = multiFrom1D(immutable.DataIn1D.of[Set[String], Int](Set("Hello", "world")))
+      val fixture3 = multiFrom1D(immutable.Data.of[Set[String], Dim[Int]](Set("Hello", "world")))
       fixture3.get shouldBe Set("Hello", "world")
 
       val f0: S = multiFrom(
@@ -81,7 +92,7 @@ trait DataIn1DMultiBaseBehaviors:
       fixture4.getAll.toList shouldBe expected4
 
     test(s"$prefix: Getting diff actions"):
-      import DiffAction1D.*
+      import DiffAction.*
 
       val fixture5 = multiFrom(
         List(
@@ -106,15 +117,15 @@ trait DataIn1DMultiBaseBehaviors:
       val actionsFrom5To6 = fixture6.diffActionsFrom(fixture5)
       actionsFrom5To6.toList shouldBe List(
         Create(intervalTo(4) -> Set("Hey")),
-        Delete(0),
+        Delete(Point(0)),
         Update(intervalFrom(16) -> Set("World")),
-        Delete(20),
-        Delete(26)
+        Delete(Point(20)),
+        Delete(Point(26))
       )
 
       val actionsFrom6To7 = fixture7.diffActionsFrom(fixture6)
       actionsFrom6To7.toList shouldBe List(
         Update(intervalTo(0) -> Set("Hey")),
-        Delete(5),
-        Delete(16)
+        Delete(Point(5)),
+        Delete(Point(16))
       )

@@ -1,8 +1,9 @@
 package intervalidus.examples.billing
 
 import intervalidus.Interval1D.*
+import intervalidus.Interval.Patterns.*
 import intervalidus.DiscreteValue.given
-import intervalidus.immutable.DataIn2D
+import intervalidus.immutable.Data
 
 import java.time.LocalDate
 import scala.language.implicitConversions
@@ -18,8 +19,8 @@ object BillingIn2D extends Billing:
     * The horizontal dimension represents the effective dates of the tiers selections, where the vertical dimension
     * represents when these tier selections were known
     */
-  private val customerTiers0: Map[CustomerId, DataIn2D[Tier, LocalDate, LocalDate]] =
-    Map.empty.withDefaultValue(DataIn2D())
+  private val customerTiers0: Map[CustomerId, Data.In2D[Tier, LocalDate, LocalDate]] =
+    Map.empty.withDefaultValue(Data())
 
   /**
     * Based on the prior billing cycle, calculate new transactions for all customers and return the current billing
@@ -35,18 +36,25 @@ object BillingIn2D extends Billing:
     *   completed billing cycle
     */
   private def billAllCustomers(
-    customerTiers: Map[CustomerId, DataIn2D[Tier, LocalDate, LocalDate]]
+    customerTiers: Map[CustomerId, Data.In2D[Tier, LocalDate, LocalDate]]
   )(
     priorCycle: BillingCycle,
     index: Int
   ): BillingCycle =
+    def headData(dataIn2D: Data.In2D[Tier, LocalDate, LocalDate]): Data.In1D[Tier, LocalDate] = Data(
+      dataIn2D.getAll.map(d => d.interval.headInterval1D[LocalDate] -> d.value)
+    )
     val thisCycle = priorCycle.nextCycle
     val newTransactions: Iterable[Transaction] = Customer.all.values.flatMap: customer =>
       val tierHistory = customerTiers(customer.id)
       billCustomer(
         customer,
-        priorTiers = tierHistory.getByVerticalIndex(priorCycle.runDate),
-        newTiers = tierHistory.getByVerticalIndex(thisCycle.runDate),
+        priorTiers = headData(
+          tierHistory.filter(_.interval intersects (unbounded[LocalDate] x intervalAt(priorCycle.runDate)))
+        ),
+        newTiers = headData(
+          tierHistory.filter(_.interval intersects (unbounded[LocalDate] x intervalAt(thisCycle.runDate)))
+        ),
         priorCycle,
         thisCycle
       )

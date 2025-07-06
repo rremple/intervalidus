@@ -3,50 +3,16 @@ package intervalidus.mutable
 import intervalidus.*
 
 /**
-  * Base for all mutable dimensional data.
+  * Mutable dimensional data.
   *
   * @tparam V
   *   the value type for valid data.
   * @tparam D
-  *   the domain type for intervals. Must be [[DomainLike]].
-  * @tparam I
-  *   the interval type, based on the domain type. Must be [[IntervalLike]] based on [[D]].
-  * @tparam ValidData
-  *   the valid data type. Must be [[ValidDataLike]] based on [[V]], [[D]], and [[I]].
-  * @tparam DiffAction
-  *   the diff action type. Must be [[DiffActionLike]] based on [[V]], [[D]], and [[I]].
-  * @tparam Self
-  *   F-bounded self type.
+  *   the domain type for intervals, must be [[DomainLike]].
   */
-trait MutableBase[
-  V,
-  D: DomainLike,
-  I <: IntervalLike[D, I],
-  ValidData <: ValidDataLike[V, D, I, ValidData],
-  DiffAction: DiffActionLike,
-  Self <: MutableBase[V, D, I, ValidData, DiffAction, Self] & DimensionalBase[V, D, I, ValidData, DiffAction, ?]
-]:
-  this: Self =>
+trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends DimensionalBase[V, D]:
 
-  // ---------- To be implemented by inheritor ----------
-
-  /**
-    * Applies a sequence of diff actions to this structure.
-    *
-    * @param diffActions
-    *   actions to be applied.
-    */
-  def applyDiffActions(diffActions: Iterable[DiffAction]): Unit
-
-  /**
-    * Synchronizes this with another structure by getting and applying the applicable diff actions.
-    *
-    * @param that
-    *   the structure with which this is synchronized.
-    */
-  def syncWith(that: Self): Unit
-
-  // ---------- Implement methods from DimensionalBase ----------
+  // ---------- Implement methods not in DimensionalBase that have mutable signatures ----------
 
   /**
     * Updates structure to only include elements which satisfy a predicate. Data are mutated in place.
@@ -54,7 +20,7 @@ trait MutableBase[
     * @param p
     *   the predicate used to test elements.
     */
-  def filter(p: ValidData => Boolean): Unit = synchronized:
+  def filter(p: ValidData[V, D] => Boolean): Unit = synchronized:
     replaceValidData(getAll.filter(p))
 
   /**
@@ -63,7 +29,7 @@ trait MutableBase[
     * @param newData
     *   the valid data to set.
     */
-  def set(newData: ValidData): Unit = synchronized:
+  def set(newData: ValidData[V, D]): Unit = synchronized:
     remove(newData.interval)
     addValidData(newData)
     compress(newData.value)
@@ -76,7 +42,7 @@ trait MutableBase[
     * @return
     *   true if there were no conflicts and new data was set, false otherwise.
     */
-  def setIfNoConflict(newData: ValidData): Boolean = synchronized:
+  def setIfNoConflict(newData: ValidData[V, D]): Boolean = synchronized:
     if getIntersecting(newData.interval).isEmpty then
       addValidData(newData)
       compress(newData.value)
@@ -90,7 +56,7 @@ trait MutableBase[
     * @param data
     *   the new value existing data in the interval should take on
     */
-  def update(data: ValidData): Unit =
+  def update(data: ValidData[V, D]): Unit =
     updateOrRemove(data.interval, _ => Some(data.value))
 
   /**
@@ -102,7 +68,7 @@ trait MutableBase[
     * @param newData
     *   the new data replacing the old data
     */
-  def replace(oldData: ValidData, newData: ValidData): Unit =
+  def replace(oldData: ValidData[V, D], newData: ValidData[V, D]): Unit =
     removeValidData(oldData)
     set(newData)
 
@@ -115,7 +81,7 @@ trait MutableBase[
     * @param newData
     *   the new data replacing the old data
     */
-  def replaceByKey(key: D, newData: ValidData): Unit =
+  def replaceByKey(key: D, newData: ValidData[V, D]): Unit =
     replace(dataByStartAsc(key), newData)
 
   /**
@@ -125,31 +91,26 @@ trait MutableBase[
     * @param interval
     *   the interval where any valid values are removed.
     */
-  def remove(interval: I): Unit = updateOrRemove(interval, _ => None)
+  def remove(interval: Interval[D]): Unit = updateOrRemove(interval, _ => None)
 
   /**
     * Compress out adjacent intervals with the same value
     *
     * @param value
     *   value to be evaluated
-    * @return
-    *   this structure once compressed (not a copy)
     */
   def compress(value: V): Unit = synchronized:
     compressInPlace(value)
 
   /**
     * Compress out adjacent intervals with the same value for all values (Shouldn't ever need to do this.)
-    *
-    * @return
-    *   this structure once compressed (not a copy)
     */
   def compressAll(): Unit = synchronized:
     dataByValue.keySet.foreach(compress)
 
   /**
-    * Unlike in 1D, there is no unique compression in 2D. For example {[1..5], [1..2]} + {[1..2], [3..4]} could also be
-    * represented physically as {[1..2], [1..4]} + {[3..5], [1..2]}.
+    * Unlike in 1D, there is no unique compression in higher dimensions. For example, {[1..5], [1..2]} + {[1..2],
+    * [3..4]} could also be represented physically as {[1..2], [1..4]} + {[3..5], [1..2]}.
     *
     * This method decompresses data so there is a unique arrangement of "atomic" intervals. In the above example, that
     * would be the following "atomic" intervals: {[1..2], [1..2]} + {[3..5], [1..2]} + {[1..2], [3..4]}. Then it
@@ -160,12 +121,33 @@ trait MutableBase[
     recompressInPlace()
 
   /**
+    * Applies a sequence of diff actions to this structure.
+    *
+    * @param diffActions
+    *   actions to be applied.
+    */
+  def applyDiffActions(diffActions: Iterable[DiffAction[V, D]]): Unit = synchronized:
+    diffActions.foreach:
+      case DiffAction.Create(data: ValidData[V, D]) => addValidData(data)
+      case DiffAction.Update(data: ValidData[V, D]) => updateValidData(data)
+      case DiffAction.Delete(key: D @unchecked)     => removeValidDataByKey(key)
+
+  /**
+    * Synchronizes this with another structure by getting and applying the applicable diff actions.
+    *
+    * @param that
+    *   the structure with which this is synchronized.
+    */
+  def syncWith(that: DimensionalBase[V, D]): Unit =
+    applyDiffActions(that.diffActionsFrom(this))
+
+  /**
     * Applies a function to all valid data. Data are mutated in place.
     *
     * @param f
     *   the function to apply to each valid data element.
     */
-  def map(f: ValidData => ValidData): Unit = synchronized:
+  def map(f: ValidData[V, D] => ValidData[V, D]): Unit = synchronized:
     replaceValidData(getAll.map(f))
 
   /**
@@ -176,7 +158,7 @@ trait MutableBase[
     */
   def mapValues(f: V => V): Unit =
     getAll
-      .map(d => newValidData(f(d.value), d.interval))
+      .map(d => d.interval -> f(d.value))
       .foreach: newData =>
         updateValidData(newData)
 
@@ -187,7 +169,7 @@ trait MutableBase[
     * @param f
     *   the function to apply to each valid data element which results in a new structure.
     */
-  def flatMap(f: ValidData => Self): Unit = synchronized:
+  def flatMap(f: ValidData[V, D] => DimensionalBase[V, D]): Unit = synchronized:
     replaceValidData(getAll.flatMap(f(_).getAll))
 
   /**
@@ -196,7 +178,7 @@ trait MutableBase[
     * @param data
     *   value to make valid in any validity gaps found in the interval
     */
-  def fill(data: ValidData): Unit = synchronized:
+  def fill(data: ValidData[V, D]): Unit = synchronized:
     fillInPlace(data.interval, data.value)
 
   /**
@@ -211,6 +193,6 @@ trait MutableBase[
     *   give this data values priority and drop that data values
     */
   def merge(
-    that: Self,
+    that: DimensionalBase[V, D],
     mergeValues: (V, V) => V = (thisDataValue, _) => thisDataValue
   ): Unit = mergeInPlace(that.getAll, mergeValues)

@@ -2,10 +2,10 @@ package intervalidus.microbench
 
 import intervalidus.DiscreteValue.given
 import intervalidus.*
+import intervalidus.Interval.Patterns.*
 import org.openjdk.jmh.annotations.*
 import org.openjdk.jmh.infra.Blackhole
 
-import java.util.concurrent.TimeUnit
 import scala.language.implicitConversions
 
 /**
@@ -19,7 +19,7 @@ import scala.language.implicitConversions
   * error rates (which is still true in BenchSearchTree). Although using State makes the benchmark a bit more complex,
   * the results are more realistic with smaller errors.
   */
-object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature = Some("noBruteForceUpdate")):
+object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature = None):
   // Sample results, where "baseline" is the new brute force algorithm and "featured" is the legacy logic. This shows
   // that the new brute force algorithm has about the same throughput on average as legacy for 2d and about 30% higher
   // for 3d, which is great (though the error rates are still pretty high relative to the scores)!
@@ -77,16 +77,21 @@ object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature
         Interval1D.interval(start + startOffset, end + endOffset)
       case whoops => throw new Exception(s"why not a point? $whoops")
 
-  private def removeIntervals1D(dataIntervals: Vector[Interval1D[Int]]): Vector[Interval1D[Int]] =
-    dataIntervals.map(randSubinterval)
+//  private def removeIntervals1D(dataIntervals: Vector[Interval.In1D[Int]]): Vector[Interval.In1D[Int]] =
+//    dataIntervals.map: i =>
+//      Interval.in1D(randSubinterval(i.headInterval1D))
 
-  private def removeIntervals2D(dataIntervals: Vector[Interval2D[Int, Int]]): Vector[Interval2D[Int, Int]] =
-    dataIntervals.map: i =>
-      Interval2D(randSubinterval(i.horizontal), randSubinterval(i.vertical))
+  private def removeIntervals2D(
+    dataIntervals: Vector[Interval.In2D[Int, Int]]
+  ): Vector[Interval.In2D[Int, Int]] = dataIntervals.collect:
+    case horizontal :+|: vertical =>
+      randSubinterval(horizontal) x randSubinterval(vertical)
 
-  private def removeIntervals3D(dataIntervals: Vector[Interval3D[Int, Int, Int]]): Vector[Interval3D[Int, Int, Int]] =
-    dataIntervals.map: i =>
-      Interval3D(randSubinterval(i.horizontal), randSubinterval(i.vertical), randSubinterval(i.depth))
+  private def removeIntervals3D(
+    dataIntervals: Vector[Interval.In3D[Int, Int, Int]]
+  ): Vector[Interval.In3D[Int, Int, Int]] = dataIntervals.collect:
+    case horizontal :+: vertical :+|: depth =>
+      randSubinterval(horizontal) x randSubinterval(vertical) x randSubinterval(depth)
 
   lazy val testIntervalsIn2d100x1k = removeIntervals2D(baselineMutable2d100x1k.getAll.map(_.interval).toVector)
   lazy val testIntervalsIn2d10x10k = removeIntervals2D(baselineMutable2d10x10k.getAll.map(_.interval).toVector)
@@ -276,123 +281,123 @@ object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature
   // Mutable
 
   class Mutable2dBench100x1k extends GenericBench:
-    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateMutable2d100x1k): Unit =
-      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    // @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateMutable2d100x1k): Unit =
+    //   blackhole.consume(state.baselineData.remove(state.testInterval()))
     @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateMutable2d100x1k): Unit =
       blackhole.consume(state.featuredData.remove(state.testInterval()))
 
   class Mutable2dBench10x10k extends GenericBench:
-    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateMutable2d10x10k): Unit =
-      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    // @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateMutable2d10x10k): Unit =
+    //   blackhole.consume(state.baselineData.remove(state.testInterval()))
     @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateMutable2d10x10k): Unit =
       blackhole.consume(state.featuredData.remove(state.testInterval()))
 
   class Mutable2dBench10x1k extends GenericBench:
-    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateMutable2d10x1k): Unit =
-      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    // @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateMutable2d10x1k): Unit =
+    //   blackhole.consume(state.baselineData.remove(state.testInterval()))
     @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateMutable2d10x1k): Unit =
       blackhole.consume(state.featuredData.remove(state.testInterval()))
 
   class Mutable2dBench1x10k extends GenericBench:
-    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateMutable2d1x10k): Unit =
-      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    // @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateMutable2d1x10k): Unit =
+    //   blackhole.consume(state.baselineData.remove(state.testInterval()))
     @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateMutable2d1x10k): Unit =
       blackhole.consume(state.featuredData.remove(state.testInterval()))
 
   class Mutable2dBench1x1k extends GenericBench:
-    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateMutable2d1x1k): Unit =
-      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    // @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateMutable2d1x1k): Unit =
+    //   blackhole.consume(state.baselineData.remove(state.testInterval()))
     @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateMutable2d1x1k): Unit =
       blackhole.consume(state.featuredData.remove(state.testInterval()))
 
   class Mutable3dBench100x1k extends GenericBench:
-    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateMutable3d100x1k): Unit =
-      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    // @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateMutable3d100x1k): Unit =
+    //   blackhole.consume(state.baselineData.remove(state.testInterval()))
     @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateMutable3d100x1k): Unit =
       blackhole.consume(state.featuredData.remove(state.testInterval()))
 
   class Mutable3dBench10x10k extends GenericBench:
-    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateMutable3d10x10k): Unit =
-      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    // @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateMutable3d10x10k): Unit =
+    //   blackhole.consume(state.baselineData.remove(state.testInterval()))
     @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateMutable3d10x10k): Unit =
       blackhole.consume(state.featuredData.remove(state.testInterval()))
 
   class Mutable3dBench10x1k extends GenericBench:
-    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateMutable3d10x1k): Unit =
-      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    // @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateMutable3d10x1k): Unit =
+    //   blackhole.consume(state.baselineData.remove(state.testInterval()))
     @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateMutable3d10x1k): Unit =
       blackhole.consume(state.featuredData.remove(state.testInterval()))
 
   class Mutable3dBench1x10k extends GenericBench:
-    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateMutable3d1x10k): Unit =
-      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    // @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateMutable3d1x10k): Unit =
+    //   blackhole.consume(state.baselineData.remove(state.testInterval()))
     @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateMutable3d1x10k): Unit =
       blackhole.consume(state.featuredData.remove(state.testInterval()))
 
   class Mutable3dBench1x1k extends GenericBench:
-    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateMutable3d1x1k): Unit =
-      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    // @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateMutable3d1x1k): Unit =
+    //   blackhole.consume(state.baselineData.remove(state.testInterval()))
     @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateMutable3d1x1k): Unit =
       blackhole.consume(state.featuredData.remove(state.testInterval()))
 
   // Immutable
 
   class Immutable2dBench100x1k extends GenericBench:
-    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateImmutable2d100x1k): Unit =
-      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    // @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateImmutable2d100x1k): Unit =
+    //   blackhole.consume(state.baselineData.remove(state.testInterval()))
     @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateImmutable2d100x1k): Unit =
       blackhole.consume(state.featuredData.remove(state.testInterval()))
 
   class Immutable2dBench10x10k extends GenericBench:
-    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateImmutable2d10x10k): Unit =
-      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    // @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateImmutable2d10x10k): Unit =
+    //   blackhole.consume(state.baselineData.remove(state.testInterval()))
     @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateImmutable2d10x10k): Unit =
       blackhole.consume(state.featuredData.remove(state.testInterval()))
 
   class Immutable2dBench10x1k extends GenericBench:
-    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateImmutable2d10x1k): Unit =
-      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    // @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateImmutable2d10x1k): Unit =
+    //   blackhole.consume(state.baselineData.remove(state.testInterval()))
     @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateImmutable2d10x1k): Unit =
       blackhole.consume(state.featuredData.remove(state.testInterval()))
 
   class Immutable2dBench1x10k extends GenericBench:
-    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateImmutable2d1x10k): Unit =
-      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    // @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateImmutable2d1x10k): Unit =
+    //   blackhole.consume(state.baselineData.remove(state.testInterval()))
     @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateImmutable2d1x10k): Unit =
       blackhole.consume(state.featuredData.remove(state.testInterval()))
 
   class Immutable2dBench1x1k extends GenericBench:
-    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateImmutable2d1x1k): Unit =
-      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    // @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateImmutable2d1x1k): Unit =
+    //   blackhole.consume(state.baselineData.remove(state.testInterval()))
     @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateImmutable2d1x1k): Unit =
       blackhole.consume(state.featuredData.remove(state.testInterval()))
 
   class Immutable3dBench100x1k extends GenericBench:
-    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateImmutable3d100x1k): Unit =
-      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    // @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateImmutable3d100x1k): Unit =
+    //   blackhole.consume(state.baselineData.remove(state.testInterval()))
     @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateImmutable3d100x1k): Unit =
       blackhole.consume(state.featuredData.remove(state.testInterval()))
 
   class Immutable3dBench10x10k extends GenericBench:
-    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateImmutable3d10x10k): Unit =
-      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    // @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateImmutable3d10x10k): Unit =
+    //   blackhole.consume(state.baselineData.remove(state.testInterval()))
     @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateImmutable3d10x10k): Unit =
       blackhole.consume(state.featuredData.remove(state.testInterval()))
 
   class Immutable3dBench10x1k extends GenericBench:
-    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateImmutable3d10x1k): Unit =
-      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    // @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateImmutable3d10x1k): Unit =
+    //   blackhole.consume(state.baselineData.remove(state.testInterval()))
     @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateImmutable3d10x1k): Unit =
       blackhole.consume(state.featuredData.remove(state.testInterval()))
 
   class Immutable3dBench1x10k extends GenericBench:
-    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateImmutable3d1x10k): Unit =
-      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    // @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateImmutable3d1x10k): Unit =
+    //   blackhole.consume(state.baselineData.remove(state.testInterval()))
     @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateImmutable3d1x10k): Unit =
       blackhole.consume(state.featuredData.remove(state.testInterval()))
 
   class Immutable3dBench1x1k extends GenericBench:
-    @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateImmutable3d1x1k): Unit =
-      blackhole.consume(state.baselineData.remove(state.testInterval()))
+    // @Benchmark def baselineRemove(blackhole: Blackhole, state: BenchmarkStateImmutable3d1x1k): Unit =
+    //   blackhole.consume(state.baselineData.remove(state.testInterval()))
     @Benchmark def featuredRemove(blackhole: Blackhole, state: BenchmarkStateImmutable3d1x1k): Unit =
       blackhole.consume(state.featuredData.remove(state.testInterval()))

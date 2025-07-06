@@ -7,15 +7,31 @@ import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
 import intervalidus.collection.{Box, Coordinate}
 
 import java.nio.charset.StandardCharsets
+import scala.annotation.nowarn
 import scala.util.{Failure, Success, Try}
 import scala.util.control.NonFatal
 
 object Visualize3D:
+
+  import Interval.Patterns.*
+
+  // compatibility with old fixed Interval3D by using pattern match extractors
+  extension [R1: DomainValueLike, R2: DomainValueLike, R3: DomainValueLike](interval: Interval.In3D[R1, R2, R3])
+    @nowarn("msg=match may not be exhaustive")
+    def horizontal: Interval1D[R1] = interval match
+      case horizontal :+: _ :+|: _ => horizontal
+    @nowarn("msg=match may not be exhaustive")
+    def vertical: Interval1D[R2] = interval match
+      case _ :+: vertical :+|: _ => vertical
+    @nowarn("msg=match may not be exhaustive")
+    def depth: Interval1D[R3] = interval match
+      case _ :+: _ :+|: depth => depth
+
   private val webRootDirPath = Paths.get("core", "vis3d")
   private val port = 8080
 
   def apply[V, R1: DomainValueLike, R2: DomainValueLike, R3: DomainValueLike](
-    validData: Iterable[ValidData3D[V, R1, R2, R3]],
+    validData: Iterable[ValidData.In3D[V, R1, R2, R3]],
     title: String
   ): Unit =
     val rootDir = webRootDirPath.toAbsolutePath
@@ -25,27 +41,27 @@ object Visualize3D:
       val origin = Coordinate(0, 0, 0)
       val intervals = validData.map(_.interval)
       val hasUnbounded = intervals.exists: i =>
-        i.start.horizontalIndex.isUnbounded ||
-          i.start.verticalIndex.isUnbounded ||
-          i.start.depthIndex.isUnbounded ||
-          i.end.horizontalIndex.isUnbounded ||
-          i.end.verticalIndex.isUnbounded ||
-          i.end.depthIndex.isUnbounded
+        i.horizontal.start.isUnbounded ||
+          i.vertical.start.isUnbounded ||
+          i.depth.start.isUnbounded ||
+          i.horizontal.end.isUnbounded ||
+          i.vertical.end.isUnbounded ||
+          i.depth.end.isUnbounded
 
       // a sample coordinate in the space of bounded values, with the origin as the default for unbounded
       val sample = intervals
         .foldLeft(origin): (prior, i) =>
           val beforePrior = prior.projectBeforeBounded(
             i.asBox.minPoint,
-            i.start.horizontalIndex.isUnbounded,
-            i.start.verticalIndex.isUnbounded,
-            i.start.depthIndex.isUnbounded
+            i.horizontal.start.isUnbounded,
+            i.vertical.start.isUnbounded,
+            i.depth.start.isUnbounded
           )
           val afterPrior = beforePrior.projectAfterBounded(
             i.asBox.maxPoint,
-            i.end.horizontalIndex.isUnbounded,
-            i.end.verticalIndex.isUnbounded,
-            i.end.depthIndex.isUnbounded
+            i.horizontal.end.isUnbounded,
+            i.vertical.end.isUnbounded,
+            i.depth.end.isUnbounded
           )
           afterPrior
 
@@ -55,15 +71,15 @@ object Visualize3D:
           case ((priorMin, priorMax), i) =>
             val newMin = priorMin.projectBeforeBounded(
               i.asBox.minPoint,
-              i.start.horizontalIndex.isUnbounded,
-              i.start.verticalIndex.isUnbounded,
-              i.start.depthIndex.isUnbounded
+              i.horizontal.start.isUnbounded,
+              i.vertical.start.isUnbounded,
+              i.depth.start.isUnbounded
             )
             val newMax = priorMax.projectAfterBounded(
               i.asBox.maxPoint,
-              i.end.horizontalIndex.isUnbounded,
-              i.end.verticalIndex.isUnbounded,
-              i.end.depthIndex.isUnbounded
+              i.horizontal.end.isUnbounded,
+              i.vertical.end.isUnbounded,
+              i.depth.end.isUnbounded
             )
             (newMin, newMax)
 
@@ -85,7 +101,7 @@ object Visualize3D:
         case Success(_) => ()
 
   def apply[V, R1: DomainValueLike, R2: DomainValueLike, R3: DomainValueLike](
-    dataIn3D: DataIn3DBase[V, R1, R2, R3],
+    dataIn3D: DimensionalBase.In3D[V, R1, R2, R3],
     delay: Long = 0,
     title: String = "Visualize 3D data"
   ): Unit =
@@ -194,7 +210,7 @@ object Visualize3D:
     import intervalidus.DiscreteValue.given
     import intervalidus.Interval1D.*
     import scala.language.implicitConversions
-    val data = intervalidus.immutable.DataIn3D(
+    val data = intervalidus.immutable.Data(
       Seq(
         (intervalFrom(-6).to(5) x intervalFrom(0).to(5) x intervalFrom(0).to(5)) -> "Hello",
         (intervalFrom(5).to(10) x intervalFrom(-1).to(6) x intervalFrom(-1).to(6)) -> "World"

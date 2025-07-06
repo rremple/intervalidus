@@ -1,6 +1,8 @@
 package intervalidus
 
 import intervalidus.DiscreteValue.given
+import intervalidus.DomainLike.given
+import intervalidus.Domain.In2D as Dim
 import org.scalatest.compatible.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
@@ -23,9 +25,9 @@ trait DataIn2DBaseBehaviors:
 
   protected def day(offsetDays: Int): LocalDate = dayZero.plusDays(offsetDays)
 
-  def stringLookupTests[S <: DataIn2DBase[String, LocalDate, Int]](
+  def stringLookupTests[S <: DimensionalBase[String, Dim[LocalDate, Int]]](
     prefix: String,
-    dataIn2DFrom: Experimental ?=> Iterable[ValidData2D[String, LocalDate, Int]] => S,
+    dataIn2DFrom: Experimental ?=> Iterable[ValidData[String, Dim[LocalDate, Int]]] => S,
     dataIn2DOf: Experimental ?=> String => S
   )(using Experimental): Unit = test(s"$prefix: Looking up data in intervals"):
     {
@@ -48,7 +50,7 @@ trait DataIn2DBaseBehaviors:
     val single = dataIn2DOf("Hello world")
     single.get shouldBe "Hello world"
     single.getOption shouldBe Some("Hello world")
-    single.domain.toList shouldBe List(Interval2D.unbounded[Int, Int])
+    single.domain.toList shouldBe List(Interval.unbounded[Dim[Int, Int]])
     single.domainComplement.toList shouldBe List.empty
 
     val bounded = (intervalFrom(0) x intervalTo(0)) -> "Hello world"
@@ -65,9 +67,7 @@ trait DataIn2DBaseBehaviors:
     )
     fixture1.getOption shouldBe None
     assert(fixture1.isDefinedAt(dayZero, 0))
-    Domain2D(dayZero, 0).flip shouldBe Domain2D(0, dayZero)
     fixture1(dayZero, 0) shouldBe "Hello world"
-    fixture1.flip(0, dayZero) shouldBe "Hello world"
     assert(!fixture1.isDefinedAt(day(-1), 0))
     assertThrows[Exception]:
       val _ = fixture1(day(-1), 0)
@@ -130,9 +130,9 @@ trait DataIn2DBaseBehaviors:
    *  (6) split + split = hole (1)
    */
   protected def assertRemoveOrUpdateResult(
-    removeExpectedUnsorted: ValidData2D[String, LocalDate, Int]*
+    removeExpectedUnsorted: ValidData[String, Dim[LocalDate, Int]]*
   )(
-    removeOrUpdateInterval: Interval2D[LocalDate, Int],
+    removeOrUpdateInterval: Interval[Dim[LocalDate, Int]],
     updateValue: String = "update"
   )(using Experimental): Assertion
 

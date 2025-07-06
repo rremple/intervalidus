@@ -4,7 +4,7 @@ import intervalidus.*
 import intervalidus.DiscreteValue.given
 import intervalidus.Interval1D.*
 import intervalidus.collection.mutable.MultiMapSorted
-import intervalidus.immutable.DataIn1D
+import intervalidus.immutable.Data
 
 import java.time.LocalDate
 import scala.collection.mutable
@@ -127,35 +127,40 @@ trait Billing:
     */
   def billCustomer(
     customer: Customer,
-    priorTiers: DataIn1D[Tier, LocalDate],
-    newTiers: DataIn1D[Tier, LocalDate],
+    priorTiers: Data.In1D[Tier, LocalDate],
+    newTiers: Data.In1D[Tier, LocalDate],
     priorCycle: BillingCycle,
     thisCycle: BillingCycle
   ): Iterable[Transaction] =
     def transactions(tier: Tier, billingPeriod: Period, refund: Boolean = false): Iterable[Transaction] =
       val (amountSign, transactionType) = if refund then (-1, "refund") else (1, "bill")
       for
-        ValidData1D(dailyRate, ratePeriod) <- tier.dailyRates.getIntersecting(billingPeriod)
+        ValidData(dailyRate, ratePeriodIn1D) <- tier.dailyRates.getIntersecting(billingPeriod)
+        ratePeriod = ratePeriodIn1D.headInterval1D[LocalDate]
         period <- billingPeriod.intersectionWith(ratePeriod)
       yield
         val remark = s"$transactionType for $period at the ${tier.description} ${dailyRate.dollarFormat}/day rate"
         Transaction(thisCycle.runDate, customer, tier, period, dailyRate * period.days * amountSign, remark)
 
-    import DiffAction1D.*
+    import DiffAction.*
     val newTiersTruncated = newTiers.remove(intervalFromAfter(thisCycle.billToDate))
     val priorTiersTruncated = priorTiers.remove(intervalFromAfter(priorCycle.billToDate))
     val diffActions = newTiersTruncated.diffActionsFrom(priorTiersTruncated)
 
     diffActions.flatMap:
-      case Create(ValidData1D(newTier, newInterval)) =>
+      case Create(ValidData(newTier, newIntervalIn1D: Interval.In1D[LocalDate])) =>
+        val newInterval = newIntervalIn1D.headInterval1D[LocalDate]
         transactions(newTier, newInterval)
 
-      case Update(ValidData1D(newTier, newInterval)) =>
+      case Update(ValidData(newTier, newIntervalIn1D: Interval.In1D[LocalDate])) =>
+        val newInterval = newIntervalIn1D.headInterval1D[LocalDate]
         priorTiersTruncated.getDataAt(newInterval.start) match
-          case Some(ValidData1D(priorTier, priorInterval)) if priorTier == newTier => // different interval
+          case Some(ValidData(priorTier, priorIntervalIn1D)) if priorTier == newTier => // different interval
+            val priorInterval = priorIntervalIn1D.headInterval1D[LocalDate]
             if priorInterval.end < newInterval.end then transactions(newTier, newInterval.fromAfter(priorInterval.end))
             else transactions(priorTier, priorInterval.fromAfter(newInterval.end), refund = true)
-          case Some(ValidData1D(priorTier, priorInterval)) => // different tier
+          case Some(ValidData(priorTier, priorIntervalIn1D)) => // different tier
+            val priorInterval = priorIntervalIn1D.headInterval1D[LocalDate]
             transactions(priorTier, priorInterval, refund = true) ++ transactions(newTier, newInterval)
           case None => // should never happen
             println(
@@ -165,7 +170,8 @@ trait Billing:
 
       case Delete(start) =>
         priorTiersTruncated.getDataAt(start) match
-          case Some(ValidData1D(priorTier, priorInterval)) =>
+          case Some(ValidData(priorTier, priorIntervalIn1D)) =>
+            val priorInterval = priorIntervalIn1D.headInterval1D[LocalDate]
             transactions(priorTier, priorInterval, refund = true)
           case None => // should never happen
             println(s"Delete action, but deleted data at $start could not be found in $priorTiersTruncated")

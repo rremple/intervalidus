@@ -2,6 +2,8 @@ package intervalidus.microbench
 
 import intervalidus.*
 import intervalidus.DiscreteValue.given
+import intervalidus.DomainLike.given
+import intervalidus.Interval.Patterns.*
 import intervalidus.Interval1D.interval
 import org.openjdk.jmh.annotations.*
 
@@ -29,66 +31,70 @@ trait BenchBase(baselineFeature: Option[String], featuredFeature: Option[String]
   val (fullRangeMin, fullRangeMax) = (-500_000, 500_000)
   def fullRangeSize = fullRangeMax - fullRangeMin
 
-  def randDomain1d(): Domain1D[Int] = rand.nextInt(fullRangeSize) + fullRangeMin
-  def randDomain2d(): Domain2D[Int, Int] = randDomain1d() x randDomain1d()
-  def randDomain3d(): Domain3D[Int, Int, Int] = randDomain1d() x randDomain1d() x randDomain1d()
+  def randDomainValue(): Int = rand.nextInt(fullRangeSize) + fullRangeMin
+  def randDomain1d(): Domain1D[Int] = Domain1D.Point(randDomainValue())
+  def randDomain2d(): Domain.In2D[Int, Int] = Domain.in2D(randDomainValue(), randDomainValue())
+  def randDomain3d(): Domain.In3D[Int, Int, Int] = Domain.in3D(randDomainValue(), randDomainValue(), randDomainValue())
 
   def randInterval1d(intervalRange: Int): Interval1D[Int] =
-    val start = rand.nextInt(fullRangeSize) + fullRangeMin
+    val start = randDomainValue()
     val size = rand.nextInt(intervalRange) + 1
     val end = math.min(fullRangeMax, start + size)
     interval(start, end)
-  def randInterval2d(intervalRange: Int): Interval2D[Int, Int] =
+  def randInterval2d(intervalRange: Int): Interval.In2D[Int, Int] =
     randInterval1d(intervalRange) x randInterval1d(intervalRange)
-  def randInterval3d(intervalRange: Int): Interval3D[Int, Int, Int] =
+  def randInterval3d(intervalRange: Int): Interval.In3D[Int, Int, Int] =
     randInterval1d(intervalRange) x randInterval1d(intervalRange) x randInterval1d(intervalRange)
 
-  def randValue1d(intervalRange: Int): ValidData1D[String, Int] =
+  def randValue1d(intervalRange: Int): ValidData.In1D[String, Int] =
     val interval = randInterval1d(intervalRange)
     interval -> interval.toString
-  def randValue2d(intervalRange: Int): ValidData2D[String, Int, Int] =
+  def randValue2d(intervalRange: Int): ValidData.In2D[String, Int, Int] =
     val interval = randInterval2d(intervalRange)
     interval -> interval.toString
-  def randValue3d(intervalRange: Int): ValidData3D[String, Int, Int, Int] =
+  def randValue3d(intervalRange: Int): ValidData.In3D[String, Int, Int, Int] =
     val interval = randInterval3d(intervalRange)
     interval -> interval.toString
 
   def shorten(existing: Interval1D[Int]) =
     interval(existing.start, existing.end.leftAdjacent max existing.start)
 
-  def randValue1dWithKey(existing: ValidData1D[String, Int]) =
-    val newInterval = shorten(existing.interval)
+  def randValue1dWithKey(existing: ValidData.In1D[String, Int]): ValidData.In1D[String, Int] =
+    val newInterval = shorten(existing.interval.headInterval1D)
     newInterval -> newInterval.toString
 
-  def randValue2dWithKey(existing: ValidData2D[String, Int, Int]) =
-    val newInterval = shorten(existing.interval.horizontal) x shorten(existing.interval.vertical)
+  def randValue2dWithKey(existing: ValidData.In2D[String, Int, Int]): ValidData.In2D[String, Int, Int] =
+    val newInterval = existing.interval match
+      case horizontal :+|: vertical => shorten(horizontal) x shorten(vertical)
+      case _                        => throw Exception(s"Unexpected interval: ${existing.interval}")
     newInterval -> newInterval.toString
 
-  def randValue3dWithKey(existing: ValidData3D[String, Int, Int, Int]) =
-    val newInterval =
-      shorten(existing.interval.horizontal) x shorten(existing.interval.vertical) x shorten(existing.interval.depth)
+  def randValue3dWithKey(existing: ValidData.In3D[String, Int, Int, Int]): ValidData.In3D[String, Int, Int, Int] =
+    val newInterval = existing.interval match
+      case horizontal :+: vertical :+|: depth => shorten(horizontal) x shorten(vertical) x shorten(depth)
+      case _                                  => throw Exception(s"Unexpected interval: ${existing.interval}")
     newInterval -> newInterval.toString
 
   // faster to construct disjoint valid data ranges using mutable data structures
-  def validDataIn1d(intervalRange: Int, intervals: Int): Vector[ValidData1D[String, Int]] =
+  def validDataIn1d(intervalRange: Int, intervals: Int): Vector[ValidData.In1D[String, Int]] =
     println(s"Random 1D 1-$intervalRange size x ${intervals / 1000}k intervals...")
-    val mutableFixture = mutable.DataIn1D[String, Int]()
+    val mutableFixture: mutable.Data.In1D[String, Int] = mutable.Data()
     (1 to intervals).foreach(_ => mutableFixture.set(randValue1d(intervalRange)))
     val data = mutableFixture.getAll.toVector
     println(s"Random 1D 1-$intervalRange size x ${intervals / 1000}k intervals: ${data.size}")
     data
 
-  def validDataIn2d(intervalRange: Int, intervals: Int): Vector[ValidData2D[String, Int, Int]] =
+  def validDataIn2d(intervalRange: Int, intervals: Int): Vector[ValidData.In2D[String, Int, Int]] =
     println(s"Random 2D 1-$intervalRange size x ${intervals / 1000}k intervals...")
-    val mutableFixture = mutable.DataIn2D[String, Int, Int]()
+    val mutableFixture: mutable.Data.In2D[String, Int, Int] = mutable.Data()
     (1 to intervals).foreach(_ => mutableFixture.set(randValue2d(intervalRange)))
     val data = mutableFixture.getAll.toVector
     println(s"Random 2D 1-$intervalRange size x ${intervals / 1000}k intervals: ${data.size}")
     data
 
-  def validDataIn3d(intervalRange: Int, intervals: Int): Vector[ValidData3D[String, Int, Int, Int]] =
+  def validDataIn3d(intervalRange: Int, intervals: Int): Vector[ValidData.In3D[String, Int, Int, Int]] =
     println(s"Random 3D 1-$intervalRange size x ${intervals / 1000}k intervals...")
-    val mutableFixture = mutable.DataIn3D[String, Int, Int, Int]()
+    val mutableFixture: mutable.Data.In3D[String, Int, Int, Int] = mutable.Data()
     (1 to intervals).foreach(_ => mutableFixture.set(randValue3d(intervalRange)))
     val data = mutableFixture.getAll.toVector
     println(s"Random 3D 1-$intervalRange size x ${intervals / 1000}k intervals: ${data.size}")
@@ -141,18 +147,18 @@ trait BenchBase(baselineFeature: Option[String], featuredFeature: Option[String]
     println(s"Featured fixture created, ${System.currentTimeMillis() - start} ms.")
     featuredFixture
 
-  val buildMutable1d: BuildFrom[ValidData1D[String, Int], mutable.DataIn1D[String, Int]] =
-    mutable.DataIn1D[String, Int](_)
-  val buildMutable2d: BuildFrom[ValidData2D[String, Int, Int], mutable.DataIn2D[String, Int, Int]] =
-    mutable.DataIn2D[String, Int, Int](_)
-  val buildMutable3d: BuildFrom[ValidData3D[String, Int, Int, Int], mutable.DataIn3D[String, Int, Int, Int]] =
-    mutable.DataIn3D[String, Int, Int, Int](_)
-  val buildImmutable1d: BuildFrom[ValidData1D[String, Int], immutable.DataIn1D[String, Int]] =
-    immutable.DataIn1D[String, Int](_)
-  val buildImmutable2d: BuildFrom[ValidData2D[String, Int, Int], immutable.DataIn2D[String, Int, Int]] =
-    immutable.DataIn2D[String, Int, Int](_)
-  val buildImmutable3d: BuildFrom[ValidData3D[String, Int, Int, Int], immutable.DataIn3D[String, Int, Int, Int]] =
-    immutable.DataIn3D[String, Int, Int, Int](_)
+  val buildMutable1d: BuildFrom[ValidData.In1D[String, Int], mutable.Data.In1D[String, Int]] =
+    mutable.Data(_)
+  val buildMutable2d: BuildFrom[ValidData.In2D[String, Int, Int], mutable.Data.In2D[String, Int, Int]] =
+    mutable.Data(_)
+  val buildMutable3d: BuildFrom[ValidData.In3D[String, Int, Int, Int], mutable.Data.In3D[String, Int, Int, Int]] =
+    mutable.Data(_)
+  val buildImmutable1d: BuildFrom[ValidData.In1D[String, Int], immutable.Data.In1D[String, Int]] =
+    immutable.Data(_)
+  val buildImmutable2d: BuildFrom[ValidData.In2D[String, Int, Int], immutable.Data.In2D[String, Int, Int]] =
+    immutable.Data(_)
+  val buildImmutable3d: BuildFrom[ValidData.In3D[String, Int, Int, Int], immutable.Data.In3D[String, Int, Int, Int]] =
+    immutable.Data(_)
 
   // hundreds by thousands, all lazy so we only create the data we use
   lazy val baselineMutable1d100x1k = baselineFromData(buildMutable1d, validDataIn1d100x1k)

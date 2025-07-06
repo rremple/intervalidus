@@ -2,7 +2,7 @@ package intervalidus.examples.billing
 
 import intervalidus.Interval1D.*
 import intervalidus.DiscreteValue.given
-import intervalidus.immutable.DataIn1D
+import intervalidus.immutable.Data
 
 import java.time.LocalDate
 import scala.language.implicitConversions
@@ -17,7 +17,7 @@ object BillingIn1D extends Billing:
   /**
     * The dimension represents the effective dates of the tiers selections
     */
-  private val customerTiers0: Map[CustomerId, DataIn1D[Tier, LocalDate]] = Map.empty.withDefaultValue(DataIn1D())
+  private val customerTiers0: Map[CustomerId, Data.In1D[Tier, LocalDate]] = Map.empty.withDefaultValue(Data())
 
   /**
     * Based on the prior billing cycle, calculate new transactions for all customers and return the current cycle. As a
@@ -35,8 +35,8 @@ object BillingIn1D extends Billing:
     *   completed billing cycle
     */
   private def billAllCustomers(
-    priorCustomerTiers: Map[CustomerId, DataIn1D[Tier, LocalDate]],
-    newCustomerTiers: Map[CustomerId, DataIn1D[Tier, LocalDate]]
+    priorCustomerTiers: Map[CustomerId, Data.In1D[Tier, LocalDate]],
+    newCustomerTiers: Map[CustomerId, Data.In1D[Tier, LocalDate]]
   )(
     priorCycle: BillingCycle,
     index: Int

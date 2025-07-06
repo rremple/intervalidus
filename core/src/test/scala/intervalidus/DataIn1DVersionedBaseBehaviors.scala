@@ -1,7 +1,11 @@
 package intervalidus
 
-import intervalidus.DiscreteValue.given
+import intervalidus.DiscreteValue.IntDiscreteValue
 import intervalidus.Interval1D.*
+import intervalidus.DomainLike.given
+import intervalidus.Domain.In1D as Dim
+import intervalidus.DimensionalVersionedBase.Versioned
+import intervalidus.Interval.Patterns.*
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
@@ -18,19 +22,23 @@ trait DataIn1DVersionedBaseBehaviors:
 
   def day(offsetDays: Int): LocalDate = dayZero.plusDays(offsetDays)
 
-  def validString(s: String, validTime: Interval1D[LocalDate]): ValidData1D[String, LocalDate] =
+  def validString(s: String, validTime: Interval[Dim[LocalDate]]): ValidData[String, Dim[LocalDate]] =
     validTime -> s
+
+  def horizontal[H: DomainValueLike](interval: Interval[Versioned[Domain.In1D[H]]]): Interval1D[H] = interval match
+    case _ :+|: horizontal => horizontal
+    case _                 => throw Exception(s"Expected versioned one-dimensional interval, got $interval")
 
   protected def testDataIn2D[T](
     current: Domain1D[Int],
-    values: List[ValidData1D[T, Int]]
-  ): List[ValidData2D[T, Int, Int]] =
-    values.map(d => (d.interval x intervalFrom(current)) -> d.value)
+    values: List[ValidData[T, Dim[Int]]]
+  ): List[ValidData[T, Versioned[Dim[Int]]]] =
+    values.map(d => d.interval.withHead(intervalFrom(current)) -> d.value)
 
-  def stringLookupTests[S <: DataIn1DVersionedBase[String, Int]](
+  def stringLookupTests[S <: DimensionalVersionedBase[String, Dim[Int]]](
     prefix: String,
-    dataIn1DVersionedFrom1D: Experimental ?=> Iterable[ValidData1D[String, Int]] => S,
-    dataIn1DVersionedFrom2D: Experimental ?=> Iterable[ValidData2D[String, Int, Int]] => S,
+    dataIn1DVersionedFrom1D: Experimental ?=> Iterable[ValidData[String, Dim[Int]]] => S,
+    dataIn1DVersionedFrom2D: Experimental ?=> Iterable[ValidData[String, Versioned[Dim[Int]]]] => S,
     dataIn1DVersionedOf: Experimental ?=> String => S
   )(using Experimental): Unit =
     test(s"$prefix: General setup"):
@@ -50,7 +58,7 @@ trait DataIn1DVersionedBaseBehaviors:
       val single = dataIn1DVersionedOf("Hello world")
       single.get shouldBe "Hello world"
       single.getOption shouldBe Some("Hello world")
-      single.domain.toList shouldBe List(unbounded[Int])
+      single.domain.toList shouldBe List(Interval.unbounded[Dim[Int]])
       single.domainComplement.toList shouldBe List.empty
 
       val fixture1: S = dataIn1DVersionedFrom1D(List(intervalFrom(0) -> "Hello world"))
@@ -65,8 +73,8 @@ trait DataIn1DVersionedBaseBehaviors:
 
       val allData2 = List(interval(0, 10) -> "Hello", intervalFrom(11) -> "World")
       val fixture2 = dataIn1DVersionedFrom2D(testDataIn2D(0, allData2))
-      fixture2.domain.toList shouldBe List(intervalFrom(0))
-      fixture2.domainComplement.toList shouldBe List(intervalToBefore(0))
+      fixture2.domain.toList shouldBe List(Interval.in1D(intervalFrom(0)))
+      fixture2.domainComplement.toList shouldBe List(Interval.in1D(intervalToBefore(0)))
       fixture2.getAt(5) shouldBe Some("Hello")
       fixture2.getAt(15) shouldBe Some("World")
       fixture2.getAt(-1) shouldBe None

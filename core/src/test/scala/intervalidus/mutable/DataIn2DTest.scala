@@ -2,6 +2,8 @@ package intervalidus.mutable
 
 import intervalidus.*
 import intervalidus.DiscreteValue.given
+import intervalidus.DomainLike.given
+import intervalidus.Domain.In2D as Dim
 import org.scalatest.compatible.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
@@ -14,41 +16,29 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
   import Interval1D.*
 
   // shared
-  testsFor(stringLookupTests("Mutable", DataIn2D(_), DataIn2D.of(_)))
+  testsFor(stringLookupTests("Mutable", Data(_), Data.of(_)))
+
   testsFor(
-    stringLookupTests("Mutable [experimental noSearchTree]", DataIn2D(_), DataIn2D.of(_))(using
-      Experimental("noSearchTree")
-    )
-  )
-  testsFor(
-    mutableBaseTests[
-      Domain2D[LocalDate, Int],
-      Interval2D[LocalDate, Int],
-      ValidData2D[String, LocalDate, Int],
-      DiffAction2D[String, LocalDate, Int],
-      DataIn2D[String, LocalDate, Int]
-    ](
-      ds => DataIn2D(ds),
+    mutableBaseTests[Dim[LocalDate, Int], Data[String, Dim[LocalDate, Int]]](
+      Data(_),
       i => unbounded[LocalDate] x i,
-      (i, s) => (unbounded[LocalDate] x i) -> s,
       d =>
         d.copy(
           value = d.value + "!",
-          interval = d.interval.withVerticalUpdate(_.to(d.interval.vertical.end.leftAdjacent))
-        ),
-      Interval2D.unbounded
+          interval = d.interval.to(d.interval.end.leftAdjacent)
+        )
     )
   )
 
-  protected def assertRemoveOrUpdateResult(
-    removeExpectedUnsorted: ValidData2D[String, LocalDate, Int]*
+  override def assertRemoveOrUpdateResult(
+    removeExpectedUnsorted: ValidData[String, Dim[LocalDate, Int]]*
   )(
-    removeOrUpdateInterval: Interval2D[LocalDate, Int],
+    removeOrUpdateInterval: Interval[Dim[LocalDate, Int]],
     updateValue: String = "update"
   )(using Experimental): Assertion =
     val rectangle = interval(day(-14), day(14)) x interval(4, 7)
-    val removeFixture = DataIn2D.of(rectangle -> "World")
-    val updateFixture = DataIn2D.of(rectangle -> "World")
+    val removeFixture = Data.of(rectangle -> "World")
+    val updateFixture = Data.of(rectangle -> "World")
     val expectedUpdateInterval = removeOrUpdateInterval ∩ rectangle match
       case Some(intersection) => intersection
       case None               => fail("Test failed, no intersection with the rectangle")
@@ -73,14 +63,12 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
         throw ex
 
   testsFor(removeOrUpdateTests("Mutable"))
-  testsFor(removeOrUpdateTests("Mutable [experimental noSearchTree]")(using Experimental("noSearchTree")))
-  testsFor(removeOrUpdateTests("Mutable [experimental noBruteForceUpdate]")(using Experimental("noBruteForceUpdate")))
 
-  def vertical2D[T: DiscreteValue](interval2: Interval1D[T]): Interval2D[LocalDate, T] =
+  def vertical2D[T: DiscreteValue](interval2: Interval1D[T]): Interval[Dim[LocalDate, T]] =
     unbounded[LocalDate] x interval2
 
   test("Mutable: Constructors and getting data by index"):
-    val empty: DataIn2D[String, Int, Int] = DataIn2D()
+    val empty: Data[String, Dim[Int, Int]] = Data()
     assert(empty.getAll.isEmpty)
     assert(empty.domain.isEmpty)
 
@@ -88,22 +76,10 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
       (intervalTo(day(14)) x interval(0, 10)) -> "Hello",
       (intervalFrom(day(1)) x intervalFrom(11)) -> "World"
     )
-    val fixture = immutable.DataIn2D(allData).toImmutable.toMutable
+    val fixture = immutable.Data(allData).toImmutable.toMutable
+    fixture.getAll.toList shouldBe allData
 
-    fixture.getByHorizontalIndex(dayZero).getAt(0) shouldBe Some("Hello")
-    fixture.getByVerticalIndex(11).getAt(day(1)) shouldBe Some("World")
-
-  test("Mutable [experimental noSearchTree]: Constructors and getting data by index"):
-    given Experimental = Experimental("noSearchTree")
-
-    val allData = List(
-      (intervalTo(day(14)) x interval(0, 10)) -> "Hello",
-      (intervalFrom(day(1)) x intervalFrom(11)) -> "World"
-    )
-    val fixture = immutable.DataIn2D(allData).toImmutable.toMutable
-
-    fixture.getByHorizontalIndex(dayZero).getAt(0) shouldBe Some("Hello")
-    fixture.getByVerticalIndex(11).getAt(day(1)) shouldBe Some("World")
+    fixture.getByHeadIndex(dayZero).getAt(0) shouldBe Some("Hello")
 
   test("Mutable: Diff actions"):
     val expectedData2 = List(
@@ -113,18 +89,18 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
       (unbounded[LocalDate] x interval(20, 25)) -> "!",
       (unbounded[LocalDate] x intervalFrom(26)) -> "World"
     )
-    val fixture2 = DataIn2D(expectedData2)
+    val fixture2 = Data(expectedData2)
     val expectedData3 = List(
       (unbounded[LocalDate] x intervalTo(4)) -> "Hey",
       (unbounded[LocalDate] x interval(5, 15)) -> "to",
       (unbounded[LocalDate] x intervalFrom(16)) -> "World"
     )
-    val fixture3 = DataIn2D(expectedData3)
+    val fixture3 = Data(expectedData3)
     val expectedData4 = List(
       (unbounded[LocalDate] x intervalTo(4)) -> "Hey",
       (unbounded[LocalDate] x intervalFrom(16)) -> "World"
     )
-    val fixture = DataIn2D(expectedData4)
+    val fixture = Data(expectedData4)
     fixture.set((intervalFrom(day(1)) x intervalFrom(1)) -> "remove me")
     fixture.remove(intervalFrom(day(1)) x intervalFrom(1))
     fixture.recompressAll()
@@ -137,30 +113,30 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
 
     val fixture5 = fixture.copy
 
-    import DiffAction2D.*
-    import Domain1D.{Bottom, Point}
+    import DiffAction.*
+    val bottomInt: Domain1D[Int] = Domain1D.Bottom
 
     val actionsFrom2To3 = fixture3.diffActionsFrom(fixture2)
     actionsFrom2To3.toList shouldBe List(
       Create(vertical2D(intervalTo(4)) -> "Hey"),
-      Delete(Domain2D[Int, Int](Bottom, 0)),
+      Delete(bottomInt x 0),
       Update(vertical2D(intervalFrom(16)) -> "World"),
-      Delete(Domain2D[Int, Int](Bottom, 20)),
-      Delete(Domain2D[Int, Int](Bottom, 26))
+      Delete(bottomInt x 20),
+      Delete(bottomInt x 26)
     )
     actionsFrom2To3.toList.map(_.toCodeLikeString) shouldBe List(
-      "DiffAction2D.Create((unbounded x intervalTo(4)) -> \"Hey\")",
-      "DiffAction2D.Delete(Bottom x Point(0))",
-      "DiffAction2D.Update((unbounded x intervalFrom(16)) -> \"World\")",
-      "DiffAction2D.Delete(Bottom x Point(20))",
-      "DiffAction2D.Delete(Bottom x Point(26))"
+      "DiffAction.Create((unbounded x intervalTo(4)) -> \"Hey\")",
+      "DiffAction.Delete(Bottom x Point(0))",
+      "DiffAction.Update((unbounded x intervalFrom(16)) -> \"World\")",
+      "DiffAction.Delete(Bottom x Point(20))",
+      "DiffAction.Delete(Bottom x Point(26))"
     )
 
     val actionsFrom3To5 = fixture5.diffActionsFrom(fixture3)
     actionsFrom3To5.toList shouldBe List(
       Update(vertical2D(intervalTo(0)) -> "Hey"),
       Create((intervalTo(day(0)) x interval(1, 4)) -> "Hey"),
-      Delete(Domain2D[Int, Int](Bottom, Point(5))),
+      Delete(bottomInt x 5),
       Update((intervalTo(day(0)) x intervalFrom(16)) -> "World")
     )
     fixture2.applyDiffActions(actionsFrom2To3)
@@ -177,7 +153,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
       (unbounded[LocalDate] x intervalFrom(10)) -> "Hello"
     )
 
-    val fixture = DataIn2D(expectedData3)
+    val fixture = Data(expectedData3)
     fixture.set((intervalFrom(day(0)) x intervalFrom(1)) -> "update me")
     fixture.update((intervalFrom(day(1)) x intervalFrom(0)) -> "update me")
     fixture.recompressAll()
@@ -202,7 +178,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     )
 
   test("Mutable: Simple toString"):
-    val fixturePadData = DataIn2D.of[String, LocalDate, Int]("H")
+    val fixturePadData = Data.of[String, Dim[LocalDate, Int]]("H")
     fixturePadData.set((intervalFrom(day(0)) x unbounded[Int]) -> "W")
     // println(fixturePadData.toString)
     fixturePadData.toString shouldBe
@@ -212,10 +188,10 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
          |""".stripMargin.replaceAll("\r", "")
 
     val concat = fixturePadData.foldLeft(StringBuilder()): (a, d) =>
-      a.append(d.value).append("->").append(d.interval.horizontal.toString).append(" ")
+      a.append(d.value).append("->").append(d.interval.headInterval1D[LocalDate].toString).append(" ")
     concat.result() shouldBe "H->(-∞..2024-07-14] W->[2024-07-15..+∞) "
 
-    val fixturePadLabel = DataIn2D.of[String, LocalDate, Int]("Helloooooooooo")
+    val fixturePadLabel = Data.of[String, Dim[LocalDate, Int]]("Helloooooooooo")
     fixturePadLabel.set((intervalFrom(day(0)) x unbounded[Int]) -> "Wooooooorld")
     // println(fixturePadLabel.toString)
     fixturePadLabel.toString shouldBe

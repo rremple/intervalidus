@@ -1,6 +1,8 @@
 package intervalidus
 
 import intervalidus.DiscreteValue.given
+import intervalidus.DomainLike.given
+import intervalidus.Domain.In4D as Dim
 import org.scalatest.compatible.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
@@ -22,9 +24,9 @@ trait DataIn4DBaseBehaviors:
 
   protected val unboundedDate = unbounded[LocalDate]
 
-  def stringLookupTests[S <: DataIn4DBase[String, LocalDate, LocalDate, Int, Int]](
+  def stringLookupTests[S <: DimensionalBase[String, Dim[LocalDate, LocalDate, Int, Int]]](
     prefix: String,
-    dataIn4DFrom: Experimental ?=> Iterable[ValidData4D[String, LocalDate, LocalDate, Int, Int]] => S,
+    dataIn4DFrom: Experimental ?=> Iterable[ValidData[String, Dim[LocalDate, LocalDate, Int, Int]]] => S,
     dataIn4DOf: Experimental ?=> String => S
   )(using Experimental): Unit = test(s"$prefix: Looking up data in intervals"):
     {
@@ -47,7 +49,7 @@ trait DataIn4DBaseBehaviors:
     val single = dataIn4DOf("Hello world")
     single.get shouldBe "Hello world"
     single.getOption shouldBe Some("Hello world")
-    single.domain.toList shouldBe List(Interval4D.unbounded[LocalDate, LocalDate, Int, Int])
+    single.domain.toList shouldBe List(Interval.unbounded[Dim[LocalDate, LocalDate, Int, Int]])
     single.domainComplement.toList shouldBe List.empty
 
     val bounded = (intervalFrom(0) x intervalTo(0) x intervalTo(0) x intervalTo(0)) -> "Hello world"
@@ -136,9 +138,9 @@ trait DataIn4DBaseBehaviors:
    * (10) bite = split + single + none (6 symmetric cases)
    */
   protected def assertRemoveOrUpdateResult(
-    removeExpectedUnsorted: ValidData4D[String, Int, Int, Int, Int]*
+    removeExpectedUnsorted: ValidData[String, Dim[Int, Int, Int, Int]]*
   )(
-    removeOrUpdateInterval: Interval4D[Int, Int, Int, Int],
+    removeOrUpdateInterval: Interval[Dim[Int, Int, Int, Int]],
     updateValue: String = "update"
   )(using Experimental): Assertion
 

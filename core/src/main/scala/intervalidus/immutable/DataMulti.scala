@@ -1,154 +1,149 @@
 package intervalidus.immutable
 
 import intervalidus.*
+import intervalidus.Domain.NonEmptyTail
 import intervalidus.collection.mutable.{BoxTree, MultiMapSorted}
-import intervalidus.mutable.DataIn1DMulti as DataIn1DMultiMutable
 
 import scala.collection.mutable
 
 /**
-  * Constructs multi-data in one-dimensional intervals.
+  * Constructs multi-data in multidimensional intervals.
   */
-object DataIn1DMulti extends DataIn1DMultiBaseObject:
-  override def of[V, R: DomainValueLike](
-    data: ValidData1D[V, R]
-  )(using Experimental): DataIn1DMulti[V, R] = DataIn1DMulti(Iterable(data.interval -> Set(data.value)))
+object DataMulti extends DimensionalMultiBaseObject:
+  type In1D[V, R1] = DataMulti[V, Domain.In1D[R1]]
+  type In2D[V, R1, R2] = DataMulti[V, Domain.In2D[R1, R2]]
+  type In3D[V, R1, R2, R3] = DataMulti[V, Domain.In3D[R1, R2, R3]]
+  type In4D[V, R1, R2, R3, R4] = DataMulti[V, Domain.In4D[R1, R2, R3, R4]]
 
-  override def of[V, R: DomainValueLike](
+  override def of[V, D <: NonEmptyTuple: DomainLike](
+    data: ValidData[V, D]
+  )(using Experimental): DataMulti[V, D] = DataMulti(Iterable(data.interval -> Set(data.value)))
+
+  override def of[V, D <: NonEmptyTuple: DomainLike](
     value: V
-  )(using Experimental): DataIn1DMulti[V, R] = of(Interval1D.unbounded[R] -> value)
+  )(using Experimental): DataMulti[V, D] = of(Interval.unbounded[D] -> value)
 
-  override def from[V, R: DomainValueLike](
-    initialData: Iterable[ValidData1D[V, R]]
-  )(using Experimental): DataIn1DMulti[V, R] = DataIn1DMulti[V, R]().addAll(initialData)
+  override def from[V, D <: NonEmptyTuple: DomainLike](
+    initialData: Iterable[ValidData[V, D]]
+  )(using Experimental): DataMulti[V, D] =
+    DataMulti[V, D]().addAll(initialData)
 
-  override def from[V, R: DomainValueLike](
-    that: DataIn1DBase[Set[V], R]
-  )(using Experimental): DataIn1DMulti[V, R] = apply(that.getAll)
+  override def from[V, D <: NonEmptyTuple: DomainLike](
+    that: DimensionalBase[Set[V], D]
+  )(using Experimental): DataMulti[V, D] = apply(that.getAll)
 
-  override def apply[V, R: DomainValueLike](
-    initialData: Iterable[ValidData1D[Set[V], R]] = Iterable.empty[ValidData1D[Set[V], R]]
-  )(using Experimental): DataIn1DMulti[V, R] =
-    val (byStartAsc, byStartDesc, byValue, inSearchTree) = constructorParams(initialData)
-    new DataIn1DMulti(byStartAsc, byStartDesc, byValue, inSearchTree)
+  override def apply[V, D <: NonEmptyTuple: DomainLike](
+    initialData: Iterable[ValidData[Set[V], D]] = Iterable.empty[ValidData[Set[V], D]]
+  )(using Experimental): DataMulti[V, D] =
+    val (byStartAsc, byValue, inSearchTree) = constructorParams(initialData)
+    new DataMulti(byStartAsc, byValue, inSearchTree)
 
 /**
-  * Data that may have multiple values valid in different intervals, conceptually similar to a multimap. These intervals
-  * may represent when data are valid in time or over certain versions ranges or whatever. When queried, values are
-  * returned as a set. The standard mutation methods operate on these sets of values. There are also add and remove
-  * methods allow mutation of individual values across intervals, and a merge method for combining two structures
-  * (conceptually similar to zip, but operating on individual values, and more appropriate for these multiple values
-  * structures).
+  * Immutable, multivalued dimensional data.
+  *
+  * Data may have multiple values valid in different intervals of arbitrary dimensions, conceptually similar to a
+  * multimap. For example, one may want to represent when the data are valid in time and over certain versions, or in
+  * two dimensions of time, simultaneously. When queried, values are returned as a set. The standard mutation methods
+  * operate on these sets of values. There are also add and remove methods allow mutation of individual values across
+  * intervals, and a merge method for combining two structures (conceptually similar to zip, but operating on individual
+  * values, and more appropriate for these multiple values structures).
   *
   * @tparam V
-  *   the type of the value managed as data.
-  * @tparam R
-  *   the type of domain value used in the interval assigned to each value.
+  *   the value type for valid data.
+  * @tparam D
+  *   the domain type for intervals, must be [[DomainLike]].
   */
-class DataIn1DMulti[V, R: DomainValueLike] private (
-  override val dataByStartAsc: mutable.TreeMap[Domain1D[R], ValidData1D[Set[V], R]],
-  override val dataByStartDesc: mutable.TreeMap[Domain1D[R], ValidData1D[Set[V], R]],
-  override val dataByValue: MultiMapSorted[Set[V], ValidData1D[Set[V], R]],
-  override val dataInSearchTree: BoxTree[ValidData1D[Set[V], R]]
-)(using Experimental)
-  extends DataIn1DMultiBase[V, R]
-  with ImmutableMultiBase[
-    V,
-    Domain1D[R],
-    Interval1D[R],
-    ValidData1D[V, R],
-    ValidData1D[Set[V], R],
-    DiffAction1D[Set[V], R],
-    DataIn1DMulti[V, R]
-  ]:
+class DataMulti[V, D <: NonEmptyTuple: DomainLike] protected (
+  override val dataByStartAsc: mutable.TreeMap[D, ValidData[Set[V], D]],
+  override val dataByValue: MultiMapSorted[Set[V], ValidData[Set[V], D]],
+  override val dataInSearchTree: BoxTree[ValidData[Set[V], D]]
+)(using experimental: Experimental)
+  extends ImmutableBase[Set[V], D, DataMulti[V, D]]
+  with DimensionalMultiBase[V, D]:
+
+  experimental.control("requireDisjoint")(
+    nonExperimentalResult = (),
+    experimentalResult = require(Interval.isDisjoint(getAll.map(_.interval)), "data must be disjoint")
+  )
+
+  // ---------- Specific Multivalue methods that have immutable signatures ----------
 
   /**
-    * Applies a function to all valid data. Both the valid data value and interval types can be changed in the mapping.
+    * Merges all valid data in that structure into this one.
     *
-    * @param f
-    *   the function to apply to each valid data element.
-    * @tparam B
-    *   the valid data value type of the returned structure.
-    * @tparam S
-    *   the valid data interval type of the returned structure.
+    * @param that
+    *   the structure which is going to be merged.
     * @return
-    *   a new structure resulting from applying the provided function f to each element of this structure.
+    *   a new, updated structure.
     */
-  def map[B, S: DomainValueLike](
-    f: ValidData1D[Set[V], R] => ValidData1D[Set[B], S]
-  ): DataIn1DMulti[B, S] =
-    DataIn1DMulti(
-      getAll.map(f)
-    ).compressAll()
+  def merge(that: DataMulti[V, D]): DataMulti[V, D] = copyAndModify: result =>
+    result.mergeInPlace(that.getAll)
 
   /**
-    * Applies a function to all valid data values. Only the valid data value type can be changed in the mapping.
+    * Update everything valid in data's interval to have the data's value. New intervals of validity are added where no
+    * data in the interval are valid. Data with overlaps are adjusted accordingly.
     *
-    * @param f
-    *   the function to apply to the value part of each valid data element.
-    * @tparam B
-    *   the valid data value type of the returned structure.
+    * @param data
+    *   the data to add
     * @return
-    *   a new structure resulting from applying the provided function f to each element of this structure.
+    *   a new, updated structure
     */
-  def mapValues[B](f: Set[V] => Set[B]): DataIn1DMulti[B, R] = DataIn1DMulti(
-    getAll.map(d => d.copy(value = f(d.value)))
-  ).compressAll()
+  def addOne(data: ValidData[V, D]): DataMulti[V, D] =
+    copyAndModify(_.addOneInPlace(data))
 
   /**
-    * Builds a new structure by applying a function to all elements of this collection and concatenating the elements of
-    * the resulting structures.
+    * Remove valid values on the interval. Intervals of validity are removed where only this value is valid. Data with
+    * overlaps are adjusted accordingly.
     *
-    * @param f
-    *   the function to apply to each valid data element which results in a new structure.
-    * @tparam B
-    *   the valid data value type of the returned structure.
-    * @tparam S
-    *   the valid data interval type of the returned structure.
+    * @param data
+    *   the data to remove
     * @return
-    *   a new structure resulting from applying the provided function f to each element of this structure and
-    *   concatenating the results.
+    *   a new, updated structure
     */
-  def flatMap[B, S: DomainValueLike](
-    f: ValidData1D[Set[V], R] => DataIn1DMulti[B, S]
-  ): DataIn1DMulti[B, S] =
-    DataIn1DMulti(
-      getAll.flatMap(f(_).getAll)
-    ).compressAll()
+  def removeOne(data: ValidData[V, D]): DataMulti[V, D] =
+    copyAndModify(_.removeOneInPlace(data))
 
-  // ---------- Implement methods from DataIn1DBase - signatures are weird because B isn't a set type ----------
+  /**
+    * Add all the values following the logic in [[addOne]].
+    *
+    * @param allData
+    *   the data to add
+    * @return
+    *   a new, updated structure
+    */
+  def addAll(allData: Iterable[ValidData[V, D]]): DataMulti[V, D] = copyAndModify: result =>
+    allData.foreach(result.addOneInPlace)
 
-  override def zip[B](that: DataIn1DBase[B, R]): DataIn1DBase[(Set[V], B), R] = DataIn1D(zipData(that))
+  /**
+    * Remove all the values following the logic in [[removeOne]].
+    *
+    * @param allData
+    *   the data to remove
+    * @return
+    *   a new, updated structure
+    */
+  def removeAll(allData: Iterable[ValidData[V, D]]): DataMulti[V, D] = copyAndModify: result =>
+    allData.foreach(result.removeOneInPlace)
 
-  override def zipAll[B](
-    that: DataIn1DBase[B, R],
-    thisElem: Set[V],
-    thatElem: B
-  ): DataIn1DBase[(Set[V], B), R] = DataIn1D(zipAllData(that, thisElem, thatElem))
+  // ---------- Implement methods from DimensionalBase that create new instances ----------
 
-  // ---------- Implement methods from ImmutableBase ----------
+  override def copy: DataMulti[V, D] =
+    new DataMulti(dataByStartAsc.clone(), dataByValue.clone(), dataInSearchTree.copy)
 
-  override protected def copyAndModify(f: DataIn1DMulti[V, R] => Unit): DataIn1DMulti[V, R] =
-    val result = copy
-    f(result)
-    result
+  override def zip[B](that: DimensionalBase[B, D]): Data[(Set[V], B), D] =
+    Data(zipData(that))
 
-  override def applyDiffActions(
-    diffActions: Iterable[DiffAction1D[Set[V], R]]
-  ): DataIn1DMulti[V, R] = copyAndModify: result =>
-    diffActions.foreach:
-      case DiffAction1D.Create(data) => result.addValidData(data)
-      case DiffAction1D.Update(data) => result.updateValidData(data)
-      case DiffAction1D.Delete(key)  => result.removeValidDataByKey(key)
+  override def zipAll[B](that: DimensionalBase[B, D], thisElem: Set[V], thatElem: B): Data[(Set[V], B), D] =
+    Data(zipAllData(that, thisElem, thatElem))
 
-  override def syncWith(that: DataIn1DMulti[V, R]): DataIn1DMulti[V, R] =
-    applyDiffActions(that.diffActionsFrom(this))
+  override def toMutable: intervalidus.mutable.DataMulti[V, D] =
+    intervalidus.mutable.DataMulti(getAll)
 
-  // ---------- Implement methods from DimensionalBase ----------
+  override def toImmutable: intervalidus.immutable.DataMulti[V, D] =
+    this
 
-  override def copy: DataIn1DMulti[V, R] =
-    new DataIn1DMulti(dataByStartAsc.clone(), dataByStartDesc.clone(), dataByValue.clone(), dataInSearchTree.copy)
-
-  override def toMutable: DataIn1DMultiMutable[V, R] = DataIn1DMultiMutable(getAll)
-
-  override def toImmutable: DataIn1DMulti[V, R] = this
+  override def getByHeadIndex[H: DomainValueLike](headIndex: Domain1D[H])(using
+    D =:= Domain1D[H] *: Tuple.Tail[D],
+    DomainLike[NonEmptyTail[D]]
+  ): DataMulti[V, NonEmptyTail[D]] =
+    DataMulti(getByHeadIndexData(headIndex))
