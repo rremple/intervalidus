@@ -161,33 +161,6 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
 
   protected def dataInSearchTree: BoxTree[ValidData[V, D]]
 
-  protected def dataInSearchTreeAdd(data: ValidData[V, D]): Unit =
-    dataInSearchTree.addOne(data.asBoxedPayload)
-
-  protected def dataInSearchTreeRemove(data: ValidData[V, D]): Unit =
-    dataInSearchTree.remove(data.asBoxedPayload)
-
-  protected def dataInSearchTreeClear(): Unit =
-    dataInSearchTree.clear()
-
-  protected def dataInSearchTreeAddAll(data: Iterable[ValidData[V, D]]): Unit =
-    dataInSearchTree.addAll(data.map(_.asBoxedPayload))
-
-  protected def dataInSearchTreeGet(interval: Interval[D]): Iterable[ValidData[V, D]] =
-    BoxedPayload
-      .deduplicate(dataInSearchTree.get(interval.asBox))
-      .map(_.payload)
-      .filter(_.interval intersects interval)
-
-  protected def dataInSearchTreeGetByDomain(domainIndex: D): Option[ValidData[V, D]] =
-    dataInSearchTree
-      .get(Box.at(domainIndex.asCoordinate))
-      .collectFirst:
-        case d if d.payload.interval.contains(domainIndex) => d.payload
-
-  protected def dataInSearchTreeIntersects(interval: Interval[D]): Boolean =
-    dataInSearchTree.get(interval.asBox).exists(_.payload.interval intersects interval)
-
   /**
     * Remove, and possibly update, valid values on the target interval. If there are values valid on portions of the
     * interval, those values have their interval adjusted (e.g., shortened, shifted, split) accordingly. The logic of
@@ -397,7 +370,11 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     * @return
     *   all data that are valid on some or all of the interval (some intersection).
     */
-  def getIntersecting(interval: Interval[D]): Iterable[ValidData[V, D]] = dataInSearchTreeGet(interval)
+  def getIntersecting(interval: Interval[D]): Iterable[ValidData[V, D]] =
+    BoxedPayload
+      .deduplicate(dataInSearchTree.get(interval.asBox))
+      .collect:
+        case BoxedPayload(_, payload, _) if payload.interval intersects interval => payload
 
   /**
     * Are there values that are valid on some or all of the provided interval?
@@ -407,7 +384,8 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     * @return
     *   true if there are values that are valid somewhere on the interval.
     */
-  infix def intersects(interval: Interval[D]): Boolean = dataInSearchTreeIntersects(interval)
+  infix def intersects(interval: Interval[D]): Boolean =
+    dataInSearchTree.get(interval.asBox).exists(_.payload.interval intersects interval)
 
   /**
     * Internal mutator to add, where there is no existing overlapping data.
@@ -419,7 +397,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     // assert(!dataByStartAsc.isDefinedAt(data.interval.start))
     dataByStartAsc.addOne(data.withKey)
     dataByValue.addOne(data.value -> data)
-    dataInSearchTreeAdd(data)
+    dataInSearchTree.addOne(data.asBoxedPayload)
 
   /**
     * Internal mutator to update, where a value with v.interval.start already exists.
@@ -433,8 +411,8 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     dataByValue.subtractOne(oldData.value -> oldData)
     dataByValue.addOne(data.value -> data)
     dataByStartAsc.update(data.interval.start, data)
-    dataInSearchTreeRemove(oldData)
-    dataInSearchTreeAdd(data)
+    dataInSearchTree.remove(oldData.asBoxedPayload)
+    dataInSearchTree.addOne(data.asBoxedPayload)
 
   /**
     * Internal mutator to remove, where a known value already exists.
@@ -446,7 +424,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     val key = oldData.interval.start
     dataByValue.subtractOne(oldData.value -> oldData)
     dataByStartAsc.remove(key)
-    dataInSearchTreeRemove(oldData)
+    dataInSearchTree.remove(oldData.asBoxedPayload)
 
   /**
     * Internal mutator to remove, where a value with a known key already exists.
@@ -462,8 +440,8 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     dataByStartAsc.addAll(data.map(_.withKey))
     dataByValue.clear()
     dataByValue.addAll(data.map(d => d.value -> d))
-    dataInSearchTreeClear()
-    dataInSearchTreeAddAll(data)
+    dataInSearchTree.clear()
+    dataInSearchTree.addAll(data.map(_.asBoxedPayload))
 
   // from PartialFunction
   override def isDefinedAt(key: D): Boolean = getAt(key).isDefined
@@ -501,7 +479,10 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   Some value and corresponding interval if valid at the specified domain element, otherwise None.
     */
   def getDataAt(domainIndex: D): Option[ValidData[V, D]] =
-    dataInSearchTreeGetByDomain(domainIndex)
+    dataInSearchTree
+      .get(Box.at(domainIndex.asCoordinate))
+      .collectFirst:
+        case d if d.payload.interval.contains(domainIndex) => d.payload
 
   /**
     * Returns a value that is valid at the specified domain element. That is, where the specified domain element is a
@@ -603,11 +584,14 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     DomainLike[NonEmptyTail[D]]
   ): Iterable[ValidData[V, NonEmptyTail[D]]] =
     val lookup = Interval.unbounded[D].withHeadUpdate[H](_ => Interval1D.intervalAt(headIndex))
-    dataInSearchTreeGet(lookup).map:
-      case ValidData(value, interval) => interval.tailInterval[NonEmptyTail[D]] -> value
+    BoxedPayload
+      .deduplicate(dataInSearchTree.get(lookup.asBox))
+      .collect:
+        case BoxedPayload(_, ValidData(value, interval), _) if interval intersects lookup =>
+          interval.tailInterval[NonEmptyTail[D]] -> value
 
   /**
-    * Project as lower dimensional data based on a head domain element
+    * Project as data in n-1 dimensions based on a lookup in the head dimension.
     *
     * @param headIndex
     *   the first dimension domain element

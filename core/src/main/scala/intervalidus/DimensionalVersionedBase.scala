@@ -166,19 +166,19 @@ trait DimensionalVersionedBase[
 
   // Construct underlying interval from public interval plus version selection
   protected def underlyingDomain(domain: D)(using versionSelection: VersionSelection): Versioned[D] =
-    versionSelection.boundary *: domain
+    domain withHead versionSelection.boundary
 
   // Construct underlying interval from public interval plus version selection (intervalFrom)
   protected def underlyingIntervalFrom(interval: Interval[D])(using
     versionSelection: VersionSelection
   ): Interval[Versioned[D]] =
-    interval.withHead(versionSelection.intervalFrom)
+    interval withHead versionSelection.intervalFrom
 
   // Construct underlying interval from public interval plus version selection (at boundary)
   protected def underlyingIntervalAt(interval: Interval[D])(using
     versionSelection: VersionSelection
   ): Interval[Versioned[D]] =
-    interval.withHead(versionSelection.intervalAt)
+    interval withHead versionSelection.intervalAt
 
   // Construct underlying data from public data plus version selection
   protected def underlyingValidData(data: ValidData[V, D])(using VersionSelection): ValidData[V, Versioned[D]] =
@@ -188,7 +188,7 @@ trait DimensionalVersionedBase[
   protected def underlyingIntervalWithVersion(
     interval: Interval[D],
     version: VersionInterval
-  ): Interval[Versioned[D]] = interval.withHead(version)
+  ): Interval[Versioned[D]] = interval withHead version
 
   // Extract version interval from underlying data
   protected def versionInterval(data: ValidData[V, Versioned[D]]): VersionInterval =

@@ -50,6 +50,26 @@ class Data[V, D <: NonEmptyTuple: DomainLike] protected (
     experimentalResult = require(Interval.isDisjoint(getAll.map(_.interval)), "data must be disjoint")
   )
 
+  // ---------- Implement methods from ImmutableBase that create new instances ----------
+
+  override def map[B, S <: NonEmptyTuple: DomainLike](
+    f: ValidData[V, D] => ValidData[B, S]
+  ): Data[B, S] = Data(
+    getAll.map(f)
+  ).compressAll()
+
+  override def mapValues[B](
+    f: V => B
+  ): Data[B, D] = Data(
+    getAll.map(d => d.copy(value = f(d.value)))
+  ).compressAll()
+
+  override def flatMap[B, S <: NonEmptyTuple: DomainLike](
+    f: ValidData[V, D] => DimensionalBase[B, S]
+  ): Data[B, S] = Data(
+    getAll.flatMap(f(_).getAll)
+  ).compressAll()
+
   // ---------- Implement methods from DimensionalBase that create new instances ----------
 
   override def copy: Data[V, D] =

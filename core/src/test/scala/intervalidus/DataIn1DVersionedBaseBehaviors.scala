@@ -33,7 +33,7 @@ trait DataIn1DVersionedBaseBehaviors:
     current: Domain1D[Int],
     values: List[ValidData[T, Dim[Int]]]
   ): List[ValidData[T, Versioned[Dim[Int]]]] =
-    values.map(d => d.interval.withHead(intervalFrom(current)) -> d.value)
+    values.map(d => (d.interval withHead intervalFrom(current)) -> d.value)
 
   def stringLookupTests[S <: DimensionalVersionedBase[String, Dim[Int]]](
     prefix: String,

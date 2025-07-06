@@ -16,12 +16,62 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
   Experimental
 ) extends DimensionalBase[V, D]:
 
-  override def copy: Self // to refine the result type for `copyAndModify`
-
   protected def copyAndModify(f: Self => Unit): Self =
     val result = copy
     f(result)
     result
+
+  // ---------- To be implemented by inheritor ----------
+
+  override def copy: Self // refine the result type for `copyAndModify`
+
+  /**
+    * Applies a function to all valid data. Both the valid data value and interval types can be changed in the mapping.
+    *
+    * @param f
+    *   the function to apply to each valid data element.
+    * @tparam B
+    *   the valid data value type of the returned structure.
+    * @tparam S
+    *   the valid data interval domain type of the returned structure.
+    * @return
+    *   a new structure resulting from applying the provided function f to each element of this structure.
+    */
+  def map[B, S <: NonEmptyTuple: DomainLike](
+    f: ValidData[V, D] => ValidData[B, S]
+  ): DimensionalBase[B, S]
+
+  /**
+    * Applies a function to all valid data values. Only the valid data value type can be changed in the mapping.
+    *
+    * @param f
+    *   the function to apply to the value part of each valid data element.
+    * @tparam B
+    *   the valid data value type of the returned structure.
+    * @return
+    *   a new structure resulting from applying the provided function f to each element of this structure.
+    */
+  def mapValues[B](
+    f: V => B
+  ): DimensionalBase[B, D]
+
+  /**
+    * Builds a new structure by applying a function to all elements of this collection and concatenating the elements of
+    * the resulting structures.
+    *
+    * @param f
+    *   the function to apply to each valid data element which results in a new structure.
+    * @tparam B
+    *   the valid data value type of the returned structure.
+    * @tparam S
+    *   the valid data interval domain type of the returned structure.
+    * @return
+    *   a new structure resulting from applying the provided function f to each element of this structure and
+    *   concatenating the results.
+    */
+  def flatMap[B, S <: NonEmptyTuple: DomainLike](
+    f: ValidData[V, D] => DimensionalBase[B, S]
+  ): DimensionalBase[B, S]
 
   // ---------- Implement methods not in DimensionalBase that have immutable signatures ----------
 
@@ -179,60 +229,6 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     */
   def syncWith(that: Self): Self =
     applyDiffActions(that.diffActionsFrom(this))
-
-  /**
-    * Applies a function to all valid data. Both the valid data value and interval types can be changed in the mapping.
-    *
-    * @param f
-    *   the function to apply to each valid data element.
-    * @tparam B
-    *   the valid data value type of the returned structure.
-    * @tparam S
-    *   the valid data interval domain type of the returned structure.
-    * @return
-    *   a new structure resulting from applying the provided function f to each element of this structure.
-    */
-  def map[B, S <: NonEmptyTuple: DomainLike](
-    f: ValidData[V, D] => ValidData[B, S]
-  ): Data[B, S] = Data( // hard-coding this as `Data` because we can't use the Self type here!
-    getAll.map(f)
-  ).compressAll()
-
-  /**
-    * Applies a function to all valid data values. Only the valid data value type can be changed in the mapping.
-    *
-    * @param f
-    *   the function to apply to the value part of each valid data element.
-    * @tparam B
-    *   the valid data value type of the returned structure.
-    * @return
-    *   a new structure resulting from applying the provided function f to each element of this structure.
-    */
-  def mapValues[B](
-    f: V => B
-  ): Data[B, D] = Data( // hard-coding this as `Data` because we can't use the Self type here!
-    getAll.map(d => d.copy(value = f(d.value)))
-  ).compressAll()
-
-  /**
-    * Builds a new structure by applying a function to all elements of this collection and concatenating the elements of
-    * the resulting structures.
-    *
-    * @param f
-    *   the function to apply to each valid data element which results in a new structure.
-    * @tparam B
-    *   the valid data value type of the returned structure.
-    * @tparam S
-    *   the valid data interval domain type of the returned structure.
-    * @return
-    *   a new structure resulting from applying the provided function f to each element of this structure and
-    *   concatenating the results.
-    */
-  def flatMap[B, S <: NonEmptyTuple: DomainLike](
-    f: ValidData[V, D] => DimensionalBase[B, S]
-  ): Data[B, S] = Data( // hard-coding this as `Data` because we can't use the Self type here!
-    getAll.flatMap(f(_).getAll)
-  ).compressAll()
 
   /**
     * Adds a value as valid in portions of the interval where there aren't already valid values.

@@ -125,6 +125,27 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] protected (
   def removeAll(allData: Iterable[ValidData[V, D]]): DataMulti[V, D] = copyAndModify: result =>
     allData.foreach(result.removeOneInPlace)
 
+  // ---------- Implement methods from ImmutableBase that create new instances ----------
+  // - (these return Data rather than DataMulti because B isn't necessarily a Set type) -
+
+  override def map[B, S <: NonEmptyTuple: DomainLike](
+    f: ValidData[Set[V], D] => ValidData[B, S]
+  ): Data[B, S] = Data(
+    getAll.map(f)
+  ).compressAll()
+
+  override def mapValues[B](
+    f: Set[V] => B
+  ): Data[B, D] = Data(
+    getAll.map(d => d.copy(value = f(d.value)))
+  ).compressAll()
+
+  override def flatMap[B, S <: NonEmptyTuple: DomainLike](
+    f: ValidData[Set[V], D] => DimensionalBase[B, S]
+  ): Data[B, S] = Data(
+    getAll.flatMap(f(_).getAll)
+  ).compressAll()
+
   // ---------- Implement methods from DimensionalBase that create new instances ----------
 
   override def copy: DataMulti[V, D] =

@@ -85,7 +85,7 @@ enum Domain1D[+T]:
     *   a new two-dimensional domain tuple with this as the horizontal component and that as the vertical component.
     */
   infix def x[T2: DomainValueLike](that: Domain1D[T2]): Domain.In2D[T, T2] =
-    this *: that *: EmptyTuple
+    (this, that)
 
 import intervalidus.Domain1D.{Bottom, OpenPoint, Point, Top}
 

@@ -97,7 +97,7 @@ trait DomainLikeTupleOps[D <: NonEmptyTuple]:
   * Use recursive decomposition of tuples to provide domain-like capabilities to tuples.
   */
 object DomainLikeTupleOps:
-  type OneDimDomain[DV] = Domain.In1D[DV]
+  type OneDimDomain[DV] = Domain1D[DV] *: EmptyTuple
   type MultiDimDomain[DV, DomainTail <: NonEmptyTuple] = Domain1D[DV] *: DomainTail
 
   /**

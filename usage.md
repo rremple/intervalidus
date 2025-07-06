@@ -26,7 +26,8 @@ library like this from a Scala 2.13 application by using `CrossVersion.for2_13Us
 ["The Book of sbt"](https://www.scala-sbt.org/2.x/docs/en/reference/cross-building-setup.html)), it doesn't seem to work
 well here. (Not even when using the scalac option `-Ytasty-reader`.) The compatibility seems to get broken by the
 extensive use of Scala 3 features like opaque types, extension methods, givens (some of which don't seem to translate
-well to Scala 2 implicits), and some use of macros (which are very lightly used in core `intervalidus`, only for the
+well to Scala 2 implicits), inlines (for tuple processing) and some use of macros 
+(which are very lightly used in core `intervalidus`, only for the
 auto-derivation of a discrete value type class from an `enum`, but are more heavily used in the `intervalidus-tinyrule`
 subproject). You really ought to upgrade to Scala 3!
 
@@ -39,7 +40,7 @@ use a Personal Access Token (PAT) with at least the ability to read packages. Fo
 [GitHub docs](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens).
 
 A good way is to configure this is by using an environment variable for your Personal Access Token. `GITHUB_TOKEN` is a
-good choice as a secret with the same name is defined automatically in GitHub Actions CI builds. (Note that, although
+good choice, as a secret with the same name is defined automatically in GitHub Actions CI builds. (Note that, although
 the `Credentials` class requires a `user` argument, it is apparently ignored in GitHub authentication when using a 
 PAT as the password, so we can just pass in `"_"` along with the PAT.) For example, add the following to your
 **build.sbt** file:

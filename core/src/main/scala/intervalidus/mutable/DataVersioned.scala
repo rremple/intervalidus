@@ -27,7 +27,7 @@ object DataVersioned extends DimensionalVersionedBaseObject:
     initialData: Iterable[ValidData[V, D]],
     initialVersion: Int = 0 // could use summon[DomainValueLike[Int]].minValue to extend range
   )(using Experimental, DomainLike[Versioned[D]]): DataVersioned[V, D] = DataVersioned[V, D](
-    initialData.map(d => d.interval.withHead(Interval1D.intervalFrom(initialVersion)) -> d.value),
+    initialData.map(d => (d.interval withHead Interval1D.intervalFrom(initialVersion)) -> d.value),
     initialVersion
   )
 

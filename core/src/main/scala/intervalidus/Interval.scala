@@ -309,8 +309,8 @@ case class Interval[D <: NonEmptyTuple](
     * end.
     *
     * @tparam T
-    *   the domain type of the tail element. There is a type safety check that ensures the tail start and end form an
-    *   interval of type `DomainLike[Tuple.Tail[D]]` and the tail is not empty.
+    *   the domain type of the tail element. There are type safety checks ensuring it is in fact the tail, and that it
+    *   is not empty.
     * @return
     *   the tail interval of n-1 dimensions.
     */
@@ -479,9 +479,9 @@ object Interval:
 
   object Patterns:
     /**
-      * Decomposes a multidimensional interval by extracting its head 1D interval and its remaining tail interval. It is
-      * essentially the inverse of `Interval.withHead`. Useful when chaining a match on a fixed number of dimensions,
-      * where this pattern is used in all but the last place, e.g.,
+      * Decomposes a multidimensional interval by extracting its constituent head 1D interval and remaining tail
+      * interval. It is essentially the inverse of `Interval.withHead`. Useful when chaining a match on a fixed number
+      * of dimensions, where this pattern is used in all but the last place, e.g.,
       * {{{
       *   dataIntervals.collect:
       *     case horizontal :+: vertical :+: depth :+|: fourth =>
@@ -499,9 +499,9 @@ object Interval:
     }
 
     /**
-      * Specific to a two-dimensional interval, decomposes it by extracting its two 1D intervals. It is essentially the
-      * inverse of `Interval1D.withHead`. Useful when chaining a match on a fixed number of dimensions, where this
-      * pattern is used in the last place, e.g.,
+      * Specific to a two-dimensional interval, decomposes it by extracting its two constituent 1D intervals. It is
+      * essentially the inverse of `Interval1D.withHead`. Useful when chaining a match on a fixed number of dimensions,
+      * where this pattern is used in the last place, e.g.,
       * {{{
       *   dataIntervals.collect:
       *     case horizontal :+: vertical :+: depth :+|: fourth =>
@@ -513,7 +513,7 @@ object Interval:
         i: Interval[D]
       ): Option[(Interval1D[H1], Interval1D[H2])] =
         (i.start, i.end) match
-          case (s1 *: s2 *: EmptyTuple, e1 *: e2 *: EmptyTuple) => Some((Interval1D(s1, e1), Interval1D(s2, e2)))
+          case ((s1, s2), (e1, e2)) => Some((Interval1D(s1, e1), Interval1D(s2, e2)))
     }
 
   // used in return type of excluding
