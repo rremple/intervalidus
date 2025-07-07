@@ -177,6 +177,177 @@ node8 -> node0;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="flatMap-fffff3fe">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ImmutableBase.html#flatMap-fffff3fe" t="n" class="documentableName ">flatMap</a>[<span t="k"></span><span data-unresolved-link="" t="t">B</span>, <span t="k"></span><span data-unresolved-link="" t="t">S</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">NonEmptyTuple</span> : <a href="../DomainLike.html" t="t">DomainLike</a>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">f</span>: (<a href="../ValidData.html" t="t">ValidData</a>[<span t="t">V</span>, <span t="t">D</span>])<span t="k"> =&gt; </span><a href="../DimensionalBase.html" t="t">DimensionalBase</a>[<span t="t">B</span>, <span t="t">S</span>]): <a href="../DimensionalBase.html" t="t">DimensionalBase</a>[<span data-unresolved-link="" t="t">B</span>, <span data-unresolved-link="" t="t">S</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Builds a new structure by applying a function to all elements of this collection and concatenating the elements of the resulting structures.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Builds a new structure by applying a function to all elements of this collection and concatenating the elements of the resulting structures.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               B
+              </dt>
+              <dd class="body-medium">
+               <p>the valid data value type of the returned structure.</p>
+              </dd>
+              <dt class="body-small">
+               S
+              </dt>
+              <dd class="body-medium">
+               <p>the valid data interval domain type of the returned structure.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               f
+              </dt>
+              <dd class="body-medium">
+               <p>the function to apply to each valid data element which results in a new structure.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>a new structure resulting from applying the provided function f to each element of this structure and concatenating the results.</p>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="map-fffff3fe">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ImmutableBase.html#map-fffff3fe" t="n" class="documentableName ">map</a>[<span t="k"></span><span data-unresolved-link="" t="t">B</span>, <span t="k"></span><span data-unresolved-link="" t="t">S</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">NonEmptyTuple</span> : <a href="../DomainLike.html" t="t">DomainLike</a>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">f</span>: (<a href="../ValidData.html" t="t">ValidData</a>[<span t="t">V</span>, <span t="t">D</span>])<span t="k"> =&gt; </span><a href="../ValidData.html" t="t">ValidData</a>[<span t="t">B</span>, <span t="t">S</span>]): <a href="../DimensionalBase.html" t="t">DimensionalBase</a>[<span data-unresolved-link="" t="t">B</span>, <span data-unresolved-link="" t="t">S</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Applies a function to all valid data. Both the valid data value and interval types can be changed in the mapping.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Applies a function to all valid data. Both the valid data value and interval types can be changed in the mapping.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               B
+              </dt>
+              <dd class="body-medium">
+               <p>the valid data value type of the returned structure.</p>
+              </dd>
+              <dt class="body-small">
+               S
+              </dt>
+              <dd class="body-medium">
+               <p>the valid data interval domain type of the returned structure.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               f
+              </dt>
+              <dd class="body-medium">
+               <p>the function to apply to each valid data element.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>a new structure resulting from applying the provided function f to each element of this structure.</p>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="mapValues-3f2">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ImmutableBase.html#mapValues-3f2" t="n" class="documentableName ">mapValues</a>[<span t="k"></span><span data-unresolved-link="" t="t">B</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">f</span>: <span t="t">V</span><span t="k"> =&gt; </span><span t="t">B</span>): <a href="../DimensionalBase.html" t="t">DimensionalBase</a>[<span data-unresolved-link="" t="t">B</span>, <span t="t">D</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Applies a function to all valid data values. Only the valid data value type can be changed in the mapping.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Applies a function to all valid data values. Only the valid data value type can be changed in the mapping.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               B
+              </dt>
+              <dd class="body-medium">
+               <p>the valid data value type of the returned structure.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               f
+              </dt>
+              <dd class="body-medium">
+               <p>the function to apply to the value part of each valid data element.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>a new structure resulting from applying the provided function f to each element of this structure.</p>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
        </div>
       </section>
       <section id="Concrete-methods">
@@ -398,177 +569,6 @@ node8 -> node0;
               </dt>
               <dd class="body-medium">
                <p>a new structure consisting of all elements that satisfy the provided predicate p.</p>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="flatMap-fffff79a">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ImmutableBase.html#flatMap-fffff79a" t="n" class="documentableName ">flatMap</a>[<span t="k"></span><span data-unresolved-link="" t="t">B</span>, <span t="k"></span><span data-unresolved-link="" t="t">S</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">NonEmptyTuple</span> : <a href="../DomainLike.html" t="t">DomainLike</a>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">f</span>: (<a href="../ValidData.html" t="t">ValidData</a>[<span t="t">V</span>, <span t="t">D</span>])<span t="k"> =&gt; </span><a href="../DimensionalBase.html" t="t">DimensionalBase</a>[<span t="t">B</span>, <span t="t">S</span>]): <a href="Data.html" t="t">Data</a>[<span data-unresolved-link="" t="t">B</span>, <span data-unresolved-link="" t="t">S</span>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Builds a new structure by applying a function to all elements of this collection and concatenating the elements of the resulting structures.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Builds a new structure by applying a function to all elements of this collection and concatenating the elements of the resulting structures.</p>
-             </div>
-             <h2 class="h200">Type parameters</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               B
-              </dt>
-              <dd class="body-medium">
-               <p>the valid data value type of the returned structure.</p>
-              </dd>
-              <dt class="body-small">
-               S
-              </dt>
-              <dd class="body-medium">
-               <p>the valid data interval domain type of the returned structure.</p>
-              </dd>
-             </dl>
-             <h2 class="h200">Value parameters</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               f
-              </dt>
-              <dd class="body-medium">
-               <p>the function to apply to each valid data element which results in a new structure.</p>
-              </dd>
-             </dl>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Returns
-              </dt>
-              <dd class="body-medium">
-               <p>a new structure resulting from applying the provided function f to each element of this structure and concatenating the results.</p>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="map-fffff79a">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ImmutableBase.html#map-fffff79a" t="n" class="documentableName ">map</a>[<span t="k"></span><span data-unresolved-link="" t="t">B</span>, <span t="k"></span><span data-unresolved-link="" t="t">S</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">NonEmptyTuple</span> : <a href="../DomainLike.html" t="t">DomainLike</a>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">f</span>: (<a href="../ValidData.html" t="t">ValidData</a>[<span t="t">V</span>, <span t="t">D</span>])<span t="k"> =&gt; </span><a href="../ValidData.html" t="t">ValidData</a>[<span t="t">B</span>, <span t="t">S</span>]): <a href="Data.html" t="t">Data</a>[<span data-unresolved-link="" t="t">B</span>, <span data-unresolved-link="" t="t">S</span>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Applies a function to all valid data. Both the valid data value and interval types can be changed in the mapping.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Applies a function to all valid data. Both the valid data value and interval types can be changed in the mapping.</p>
-             </div>
-             <h2 class="h200">Type parameters</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               B
-              </dt>
-              <dd class="body-medium">
-               <p>the valid data value type of the returned structure.</p>
-              </dd>
-              <dt class="body-small">
-               S
-              </dt>
-              <dd class="body-medium">
-               <p>the valid data interval domain type of the returned structure.</p>
-              </dd>
-             </dl>
-             <h2 class="h200">Value parameters</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               f
-              </dt>
-              <dd class="body-medium">
-               <p>the function to apply to each valid data element.</p>
-              </dd>
-             </dl>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Returns
-              </dt>
-              <dd class="body-medium">
-               <p>a new structure resulting from applying the provided function f to each element of this structure.</p>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="mapValues-fffff926">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ImmutableBase.html#mapValues-fffff926" t="n" class="documentableName ">mapValues</a>[<span t="k"></span><span data-unresolved-link="" t="t">B</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">f</span>: <span t="t">V</span><span t="k"> =&gt; </span><span t="t">B</span>): <a href="Data.html" t="t">Data</a>[<span data-unresolved-link="" t="t">B</span>, <span t="t">D</span>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Applies a function to all valid data values. Only the valid data value type can be changed in the mapping.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Applies a function to all valid data values. Only the valid data value type can be changed in the mapping.</p>
-             </div>
-             <h2 class="h200">Type parameters</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               B
-              </dt>
-              <dd class="body-medium">
-               <p>the valid data value type of the returned structure.</p>
-              </dd>
-             </dl>
-             <h2 class="h200">Value parameters</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               f
-              </dt>
-              <dd class="body-medium">
-               <p>the function to apply to the value part of each valid data element.</p>
-              </dd>
-             </dl>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Returns
-              </dt>
-              <dd class="body-medium">
-               <p>a new structure resulting from applying the provided function f to each element of this structure.</p>
               </dd>
              </dl>
             </div>
@@ -1989,11 +1989,11 @@ node8 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Project as lower dimensional data based on a head domain element</p>
+             <p>Project as data in n-1 dimensions based on a lookup in the head dimension.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Project as lower dimensional data based on a head domain element</p>
+              <p>Project as data in n-1 dimensions based on a lookup in the head dimension.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">

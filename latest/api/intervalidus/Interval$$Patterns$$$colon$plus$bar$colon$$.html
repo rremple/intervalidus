@@ -12,7 +12,7 @@
 </div>
 <div class="cover">
  <div class="doc">
-  <p>Specific to a two-dimensional interval, decomposes it by extracting its two 1D intervals. It is essentially the inverse of <code>Interval1D.withHead</code>. Useful when chaining a match on a fixed number of dimensions, where this pattern is used in the last place, e.g.,</p>
+  <p>Specific to a two-dimensional interval, decomposes it by extracting its two constituent 1D intervals. It is essentially the inverse of <code>Interval1D.withHead</code>. Useful when chaining a match on a fixed number of dimensions, where this pattern is used in the last place, e.g.,</p>
   <div class="snippet mono-small-block">
    <pre><code class="language-"><span line-number="1" class=""><span class="tooltip-container"></span><span class="hideable"> </span>dataIntervals.collect:
 </span><span line-number="2" class=""><span class="tooltip-container"></span><span class="hideable"> </span>  case horizontal :+: vertical :+: depth :+|: fourth =&gt;

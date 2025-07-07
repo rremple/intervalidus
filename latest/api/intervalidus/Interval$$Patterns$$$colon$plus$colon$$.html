@@ -12,7 +12,7 @@
 </div>
 <div class="cover">
  <div class="doc">
-  <p>Decomposes a multidimensional interval by extracting its head 1D interval and its remaining tail interval. It is essentially the inverse of <code>Interval.withHead</code>. Useful when chaining a match on a fixed number of dimensions, where this pattern is used in all but the last place, e.g.,</p>
+  <p>Decomposes a multidimensional interval by extracting its constituent head 1D interval and remaining tail interval. It is essentially the inverse of <code>Interval.withHead</code>. Useful when chaining a match on a fixed number of dimensions, where this pattern is used in all but the last place, e.g.,</p>
   <div class="snippet mono-small-block">
    <pre><code class="language-"><span line-number="1" class=""><span class="tooltip-container"></span><span class="hideable"> </span>dataIntervals.collect:
 </span><span line-number="2" class=""><span class="tooltip-container"></span><span class="hideable"> </span>  case horizontal :+: vertical :+: depth :+|: fourth =&gt;
