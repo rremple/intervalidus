@@ -1,17 +1,23 @@
 package intervalidus.immutable
 
 import intervalidus.*
-import intervalidus.DimensionalVersionedBase.{Versioned, VersionDomain, VersionSelection}
+import intervalidus.DimensionalVersionedBase.{VersionDomain, VersionDomainValue, VersionSelection, Versioned}
 import intervalidus.DiscreteValue.IntDiscreteValue
+import intervalidus.Domain.NonEmptyTail
 
 import scala.language.implicitConversions
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 /** @inheritdoc */
 object DataVersioned extends DimensionalVersionedBaseObject:
+  type In1D[V, R1] = DataVersioned[V, Domain.In1D[R1]]
+  type In2D[V, R1, R2] = DataVersioned[V, Domain.In2D[R1, R2]]
+  type In3D[V, R1, R2, R3] = DataVersioned[V, Domain.In3D[R1, R2, R3]]
+  type In4D[V, R1, R2, R3, R4] = DataVersioned[V, Domain.In4D[R1, R2, R3, R4]]
+
   override def of[V, D <: NonEmptyTuple: DomainLike](
     data: ValidData[V, D],
-    initialVersion: Int
+    initialVersion: VersionDomainValue
   )(using Experimental, DomainLike[Versioned[D]]): DataVersioned[V, D] = from(
     Iterable(data),
     initialVersion
@@ -19,13 +25,13 @@ object DataVersioned extends DimensionalVersionedBaseObject:
 
   override def of[V, D <: NonEmptyTuple: DomainLike](
     value: V,
-    initialVersion: Int = 0
+    initialVersion: VersionDomainValue = 0
   )(using Experimental, DomainLike[Versioned[D]]): DataVersioned[V, D] =
     of(Interval.unbounded[D] -> value, initialVersion)
 
   override def from[V, D <: NonEmptyTuple: DomainLike](
     initialData: Iterable[ValidData[V, D]],
-    initialVersion: Int = 0 // could use summon[DomainValueLike[Int]].minValue to extend range
+    initialVersion: VersionDomainValue = 0
   )(using Experimental, DomainLike[Versioned[D]]): DataVersioned[V, D] = DataVersioned[V, D](
     initialData.map(d => (d.interval withHead Interval1D.intervalFrom(initialVersion)) -> d.value),
     initialVersion
@@ -41,12 +47,17 @@ object DataVersioned extends DimensionalVersionedBaseObject:
   */
 class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   initialData: Iterable[ValidData[V, Versioned[D]]] = Iterable.empty[ValidData[V, Versioned[D]]],
-  initialVersion: Int = 0, // could use summon[DomainValueLike[Int]].minValue to extend range
+  initialVersion: VersionDomainValue = 0,
   withCurrentVersion: Option[VersionDomain] = None
 )(using
   Experimental,
   DomainLike[Versioned[D]]
 ) extends DimensionalVersionedBase[V, D](initialData, initialVersion, withCurrentVersion):
+
+  protected def copyAndModify(f: DataVersioned[V, D] => Unit): DataVersioned[V, D] =
+    val result = copy
+    f(result)
+    result
 
   // ---------- Implement methods from DimensionalVersionedBase ----------
 
@@ -58,106 +69,11 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     Some(currentVersion)
   )
 
-  protected def copyAndModify(f: DataVersioned[V, D] => Unit): DataVersioned[V, D] =
-    val result = copy
-    f(result)
-    result
-
-  /**
-    * Creates a copy.
-    *
-    * @return
-    *   a new structure with the same data and current version.
-    */
-  def copy: DataVersioned[V, D] = DataVersioned(
+  override def copy: DataVersioned[V, D] = DataVersioned(
     underlying.getAll,
     initialVersion,
     Some(currentVersion)
   )
-
-  /**
-    * Sets the current version. No version history is rewritten, which may cause some unexpected results (especially if
-    * the version is set to something from the past). Use with caution.
-    *
-    * @param version
-    *   the new current version
-    * @return
-    *   a new structure with the current version set.
-    */
-  def setCurrentVersion(version: VersionDomain): DataVersioned[V, D] =
-    if version >= unapprovedStartVersion then throw Exception("version too large")
-    else if version equiv Domain1D.Bottom then throw Exception("version too small")
-    else copyAndModify(_.currentVersion = version)
-
-  /**
-    * Increments the current version.
-    * @return
-    *   a new structure with the current version incremented.
-    */
-  def incrementCurrentVersion(): DataVersioned[V, D] =
-    if currentVersion.rightAdjacent equiv unapprovedStartVersion then throw Exception("wow, ran out of versions!")
-    else copyAndModify(_.currentVersion = currentVersion.rightAdjacent)
-
-  /**
-    * Eliminate all version information after the specified version (including any unapproved changes).
-    *
-    * @param version
-    *   the version after which all version information is removed.
-    * @return
-    *   a new structure reset to the specified version, with the current version set to the same.
-    */
-  def resetToVersion(version: VersionDomain): DataVersioned[V, D] =
-    val keep = VersionSelection(version)
-    DataVersioned(
-      underlying.getAll
-        .filter(versionInterval(_) intersects keep.intervalTo)
-        .map(d =>
-          if versionInterval(d).end >= keep.boundary
-          then withVersionUpdate(d, _.toTop)
-          else d
-        ),
-      initialVersion,
-      Some(version)
-    ).compressAll()
-
-  /**
-    * Creates a new structure based on the version selection context, but without any version history.
-    * @return
-    *   a new structure with the version history collapsed.
-    */
-  def collapseVersionHistory(using versionSelection: VersionSelection): DataVersioned[V, D] =
-    DataVersioned.from(getAll, initialVersion)
-
-  /**
-    * Updates structure to only include elements which satisfy a predicate. Data are mutated in place.
-    *
-    * Does not use a version selection context -- the predicate is applied to the underlying data, so it can operate on
-    * the underlying version information as well as the valid interval/value.
-    *
-    * @param p
-    *   the predicate used to test elements.
-    * @return
-    *   a new structure with the same current version consisting of all elements that satisfy the provided predicate p.
-    */
-  def filter(p: ValidData[V, Versioned[D]] => Boolean): DataVersioned[V, D] = DataVersioned(
-    underlying.getAll.filter(p),
-    initialVersion,
-    Some(currentVersion)
-  )
-
-  /**
-    * Synchronizes this with another structure by getting and applying the applicable diff actions. Does not use a
-    * version selection context -- operates on full underlying structure.
-    *
-    * @param that
-    *   the structure with which this is synchronized.
-    * @return
-    *   a new, updated structure
-    */
-  def syncWith(that: DataVersioned[V, D]): DataVersioned[V, D] =
-    applyDiffActions(that.diffActionsFrom(this))
-
-  // ---------- Implement methods from DimensionalVersionedBase ----------
 
   override def zip[B](that: DimensionalVersionedBase[B, D]): DataVersioned[(V, B), D] =
     DataVersioned(
@@ -177,7 +93,154 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
       Some(currentVersion)
     )
 
-  // --- API methods unique to this "versioned" variant
+  override def getByHeadIndex[H: DomainValueLike](headIndex: Domain1D[H])(using
+    Domain1D[H] =:= Tuple.Head[D],
+    DomainLike[NonEmptyTail[D]],
+    DomainLike[Versioned[NonEmptyTail[D]]]
+  ): DataVersioned[V, NonEmptyTail[D]] =
+    DataVersioned(
+      getByHeadIndexData(headIndex),
+      initialVersion,
+      Some(currentVersion)
+    )
+
+  // ------ Implement methods similar to those from ImmutableVersionedBase, but with a version selection context ------
+
+  /**
+    * Set new valid data. Any data previously valid in this interval and the given version selection context are
+    * replaced by this data.
+    *
+    * @param data
+    *   the valid data to set.
+    * @return
+    *   a new, updated structure.
+    */
+  def set(data: ValidData[V, D])(using VersionSelection): DataVersioned[V, D] =
+    copyAndModify(_.underlying.set(underlyingValidDataFromVersionBoundary(data)))
+
+  /**
+    * Set new valid data, but only if there are no previously valid values in its interval and given the version
+    * selection context.
+    *
+    * @param newData
+    *   the valid data to set.
+    * @return
+    *   Some new structure data if there were no conflicts and new data was set, None otherwise.
+    */
+  def setIfNoConflict(newData: ValidData[V, D])(using VersionSelection): Option[DataVersioned[V, D]] =
+    val result = copy
+    val updated = result.underlying.setIfNoConflict(underlyingValidDataFromVersionBoundary(newData))
+    if updated then Some(result) else None
+
+  /**
+    * Update everything valid in the specified interval and the given version selection context to have the specified
+    * value. No new intervals of validity are added as part of this operation. Data with overlaps are adjusted
+    * accordingly.
+    *
+    * @param data
+    *   the new value and interval existing data should take on.
+    * @param versionSelection
+    *   version used for updating data -- default is the current version.
+    * @return
+    *   a new, updated structure.
+    */
+  def update(data: ValidData[V, D])(using versionSelection: VersionSelection): DataVersioned[V, D] =
+    copyAndModify(_.underlying.update(underlyingValidDataFromVersionBoundary(data)))
+
+  /**
+    * Remove valid values on the interval and the given version selection context. If there are values valid on portions
+    * of the interval, those values have their intervals adjusted (e.g., shortened, shifted, split) accordingly.
+    *
+    * @param interval
+    *   the interval where any valid values are removed.
+    * @param versionSelection
+    *   version used for removing data -- default is the current version.
+    * @return
+    *   a new, updated structure.
+    */
+  def remove(interval: Interval[D])(using versionSelection: VersionSelection): DataVersioned[V, D] =
+    copyAndModify(_.underlying.remove(underlyingIntervalFromVersionBoundary(interval)))
+
+  /**
+    * Given the version selection context, adds a value as valid in portions of the interval where there aren't already
+    * valid values.
+    *
+    * @param data
+    *   value to make valid in any validity gaps found in the interval
+    * @return
+    *   a new, updated structure.
+    */
+  def fill(data: ValidData[V, D])(using versionSelection: VersionSelection): DataVersioned[V, D] =
+    copyAndModify(_.underlying.fill(underlyingValidDataFromVersionBoundary(data)))
+
+  // ------ Implement methods similar to those from ImmutableVersionedBase, without version selection context ------
+
+  /**
+    * Compress out adjacent intervals with the same value.
+    *
+    * @param value
+    *   value for which valid data are compressed.
+    * @return
+    *   a new, updated structure.
+    */
+  def compress(value: V): DataVersioned[V, D] = copyAndModify(_.underlying.compress(value))
+
+  /**
+    * Compress out adjacent intervals with the same value for all values (Shouldn't ever need to do this.)
+    *
+    * @return
+    *   a new, updated structure.
+    */
+  def compressAll(): DataVersioned[V, D] = copyAndModify(_.underlying.compressAll())
+
+  /**
+    * Compress out adjacent intervals with the same value for all values after decompressing everything, resulting in a
+    * unique physical representation. Does not use a version selection context -- operates on full underlying structure.
+    * (Shouldn't ever need to do this.)
+    *
+    * @return
+    *   a new, updated structure.
+    */
+  def recompressAll(): DataVersioned[V, D] = copyAndModify(_.underlying.recompressAll())
+
+  /**
+    * Applies a sequence of diff actions to this structure. Does not use a version selection context -- operates on full
+    * underlying structure.
+    *
+    * @param diffActions
+    *   actions to be applied.
+    */
+  def applyDiffActions(diffActions: Iterable[DiffAction[V, Versioned[D]]]): DataVersioned[V, D] =
+    copyAndModify(_.underlying.applyDiffActions(diffActions))
+
+  /**
+    * Synchronizes this with another structure by getting and applying the applicable diff actions. Does not use a
+    * version selection context -- operates on full underlying structure.
+    *
+    * @param that
+    *   the structure with which this is synchronized.
+    * @return
+    *   a new, updated structure
+    */
+  def syncWith(that: DataVersioned[V, D]): DataVersioned[V, D] =
+    applyDiffActions(that.diffActionsFrom(this))
+
+  /**
+    * Updates structure to only include elements which satisfy a predicate.
+    *
+    * Does not use a version selection context -- the predicate is applied to the underlying data, so it can operate on
+    * the underlying version information as well as the valid interval/value.
+    *
+    * @param p
+    *   the predicate used to test elements.
+    * @return
+    *   a new structure with the same current version consisting of all elements that satisfy the provided predicate p.
+    */
+  def filter(p: ValidData[V, Versioned[D]] => Boolean): DataVersioned[V, D] = DataVersioned(
+    underlying.getAll.filter(p),
+    initialVersion,
+    Some(currentVersion)
+  )
 
   /**
     * Applies a function to all valid data. Both the valid data value and interval types can be changed in the mapping.
@@ -247,6 +310,79 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     )
 
   /**
+    * Merges this structure with data from that structure. In intervals where both structures have valid values, the two
+    * values are merged (e.g., keep this data). In intervals where this does not have valid data but that does, the data
+    * are added (a fill operation).
+    *
+    * @param that
+    *   versioned structure to merge into this one
+    * @param mergeValues
+    *   function that merges values where both this and that have valid values, where the default merge operation is to
+    *   give this data values priority and drop that data values
+    * @return
+    *   a new structure with that merged in.
+    */
+  def merge(
+    that: DimensionalVersionedBase[V, D],
+    mergeValues: (V, V) => V = (thisDataValue, _) => thisDataValue
+  ): DataVersioned[V, D] = copyAndModify(_.underlying.merge(that.getVersionedData, mergeValues))
+
+  // --- API methods unique to this "versioned" variant
+
+  /**
+    * Sets the current version. No version history is rewritten, which may cause some unexpected results (especially if
+    * the version is set to something from the past). Use with caution.
+    *
+    * @param version
+    *   the new current version
+    * @return
+    *   a new structure with the current version set.
+    */
+  def setCurrentVersion(version: VersionDomain): DataVersioned[V, D] =
+    if version >= unapprovedStartVersion then throw Exception("version too large")
+    else if version equiv Domain1D.Bottom then throw Exception("version too small")
+    else copyAndModify(_.currentVersion = version)
+
+  /**
+    * Increments the current version.
+    * @return
+    *   a new structure with the current version incremented.
+    */
+  def incrementCurrentVersion(): DataVersioned[V, D] =
+    if currentVersion.rightAdjacent equiv unapprovedStartVersion then throw Exception("wow, ran out of versions!")
+    else copyAndModify(_.currentVersion = currentVersion.rightAdjacent)
+
+  /**
+    * Eliminate all version information after the specified version (including any unapproved changes).
+    *
+    * @param version
+    *   the version after which all version information is removed.
+    * @return
+    *   a new structure reset to the specified version, with the current version set to the same.
+    */
+  def resetToVersion(version: VersionDomain): DataVersioned[V, D] =
+    val keep = VersionSelection(version)
+    DataVersioned(
+      underlying.getAll
+        .filter(versionInterval(_) intersects keep.intervalTo)
+        .map(d =>
+          if versionInterval(d).end >= keep.boundary
+          then withVersionUpdate(d, _.toTop)
+          else d
+        ),
+      initialVersion,
+      Some(version)
+    ).compressAll()
+
+  /**
+    * Creates a new structure based on the version selection context, but without any version history.
+    * @return
+    *   a new structure with the version history collapsed.
+    */
+  def collapseVersionHistory(using versionSelection: VersionSelection): DataVersioned[V, D] =
+    DataVersioned.from(getAll, initialVersion)
+
+  /**
     * Special case where we change the version interval in a constrained way.
     *
     * @param data
@@ -286,110 +422,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
       .foldLeft(approved): (prev, i) =>
         prev.remove(i)(using VersionSelection.Current)
 
-  /**
-    * Applies a sequence of diff actions to this structure. Does not use a version selection context -- operates on full
-    * underlying structure.
-    *
-    * @param diffActions
-    *   actions to be applied.
-    */
-  def applyDiffActions(diffActions: Iterable[DiffAction[V, Versioned[D]]]): DataVersioned[V, D] =
-    copyAndModify(_.underlying.applyDiffActions(diffActions))
-
-  /**
-    * Compress out adjacent intervals with the same value.
-    *
-    * @param value
-    *   value for which valid data are compressed.
-    * @return
-    *   a new, updated structure.
-    */
-  def compress(value: V): DataVersioned[V, D] = copyAndModify(_.underlying.compress(value))
-
-  /**
-    * Compress out adjacent intervals with the same value for all values (Shouldn't ever need to do this.)
-    * @return
-    *   a new, updated structure.
-    */
-  def compressAll(): DataVersioned[V, D] = copyAndModify(_.underlying.compressAll())
-
-  /**
-    * Compress out adjacent intervals with the same value for all values after decompressing everything, resulting in a
-    * unique physical representation. Does not use a version selection context -- operates on full underlying structure.
-    * (Shouldn't ever need to do this.)
-    * @return
-    *   a new, updated structure.
-    */
-  def recompressAll(): DataVersioned[V, D] = copyAndModify(_.underlying.recompressAll())
-
   // ---------- Implement methods similar to those in DimensionalBase, but many with version selection ----------
-
-  /**
-    * Set new valid data. Any data previously valid in this interval and the given version selection context are
-    * replaced by this data.
-    *
-    * @param data
-    *   the valid data to set.
-    * @return
-    *   a new, updated structure.
-    */
-  def set(data: ValidData[V, D])(using VersionSelection): DataVersioned[V, D] =
-    copyAndModify(_.underlying.set(underlyingValidData(data)))
-
-  /**
-    * Set new valid data, but only if there are no previously valid values in its interval and given the version
-    * selection context.
-    *
-    * @param newData
-    *   the valid data to set.
-    * @return
-    *   Some new structure data if there were no conflicts and new data was set, None otherwise.
-    */
-  def setIfNoConflict(newData: ValidData[V, D])(using VersionSelection): Option[DataVersioned[V, D]] =
-    val result = copy
-    val updated = result.underlying.setIfNoConflict(underlyingValidData(newData))
-    if updated then Some(result) else None
-
-  /**
-    * Remove valid values on the interval and the given version selection context. If there are values valid on portions
-    * of the interval, those values have their intervals adjusted (e.g., shortened, shifted, split) accordingly.
-    *
-    * @param interval
-    *   the interval where any valid values are removed.
-    * @param versionSelection
-    *   version used for removing data -- default is the current version.
-    * @return
-    *   a new, updated structure.
-    */
-  def remove(interval: Interval[D])(using versionSelection: VersionSelection): DataVersioned[V, D] =
-    copyAndModify(_.underlying.remove(underlyingIntervalFrom(interval)))
-
-  /**
-    * Update everything valid in the specified interval and the given version selection context to have the specified
-    * value. No new intervals of validity are added as part of this operation. Data with overlaps are adjusted
-    * accordingly.
-    *
-    * @param data
-    *   the new value and interval existing data should take on.
-    * @param versionSelection
-    *   version used for updating data -- default is the current version.
-    * @return
-    *   a new, updated structure.
-    */
-  def update(data: ValidData[V, D])(using versionSelection: VersionSelection): DataVersioned[V, D] =
-    copyAndModify(_.underlying.update(underlyingValidData(data)))
-
-  /**
-    * Given the version selection context, adds a value as valid in portions of the interval where there aren't already
-    * valid values.
-    *
-    * @param data
-    *   value to make valid in any validity gaps found in the interval
-    * @return
-    *   a new, updated structure.
-    */
-  def fill(data: ValidData[V, D])(using versionSelection: VersionSelection): DataVersioned[V, D] =
-    copyAndModify(_.underlying.fill(underlyingValidData(data)))
 
 //TODO: these may be problematic/misunderstood in the versioned space, so leaving them out for now.
 //  /**

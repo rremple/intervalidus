@@ -60,7 +60,11 @@ trait DataIn4DMultiBaseBehaviors:
            |                                                                                                                           | {B,C} (-∞..+∞) x (-∞..+∞) x (-∞..+∞)   |
            |                                                                                                                                                                    | {C} (-∞..+∞) x (-∞..+∞) x (-∞..+∞)     |
            |""".stripMargin.replaceAll("\r", "")
-    // format: on
+      // format: on
+      f0.getByHeadIndex(15).toString shouldBe
+        """|| -∞ .. +∞                    |
+           || {A,B,C} (-∞..+∞) x (-∞..+∞) |
+           |""".stripMargin.replaceAll("\r", "")
 
     test(s"$prefix: Zipping"):
       multiOf("Hello").zip(multiOf("world")).get shouldBe (

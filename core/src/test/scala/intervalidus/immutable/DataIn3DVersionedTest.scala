@@ -48,7 +48,10 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
       (interval(0, 9) x intervalFrom(0) x unbounded[Int]) -> "Hello",
       (intervalFrom(10) x intervalTo(0) x unbounded[Int]) -> "World"
     )
-    val fixture1 = newDataIn3DVersioned(allData)
+    val fixture0 = newDataIn3DVersioned(allData)
+    fixture0.getByHeadIndex(0).getByHeadIndex(0).getAt(0) shouldBe Some("Hello")
+
+    val fixture1 = fixture0
       .set((interval(5, 15) x unbounded[Int] x unbounded[Int]) -> "to")
       .incrementCurrentVersion()
     val expectedData1 = List(
@@ -132,6 +135,42 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
       .recompressAll()
     val expectedData6 = List((intervalTo(0) x unbounded[Int] x unbounded[Int]) -> "Hey")
     fixture6.getAll.toList shouldBe expectedData6
+
+    val fixture7 = fixture6.fill(Interval.unbounded[Dim[Int, Int, Int]] -> "Filled")
+    val expectedFilled = List(
+      (intervalTo(0) x unbounded[Int] x unbounded[Int]) -> "Hey",
+      (intervalFrom(1) x unbounded[Int] x unbounded[Int]) -> "Filled"
+    )
+    fixture7.getAll.toList shouldBe expectedFilled
+
+    val data1 = DataVersioned.from(
+      Seq(
+        (intervalFrom(1).to(3) x unbounded[Int] x unbounded[Int]) -> "A",
+        (intervalFrom(5) x unbounded[Int] x unbounded[Int]) -> "B"
+      )
+    )
+    val data2 = DataVersioned.from(
+      Seq(
+        (intervalFrom(2).to(4) x unbounded[Int] x unbounded[Int]) -> "C",
+        (intervalFrom(6) x unbounded[Int] x unbounded[Int]) -> "D"
+      )
+    )
+    // Default merge operation will "prioritize left"
+    val defaultMerge = data1.merge(data2)
+    defaultMerge.getAll.toList shouldBe List(
+      (intervalFrom(1).to(3) x unbounded[Int] x unbounded[Int]) -> "A",
+      (intervalFromAfter(3).to(4) x unbounded[Int] x unbounded[Int]) -> "C",
+      (intervalFrom(5) x unbounded[Int] x unbounded[Int]) -> "B"
+    )
+    // Custom merge operation will combine overlapping elements
+    val customMerge = data1.merge(data2, _ + _)
+    customMerge.getAll.toList shouldBe List(
+      (intervalFrom(1).toBefore(2) x unbounded[Int] x unbounded[Int]) -> "A",
+      (intervalFrom(2).to(3) x unbounded[Int] x unbounded[Int]) -> "AC",
+      (intervalFromAfter(3).to(4) x unbounded[Int] x unbounded[Int]) -> "C",
+      (intervalFrom(5).toBefore(6) x unbounded[Int] x unbounded[Int]) -> "B",
+      (intervalFrom(6) x unbounded[Int] x unbounded[Int]) -> "BD"
+    )
 
     import DiffAction.*
 

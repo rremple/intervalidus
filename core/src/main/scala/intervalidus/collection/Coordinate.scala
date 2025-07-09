@@ -141,7 +141,10 @@ object Coordinate:
     def projectAfterBounded(other: Coordinate, fromUnbounded: Boolean*): Coordinate =
       combineWithBounded(other, fromUnbounded*)(_ max _)
 
-    // can't override toString in an extension method -- only used by Box.toString
+    /**
+      * Can't override `toString` through an extension method, so we give it a slightly different name. Only used by
+      * Box.toString
+      */
     def asString: String =
       if coordinates.size == 1 then coordinates(0).toString else coordinates.mkString("(", ",", ")")
 

@@ -71,7 +71,6 @@ lazy val `intervalidus-upickle` = (project in file("json/upickle"))
   )
 
 lazy val `intervalidus-tinyrule` = (project in file("sidequests/tinyrule"))
-  .dependsOn(core)
   .settings(commonPublishSettings)
   .settings(
     name := "intervalidus-tinyrule"

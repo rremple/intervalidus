@@ -16,7 +16,7 @@ class DataIn2DMultiTest
   with ImmutableMultiBaseBehaviors:
 
   testsFor(
-    basicAndZipTests("Mutable", DataMulti.from(_), DataMulti.from(_), DataMulti.of(_), DataMulti(_))
+    basicAndZipTests("Immutable", DataMulti.from(_), DataMulti.from(_), DataMulti.of(_), DataMulti(_))
   )
 
   testsFor(

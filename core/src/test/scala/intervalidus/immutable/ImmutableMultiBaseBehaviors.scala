@@ -127,28 +127,28 @@ trait ImmutableMultiBaseBehaviors:
       intervalFrom1D(interval) -> value
     def withHorizontal(interval: Interval1D[Int], value: Set[String]): ValidData[Set[String], D] =
       intervalFrom1D(interval) -> value
-    test("Mutable: Mapping, flatmapping, etc."):
+    test("Immutable: Mapping, flatmapping, etc."):
       val allData = List(
         withHorizontalOne(intervalTo(4), "Hey"),
         withHorizontalOne(intervalFrom(16), "World")
       )
 
       val f1: S = multiFrom(allData)
-      val f2 = f1.map(mapF)
+      val f2 = DataMulti.from(f1.map(mapF))
       val expectedData2 = List(
         withHorizontal(intervalTo(5), Set("Hey!")),
         withHorizontal(intervalFrom(16), Set("World!"))
       )
       f2.getAll.toList shouldBe expectedData2
 
-      val f3 = f2.mapValues(_.map(_ + "!!"))
+      val f3 = DataMulti.from(f2.mapValues(_.map(_ + "!!")))
       val expectedData3 = List(
         withHorizontal(intervalTo(5), Set("Hey!!!")),
         withHorizontal(intervalFrom(16), Set("World!!!"))
       )
       f3.getAll.toList shouldBe expectedData3
 
-      val f4 = f3.flatMap(flatMapF)
+      val f4 = DataMulti.from(f3.flatMap(flatMapF))
       val expectedData4 = List(
         withHorizontal(intervalTo(5), Set("Hey!!!")),
         withHorizontal(intervalFrom(16), Set("World!!!"))
@@ -163,7 +163,7 @@ trait ImmutableMultiBaseBehaviors:
     multiOf: Experimental ?=> ValidData[String, D] => S,
     intervalFrom1D: Interval1D[Int] => Interval[D]
   )(using Experimental): Unit =
-    test("Mutable: Applying diff actions"):
+    test("Immutable: Applying diff actions"):
       val fixture5 = multiFrom(
         List(
           intervalFrom1D(interval(0, 4)) -> "Hello",

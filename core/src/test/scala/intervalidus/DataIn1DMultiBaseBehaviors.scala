@@ -61,6 +61,9 @@ trait DataIn1DMultiBaseBehaviors:
            |                                            | {C}      |
            |""".stripMargin.replaceAll("\r", "")
 
+    // Appropriately fails in one dimension because Tuple.Tail[D] is empty and therefore is not DomainLike
+    """f0.getByHeadIndex(15)""" shouldNot typeCheck
+
     test(s"$prefix: Zipping"):
       multiOf("Hello").zip(multiOf("world")).get shouldBe (
         Set("Hello"),

@@ -1,6 +1,7 @@
 package intervalidus
 
 import intervalidus.DiscreteValue.IntDiscreteValue
+import intervalidus.Domain.NonEmptyTail
 
 import scala.language.implicitConversions
 
@@ -14,9 +15,14 @@ object DimensionalVersionedBase:
   type In4D[V, R1, R2, R3, R4] = DimensionalVersionedBase[V, Domain.In4D[R1, R2, R3, R4]]
 
   /**
+    * The domain value type of the version.
+    */
+  type VersionDomainValue = Int
+
+  /**
     * The domain type of the version.
     */
-  type VersionDomain = Domain1D[Int]
+  type VersionDomain = Domain1D[VersionDomainValue]
 
   /**
     * The domain type for intervals used in the underlying data. It is one dimension higher than the provided
@@ -52,7 +58,7 @@ object DimensionalVersionedBase:
       */
     def apply(version: VersionDomain): VersionSelection = VersionSelection.Specific(version)
 
-import DimensionalVersionedBase.{Versioned, VersionDomain, VersionSelection}
+import DimensionalVersionedBase.{Versioned, VersionDomain, VersionDomainValue, VersionSelection}
 
 /**
   * Constructs data in multidimensional intervals that are also versioned (hidden extra dimension).
@@ -75,7 +81,7 @@ trait DimensionalVersionedBaseObject:
     */
   def of[V, D <: NonEmptyTuple: DomainLike](
     data: ValidData[V, D],
-    initialVersion: Int
+    initialVersion: VersionDomainValue
   )(using Experimental, DomainLike[Versioned[D]]): DimensionalVersionedBase[V, D]
 
   /**
@@ -95,7 +101,7 @@ trait DimensionalVersionedBaseObject:
     */
   def of[V, D <: NonEmptyTuple: DomainLike](
     value: V,
-    initialVersion: Int
+    initialVersion: VersionDomainValue
   )(using Experimental, DomainLike[Versioned[D]]): DimensionalVersionedBase[V, D]
 
   /**
@@ -114,7 +120,7 @@ trait DimensionalVersionedBaseObject:
     */
   def from[V, D <: NonEmptyTuple: DomainLike](
     initialData: Iterable[ValidData[V, D]],
-    initialVersion: Int // could use summon[DomainValueLike[Int]].minValue to extend range
+    initialVersion: VersionDomainValue
   )(using Experimental, DomainLike[Versioned[D]]): DimensionalVersionedBase[V, D]
 
 /**
@@ -144,18 +150,18 @@ trait DimensionalVersionedBase[
   D <: NonEmptyTuple: DomainLike
 ](
   initialData: Iterable[ValidData[V, Versioned[D]]],
-  initialVersion: Int,
+  initialVersion: VersionDomainValue,
   withCurrentVersion: Option[VersionDomain]
 )(using
   Experimental,
   DomainLike[Versioned[D]]
 ) extends PartialFunction[Versioned[D], V]:
 
-  private type VersionValue = DiscreteValue[Int]
-  private type VersionInterval = Interval1D[Int]
-  private val VersionInterval = intervalidus.Interval1D
+  // --- Utility methods definitions for managing "versioned" state, not part of API
 
-  // --- definitions unique to this "versioned" variant
+  private type VersionValue = DiscreteValue[VersionDomainValue]
+  private type VersionInterval = Interval1D[VersionDomainValue]
+  private val VersionInterval = intervalidus.Interval1D
 
   // The current version, mutable via access methods only
   protected var currentVersion: VersionDomain =
@@ -168,31 +174,33 @@ trait DimensionalVersionedBase[
   protected def underlyingDomain(domain: D)(using versionSelection: VersionSelection): Versioned[D] =
     domain withHead versionSelection.boundary
 
-  // Construct underlying interval from public interval plus version selection (intervalFrom)
-  protected def underlyingIntervalFrom(interval: Interval[D])(using
-    versionSelection: VersionSelection
-  ): Interval[Versioned[D]] =
-    interval withHead versionSelection.intervalFrom
-
-  // Construct underlying interval from public interval plus version selection (at boundary)
-  protected def underlyingIntervalAt(interval: Interval[D])(using
-    versionSelection: VersionSelection
-  ): Interval[Versioned[D]] =
-    interval withHead versionSelection.intervalAt
-
-  // Construct underlying data from public data plus version selection
-  protected def underlyingValidData(data: ValidData[V, D])(using VersionSelection): ValidData[V, Versioned[D]] =
-    underlyingIntervalFrom(data.interval) -> data.value
-
   // Construct new underlying interval from a public interval with a version interval
   protected def underlyingIntervalWithVersion(
     interval: Interval[D],
     version: VersionInterval
   ): Interval[Versioned[D]] = interval withHead version
 
+  // Construct underlying interval from public interval plus version selection (interval from boundary)
+  protected def underlyingIntervalFromVersionBoundary(interval: Interval[D])(using
+    versionSelection: VersionSelection
+  ): Interval[Versioned[D]] =
+    underlyingIntervalWithVersion(interval, versionSelection.intervalFrom)
+
+  // Construct underlying interval from public interval plus version selection (interval at boundary)
+  protected def underlyingIntervalAtVersionBoundary(interval: Interval[D])(using
+    versionSelection: VersionSelection
+  ): Interval[Versioned[D]] =
+    underlyingIntervalWithVersion(interval, versionSelection.intervalAt)
+
+  // Construct underlying data from public data plus version selection (interval from boundary)
+  protected def underlyingValidDataFromVersionBoundary(data: ValidData[V, D])(using
+    VersionSelection
+  ): ValidData[V, Versioned[D]] =
+    underlyingIntervalFromVersionBoundary(data.interval) -> data.value
+
   // Extract version interval from underlying data
   protected def versionInterval(data: ValidData[V, Versioned[D]]): VersionInterval =
-    data.interval.headInterval1D[Int]
+    data.interval.headInterval1D[VersionDomainValue]
 
   // Construct new underlying data with an updated version interval
   protected def withVersionUpdate(
@@ -204,6 +212,24 @@ trait DimensionalVersionedBase[
   // Extract public data from underlying data
   protected def publicValidData(data: ValidData[V, Versioned[D]]): ValidData[V, D] =
     data.interval.tailInterval[D] -> data.value
+
+  // special handling of versioned data because the public head is in dimension two.
+  protected def getByHeadIndexData[H: DomainValueLike](headIndex: Domain1D[H])(using
+    Domain1D[H] =:= Tuple.Head[D],
+    DomainLike[NonEmptyTail[D]],
+    DomainLike[Versioned[NonEmptyTail[D]]]
+  ): Iterable[ValidData[V, Versioned[NonEmptyTail[D]]]] =
+    underlying.getAll
+      .filter(_.interval.tailInterval[D].headInterval1D[H] contains headIndex)
+      .map: data =>
+        val versionInterval = data.interval.headInterval1D[VersionDomainValue]
+        val tailInterval = data.interval.tailInterval[D].tailInterval[NonEmptyTail[D]]
+        (tailInterval withHead versionInterval) -> data.value
+
+  // Special version at which we place (or delete) unapproved stuff (fixed)
+  protected val unapprovedStartVersion: VersionDomain = summon[VersionValue].maxValue
+
+  // ---------- API methods that are not similar to those in DimensionalBase ----------
 
   /**
     * Returns the current version
@@ -236,10 +262,26 @@ trait DimensionalVersionedBase[
   ): immutable.Data[V, D] =
     getSelectedDataMutable.toImmutable.compressAll()
 
-  // ---------- Implement methods not similar to those in DimensionalBase ----------
+  /**
+    * Gets all the data in all versions as an n+1 dimensional structure (immutable) where the version is represented in
+    * the head dimension.
+    *
+    * @return
+    *   new, immutable structure with n+1 dimensions.
+    */
+  def getVersionedData: immutable.Data[V, Versioned[D]] = underlying.toImmutable
 
-  // Special version at which we place (or delete) unapproved stuff (fixed)
-  protected val unapprovedStartVersion: VersionDomain = summon[VersionValue].maxValue
+  /**
+    * Checks if a value is valid at the domain element given some version selection context. This is similar to
+    * PartialFunction.isDefinedAt, but with a version selection context.
+    *
+    * @param key
+    *   the domain element to test.
+    * @return
+    *   true if data is valid in the specified domain, false otherwise.
+    */
+  infix def isValidAt(key: D)(using VersionSelection): Boolean =
+    underlying.isDefinedAt(underlyingDomain(key))
 
   extension (versionSelection: VersionSelection)
     /**
@@ -265,38 +307,16 @@ trait DimensionalVersionedBase[
       */
     def intervalFrom: VersionInterval = VersionInterval.intervalFrom(boundary)
 
+  // ---------- Implement methods like those in DimensionalBase ----------
+
+  // from Object - print the current version and a uniform grid representing the underlying versioned data.
+  override def toString: String = s"current version = $getCurrentVersion\n$underlying"
+
   // from PartialFunction
   override def isDefinedAt(key: Versioned[D]): Boolean = underlying.isDefinedAt(key)
 
   // from PartialFunction
   override def apply(key: Versioned[D]): V = underlying(key)
-
-  // from Object - print the current version and a uniform grid representing the underlying versioned data.
-  override def toString: String = s"current version = $getCurrentVersion\n$underlying"
-
-  // ---------- Implement methods like those in DimensionalBase ----------
-
-  // --- API methods similar to those in DataIn*D (can't use common super because of types)
-
-  /**
-    * Gets all the data in all versions as an n+1 dimensional structure (immutable)
-    *
-    * @return
-    *   new, immutable structure with n+1 dimensions.
-    */
-  def getVersionedData: immutable.Data[V, Versioned[D]] = underlying.toImmutable
-
-  /**
-    * Constructs a sequence of diff actions that, if applied to the old structure, would synchronize it with this one.
-    * Does not use a version selection context -- operates on full underlying structure.
-    *
-    * @param old
-    *   the old structure from which we are comparing.
-    * @return
-    *   a sequence of diff actions that would synchronize it with this.
-    */
-  def diffActionsFrom(old: DimensionalVersionedBase[V, D]): Iterable[DiffAction[V, Versioned[D]]] =
-    underlying.diffActionsFrom(old.underlying)
 
   /**
     * Tests if there are no valid data in this structure given some version selection criteria.
@@ -332,6 +352,19 @@ trait DimensionalVersionedBase[
   def getAll(using VersionSelection): Iterable[ValidData[V, D]] = getSelectedData.getAll
 
   /**
+    * Returns valid data at the specified domain element given some version selection context. That is, where the
+    * specified domain element is a member of some valid data interval. If no such valid data exists, returns None.
+    *
+    * @param domainIndex
+    *   the domain element where data may be valid. The domain element can be a specific data point or the special
+    *   notions of "bottom" or "top" of the domain.
+    * @return
+    *   Some value and corresponding interval if valid at the specified domain element, otherwise None.
+    */
+  def getDataAt(domainIndex: D)(using VersionSelection): Option[ValidData[V, D]] =
+    underlying.getDataAt(underlyingDomain(domainIndex)).map(publicValidData)
+
+  /**
     * Returns a value that is valid at the specified domain element given some version selection context. That is, where
     * the specified domain element is a member of some valid data interval. If no such valid data exists, returns None.
     *
@@ -345,17 +378,6 @@ trait DimensionalVersionedBase[
     underlying.getAt(underlyingDomain(domain))
 
   /**
-    * Checks if a value is valid at the domain element given some version selection context.
-    *
-    * @param key
-    *   the domain element to test.
-    * @return
-    *   true if data is valid in the specified domain, false otherwise.
-    */
-  infix def isValidAt(key: D)(using VersionSelection): Boolean =
-    underlying.isDefinedAt(underlyingDomain(key))
-
-  /**
     * Returns all data that are valid on some or all of the provided interval given some version selection context.
     *
     * @param interval
@@ -364,7 +386,7 @@ trait DimensionalVersionedBase[
     *   all data that are valid on some or all of the interval (some intersection).
     */
   def getIntersecting(interval: Interval[D])(using VersionSelection): Iterable[ValidData[V, D]] =
-    underlying.getIntersecting(underlyingIntervalAt(interval)).map(publicValidData)
+    underlying.getIntersecting(underlyingIntervalAtVersionBoundary(interval)).map(publicValidData)
 
   /**
     * Are there values that are valid on some or all of the provided interval given some version selection context?
@@ -375,7 +397,7 @@ trait DimensionalVersionedBase[
     *   true if there are values that are valid somewhere on the interval.
     */
   infix def intersects(interval: Interval[D])(using VersionSelection): Boolean =
-    underlying.intersects(underlyingIntervalAt(interval))
+    underlying.intersects(underlyingIntervalAtVersionBoundary(interval))
 
   /**
     * Returns all the intervals (compressed) in which there are valid values given some version selection context.
@@ -404,6 +426,18 @@ trait DimensionalVersionedBase[
     */
   def foldLeft[B](z: B)(op: (B, ValidData[V, Versioned[D]]) => B): B = underlying.foldLeft(z)(op)
 
+  /**
+    * Constructs a sequence of diff actions that, if applied to the old structure, would synchronize it with this one.
+    * Does not use a version selection context -- operates on full underlying structure.
+    *
+    * @param old
+    *   the old structure from which we are comparing.
+    * @return
+    *   a sequence of diff actions that would synchronize it with this.
+    */
+  def diffActionsFrom(old: DimensionalVersionedBase[V, D]): Iterable[DiffAction[V, Versioned[D]]] =
+    underlying.diffActionsFrom(old.underlying)
+
   // ---------- To be implemented by inheritor ----------
 
   /**
@@ -415,6 +449,14 @@ trait DimensionalVersionedBase[
     * Returns this as an immutable structure.
     */
   def toImmutable: intervalidus.immutable.DataVersioned[V, D]
+
+  /**
+    * Creates a copy.
+    *
+    * @return
+    *   a new structure with the same data and current version.
+    */
+  def copy: DimensionalVersionedBase[V, D]
 
   /**
     * Returns a new structure formed from this structure and another structure by combining the corresponding elements
@@ -448,3 +490,17 @@ trait DimensionalVersionedBase[
     *   a new structure with this and that value type as a pair.
     */
   def zipAll[B](that: DimensionalVersionedBase[B, D], thisElem: V, thatElem: B): DimensionalVersionedBase[(V, B), D]
+
+  /**
+    * Project as data in n-1 dimensions based on a lookup in the head dimension given some version selection context.
+    *
+    * @param headIndex
+    *   the first dimension domain element
+    * @return
+    *   a lower-dimensional (n-1) projection
+    */
+  def getByHeadIndex[H: DomainValueLike](headIndex: Domain1D[H])(using
+    Domain1D[H] =:= Tuple.Head[D],
+    DomainLike[NonEmptyTail[D]],
+    DomainLike[Versioned[NonEmptyTail[D]]]
+  ): DimensionalVersionedBase[V, NonEmptyTail[D]]

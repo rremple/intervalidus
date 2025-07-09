@@ -27,7 +27,6 @@ import scala.util.Properties
   *   F-bounded self-type
   */
 trait BoxTreeLike[A, Self <: BoxTreeLike[A, Self]]:
-  this: Self =>
 
   /**
     * Make a copy of this tree.

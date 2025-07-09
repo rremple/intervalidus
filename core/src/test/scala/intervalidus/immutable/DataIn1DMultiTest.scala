@@ -18,7 +18,7 @@ class DataIn1DMultiTest
   import Interval1D.*
 
   testsFor(
-    basicAndZipTests("Mutable", DataMulti.from(_), DataMulti.from(_), DataMulti.of(_), DataMulti(_))
+    basicAndZipTests("Immutable", DataMulti.from(_), DataMulti.from(_), DataMulti.of(_), DataMulti(_))
   )
   testsFor(
     addAndRemoveTests[
@@ -42,7 +42,7 @@ class DataIn1DMultiTest
     )
   )
 
-  test("Mutable: Applying diff actions"):
+  test("Immutable: Applying diff actions"):
     val fixture5 = DataMulti.from(
       List(
         interval(0, 4) -> "Hello",

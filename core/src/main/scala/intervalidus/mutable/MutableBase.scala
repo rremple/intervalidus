@@ -15,6 +15,37 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
   // ---------- Implement methods not in DimensionalBase that have mutable signatures ----------
 
   /**
+    * Applies a function to all valid data. Data are mutated in place.
+    *
+    * @param f
+    *   the function to apply to each valid data element.
+    */
+  def map(f: ValidData[V, D] => ValidData[V, D]): Unit = synchronized:
+    replaceValidData(getAll.map(f))
+
+  /**
+    * Applies a function to all valid data values. Data are mutated in place.
+    *
+    * @param f
+    *   the function to apply to the value part of each valid data element.
+    */
+  def mapValues(f: V => V): Unit =
+    getAll
+      .map(d => d.interval -> f(d.value))
+      .foreach: newData =>
+        updateValidData(newData)
+
+  /**
+    * Applies a function to all the elements of this structure and updates valid values from the elements of the
+    * resulting structures.
+    *
+    * @param f
+    *   the function to apply to each valid data element which results in a new structure.
+    */
+  def flatMap(f: ValidData[V, D] => DimensionalBase[V, D]): Unit = synchronized:
+    replaceValidData(getAll.flatMap(f(_).getAll))
+
+  /**
     * Updates structure to only include elements which satisfy a predicate. Data are mutated in place.
     *
     * @param p
@@ -140,37 +171,6 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     */
   def syncWith(that: DimensionalBase[V, D]): Unit =
     applyDiffActions(that.diffActionsFrom(this))
-
-  /**
-    * Applies a function to all valid data. Data are mutated in place.
-    *
-    * @param f
-    *   the function to apply to each valid data element.
-    */
-  def map(f: ValidData[V, D] => ValidData[V, D]): Unit = synchronized:
-    replaceValidData(getAll.map(f))
-
-  /**
-    * Applies a function to all valid data values. Data are mutated in place.
-    *
-    * @param f
-    *   the function to apply to the value part of each valid data element.
-    */
-  def mapValues(f: V => V): Unit =
-    getAll
-      .map(d => d.interval -> f(d.value))
-      .foreach: newData =>
-        updateValidData(newData)
-
-  /**
-    * Applies a function to all the elements of this structure and updates valid values from the elements of the
-    * resulting structures.
-    *
-    * @param f
-    *   the function to apply to each valid data element which results in a new structure.
-    */
-  def flatMap(f: ValidData[V, D] => DimensionalBase[V, D]): Unit = synchronized:
-    replaceValidData(getAll.flatMap(f(_).getAll))
 
   /**
     * Adds a value as valid in portions of the interval where there aren't already valid values.

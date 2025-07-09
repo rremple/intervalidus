@@ -211,7 +211,7 @@ trait DomainLike[D <: NonEmptyTuple]:
     /**
       * Can't override `toString` through an extension method, so we give it a slightly different name.
       */
-    def toStringly: String
+    def asString: String
 
     /**
       * Is this start after that start, using default ordering to compare starts?
@@ -430,7 +430,7 @@ object DomainLike:
       /*
        * Enhanced domain-like capabilities
        */
-      override inline def toStringly: String = applyToDomain.toStringsFromDomain(domainTuple) match
+      override inline def asString: String = applyToDomain.toStringsFromDomain(domainTuple) match
         case one :: Nil => one
         case notOne     => notOne.mkString("{", ", ", "}")
 

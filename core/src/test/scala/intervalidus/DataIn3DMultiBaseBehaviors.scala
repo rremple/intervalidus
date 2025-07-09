@@ -60,6 +60,11 @@ trait DataIn3DMultiBaseBehaviors:
            |                                                                                                                        | {C} (-∞..+∞) x (-∞..+∞)     |
            |""".stripMargin.replaceAll("\r", "")
 
+      f0.getByHeadIndex(15).toString shouldBe
+        """|| -∞ .. +∞         |
+           || {A,B,C} (-∞..+∞) |
+           |""".stripMargin.replaceAll("\r", "")
+
     test(s"$prefix: Zipping"):
       multiOf("Hello").zip(multiOf("world")).get shouldBe (
         Set("Hello"),

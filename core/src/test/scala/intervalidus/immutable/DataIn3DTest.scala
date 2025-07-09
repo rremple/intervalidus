@@ -89,7 +89,7 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
          |""".stripMargin.replaceAll("\r", "")
 
     val concat = fixturePadData.foldLeft(StringBuilder()): (a, d) =>
-      a.append(d.value).append("->").append(d.interval.start.toStringly).append(" ")
+      a.append(d.value).append("->").append(d.interval.start.asString).append(" ")
     concat.result() shouldBe "H->{-∞, -∞, -∞} H->{-∞, -∞, 1} H->{-∞, -∞, 10} W->{1, -∞, 1} H->{1, 1, 1} "
 
     val fixturePadLabel = Data

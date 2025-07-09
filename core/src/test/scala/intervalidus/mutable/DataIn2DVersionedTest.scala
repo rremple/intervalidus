@@ -48,6 +48,8 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
       (intervalFrom(10) x intervalTo(0)) -> "World"
     )
     val fixture = newDataIn2DVersioned(allData)
+    fixture.getByHeadIndex(0).getAt(0) shouldBe Some("Hello")
+
     fixture.set((interval(5, 15) x unbounded[Int]) -> "to")
     fixture.incrementCurrentVersion()
     val expectedData1 = List(
@@ -131,6 +133,36 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     fixture.getAll.toList shouldBe expectedData6
 
     val fixture6 = fixture.copy
+
+    val fixture7 = fixture.copy
+    fixture7.fill(Interval.unbounded[Dim[Int, Int]] -> "Filled")
+    val expectedFilled = List((intervalTo(0) x unbounded[Int]) -> "Hey", (intervalFrom(1) x unbounded[Int]) -> "Filled")
+    fixture7.getAll.toList shouldBe expectedFilled
+
+    val data1 = DataVersioned.from(
+      Seq((intervalFrom(1).to(3) x unbounded[Int]) -> "A", (intervalFrom(5) x unbounded[Int]) -> "B")
+    )
+    val data2 = DataVersioned.from(
+      Seq((intervalFrom(2).to(4) x unbounded[Int]) -> "C", (intervalFrom(6) x unbounded[Int]) -> "D")
+    )
+    // Default merge operation will "prioritize left"
+    val defaultMerge = data1.copy
+    defaultMerge.merge(data2)
+    defaultMerge.getAll.toList shouldBe List(
+      (intervalFrom(1).to(3) x unbounded[Int]) -> "A",
+      (intervalFromAfter(3).to(4) x unbounded[Int]) -> "C",
+      (intervalFrom(5) x unbounded[Int]) -> "B"
+    )
+    // Custom merge operation will combine overlapping elements
+    val customMerge = data1.copy
+    customMerge.merge(data2, _ + _)
+    customMerge.getAll.toList shouldBe List(
+      (intervalFrom(1).toBefore(2) x unbounded[Int]) -> "A",
+      (intervalFrom(2).to(3) x unbounded[Int]) -> "AC",
+      (intervalFromAfter(3).to(4) x unbounded[Int]) -> "C",
+      (intervalFrom(5).toBefore(6) x unbounded[Int]) -> "B",
+      (intervalFrom(6) x unbounded[Int]) -> "BD"
+    )
 
     import DiffAction.*
 
