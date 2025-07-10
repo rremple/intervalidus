@@ -58,7 +58,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     val fixture2 = fixture1
       .set(interval(20, 25) -> "!") // split
       .incrementCurrentVersion()
-    // if needed: .recompressAll()
+      .recompressAll() // not needed, but addresses coverage gap
     val expectedData2 = List(
       interval(0, 4) -> "Hello",
       interval(5, 15) -> "to",

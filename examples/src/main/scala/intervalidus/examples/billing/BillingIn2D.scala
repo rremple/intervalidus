@@ -1,7 +1,6 @@
 package intervalidus.examples.billing
 
 import intervalidus.Interval1D.*
-import intervalidus.Interval.Patterns.*
 import intervalidus.DiscreteValue.given
 import intervalidus.immutable.Data
 

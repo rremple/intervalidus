@@ -64,7 +64,7 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
     val fixture2 = fixture1
       .set((interval(20, 25) x unbounded[Int] x unbounded[Int]) -> "!") // split
       .incrementCurrentVersion()
-    // if needed: .recompressAll()
+      .recompressAll() // not needed, but addresses coverage gap
     val expectedData2 = List(
       (interval(0, 4) x intervalFrom(0) x unbounded[Int]) -> "Hello",
       (interval(5, 15) x unbounded[Int] x unbounded[Int]) -> "to",

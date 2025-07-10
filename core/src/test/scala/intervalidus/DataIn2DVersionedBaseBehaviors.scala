@@ -95,7 +95,7 @@ trait DataIn2DVersionedBaseBehaviors:
         intervalFrom(0) x intervalFromAfter(10)
       )
       fixture2.getAt(5, 5) shouldBe Some("Hello")
-      fixture2.getAt(15, 5) shouldBe Some("World")
+      fixture2.getDataAt(15, 5) shouldBe Some((intervalFrom(11) x interval(0, 10)) -> "World")
       fixture2.getAt(-1, -1) shouldBe None
       assert(fixture2.intersects(interval(5, 15) x interval(5, 15)))
       fixture2.getIntersecting(interval(5, 15) x interval(5, 15)) should contain theSameElementsAs allData2

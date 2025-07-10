@@ -76,7 +76,7 @@ trait DataIn1DVersionedBaseBehaviors:
       fixture2.domain.toList shouldBe List(Interval.in1D(intervalFrom(0)))
       fixture2.domainComplement.toList shouldBe List(Interval.in1D(intervalToBefore(0)))
       fixture2.getAt(5) shouldBe Some("Hello")
-      fixture2.getAt(15) shouldBe Some("World")
+      fixture2.getDataAt(15) shouldBe Some(intervalFrom(11) -> "World")
       fixture2.getAt(-1) shouldBe None
       assert(fixture2.intersects(interval(5, 15)))
       fixture2.getIntersecting(interval(5, 15)) should contain theSameElementsAs allData2

@@ -101,9 +101,9 @@ trait DimensionalBaseConstructorParams:
   *   the domain type for intervals, must be [[DomainLike]].
   */
 trait DimensionalBase[V, D <: NonEmptyTuple](using
-  domainLike: DomainLike[D],
-  experimental: Experimental
-) extends PartialFunction[D, V]:
+  domainLike: DomainLike[D]
+)(using Experimental)
+  extends PartialFunction[D, V]:
 
   // Utility methods for managing state, not part of API
 
