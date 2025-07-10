@@ -124,20 +124,20 @@ Which results in the following (slightly less straightforward) output:
 
 ```text
 | 2024-01-01 .. 2024-03-31         | 2024-04-01 .. 2024-06-30         | 2024-07-01 .. +∞                 |
-| Basic [2023-12-25..+∞)           |
-                                   | Basic [2023-12-25..2024-03-14]                                      |
-                                   | Premium [2024-03-15..+∞)         |
-                                                                      | Premium [2024-03-15..2024-06-27] |
+| Basic [2023-12-25..2024-03-14]                                                                         |
+| Basic [2024-03-15..+∞)           |
+                                   | Premium [2024-03-15..2024-06-27]                                    |
+                                   | Premium [2024-06-28..+∞)         |
 ```
 
 Here, the second time dimension is shown next to each valid value. Reading this line by line, the interpretation is:
 
-- From 12/25/2023 and thereafter, the user was known to have the Basic tier effective from 1/1 to 3/31.
-- From 12/25/2023 until 3/14/2024, the user was also known to have this Basic tier continuing from 4/1, without any planned
+- From 12/25/2023 until 3/14, the user was known to have the Basic tier effective from 1/1, without any planned
   termination.
-- From 3/15 and thereafter, the user was known to have the Premium tier effective only from 4/1 until 6/30.
-- Only from 3/15 until 6/27 was the user known to have this Premium tier continue from 7/1, without any planned
+- From 3/15 and thereafter, the user was known to have the Basic tier effective only from 1/1 until 3/31.
+- Also from 3/15 until 6/27, the user was known to have the Premium tier effective from 4/1, without any planned
   termination.
+- From 6/28 and thereafter, the user was known to have the Premium tier effective only from 4/1 until 6/30.
 
 Since decoding the `toString` output of `Data` can get complicated as more intervals are present, there is a utility
 (in the test package) called `Visualize2D` that can help with debugging and testing tasks. It uses 2D graphics to render
@@ -193,8 +193,8 @@ Which results in the following output, which is similar to what was shown in the
 
 ```text
 | 2024-01-01 .. 2024-03-31                                             | 2024-04-01 .. +∞                                                     |
-| Basic [2023-12-25T10:23:33.123456789, +∞)                            |
-                                                                       | Basic [2023-12-25T10:23:33.123456789, 2024-03-15T14:10:15.987654321) |
+| Basic [2023-12-25T10:23:33.123456789, 2024-03-15T14:10:15.987654321)                                                                        |
+| Basic [2024-03-15T14:10:15.987654321, +∞)                            |
                                                                        | Premium [2024-03-15T14:10:15.987654321, +∞)                          |
 ```
 
@@ -221,8 +221,8 @@ effective-dated data:
 
 ```text
 [ 2023-12-25T10:23:33.123456789, 2024-03-15T14:10:15.987654321 ) [ 2024-03-15T14:10:15.987654321, +∞ )                            |
-| Basic [2024-01-01..+∞)                                         |
-                                                                 | Basic [2024-01-01..2024-03-31]                                 |
+| Basic [2024-01-01..2024-03-31]                                                                                                  |
+| Basic [2024-04-01..+∞)                                         |
                                                                  | Premium [2024-04-01..+∞)                                       |
 ```
 

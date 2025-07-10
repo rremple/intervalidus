@@ -39,8 +39,8 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
 
     val removeExpected = removeExpectedUnsorted.toList.sorted
     val updateExpected = (removeExpectedUnsorted :+ (expectedUpdateInterval -> updateValue)).toList.sorted
-    val removeFixture = fixture.remove(removeOrUpdateInterval).recompressAll()
-    val updateFixture = fixture.update(removeOrUpdateInterval -> updateValue).recompressAll()
+    val removeFixture = fixture.remove(removeOrUpdateInterval) // if needed: .recompressAll()
+    val updateFixture = fixture.update(removeOrUpdateInterval -> updateValue) // if needed: .recompressAll()
     try assertResult(removeExpected)(removeFixture.getAll.toList)
     catch
       case ex: Exception =>
@@ -77,7 +77,7 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
     val fixturePadData = Data
       .of[String, Dim[Int, Int, Int]]("H")
       .set((intervalFrom(1) x intervalTo(0) x interval(1, 9)) -> "W")
-      .recompressAll()
+    // if needed: .recompressAll()
     // println(fixturePadData.toString)
     fixturePadData.toString shouldBe
       """|| -∞ .. 0               | 1 .. +∞               |
@@ -126,7 +126,7 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
     val fixture5 = fixture4
       .set((intervalFrom(day(1)) x unboundedDate x intervalFrom(1)) -> "remove me")
       .remove(intervalFrom(day(1)) x unboundedDate x intervalFrom(1))
-      .recompressAll()
+    // if needed: .recompressAll()
     val expectedData5 = List(
       (unboundedDate x unboundedDate x intervalTo(0)) -> "Hey",
       (intervalTo(day(0)) x unboundedDate x interval(1, 4)) -> "Hey",
@@ -224,7 +224,7 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
     val fixture4 = fixture3
       .set((intervalFrom(day(0)) x unboundedDate x intervalFrom(1)) -> "update me")
       .update((intervalFrom(day(1)) x unboundedDate x intervalFrom(0)) -> "updated me")
-      .recompressAll()
+    // if needed: .recompressAll()
     val expectedData4 = List(
       (unboundedDate x unboundedDate x intervalTo(-6)) -> "Hello",
       (unboundedDate x unboundedDate x interval(-5, -2)) -> "World!",

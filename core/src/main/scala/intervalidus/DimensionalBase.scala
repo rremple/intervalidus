@@ -101,9 +101,9 @@ trait DimensionalBaseConstructorParams:
   *   the domain type for intervals, must be [[DomainLike]].
   */
 trait DimensionalBase[V, D <: NonEmptyTuple](using
-  domainLike: DomainLike[D]
-)(using Experimental)
-  extends PartialFunction[D, V]:
+  domainLike: DomainLike[D],
+  experimental: Experimental
+) extends PartialFunction[D, V]:
 
   // Utility methods for managing state, not part of API
 
@@ -199,21 +199,25 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
       overlap.interval
         .intersectionWith(targetInterval)
         .foreach: intersection => // always one
-          // maps the overlap and its intersection with target to its atomic deconstruction -- a collection of intervals
+          // maps the overlap and its intersection with target to its atomic deconstruction -- a collection of
+          // intervals
           // covering the overlap that is "separated" by the intersection.
           val atomicNonIntersections = overlap.interval.separateUsing(intersection).filter(_ != intersection)
-          // fast compression to minimize adds/updates (which are expensive) without having to build a TreeMap
-          // (note that the result is in reverse order, but that shouldn't matter in later steps)
-          // TODO: Above vs right bias makes results compress differently than compress (recompress is needed to match).
-          // TODO: Can this algorithm (or compress) be updated so the results are more consistent?
-          // TODO: Maybe building a TreeMap would not be so bad? (Benchmark?)
-          val nonIntersections = atomicNonIntersections.foldLeft(List.empty[Interval[D]]):
-            case (lastInterval1 :: tail1, nextInterval) if lastInterval1 isAdjacentTo nextInterval =>
-              val merged = nextInterval ∪ lastInterval1
-              tail1 match // go back one more
-                case lastInterval2 :: tail2 if lastInterval2 isAdjacentTo merged => (lastInterval2 ∪ merged) :: tail2
-                case _                                                           => merged :: tail1
-            case (priorIntervals, nextInterval) => nextInterval :: priorIntervals
+          /*
+           * Compression is important to minimize add/update calls (which are expensive). Initially, to avoid the
+           * TreeMap build in `Interval.compress`, a linear folding algorithm was used here that only looked back two
+           * elements. Although it worked, compression had more of an "above" than "right" bias leading to results
+           * that, although optimally compressed, differed from the results of `recompressAll`. By benchmarking
+           * `remove` using these alternative approaches (folding vs. `Interval.compress`) it was shown that the
+           * throughput was kind of a wash in two dimensions, but the throughput in three dimensions was more than 40%
+           * better using `Interval.compress`. This is probably because, to effectively compress in n dimensions, the
+           * folding method would need to look back at least n elements, and 3 > 2. The ineffective compression led
+           * to more unnecessary update/add calls, and therefore lower throughput. This effect is likely even more
+           * pronounced in higher dimensions. That's why this just uses standard `Interval.compress` now, and it is a
+           * nice side effect that all the compressions are consistent without taking the performance hit of
+           * `recompressAll`.
+           */
+          val nonIntersections = Interval.compress(atomicNonIntersections)
 
           // remove the intersecting region if it happens to have the same key as the overlap
           if intersection hasSameStartAs overlap.interval then removeValidData(overlap)

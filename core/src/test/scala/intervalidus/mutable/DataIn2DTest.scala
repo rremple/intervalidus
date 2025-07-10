@@ -46,9 +46,9 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     val removeExpected = removeExpectedUnsorted.toList.sorted
     val updateExpected = (removeExpectedUnsorted :+ (expectedUpdateInterval -> updateValue)).toList.sorted
     removeFixture.remove(removeOrUpdateInterval)
-    removeFixture.recompressAll()
+    // if needed: removeFixture.recompressAll()
     updateFixture.update(removeOrUpdateInterval -> updateValue)
-    updateFixture.recompressAll()
+    // if needed: updateFixture.recompressAll()
     try assertResult(removeExpected)(removeFixture.getAll.toList)
     catch
       case ex: Exception =>
@@ -103,7 +103,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     val fixture = Data(expectedData4)
     fixture.set((intervalFrom(day(1)) x intervalFrom(1)) -> "remove me")
     fixture.remove(intervalFrom(day(1)) x intervalFrom(1))
-    fixture.recompressAll()
+    // if needed: fixture.recompressAll()
     val expectedData5 = List(
       (unbounded[LocalDate] x intervalTo(0)) -> "Hey",
       (intervalTo(day(0)) x interval(1, 4)) -> "Hey",
@@ -156,7 +156,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     val fixture = Data(expectedData3)
     fixture.set((intervalFrom(day(0)) x intervalFrom(1)) -> "update me")
     fixture.update((intervalFrom(day(1)) x intervalFrom(0)) -> "update me")
-    fixture.recompressAll()
+    // if needed: fixture.recompressAll()
     val expectedData4 = List(
       (unbounded[LocalDate] x intervalTo(-6)) -> "Hello",
       (unbounded[LocalDate] x interval(-5, -2)) -> "World!",

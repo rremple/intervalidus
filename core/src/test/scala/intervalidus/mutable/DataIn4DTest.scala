@@ -46,9 +46,9 @@ class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors 
     val removeExpected = removeExpectedUnsorted.toList.sorted
     val updateExpected = (removeExpectedUnsorted :+ (expectedUpdateInterval -> updateValue)).toList.sorted
     removeFixture.remove(removeOrUpdateInterval)
-    removeFixture.recompressAll()
+    // if needed: removeFixture.recompressAll()
     updateFixture.update(removeOrUpdateInterval -> updateValue)
-    updateFixture.recompressAll()
+    // if needed: updateFixture.recompressAll()
     try assertResult(removeExpected)(removeFixture.getAll.toList)
     catch
       case ex: Exception =>
@@ -85,7 +85,7 @@ class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors 
     val fixturePadData = Data
       .of[String, Dim[Int, Int, Int, Int]]("H")
     fixturePadData.set((intervalFrom(1) x intervalTo(0) x interval(1, 9) x unbounded[Int]) -> "W")
-    fixturePadData.recompressAll()
+    // if needed: fixturePadData.recompressAll()
     // println(fixturePadData.toString)
     fixturePadData.toString shouldBe
       """|| -∞ .. 0                          | 1 .. +∞                          |
@@ -134,7 +134,7 @@ class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors 
     val fixture = Data(expectedData4)
     fixture.set((intervalFrom(day(1)) x unboundedDate x intervalFrom(1) x unbounded[Int]) -> "remove me")
     fixture.remove(intervalFrom(day(1)) x unboundedDate x intervalFrom(1) x unbounded[Int])
-    fixture.recompressAll()
+    // if needed: fixture.recompressAll()
     val expectedData5 = List(
       (unboundedDate x unboundedDate x intervalTo(0) x unbounded[Int]) -> "Hey",
       (intervalTo(day(0)) x unboundedDate x interval(1, 4) x unbounded[Int]) -> "Hey",
@@ -187,7 +187,7 @@ class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors 
 
     fixture.set((intervalFrom(day(0)) x unboundedDate x intervalFrom(1) x unbounded[Int]) -> "update me")
     fixture.update((intervalFrom(day(1)) x unboundedDate x intervalFrom(0) x unbounded[Int]) -> "updated me")
-    fixture.recompressAll()
+    // if needed: fixture.recompressAll()
     val expectedData4 = List(
       (unboundedDate x unboundedDate x intervalTo(-6) x unbounded[Int]) -> "Hello",
       (unboundedDate x unboundedDate x interval(-5, -2) x unbounded[Int]) -> "World!",

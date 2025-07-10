@@ -90,7 +90,7 @@ trait ImmutableBaseBehaviors:
 
       val fixture4: Data[String, D] = fixture3
         .set(dataFrom1D(intervalFrom(20), "World"))
-      // needed? .recompressAll()
+      // if needed: .recompressAll()
       val expectedData4 = List(
         dataFrom1D(intervalTo(4), "Hey"),
         dataFrom1D(interval(5, 15), "to"),

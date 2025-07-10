@@ -88,7 +88,7 @@ trait MutableBaseBehaviors:
       fixture3a.getAll.toList shouldBe expectedData3a
 
       fixture.set(dataFrom1D(intervalFrom(20), "World"))
-      // needed? .recompressAll()
+      // if needed: .recompressAll()
       val expectedData4 = List(
         dataFrom1D(intervalTo(5), "Hey"),
         dataFrom1D(intervalFromAfter(5).to(15), "to"),
