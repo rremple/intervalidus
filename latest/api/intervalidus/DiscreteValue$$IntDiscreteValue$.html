@@ -240,21 +240,24 @@ node6 -> node10;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Based on benchmarks, this seems to be too computationally expensive, where the benefit of reducing levels is negligible.</p>
+             <p>A totally ordered hash of a value used for mapping intervals to box search trees in double space. If <code>x1 &lt; x2</code>, then <code>orderedHashOf(x1) ≤ orderedHashOf(x2)</code>, i.e., it is "weakly monotonic". See <a href="https://en.wikipedia.org/wiki/Monotonic_function">https://en.wikipedia.org/wiki/Monotonic_function</a>.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Based on benchmarks, this seems to be too computationally expensive, where the benefit of reducing levels is negligible.</p>
-              <p>TODO: Find a better way (or just live with the "wasted" levels)? TODO: can we make this configurable?</p>
-              <p>It is important not to over-sample the larger parts of numeric ranges as part of hashing, since our box search trees in double space will be halving ranges. One would have to cut the [Int.MinValue..Int.MaxValue] box in half 13 times to get to a subtree containing a box [0..524,288] and then another 19 levels to get down to 1: 32 total levels (which makes sense for a 32 bit number). So for more practical use cases, there are a lot of levels to descend before we reach "useful", "normal" ranges. In a quadtree, this would result in the creation of 13*3=39 leaves and 13 branches that are kind of worthless and just slow things down. Attempting to resolve this here by using a logistic function to hash integers to doubles, which would increase resolution for numbers with smaller magnitudes and decrease resolution for the larger. (See <a href="https://en.wikipedia.org/wiki/Sigmoid_function">https://en.wikipedia.org/wiki/Sigmoid_function</a>). This one places all integers into a double range -1 to 1 following the logistic function. It is "normalized" in the sense that negatives map to negatives, positives to positives, and zero to zero. The choice of a small k is to keep the curve steep enough that integers with smaller magnitudes will be well represented in the result where integers with very large magnitudes will not be.</p>
-              <ul>
-               <li>All integers greater than about 3.6 million will result in 1.0, where some integers greater than about 2.4 million will increasingly hash to the same value. Similarly, those less than -3.8 will result in -1.0 (not sure where the asymmetry comes from), where those less than about -2.5 million will increasing hash to the same value. (If the integers you use are regularly outside of this range, you may want to give a DiscreteValue[Int] different from this default.)</li>
-               <li>Splitting the double range [0..1] in half as [0..0.5] and [0.5..1], represents integers in the ranges [0..109,861] and [109,861..Int.MaxValue] (pretty non-linear: less than 0.01% of integers in left side).</li>
-               <li>Splitting the double range [0..0.5] in half would represent integer ranges of [0..51,083] and [51,083..109,861], which is pretty linear: 46.5% of integers in the range split are on the left. Subsequents splits will be around 25,131, 12,516, 6,252, 3,125, 1,562, 781, 390, 195, 97, 48, 24, 12, 6, and 3. So total splits from Int.MaxValue to get to 1 is only 15 instead of 32.</li>
-              </ul>
+              <p>A totally ordered hash of a value used for mapping intervals to box search trees in double space. If <code>x1 &lt; x2</code>, then <code>orderedHashOf(x1) ≤ orderedHashOf(x2)</code>, i.e., it is "weakly monotonic". See <a href="https://en.wikipedia.org/wiki/Monotonic_function">https://en.wikipedia.org/wiki/Monotonic_function</a>.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Note
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <div>
+                 <p>having equal <code>orderedHashOf</code> results for different inputs is allowed, but represents a hash collision. If the <code>orderedHashOf</code> method has too many collisions, the performance of box search trees will suffer.</p>
+                </div>
+               </div>
+              </dd>
               <dt class="body-small">
                Definition Classes
               </dt>
@@ -1211,11 +1214,11 @@ node6 -> node10;
             <div class="originInfo"></div>
             <div class="memberDocumentation">
              <div class="documentableBrief doc">
-              <p>A totally-ordered hash of a value used for mapping intervals to box search trees in double space. If <code>x1 &lt; x2</code>, then <code>orderedHashOf(x1) ≤ orderedHashOf(x2)</code>, i.e., it is "weakly monotonic". See <a href="https://en.wikipedia.org/wiki/Monotonic_function">https://en.wikipedia.org/wiki/Monotonic_function</a>.</p>
+              <p>A totally ordered hash of a value used for mapping intervals to box search trees in double space. If <code>x1 &lt; x2</code>, then <code>orderedHashOf(x1) ≤ orderedHashOf(x2)</code>, i.e., it is "weakly monotonic" in that it is non-decreasing. See <a href="https://en.wikipedia.org/wiki/Monotonic_function">https://en.wikipedia.org/wiki/Monotonic_function</a>.</p>
              </div>
              <div class="cover">
               <div class="doc">
-               <p>A totally-ordered hash of a value used for mapping intervals to box search trees in double space. If <code>x1 &lt; x2</code>, then <code>orderedHashOf(x1) ≤ orderedHashOf(x2)</code>, i.e., it is "weakly monotonic". See <a href="https://en.wikipedia.org/wiki/Monotonic_function">https://en.wikipedia.org/wiki/Monotonic_function</a>.</p>
+               <p>A totally ordered hash of a value used for mapping intervals to box search trees in double space. If <code>x1 &lt; x2</code>, then <code>orderedHashOf(x1) ≤ orderedHashOf(x2)</code>, i.e., it is "weakly monotonic" in that it is non-decreasing. See <a href="https://en.wikipedia.org/wiki/Monotonic_function">https://en.wikipedia.org/wiki/Monotonic_function</a>.</p>
               </div>
               <h2 class="h200">Attributes</h2>
               <dl class="attributes attributes-small">

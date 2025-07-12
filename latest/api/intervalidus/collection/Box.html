@@ -15,7 +15,7 @@
 </div>
 <div class="cover">
  <div class="doc">
-  <p>Represents a box in multidimensional double space. Could be a bounding box that defines the region of a tree node, or could be a valid region associated with data.</p>
+  <p>Represents a box in multidimensional double space. It could be used as a bounding box that defines the region of a tree node, or it could be used as a valid region associated with data.</p>
  </div>
  <section id="attributes">
   <h2 class="h500">Value parameters</h2>
@@ -24,13 +24,13 @@
     maxPoint
    </dt>
    <dd class="body-medium">
-    <p>Coordinate of the maximum corner of the box (right/upper/front/etc., depending on dimension)</p>
+    <p>Coordinate of the maximum corner (right/upper/front/etc., depending on dimension)</p>
    </dd>
    <dt class="body-small">
     minPoint
    </dt>
    <dd class="body-medium">
-    <p>Coordinate of the minimum corner of the box(left / lower / back / etc., depending on dimension)</p>
+    <p>Coordinate of the minimum corner (left/lower/back/etc., depending on dimension)</p>
    </dd>
   </dl>
   <h2 class="h500">Attributes</h2>
@@ -296,7 +296,7 @@ node6 -> node2;
               <dd class="body-medium">
                <div>
                 <div>
-                 <p>Even a single point in common is considered an intersection, e.g., two boxes touching. So the resulting intersection may have min == max in some or all dimensions.</p>
+                 <p>Even a single point in common is considered an intersection, e.g., two boxes touching. So the resulting intersection may have <code>min == max</code> in some or all dimensions.</p>
                 </div>
                </div>
               </dd>

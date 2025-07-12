@@ -27,7 +27,7 @@
     D
    </dt>
    <dd class="body-medium">
-    <p>the domain type for intervals in the public interface. Must be <a href="DomainLike.html">DomainLike</a>.</p>
+    <p>the domain type for intervals in the public interface -- <a href="DomainLike.html">DomainLike</a> non-empty tuples.</p>
    </dd>
    <dt class="body-small">
     V
@@ -171,7 +171,7 @@ node7 -> node0;
                Returns
               </dt>
               <dd class="body-medium">
-               <p>a new structure with the same data and current version.</p>
+               <p>a new structure with the same data and initial/current version.</p>
               </dd>
              </dl>
             </div>
@@ -194,11 +194,11 @@ node7 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Project as data in n-1 dimensions based on a lookup in the head dimension given some version selection context.</p>
+             <p>Project as data in n-1 dimensions based on a lookup in the head dimension -- version information is preserved.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Project as data in n-1 dimensions based on a lookup in the head dimension given some version selection context.</p>
+              <p>Project as data in n-1 dimensions based on a lookup in the head dimension -- version information is preserved.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -206,7 +206,7 @@ node7 -> node0;
                headIndex
               </dt>
               <dd class="body-medium">
-               <p>the first dimension domain element</p>
+               <p>the head dimension domain element</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -337,7 +337,7 @@ node7 -> node0;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DimensionalVersionedBase.html#zipAll-5eb" t="n" class="documentableName ">zipAll</a>[<span t="k"></span><span data-unresolved-link="" t="t">B</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DimensionalVersionedBase.html" t="t">DimensionalVersionedBase</a>[<span t="t">B</span>, <span t="t">D</span>], <span t="k"></span><span data-unresolved-link="" t="n">thisElem</span>: <span t="t">V</span>, <span t="k"></span><span data-unresolved-link="" t="n">thatElem</span>: <span t="t">B</span>): <a href="DimensionalVersionedBase.html" t="t">DimensionalVersionedBase</a>[(<span t="t">V</span>, <span data-unresolved-link="" t="t">B</span>), <span t="t">D</span>]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DimensionalVersionedBase.html#zipAll-5eb" t="n" class="documentableName ">zipAll</a>[<span t="k"></span><span data-unresolved-link="" t="t">B</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DimensionalVersionedBase.html" t="t">DimensionalVersionedBase</a>[<span t="t">B</span>, <span t="t">D</span>], <span t="k"></span><span data-unresolved-link="" t="n">thisDefault</span>: <span t="t">V</span>, <span t="k"></span><span data-unresolved-link="" t="n">thatDefault</span>: <span t="t">B</span>): <a href="DimensionalVersionedBase.html" t="t">DimensionalVersionedBase</a>[(<span t="t">V</span>, <span data-unresolved-link="" t="t">B</span>), <span t="t">D</span>]
            </div>
           </div>
          </div>
@@ -347,11 +347,11 @@ node7 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns a new structure formed from this structure and another structure by combining the corresponding elements (all intersections) in a pair. If one of the two collections has a valid value in an interval where the other one doesn't, placeholder elements are used in the result. The other structure can have a different value type but must have the same interval type.</p>
+             <p>Returns a new structure formed from this structure and another structure by combining the corresponding elements (all intervals in both this and that) in a pair. If one of the two collections has a valid value in an interval where the other one doesn't, default elements are used in the result. The other structure can have a different value type but must have the same interval type.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns a new structure formed from this structure and another structure by combining the corresponding elements (all intersections) in a pair. If one of the two collections has a valid value in an interval where the other one doesn't, placeholder elements are used in the result. The other structure can have a different value type but must have the same interval type.</p>
+              <p>Returns a new structure formed from this structure and another structure by combining the corresponding elements (all intervals in both this and that) in a pair. If one of the two collections has a valid value in an interval where the other one doesn't, default elements are used in the result. The other structure can have a different value type but must have the same interval type.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -371,16 +371,16 @@ node7 -> node0;
                <p>the structure which is going to be zipped.</p>
               </dd>
               <dt class="body-small">
-               thatElem
+               thatDefault
               </dt>
               <dd class="body-medium">
-               <p>placeholder element used in intervals where data are valid in this but not that.</p>
+               <p>default element used in intervals where data are valid in this but not that.</p>
               </dd>
               <dt class="body-small">
-               thisElem
+               thisDefault
               </dt>
               <dd class="body-medium">
-               <p>placeholder element used in intervals where data are valid in that but not this.</p>
+               <p>default element used in intervals where data are valid in that but not this.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -496,11 +496,11 @@ node7 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns all the intervals (compressed) in which there are valid values given some version selection context.</p>
+             <p>Returns all the intervals (compressed) in which there are valid values given some version selection context. See * <a href="https://en.wikipedia.org/wiki/Domain_of_a_function">https://en.wikipedia.org/wiki/Domain_of_a_function</a>.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns all the intervals (compressed) in which there are valid values given some version selection context.</p>
+              <p>Returns all the intervals (compressed) in which there are valid values given some version selection context. See * <a href="https://en.wikipedia.org/wiki/Domain_of_a_function">https://en.wikipedia.org/wiki/Domain_of_a_function</a>.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -524,11 +524,11 @@ node7 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns all the intervals (compressed) in which there are no valid values given some version selection context.</p>
+             <p>Returns all the intervals (compressed) in which there are no valid values given some version selection context. That is, all intervals that are not in the <a href="DimensionalVersionedBase.html#domain-fffff935">domain</a> given the same version selection context. See <a href="https://en.wikipedia.org/wiki/Domain_of_a_function">https://en.wikipedia.org/wiki/Domain_of_a_function</a> and <a href="https://en.wikipedia.org/wiki/Complement_(set_theory)">https://en.wikipedia.org/wiki/Complement_(set_theory)</a>.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns all the intervals (compressed) in which there are no valid values given some version selection context.</p>
+              <p>Returns all the intervals (compressed) in which there are no valid values given some version selection context. That is, all intervals that are not in the <a href="DimensionalVersionedBase.html#domain-fffff935">domain</a> given the same version selection context. See <a href="https://en.wikipedia.org/wiki/Domain_of_a_function">https://en.wikipedia.org/wiki/Domain_of_a_function</a> and <a href="https://en.wikipedia.org/wiki/Complement_(set_theory)">https://en.wikipedia.org/wiki/Complement_(set_theory)</a>.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -611,11 +611,11 @@ node7 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns the value if there is a single, unbounded valid value given some version selection context, otherwise throws an exception.</p>
+             <p>Returns the value if a single, unbounded valid value exists given some version selection context, otherwise throws an exception.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns the value if there is a single, unbounded valid value given some version selection context, otherwise throws an exception.</p>
+              <p>Returns the value if a single, unbounded valid value exists given some version selection context, otherwise throws an exception.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -657,21 +657,14 @@ node7 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Get all valid data given some version selection context.</p>
+             <p>Returns all valid data in interval start order given some version selection context.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Get all valid data given some version selection context.</p>
+              <p>Returns all valid data in interval start order given some version selection context.</p>
              </div>
              <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Returns
-              </dt>
-              <dd class="body-medium">
-               <p>all valid data given some version selection context in interval.start order</p>
-              </dd>
-             </dl>
+             <dl class="attributes attributes-small"></dl>
             </div>
            </div>
           </div>
@@ -682,7 +675,7 @@ node7 -> node0;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DimensionalVersionedBase.html#getAt-fffff8db" t="n" class="documentableName ">getAt</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">domain</span>: <span t="t">D</span>)(<span t="k">using </span><span t="k"></span><a href="DimensionalVersionedBase$$VersionSelection.html" t="t">VersionSelection</a>): <span data-unresolved-link="" t="t">Option</span>[<span t="t">V</span>]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DimensionalVersionedBase.html#getAt-fffff8db" t="n" class="documentableName ">getAt</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">domainIndex</span>: <span t="t">D</span>)(<span t="k">using </span><span t="k"></span><a href="DimensionalVersionedBase$$VersionSelection.html" t="t">VersionSelection</a>): <span data-unresolved-link="" t="t">Option</span>[<span t="t">V</span>]
            </div>
           </div>
          </div>
@@ -692,16 +685,16 @@ node7 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns a value that is valid at the specified domain element given some version selection context. That is, where the specified domain element is a member of some valid data interval. If no such valid data exists, returns None.</p>
+             <p>Returns a value that is valid at the specified domain element given some version selection context. That is, where the specified domain element is a member of some valid data interval. If no such valid value exists, returns None.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns a value that is valid at the specified domain element given some version selection context. That is, where the specified domain element is a member of some valid data interval. If no such valid data exists, returns None.</p>
+              <p>Returns a value that is valid at the specified domain element given some version selection context. That is, where the specified domain element is a member of some valid data interval. If no such valid value exists, returns None.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
-               domain
+               domainIndex
               </dt>
               <dd class="body-medium">
                <p>the domain element where data may be valid. The domain element can be a specific data point or the special notions of "bottom" or "top" of the domain.</p>
@@ -852,11 +845,11 @@ node7 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns a Some value if there is a single, unbounded valid value given some version selection context, otherwise returns None.</p>
+             <p>Returns Some value if a single, unbounded valid value exists given some version selection context, otherwise returns None.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns a Some value if there is a single, unbounded valid value given some version selection context, otherwise returns None.</p>
+              <p>Returns Some value if a single, unbounded valid value exists given some version selection context, otherwise returns None.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -998,7 +991,7 @@ node7 -> node0;
                interval
               </dt>
               <dd class="body-medium">
-               <p>the interval to check</p>
+               <p>the interval to check.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>

@@ -412,11 +412,11 @@ node3 -> node2;
             <div class="originInfo"></div>
             <div class="memberDocumentation">
              <div class="documentableBrief doc">
-              <p>If the experimental feature is not enabled, return the non-experimental result. If it is enabled, compare the experimental and non-experimental results. If they match, return that result. Otherwise, return the onFailure result (which would usually just throw after maybe logging some details about the mismatch).</p>
+              <p>If the experimental feature is not enabled, return the non-experimental result. If it is enabled, compare the experimental and non-experimental results. If they match, return that result. Otherwise, return <code>onFailure</code> result (which would usually just throw after maybe logging some details about the mismatch).</p>
              </div>
              <div class="cover">
               <div class="doc">
-               <p>If the experimental feature is not enabled, return the non-experimental result. If it is enabled, compare the experimental and non-experimental results. If they match, return that result. Otherwise, return the onFailure result (which would usually just throw after maybe logging some details about the mismatch).</p>
+               <p>If the experimental feature is not enabled, return the non-experimental result. If it is enabled, compare the experimental and non-experimental results. If they match, return that result. Otherwise, return <code>onFailure</code> result (which would usually just throw after maybe logging some details about the mismatch).</p>
               </div>
               <h2 class="h200">Type parameters</h2>
               <dl class="attributes attributes-small">
@@ -460,7 +460,7 @@ node3 -> node2;
                 Returns
                </dt>
                <dd class="body-medium">
-                <p>either experimental or non-experimental result, depending on what is enabled.</p>
+                <p>either experimental or non-experimental result, depending on parallel check results/logic.</p>
                </dd>
               </dl>
              </div>

@@ -24,7 +24,7 @@
     D
    </dt>
    <dd class="body-medium">
-    <p>a domain type for this interval -- boundaries of the interval are defined in terms of a tuple that is <code>DomainLike</code>, i.e., tuples of <code>Domain1D[T]</code> (with a different <code>T</code> in each dimension) where each value has a type class of <code>DomainValueLike[T]</code>.</p>
+    <p>the domain type -- <a href="DomainLike.html">DomainLike</a> non-empty tuples.</p>
    </dd>
   </dl>
   <h2 class="h500">Value parameters</h2>
@@ -243,11 +243,11 @@ node6 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>If there are intervals after each interval component (i.e., none of them end at Top), returns the interval after this one in all dimensions, otherwise returns None.</p>
+             <p>Returns the interval to the "right" of this one in all dimensions if one can be constructed (i.e., no dimensions of this interval end at the <code>Top</code>), otherwise returns None.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>If there are intervals after each interval component (i.e., none of them end at Top), returns the interval after this one in all dimensions, otherwise returns None.</p>
+              <p>Returns the interval to the "right" of this one in all dimensions if one can be constructed (i.e., no dimensions of this interval end at the <code>Top</code>), otherwise returns None.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -362,11 +362,11 @@ node6 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>If there are intervals before each interval component (i.e., none of them start at Bottom), returns the interval before this one in all dimensions, otherwise returns None.</p>
+             <p>Returns the interval to the "left" of this one in all dimensions if one can be constructed (i.e., no dimensions of this interval start at the <code>Bottom</code>), otherwise returns None.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>If there are intervals before each interval component (i.e., none of them start at Bottom), returns the interval before this one in all dimensions, otherwise returns None.</p>
+              <p>Returns the interval to the "left" of this one in all dimensions if one can be constructed (i.e., no dimensions of this interval start at the <code>Bottom</code>), otherwise returns None.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -674,11 +674,11 @@ node6 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns gap between this and that interval, if one exists.</p>
+             <p>Returns the gap between this and that interval if one exists.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns gap between this and that interval, if one exists.</p>
+              <p>Returns the gap between this and that interval if one exists.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -792,11 +792,11 @@ node6 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Extract a one-dimensional interval based on the one-dimensional heads of the start and end.</p>
+             <p>Extract the one-dimensional head interval.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Extract a one-dimensional interval based on the one-dimensional heads of the start and end.</p>
+              <p>Extract the one-dimensional head interval.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -1222,11 +1222,11 @@ node6 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>For an n-dimensional interval where n &gt; 1, extracts the interval of n-1 dimensions based on the tail of start and end.</p>
+             <p>For an n-dimensional interval where n &gt; 1, extracts the tail interval of n-1 dimensions.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>For an n-dimensional interval where n &gt; 1, extracts the interval of n-1 dimensions based on the tail of start and end.</p>
+              <p>For an n-dimensional interval where n &gt; 1, extracts the tail interval of n-1 dimensions.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -1468,11 +1468,11 @@ node6 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Prepend that interval to this interval to arrive at a new higher-dimensional interval.</p>
+             <p>Prepend that one-dimensional interval to this interval to arrive at a new higher-dimensional interval.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Prepend that interval to this interval to arrive at a new higher-dimensional interval.</p>
+              <p>Prepend that one-dimensional interval to this interval to arrive at a new higher-dimensional interval.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -1521,11 +1521,11 @@ node6 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns a new interval with an updated head interval and other dimensions unchanged.</p>
+             <p>Returns a new interval with an updated head interval and the other dimensions unchanged.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns a new interval with an updated head interval and other dimensions unchanged.</p>
+              <p>Returns a new interval with an updated head interval and the other dimensions unchanged.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -1611,11 +1611,11 @@ node6 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Cross this interval with that interval to arrive at a new higher-dimensional interval.</p>
+             <p>Cross this interval with that one-dimensional interval to arrive at a new higher-dimensional interval.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Cross this interval with that interval to arrive at a new higher-dimensional interval.</p>
+              <p>Cross this interval with that one-dimensional interval to arrive at a new higher-dimensional interval.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">

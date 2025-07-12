@@ -15,7 +15,10 @@
 </div>
 <div class="cover">
  <div class="doc">
-  <p>Domains are based on an underlying domain value type and used to define the boundaries of an interval. It describes specific data points in the domain value range as well as the special "<code>Bottom</code>" and "<code>Top</code>" cases which conceptually lie below and above this finite range of data points (logically below and above <code>minValue</code> and <code>maxValue</code> respectively). Domains can be based on domain values that are discrete or continuous. When continuous, a boundary point can either be open or closed, where discrete points must always be closed. This also gives a way to completely describe adjacency. When domain values are discrete, the left and right adjacent domains of a point are the respective predecessors and successors of the domain value -- this also gives us a way to accommodate having a predecessor or successor on a boundary (i.e., <code>maxValue.rightAdjacent == Top</code> and <code>minValue.leftAdjacent == Bottom</code>). When domains are continuous, the left and right adjacent domains are always the same: open if the point is closed and closed if the point is open.</p>
+  <p>A domain is based on an underlying domain value type, and is used to define the boundaries of interval. It describes specific data points in the domain value range as well as the special "<code>Bottom</code>" and "<code>Top</code>" cases which conceptually lie below and above this finite range of data points (logically below and above <code>minValue</code> and <code>maxValue</code> respectively). Domains can be based on domain values that are discrete or continuous. When continuous, a boundary point can either be open or closed, where discrete points must always be closed. This also gives a way to completely describe adjacency.</p>
+  <p>When domain values are discrete, the left and right adjacent domains of a point are the respective predecessors and successors of the domain value. This also gives us a way to accommodate having a predecessor or successor on a boundary, i.e., <code>maxValue.rightAdjacent == Top</code> and <code>minValue.leftAdjacent == Bottom</code>.</p>
+  <p>When domain values are continuous, the left and right adjacent domains are always the same: open if the point is closed and closed if the point is open.</p>
+  <p>In both discrete and continuous domains, <code>Top</code> and <code>Bottom</code> are considered self-adjacent.</p>
  </div>
  <section id="attributes">
   <h2 class="h500">Type parameters</h2>
@@ -152,11 +155,11 @@ node9 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Smaller than smallest data point (like -∞)</p>
+             <p>Smaller than the smallest data point (like -∞)</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Smaller than smallest data point (like -∞)</p>
+              <p>Smaller than the smallest data point (like -∞)</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -180,11 +183,11 @@ node9 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Exclude a single data point in the finite range of this domain. This extends the closed point domain with all the points complements, and suitable for the start or end of a continuous interval. (This case is not used in discrete intervals.)</p>
+             <p>Exclude a single data point in the finite range of this domain. This is suitable for the start or end of an interval over continuous values. This case is not used in intervals over discrete values.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Exclude a single data point in the finite range of this domain. This extends the closed point domain with all the points complements, and suitable for the start or end of a continuous interval. (This case is not used in discrete intervals.)</p>
+              <p>Exclude a single data point in the finite range of this domain. This is suitable for the start or end of an interval over continuous values. This case is not used in intervals over discrete values.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -236,11 +239,11 @@ node9 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Larger than largest data point (like +∞)</p>
+             <p>Larger than the largest data point (like +∞)</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Larger than largest data point (like +∞)</p>
+              <p>Larger than the largest data point (like +∞)</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -281,11 +284,11 @@ node9 -> node0;
            </div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+             <p>Is this start after or equal to that start, using default ordering to compare starts?</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+              <p>Is this start after or equal to that start, using default ordering to compare starts?</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -311,11 +314,11 @@ node9 -> node0;
            </div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+             <p>Is this start after that start, using default ordering to compare starts?</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+              <p>Is this start after that start, using default ordering to compare starts?</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -341,11 +344,11 @@ node9 -> node0;
            </div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+             <p>Is this end before that end, using non-default ordering to compare ends?</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+              <p>Is this end before that end, using non-default ordering to compare ends?</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -371,11 +374,11 @@ node9 -> node0;
            </div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+             <p>Is this end before or equal to that end, using non-default ordering to compare ends?</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+              <p>Is this end before or equal to that end, using non-default ordering to compare ends?</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -401,11 +404,11 @@ node9 -> node0;
            </div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+             <p>If this is an open points, convert it to a closed points at the same value. Unbounded and already closed points are left unchanged.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+              <p>If this is an open points, convert it to a closed points at the same value. Unbounded and already closed points are left unchanged.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -431,41 +434,11 @@ node9 -> node0;
            </div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+             <p>Tests if this domain is adjacent to that domain on the left or right.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small"></dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="isClosedOrUnbounded-fffff3f6" data-f-extension="from Domain1D">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Domain1D$.html#isClosedOrUnbounded-fffff3f6" t="n" class="documentableName ">isClosedOrUnbounded</a>: <span data-unresolved-link="" t="t">Boolean</span>
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo">
-            Extension method from <a href="Domain1D$.html">Domain1D</a>
-           </div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+              <p>Tests if this domain is adjacent to that domain on the left or right.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -491,11 +464,11 @@ node9 -> node0;
            </div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+             <p>Tests if this domain is adjacent to that domain on the left.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+              <p>Tests if this domain is adjacent to that domain on the left.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -521,11 +494,11 @@ node9 -> node0;
            </div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+             <p>Tests if this domain is adjacent to that domain on the right.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+              <p>Tests if this domain is adjacent to that domain on the right.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -551,14 +524,21 @@ node9 -> node0;
            </div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+             <p>Domain adjacent to this domain from the "left", where <code>Bottom</code> and <code>Top</code> are considered self-adjacent. For discrete domains, this is the predecessor, where the left adjacent of <code>minValue</code> is <code>Bottom</code> -- see <a href="https://en.wikipedia.org/wiki/Primitive_recursive_function#Predecessor">https://en.wikipedia.org/wiki/Primitive_recursive_function#Predecessor</a>. For continuous domains, this maps open points to closed ones, and closed points to open ones (right and left complements are the same).</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+              <p>Domain adjacent to this domain from the "left", where <code>Bottom</code> and <code>Top</code> are considered self-adjacent. For discrete domains, this is the predecessor, where the left adjacent of <code>minValue</code> is <code>Bottom</code> -- see <a href="https://en.wikipedia.org/wiki/Primitive_recursive_function#Predecessor">https://en.wikipedia.org/wiki/Primitive_recursive_function#Predecessor</a>. For continuous domains, this maps open points to closed ones, and closed points to open ones (right and left complements are the same).</p>
              </div>
              <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small"></dl>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>left complement of this</p>
+              </dd>
+             </dl>
             </div>
            </div>
           </div>
@@ -581,11 +561,11 @@ node9 -> node0;
            </div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+             <p>Find the max domain of two ends, treating open &lt; closed at the same point by using the non-default ordering.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+              <p>Find the max domain of two ends, treating open &lt; closed at the same point by using the non-default ordering.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -611,11 +591,11 @@ node9 -> node0;
            </div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+             <p>Find the max domain of two starts, treating open &gt; closed at the same point by using the default ordering.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+              <p>Find the max domain of two starts, treating open &gt; closed at the same point by using the default ordering.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -641,11 +621,11 @@ node9 -> node0;
            </div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+             <p>Find the min domain of two ends, treating open &lt; closed at the same point by using the non-default ordering.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+              <p>Find the min domain of two ends, treating open &lt; closed at the same point by using the non-default ordering.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -671,11 +651,11 @@ node9 -> node0;
            </div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+             <p>Find the min domain of two starts, treating open &gt; closed at the same point by using the default ordering.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+              <p>Find the min domain of two starts, treating open &gt; closed at the same point by using the default ordering.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -701,11 +681,11 @@ node9 -> node0;
            </div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>A special totally-ordered hash of a domain used for mapping intervals to box search trees in double space. If <code>x1 &lt; x2</code> (i.e., there are some number of <code>successorOf</code> functions that can be applied to <code>x1</code> to reach <code>x2</code>), then <code>orderedHashOf(x1) ≤ orderedHashOf(x2)</code>.</p>
+             <p>A special totally ordered hash of this domain used for mapping intervals to box search trees in double space. If <code>x1 &lt; x2</code> (i.e., there are some number of <code>successorOf</code> functions that can be applied to <code>x1</code> to reach <code>x2</code>), then <code>orderedHashOf(x1) ≤ orderedHashOf(x2)</code>.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>A special totally-ordered hash of a domain used for mapping intervals to box search trees in double space. If <code>x1 &lt; x2</code> (i.e., there are some number of <code>successorOf</code> functions that can be applied to <code>x1</code> to reach <code>x2</code>), then <code>orderedHashOf(x1) ≤ orderedHashOf(x2)</code>.</p>
+              <p>A special totally ordered hash of this domain used for mapping intervals to box search trees in double space. If <code>x1 &lt; x2</code> (i.e., there are some number of <code>successorOf</code> functions that can be applied to <code>x1</code> to reach <code>x2</code>), then <code>orderedHashOf(x1) ≤ orderedHashOf(x2)</code>.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -742,14 +722,25 @@ node9 -> node0;
            </div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+             <p>Every possible point bounded by this domain and the end domain.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+              <p>Every possible point bounded by this domain and the end domain.</p>
              </div>
              <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small"></dl>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Note
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <div>
+                 <p>if this domain value is continuous, no points are returned.</p>
+                </div>
+               </div>
+              </dd>
+             </dl>
             </div>
            </div>
           </div>
@@ -772,44 +763,21 @@ node9 -> node0;
            </div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+             <p>Domain adjacent to this domain from the "right", where <code>Bottom</code> and <code>Top</code> are considered self-adjacent. For discrete domains, this is the successor, where the right adjacent of <code>maxValue</code> is <code>Top</code> -- see <a href="https://en.wikipedia.org/wiki/Successor_function">https://en.wikipedia.org/wiki/Successor_function</a>. For continuous domains, this maps open points to closed ones, and closed points to open ones (right and left complements are the same).</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+              <p>Domain adjacent to this domain from the "right", where <code>Bottom</code> and <code>Top</code> are considered self-adjacent. For discrete domains, this is the successor, where the right adjacent of <code>maxValue</code> is <code>Top</code> -- see <a href="https://en.wikipedia.org/wiki/Successor_function">https://en.wikipedia.org/wiki/Successor_function</a>. For continuous domains, this maps open points to closed ones, and closed points to open ones (right and left complements are the same).</p>
              </div>
              <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small"></dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="validIntervalStartWithEnd-f0c" data-f-extension="from Domain1D">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Domain1D$.html#validIntervalStartWithEnd-f0c" t="n" class="documentableName ">validIntervalStartWithEnd</a>[<span t="k"></span><span data-unresolved-link="" t="t">D</span> : <a href="DomainValueLike.html" t="t">DomainValueLike</a>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">end</span>: <a href="Domain1D.html" t="t">Domain1D</a>[<span t="t">T</span>]): <span data-unresolved-link="" t="t">Boolean</span>
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo">
-            Extension method from <a href="Domain1D$.html">Domain1D</a>
-           </div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small"></dl>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>right complement of this</p>
+              </dd>
+             </dl>
             </div>
            </div>
           </div>

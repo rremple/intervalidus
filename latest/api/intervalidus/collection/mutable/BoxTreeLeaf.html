@@ -573,7 +573,7 @@ node5 -> node1;
               <dd class="body-medium">
                <div>
                 <div>
-                 <p>Having a depth limit is not just an optimization, it is important functionally because of the potential of ordered hash collisions used as the box coordinates. Say that there are many source discrete values that hash to the same double value. If the number of these colliding items reaches the capacity of a leaf, without a depth limit there would be an infinite regression branch creations until OOM.</p>
+                 <p>Having a depth limit is not just an optimization, it is important functionally because of the potential of ordered hash collisions used as the box coordinates. Say that there are many source discrete values that hash to the same double value. If the number of these colliding items reaches the capacity of a leaf, without a depth limit, there would be an infinite regression of branch creations until OOM.</p>
                 </div>
                </div>
               </dd>

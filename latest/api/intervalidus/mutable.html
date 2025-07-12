@@ -137,7 +137,7 @@
                D
               </dt>
               <dd class="body-medium">
-               <p>the domain type for intervals, must be <a href="DomainLike.html">DomainLike</a>.</p>
+               <p>the domain type -- <a href="DomainLike.html">DomainLike</a> non-empty tuples.</p>
               </dd>
               <dt class="body-small">
                V
@@ -276,7 +276,7 @@
             <div class="cover">
              <div class="doc">
               <p>Mutable, multivalued dimensional data.</p>
-              <p>Data may have multiple values valid in different intervals of arbitrary dimensions, conceptually similar to a multimap. For example, one may want to represent when the data are valid in time and over certain versions, or in two dimensions of time, simultaneously. When queried, values are returned as a set. The standard mutation methods operate on these sets of values. There are also add and remove methods allow mutation of individual values across intervals, and a merge method for combining two structures (conceptually similar to zip, but operating on individual values, and more appropriate for these multiple values structures).</p>
+              <p>Data may have multiple values valid in different intervals of arbitrary dimensions, conceptually similar to a multimap. For example, one may want to represent when the data are valid in time and over certain versions, or in two dimensions of time, simultaneously. When queried, values are returned as a set. The standard mutation methods operate on these sets of values. There are also add and remove methods allow mutation of individual values across intervals, and a concat method for combining two structures (a merge where overlaps are concatenated).</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -284,7 +284,7 @@
                D
               </dt>
               <dd class="body-medium">
-               <p>the domain type for intervals, must be <a href="DomainLike.html">DomainLike</a>.</p>
+               <p>the domain type -- <a href="DomainLike.html">DomainLike</a> non-empty tuples.</p>
               </dd>
               <dt class="body-small">
                V
@@ -416,11 +416,14 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Base for all mutable dimensional versioned data.</p>
+             <p>Immutable versioned dimensional data in any dimension.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Base for all mutable dimensional versioned data.</p>
+              <p>Immutable versioned dimensional data in any dimension.</p>
+              <p>Interface is similar to <a href="mutable/Data.html">Data</a>, but it operates on an underlying <a href="mutable/Data.html">mutable.Data</a> using an extra integer-valued head dimension to version data. One use case would be versioned data that are valid in two dimensions of time, so the underlying data actually vary in terms of version and two dimensions of time (three dimensions total). Most methods require some generic version selection criteria rather than specific integer intervals, therefore this does not extend <a href="DimensionalBase.html">DimensionalBase</a>.</p>
+              <p>The "current" version is managed as state (a <code>var</code>). Versioning also separates notions of approved vs. unapproved data (unapproved data are pushed up to start at version maxValue).</p>
+              <p>When getting data, by default, we return "current" version data (a.k.a., approved). When updating data, by default, we don't rewrite history, so mutations start with the "current" version too.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -428,7 +431,7 @@
                D
               </dt>
               <dd class="body-medium">
-               <p>the domain type for intervals in the public interface. Must be <a href="DomainLike.html">DomainLike</a>.</p>
+               <p>the domain type for intervals in the public interface -- <a href="DomainLike.html">DomainLike</a> non-empty tuples.</p>
               </dd>
               <dt class="body-small">
                V
@@ -439,6 +442,16 @@
              </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Note
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <div>
+                 <p>Updates starting with "current" also update unapproved changes (since intervalFrom goes to the Top).</p>
+                </div>
+               </div>
+              </dd>
               <dt class="body-small">
                Companion
               </dt>
@@ -503,7 +516,7 @@
                D
               </dt>
               <dd class="body-medium">
-               <p>the domain type for intervals, must be <a href="DomainLike.html">DomainLike</a>.</p>
+               <p>the domain type -- <a href="DomainLike.html">DomainLike</a> non-empty tuples.</p>
               </dd>
               <dt class="body-small">
                V

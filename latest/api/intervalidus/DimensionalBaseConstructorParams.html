@@ -110,9 +110,59 @@ node8 -> node6;
         </div>
         <div class="documentableElement" id="constructorParams-b9e" data-f-visibility="protected">
          <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">protected </span></span><span class="kind"><span t="k">def </span></span><a href="DimensionalBaseConstructorParams.html#constructorParams-b9e" t="n" class="documentableName ">constructorParams</a>[<span t="k"></span><span data-unresolved-link="" t="t">V</span>, <span t="k"></span><span data-unresolved-link="" t="t">D</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">NonEmptyTuple</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">initialData</span>: <span data-unresolved-link="" t="t">Iterable</span>[<a href="ValidData.html" t="t">ValidData</a>[<span t="t">V</span>, <span t="t">D</span>]])(<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">domainValue</span>: <a href="DomainLike.html" t="t">DomainLike</a>[<span t="t">D</span>])(<span t="k">using </span><span t="k"></span><a href="../intervalidus.html#Experimental-0" t="t">Experimental</a>): (<span data-unresolved-link="" t="t">TreeMap</span>[<span data-unresolved-link="" t="t">D</span>, <a href="ValidData.html" t="t">ValidData</a>[<span data-unresolved-link="" t="t">V</span>, <span data-unresolved-link="" t="t">D</span>]], <a href="collection/mutable/MultiMapSorted.html" t="t">MultiMapSorted</a>[<span data-unresolved-link="" t="t">V</span>, <a href="ValidData.html" t="t">ValidData</a>[<span data-unresolved-link="" t="t">V</span>, <span data-unresolved-link="" t="t">D</span>]], <a href="collection/mutable/BoxTree.html" t="t">BoxTree</a>[<a href="ValidData.html" t="t">ValidData</a>[<span data-unresolved-link="" t="t">V</span>, <span data-unresolved-link="" t="t">D</span>]])
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Given a collection of valid data, returns data used to populate the <code>dataByStartAsc</code>, <code>dataByValue</code>, and <code>dataInSearchTree</code> internal data structures.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Given a collection of valid data, returns data used to populate the <code>dataByStartAsc</code>, <code>dataByValue</code>, and <code>dataInSearchTree</code> internal data structures.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               D
+              </dt>
+              <dd class="body-medium">
+               <p>the domain type -- <a href="DomainLike.html">DomainLike</a> non-empty tuples.</p>
+              </dd>
+              <dt class="body-small">
+               V
+              </dt>
+              <dd class="body-medium">
+               <p>the type of the value managed as data.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               initialData
+              </dt>
+              <dd class="body-medium">
+               <p>a collection of values valid within intervals -- intervals must be disjoint.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>tuple of <code>TreeMap</code> data, <code>MultiMapSorted</code> data, and <code>BoxTree</code> data used when constructing something that is a <code>DimensionalBase</code> and has overridden <code>dataByStartAsc</code>, <code>dataByValue</code>, and <code>dataInSearchTree</code> in the constructor.</p>
+              </dd>
+             </dl>
+            </div>
            </div>
           </div>
          </div>

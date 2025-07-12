@@ -24,7 +24,7 @@
     D
    </dt>
    <dd class="body-medium">
-    <p>the type of the domain upon which the interval is based.</p>
+    <p>the domain type -- <a href="DomainLike.html">DomainLike</a> non-empty tuples.</p>
    </dd>
    <dt class="body-small">
     V
@@ -336,12 +336,12 @@ node8 -> node2;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="withKey-0">
+        <div class="documentableElement" id="withStartKey-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ValidData.html#withKey-0" t="n" class="documentableName ">withKey</a>: (<span t="t">D</span>, <a href="ValidData.html" t="t">ValidData</a>[<span t="t">V</span>, <span t="t">D</span>])
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ValidData.html#withStartKey-0" t="n" class="documentableName ">withStartKey</a>: (<span t="t">D</span>, <a href="ValidData.html" t="t">ValidData</a>[<span t="t">V</span>, <span t="t">D</span>])
            </div>
           </div>
          </div>
@@ -351,11 +351,11 @@ node8 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>When stored in a collection, the start of the corresponding interval is the key.</p>
+             <p>When stored in the <code>TreeMap</code> collection, the start of the corresponding interval is the key.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>When stored in a collection, the start of the corresponding interval is the key.</p>
+              <p>When stored in the <code>TreeMap</code> collection, the start of the corresponding interval is the key.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -363,7 +363,42 @@ node8 -> node2;
                Returns
               </dt>
               <dd class="body-medium">
-               <p>a tuple of the domain-like key with this valid data</p>
+               <p>a tuple of the interval start with this valid data</p>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="withValueKey-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ValidData.html#withValueKey-0" t="n" class="documentableName ">withValueKey</a>: (<span t="t">V</span>, <a href="ValidData.html" t="t">ValidData</a>[<span t="t">V</span>, <span t="t">D</span>])
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>When stored in the <code>MultiMapSorted</code> collection, the value itself is the key.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>When stored in the <code>MultiMapSorted</code> collection, the value itself is the key.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>a tuple of the value with this valid data</p>
               </dd>
              </dl>
             </div>

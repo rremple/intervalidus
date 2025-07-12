@@ -165,11 +165,11 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Type class template for a continuous value.</p>
+             <p>Type class for a continuous value.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Type class template for a continuous value.</p><invalid inheritdoc annotation>
+              <p>Type class for a continuous value.</p><invalid inheritdoc annotation>
                <p>Unlike discrete values, there is no requirement for having predecessors and successors defined. Although every digitized data structure is discrete, it is often easier to work with some data types when they are treated as continuous. For example, integer values and local dates are good candidates for being discrete where double-precision float values and local date-times are better treated as continuous.</p>
               </invalid>
              </div>
@@ -341,7 +341,7 @@
                D
               </dt>
               <dd class="body-medium">
-               <p>the type of domain used in the interval assigned to each value. the type of domain value used in the depth interval assigned to each value.</p>
+               <p>for <code>Create</code> and <code>Update</code>, the type of domain used in the interval assigned to each valid value, and for <code>Delete</code>, the type of domain used as the key.</p>
               </dd>
               <dt class="body-small">
                V
@@ -358,7 +358,7 @@
               <dd class="body-medium">
                <div>
                 <div>
-                 <p>intervalidus does not have event-sourced data structures, and history of mutations are not maintained.</p>
+                 <p>intervalidus does not have event-sourced data structures, and the history of mutations is not maintained.</p>
                 </div>
                </div>
               </dd>
@@ -542,7 +542,7 @@
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="intervalidus/DimensionalBase.html" t="n" class="documentableName ">DimensionalBase</a>[<span t="k"></span><span data-unresolved-link="" t="t">V</span>, <span t="k"></span><span data-unresolved-link="" t="t">D</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">NonEmptyTuple</span>](<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">domainLike</span>: <a href="intervalidus/DomainLike.html" t="t">DomainLike</a>[<span data-unresolved-link="" t="t">D</span>], <span t="k"></span><span data-unresolved-link="" t="n">experimental</span>: <a href="intervalidus.html#Experimental-0" t="t">Experimental</a>)<span t="k"> extends </span><span data-unresolved-link="" t="t">PartialFunction</span>[<span t="t">D</span>, <span t="t">V</span>]</span><span class="signature-long"></span>
+            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="intervalidus/DimensionalBase.html" t="n" class="documentableName ">DimensionalBase</a>[<span t="k"></span><span data-unresolved-link="" t="t">V</span>, <span t="k"></span><span data-unresolved-link="" t="t">D</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">NonEmptyTuple</span>](<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">domainLike</span>: <a href="intervalidus/DomainLike.html" t="t">DomainLike</a>[<span data-unresolved-link="" t="t">D</span>])(<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">x$2</span>: <a href="intervalidus.html#Experimental-0" t="t">Experimental</a>)<span t="k"> extends </span><span data-unresolved-link="" t="t">PartialFunction</span>[<span t="t">D</span>, <span t="t">V</span>]</span><span class="signature-long"></span>
            </div>
           </div>
          </div>
@@ -564,7 +564,7 @@
                D
               </dt>
               <dd class="body-medium">
-               <p>the domain type for intervals, must be <a href="intervalidus/DomainLike.html">DomainLike</a>.</p>
+               <p>the domain type -- <a href="intervalidus/DomainLike.html">DomainLike</a> non-empty tuples.</p>
               </dd>
               <dt class="body-small">
                V
@@ -762,7 +762,7 @@
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="intervalidus/DimensionalMultiBase.html" t="n" class="documentableName ">DimensionalMultiBase</a>[<span t="k"></span><span data-unresolved-link="" t="t">V</span>, <span t="k"></span><span data-unresolved-link="" t="t">D</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">NonEmptyTuple</span>]<span t="k"> extends </span><a href="intervalidus/DimensionalBase.html" t="t">DimensionalBase</a>[<span data-unresolved-link="" t="t">Set</span>[<span t="t">V</span>], <span t="t">D</span>]</span><span class="signature-long"></span>
+            <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="intervalidus/DimensionalMultiBase.html" t="n" class="documentableName ">DimensionalMultiBase</a>[<span t="k"></span><span data-unresolved-link="" t="t">V</span>, <span t="k"></span><span data-unresolved-link="" t="t">D</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">NonEmptyTuple</span>](<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">evidence$1</span>: <a href="intervalidus/DomainLike.html" t="t">DomainLike</a>[<span data-unresolved-link="" t="t">D</span>], <span t="k"></span><span data-unresolved-link="" t="n">x$1</span>: <a href="intervalidus.html#Experimental-0" t="t">Experimental</a>)<span t="k"> extends </span><a href="intervalidus/DimensionalBase.html" t="t">DimensionalBase</a>[<span data-unresolved-link="" t="t">Set</span>[<span t="t">V</span>], <span t="t">D</span>]</span><span class="signature-long"></span>
            </div>
           </div>
          </div>
@@ -784,7 +784,7 @@
                D
               </dt>
               <dd class="body-medium">
-               <p>the domain type for intervals, must be <a href="intervalidus/DomainLike.html">DomainLike</a>.</p>
+               <p>the domain type -- <a href="intervalidus/DomainLike.html">DomainLike</a> non-empty tuples.</p>
               </dd>
               <dt class="body-small">
                V
@@ -917,11 +917,11 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Constructs multi-valued data in multidimensional intervals.</p>
+             <p>Constructs multivalued data in multidimensional intervals.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Constructs multi-valued data in multidimensional intervals.</p>
+              <p>Constructs multivalued data in multidimensional intervals.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -1055,7 +1055,7 @@
                D
               </dt>
               <dd class="body-medium">
-               <p>the domain type for intervals in the public interface. Must be <a href="intervalidus/DomainLike.html">DomainLike</a>.</p>
+               <p>the domain type for intervals in the public interface -- <a href="intervalidus/DomainLike.html">DomainLike</a> non-empty tuples.</p>
               </dd>
               <dt class="body-small">
                V
@@ -1196,12 +1196,12 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Type class template for a discrete value.</p>
+             <p>Type class for a discrete value.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Type class template for a discrete value.</p><invalid inheritdoc annotation>
-               <p>Unlike continuous values, discrete values also have predecessors and successors, which are properly defined on <code>x: max &lt; x &lt; min</code>. Having predecessors and successors defined this way avoids issues where the natural successor functions of the underlying types behave unexpectedly/inconsistently on the boundaries, e.g., how <code>Int.MaxValue + 1</code> and <code>Int.MinValue - 1</code> silently wrap around to each other, vs. how both <code>LocalDate.MAX.plusDays(1)</code> and <code>LocalDate.MIN.minusDays(1)</code> throw a <code>DateTimeException</code>.</p>
+              <p>Type class for a discrete value.</p><invalid inheritdoc annotation>
+               <p>Unlike continuous values, discrete values also have predecessors and successors, which are properly defined on <code>x</code>: <code>maxValue &lt; x &lt; minValue</code>. Having predecessors and successors defined this way avoids issues where the natural successor functions of the underlying types behave unexpectedly/inconsistently on the boundaries, e.g., how <code>Int.MaxValue + 1</code> and <code>Int.MinValue - 1</code> silently wrap around to each other, vs. how both <code>LocalDate.MAX.plusDays(1)</code> and <code>LocalDate.MIN.minusDays(1)</code> throw a <code>DateTimeException</code>.</p>
               </invalid>
              </div>
              <h2 class="h200">Type parameters</h2>
@@ -1408,11 +1408,14 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Domains are based on an underlying domain value type and used to define the boundaries of an interval. It describes specific data points in the domain value range as well as the special "<code>Bottom</code>" and "<code>Top</code>" cases which conceptually lie below and above this finite range of data points (logically below and above <code>minValue</code> and <code>maxValue</code> respectively). Domains can be based on domain values that are discrete or continuous. When continuous, a boundary point can either be open or closed, where discrete points must always be closed. This also gives a way to completely describe adjacency. When domain values are discrete, the left and right adjacent domains of a point are the respective predecessors and successors of the domain value -- this also gives us a way to accommodate having a predecessor or successor on a boundary (i.e., <code>maxValue.rightAdjacent == Top</code> and <code>minValue.leftAdjacent == Bottom</code>). When domains are continuous, the left and right adjacent domains are always the same: open if the point is closed and closed if the point is open.</p>
+             <p>A domain is based on an underlying domain value type, and is used to define the boundaries of interval. It describes specific data points in the domain value range as well as the special "<code>Bottom</code>" and "<code>Top</code>" cases which conceptually lie below and above this finite range of data points (logically below and above <code>minValue</code> and <code>maxValue</code> respectively). Domains can be based on domain values that are discrete or continuous. When continuous, a boundary point can either be open or closed, where discrete points must always be closed. This also gives a way to completely describe adjacency.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Domains are based on an underlying domain value type and used to define the boundaries of an interval. It describes specific data points in the domain value range as well as the special "<code>Bottom</code>" and "<code>Top</code>" cases which conceptually lie below and above this finite range of data points (logically below and above <code>minValue</code> and <code>maxValue</code> respectively). Domains can be based on domain values that are discrete or continuous. When continuous, a boundary point can either be open or closed, where discrete points must always be closed. This also gives a way to completely describe adjacency. When domain values are discrete, the left and right adjacent domains of a point are the respective predecessors and successors of the domain value -- this also gives us a way to accommodate having a predecessor or successor on a boundary (i.e., <code>maxValue.rightAdjacent == Top</code> and <code>minValue.leftAdjacent == Bottom</code>). When domains are continuous, the left and right adjacent domains are always the same: open if the point is closed and closed if the point is open.</p>
+              <p>A domain is based on an underlying domain value type, and is used to define the boundaries of interval. It describes specific data points in the domain value range as well as the special "<code>Bottom</code>" and "<code>Top</code>" cases which conceptually lie below and above this finite range of data points (logically below and above <code>minValue</code> and <code>maxValue</code> respectively). Domains can be based on domain values that are discrete or continuous. When continuous, a boundary point can either be open or closed, where discrete points must always be closed. This also gives a way to completely describe adjacency.</p>
+              <p>When domain values are discrete, the left and right adjacent domains of a point are the respective predecessors and successors of the domain value. This also gives us a way to accommodate having a predecessor or successor on a boundary, i.e., <code>maxValue.rightAdjacent == Top</code> and <code>minValue.leftAdjacent == Bottom</code>.</p>
+              <p>When domain values are continuous, the left and right adjacent domains are always the same: open if the point is closed and closed if the point is open.</p>
+              <p>In both discrete and continuous domains, <code>Top</code> and <code>Bottom</code> are considered self-adjacent.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -1555,11 +1558,13 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Template for a type class with operations on a domain (discrete or continuous). A domain is used in defining the boundaries of an interval. Generally, you will not need to use these methods directly -- they are here primarily to support methods on <code>Interval</code> and <code>ValidData</code>.</p>
+             <p>Type class with operations on a domain (discrete or continuous).</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Template for a type class with operations on a domain (discrete or continuous). A domain is used in defining the boundaries of an interval. Generally, you will not need to use these methods directly -- they are here primarily to support methods on <code>Interval</code> and <code>ValidData</code>.</p>
+              <p>Type class with operations on a domain (discrete or continuous).</p>
+              <p>An n-dimensional domain is represented by a tuple of <code>Domain1D[T</code><sup>i</sup><code>]</code> values (where i varies from 1 to n) and each <code>T</code><sup>i</sup> is a (potentially different) domain that is <code>DomainValueLike</code>.</p>
+              <p>A domain is used in defining the boundaries of an interval. Generally, you will not need to use these methods directly -- they are here primarily to support methods on <code>Interval</code> and <code>ValidData</code>.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -1672,11 +1677,13 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Type class for operating on tuples of Domain1D values (having various domain value types) of arbitrary dimension by leveraging Scala 3's generic programming techniques (for more information, see <a href="https://www.scala-lang.org/2021/02/26/tuples-bring-generic-programming-to-scala-3.html">https://www.scala-lang.org/2021/02/26/tuples-bring-generic-programming-to-scala-3.html</a>). These operations are meant to support <code>DomainLike</code> type classes and should not need to be called directly.</p>
+             <p>Type class for operating on domains and related structures of arbitrary dimension.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Type class for operating on tuples of Domain1D values (having various domain value types) of arbitrary dimension by leveraging Scala 3's generic programming techniques (for more information, see <a href="https://www.scala-lang.org/2021/02/26/tuples-bring-generic-programming-to-scala-3.html">https://www.scala-lang.org/2021/02/26/tuples-bring-generic-programming-to-scala-3.html</a>). These operations are meant to support <code>DomainLike</code> type classes and should not need to be called directly.</p>
+              <p>Type class for operating on domains and related structures of arbitrary dimension.</p>
+              <p>An n-dimensional domain is represented by a tuple of <code>Domain1D[T</code><sup>i</sup><code>]</code> values (where i varies from 1 to n) and each <code>T</code><sup>i</sup> is a (potentially different) domain that is <code>DomainValueLike</code>.</p>
+              <p>This makes extensive use of Scala 3's generic programming techniques on tuples (for more information, see <a href="https://www.scala-lang.org/2021/02/26/tuples-bring-generic-programming-to-scala-3.html">https://www.scala-lang.org/2021/02/26/tuples-bring-generic-programming-to-scala-3.html</a>). These operations are meant to support <a href="intervalidus/DomainLike.html">DomainLike</a> type classes and should not need to be called directly.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -1802,7 +1809,7 @@
               <ol>
                <li>finite, with a max and min value (think <code>Double</code> with its <code>MaxValue</code> and <code>MinValue</code> methods)</li>
                <li>totally ordered (this type class extends the <span data-unresolved-link="">Ordering</span> type class, requiring a compare method).</li>
-               <li>mappable to a similarly-ordered double space (potentially with collisions)</li>
+               <li>mappable to a similarly ordered double value (potentially with collisions)</li>
               </ol>
              </div>
              <h2 class="h200">Type parameters</h2>
@@ -1908,11 +1915,11 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Gets the <code>values</code> field from the companion of the sealed trait for this enum to retrieve all enums values.</p>
+             <p>Gets the <code>values</code> field from an enum (i.e., from the companion of the sealed trait) to retrieve all enums values.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Gets the <code>values</code> field from the companion of the sealed trait for this enum to retrieve all enums values.</p>
+              <p>Gets the <code>values</code> field from an enum (i.e., from the companion of the sealed trait) to retrieve all enums values.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -2032,7 +2039,7 @@
                D
               </dt>
               <dd class="body-medium">
-               <p>a domain type for this interval -- boundaries of the interval are defined in terms of a tuple that is <code>DomainLike</code>, i.e., tuples of <code>Domain1D[T]</code> (with a different <code>T</code> in each dimension) where each value has a type class of <code>DomainValueLike[T]</code>.</p>
+               <p>the domain type -- <a href="intervalidus/DomainLike.html">DomainLike</a> non-empty tuples.</p>
               </dd>
              </dl>
              <h2 class="h200">Value parameters</h2>
@@ -2187,13 +2194,13 @@
                end
               </dt>
               <dd class="body-medium">
-               <p>the "supremum", i.e., the right (or above or front, depending on context) boundary of the interval -- must be greater than or equal to the start</p>
+               <p>the "supremum", i.e., the right boundary of the interval -- must be greater than or equal to the start</p>
               </dd>
               <dt class="body-small">
                start
               </dt>
               <dd class="body-medium">
-               <p>the "infimum", i.e., the left (or below or back, depending on context) boundary of the interval</p>
+               <p>the "infimum", i.e., the left boundary of the interval</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -2324,7 +2331,7 @@
                D
               </dt>
               <dd class="body-medium">
-               <p>the type of the domain upon which the interval is based.</p>
+               <p>the domain type -- <a href="intervalidus/DomainLike.html">DomainLike</a> non-empty tuples.</p>
               </dd>
               <dt class="body-small">
                V

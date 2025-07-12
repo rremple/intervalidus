@@ -12,7 +12,7 @@
 </div>
 <div class="cover">
  <div class="doc">
-  <p>Constructs multi-valued data in multidimensional intervals.</p>
+  <p>Constructs multivalued data in multidimensional intervals.</p>
  </div>
  <section id="attributes">
   <h2 class="h500">Attributes</h2>
@@ -128,7 +128,7 @@ node6 -> node0;
                D
               </dt>
               <dd class="body-medium">
-               <p>the type of domain used in the interval assigned to each value.</p>
+               <p>the domain type -- <a href="DomainLike.html">DomainLike</a> non-empty tuples.</p>
               </dd>
               <dt class="body-small">
                V
@@ -143,7 +143,7 @@ node6 -> node0;
                initialData
               </dt>
               <dd class="body-medium">
-               <p>a collection of valid data sets to start with -- intervals must be disjoint.</p>
+               <p>a collection of valid data sets within intervals -- intervals must be disjoint.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -175,11 +175,11 @@ node6 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Constructor for multiple initial single values that are valid in the various intervals.</p>
+             <p>Constructor for multiple (or no) initial values that are valid in the various intervals.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Constructor for multiple initial single values that are valid in the various intervals.</p>
+              <p>Constructor for multiple (or no) initial values that are valid in the various intervals.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -187,7 +187,7 @@ node6 -> node0;
                D
               </dt>
               <dd class="body-medium">
-               <p>the type of domain used in the interval assigned to each value.</p>
+               <p>the domain type -- <a href="DomainLike.html">DomainLike</a> non-empty tuples.</p>
               </dd>
               <dt class="body-small">
                V
@@ -202,7 +202,7 @@ node6 -> node0;
                initialData
               </dt>
               <dd class="body-medium">
-               <p>a collection of valid data to start with.</p>
+               <p>a collection of values valid within intervals -- intervals must be disjoint.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -234,11 +234,11 @@ node6 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Creates a muti-data structure from non-multi structure managing sets of values.</p>
+             <p>Creates a muti-value structure from a non-multi structure managing sets of values.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Creates a muti-data structure from non-multi structure managing sets of values.</p>
+              <p>Creates a muti-value structure from a non-multi structure managing sets of values.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -246,7 +246,7 @@ node6 -> node0;
                D
               </dt>
               <dd class="body-medium">
-               <p>the type of domain used in the interval assigned to each value.</p>
+               <p>the domain type -- <a href="DomainLike.html">DomainLike</a> non-empty tuples.</p>
               </dd>
               <dt class="body-small">
                V
@@ -261,7 +261,7 @@ node6 -> node0;
                that
               </dt>
               <dd class="body-medium">
-               <p>a collection of valid data to start with.</p>
+               <p>dimensional data of value sets valid within intervals -- intervals must be disjoint.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -270,7 +270,7 @@ node6 -> node0;
                Returns
               </dt>
               <dd class="body-medium">
-               <p><a href="DimensionalMultiBase.html">DimensionalMultiBase</a> structure with the same valid values.</p>
+               <p><a href="DimensionalMultiBase.html">DimensionalMultiBase</a> structure with the same valid values as that data structure.</p>
               </dd>
              </dl>
             </div>
@@ -305,7 +305,7 @@ node6 -> node0;
                D
               </dt>
               <dd class="body-medium">
-               <p>the type of domain used in the interval assigned to each value.</p>
+               <p>the domain type -- <a href="DomainLike.html">DomainLike</a> non-empty tuples.</p>
               </dd>
               <dt class="body-small">
                V
@@ -320,7 +320,7 @@ node6 -> node0;
                data
               </dt>
               <dd class="body-medium">
-               <p>valid data to start with.</p>
+               <p>value valid within an interval.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -364,7 +364,7 @@ node6 -> node0;
                D
               </dt>
               <dd class="body-medium">
-               <p>the type of domain used in the interval assigned to each value.</p>
+               <p>the domain type -- <a href="DomainLike.html">DomainLike</a> non-empty tuples.</p>
               </dd>
               <dt class="body-small">
                V
@@ -379,7 +379,7 @@ node6 -> node0;
                value
               </dt>
               <dd class="body-medium">
-               <p>value to start with.</p>
+               <p>value that is valid in the full domain (<code>Interval.unbounded[D]</code>).</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -418,10 +418,45 @@ node6 -> node0;
           <div>
            <div class="originInfo"></div>
            <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Given a collection of valid data, returns data used to populate the <code>dataByStartAsc</code>, <code>dataByValue</code>, and <code>dataInSearchTree</code> internal data structures.</p>
+            </div>
             <div class="cover">
-             <div class="doc"></div>
+             <div class="doc">
+              <p>Given a collection of valid data, returns data used to populate the <code>dataByStartAsc</code>, <code>dataByValue</code>, and <code>dataInSearchTree</code> internal data structures.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               D
+              </dt>
+              <dd class="body-medium">
+               <p>the domain type -- <a href="DomainLike.html">DomainLike</a> non-empty tuples.</p>
+              </dd>
+              <dt class="body-small">
+               V
+              </dt>
+              <dd class="body-medium">
+               <p>the type of the value managed as data.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               initialData
+              </dt>
+              <dd class="body-medium">
+               <p>a collection of values valid within intervals -- intervals must be disjoint.</p>
+              </dd>
+             </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>tuple of <code>TreeMap</code> data, <code>MultiMapSorted</code> data, and <code>BoxTree</code> data used when constructing something that is a <code>DimensionalBase</code> and has overridden <code>dataByStartAsc</code>, <code>dataByValue</code>, and <code>dataInSearchTree</code> in the constructor.</p>
+              </dd>
               <dt class="body-small">
                Inherited from:
               </dt>

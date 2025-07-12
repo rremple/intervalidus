@@ -15,7 +15,9 @@
 </div>
 <div class="cover">
  <div class="doc">
-  <p>Type class for operating on tuples of Domain1D values (having various domain value types) of arbitrary dimension by leveraging Scala 3's generic programming techniques (for more information, see <a href="https://www.scala-lang.org/2021/02/26/tuples-bring-generic-programming-to-scala-3.html">https://www.scala-lang.org/2021/02/26/tuples-bring-generic-programming-to-scala-3.html</a>). These operations are meant to support <code>DomainLike</code> type classes and should not need to be called directly.</p>
+  <p>Type class for operating on domains and related structures of arbitrary dimension.</p>
+  <p>An n-dimensional domain is represented by a tuple of <code>Domain1D[T</code><sup>i</sup><code>]</code> values (where i varies from 1 to n) and each <code>T</code><sup>i</sup> is a (potentially different) domain that is <code>DomainValueLike</code>.</p>
+  <p>This makes extensive use of Scala 3's generic programming techniques on tuples (for more information, see <a href="https://www.scala-lang.org/2021/02/26/tuples-bring-generic-programming-to-scala-3.html">https://www.scala-lang.org/2021/02/26/tuples-bring-generic-programming-to-scala-3.html</a>). These operations are meant to support <a href="DomainLike.html">DomainLike</a> type classes and should not need to be called directly.</p>
  </div>
  <section id="attributes">
   <h2 class="h500">Type parameters</h2>

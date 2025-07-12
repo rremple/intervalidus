@@ -16,7 +16,7 @@
 <div class="cover">
  <div class="doc">
   <p>Mutable, multivalued dimensional data.</p>
-  <p>Data may have multiple values valid in different intervals of arbitrary dimensions, conceptually similar to a multimap. For example, one may want to represent when the data are valid in time and over certain versions, or in two dimensions of time, simultaneously. When queried, values are returned as a set. The standard mutation methods operate on these sets of values. There are also add and remove methods allow mutation of individual values across intervals, and a merge method for combining two structures (conceptually similar to zip, but operating on individual values, and more appropriate for these multiple values structures).</p>
+  <p>Data may have multiple values valid in different intervals of arbitrary dimensions, conceptually similar to a multimap. For example, one may want to represent when the data are valid in time and over certain versions, or in two dimensions of time, simultaneously. When queried, values are returned as a set. The standard mutation methods operate on these sets of values. There are also add and remove methods allow mutation of individual values across intervals, and a concat method for combining two structures (a merge where overlaps are concatenated).</p>
  </div>
  <section id="attributes">
   <h2 class="h500">Type parameters</h2>
@@ -25,7 +25,7 @@
     D
    </dt>
    <dd class="body-medium">
-    <p>the domain type for intervals, must be <a href="../DomainLike.html">DomainLike</a>.</p>
+    <p>the domain type -- <a href="../DomainLike.html">DomainLike</a> non-empty tuples.</p>
    </dd>
    <dt class="body-small">
     V
@@ -209,6 +209,43 @@ node8 -> node4;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="concat-fffff4a3">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DataMulti.html#concat-fffff4a3" t="n" class="documentableName ">concat</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DataMulti.html" t="t">DataMulti</a>[<span t="t">V</span>, <span t="t">D</span>]): <span data-unresolved-link="" t="t">Unit</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Concatenates all valid data in that structure into this one.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Concatenates all valid data in that structure into this one.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               that
+              </dt>
+              <dd class="body-medium">
+               <p>the structure which is going to be concatenated.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="copy-0" data-f-keywords="override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -279,7 +316,7 @@ node8 -> node4;
                headIndex
               </dt>
               <dd class="body-medium">
-               <p>the first dimension domain element</p>
+               <p>the head dimension domain element</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -299,43 +336,6 @@ node8 -> node4;
                </div>
               </dd>
              </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="merge-fffff4a3">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DataMulti.html#merge-fffff4a3" t="n" class="documentableName ">merge</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="DataMulti.html" t="t">DataMulti</a>[<span t="t">V</span>, <span t="t">D</span>]): <span data-unresolved-link="" t="t">Unit</span>
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Merges all valid data in that structure into this one.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Merges all valid data in that structure into this one.</p>
-             </div>
-             <h2 class="h200">Value parameters</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               that
-              </dt>
-              <dd class="body-medium">
-               <p>the structure which is going to be merged.</p>
-              </dd>
-             </dl>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small"></dl>
             </div>
            </div>
           </div>
@@ -555,7 +555,7 @@ node8 -> node4;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="DataMulti.html#zipAll-fffff3de" t="n" class="documentableName ">zipAll</a>[<span t="k"></span><span data-unresolved-link="" t="t">B</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="../DimensionalBase.html" t="t">DimensionalBase</a>[<span t="t">B</span>, <span t="t">D</span>], <span t="k"></span><span data-unresolved-link="" t="n">thisElem</span>: <span data-unresolved-link="" t="t">Set</span>[<span t="t">V</span>], <span t="k"></span><span data-unresolved-link="" t="n">thatElem</span>: <span t="t">B</span>): <a href="Data.html" t="t">Data</a>[(<span data-unresolved-link="" t="t">Set</span>[<span t="t">V</span>], <span data-unresolved-link="" t="t">B</span>), <span t="t">D</span>]
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="DataMulti.html#zipAll-fffff3de" t="n" class="documentableName ">zipAll</a>[<span t="k"></span><span data-unresolved-link="" t="t">B</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="../DimensionalBase.html" t="t">DimensionalBase</a>[<span t="t">B</span>, <span t="t">D</span>], <span t="k"></span><span data-unresolved-link="" t="n">thisDefault</span>: <span data-unresolved-link="" t="t">Set</span>[<span t="t">V</span>], <span t="k"></span><span data-unresolved-link="" t="n">thatDefault</span>: <span t="t">B</span>): <a href="Data.html" t="t">Data</a>[(<span data-unresolved-link="" t="t">Set</span>[<span t="t">V</span>], <span data-unresolved-link="" t="t">B</span>), <span t="t">D</span>]
            </div>
           </div>
          </div>
@@ -565,11 +565,11 @@ node8 -> node4;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns a new structure formed from this structure and another structure by combining the corresponding elements (all intersections) in a pair. If one of the two collections has a valid value in an interval where the other one doesn't, placeholder elements are used in the result. The other structure can have a different value type but must have the same interval type.</p>
+             <p>Returns a new structure formed from this structure and another structure by combining the corresponding elements (all intervals in both this and that) in a pair. If one of the two collections has a valid value in an interval where the other one doesn't, default elements are used in the result. The other structure can have a different value type but must have the same interval type.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns a new structure formed from this structure and another structure by combining the corresponding elements (all intersections) in a pair. If one of the two collections has a valid value in an interval where the other one doesn't, placeholder elements are used in the result. The other structure can have a different value type but must have the same interval type.</p>
+              <p>Returns a new structure formed from this structure and another structure by combining the corresponding elements (all intervals in both this and that) in a pair. If one of the two collections has a valid value in an interval where the other one doesn't, default elements are used in the result. The other structure can have a different value type but must have the same interval type.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -589,16 +589,16 @@ node8 -> node4;
                <p>the structure which is going to be zipped.</p>
               </dd>
               <dt class="body-small">
-               thatElem
+               thatDefault
               </dt>
               <dd class="body-medium">
-               <p>placeholder element used in intervals where data are valid in this but not that.</p>
+               <p>default element used in intervals where data are valid in this but not that.</p>
               </dd>
               <dt class="body-small">
-               thisElem
+               thisDefault
               </dt>
               <dd class="body-medium">
-               <p>placeholder element used in intervals where data are valid in that but not this.</p>
+               <p>default element used in intervals where data are valid in that but not this.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -1358,11 +1358,11 @@ node8 -> node4;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Get all valid data in interval start order</p>
+             <p>Returns all valid data in interval start order</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Get all valid data in interval start order</p>
+              <p>Returns all valid data in interval start order</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -1543,11 +1543,11 @@ node8 -> node4;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns Some value if a single, unbounded valid value, otherwise returns None.</p>
+             <p>Returns Some value if a single, unbounded valid value exists, otherwise returns None.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns Some value if a single, unbounded valid value, otherwise returns None.</p>
+              <p>Returns Some value if a single, unbounded valid value exists, otherwise returns None.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -1910,7 +1910,7 @@ node8 -> node4;
             <div class="cover">
              <div class="doc">
               <p>Unlike in 1D, there is no unique compression in higher dimensions. For example, {[1..5], [1..2]} + {[1..2], [3..4]} could also be represented physically as {[1..2], [1..4]} + {[3..5], [1..2]}.</p>
-              <p>This method decompresses data so there is a unique arrangement of "atomic" intervals. In the above example, that would be the following "atomic" intervals: {[1..2], [1..2]} + {[3..5], [1..2]} + {[1..2], [3..4]}. Then it recompresses the data, which results in a unique physical representation. It may be useful when comparing two structures to see if they are logically equivalent even if, physically, they differ in how they are compressed.</p>
+              <p>First, this method decompresses data to use a unique arrangement of "atomic" intervals. In the above example, that would be the following "atomic" intervals: {[1..2], [1..2]} + {[3..5], [1..2]} + {[1..2], [3..4]}. Next, it recompresses the data, which results in a unique physical representation. It may be useful when comparing two structures to see if they are logically equivalent even if, physically, they differ in how they are compressed.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -2115,11 +2115,11 @@ node8 -> node4;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Set new valid data. Any data previously valid in this interval are replace by this data.</p>
+             <p>Set new valid data. Replaces any data previously valid in this interval.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Set new valid data. Any data previously valid in this interval are replace by this data.</p>
+              <p>Set new valid data. Replaces any data previously valid in this interval.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">

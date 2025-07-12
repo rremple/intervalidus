@@ -21,7 +21,7 @@
     D
    </dt>
    <dd class="body-medium">
-    <p>the domain type for intervals, must be <a href="../DomainLike.html">DomainLike</a>.</p>
+    <p>the domain type -- <a href="../DomainLike.html">DomainLike</a> non-empty tuples.</p>
    </dd>
    <dt class="body-small">
     V
@@ -478,7 +478,7 @@ node8 -> node0;
             <div class="cover">
              <div class="doc">
               <p>Unlike in 1D, there is no unique compression in higher dimensions. For example, {[1..5], [1..2]} + {[1..2], [3..4]} could also be represented physically as {[1..2], [1..4]} + {[3..5], [1..2]}.</p>
-              <p>This method decompresses data so there is a unique arrangement of "atomic" intervals. In the above example, that would be the following "atomic" intervals: {[1..2], [1..2]} + {[3..5], [1..2]} + {[1..2], [3..4]}. Then it recompresses the data, which results in a unique physical representation. It may be useful when comparing two structures to see if they are logically equivalent even if, physically, they differ in how they are compressed.</p>
+              <p>First, this method decompresses data to use a unique arrangement of "atomic" intervals. In the above example, that would be the following "atomic" intervals: {[1..2], [1..2]} + {[3..5], [1..2]} + {[1..2], [3..4]}. Next, it recompresses the data, which results in a unique physical representation. It may be useful when comparing two structures to see if they are logically equivalent even if, physically, they differ in how they are compressed.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -625,11 +625,11 @@ node8 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Set new valid data. Any data previously valid in this interval are replace by this data.</p>
+             <p>Set new valid data. Replaces any data previously valid in this interval.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Set new valid data. Any data previously valid in this interval are replace by this data.</p>
+              <p>Set new valid data. Replaces any data previously valid in this interval.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -1245,11 +1245,11 @@ node8 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Get all valid data in interval start order</p>
+             <p>Returns all valid data in interval start order</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Get all valid data in interval start order</p>
+              <p>Returns all valid data in interval start order</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -1430,11 +1430,11 @@ node8 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns Some value if a single, unbounded valid value, otherwise returns None.</p>
+             <p>Returns Some value if a single, unbounded valid value exists, otherwise returns None.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns Some value if a single, unbounded valid value, otherwise returns None.</p>
+              <p>Returns Some value if a single, unbounded valid value exists, otherwise returns None.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -1825,7 +1825,7 @@ node8 -> node0;
                headIndex
               </dt>
               <dd class="body-medium">
-               <p>the first dimension domain element</p>
+               <p>the head dimension domain element</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -1982,7 +1982,7 @@ node8 -> node0;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MutableBase.html#zipAll-5bb" t="n" class="documentableName ">zipAll</a>[<span t="k"></span><span data-unresolved-link="" t="t">B</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="../DimensionalBase.html" t="t">DimensionalBase</a>[<span t="t">B</span>, <span t="t">D</span>], <span t="k"></span><span data-unresolved-link="" t="n">thisElem</span>: <span t="t">V</span>, <span t="k"></span><span data-unresolved-link="" t="n">thatElem</span>: <span t="t">B</span>): <a href="../DimensionalBase.html" t="t">DimensionalBase</a>[(<span t="t">V</span>, <span data-unresolved-link="" t="t">B</span>), <span t="t">D</span>]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MutableBase.html#zipAll-5bb" t="n" class="documentableName ">zipAll</a>[<span t="k"></span><span data-unresolved-link="" t="t">B</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <a href="../DimensionalBase.html" t="t">DimensionalBase</a>[<span t="t">B</span>, <span t="t">D</span>], <span t="k"></span><span data-unresolved-link="" t="n">thisDefault</span>: <span t="t">V</span>, <span t="k"></span><span data-unresolved-link="" t="n">thatDefault</span>: <span t="t">B</span>): <a href="../DimensionalBase.html" t="t">DimensionalBase</a>[(<span t="t">V</span>, <span data-unresolved-link="" t="t">B</span>), <span t="t">D</span>]
            </div>
           </div>
          </div>
@@ -1992,11 +1992,11 @@ node8 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Returns a new structure formed from this structure and another structure by combining the corresponding elements (all intersections) in a pair. If one of the two collections has a valid value in an interval where the other one doesn't, placeholder elements are used in the result. The other structure can have a different value type but must have the same interval type.</p>
+             <p>Returns a new structure formed from this structure and another structure by combining the corresponding elements (all intervals in both this and that) in a pair. If one of the two collections has a valid value in an interval where the other one doesn't, default elements are used in the result. The other structure can have a different value type but must have the same interval type.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Returns a new structure formed from this structure and another structure by combining the corresponding elements (all intersections) in a pair. If one of the two collections has a valid value in an interval where the other one doesn't, placeholder elements are used in the result. The other structure can have a different value type but must have the same interval type.</p>
+              <p>Returns a new structure formed from this structure and another structure by combining the corresponding elements (all intervals in both this and that) in a pair. If one of the two collections has a valid value in an interval where the other one doesn't, default elements are used in the result. The other structure can have a different value type but must have the same interval type.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -2016,16 +2016,16 @@ node8 -> node0;
                <p>the structure which is going to be zipped.</p>
               </dd>
               <dt class="body-small">
-               thatElem
+               thatDefault
               </dt>
               <dd class="body-medium">
-               <p>placeholder element used in intervals where data are valid in this but not that.</p>
+               <p>default element used in intervals where data are valid in this but not that.</p>
               </dd>
               <dt class="body-small">
-               thisElem
+               thisDefault
               </dt>
               <dd class="body-medium">
-               <p>placeholder element used in intervals where data are valid in that but not this.</p>
+               <p>default element used in intervals where data are valid in that but not this.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>

@@ -188,7 +188,7 @@ node5 -> node1;
                D
               </dt>
               <dd class="body-medium">
-               <p>the type of domain assigned to each value.</p>
+               <p>the domain type -- <a href="../DomainLike.html">DomainLike</a> non-empty tuples.</p>
               </dd>
               <dt class="body-small">
                V
@@ -203,7 +203,7 @@ node5 -> node1;
                initialData
               </dt>
               <dd class="body-medium">
-               <p>a collection of valid data to start with -- intervals must be disjoint.</p>
+               <p>a collection of values valid within intervals -- intervals must be disjoint.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -255,7 +255,7 @@ node5 -> node1;
                D
               </dt>
               <dd class="body-medium">
-               <p>the type of domain assigned to each value.</p>
+               <p>the domain type -- <a href="../DomainLike.html">DomainLike</a> non-empty tuples.</p>
               </dd>
               <dt class="body-small">
                V
@@ -270,7 +270,7 @@ node5 -> node1;
                data
               </dt>
               <dd class="body-medium">
-               <p>value in interval to start with.</p>
+               <p>value valid within an interval.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -310,11 +310,11 @@ node5 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Shorthand constructor for a single initial value that is valid in all full interval domains.</p>
+             <p>Shorthand constructor for a single initial value that is valid in the full interval domain.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Shorthand constructor for a single initial value that is valid in all full interval domains.</p>
+              <p>Shorthand constructor for a single initial value that is valid in the full interval domain.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -322,7 +322,7 @@ node5 -> node1;
                D
               </dt>
               <dd class="body-medium">
-               <p>the type of domain assigned to each value.</p>
+               <p>the domain type -- <a href="../DomainLike.html">DomainLike</a> non-empty tuples.</p>
               </dd>
               <dt class="body-small">
                V
@@ -337,7 +337,7 @@ node5 -> node1;
                value
               </dt>
               <dd class="body-medium">
-               <p>value to start with.</p>
+               <p>value that is valid in the full domain (<code>Interval.unbounded[D]</code>).</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -384,10 +384,45 @@ node5 -> node1;
           <div>
            <div class="originInfo"></div>
            <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Given a collection of valid data, returns data used to populate the <code>dataByStartAsc</code>, <code>dataByValue</code>, and <code>dataInSearchTree</code> internal data structures.</p>
+            </div>
             <div class="cover">
-             <div class="doc"></div>
+             <div class="doc">
+              <p>Given a collection of valid data, returns data used to populate the <code>dataByStartAsc</code>, <code>dataByValue</code>, and <code>dataInSearchTree</code> internal data structures.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               D
+              </dt>
+              <dd class="body-medium">
+               <p>the domain type -- <a href="../DomainLike.html">DomainLike</a> non-empty tuples.</p>
+              </dd>
+              <dt class="body-small">
+               V
+              </dt>
+              <dd class="body-medium">
+               <p>the type of the value managed as data.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               initialData
+              </dt>
+              <dd class="body-medium">
+               <p>a collection of values valid within intervals -- intervals must be disjoint.</p>
+              </dd>
+             </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>tuple of <code>TreeMap</code> data, <code>MultiMapSorted</code> data, and <code>BoxTree</code> data used when constructing something that is a <code>DimensionalBase</code> and has overridden <code>dataByStartAsc</code>, <code>dataByValue</code>, and <code>dataInSearchTree</code> in the constructor.</p>
+              </dd>
               <dt class="body-small">
                Inherited from:
               </dt>

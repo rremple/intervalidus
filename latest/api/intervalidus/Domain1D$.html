@@ -195,7 +195,7 @@ node3 -> node2;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Domain1D$.html#open-fffff28f" t="n" class="documentableName ">open</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span> : <a href="DomainValueLike.html" t="t">DomainValueLike</a>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">t</span>: <span t="t">T</span>): <a href="Domain1D.html" t="t">Domain1D</a>[<span data-unresolved-link="" t="t">T</span>]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Domain1D$.html#open-fffff28f" t="n" class="documentableName ">open</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">t</span>: <span t="t">T</span>)(<span t="k">using </span><span t="k"></span><span data-unresolved-link="" t="n">domainValue</span>: <a href="DomainValueLike.html" t="t">DomainValueLike</a>[<span t="t">T</span>]): <a href="Domain1D.html" t="t">Domain1D</a>[<span data-unresolved-link="" t="t">T</span>]
            </div>
           </div>
          </div>
@@ -329,11 +329,11 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Other conversions take domain values <code>T =&gt; Domain1D[T]</code> and <code>Domain1D[T] =&gt; Domain.In1D[T]</code> (which is <code>DomainLike</code>). But these conversions don't seem to stack, i.e., they aren't applied when a domain value of <code>T</code> is available in a context requiring something that is <code>DomainLike</code>. So this one goes strait from a domain value <code>T</code> directly to a domain, i.e., <code>T =&gt; Domain.In1D[T]</code></p>
+             <p>Other conversions take domain values <code>T =&gt; Domain1D[T]</code> and <code>Domain1D[T] =&gt; Domain.In1D[T]</code> (which is <a href="DomainLike.html">DomainLike</a>). But these conversions don't seem to stack. I.e., they aren't applied when a domain value of <code>T</code> is available in a context requiring something that is <a href="DomainLike.html">DomainLike</a>. So this converts strait from a domain value <code>T</code> directly to a domain, i.e., <code>T =&gt; Domain.In1D[T]</code></p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Other conversions take domain values <code>T =&gt; Domain1D[T]</code> and <code>Domain1D[T] =&gt; Domain.In1D[T]</code> (which is <code>DomainLike</code>). But these conversions don't seem to stack, i.e., they aren't applied when a domain value of <code>T</code> is available in a context requiring something that is <code>DomainLike</code>. So this one goes strait from a domain value <code>T</code> directly to a domain, i.e., <code>T =&gt; Domain.In1D[T]</code></p>
+              <p>Other conversions take domain values <code>T =&gt; Domain1D[T]</code> and <code>Domain1D[T] =&gt; Domain.In1D[T]</code> (which is <a href="DomainLike.html">DomainLike</a>). But these conversions don't seem to stack. I.e., they aren't applied when a domain value of <code>T</code> is available in a context requiring something that is <a href="DomainLike.html">DomainLike</a>. So this converts strait from a domain value <code>T</code> directly to a domain, i.e., <code>T =&gt; Domain.In1D[T]</code></p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -428,11 +428,11 @@ node3 -> node2;
             <div class="originInfo"></div>
             <div class="memberDocumentation">
              <div class="documentableBrief doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+              <p>Is this start after or equal to that start, using default ordering to compare starts?</p>
              </div>
              <div class="cover">
               <div class="doc">
-               <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+               <p>Is this start after or equal to that start, using default ordering to compare starts?</p>
               </div>
               <h2 class="h200">Attributes</h2>
               <dl class="attributes attributes-small"></dl>
@@ -456,11 +456,11 @@ node3 -> node2;
             <div class="originInfo"></div>
             <div class="memberDocumentation">
              <div class="documentableBrief doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+              <p>Is this start after that start, using default ordering to compare starts?</p>
              </div>
              <div class="cover">
               <div class="doc">
-               <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+               <p>Is this start after that start, using default ordering to compare starts?</p>
               </div>
               <h2 class="h200">Attributes</h2>
               <dl class="attributes attributes-small"></dl>
@@ -484,11 +484,11 @@ node3 -> node2;
             <div class="originInfo"></div>
             <div class="memberDocumentation">
              <div class="documentableBrief doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+              <p>Is this end before that end, using non-default ordering to compare ends?</p>
              </div>
              <div class="cover">
               <div class="doc">
-               <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+               <p>Is this end before that end, using non-default ordering to compare ends?</p>
               </div>
               <h2 class="h200">Attributes</h2>
               <dl class="attributes attributes-small"></dl>
@@ -512,11 +512,11 @@ node3 -> node2;
             <div class="originInfo"></div>
             <div class="memberDocumentation">
              <div class="documentableBrief doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+              <p>Is this end before or equal to that end, using non-default ordering to compare ends?</p>
              </div>
              <div class="cover">
               <div class="doc">
-               <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+               <p>Is this end before or equal to that end, using non-default ordering to compare ends?</p>
               </div>
               <h2 class="h200">Attributes</h2>
               <dl class="attributes attributes-small"></dl>
@@ -540,11 +540,11 @@ node3 -> node2;
             <div class="originInfo"></div>
             <div class="memberDocumentation">
              <div class="documentableBrief doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+              <p>If this is an open points, convert it to a closed points at the same value. Unbounded and already closed points are left unchanged.</p>
              </div>
              <div class="cover">
               <div class="doc">
-               <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+               <p>If this is an open points, convert it to a closed points at the same value. Unbounded and already closed points are left unchanged.</p>
               </div>
               <h2 class="h200">Attributes</h2>
               <dl class="attributes attributes-small"></dl>
@@ -568,39 +568,11 @@ node3 -> node2;
             <div class="originInfo"></div>
             <div class="memberDocumentation">
              <div class="documentableBrief doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+              <p>Tests if this domain is adjacent to that domain on the left or right.</p>
              </div>
              <div class="cover">
               <div class="doc">
-               <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
-              </div>
-              <h2 class="h200">Attributes</h2>
-              <dl class="attributes attributes-small"></dl>
-             </div>
-            </div>
-           </div>
-          </div>
-         </div>
-         <div class="documentableElement" id="isClosedOrUnbounded-fffff3f6">
-          <div class="documentableElement-expander">
-           <button class="icon-button ar show-content"></button>
-           <div class="header monospace mono-medium">
-            <div class="signature">
-             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Domain1D$.html#isClosedOrUnbounded-fffff3f6" t="n" class="documentableName ">isClosedOrUnbounded</a>: <span data-unresolved-link="" t="t">Boolean</span>
-            </div>
-           </div>
-          </div>
-          <div class="docs">
-           <span class="modifiers"></span>
-           <div>
-            <div class="originInfo"></div>
-            <div class="memberDocumentation">
-             <div class="documentableBrief doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
-             </div>
-             <div class="cover">
-              <div class="doc">
-               <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+               <p>Tests if this domain is adjacent to that domain on the left or right.</p>
               </div>
               <h2 class="h200">Attributes</h2>
               <dl class="attributes attributes-small"></dl>
@@ -624,11 +596,11 @@ node3 -> node2;
             <div class="originInfo"></div>
             <div class="memberDocumentation">
              <div class="documentableBrief doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+              <p>Tests if this domain is adjacent to that domain on the left.</p>
              </div>
              <div class="cover">
               <div class="doc">
-               <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+               <p>Tests if this domain is adjacent to that domain on the left.</p>
               </div>
               <h2 class="h200">Attributes</h2>
               <dl class="attributes attributes-small"></dl>
@@ -652,11 +624,11 @@ node3 -> node2;
             <div class="originInfo"></div>
             <div class="memberDocumentation">
              <div class="documentableBrief doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+              <p>Tests if this domain is adjacent to that domain on the right.</p>
              </div>
              <div class="cover">
               <div class="doc">
-               <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+               <p>Tests if this domain is adjacent to that domain on the right.</p>
               </div>
               <h2 class="h200">Attributes</h2>
               <dl class="attributes attributes-small"></dl>
@@ -680,14 +652,21 @@ node3 -> node2;
             <div class="originInfo"></div>
             <div class="memberDocumentation">
              <div class="documentableBrief doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+              <p>Domain adjacent to this domain from the "left", where <code>Bottom</code> and <code>Top</code> are considered self-adjacent. For discrete domains, this is the predecessor, where the left adjacent of <code>minValue</code> is <code>Bottom</code> -- see <a href="https://en.wikipedia.org/wiki/Primitive_recursive_function#Predecessor">https://en.wikipedia.org/wiki/Primitive_recursive_function#Predecessor</a>. For continuous domains, this maps open points to closed ones, and closed points to open ones (right and left complements are the same).</p>
              </div>
              <div class="cover">
               <div class="doc">
-               <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+               <p>Domain adjacent to this domain from the "left", where <code>Bottom</code> and <code>Top</code> are considered self-adjacent. For discrete domains, this is the predecessor, where the left adjacent of <code>minValue</code> is <code>Bottom</code> -- see <a href="https://en.wikipedia.org/wiki/Primitive_recursive_function#Predecessor">https://en.wikipedia.org/wiki/Primitive_recursive_function#Predecessor</a>. For continuous domains, this maps open points to closed ones, and closed points to open ones (right and left complements are the same).</p>
               </div>
               <h2 class="h200">Attributes</h2>
-              <dl class="attributes attributes-small"></dl>
+              <dl class="attributes attributes-small">
+               <dt class="body-small">
+                Returns
+               </dt>
+               <dd class="body-medium">
+                <p>left complement of this</p>
+               </dd>
+              </dl>
              </div>
             </div>
            </div>
@@ -708,11 +687,11 @@ node3 -> node2;
             <div class="originInfo"></div>
             <div class="memberDocumentation">
              <div class="documentableBrief doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+              <p>Find the max domain of two ends, treating open &lt; closed at the same point by using the non-default ordering.</p>
              </div>
              <div class="cover">
               <div class="doc">
-               <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+               <p>Find the max domain of two ends, treating open &lt; closed at the same point by using the non-default ordering.</p>
               </div>
               <h2 class="h200">Attributes</h2>
               <dl class="attributes attributes-small"></dl>
@@ -736,11 +715,11 @@ node3 -> node2;
             <div class="originInfo"></div>
             <div class="memberDocumentation">
              <div class="documentableBrief doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+              <p>Find the max domain of two starts, treating open &gt; closed at the same point by using the default ordering.</p>
              </div>
              <div class="cover">
               <div class="doc">
-               <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+               <p>Find the max domain of two starts, treating open &gt; closed at the same point by using the default ordering.</p>
               </div>
               <h2 class="h200">Attributes</h2>
               <dl class="attributes attributes-small"></dl>
@@ -764,11 +743,11 @@ node3 -> node2;
             <div class="originInfo"></div>
             <div class="memberDocumentation">
              <div class="documentableBrief doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+              <p>Find the min domain of two ends, treating open &lt; closed at the same point by using the non-default ordering.</p>
              </div>
              <div class="cover">
               <div class="doc">
-               <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+               <p>Find the min domain of two ends, treating open &lt; closed at the same point by using the non-default ordering.</p>
               </div>
               <h2 class="h200">Attributes</h2>
               <dl class="attributes attributes-small"></dl>
@@ -792,11 +771,11 @@ node3 -> node2;
             <div class="originInfo"></div>
             <div class="memberDocumentation">
              <div class="documentableBrief doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+              <p>Find the min domain of two starts, treating open &gt; closed at the same point by using the default ordering.</p>
              </div>
              <div class="cover">
               <div class="doc">
-               <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+               <p>Find the min domain of two starts, treating open &gt; closed at the same point by using the default ordering.</p>
               </div>
               <h2 class="h200">Attributes</h2>
               <dl class="attributes attributes-small"></dl>
@@ -820,11 +799,11 @@ node3 -> node2;
             <div class="originInfo"></div>
             <div class="memberDocumentation">
              <div class="documentableBrief doc">
-              <p>A special totally-ordered hash of a domain used for mapping intervals to box search trees in double space. If <code>x1 &lt; x2</code> (i.e., there are some number of <code>successorOf</code> functions that can be applied to <code>x1</code> to reach <code>x2</code>), then <code>orderedHashOf(x1) ≤ orderedHashOf(x2)</code>.</p>
+              <p>A special totally ordered hash of this domain used for mapping intervals to box search trees in double space. If <code>x1 &lt; x2</code> (i.e., there are some number of <code>successorOf</code> functions that can be applied to <code>x1</code> to reach <code>x2</code>), then <code>orderedHashOf(x1) ≤ orderedHashOf(x2)</code>.</p>
              </div>
              <div class="cover">
               <div class="doc">
-               <p>A special totally-ordered hash of a domain used for mapping intervals to box search trees in double space. If <code>x1 &lt; x2</code> (i.e., there are some number of <code>successorOf</code> functions that can be applied to <code>x1</code> to reach <code>x2</code>), then <code>orderedHashOf(x1) ≤ orderedHashOf(x2)</code>.</p>
+               <p>A special totally ordered hash of this domain used for mapping intervals to box search trees in double space. If <code>x1 &lt; x2</code> (i.e., there are some number of <code>successorOf</code> functions that can be applied to <code>x1</code> to reach <code>x2</code>), then <code>orderedHashOf(x1) ≤ orderedHashOf(x2)</code>.</p>
               </div>
               <h2 class="h200">Attributes</h2>
               <dl class="attributes attributes-small">
@@ -859,14 +838,25 @@ node3 -> node2;
             <div class="originInfo"></div>
             <div class="memberDocumentation">
              <div class="documentableBrief doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+              <p>Every possible point bounded by this domain and the end domain.</p>
              </div>
              <div class="cover">
               <div class="doc">
-               <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+               <p>Every possible point bounded by this domain and the end domain.</p>
               </div>
               <h2 class="h200">Attributes</h2>
-              <dl class="attributes attributes-small"></dl>
+              <dl class="attributes attributes-small">
+               <dt class="body-small">
+                Note
+               </dt>
+               <dd class="body-medium">
+                <div>
+                 <div>
+                  <p>if this domain value is continuous, no points are returned.</p>
+                 </div>
+                </div>
+               </dd>
+              </dl>
              </div>
             </div>
            </div>
@@ -887,42 +877,21 @@ node3 -> node2;
             <div class="originInfo"></div>
             <div class="memberDocumentation">
              <div class="documentableBrief doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+              <p>Domain adjacent to this domain from the "right", where <code>Bottom</code> and <code>Top</code> are considered self-adjacent. For discrete domains, this is the successor, where the right adjacent of <code>maxValue</code> is <code>Top</code> -- see <a href="https://en.wikipedia.org/wiki/Successor_function">https://en.wikipedia.org/wiki/Successor_function</a>. For continuous domains, this maps open points to closed ones, and closed points to open ones (right and left complements are the same).</p>
              </div>
              <div class="cover">
               <div class="doc">
-               <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
+               <p>Domain adjacent to this domain from the "right", where <code>Bottom</code> and <code>Top</code> are considered self-adjacent. For discrete domains, this is the successor, where the right adjacent of <code>maxValue</code> is <code>Top</code> -- see <a href="https://en.wikipedia.org/wiki/Successor_function">https://en.wikipedia.org/wiki/Successor_function</a>. For continuous domains, this maps open points to closed ones, and closed points to open ones (right and left complements are the same).</p>
               </div>
               <h2 class="h200">Attributes</h2>
-              <dl class="attributes attributes-small"></dl>
-             </div>
-            </div>
-           </div>
-          </div>
-         </div>
-         <div class="documentableElement" id="validIntervalStartWithEnd-f0c">
-          <div class="documentableElement-expander">
-           <button class="icon-button ar show-content"></button>
-           <div class="header monospace mono-medium">
-            <div class="signature">
-             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Domain1D$.html#validIntervalStartWithEnd-f0c" t="n" class="documentableName ">validIntervalStartWithEnd</a>[<span t="k"></span><span data-unresolved-link="" t="t">D</span> : <a href="DomainValueLike.html" t="t">DomainValueLike</a>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">end</span>: <a href="Domain1D.html" t="t">Domain1D</a>[<span t="t">T</span>]): <span data-unresolved-link="" t="t">Boolean</span>
-            </div>
-           </div>
-          </div>
-          <div class="docs">
-           <span class="modifiers"></span>
-           <div>
-            <div class="originInfo"></div>
-            <div class="memberDocumentation">
-             <div class="documentableBrief doc">
-              <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
-             </div>
-             <div class="cover">
-              <div class="doc">
-               <p>Methods on Domain1D supportingType class instance for one-dimensional domains.</p>
-              </div>
-              <h2 class="h200">Attributes</h2>
-              <dl class="attributes attributes-small"></dl>
+              <dl class="attributes attributes-small">
+               <dt class="body-small">
+                Returns
+               </dt>
+               <dd class="body-medium">
+                <p>right complement of this</p>
+               </dd>
+              </dl>
              </div>
             </div>
            </div>
