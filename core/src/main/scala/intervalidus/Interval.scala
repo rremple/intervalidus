@@ -19,16 +19,14 @@ import scala.math.Ordering.Implicits.infixOrderingOps
   *   the "supremum", i.e., the right (and/or above and/or front, depending on dimensions and context) boundary of the
   *   interval -- must be greater than or equal to the start in all dimensions
   * @tparam D
-  *   a domain type for this interval -- boundaries of the interval are defined in terms of a tuple that is
-  *   `DomainLike`, i.e., tuples of `Domain1D[T]` (with a different `T` in each dimension) where each value has a type
-  *   class of `DomainValueLike[T]`.
+  *   the domain type -- [[DomainLike]] non-empty tuples.
   */
 case class Interval[D <: NonEmptyTuple](
   start: D,
   end: D
 )(using domainLike: DomainLike[D]):
   /**
-    * Either start is before end (by both start and end ordering), or, when equal, both bounds must be closed (i.e.,
+    * Either the start is before end (by both start and end ordering), or, when equal, both bounds must be closed (i.e.,
     * interval at a single point).
     */
   require(domainLike.validIntervalBounds(start, end), s"Interval $this invalid")
@@ -109,8 +107,8 @@ case class Interval[D <: NonEmptyTuple](
     Interval(this.start minStart that.start, this.end maxEnd that.end)
 
   /**
-    * If there are intervals after each interval component (i.e., none of them end at Top), returns the interval after
-    * this one in all dimensions, otherwise returns None.
+    * Returns the interval to the "right" of this one in all dimensions if one can be constructed (i.e., no dimensions
+    * of this interval end at the `Top`), otherwise returns None.
     */
   def after: Option[Interval[D]] =
     val endComplement = end.rightAdjacent
@@ -118,8 +116,8 @@ case class Interval[D <: NonEmptyTuple](
     else Some(Interval.intervalFrom(endComplement))
 
   /**
-    * If there are intervals before each interval component (i.e., none of them start at Bottom), returns the interval
-    * before this one in all dimensions, otherwise returns None.
+    * Returns the interval to the "left" of this one in all dimensions if one can be constructed (i.e., no dimensions of
+    * this interval start at the `Bottom`), otherwise returns None.
     */
   def before: Option[Interval[D]] =
     val startComplement = start.leftAdjacent
@@ -220,7 +218,7 @@ case class Interval[D <: NonEmptyTuple](
     domainLike.intervalSeparateUsing(this, that)
 
   /**
-    * Returns gap between this and that interval, if one exists.
+    * Returns the gap between this and that interval if one exists.
     *
     * @param that
     *   the interval to evaluate.
@@ -231,7 +229,7 @@ case class Interval[D <: NonEmptyTuple](
     domainLike.intervalGapWith(this, that)
 
   /**
-    * Cross this interval with that interval to arrive at a new higher-dimensional interval.
+    * Cross this interval with that one-dimensional interval to arrive at a new higher-dimensional interval.
     * @param that
     *   a one-dimensional interval to be appended
     * @tparam X
@@ -276,7 +274,7 @@ case class Interval[D <: NonEmptyTuple](
     domainLike.intervalToCodeLikeString(this, withParens = true)
 
   /**
-    * Prepend that interval to this interval to arrive at a new higher-dimensional interval.
+    * Prepend that one-dimensional interval to this interval to arrive at a new higher-dimensional interval.
     *
     * @param that
     *   a one-dimensional interval to be prepended
@@ -291,7 +289,7 @@ case class Interval[D <: NonEmptyTuple](
     Interval(start withHead that.start, end withHead that.end)
 
   /**
-    * Extract a one-dimensional interval based on the one-dimensional heads of the start and end.
+    * Extract the one-dimensional head interval.
     *
     * @tparam H
     *   the domain value type of the head element. There is a type safety check that ensures the head start and end are
@@ -305,8 +303,7 @@ case class Interval[D <: NonEmptyTuple](
     Interval1D(start.head.asInstanceOf[Domain1D[H]], end.head.asInstanceOf[Domain1D[H]])
 
   /**
-    * For an n-dimensional interval where n > 1, extracts the interval of n-1 dimensions based on the tail of start and
-    * end.
+    * For an n-dimensional interval where n > 1, extracts the tail interval of n-1 dimensions.
     *
     * @tparam T
     *   the domain type of the tail element. There are type safety checks ensuring it is in fact the tail, and that it
@@ -320,7 +317,7 @@ case class Interval[D <: NonEmptyTuple](
     Interval(start.tail.asInstanceOf[T], end.tail.asInstanceOf[T])
 
   /**
-    * Returns a new interval with an updated head interval and other dimensions unchanged.
+    * Returns a new interval with an updated head interval and the other dimensions unchanged.
     *
     * @param update
     *   function to apply to this head interval, used in the head dimension of the returned interval.
@@ -561,36 +558,36 @@ object Interval:
   /**
     * Returns an interval from the input value that is unbounded on the right.
     */
-  def intervalFrom[T <: NonEmptyTuple](s: T)(using domainLike: DomainLike[T]): Interval[T] = apply(s, domainLike.top)
+  def intervalFrom[D <: NonEmptyTuple](s: D)(using domainLike: DomainLike[D]): Interval[D] = apply(s, domainLike.top)
 
   /**
     * Returns an interval from after the input value that is unbounded on the right.
     */
-  def intervalFromAfter[T <: NonEmptyTuple](s: T)(using domainLike: DomainLike[T]): Interval[T] =
+  def intervalFromAfter[D <: NonEmptyTuple](s: D)(using domainLike: DomainLike[D]): Interval[D] =
     apply(s.rightAdjacent, domainLike.top)
 
   /**
     * Returns an interval to the input value that is unbounded on the left.
     */
-  def intervalTo[T <: NonEmptyTuple](e: T)(using domainLike: DomainLike[T]): Interval[T] = apply(domainLike.bottom, e)
+  def intervalTo[D <: NonEmptyTuple](e: D)(using domainLike: DomainLike[D]): Interval[D] = apply(domainLike.bottom, e)
 
   /**
     * Returns an interval to before the input value that is unbounded on the left.
     */
-  def intervalToBefore[T <: NonEmptyTuple](e: T)(using domainLike: DomainLike[T]): Interval[T] =
+  def intervalToBefore[D <: NonEmptyTuple](e: D)(using domainLike: DomainLike[D]): Interval[D] =
     apply(domainLike.bottom, e.leftAdjacent)
 
   /**
     * Returns an interval that starts and ends at the same value.
     */
-  def intervalAt[T <: NonEmptyTuple: DomainLike](s: T): Interval[T] =
+  def intervalAt[D <: NonEmptyTuple: DomainLike](s: D): Interval[D] =
     val closestPoint = s.closeIfOpen
     interval(closestPoint, closestPoint)
 
   /**
     * Returns an interval that starts and ends at the different values.
     */
-  def interval[T <: NonEmptyTuple: DomainLike](s: T, e: T): Interval[T] = apply(s, e)
+  def interval[D <: NonEmptyTuple: DomainLike](s: D, e: D): Interval[D] = apply(s, e)
 
   /**
     * Returns the interval between `before` and `after`. This is equivalent to `before.gapWith(after).get`, but without
@@ -601,20 +598,20 @@ object Interval:
     *   interval on the left/bottom/back side
     * @param after
     *   interval on the right/top/front side
-    * @tparam T
-    *   domain value for interval
+    * @tparam D
+    *   the domain type -- [[DomainLike]] non-empty tuples.
     * @return
     *   the interval made from the gap between the two inputs
     */
-  def between[T <: NonEmptyTuple: DomainLike](
-    before: Interval[T],
-    after: Interval[T]
-  ): Interval[T] = interval(before.end.rightAdjacent, after.start.leftAdjacent)
+  def between[D <: NonEmptyTuple: DomainLike](
+    before: Interval[D],
+    after: Interval[D]
+  ): Interval[D] = interval(before.end.rightAdjacent, after.start.leftAdjacent)
 
   /**
     * Returns an interval unbounded on both the left and right.
     */
-  def unbounded[T <: NonEmptyTuple](using domainLike: DomainLike[T]): Interval[T] =
+  def unbounded[D <: NonEmptyTuple](using domainLike: DomainLike[D]): Interval[D] =
     Interval(domainLike.bottom, domainLike.top)
 
   /*
@@ -645,7 +642,7 @@ object Interval:
     * @tparam Result
     *   the result type
     * @tparam D
-    *   a domain type for this interval.
+    *   the domain type -- [[DomainLike]] non-empty tuples.
     * @return
     *   a result extracted from the final state
     */
@@ -689,7 +686,7 @@ object Interval:
     * @param intervals
     *   a collection of intervals.
     * @tparam D
-    *   a domain type for this interval
+    *   the domain type -- [[DomainLike]] non-empty tuples.
     * @return
     *   a new (possibly smaller) collection of intervals covering the same domain as the input.
     */
@@ -712,12 +709,12 @@ object Interval:
     *
     * @param intervals
     *   a collection of intervals -- must be ordered by start.
-    * @tparam T
-    *   a domain value type for this interval's domain.
+    * @tparam D
+    *   the domain type -- [[DomainLike]] non-empty tuples.
     * @return
     *   true if the collection is compressible, false otherwise.
     */
-  def isCompressible[T <: NonEmptyTuple: DomainLike](intervals: Iterable[Interval[T]]): Boolean =
+  def isCompressible[D <: NonEmptyTuple: DomainLike](intervals: Iterable[Interval[D]]): Boolean =
     // evaluates every pair of intervals twice, so we only need to check for before adjacency
     intervals.exists: r =>
       intervals
@@ -732,12 +729,12 @@ object Interval:
     *
     * @param intervals
     *   a collection of intervals -- must be ordered by start.
-    * @tparam T
-    *   a domain value type for this interval's domain.
+    * @tparam D
+    *   the domain type -- [[DomainLike]] non-empty tuples.
     * @return
     *   true if the collection is disjoint, false otherwise.
     */
-  def isDisjoint[T <: NonEmptyTuple: DomainLike](intervals: Iterable[Interval[T]]): Boolean =
+  def isDisjoint[D <: NonEmptyTuple: DomainLike](intervals: Iterable[Interval[D]]): Boolean =
     intervals.forall: r =>
       intervals
         .filter: d =>
@@ -752,7 +749,7 @@ object Interval:
     * @param intervals
     *   collection of intervals
     * @tparam D
-    *   a domain value type for this interval's domain.
+    *   the domain type -- [[DomainLike]] non-empty tuples.
     * @return
     *   a new collection of intervals representing disjoint intervals covering the span of the input.
     */
@@ -770,7 +767,7 @@ object Interval:
     * @param intervals
     *   a collection of intervals -- must be disjoint and ordered by start.
     * @tparam T
-    *   a domain value type for this interval's domain.
+    *   the domain type -- [[DomainLike]] non-empty tuples.
     * @return
     *   a new collection of intervals representing disjoint intervals covering the span of the input.
     */

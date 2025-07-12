@@ -233,6 +233,9 @@ trait MutableBaseBehaviors:
       fixture.domainComplement.toList shouldBe List(
         intervalFrom1D(interval(3, 5))
       )
+      Interval.compress(fixture.domain ++ fixture.domainComplement).toList shouldBe List(
+        intervalFrom1D(unbounded[Int])
+      )
 
       fixture.remove(intervalFrom1D(interval(2, 9)))
       fixture.update(dataFrom1D(interval(-5, -2), "World!"))

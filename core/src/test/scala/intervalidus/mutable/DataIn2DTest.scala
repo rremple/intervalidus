@@ -176,6 +176,9 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     fixture.domainComplement.toList shouldBe List(
       intervalToBefore(day(0)) x interval(2, 9)
     )
+    Interval.compress(fixture.domain ++ fixture.domainComplement).toList shouldBe List(
+      Interval.unbounded[Dim[LocalDate, Int]]
+    )
 
   test("Mutable: Simple toString"):
     val fixturePadData = Data.of[String, Dim[LocalDate, Int]]("H")

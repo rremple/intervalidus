@@ -3,9 +3,13 @@ package intervalidus
 import intervalidus.collection.Coordinate
 
 /**
-  * Template for a type class with operations on a domain (discrete or continuous). A domain is used in defining the
-  * boundaries of an interval. Generally, you will not need to use these methods directly -- they are here primarily to
-  * support methods on `Interval` and `ValidData`.
+  * Type class with operations on a domain (discrete or continuous).
+  *
+  * An n-dimensional domain is represented by a tuple of `Domain1D[T`<sup>i</sup>`]` values (where i varies from 1 to n)
+  * and each `T`<sup>i</sup> is a (potentially different) domain that is `DomainValueLike`.
+  *
+  * A domain is used in defining the boundaries of an interval. Generally, you will not need to use these methods
+  * directly -- they are here primarily to support methods on `Interval` and `ValidData`.
   *
   * @tparam D
   *   Domain type, a tuple of one-dimensional domains (where each can have a different domain value type).
@@ -52,10 +56,6 @@ trait DomainLike[D <: NonEmptyTuple]:
     */
   def validDataPreprocessForGrid[V](validData: ValidData[V, D]): (String, String, String)
 
-  /*
-   * Interval-like capabilities
-   */
-
   /**
     * Leverages the ordering of each constituent domain value to compare one domain with another.
     *
@@ -69,6 +69,10 @@ trait DomainLike[D <: NonEmptyTuple]:
     *   otherwise.
     */
   def compareDomains(x: D, y: D): Int
+
+  /*
+   * Interval-like capabilities
+   */
 
   /**
     * Used by the `toString` on `Data`

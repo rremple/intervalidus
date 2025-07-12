@@ -59,7 +59,7 @@ trait BoxTreeLike[A, Self <: BoxTreeLike[A, Self]]:
     *   Having a depth limit is not just an optimization, it is important functionally because of the potential of
     *   ordered hash collisions used as the box coordinates. Say that there are many source discrete values that hash to
     *   the same double value. If the number of these colliding items reaches the capacity of a leaf, without a depth
-    *   limit there would be an infinite regression branch creations until OOM.
+    *   limit, there would be an infinite regression of branch creations until OOM.
     */
   def depthLimit: Int
 
@@ -98,7 +98,7 @@ trait BoxTreeObjectLike:
 
   /**
     * Default depth limit of trees. Default is 32, which was found to be optimal in "set" benchmarks (though it was
-    * observed that any value > 17 is good). Can be overridden by setting the environment variable
+    * observed that any value > 17 is good). It Can be overridden by setting the environment variable
     * `INTERVALIDUS_TREE_DEPTH_LIMIT`.
     */
   val defaultDepthLimit: Int = Properties

@@ -38,12 +38,26 @@ object DataVersioned extends DimensionalVersionedBaseObject:
   )
 
 /**
-  * Base for all mutable dimensional versioned data.
+  * Immutable versioned dimensional data in any dimension.
+  *
+  * Interface is similar to [[Data]], but it operates on an underlying [[mutable.Data]] using an extra integer-valued
+  * head dimension to version data. One use case would be versioned data that are valid in two dimensions of time, so
+  * the underlying data actually vary in terms of version and two dimensions of time (three dimensions total). Most
+  * methods require some generic version selection criteria rather than specific integer intervals, therefore this does
+  * not extend [[DimensionalBase]].
+  *
+  * The "current" version is managed as state (a `var`). Versioning also separates notions of approved vs. unapproved
+  * data (unapproved data are pushed up to start at version maxValue).
+  *
+  * When getting data, by default, we return "current" version data (a.k.a., approved). When updating data, by default,
+  * we don't rewrite history, so mutations start with the "current" version too.
+  * @note
+  *   Updates starting with "current" also update unapproved changes (since intervalFrom goes to the Top).
   *
   * @tparam V
   *   the value type for valid data.
   * @tparam D
-  *   the domain type for intervals in the public interface. Must be [[DomainLike]].
+  *   the domain type for intervals in the public interface -- [[DomainLike]] non-empty tuples.
   */
 class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   initialData: Iterable[ValidData[V, Versioned[D]]] = Iterable.empty[ValidData[V, Versioned[D]]],
@@ -55,14 +69,6 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
 ) extends DimensionalVersionedBase[V, D](initialData, initialVersion, withCurrentVersion):
 
   // ---------- Implement methods from DimensionalVersionedBase ----------
-
-  override def toImmutable: intervalidus.immutable.DataVersioned[V, D] = intervalidus.immutable.DataVersioned(
-    underlying.getAll,
-    initialVersion,
-    Some(currentVersion)
-  )
-
-  override def toMutable: DataVersioned[V, D] = this
 
   override def copy: DataVersioned[V, D] = DataVersioned(
     underlying.getAll,
@@ -79,11 +85,11 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
 
   override def zipAll[B](
     that: DimensionalVersionedBase[B, D],
-    thisElem: V,
-    thatElem: B
+    thisDefault: V,
+    thatDefault: B
   ): DataVersioned[(V, B), D] =
     DataVersioned(
-      underlying.zipAll(that.getVersionedData, thisElem, thatElem).getAll,
+      underlying.zipAll(that.getVersionedData, thisDefault, thatDefault).getAll,
       initialVersion,
       Some(currentVersion)
     )
@@ -99,11 +105,19 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
       Some(currentVersion)
     )
 
+  override def toImmutable: intervalidus.immutable.DataVersioned[V, D] = intervalidus.immutable.DataVersioned(
+    underlying.getAll,
+    initialVersion,
+    Some(currentVersion)
+  )
+
+  override def toMutable: DataVersioned[V, D] = this
+
   // ------ Implement methods similar to those from MutableVersionedBase, but with a version selection context ------
 
   /**
-    * Set new valid data. Any data previously valid in this interval and the given version selection context are
-    * replaced by this data.
+    * Set new valid data. Given a version selection context, any data previously valid in this interval are replaced by
+    * this data.
     *
     * @param data
     *   the valid data to set.
@@ -310,12 +324,12 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     setCurrentVersion(initialVersion)
 
   /**
-    * Special case where we change the version interval in a constrained way.
+    * Special case where we change the version interval by approving everything that is unapproved.
     *
     * @param data
     *   currently unapproved data to approved
     * @return
-    *   true if unapproved version was found and approved, false otherwise
+    *   true if the unapproved version was found and approved, false otherwise
     */
   def approve(data: ValidData[V, D]): Boolean =
     val allUnapproved = underlying

@@ -1,6 +1,6 @@
 package intervalidus
 
-import intervalidus.Domain1D.{Bottom, OpenPoint, Point, Top}
+import intervalidus.Domain1D.*
 import intervalidus.Interval1D.{intervalFrom, intervalTo}
 
 import java.time.{LocalDate, LocalDateTime}
@@ -16,29 +16,16 @@ import scala.math.Ordering.Implicits.infixOrderingOps
   *   a domain value type for this interval's domain (e.g., Int, LocalDate) -- boundaries of the interval are defined in
   *   terms of `Domain1D[T]` given the type class `DomainValueLike[T]`.
   * @param start
-  *   the "infimum", i.e., the left (or below or back, depending on context) boundary of the interval
+  *   the "infimum", i.e., the left boundary of the interval
   * @param end
-  *   the "supremum", i.e., the right (or above or front, depending on context) boundary of the interval -- must be
-  *   greater than or equal to the start
+  *   the "supremum", i.e., the right boundary of the interval -- must be greater than or equal to the start
   */
 case class Interval1D[T](
   start: Domain1D[T],
   end: Domain1D[T]
 )(using domainValue: DomainValueLike[T]):
 
-  /**
-    * Either start is before end (by both start and end ordering), or, when equal, both bounds must be closed (i.e.,
-    * interval at a single point).
-    */
-  private def validIntervalBounds(
-    s: Domain1D[T],
-    e: Domain1D[T]
-  ): Boolean = (s, e) match
-    case _ if (s beforeEnd e) && (e afterStart s) => true // strictly less than - excludes when values are equal
-    case (Point(cs), Point(ce)) if cs == ce       => true // interval at a point is valid when bounds are closed,
-    case _ => false // otherwise invalid: e is before s, or they're equal with open bound(s)
-
-  require(validIntervalBounds(start, end), s"Interval $this invalid")
+  require(Interval1D.validBounds(start, end), s"Interval $this invalid")
 
   /**
     * Construct new valid data from this interval.
@@ -99,7 +86,7 @@ case class Interval1D[T](
     */
   infix def intersectionWith(that: Interval1D[T]): Option[Interval1D[T]] =
     val (maxStart, minEnd) = (this.start maxStart that.start, this.end minEnd that.end)
-    if validIntervalBounds(maxStart, minEnd) then Some(Interval1D(maxStart, minEnd)) else None
+    if Interval1D.validBounds(maxStart, minEnd) then Some(Interval1D(maxStart, minEnd)) else None
 
   /**
     * A kind of union between this and that interval. Includes the domain of both this and that plus any gaps that may
@@ -244,7 +231,7 @@ case class Interval1D[T](
             Seq(commonBit)
 
   /**
-    * Returns gap between this and that interval, if one exists.
+    * Returns the gap between this and that interval if one exists.
     *
     * @param that
     *   the interval to evaluate.
@@ -319,7 +306,7 @@ case class Interval1D[T](
    */
 
   /**
-    * Used internally when formatting an interval for the Data.toString grid.
+    * Used internally when formatting a single interval for the Data.toString grid.
     */
   def formatForGrid: String = domainValue match
     case dvl: ContinuousValue[T] => s"${start.leftBrace} $start${dvl.bracePunctuation}$end ${end.rightBrace} "
@@ -386,6 +373,21 @@ case class Interval1D[T](
   * Companion for the one-dimensional interval used in defining and operating on valid data.
   */
 object Interval1D:
+  /**
+    * Checks if using these start and end domains would form a valid one-dimensional interval. To be valid, one of the
+    * following must be true:
+    *   1. any kind of bounds (i.e., open, closed, or unbounded) where the start is strictly less than the end.
+    *   1. closed and equal bounds (an interval of a single point).
+    * Otherwise, the interval will be invalid: either the end is before start, or they're equal with one (or both) of
+    * the bounds open.
+    * @note
+    *   This means that intervals of the form `(Top, Top)` and `(Bottom, Bottom)` are not allowed.
+    */
+  def validBounds[T: DomainValueLike](start: Domain1D[T], end: Domain1D[T]): Boolean = (start, end) match
+    case _ if (start beforeEnd end) && (end afterStart start) => true
+    case (Point(startValue), Point(endValue))                 => startValue == endValue
+    case _                                                    => false
+
   // used in return type of excluding
   enum Remainder[+G]:
     case None
@@ -424,7 +426,7 @@ object Interval1D:
     interval(closestPoint, closestPoint)
 
   /**
-    * Returns an interval that starts and ends at the different values.
+    * Returns an interval that starts and ends at different values.
     */
   def interval[T: DomainValueLike](s: Domain1D[T], e: Domain1D[T]): Interval1D[T] = apply(s, e)
 
@@ -434,11 +436,11 @@ object Interval1D:
     * e.g., they are exclusion remainders.
     *
     * @param before
-    *   interval on the left/bottom/back side
+    *   interval on the left side
     * @param after
-    *   interval on the right/top/front side
+    *   interval on the right side
     * @tparam T
-    *   domain value for interval
+    *   domain value type of these intervals
     * @return
     *   the interval made from the gap between the two inputs
     */
@@ -462,7 +464,7 @@ object Interval1D:
     * @param intervals
     *   a collection of intervals -- must be ordered by start.
     * @tparam T
-    *   a domain value type for this interval's domain.
+    *   domain value type of these intervals
     * @return
     *   a new (possibly smaller) collection of intervals covering the same domain as the input.
     */
@@ -474,6 +476,9 @@ object Interval1D:
           else r :: head :: tail
         case Nil => List(r)
 
+  /**
+    * Used internally when formatting a group of intervals for the Data.toString grid.
+    */
   def preprocessForGrid[T: DomainValueLike](intervals: Iterable[Interval1D[T]]): Iterable[(String, String, String)] =
     uniqueIntervals(intervals).map: interval =>
       val headStartString = interval.start.toString
@@ -489,7 +494,7 @@ object Interval1D:
     * @param intervals
     *   a collection of intervals -- must be ordered by start.
     * @tparam T
-    *   a domain value type for this interval's domain.
+    *   domain value type of these intervals
     * @return
     *   true if the collection is compressible, false otherwise.
     */
@@ -507,7 +512,7 @@ object Interval1D:
     * @param intervals
     *   a collection of intervals -- must be ordered by start.
     * @tparam T
-    *   a domain value type for this interval's domain.
+    *   domain value type of these intervals
     * @return
     *   true if the collection is disjoint, false otherwise.
     */
@@ -523,7 +528,7 @@ object Interval1D:
     * @param intervals
     *   collection of intervals
     * @tparam T
-    *   a domain value type for this interval's domain.
+    *   domain value type of these intervals
     * @return
     *   a new collection of intervals representing disjoint intervals covering the span of the input.
     */
@@ -547,7 +552,7 @@ object Interval1D:
     * @param intervals
     *   a collection of intervals -- must be disjoint and ordered by start.
     * @tparam T
-    *   a domain value type for this interval's domain.
+    *   domain value type of these intervals
     * @return
     *   a new collection of intervals representing disjoint intervals covering the span of the input.
     */
