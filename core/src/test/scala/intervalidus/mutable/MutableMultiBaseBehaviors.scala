@@ -83,7 +83,7 @@ trait MutableMultiBaseBehaviors:
         withHorizontalOne(interval(5, 16), "Y"),
         withHorizontalOne(intervalFrom(26), "Z")
       )
-      f0.merge(multiFrom(mergeData))
+      f0.concat(multiFrom(mergeData))
       f0.getAll.toList shouldBe List(
         withHorizontal(interval(0, 4), Set("X")),
         withHorizontal(interval(5, 9), Set("B", "X", "Y")),

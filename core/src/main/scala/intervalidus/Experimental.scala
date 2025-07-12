@@ -90,7 +90,7 @@ object Experimental:
 
     /**
       * If the experimental feature is not enabled, return the non-experimental result. If it is enabled, compare the
-      * experimental and non-experimental results. If they match, return that result. Otherwise, return the onFailure
+      * experimental and non-experimental results. If they match, return that result. Otherwise, return `onFailure`
       * result (which would usually just throw after maybe logging some details about the mismatch).
       *
       * @param feature
@@ -105,7 +105,7 @@ object Experimental:
       * @tparam T
       *   result type
       * @return
-      *   either experimental or non-experimental result, depending on what is enabled.
+      *   either experimental or non-experimental result, depending on parallel check results/logic.
       */
     def parallelCheck[T](
       feature: String

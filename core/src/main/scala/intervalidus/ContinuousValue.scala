@@ -1,7 +1,7 @@
 package intervalidus
 
 /**
-  * Type class template for a continuous value.
+  * Type class for a continuous value.
   *
   * @inheritdoc
   *

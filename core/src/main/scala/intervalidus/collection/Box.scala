@@ -1,13 +1,13 @@
 package intervalidus.collection
 
 /**
-  * Represents a box in multidimensional double space. Could be a bounding box that defines the region of a tree node,
-  * or could be a valid region associated with data.
+  * Represents a box in multidimensional double space. It could be used as a bounding box that defines the region of a
+  * tree node, or it could be used as a valid region associated with data.
   *
   * @param minPoint
-  *   Coordinate of the minimum corner of the box(left / lower / back / etc., depending on dimension)
+  *   Coordinate of the minimum corner (left/lower/back/etc., depending on dimension)
   * @param maxPoint
-  *   Coordinate of the maximum corner of the box (right/upper/front/etc., depending on dimension)
+  *   Coordinate of the maximum corner (right/upper/front/etc., depending on dimension)
   */
 case class Box(minPoint: Coordinate, maxPoint: Coordinate):
   private def corners: (Coordinate, Coordinate) = (minPoint, maxPoint)
@@ -48,7 +48,7 @@ case class Box(minPoint: Coordinate, maxPoint: Coordinate):
     *
     * @note
     *   Even a single point in common is considered an intersection, e.g., two boxes touching. So the resulting
-    *   intersection may have min == max in some or all dimensions.
+    *   intersection may have `min == max` in some or all dimensions.
     * @param other
     *   box to test
     * @return

@@ -208,6 +208,9 @@ trait ImmutableBaseBehaviors:
       fixture2.domainComplement.toList shouldBe List(
         intervalFrom1D(intervalFromAfter(2).toBefore(6))
       )
+      Interval.compress(fixture2.domain ++ fixture2.domainComplement).toList shouldBe List(
+        intervalFrom1D(unbounded[Int])
+      )
 
       val fixture3 = fixture2
         .remove(intervalFrom1D(interval(2, 9)))

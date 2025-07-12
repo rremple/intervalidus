@@ -36,7 +36,7 @@ object Data extends DimensionalBaseObject with DimensionalBaseConstructorParams:
   * @tparam V
   *   the value type for valid data.
   * @tparam D
-  *   the domain type for intervals, must be [[DomainLike]].
+  *   the domain type -- [[DomainLike]] non-empty tuples.
   */
 class Data[V, D <: NonEmptyTuple: DomainLike] protected (
   override val dataByStartAsc: mutable.TreeMap[D, ValidData[V, D]],
@@ -78,17 +78,17 @@ class Data[V, D <: NonEmptyTuple: DomainLike] protected (
   override def zip[B](that: DimensionalBase[B, D]): Data[(V, B), D] =
     Data(zipData(that))
 
-  override def zipAll[B](that: DimensionalBase[B, D], thisElem: V, thatElem: B): Data[(V, B), D] =
-    Data(zipAllData(that, thisElem, thatElem))
-
-  override def toMutable: intervalidus.mutable.Data[V, D] =
-    intervalidus.mutable.Data(getAll)
-
-  override def toImmutable: intervalidus.immutable.Data[V, D] =
-    this
+  override def zipAll[B](that: DimensionalBase[B, D], thisDefault: V, thatDefault: B): Data[(V, B), D] =
+    Data(zipAllData(that, thisDefault, thatDefault))
 
   override def getByHeadIndex[H: DomainValueLike](headIndex: Domain1D[H])(using
     D =:= Domain1D[H] *: Tuple.Tail[D],
     DomainLike[NonEmptyTail[D]]
   ): Data[V, NonEmptyTail[D]] =
     Data(getByHeadIndexData(headIndex))
+
+  override def toMutable: intervalidus.mutable.Data[V, D] =
+    intervalidus.mutable.Data(getAll)
+
+  override def toImmutable: intervalidus.immutable.Data[V, D] =
+    this

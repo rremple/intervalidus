@@ -208,3 +208,6 @@ class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors 
     fixture.domainComplement.toList shouldBe List(
       intervalToBefore(day(0)) x unboundedDate x interval(2, 9) x unbounded[Int]
     )
+    Interval.compress(fixture.domain ++ fixture.domainComplement).toList shouldBe List(
+      Interval.unbounded[Dim[LocalDate, LocalDate, Int, Int]]
+    )

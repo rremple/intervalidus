@@ -244,3 +244,6 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
     fixture4.domainComplement.toList shouldBe List(
       intervalToBefore(day(0)) x unboundedDate x interval(2, 9)
     )
+    Interval.compress(fixture4.domain ++ fixture4.domainComplement).toList shouldBe List(
+      Interval.unbounded[Dim[LocalDate, LocalDate, Int]]
+    )

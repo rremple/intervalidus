@@ -4,13 +4,13 @@ package intervalidus
   * Create/update/delete actions (like CQRS mutation commands). Used when extrapolating or applying event source-style
   * information.
   * @note
-  *   intervalidus does not have event-sourced data structures, and history of mutations are not maintained.
+  *   intervalidus does not have event-sourced data structures, and the history of mutations is not maintained.
   *
   * @tparam V
   *   the type of the value managed as data (not used in Delete).
   * @tparam D
-  *   the type of domain used in the interval assigned to each value. the type of domain value used in the depth
-  *   interval assigned to each value.
+  *   for `Create` and `Update`, the type of domain used in the interval assigned to each valid value, and for `Delete`,
+  *   the type of domain used as the key.
   */
 enum DiffAction[+V, +D <: NonEmptyTuple](using DomainLike[D]):
   case Create[VV, DD <: NonEmptyTuple: DomainLike](validData: ValidData[VV, DD]) extends DiffAction[VV, DD]

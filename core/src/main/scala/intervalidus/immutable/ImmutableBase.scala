@@ -8,7 +8,7 @@ import intervalidus.*
   * @tparam V
   *   the value type for valid data.
   * @tparam D
-  *   the domain type for intervals, must be [[DomainLike]].
+  *   the domain type -- [[DomainLike]] non-empty tuples.
   * @tparam Self
   *   F-bounded self-type.
   */
@@ -87,7 +87,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     getAll.filterNot(p).foreach(result.removeValidData)
 
   /**
-    * Set new valid data. Any data previously valid in this interval are replace by this data.
+    * Set new valid data. Replaces any data previously valid in this interval.
     *
     * @param newData
     *   the valid data to set.
@@ -194,8 +194,8 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     * Unlike in 1D, there is no unique compression in higher dimensions. For example, {[1..5], [1..2]} + {[1..2],
     * [3..4]} could also be represented physically as {[1..2], [1..4]} + {[3..5], [1..2]}.
     *
-    * This method decompresses data so there is a unique arrangement of "atomic" intervals. In the above example, that
-    * would be the following "atomic" intervals: {[1..2], [1..2]} + {[3..5], [1..2]} + {[1..2], [3..4]}. Then it
+    * First, this method decompresses data to use a unique arrangement of "atomic" intervals. In the above example, that
+    * would be the following "atomic" intervals: {[1..2], [1..2]} + {[3..5], [1..2]} + {[1..2], [3..4]}. Next, it
     * recompresses the data, which results in a unique physical representation. It may be useful when comparing two
     * structures to see if they are logically equivalent even if, physically, they differ in how they are compressed.
     *
@@ -217,7 +217,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
       diffActions.foreach:
         case DiffAction.Create(data: ValidData[V, D]) => result.addValidData(data)
         case DiffAction.Update(data: ValidData[V, D]) => result.updateValidData(data)
-        case DiffAction.Delete(key: D @unchecked)     => result.removeValidDataByKey(key)
+        case DiffAction.Delete(key)                   => result.removeValidDataByKey(key)
 
   /**
     * Synchronizes this with another structure by getting and applying the applicable diff actions.
@@ -239,7 +239,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     *   a new, updated structure.
     */
   def fill(data: ValidData[V, D]): Self = copyAndModify: result =>
-    result.fillInPlace(data.interval, data.value)
+    result.fillInPlace(data)
 
   /**
     * Merges this structure with data from that structure. In intervals where both structures have valid values, the two

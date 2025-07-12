@@ -50,7 +50,7 @@ object Coordinate:
       * represent the corners of boxes which make a binary split in all dimensions.
       *
       * @param other
-      *   coordinate of the opposite corner of a box
+      *   coordinate of the opposite corner
       * @return
       *   pairs of vectors for constructing boxes that split the space
       */

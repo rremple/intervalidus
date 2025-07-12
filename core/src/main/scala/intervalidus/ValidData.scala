@@ -9,7 +9,7 @@ import intervalidus.collection.BoxedPayload
   * @tparam V
   *   the type of the value managed as data (the codomain).
   * @tparam D
-  *   the type of the domain upon which the interval is based.
+  *   the domain type -- [[DomainLike]] non-empty tuples.
   * @param value
   *   value that is valid in this interval.
   * @param interval
@@ -41,19 +41,27 @@ case class ValidData[V, D <: NonEmptyTuple](
     }"
 
   /**
-    * When stored in a collection, the start of the corresponding interval is the key.
+    * When stored in the `TreeMap` collection, the start of the corresponding interval is the key.
     *
     * @return
-    *   a tuple of the domain-like key with this valid data
+    *   a tuple of the interval start with this valid data
     */
-  def withKey: (D, ValidData[V, D]) = interval.start -> this
+  def withStartKey: (D, ValidData[V, D]) = interval.start -> this
+
+  /**
+    * When stored in the `MultiMapSorted` collection, the value itself is the key.
+    *
+    * @return
+    *   a tuple of the value with this valid data
+    */
+  def withValueKey: (V, ValidData[V, D]) = value -> this
 
   override def apply(domainIndex: D): V =
     if isDefinedAt(domainIndex) then value else throw new Exception(s"Not defined at $domainIndex")
 
   override def isDefinedAt(domainIndex: D): Boolean = interval contains domainIndex
 
-  // inline because it is called from inline methods in DomainLikeTupleOps)
+  // inline because it is called from inline methods in DomainLikeTupleOps
   inline def valueToString: String = value match
     case set: Set[?] => set.map(_.toString).mkString("{", ",", "}") // for DataMulti
     case _           => value.toString

@@ -4,10 +4,14 @@ import scala.language.implicitConversions
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 /**
-  * Type class for operating on tuples of Domain1D values (having various domain value types) of arbitrary dimension by
-  * leveraging Scala 3's generic programming techniques (for more information, see
+  * Type class for operating on domains and related structures of arbitrary dimension.
+  *
+  * An n-dimensional domain is represented by a tuple of `Domain1D[T`<sup>i</sup>`]` values (where i varies from 1 to n)
+  * and each `T`<sup>i</sup> is a (potentially different) domain that is `DomainValueLike`.
+  *
+  * This makes extensive use of Scala 3's generic programming techniques on tuples (for more information, see
   * [[https://www.scala-lang.org/2021/02/26/tuples-bring-generic-programming-to-scala-3.html]]). These operations are
-  * meant to support `DomainLike` type classes and should not need to be called directly.
+  * meant to support [[DomainLike]] type classes and should not need to be called directly.
   * @tparam D
   *   Tuple of domain one-dimensional domains of various domain value types
   */
@@ -97,8 +101,8 @@ trait DomainLikeTupleOps[D <: NonEmptyTuple]:
   * Use recursive decomposition of tuples to provide domain-like capabilities to tuples.
   */
 object DomainLikeTupleOps:
-  type OneDimDomain[DV] = Domain1D[DV] *: EmptyTuple
-  type MultiDimDomain[DV, DomainTail <: NonEmptyTuple] = Domain1D[DV] *: DomainTail
+  private type OneDimDomain[DV] = Domain1D[DV] *: EmptyTuple
+  private type MultiDimDomain[DV, DomainTail <: NonEmptyTuple] = Domain1D[DV] *: DomainTail
 
   /**
     * Base case, for a one-dimensional domain (empty tail)
@@ -184,7 +188,7 @@ object DomainLikeTupleOps:
     inline override def validIntervalBoundsFromDomains(
       startDomainTuple: OneDimDomain[DV],
       endDomainTuple: OneDimDomain[DV]
-    ): Boolean = startDomainTuple.head.validIntervalStartWithEnd(endDomainTuple.head)
+    ): Boolean = Interval1D.validBounds(startDomainTuple.head, endDomainTuple.head)
 
     inline override def compareDomains(x: OneDimDomain[DV], y: OneDimDomain[DV]): Int =
       summon[Ordering[Domain1D[DV]]].compare(x.head, y.head)
@@ -367,7 +371,7 @@ object DomainLikeTupleOps:
     inline override def validIntervalBoundsFromDomains(
       startDomainTuple: MultiDimDomain[DV, DomainTail],
       endDomainTuple: MultiDimDomain[DV, DomainTail]
-    ): Boolean = startDomainTuple.head.validIntervalStartWithEnd(endDomainTuple.head) &&
+    ): Boolean = Interval1D.validBounds(startDomainTuple.head, endDomainTuple.head) &&
       applyToTail.validIntervalBoundsFromDomains(startDomainTuple.tail, endDomainTuple.tail)
 
     inline override def compareDomains(x: MultiDimDomain[DV, DomainTail], y: MultiDimDomain[DV, DomainTail]): Int =

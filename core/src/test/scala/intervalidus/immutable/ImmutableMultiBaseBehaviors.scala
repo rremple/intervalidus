@@ -83,7 +83,7 @@ trait ImmutableMultiBaseBehaviors:
         withHorizontalOne(interval(5, 16), "Y"),
         withHorizontalOne(intervalFrom(26), "Z")
       )
-      val f4 = f3.merge(immutableMultiFrom(mergeData))
+      val f4 = f3.concat(immutableMultiFrom(mergeData))
       f4.getAll.toList shouldBe List(
         withHorizontal(interval(0, 4), Set("X")),
         withHorizontal(interval(5, 9), Set("B", "X", "Y")),

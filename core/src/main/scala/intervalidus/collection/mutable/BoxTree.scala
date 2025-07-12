@@ -151,5 +151,5 @@ class BoxTreeBranch[A](val boundary: Box, val depth: Int, val capacity: Int, val
 
   override def toIterable: Iterable[BoxedPayload[A]] = subtrees.flatMap(_.toIterable)
 
-  override def clear(): Unit = // recursively clear, leaving structure in place
+  override def clear(): Unit = // recursively clear, leaving the structure in place
     subtrees.foreach(_.clear())

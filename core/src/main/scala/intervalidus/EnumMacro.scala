@@ -3,7 +3,7 @@ package intervalidus
 import scala.quoted.*
 
 /**
-  * Gets the `values` field from the companion of the sealed trait for this enum to retrieve all enums values.
+  * Gets the `values` field from an enum (i.e., from the companion of the sealed trait) to retrieve all enums values.
   */
 object EnumMacro:
 

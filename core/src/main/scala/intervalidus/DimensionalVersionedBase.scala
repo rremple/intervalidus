@@ -41,7 +41,7 @@ object DimensionalVersionedBase:
     case Specific(version: VersionDomain)
 
   /**
-    * Default version selection context when not overridden locally or specified explicitly
+    * Default version selection context when it isn't overridden locally or specified explicitly.
     */
   given VersionSelection = VersionSelection.Current
 
@@ -69,15 +69,15 @@ trait DimensionalVersionedBaseObject:
     * version.
     *
     * @tparam V
-    *   the type of the value managed as data
+    *   the type of the value managed as data.
     * @tparam D
-    *   the type of domain value used in the interval assigned to each value
+    *   the domain type -- [[DomainLike]] non-empty tuples.
     * @param data
-    *   data to start with
+    *   value valid within an interval.
     * @param initialVersion
     *   the version to start with, typically zero
     * @return
-    *   DataVersioned structure with a single valid value
+    *   [[DimensionalVersionedBase]] structure with a single valid value.
     */
   def of[V, D <: NonEmptyTuple: DomainLike](
     data: ValidData[V, D],
@@ -89,15 +89,15 @@ trait DimensionalVersionedBaseObject:
     * version.
     *
     * @tparam V
-    *   the type of the value managed as data
+    *   the type of the value managed as data.
     * @tparam D
-    *   the type of domain value used in the interval assigned to each value
+    *   the domain type -- [[DomainLike]] non-empty tuples.
     * @param value
-    *   value to start with
+    *   value that is valid in the full domain (`Interval.unbounded[D]`).
     * @param initialVersion
     *   the version to start with, typically zero
     * @return
-    *   DataVersioned structure with a single valid value
+    *   [[DimensionalVersionedBase]] structure with a single valid value.
     */
   def of[V, D <: NonEmptyTuple: DomainLike](
     value: V,
@@ -108,15 +108,15 @@ trait DimensionalVersionedBaseObject:
     * Shorthand constructor for a collection of initial valid values starting at the initial version.
     *
     * @tparam V
-    *   the type of the value managed as data
+    *   the type of the value managed as data.
     * @tparam D
-    *   the type of domain value used in the interval assigned to each value
+    *   the domain type -- [[DomainLike]] non-empty tuples.
     * @param initialData
-    *   valid data to start with
+    *   a collection of values valid within intervals -- intervals must be disjoint.
     * @param initialVersion
     *   the version to start with, typically zero
     * @return
-    *   DataVersioned structure with the provided initial values
+    *   [[DimensionalVersionedBase]] structure with the provided initial values
     */
   def from[V, D <: NonEmptyTuple: DomainLike](
     initialData: Iterable[ValidData[V, D]],
@@ -143,12 +143,9 @@ trait DimensionalVersionedBaseObject:
   * @tparam V
   *   the value type for valid data.
   * @tparam D
-  *   the domain type for intervals in the public interface. Must be [[DomainLike]].
+  *   the domain type for intervals in the public interface -- [[DomainLike]] non-empty tuples.
   */
-trait DimensionalVersionedBase[
-  V,
-  D <: NonEmptyTuple: DomainLike
-](
+trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
   initialData: Iterable[ValidData[V, Versioned[D]]],
   initialVersion: VersionDomainValue,
   withCurrentVersion: Option[VersionDomain]
@@ -157,7 +154,7 @@ trait DimensionalVersionedBase[
   DomainLike[Versioned[D]]
 ) extends PartialFunction[Versioned[D], V]:
 
-  // --- Utility methods definitions for managing "versioned" state, not part of API
+  // Utility methods for managing "versioned" state, not part of API
 
   private type VersionValue = DiscreteValue[VersionDomainValue]
   private type VersionInterval = Interval1D[VersionDomainValue]
@@ -170,46 +167,46 @@ trait DimensionalVersionedBase[
   // Underlying n+1 dimensional representation of versioned n dimensional data (mutable)
   protected val underlying: mutable.Data[V, Versioned[D]] = mutable.Data(initialData)
 
-  // Construct underlying interval from public interval plus version selection
+  // Construct an underlying domain from a public domain plus version selection
   protected def underlyingDomain(domain: D)(using versionSelection: VersionSelection): Versioned[D] =
     domain withHead versionSelection.boundary
 
-  // Construct new underlying interval from a public interval with a version interval
+  // Construct an underlying interval from a public interval with a version interval
   protected def underlyingIntervalWithVersion(
     interval: Interval[D],
     version: VersionInterval
   ): Interval[Versioned[D]] = interval withHead version
 
-  // Construct underlying interval from public interval plus version selection (interval from boundary)
+  // Construct an underlying interval from a public interval plus version selection (interval from boundary)
   protected def underlyingIntervalFromVersionBoundary(interval: Interval[D])(using
     versionSelection: VersionSelection
   ): Interval[Versioned[D]] =
     underlyingIntervalWithVersion(interval, versionSelection.intervalFrom)
 
-  // Construct underlying interval from public interval plus version selection (interval at boundary)
+  // Construct an underlying interval from a public interval plus version selection (interval at boundary)
   protected def underlyingIntervalAtVersionBoundary(interval: Interval[D])(using
     versionSelection: VersionSelection
   ): Interval[Versioned[D]] =
     underlyingIntervalWithVersion(interval, versionSelection.intervalAt)
 
-  // Construct underlying data from public data plus version selection (interval from boundary)
+  // Construct underlying valid data from public valid data plus version selection (interval from boundary)
   protected def underlyingValidDataFromVersionBoundary(data: ValidData[V, D])(using
     VersionSelection
   ): ValidData[V, Versioned[D]] =
     underlyingIntervalFromVersionBoundary(data.interval) -> data.value
 
-  // Extract version interval from underlying data
+  // Extract the version interval from some underlying valid data
   protected def versionInterval(data: ValidData[V, Versioned[D]]): VersionInterval =
     data.interval.headInterval1D[VersionDomainValue]
 
-  // Construct new underlying data with an updated version interval
+  // Construct new underlying valid data with an updated version interval
   protected def withVersionUpdate(
     data: ValidData[V, Versioned[D]],
     update: VersionInterval => VersionInterval
   ): ValidData[V, Versioned[D]] =
     data.copy(interval = data.interval.withHeadUpdate(update))
 
-  // Extract public data from underlying data
+  // Extract public valid data from underlying data
   protected def publicValidData(data: ValidData[V, Versioned[D]]): ValidData[V, D] =
     data.interval.tailInterval[D] -> data.value
 
@@ -326,8 +323,8 @@ trait DimensionalVersionedBase[
   def isEmpty(using VersionSelection): Boolean = getSelectedDataMutable.isEmpty
 
   /**
-    * Returns the value if there is a single, unbounded valid value given some version selection context, otherwise
-    * throws an exception.
+    * Returns the value if a single, unbounded valid value exists given some version selection context, otherwise throws
+    * an exception.
     *
     * @return
     *   a single valid value.
@@ -338,16 +335,13 @@ trait DimensionalVersionedBase[
   def get(using VersionSelection): V = getSelectedData.get
 
   /**
-    * Returns a Some value if there is a single, unbounded valid value given some version selection context, otherwise
+    * Returns Some value if a single, unbounded valid value exists given some version selection context, otherwise
     * returns None.
     */
   def getOption(using VersionSelection): Option[V] = getSelectedData.getOption
 
   /**
-    * Get all valid data given some version selection context.
-    *
-    * @return
-    *   all valid data given some version selection context in interval.start order
+    * Returns all valid data in interval start order given some version selection context.
     */
   def getAll(using VersionSelection): Iterable[ValidData[V, D]] = getSelectedData.getAll
 
@@ -366,16 +360,16 @@ trait DimensionalVersionedBase[
 
   /**
     * Returns a value that is valid at the specified domain element given some version selection context. That is, where
-    * the specified domain element is a member of some valid data interval. If no such valid data exists, returns None.
+    * the specified domain element is a member of some valid data interval. If no such valid value exists, returns None.
     *
-    * @param domain
+    * @param domainIndex
     *   the domain element where data may be valid. The domain element can be a specific data point or the special
     *   notions of "bottom" or "top" of the domain.
     * @return
     *   Some value if valid at the specified domain element, otherwise None.
     */
-  def getAt(domain: D)(using VersionSelection): Option[V] =
-    underlying.getAt(underlyingDomain(domain))
+  def getAt(domainIndex: D)(using VersionSelection): Option[V] =
+    underlying.getAt(underlyingDomain(domainIndex))
 
   /**
     * Returns all data that are valid on some or all of the provided interval given some version selection context.
@@ -392,7 +386,7 @@ trait DimensionalVersionedBase[
     * Are there values that are valid on some or all of the provided interval given some version selection context?
     *
     * @param interval
-    *   the interval to check
+    *   the interval to check.
     * @return
     *   true if there are values that are valid somewhere on the interval.
     */
@@ -400,12 +394,16 @@ trait DimensionalVersionedBase[
     underlying.intersects(underlyingIntervalAtVersionBoundary(interval))
 
   /**
-    * Returns all the intervals (compressed) in which there are valid values given some version selection context.
+    * Returns all the intervals (compressed) in which there are valid values given some version selection context. See *
+    * [[https://en.wikipedia.org/wiki/Domain_of_a_function]].
     */
   def domain(using VersionSelection): Iterable[Interval[D]] = getSelectedDataMutable.domain
 
   /**
     * Returns all the intervals (compressed) in which there are no valid values given some version selection context.
+    * That is, all intervals that are not in the [[domain]] given the same version selection context. See
+    * [[https://en.wikipedia.org/wiki/Domain_of_a_function]] and
+    * [[https://en.wikipedia.org/wiki/Complement_(set_theory)]].
     */
   def domainComplement(using VersionSelection): Iterable[Interval[D]] = getSelectedDataMutable.domainComplement
 
@@ -441,20 +439,10 @@ trait DimensionalVersionedBase[
   // ---------- To be implemented by inheritor ----------
 
   /**
-    * Returns this as a mutable structure.
-    */
-  def toMutable: intervalidus.mutable.DataVersioned[V, D]
-
-  /**
-    * Returns this as an immutable structure.
-    */
-  def toImmutable: intervalidus.immutable.DataVersioned[V, D]
-
-  /**
     * Creates a copy.
     *
     * @return
-    *   a new structure with the same data and current version.
+    *   a new structure with the same data and initial/current version.
     */
   def copy: DimensionalVersionedBase[V, D]
 
@@ -474,28 +462,32 @@ trait DimensionalVersionedBase[
 
   /**
     * Returns a new structure formed from this structure and another structure by combining the corresponding elements
-    * (all intersections) in a pair. If one of the two collections has a valid value in an interval where the other one
-    * doesn't, placeholder elements are used in the result. The other structure can have a different value type but must
-    * have the same interval type.
+    * (all intervals in both this and that) in a pair. If one of the two collections has a valid value in an interval
+    * where the other one doesn't, default elements are used in the result. The other structure can have a different
+    * value type but must have the same interval type.
     *
     * @param that
     *   the structure which is going to be zipped.
-    * @param thisElem
-    *   placeholder element used in intervals where data are valid in that but not this.
-    * @param thatElem
-    *   placeholder element used in intervals where data are valid in this but not that.
+    * @param thisDefault
+    *   default element used in intervals where data are valid in that but not this.
+    * @param thatDefault
+    *   default element used in intervals where data are valid in this but not that.
     * @tparam B
     *   value type of that structure.
     * @return
     *   a new structure with this and that value type as a pair.
     */
-  def zipAll[B](that: DimensionalVersionedBase[B, D], thisElem: V, thatElem: B): DimensionalVersionedBase[(V, B), D]
+  def zipAll[B](
+    that: DimensionalVersionedBase[B, D],
+    thisDefault: V,
+    thatDefault: B
+  ): DimensionalVersionedBase[(V, B), D]
 
   /**
-    * Project as data in n-1 dimensions based on a lookup in the head dimension given some version selection context.
+    * Project as data in n-1 dimensions based on a lookup in the head dimension -- version information is preserved.
     *
     * @param headIndex
-    *   the first dimension domain element
+    *   the head dimension domain element
     * @return
     *   a lower-dimensional (n-1) projection
     */
@@ -504,3 +496,13 @@ trait DimensionalVersionedBase[
     DomainLike[NonEmptyTail[D]],
     DomainLike[Versioned[NonEmptyTail[D]]]
   ): DimensionalVersionedBase[V, NonEmptyTail[D]]
+
+  /**
+    * Returns this as a mutable structure.
+    */
+  def toMutable: intervalidus.mutable.DataVersioned[V, D]
+
+  /**
+    * Returns this as an immutable structure.
+    */
+  def toImmutable: intervalidus.immutable.DataVersioned[V, D]

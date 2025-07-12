@@ -45,13 +45,12 @@ object DataMulti extends DimensionalMultiBaseObject:
   * multimap. For example, one may want to represent when the data are valid in time and over certain versions, or in
   * two dimensions of time, simultaneously. When queried, values are returned as a set. The standard mutation methods
   * operate on these sets of values. There are also add and remove methods allow mutation of individual values across
-  * intervals, and a merge method for combining two structures (conceptually similar to zip, but operating on individual
-  * values, and more appropriate for these multiple values structures).
+  * intervals, and a concat method for combining two structures (a merge where overlaps are concatenated).
   *
   * @tparam V
   *   the value type for valid data.
   * @tparam D
-  *   the domain type for intervals, must be [[DomainLike]].
+  *   the domain type -- [[DomainLike]] non-empty tuples.
   */
 class DataMulti[V, D <: NonEmptyTuple: DomainLike] protected (
   override val dataByStartAsc: mutable.TreeMap[D, ValidData[Set[V], D]],
@@ -66,18 +65,18 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] protected (
     experimentalResult = require(Interval.isDisjoint(getAll.map(_.interval)), "data must be disjoint")
   )
 
-  // ---------- Specific Multivalue methods that have immutable signatures ----------
+  // ---------- Specific multivalue methods that have immutable signatures ----------
 
   /**
-    * Merges all valid data in that structure into this one.
+    * Concatenates all valid data in this and that structure into a new one.
     *
     * @param that
-    *   the structure which is going to be merged.
+    *   the structure which is going to be concatenated.
     * @return
     *   a new, updated structure.
     */
-  def merge(that: DataMulti[V, D]): DataMulti[V, D] = copyAndModify: result =>
-    result.mergeInPlace(that.getAll)
+  def concat(that: DataMulti[V, D]): DataMulti[V, D] =
+    merge(that, _ ++ _)
 
   /**
     * Update everything valid in data's interval to have the data's value. New intervals of validity are added where no
@@ -126,7 +125,7 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] protected (
     allData.foreach(result.removeOneInPlace)
 
   // ---------- Implement methods from ImmutableBase that create new instances ----------
-  // - (these return Data rather than DataMulti because B isn't necessarily a Set type) -
+  //   (these return Data rather than DataMulti because B isn't necessarily a Set type)
 
   override def map[B, S <: NonEmptyTuple: DomainLike](
     f: ValidData[Set[V], D] => ValidData[B, S]
@@ -154,17 +153,17 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] protected (
   override def zip[B](that: DimensionalBase[B, D]): Data[(Set[V], B), D] =
     Data(zipData(that))
 
-  override def zipAll[B](that: DimensionalBase[B, D], thisElem: Set[V], thatElem: B): Data[(Set[V], B), D] =
-    Data(zipAllData(that, thisElem, thatElem))
-
-  override def toMutable: intervalidus.mutable.DataMulti[V, D] =
-    intervalidus.mutable.DataMulti(getAll)
-
-  override def toImmutable: intervalidus.immutable.DataMulti[V, D] =
-    this
+  override def zipAll[B](that: DimensionalBase[B, D], thisDefault: Set[V], thatDefault: B): Data[(Set[V], B), D] =
+    Data(zipAllData(that, thisDefault, thatDefault))
 
   override def getByHeadIndex[H: DomainValueLike](headIndex: Domain1D[H])(using
     D =:= Domain1D[H] *: Tuple.Tail[D],
     DomainLike[NonEmptyTail[D]]
   ): DataMulti[V, NonEmptyTail[D]] =
     DataMulti(getByHeadIndexData(headIndex))
+
+  override def toMutable: intervalidus.mutable.DataMulti[V, D] =
+    intervalidus.mutable.DataMulti(getAll)
+
+  override def toImmutable: intervalidus.immutable.DataMulti[V, D] =
+    this

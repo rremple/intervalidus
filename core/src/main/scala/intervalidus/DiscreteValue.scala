@@ -1,15 +1,15 @@
 package intervalidus
 
 /**
-  * Type class template for a discrete value.
+  * Type class for a discrete value.
   *
   * @inheritdoc
   *
-  * Unlike continuous values, discrete values also have predecessors and successors, which are properly defined on `x:
-  * max < x < min`. Having predecessors and successors defined this way avoids issues where the natural successor
-  * functions of the underlying types behave unexpectedly/inconsistently on the boundaries, e.g., how `Int.MaxValue + 1`
-  * and `Int.MinValue - 1` silently wrap around to each other, vs. how both `LocalDate.MAX.plusDays(1)` and
-  * `LocalDate.MIN.minusDays(1)` throw a `DateTimeException`.
+  * Unlike continuous values, discrete values also have predecessors and successors, which are properly defined on `x`:
+  * `maxValue < x < minValue`. Having predecessors and successors defined this way avoids issues where the natural
+  * successor functions of the underlying types behave unexpectedly/inconsistently on the boundaries, e.g., how
+  * `Int.MaxValue + 1` and `Int.MinValue - 1` silently wrap around to each other, vs. how both
+  * `LocalDate.MAX.plusDays(1)` and `LocalDate.MIN.minusDays(1)` throw a `DateTimeException`.
   *
   * @tparam T
   *   a value that has discrete value behavior (e.g., `Int`)
@@ -57,44 +57,7 @@ object DiscreteValue:
 
     override def predecessorOf(x: Int): Option[Int] = if x > minValue then Some(x - 1) else None
 
-    /**
-      * Based on benchmarks, this seems to be too computationally expensive, where the benefit of reducing levels is
-      * negligible.
-      *
-      * TODO: Find a better way (or just live with the "wasted" levels)? TODO: can we make this configurable?
-      *
-      * It is important not to over-sample the larger parts of numeric ranges as part of hashing, since our box search
-      * trees in double space will be halving ranges. One would have to cut the [Int.MinValue..Int.MaxValue] box in half
-      * 13 times to get to a subtree containing a box [0..524,288] and then another 19 levels to get down to 1: 32 total
-      * levels (which makes sense for a 32 bit number). So for more practical use cases, there are a lot of levels to
-      * descend before we reach "useful", "normal" ranges. In a quadtree, this would result in the creation of 13*3=39
-      * leaves and 13 branches that are kind of worthless and just slow things down. Attempting to resolve this here by
-      * using a logistic function to hash integers to doubles, which would increase resolution for numbers with smaller
-      * magnitudes and decrease resolution for the larger. (See https://en.wikipedia.org/wiki/Sigmoid_function). This
-      * one places all integers into a double range -1 to 1 following the logistic function. It is "normalized" in the
-      * sense that negatives map to negatives, positives to positives, and zero to zero. The choice of a small k is to
-      * keep the curve steep enough that integers with smaller magnitudes will be well represented in the result where
-      * integers with very large magnitudes will not be.
-      *   - All integers greater than about 3.6 million will result in 1.0, where some integers greater than about 2.4
-      *     million will increasingly hash to the same value. Similarly, those less than -3.8 will result in -1.0 (not
-      *     sure where the asymmetry comes from), where those less than about -2.5 million will increasing hash to the
-      *     same value. (If the integers you use are regularly outside of this range, you may want to give a
-      *     DiscreteValue[Int] different from this default.)
-      *   - Splitting the double range [0..1] in half as [0..0.5] and [0.5..1], represents integers in the ranges
-      *     [0..109,861] and [109,861..Int.MaxValue] (pretty non-linear: less than 0.01% of integers in left side).
-      *   - Splitting the double range [0..0.5] in half would represent integer ranges of [0..51,083] and
-      *     [51,083..109,861], which is pretty linear: 46.5% of integers in the range split are on the left. Subsequents
-      *     splits will be around 25,131, 12,516, 6,252, 3,125, 1,562, 781, 390, 195, 97, 48, 24, 12, 6, and 3. So total
-      *     splits from Int.MaxValue to get to 1 is only 15 instead of 32.
-      */
-//    private def normalizedSigmoid(x: Int): Double = {
-//      val L: Double = 2.0 // The maximum value of the logistic function.
-//      val k: Double = 0.00001 // The steepness of the curve.
-//      val x0: Double = 0.0 // The x-value of the sigmoid's midpoint, where the function has its inflection point.
-//      L / (1 + math.exp(-k * (x.toDouble - x0))) - 1.0
-//    }
-
-    override def orderedHashOf(x: Int): Double = x.toDouble // normalizedSigmoid(x)
+    override def orderedHashOf(x: Int): Double = x.toDouble
 
     override val maxValue: Int = Int.MaxValue
 
