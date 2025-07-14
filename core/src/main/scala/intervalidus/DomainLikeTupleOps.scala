@@ -6,8 +6,8 @@ import scala.math.Ordering.Implicits.infixOrderingOps
 /**
   * Type class for operating on domains and related structures of arbitrary dimension.
   *
-  * An n-dimensional domain is represented by a tuple of `Domain1D[T`<sup>i</sup>`]` values (where i varies from 1 to n)
-  * and each `T`<sup>i</sup> is a (potentially different) domain that is `DomainValueLike`.
+  * An n-dimensional domain is represented by a tuple of `Domain1D[T`<sup>i</sup>`]` values (where i varies from 1 to
+  * n), and each `T`<sup>i</sup> is a (potentially different) domain value type that is `DomainValueLike`.
   *
   * This makes extensive use of Scala 3's generic programming techniques on tuples (for more information, see
   * [[https://www.scala-lang.org/2021/02/26/tuples-bring-generic-programming-to-scala-3.html]]). These operations are

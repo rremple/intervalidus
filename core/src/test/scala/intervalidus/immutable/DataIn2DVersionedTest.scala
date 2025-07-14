@@ -203,16 +203,21 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
       b.append(d.value).append("->").append(horizontal(d.interval).toString).append(" ")
     concat.result() shouldBe "Hey->(-∞..4] World->[16..+∞) "
 
-    val fixture2 = fixture1.map: d =>
+    val fixture2a = fixture1
+      .mapIntervals(i => i.to(i.end.rightAdjacent))
+      .mapValues(_ + "!")
+
+    val fixture2b = fixture1.map: d =>
       d.interval.to(d.interval.end.rightAdjacent) -> (d.value + "!")
     val expectedData2 = List(
       (intervalTo(5) x intervalFrom(0)) -> "Hey!",
       (intervalFrom(16) x intervalFrom(0)) -> "World!"
     )
 
-    fixture2.getAll.toList shouldBe expectedData2
+    fixture2a.getAll.toList shouldBe expectedData2
+    fixture2b.getAll.toList shouldBe expectedData2
 
-    val fixture3 = fixture2.mapValues(_ + "!!")
+    val fixture3 = fixture2b.mapValues(_ + "!!")
     val expectedData3 = List(
       (intervalTo(5) x intervalFrom(0)) -> "Hey!!!",
       (intervalFrom(16) x intervalFrom(0)) -> "World!!!"
@@ -226,14 +231,17 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     assertThrows[NoSuchElementException]:
       fixture4.get
 
-    val fixture5 = fixture4.filter(v => horizontal(v.interval) ⊆ intervalTo(10))
+    val fixture5a = fixture4.collect:
+      case v if horizontal(v.interval) ⊆ intervalTo(10) => v
+    val fixture5b = fixture4.filter(v => horizontal(v.interval) ⊆ intervalTo(10))
     val expectedData5 = List((intervalTo(5) x intervalFrom(0)) -> "Hey!!!")
-    fixture5.getAll.toList shouldBe expectedData5
-    assert(!fixture5.isEmpty)
+    fixture5b.getAll.toList shouldBe expectedData5
+    fixture5a.getAll.toList shouldBe expectedData5
+    assert(!fixture5b.isEmpty)
     assertThrows[NoSuchElementException]:
-      fixture5.get
+      fixture5b.get
 
-    val fixture6 = fixture5.flatMap(d => DataVersioned.of[String, Dim[Int, Int]](d.value))
+    val fixture6 = fixture5b.flatMap(d => DataVersioned.of[String, Dim[Int, Int]](d.value))
     val expectedData6 = List((unbounded[Int] x unbounded[Int]) -> "Hey!!!")
     fixture6.getAll.toList shouldBe expectedData6
     fixture6.get shouldBe "Hey!!!"

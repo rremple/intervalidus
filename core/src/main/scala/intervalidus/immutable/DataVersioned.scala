@@ -209,8 +209,9 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
 
   /**
     * Compress out adjacent intervals with the same value for all values after decompressing everything, resulting in a
-    * unique physical representation. Does not use a version selection context -- operates on full underlying structure.
-    * (Shouldn't ever need to do this.)
+    * unique physical representation. (Shouldn't ever need to do this.)
+    *
+    * Does not use a version selection context -- operates on full underlying structure.
     *
     * @return
     *   a new, updated structure.
@@ -218,8 +219,9 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   def recompressAll(): DataVersioned[V, D] = copyAndModify(_.underlying.recompressAll())
 
   /**
-    * Applies a sequence of diff actions to this structure. Does not use a version selection context -- operates on full
-    * underlying structure.
+    * Applies a sequence of diff actions to this structure.
+    *
+    * Does not use a version selection context -- operates on full underlying structure.
     *
     * @param diffActions
     *   actions to be applied.
@@ -228,8 +230,9 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     copyAndModify(_.underlying.applyDiffActions(diffActions))
 
   /**
-    * Synchronizes this with another structure by getting and applying the applicable diff actions. Does not use a
-    * version selection context -- operates on full underlying structure.
+    * Synchronizes this with another structure by getting and applying the applicable diff actions.
+    *
+    * Does not use a version selection context -- operates on full underlying structure.
     *
     * @param that
     *   the structure with which this is synchronized.
@@ -258,6 +261,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
 
   /**
     * Applies a function to all valid data. Both the valid data value and interval types can be changed in the mapping.
+    *
     * Does not use a version selection context -- the function is applied to the underlying data, so it can operate on
     * the underlying version information as well as the valid interval/value.
     *
@@ -281,9 +285,36 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     )
 
   /**
-    * Applies a function to all valid data values. Only the valid data value type can be changed in the mapping. Does
-    * not use a version selection context -- the function is applied to the underlying data, so it maps all values in
-    * all versions. To only map values meeting specific version criteria, use [[map]] instead.
+    * Applies a partial function to all valid data on which it is defined. Both the valid data value and interval types
+    * can be changed in the mapping.
+    *
+    * Does not use a version selection context -- the function is applied to the underlying data, so it can operate on
+    * the underlying version information as well as the valid interval/value.
+    *
+    * @param pf
+    *   the partial function to apply to each versioned data element.
+    * @tparam B
+    *   the valid data value type of the returned structure.
+    * @tparam S
+    *   the valid data versioned interval domain type of the returned structure.
+    * @return
+    *   a new structure resulting from applying the provided function to each versioned element of this structure on
+    *   which it is defined.
+    */
+  def collect[B, S <: NonEmptyTuple: DomainLike](
+    pf: PartialFunction[ValidData[V, Versioned[D]], ValidData[B, Versioned[S]]]
+  )(using DomainLike[Versioned[S]]): DataVersioned[B, S] =
+    DataVersioned(
+      underlying.getAll.collect(pf),
+      initialVersion,
+      Some(currentVersion)
+    )
+
+  /**
+    * Applies a function to all valid data values. Only the valid data value type can be changed in the mapping.
+    *
+    * Does not use a version selection context -- the function is applied to the underlying data, so it maps all values
+    * in all versions.
     *
     * @param f
     *   the function to apply to the value part of each valid data element.
@@ -300,9 +331,33 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   )
 
   /**
+    * Applies a function to all valid data intervals. The interval type can be changed in the mapping.
+    *
+    * Does not use a version selection context -- the function is applied to the underlying data, so it maps all
+    * intervals in all versions.
+    *
+    * @param f
+    *   the function to apply to the versioned interval part of each valid data element.
+    * @tparam S
+    *   the valid data versioned interval domain type of the returned structure.
+    *
+    * @return
+    *   a new structure resulting from applying the provided function f to each versioned interval.
+    */
+  def mapIntervals[S <: NonEmptyTuple: DomainLike](
+    f: Interval[Versioned[D]] => Interval[Versioned[S]]
+  )(using DomainLike[Versioned[S]]): DataVersioned[V, S] = DataVersioned(
+    underlying.getAll.map(d => d.copy(interval = f(d.interval))),
+    initialVersion,
+    Some(currentVersion)
+  ).compressAll()
+
+  /**
     * Builds a new structure by applying a function to all elements of this collection and concatenating the elements of
-    * the resulting structures. Does not use a version selection context -- the function is applied to the underlying
-    * data, so it can operate on the underlying version information as well as the valid interval/value.
+    * the resulting structures.
+    *
+    * Does not use a version selection context -- the function is applied to the underlying data, so it can operate on
+    * the underlying version information as well as the valid interval/value.
     *
     * @param f
     *   the function to apply to each valid data element which results in a new structure.

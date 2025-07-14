@@ -77,10 +77,20 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
 
     test(s"$prefix: Int interval validity"):
       val dv = summon[DomainLike[Domain.In2D[Int, Int]]]
+      val origin = Domain.in2D[Int, Int](0, 0)
+      origin.size shouldBe 2
       dv.arity shouldBe 2
+
+      Interval(origin, origin).toCodeLikeString shouldBe "intervalAt(0) x intervalAt(0)"
 
       assertThrows[IllegalArgumentException]:
         val _ = Interval[Domain.In2D[Int, Int]](dv.top, dv.bottom) // end before start
+
+      assertThrows[IllegalArgumentException]:
+        val _ = Interval[Domain.In2D[Int, Int]](dv.bottom, dv.bottom) // empty interval
+
+      assertThrows[IllegalArgumentException]:
+        val _ = Interval[Domain.In2D[Int, Int]](dv.top, dv.top) // empty interval
 
       assertThrows[IllegalArgumentException]:
         val _ = interval(2, 1) // end before start

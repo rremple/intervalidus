@@ -207,6 +207,10 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
       b.append(d.value).append("->").append(horizontal(d.interval).toString).append(" ")
     concat.result() shouldBe "Hey->(-∞..4] World->[16..+∞) "
 
+    val fixtureAlt = fixture.copy
+    fixtureAlt.mapIntervals(i => i.to(i.end.rightAdjacent))
+    fixtureAlt.mapValues(_ + "!")
+
     fixture.map: d =>
       d.interval.to(d.interval.end.rightAdjacent) -> (d.value + "!")
     val expectedData2 = List(
@@ -215,6 +219,7 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     )
 
     fixture.getAll.toList shouldBe expectedData2
+    fixtureAlt.getAll.toList shouldBe expectedData2
 
     fixture.mapValues(_ + "!!")
     val expectedData3 = List(
@@ -229,9 +234,13 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     assertThrows[NoSuchElementException]:
       fixture.get
 
+    val fixtureCollect = fixture.copy
+    fixtureCollect.collect:
+      case v if horizontal(v.interval) ⊆ intervalTo(10) => v
     fixture.filter(v => horizontal(v.interval) ⊆ intervalTo(10))
     val expectedData5 = List((intervalTo(5) x intervalFrom(0)) -> "Hey!!!")
     fixture.getAll.toList shouldBe expectedData5
+    fixtureCollect.getAll.toList shouldBe expectedData5
     assert(!fixture.isEmpty)
     assertThrows[NoSuchElementException]:
       fixture.get

@@ -3,13 +3,13 @@ package intervalidus
 import intervalidus.collection.Coordinate
 
 /**
-  * Type class with operations on a domain (discrete or continuous).
+  * Type class with operations on a domain with multiple discrete and/or continuous dimensions.
   *
-  * An n-dimensional domain is represented by a tuple of `Domain1D[T`<sup>i</sup>`]` values (where i varies from 1 to n)
-  * and each `T`<sup>i</sup> is a (potentially different) domain that is `DomainValueLike`.
+  * An n-dimensional domain is represented by a tuple of `Domain1D[T`<sup>i</sup>`]` values (where i varies from 1 to
+  * n), and each `T`<sup>i</sup> is a (potentially different) domain value type that is `DomainValueLike`.
   *
-  * A domain is used in defining the boundaries of an interval. Generally, you will not need to use these methods
-  * directly -- they are here primarily to support methods on `Interval` and `ValidData`.
+  * An n-dimensional domain is used in defining the boundaries of an n-dimensional interval. Generally, you will not
+  * need to use these methods directly -- they are here primarily to support methods on `Interval` and `ValidData`.
   *
   * @tparam D
   *   Domain type, a tuple of one-dimensional domains (where each can have a different domain value type).

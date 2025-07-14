@@ -58,10 +58,22 @@ class Data[V, D <: NonEmptyTuple: DomainLike] protected (
     getAll.map(f)
   ).compressAll()
 
+  override def collect[B, S <: NonEmptyTuple: DomainLike](
+    pf: PartialFunction[ValidData[V, D], ValidData[B, S]]
+  ): Data[B, S] = Data(
+    getAll.collect(pf)
+  ).compressAll()
+
   override def mapValues[B](
     f: V => B
   ): Data[B, D] = Data(
     getAll.map(d => d.copy(value = f(d.value)))
+  ).compressAll()
+
+  override def mapIntervals[S <: NonEmptyTuple: DomainLike](
+    f: Interval[D] => Interval[S]
+  ): Data[V, S] = Data(
+    getAll.map(d => d.copy(interval = f(d.interval)))
   ).compressAll()
 
   override def flatMap[B, S <: NonEmptyTuple: DomainLike](

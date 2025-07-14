@@ -42,6 +42,24 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
   ): DimensionalBase[B, S]
 
   /**
+    * Applies a partial function to all valid data on which it is defined. Both the valid data value and interval types
+    * can be changed in the mapping.
+    *
+    * @param pf
+    *   the partial function to apply to each data element.
+    * @tparam B
+    *   the valid data value type of the returned structure.
+    * @tparam S
+    *   the valid data interval domain type of the returned structure.
+    * @return
+    *   a new structure resulting from applying the provided function to each element of this structure on which it is
+    *   defined.
+    */
+  def collect[B, S <: NonEmptyTuple: DomainLike](
+    pf: PartialFunction[ValidData[V, D], ValidData[B, S]]
+  ): DimensionalBase[B, S]
+
+  /**
     * Applies a function to all valid data values. Only the valid data value type can be changed in the mapping.
     *
     * @param f
@@ -54,6 +72,20 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
   def mapValues[B](
     f: V => B
   ): DimensionalBase[B, D]
+
+  /**
+    * Applies a function to all valid data intervals. The interval type can be changed in the mapping.
+    *
+    * @param f
+    *   the function to apply to the interval part of each valid data element.
+    * @tparam S
+    *   the valid data interval domain type of the returned structure.
+    * @return
+    *   a new structure resulting from applying the provided function f to each interval.
+    */
+  def mapIntervals[S <: NonEmptyTuple: DomainLike](
+    f: Interval[D] => Interval[S]
+  ): DimensionalBase[V, S]
 
   /**
     * Builds a new structure by applying a function to all elements of this collection and concatenating the elements of
@@ -182,7 +214,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     copyAndModify(_.compressInPlace(value))
 
   /**
-    * Compress out adjacent intervals with the same value for all values (Shouldn't ever need to do this.)
+    * Compress out adjacent intervals with the same value for all values. (Shouldn't ever need to do this.)
     *
     * @return
     *   a new, updated structure.

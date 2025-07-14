@@ -24,6 +24,15 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     replaceValidData(getAll.map(f))
 
   /**
+    * Applies a partial function to all valid data on which it is defined. Data are mutated in place.
+    *
+    * @param pf
+    *   the partial function to apply to each data element.
+    */
+  def collect(pf: PartialFunction[ValidData[V, D], ValidData[V, D]]): Unit = synchronized:
+    replaceValidData(getAll.collect(pf))
+
+  /**
     * Applies a function to all valid data values. Data are mutated in place.
     *
     * @param f
@@ -31,9 +40,18 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     */
   def mapValues(f: V => V): Unit =
     getAll
-      .map(d => d.interval -> f(d.value))
+      .map(d => d.copy(value = f(d.value)))
       .foreach: newData =>
         updateValidData(newData)
+
+  /**
+    * Applies a function to all valid data intervals. Data are mutated in place.
+    *
+    * @param f
+    *   the function to apply to the interval part of each valid data element.
+    */
+  def mapIntervals(f: Interval[D] => Interval[D]): Unit = synchronized:
+    replaceValidData(getAll.map(d => d.copy(interval = f(d.interval))))
 
   /**
     * Applies a function to all the elements of this structure and updates valid values from the elements of the
@@ -134,7 +152,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     compressInPlace(value)
 
   /**
-    * Compress out adjacent intervals with the same value for all values (Shouldn't ever need to do this.)
+    * Compress out adjacent intervals with the same value for all values. (Shouldn't ever need to do this.)
     */
   def compressAll(): Unit = synchronized:
     dataByValue.keySet.foreach(compress)

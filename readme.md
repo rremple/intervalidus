@@ -147,7 +147,7 @@ bit easier to decipher:
 ![2D data visualization](/doc/intervalidus-visualize.png)
 
 (A similar `Visualize3D` is provided for visualizing 3D data. It is a [Three.js](https://threejs.org/) app -- 100% 
-vibe-coded using Gemini 2.5 Pro Preview 05-06 -- that renders the numerically boxed representation of data, allowing it
+vibe-coded using Gemini 2.5 Pro Preview 05-06. It renders the non-metric representation of data, allowing it
 to be rotated, sliced, and understood.)
 
 One might query this structure to find what the August forecast was at various sampled dates in
@@ -207,13 +207,14 @@ The two main differences are:
 (How discrete and continuous domain values differ in behavior is discussed later.)
 
 These notational differences are carried in the representation of the horizontal dimension too. For example, if we flip
-the dimensions and print the result:
+the horizontal and vertical dimensions (using a pattern matching) and print the result:
 
 ```scala 3
-val plan2d: Data.In2D[String, LocalDateTime, LocalDate] = Data
-  .of((intervalFrom(date(2023, 12, 25).atTime(10, 23, 33, 123456789)) x intervalFrom(date(2024, 1, 1))) -> "Basic")
-  .set((intervalFrom(date(2024, 3, 15).atTime(14, 10, 15, 987654321)) x intervalFrom(date(2024, 4, 1))) -> "Premium")
-println(plan2d)
+import intervalidus.Interval.Patterns.*
+
+val plan2dFlip = plan2d.mapIntervals:
+  case horizontal :+|: vertical => vertical x horizontal
+println(plan2dFlip)
 ```
 
 The result shows how the continuous notation is pulled to the top and the discrete notation is used with each piece of 
@@ -321,7 +322,7 @@ These mutation methods return a new structure when using immutable and `Unit` wh
 - `update` / `fill` / `merge`
 - `compress` / `compressAll` / `recompressAll`
 - `filter`
-- `map` / `mapValues` / `flatMap` (the immutable variant allows mapping to different type parameters)
+- `map` / `mapValues` / `mapIntervals` / `collect` / `flatMap` (the immutable variant allows altering type parameters)
 - `applyDiffActions` / `syncWith`
 
 ## Using and Extending

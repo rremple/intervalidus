@@ -134,14 +134,16 @@ trait ImmutableMultiBaseBehaviors:
       )
 
       val f1: S = multiFrom(allData)
-      val f2 = DataMulti.from(f1.map(mapF))
+      val f2a = DataMulti.from(f1.map(mapF))
       val expectedData2 = List(
         withHorizontal(intervalTo(5), Set("Hey!")),
         withHorizontal(intervalFrom(16), Set("World!"))
       )
-      f2.getAll.toList shouldBe expectedData2
+      f2a.getAll.toList shouldBe expectedData2
+      val f2b = DataMulti.from(f1.mapIntervals(i => i.to(i.end.rightAdjacent)).mapValues(_.map(_ + "!")))
+      f2b.getAll.toList shouldBe expectedData2
 
-      val f3 = DataMulti.from(f2.mapValues(_.map(_ + "!!")))
+      val f3 = DataMulti.from(f2a.mapValues(_.map(_ + "!!")))
       val expectedData3 = List(
         withHorizontal(intervalTo(5), Set("Hey!!!")),
         withHorizontal(intervalFrom(16), Set("World!!!"))
@@ -154,6 +156,13 @@ trait ImmutableMultiBaseBehaviors:
         withHorizontal(intervalFrom(16), Set("World!!!"))
       )
       f4.getAll.toList shouldBe expectedData4
+
+      val f5a = f4.filter(_.value.contains("Hey!!!")).flatMap(flatMapF)
+      val f5b = f4.collect:
+        case d if d.value.contains("Hey!!!") => withHorizontal(intervalTo(5), Set("Hey!!!"))
+      val expectedData5 = List(withHorizontal(intervalTo(5), Set("Hey!!!")))
+      f5a.getAll.toList shouldBe expectedData5
+      f5b.getAll.toList shouldBe expectedData5
 
   def applyingDiffActionTests[
     D <: NonEmptyTuple: DomainLike,

@@ -189,14 +189,16 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
 
   /**
     * Compress out adjacent intervals with the same value for all values after decompressing everything, resulting in a
-    * unique physical representation. Does not use a version selection context -- operates on full underlying structure.
-    * (Shouldn't ever need to do this.)
+    * unique physical representation. (Shouldn't ever need to do this.)
+    *
+    * Does not use a version selection context -- operates on full underlying structure.
     */
   def recompressAll(): Unit = underlying.recompressAll()
 
   /**
-    * Applies a sequence of diff actions to this structure. Does not use a version selection context -- operates on full
-    * underlying structure.
+    * Applies a sequence of diff actions to this structure.
+    *
+    * Does not use a version selection context -- operates on full underlying structure.
     *
     * @param diffActions
     *   actions to be applied.
@@ -205,8 +207,9 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     underlying.applyDiffActions(diffActions)
 
   /**
-    * Synchronizes this with another structure by getting and applying the applicable diff actions. Does not use a
-    * version selection context -- operates on full underlying structure.
+    * Synchronizes this with another structure by getting and applying the applicable diff actions.
+    *
+    * Does not use a version selection context -- operates on full underlying structure.
     *
     * @param that
     *   the structure with which this is synchronized.
@@ -237,15 +240,39 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   def map(f: ValidData[V, Versioned[D]] => ValidData[V, Versioned[D]]): Unit = underlying.map(f)
 
   /**
+    * Applies a partial function to all valid data on which it is defined. Data are mutated in place.
+    *
+    * Does not use a version selection context -- the function is applied to the underlying data, so it can operate on
+    * the underlying version information as well as the valid interval/value.
+    *
+    * @param pf
+    *   the partial function to apply to each versioned data element.
+    */
+  def collect(
+    pf: PartialFunction[ValidData[V, Versioned[D]], ValidData[V, Versioned[D]]]
+  ): Unit = underlying.collect(pf)
+
+  /**
     * Applies a function to all valid data values. Data are mutated in place.
     *
     * Does not use a version selection context -- the function is applied to the underlying data, so it maps all values
-    * in all versions. To only map values meeting specific version criteria, use [[map]] instead
+    * in all versions.
     *
     * @param f
     *   the function to apply to the value part of each valid data element.
     */
   def mapValues(f: V => V): Unit = underlying.mapValues(f)
+
+  /**
+    * Applies a function to all valid data intervals. Data are mutated in place.
+    *
+    * Does not use a version selection context -- the function is applied to the underlying data, so it maps all
+    * intervals in all versions.
+    *
+    * @param f
+    *   the function to apply to the versioned interval part of each valid data element.
+    */
+  def mapIntervals(f: Interval[Versioned[D]] => Interval[Versioned[D]]): Unit = underlying.mapIntervals(f)
 
   /**
     * Applies a function to all the elements of this structure and updates valid values from the elements of the

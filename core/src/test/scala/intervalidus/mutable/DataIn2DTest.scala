@@ -9,11 +9,14 @@ import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
 import java.time.LocalDate
+import scala.annotation.nowarn
 import scala.language.implicitConversions
 
 class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors with MutableBaseBehaviors:
 
   import Interval1D.*
+  import Interval.Patterns.*
+  import ValidData.Patterns.*
 
   // shared
   testsFor(stringLookupTests("Mutable", Data(_), Data.of(_)))
@@ -144,6 +147,43 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
 
     fixture2.syncWith(fixture5)
     fixture2.getAll.toList shouldBe expectedData5
+
+  test("Mutable: Mapping extras"):
+    val allData = List(
+      (unbounded[LocalDate] x intervalTo(4)) -> "Hey",
+      (unbounded[LocalDate] x intervalFrom(16)) -> "World"
+    )
+
+    extension (d: Data[String, Dim[LocalDate, Int]])
+      @nowarn("msg=match may not be exhaustive")
+      def flipEverything: Data[String, Dim[Int, LocalDate]] =
+        val flippedValidData = d.getAll.map:
+          case (horizontal :+|: vertical) :->: v => (vertical x horizontal) -> v.reverse
+        Data(flippedValidData)
+
+    val fixture1 = Data(allData)
+
+    fixture1.flipEverything.getAll.toList shouldBe List(
+      (intervalTo(4) x unbounded[LocalDate]) -> "yeH",
+      (intervalFrom(16) x unbounded[LocalDate]) -> "dlroW"
+    )
+
+    val fixture2a = fixture1.copy
+    fixture2a.map(d =>
+      d.copy(
+        value = d.value + "!",
+        interval = d.interval.to(d.interval.end.rightAdjacent)
+      )
+    )
+    val fixture2b = fixture1.copy
+    fixture2b.mapValues(_ + "!")
+    fixture2b.mapIntervals(i => i.to(i.end.rightAdjacent))
+    val expectedData2 = List(
+      (unbounded[LocalDate] x intervalTo(5)) -> "Hey!",
+      (unbounded[LocalDate] x intervalFrom(16)) -> "World!"
+    )
+    fixture2a.getAll.toList shouldBe expectedData2
+    fixture2b.getAll.toList shouldBe expectedData2
 
   test("Mutable: Updating data in intervals - bounded r1"):
     val expectedData3 = List(

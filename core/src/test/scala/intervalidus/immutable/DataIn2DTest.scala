@@ -9,11 +9,14 @@ import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
 import java.time.LocalDate
+import scala.annotation.nowarn
 import scala.language.implicitConversions
 
 class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors with ImmutableBaseBehaviors:
 
   import Interval1D.*
+  import Interval.Patterns.*
+  import ValidData.Patterns.*
 
   // shared
   testsFor(stringLookupTests("Immutable", Data(_), Data.of(_)))
@@ -142,22 +145,38 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
       (unbounded[LocalDate] x intervalFrom(16)) -> "World"
     )
 
+    extension (d: Data[String, Dim[LocalDate, Int]])
+      @nowarn("msg=match may not be exhaustive")
+      def flipEverything: Data[String, Dim[Int, LocalDate]] =
+        val flippedValidData = d.getAll.map:
+          case (horizontal :+|: vertical) :->: v => (vertical x horizontal) -> v.reverse
+        Data(flippedValidData)
+
     val fixture1 = Data(allData)
     fixture1.copy.getAll.toList shouldBe fixture1.getAll.toList
 
-    val fixture2 = fixture1.map(d =>
+    fixture1.flipEverything.getAll.toList shouldBe List(
+      (intervalTo(4) x unbounded[LocalDate]) -> "yeH",
+      (intervalFrom(16) x unbounded[LocalDate]) -> "dlroW"
+    )
+
+    val fixture2a = fixture1.map(d =>
       d.copy(
         value = d.value + "!",
         interval = d.interval.to(d.interval.end.rightAdjacent)
       )
     )
+    val fixture2b = fixture1
+      .mapValues(_ + "!")
+      .mapIntervals(i => i.to(i.end.rightAdjacent))
     val expectedData2 = List(
       (unbounded[LocalDate] x intervalTo(5)) -> "Hey!",
       (unbounded[LocalDate] x intervalFrom(16)) -> "World!"
     )
-    fixture2.getAll.toList shouldBe expectedData2
+    fixture2a.getAll.toList shouldBe expectedData2
+    fixture2b.getAll.toList shouldBe expectedData2
 
-    val fixture3 = fixture2.mapValues(_ + "!!")
+    val fixture3 = fixture2a.mapValues(_ + "!!")
     val expectedData3 = List(
       (unbounded[LocalDate] x intervalTo(5)) -> "Hey!!!",
       (unbounded[LocalDate] x intervalFrom(16)) -> "World!!!"
@@ -174,10 +193,13 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     assertThrows[NoSuchElementException]:
       fixture4.get
 
-    val fixture5 = fixture4.filter(_.value == "Hey!!!").flatMap(d => Data.of[String, Dim[LocalDate, Int]](d.value))
+    val fixture5a = fixture4.filter(_.value == "Hey!!!").flatMap(d => Data.of[String, Dim[LocalDate, Int]](d.value))
+    val fixture5b = fixture4.collect:
+      case d if d.value == "Hey!!!" => Interval.unbounded[Dim[LocalDate, Int]] -> d.value
     val expectedData5 = List((unbounded[LocalDate] x unbounded[Int]) -> "Hey!!!")
-    fixture5.getAll.toList shouldBe expectedData5
-    fixture5.get shouldBe "Hey!!!"
+    fixture5a.getAll.toList shouldBe expectedData5
+    fixture5b.getAll.toList shouldBe expectedData5
+    fixture5a.get shouldBe "Hey!!!"
 
   test("Immutable: Updating data in intervals - bounded r1"):
     val expectedData3 = List(

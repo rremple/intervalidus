@@ -148,9 +148,13 @@ trait MutableBaseBehaviors:
       assertThrows[NoSuchElementException]:
         fixture.get
 
+      val fixtureCollect = fixture.copy
+      fixtureCollect.collect:
+        case d if d.interval ⊆ intervalFrom1D(intervalTo(10)) => d
       fixture.filter(_.interval ⊆ intervalFrom1D(intervalTo(10)))
       val expectedData5 = List(dataFrom1D(intervalToBefore(4), "Hey!!!"))
       fixture.getAll.toList shouldBe expectedData5
+      fixtureCollect.getAll.toList shouldBe expectedData5
       assert(!fixture.isEmpty)
       assertThrows[NoSuchElementException]:
         fixture.get

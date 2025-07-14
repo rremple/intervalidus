@@ -32,3 +32,15 @@ class ContinuousIntervalTest extends AnyFunSuite with Matchers with IntervalComm
       "intervalFromAfter(LocalDate.of(2025,1,10).atTime(1,2,3,4))"
     intervalFromAfter(0).toBefore(1).toCodeLikeString shouldBe "interval(open(0), open(1))"
     intervalAt(open(LocalDate.of(2025, 1, 10))).toCodeLikeString shouldBe "intervalAt(LocalDate.of(2025,1,10))"
+
+    val originClosed = Domain.in2D[Int, Int](0, 0)
+    val originOpen = Domain.in2D[Int, Int](open(0), open(0))
+
+    assertThrows[IllegalArgumentException]:
+      val _ = Interval[Domain.In2D[Int, Int]](originClosed, originOpen) // empty interval
+
+    assertThrows[IllegalArgumentException]:
+      val _ = Interval[Domain.In2D[Int, Int]](originOpen, originClosed) // empty interval
+
+    assertThrows[IllegalArgumentException]:
+      val _ = Interval[Domain.In2D[Int, Int]](originOpen, originOpen) // empty interval

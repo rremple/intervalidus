@@ -76,6 +76,15 @@ object ValidData:
   type In3D[V, R1, R2, R3] = ValidData[V, Domain.In3D[R1, R2, R3]]
   type In4D[V, R1, R2, R3, R4] = ValidData[V, Domain.In4D[R1, R2, R3, R4]]
 
+  object Patterns:
+    object :->: {
+      def unapply[V, D <: NonEmptyTuple: DomainLike](
+        data: ValidData[V, D]
+      ): Option[(Interval[D], V)] =
+        data match
+          case ValidData(value, interval) => Some((interval, value))
+    }
+
   /**
     * Valid data are ordered using interval start ordering
     */
