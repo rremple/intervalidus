@@ -4,7 +4,7 @@ import java.awt.Desktop
 import java.net.{InetSocketAddress, URI, URLEncoder}
 import java.nio.file.{Files, Path, Paths}
 import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
-import intervalidus.collection.{Box, Coordinate}
+import intervalidus.Domain1D.{Bottom, Top}
 
 import java.nio.charset.StandardCharsets
 import scala.annotation.nowarn
@@ -38,64 +38,40 @@ object Visualize3D:
     if !Files.isDirectory(rootDir) then println(s"Error: Web root directory not found at $rootDir")
     else if validData.isEmpty then println(s"Error: No data to plot")
     else
-      val origin = Coordinate(0, 0, 0)
-      val intervals = validData.map(_.interval)
-      val hasUnbounded = intervals.exists: i =>
-        i.horizontal.start.isUnbounded ||
-          i.vertical.start.isUnbounded ||
-          i.depth.start.isUnbounded ||
-          i.horizontal.end.isUnbounded ||
-          i.vertical.end.isUnbounded ||
-          i.depth.end.isUnbounded
+      def coordinateStrings[R: DomainValueLike](
+        axis: String,
+        to1D: Interval.In3D[R1, R2, R3] => Interval1D[R]
+      ): String =
+        val domains = Interval1D.uniqueIntervals(validData.map(v => to1D(v.interval))).flatMap(i => Seq(i.start, i.end))
+        (Top :: Bottom :: domains.map(_.closeIfOpen).toList).distinct.sorted
+          .map(d => s"\"${d.toString}\"")
+          .mkString(s"\"$axis\":[", ",", "]")
 
-      // a sample coordinate in the space of bounded values, with the origin as the default for unbounded
-      val sample = intervals
-        .foldLeft(origin): (prior, i) =>
-          val beforePrior = prior.projectBeforeBounded(
-            i.asBox.minPoint,
-            i.horizontal.start.isUnbounded,
-            i.vertical.start.isUnbounded,
-            i.depth.start.isUnbounded
-          )
-          val afterPrior = beforePrior.projectAfterBounded(
-            i.asBox.maxPoint,
-            i.horizontal.end.isUnbounded,
-            i.vertical.end.isUnbounded,
-            i.depth.end.isUnbounded
-          )
-          afterPrior
+      val axesParameters = URLEncoder.encode(
+        Seq(coordinateStrings("x", _.horizontal), coordinateStrings("y", _.vertical), coordinateStrings("z", _.depth))
+          .mkString("{", ",", "}"),
+        StandardCharsets.UTF_8
+      )
 
-      println(s"sample = $sample")
-      val (minBounded, maxBounded) = intervals
-        .foldLeft((sample, sample)):
-          case ((priorMin, priorMax), i) =>
-            val newMin = priorMin.projectBeforeBounded(
-              i.asBox.minPoint,
-              i.horizontal.start.isUnbounded,
-              i.vertical.start.isUnbounded,
-              i.depth.start.isUnbounded
-            )
-            val newMax = priorMax.projectAfterBounded(
-              i.asBox.maxPoint,
-              i.horizontal.end.isUnbounded,
-              i.vertical.end.isUnbounded,
-              i.depth.end.isUnbounded
-            )
-            (newMin, newMax)
+      @nowarn("msg=match may not be exhaustive")
+      def domainToJson[D <: NonEmptyTuple: DomainLike](d: D): String = d match
+        case x *: y *: z *: EmptyTuple => s"""["$x","$y","$z"]"""
 
-      val margin = Coordinate(1, 1, 1)
-      val clipWithin = Box(minBounded - margin, maxBounded + margin)
-      if hasUnbounded then println(s"Unbounded intervals clipped to coordinate box $clipWithin")
       val dataParameters = validData.map: d =>
-        val box = d.interval.asBox
-        val (minParam, maxParam) = (box.minPoint.toUrlFragment(clipWithin), box.maxPoint.toUrlFragment(clipWithin))
         val (text1Param, text2Param) = (d.value.toString, d.interval.toString)
-        val param = s"""{"min":$minParam,"max":$maxParam,"text1":"$text1Param","text2":"$text2Param"}"""
+        val startJson = domainToJson(d.interval.start)
+        val endJson = domainToJson(d.interval.end)
+        val param = s"""{"min":$startJson,"max":$endJson,"text1":"$text1Param","text2":"$text2Param"}"""
         URLEncoder.encode(param, StandardCharsets.UTF_8)
 
       val titleParameter = URLEncoder.encode(title, StandardCharsets.UTF_8)
       val result = runServer(rootDir).flatMap: _ =>
-        openInBrowser(s"http://localhost:$port?title=$titleParameter&${dataParameters.mkString("data=[", ",", "]")}")
+        openInBrowser(
+          s"http://localhost:$port" +
+            s"?title=$titleParameter" +
+            s"&axes=$axesParameters" +
+            s"&${dataParameters.mkString("data=[", ",", "]")}"
+        )
       result match
         case Failure(e) => e.printStackTrace()
         case Success(_) => ()

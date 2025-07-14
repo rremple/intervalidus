@@ -424,18 +424,18 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
       (intervalFrom(day(10)) x unbounded[LocalDate]) -> "World"
     )
     val fixture1 = timeboundVersionedString(allData)
-    // Visualize3D(fixture1.getDataIn3D, 50000, "before Zoinks")
+    // Visualize3D(fixture1.getVersionedData, 50000, "before Zoinks")
     val zoinks = validString("Zoinks!", interval(day(-30), day(0)) x unbounded[LocalDate])
     val fixture2 = fixture1.set(zoinks)(using VersionSelection.Unapproved)
 
-//     Visualize3D(fixture2.getDataIn3D, 5000, "after Zoinks")
+//     Visualize3D(fixture2.getVersionedData, 5000, "after Zoinks")
 
     fixture2.getAt(day(5), day(0)) shouldBe Some("Hello")
     fixture2.getAt(day(15), day(0)) shouldBe Some("World")
     fixture2.getAt(day(0), day(0)) shouldBe Some("Testing")
     fixture2.getAt(day(0), day(0))(using VersionSelection.Unapproved) shouldBe Some("Zoinks!")
 
-    // Visualize3D(fixture2.getDataIn3D, 15000, "before zoinks is approved")
+    // Visualize3D(fixture2.getVersionedData, 15000, "before zoinks is approved")
 
     val fixture3 = fixture2
       .incrementCurrentVersion()
@@ -446,7 +446,7 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
       case None => fail("unexpected failure to approve")
 
     val fixture4 = fixture3.remove(interval(day(-5), day(5)) x unbounded[LocalDate])(using VersionSelection.Unapproved)
-    // Visualize3D(fixture4.getDataIn3D, 15000, "after zoinks approved, before remove is approved")
+    // Visualize3D(fixture4.getVersionedData, 15000, "after zoinks approved, before remove is approved")
 
     fixture4.getAt(day(0), day(0)) shouldBe Some(zoinks.value)
     fixture4.getIntersecting(
@@ -459,7 +459,7 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     val fixture5 = fixture4
       .incrementCurrentVersion()
       .approveAll(unbounded[LocalDate] x unbounded[LocalDate]) // approves the unapproved remove
-    // Visualize3D(fixture5.getDataIn3D, 15000, "after remove is approved")
+    // Visualize3D(fixture5.getVersionedData, 15000, "after remove is approved")
 
     fixture5.getAt(day(0), day(0)) shouldBe None
     fixture5.getIntersecting(
