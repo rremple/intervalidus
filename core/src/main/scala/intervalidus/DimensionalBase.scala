@@ -2,7 +2,7 @@ package intervalidus
 
 import intervalidus.Domain.NonEmptyTail
 import intervalidus.DomainLike.given
-import intervalidus.collection.*
+import intervalidus.collection.{Box, BoxedPayload}
 import intervalidus.collection.mutable.{BoxTree, MultiMapSorted}
 
 import scala.collection.mutable

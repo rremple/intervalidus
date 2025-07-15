@@ -517,7 +517,7 @@ implementation in the higher, inheriting trait/class:
 ## Internals and extras
 
 Both the mutable and immutable variants of `Data`, `DataMulti`, and `DataVersioned` use three mutable data
-structures internally for managing state, two of which are custom:
+structures internally for managing state, two of which are custom (in the `collection` subproject):
 
 - A mutable standard library `TreeMap`, ordered by the start of each interval. This allows for fast in-order retrieval
   in methods like `getAll`, and is essential for deterministic results in methods like `foldLeft` that use `getAll`.
@@ -557,7 +557,7 @@ Note that box search trees are tunable via environment variables.
 - The default depth limit of trees is 32, which was found to be optimal in micro-benchmarks. This can be overridden by
   setting the environment variable `INTERVALIDUS_TREE_DEPTH_LIMIT`.
 
-There are a few other subprojects that are worth mentioning:
+Apart from `collection`, there are a few other subprojects that are worth mentioning:
 
 - As described earlier, in the `intervalidus-examples` subproject there is a sample billing application that shows how
   Intervalidus structures can be used to support time-oriented logic like billing directly.

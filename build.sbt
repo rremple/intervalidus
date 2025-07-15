@@ -46,10 +46,18 @@ lazy val root = (project in file("."))
 lazy val core = project
   .enablePlugins(GhpagesPlugin, SiteScaladocPlugin)
   .disablePlugins(MimaPlugin, TastyMiMaPlugin) // for now (pre 1.0)
+  .dependsOn(collection)
   .settings(commonPublishSettings)
   .settings(
     name := "intervalidus",
     git.remoteRepo := "git@github.com:rremple/intervalidus.git"
+  )
+
+lazy val collection = project
+  .disablePlugins(MimaPlugin, TastyMiMaPlugin) // for now (pre 1.0)
+  .settings(commonPublishSettings)
+  .settings(
+    name := "intervalidus-collection"
   )
 
 lazy val `intervalidus-weepickle` = (project in file("json/weepickle"))
