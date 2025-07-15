@@ -169,10 +169,10 @@ object Fact:
       case a            => Seq(StringAttribute(elementName, a.toString)) // fallback to String
 
   /**
-    * Recursively deconstructs the product elements as a set of attributes. Unfortunately deconstructing
-    * Tuple.fromProductTyped has some kind of conflict with being inline, but without inline it looses type parameter
+    * Recursively deconstructs the product elements as a set of attributes. Unfortunately, deconstructing
+    * Tuple.fromProductTyped has some kind of conflict with being inline, but without inline it loses type parameter
     * information (important for Set and Option types). So this uses separate lists of attribute names and values
-    * (untyped), and reconstructs the element value types from the Tupled type directly (which starts as the product
+    * (untyped), and reconstructs the element value types from the Tupled type directly (that start as the product
     * mirror's MirroredElemTypes).
     *
     * @param elementNames

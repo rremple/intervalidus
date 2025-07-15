@@ -32,7 +32,7 @@ trait Billing:
     def nextCycle: BillingCycle =
       val nextRunDate = runDate.plusMonths(1) // Jan / 15
       val nextBillToDate = LocalDate // end of the following month, e.g., if billToDate is Jan / 31...
-        .of(billToDate.getYear, billToDate.getMonthValue, 1) // back to beginning of month, e.g., Jan / 1
+        .of(billToDate.getYear, billToDate.getMonthValue, 1) // back to the beginning of the month, e.g., Jan / 1
         .plusMonths(2) // and forward, e.g., Mar / 1
         .minusDays(1) // and back again, e.g., Feb / 28
       BillingCycle(nextRunDate, nextBillToDate)
@@ -75,8 +75,9 @@ trait Billing:
 
   /**
     * Initial state. Pretend we ran prospective January billing (for customers effective through the end of January)
-    * back in mid-December for customers effective through the end of January. Next billing cycle will be prospective
-    * February billing (for customers effective through the end of February) based on what is known mid-January.
+    * back in mid-December for customers effective through the end of January. The next billing cycle will be
+    * prospective February billing (for customers effective through the end of February) based on what is known
+    * mid-January.
     */
   def initializeBillingState(): Unit =
     billingCycles.clear()
@@ -119,7 +120,7 @@ trait Billing:
     * @param newTiers
     *   tier assignments for this billing cycle
     * @param priorCycle
-    *   prior billing cycle
+    *   the prior billing cycle
     * @param thisCycle
     *   this billing cycle
     * @return

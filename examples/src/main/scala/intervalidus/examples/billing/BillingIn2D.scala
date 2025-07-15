@@ -15,7 +15,7 @@ object BillingIn2D extends Billing:
   import Month.*
 
   /**
-    * The horizontal dimension represents the effective dates of the tiers selections, where the vertical dimension
+    * The horizontal dimension represents the effective dates of the tier selections, where the vertical dimension
     * represents when these tier selections were known
     */
   private val customerTiers0: Map[CustomerId, Data.In2D[Tier, LocalDate, LocalDate]] =
@@ -28,7 +28,7 @@ object BillingIn2D extends Billing:
     * @param customerTiers
     *   history of customer tier assignments (with two dimensions of time)
     * @param priorCycle
-    *   prior billing cycle
+    *   the prior billing cycle
     * @param index
     *   billing cycle index (for logging)
     * @return

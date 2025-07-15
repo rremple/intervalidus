@@ -4,7 +4,7 @@ import java.time.LocalDate
 
 /**
   * A rule can be applied to a fact with a boolean result (i.e., in the language of predicate logic, rules are
-  * predicates, facts are subjects, and the applications of rules to facts are propositions). Rules can be combined
+  * predicates, facts are constants, and the application of facts to a rule is a proposition). Rules can be combined
   * through conjunction, disjunction, and negation.
   */
 sealed trait Rule:
@@ -32,16 +32,18 @@ case object WildcardRule extends Rule:
   override def apply(f: Fact): Boolean = true
 
 /**
-  * Ways one attribute's value can be compared to another. Not all attribute rule types support all match types, e.g.,
-  * only StringRules support Contains.
+  * How one attribute's value can be compared to another. Not all attribute rule types support all match types, e.g.,
+  * only StringRule support Contains.
   */
 enum MatchType:
   case Equals, GreaterThan, LessThan, Contains
 
   /**
-    * Provides a way to define attribute rules in an even less verbose way. For example `Equals(Attribute("myInt", 10))`
-    * is equivalent to `IntRule(Equals, IntAttribute("myInt", 10))`, interpreted as `myInt == 10` when applying the rule
-    * to a fact.
+    * Provides a way to define attribute rules in an even less verbose way.
+    *
+    * For example, `Equals(Attribute("myInt", 10))` is equivalent to `IntRule(Equals, IntAttribute("myInt", 10))`,
+    * interpreted as `myInt == 10` when applying the rule to a fact.
+    *
     * @param anyAttribute
     *   attribute to match, some specific subtype of `Attribute[?]`
     * @return
@@ -50,8 +52,10 @@ enum MatchType:
   transparent inline def apply(anyAttribute: Any): Any = AttributeRule(this, anyAttribute)
 
   /**
-    * Provides a way to define attribute rules in a less verbose way. For example `Equals("myInt", 10)` is equivalent to
-    * `IntRule(Equals, IntAttribute("myInt", 10))`, interpreted as `myInt == 10` when applying the rule to a fact.
+    * Provides a way to define attribute rules in a less verbose way.
+    *
+    * For example, `Equals("myInt", 10)` is equivalent to `IntRule(Equals, IntAttribute("myInt", 10))`, interpreted as
+    * `myInt == 10` when applying the rule to a fact.
     *
     * @param name
     *   attribute name to match

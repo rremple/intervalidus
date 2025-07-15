@@ -64,8 +64,8 @@ case class ExcludeFilter(
     baseFilter(facts).filterNot(f => shouldExcludeFactIds.contains(f.id))
 
 /**
-  * Combines the result of a collection of filters. Facts that make it through any filter are included. Attributes are
-  * combined based on the merge style.
+  * Applies a collection of filters and combines the results. Facts that make it through any filter are included.
+  * Attributes are combined based on the merge style.
   */
 case class OrFilter(
   includeFilters: List[FactFilter],
@@ -76,8 +76,8 @@ case class OrFilter(
       Fact.mergeAll(priorFacts, filter(facts), mergeStyle)
 
 /**
-  * Combines the result of a collection of filters. Only facts that make it through all the filters are included. unlike
-  * [[OrFilter]], attributes are combined based strictly on how each include filter is defined.
+  * Applies a collection of filters and combines the results. Only facts that make it through all the filters are
+  * included. Unlike [[OrFilter]], attributes are combined based strictly on how each filter is defined.
   */
 case class AndFilter(
   includeFilters: List[FactFilter]

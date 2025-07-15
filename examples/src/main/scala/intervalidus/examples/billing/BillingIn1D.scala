@@ -15,7 +15,7 @@ object BillingIn1D extends Billing:
   import Month.*
 
   /**
-    * The dimension represents the effective dates of the tiers selections
+    * The dimension represents the effective dates of the tier selections
     */
   private val customerTiers0: Map[CustomerId, Data.In1D[Tier, LocalDate]] = Map.empty.withDefaultValue(Data())
 
@@ -28,7 +28,7 @@ object BillingIn1D extends Billing:
     * @param newCustomerTiers
     *   tier assignments for this billing cycle for all customers
     * @param priorCycle
-    *   prior billing cycle
+    *   the prior billing cycle
     * @param index
     *   billing cycle index (for logging)
     * @return

@@ -61,7 +61,7 @@ class FactFilterTest extends AnyFunSuite with Matchers:
       fact4Mod
     )
 
-    val orFilter = (filter1Redact or filter2Aug)
+    val orFilter = filter1Redact or filter2Aug
     val orFilterAlt = OrFilter(List(filter1Redact, filter2Aug))
     orFilter shouldBe orFilterAlt
 
