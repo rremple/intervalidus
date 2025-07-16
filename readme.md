@@ -512,7 +512,7 @@ for each dimension supported.) The following (rather unorthodox) diagram shows w
 kind of Venn-like way, where overlaps indicate a definition (and documentation) is in the lower trait with the
 implementation in the higher, inheriting trait/class:
 
-![trait stack diagram](/doc/intervalidus-trait-stack.svg)
+![core trait stack diagram](/doc/intervalidus-trait-stack.svg)
 
 ## Internals and extras
 
@@ -547,7 +547,12 @@ Although the custom multimap and box search tree data structures were built for 
 the Intervalidus context. As described above, there are both immutable and mutable variants of each data structure, as
 shown in the following diagram:
 
-![box search tree and multimap diagram](/doc/intervalidus-box-tree-multimap.svg)
+![box tree and multimap diagram](/doc/intervalidus-box-tree-multimap.svg)
+
+Again, looking at method definition/implementation in a Venn-like way, here's the full API for a `BoxTree` and related
+objects:
+
+![box tree trait stack diagram](/doc/intervalidus-trait-stack-box-tree.svg)
 
 Note that box search trees are tunable via environment variables.
 
