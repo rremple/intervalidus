@@ -1,8 +1,8 @@
 package intervalidus.collection
 
 /**
-  * Represents a box in multidimensional double space. It could be used as a bounding box that defines the region of a
-  * tree node, or it could be used as a valid region associated with data.
+  * Represents a box in multidimensional double space. It could be used as a bounding box that defines the boundary of a
+  * tree node, or it could be used as a valid region associated with some payload.
   *
   * @param minPoint
   *   Coordinate of the minimum corner (left/lower/back/etc., depending on dimension)
