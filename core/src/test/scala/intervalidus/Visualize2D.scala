@@ -13,12 +13,10 @@ object Visualize2D:
 
   // compatibility with old fixed Interval2D by using pattern match extractors
   extension [R1: DomainValueLike, R2: DomainValueLike](interval: Interval.In2D[R1, R2])
-    @nowarn("msg=match may not be exhaustive")
     def horizontal: Interval1D[R1] = interval match
-      case horizontal :+|: _ => horizontal
-    @nowarn("msg=match may not be exhaustive")
+      case horizontal x_: _ => horizontal
     def vertical: Interval1D[R2] = interval match
-      case _ :+|: vertical => vertical
+      case _ x_: vertical => vertical
 
   def apply[V, R1: DomainValueLike, R2: DomainValueLike](
     validData: Iterable[ValidData.In2D[V, R1, R2]],

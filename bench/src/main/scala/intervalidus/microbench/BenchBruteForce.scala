@@ -84,13 +84,13 @@ object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature
   private def removeIntervals2D(
     dataIntervals: Vector[Interval.In2D[Int, Int]]
   ): Vector[Interval.In2D[Int, Int]] = dataIntervals.collect:
-    case horizontal :+|: vertical =>
+    case horizontal x_: vertical =>
       randSubinterval(horizontal) x randSubinterval(vertical)
 
   private def removeIntervals3D(
     dataIntervals: Vector[Interval.In3D[Int, Int, Int]]
   ): Vector[Interval.In3D[Int, Int, Int]] = dataIntervals.collect:
-    case horizontal :+: vertical :+|: depth =>
+    case horizontal x_: vertical x_: depth =>
       randSubinterval(horizontal) x randSubinterval(vertical) x randSubinterval(depth)
 
   lazy val testIntervalsIn2d100x1k = removeIntervals2D(baselineMutable2d100x1k.getAll.map(_.interval).toVector)

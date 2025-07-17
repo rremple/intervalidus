@@ -207,13 +207,13 @@ The two main differences are:
 (How discrete and continuous domain values differ in behavior is discussed later.)
 
 These notational differences are carried in the representation of the horizontal dimension too. For example, if we flip
-the horizontal and vertical dimensions (using a pattern matching) and print the result:
+the horizontal and vertical dimensions (using pattern matching) and print the result:
 
 ```scala 3
 import intervalidus.Interval.Patterns.*
 
 val plan2dFlip = plan2d.mapIntervals:
-  case horizontal :+|: vertical => vertical x horizontal
+  case horizontal x_: vertical => vertical x horizontal
 println(plan2dFlip)
 ```
 

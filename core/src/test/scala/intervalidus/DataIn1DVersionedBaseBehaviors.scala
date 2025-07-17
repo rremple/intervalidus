@@ -26,8 +26,7 @@ trait DataIn1DVersionedBaseBehaviors:
     validTime -> s
 
   def horizontal[H: DomainValueLike](interval: Interval[Versioned[Domain.In1D[H]]]): Interval1D[H] = interval match
-    case _ :+|: horizontal => horizontal
-    case _                 => throw Exception(s"Expected versioned one-dimensional interval, got $interval")
+    case _ x_: horizontal => horizontal
 
   protected def testDataIn2D[T](
     current: Domain1D[Int],

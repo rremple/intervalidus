@@ -16,7 +16,6 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
 
   import Interval1D.*
   import Interval.Patterns.*
-  import ValidData.Patterns.*
 
   // shared
   testsFor(stringLookupTests("Mutable", Data(_), Data.of(_)))
@@ -155,10 +154,9 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     )
 
     extension (d: Data[String, Dim[LocalDate, Int]])
-      @nowarn("msg=match may not be exhaustive")
       def flipEverything: Data[String, Dim[Int, LocalDate]] =
         val flippedValidData = d.getAll.map:
-          case (horizontal :+|: vertical) :->: v => (vertical x horizontal) -> v.reverse
+          case (horizontal x_: vertical) ->: v => (vertical x horizontal) -> v.reverse
         Data(flippedValidData)
 
     val fixture1 = Data(allData)

@@ -208,7 +208,7 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
 
   // Extract public valid data from underlying data
   protected def publicValidData(data: ValidData[V, Versioned[D]]): ValidData[V, D] =
-    data.interval.tailInterval[D] -> data.value
+    data.interval.tailInterval -> data.value
 
   // special handling of versioned data because the public head is in dimension two.
   protected def getByHeadIndexData[H: DomainValueLike](headIndex: Domain1D[H])(using
@@ -217,10 +217,10 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     DomainLike[Versioned[NonEmptyTail[D]]]
   ): Iterable[ValidData[V, Versioned[NonEmptyTail[D]]]] =
     underlying.getAll
-      .filter(_.interval.tailInterval[D].headInterval1D[H] contains headIndex)
+      .filter(_.interval.tailInterval.headInterval1D[H] contains headIndex)
       .map: data =>
         val versionInterval = data.interval.headInterval1D[VersionDomainValue]
-        val tailInterval = data.interval.tailInterval[D].tailInterval[NonEmptyTail[D]]
+        val tailInterval: Interval[NonEmptyTail[D]] = data.interval.tailInterval.tailInterval
         (tailInterval withHead versionInterval) -> data.value
 
   // Special version at which we place (or delete) unapproved stuff (fixed)

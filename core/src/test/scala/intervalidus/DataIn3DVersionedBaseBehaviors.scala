@@ -8,6 +8,7 @@ import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
 import java.time.LocalDate
+import scala.annotation.nowarn
 import scala.language.implicitConversions
 
 /*
@@ -25,9 +26,8 @@ trait DataIn3DVersionedBaseBehaviors:
 
   def horizontal[H: DomainValueLike, V: DomainValueLike, D: DomainValueLike](
     interval: Interval[Versioned[Domain.In3D[H, V, D]]]
-  ): Interval1D[H] = interval match
-    case _ :+: horizontal :+: _ :+|: _ => horizontal
-    case _ => throw Exception(s"Expected versioned three-dimensional interval, got $interval")
+  ): Interval1D[H] = (interval: @nowarn("msg=match may not be exhaustive")) match
+    case _ x_: horizontal x_: _ x_: _ => horizontal
 
   protected def testDataIn4D[T](
     current: Domain1D[Int],

@@ -305,16 +305,13 @@ case class Interval[D <: NonEmptyTuple](
   /**
     * For an n-dimensional interval where n > 1, extracts the tail interval of n-1 dimensions.
     *
-    * @tparam T
-    *   the domain type of the tail element. There are type safety checks ensuring it is in fact the tail, and that it
-    *   is not empty.
+    * There is a type safety check that ensures the tail forms a valid interval.
+    *
     * @return
     *   the tail interval of n-1 dimensions.
     */
-  def tailInterval[T <: NonEmptyTuple: DomainLike](using
-    T =:= NonEmptyTail[D]
-  ): Interval[T] =
-    Interval(start.tail.asInstanceOf[T], end.tail.asInstanceOf[T])
+  def tailInterval(using DomainLike[NonEmptyTail[D]]): Interval[NonEmptyTail[D]] =
+    Interval(start.tail.asInstanceOf[NonEmptyTail[D]], end.tail.asInstanceOf[NonEmptyTail[D]])
 
   /**
     * Returns a new interval with an updated head interval and the other dimensions unchanged.
@@ -475,42 +472,58 @@ object Interval:
   import DomainLike.given
 
   object Patterns:
-    /**
-      * Decomposes a multidimensional interval by extracting its constituent head 1D interval and remaining tail
-      * interval. It is essentially the inverse of `Interval.withHead`. Useful when chaining a match on a fixed number
-      * of dimensions, where this pattern is used in all but the last place, e.g.,
-      * {{{
-      *   dataIntervals.collect:
-      *     case horizontal :+: vertical :+: depth :+|: fourth =>
-      *       randSubinterval(horizontal) x randSubinterval(vertical) x randSubinterval(depth) x randSubinterval(fourth)
-      * }}}
-      */
-    object :+: {
+
+    object x_: {
+
+      /**
+        * Decomposes a multidimensional interval by extracting its constituent head 1D interval and remaining tail
+        * interval. It is essentially the inverse of `Interval.x`. Useful when chaining a match on a fixed number of
+        * dimensions, where this pattern will match in all but the last position, e.g.,
+        * {{{
+        *   dataIntervals.collect:
+        *     case horizontal x_: vertical x_: depth =>
+        *       randSubinterval(horizontal) x randSubinterval(vertical) x randSubinterval(depth)
+        * }}}
+        */
       def unapply[D <: NonEmptyTuple, H](i: Interval[D])(using
         Tuple.Head[D] =:= Domain1D[H],
         Tuple.Tail[D] =:= NonEmptyTail[D],
         DomainLike[NonEmptyTail[D]],
         DomainValueLike[H]
-      ): Option[(Interval1D[H], Interval[NonEmptyTail[D]])] =
-        Some((Interval1D(i.start.head, i.end.head), Interval(i.start.tail, i.end.tail)))
+      ): (Interval1D[H], Interval[NonEmptyTail[D]]) =
+        (Interval1D(i.start.head, i.end.head), Interval(i.start.tail, i.end.tail))
+
+      /**
+        * Specific to a two-dimensional interval, decomposes it by extracting its two constituent 1D intervals. It is
+        * essentially the inverse of `Interval1D.x`. Useful when chaining a match on a fixed number of dimensions, where
+        * this pattern will match in the last position, e.g.,
+        * {{{
+        *   dataIntervals.collect:
+        *     case horizontal x_: vertical x_: depth =>
+        *       randSubinterval(horizontal) x randSubinterval(vertical) x randSubinterval(depth)
+        * }}}
+        */
+      def unapply[H1: DomainValueLike, H2: DomainValueLike](
+        i: Interval.In2D[H1, H2]
+      ): (Interval1D[H1], Interval1D[H2]) =
+        (i.start, i.end) match
+          case ((s1, s2), (e1, e2)) => (Interval1D(s1, e1), Interval1D(s2, e2))
     }
 
-    /**
-      * Specific to a two-dimensional interval, decomposes it by extracting its two constituent 1D intervals. It is
-      * essentially the inverse of `Interval1D.withHead`. Useful when chaining a match on a fixed number of dimensions,
-      * where this pattern is used in the last place, e.g.,
-      * {{{
-      *   dataIntervals.collect:
-      *     case horizontal :+: vertical :+: depth :+|: fourth =>
-      *       randSubinterval(horizontal) x randSubinterval(vertical) x randSubinterval(depth) x randSubinterval(fourth)
-      * }}}
-      */
-    object :+|: {
-      def unapply[H1: DomainValueLike, H2: DomainValueLike, D <: Domain.In2D[H1, H2]](
-        i: Interval[D]
-      ): Option[(Interval1D[H1], Interval1D[H2])] =
-        (i.start, i.end) match
-          case ((s1, s2), (e1, e2)) => Some((Interval1D(s1, e1), Interval1D(s2, e2)))
+    object ->: {
+
+      /**
+        * Decomposes valid data by extracting its constituent value and interval. It is essentially the inverse of
+        * `Interval.->`. Useful when matching a valid value in an interval of a fixed number of dimensions, e.g.,
+        * {{{
+        *   validData.collect:
+        *     case (horizontal x_: vertical) ->: value =>
+        *       (vertical x horizontal) -> s"$value (flipped)"
+        * }}}
+        */
+      def unapply[V, D <: NonEmptyTuple: DomainLike](
+        data: ValidData[V, D]
+      ): (Interval[D], V) = (data.interval, data.value)
     }
 
   // used in return type of excluding

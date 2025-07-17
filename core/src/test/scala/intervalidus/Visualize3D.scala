@@ -17,15 +17,12 @@ object Visualize3D:
 
   // compatibility with old fixed Interval3D by using pattern match extractors
   extension [R1: DomainValueLike, R2: DomainValueLike, R3: DomainValueLike](interval: Interval.In3D[R1, R2, R3])
-    @nowarn("msg=match may not be exhaustive")
-    def horizontal: Interval1D[R1] = interval match
-      case horizontal :+: _ :+|: _ => horizontal
-    @nowarn("msg=match may not be exhaustive")
-    def vertical: Interval1D[R2] = interval match
-      case _ :+: vertical :+|: _ => vertical
-    @nowarn("msg=match may not be exhaustive")
-    def depth: Interval1D[R3] = interval match
-      case _ :+: _ :+|: depth => depth
+    def horizontal: Interval1D[R1] = (interval: @nowarn("msg=match may not be exhaustive")) match
+      case horizontal x_: _ x_: _ => horizontal
+    def vertical: Interval1D[R2] = (interval: @nowarn("msg=match may not be exhaustive")) match
+      case _ x_: vertical x_: _ => vertical
+    def depth: Interval1D[R3] = (interval: @nowarn("msg=match may not be exhaustive")) match
+      case _ x_: _ x_: depth => depth
 
   private val webRootDirPath = Paths.get("core", "vis3d")
   private val port = 8080
@@ -53,9 +50,9 @@ object Visualize3D:
         StandardCharsets.UTF_8
       )
 
-      @nowarn("msg=match may not be exhaustive")
-      def domainToJson[D <: NonEmptyTuple: DomainLike](d: D): String = d match
-        case x *: y *: z *: EmptyTuple => s"""["$x","$y","$z"]"""
+      def domainToJson[D <: NonEmptyTuple: DomainLike](d: D): String =
+        (d: @nowarn("msg=match may not be exhaustive")) match
+          case x *: y *: z *: EmptyTuple => s"""["$x","$y","$z"]"""
 
       val dataParameters = validData.map: d =>
         val (text1Param, text2Param) = (d.value.toString, d.interval.toString)

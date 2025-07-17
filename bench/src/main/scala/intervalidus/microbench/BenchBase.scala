@@ -8,6 +8,7 @@ import intervalidus.Interval1D.interval
 import org.openjdk.jmh.annotations.*
 
 import java.util.concurrent.TimeUnit
+import scala.annotation.nowarn
 import scala.language.implicitConversions
 import scala.math.Ordering.Implicits.infixOrderingOps
 import scala.util.Random
@@ -65,14 +66,12 @@ trait BenchBase(baselineFeature: Option[String], featuredFeature: Option[String]
 
   def randValue2dWithKey(existing: ValidData.In2D[String, Int, Int]): ValidData.In2D[String, Int, Int] =
     val newInterval = existing.interval match
-      case horizontal :+|: vertical => shorten(horizontal) x shorten(vertical)
-      case _                        => throw Exception(s"Unexpected interval: ${existing.interval}")
+      case horizontal x_: vertical => shorten(horizontal) x shorten(vertical)
     newInterval -> newInterval.toString
 
   def randValue3dWithKey(existing: ValidData.In3D[String, Int, Int, Int]): ValidData.In3D[String, Int, Int, Int] =
-    val newInterval = existing.interval match
-      case horizontal :+: vertical :+|: depth => shorten(horizontal) x shorten(vertical) x shorten(depth)
-      case _                                  => throw Exception(s"Unexpected interval: ${existing.interval}")
+    val newInterval = (existing.interval: @nowarn("msg=match may not be exhaustive")) match
+      case horizontal x_: vertical x_: depth => shorten(horizontal) x shorten(vertical) x shorten(depth)
     newInterval -> newInterval.toString
 
   // faster to construct disjoint valid data ranges using mutable data structures

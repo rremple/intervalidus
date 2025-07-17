@@ -398,7 +398,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
       .deduplicate(dataInSearchTree.get(lookup.asBox))
       .collect:
         case BoxedPayload(_, ValidData(value, interval), _) if interval intersects lookup =>
-          interval.tailInterval[NonEmptyTail[D]] -> value
+          interval.tailInterval -> value
 
   // ---------- API methods implemented here ----------
 

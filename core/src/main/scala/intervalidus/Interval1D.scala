@@ -283,8 +283,7 @@ case class Interval1D[T](
           s".atTime(${d.getHour},${d.getMinute},${d.getSecond},${d.getNano})"
       case _ => value.toString
 
-    @nowarn("msg=match may not be exhaustive")
-    def boundCode(bound: Domain1D[T]): String = bound match
+    def boundCode(bound: Domain1D[T]): String = (bound: @nowarn("msg=match may not be exhaustive")) match
       case OpenPoint(s) => s"open(${valueCode(s)})"
       case Point(s)     => s"${valueCode(s)}"
 
