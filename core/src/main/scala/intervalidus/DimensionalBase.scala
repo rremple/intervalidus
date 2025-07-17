@@ -390,7 +390,9 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   a collection of valid data representing the lower-dimensional (n-1) projection
     */
   protected def getByHeadIndexData[H: DomainValueLike](headIndex: Domain1D[H])(using
-    D =:= Domain1D[H] *: Tuple.Tail[D],
+    Tuple.Head[D] =:= Domain1D[H],
+    Tuple.Tail[D] =:= NonEmptyTail[D],
+    Domain1D[H] *: Tuple.Tail[D] =:= D,
     DomainLike[NonEmptyTail[D]]
   ): Iterable[ValidData[V, NonEmptyTail[D]]] =
     val lookup = Interval.unbounded[D].withHeadUpdate[H](_ => Interval1D.intervalAt(headIndex))
@@ -661,7 +663,9 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   a lower-dimensional (n-1) projection
     */
   def getByHeadIndex[H: DomainValueLike](headIndex: Domain1D[H])(using
-    D =:= Domain1D[H] *: Tuple.Tail[D],
+    Tuple.Head[D] =:= Domain1D[H],
+    Tuple.Tail[D] =:= NonEmptyTail[D],
+    Domain1D[H] *: Tuple.Tail[D] =:= D,
     DomainLike[NonEmptyTail[D]]
   ): DimensionalBase[V, NonEmptyTail[D]]
 

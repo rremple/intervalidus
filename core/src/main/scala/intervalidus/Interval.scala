@@ -292,42 +292,45 @@ case class Interval[D <: NonEmptyTuple](
     * Extract the one-dimensional head interval.
     *
     * @tparam H
-    *   the domain value type of the head element. There is a type safety check that ensures the head start and end are
-    *   of type `Domain1D[H]`.
+    *   the domain value type of the head element. There is a type safety check that ensures the head domain type is
+    *   `Domain1D[H]`.
     * @return
     *   the one-dimensional head interval.
     */
   def headInterval1D[H: DomainValueLike](using
-    Domain1D[H] =:= Tuple.Head[D]
+    Tuple.Head[D] =:= Domain1D[H]
   ): Interval1D[H] =
-    Interval1D(start.head.asInstanceOf[Domain1D[H]], end.head.asInstanceOf[Domain1D[H]])
+    Interval1D(start.head, end.head)
 
   /**
     * For an n-dimensional interval where n > 1, extracts the tail interval of n-1 dimensions.
     *
-    * There is a type safety check that ensures the tail forms a valid interval.
+    * There are type safety checks that ensure this is not a one-dimensional interval and that the tail forms a valid
+    * interval.
     *
     * @return
     *   the tail interval of n-1 dimensions.
     */
-  def tailInterval(using DomainLike[NonEmptyTail[D]]): Interval[NonEmptyTail[D]] =
-    Interval(start.tail.asInstanceOf[NonEmptyTail[D]], end.tail.asInstanceOf[NonEmptyTail[D]])
+  def tailInterval(using
+    Tuple.Tail[D] =:= NonEmptyTail[D],
+    DomainLike[NonEmptyTail[D]]
+  ): Interval[NonEmptyTail[D]] = Interval(start.tail, end.tail)
 
   /**
     * Returns a new interval with an updated head interval and the other dimensions unchanged.
     *
+    * @tparam H
+    *   the domain value type of the head element. There are type safety checks that ensure the head domain type is
+    *   `Domain1D[H]` and that it can be prepended to the tail to form the original domain.
     * @param update
     *   function to apply to this head interval, used in the head dimension of the returned interval.
     */
   def withHeadUpdate[H: DomainValueLike](update: Interval1D[H] => Interval1D[H])(using
-    D =:= Domain1D[H] *: Tuple.Tail[D]
+    Tuple.Head[D] =:= Domain1D[H],
+    Domain1D[H] *: Tuple.Tail[D] =:= D
   ): Interval[D] =
-    type ExpandedDomain = Domain1D[H] *: Tuple.Tail[D] // safe cast to avoid unchecked warnings
-    // Note that both startTail and endTail will be an EmptyTuple if D is one-dimensional
-    (start: ExpandedDomain, end: ExpandedDomain) match
-      case ((startHead: Domain1D[H]) *: startTail, (endHead: Domain1D[H]) *: endTail) =>
-        val updatedHead = update(Interval1D(startHead, endHead))
-        Interval((updatedHead.start *: startTail).asInstanceOf[D], (updatedHead.end *: endTail).asInstanceOf[D])
+    val updatedHead = update(headInterval1D[H])
+    Interval(updatedHead.start *: start.tail, updatedHead.end *: end.tail)
 
   /**
     * Tests if this interval contains a specific element of the domain.

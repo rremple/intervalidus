@@ -169,7 +169,9 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] protected (
     Data(zipAllData(that, thisDefault, thatDefault))
 
   override def getByHeadIndex[H: DomainValueLike](headIndex: Domain1D[H])(using
-    D =:= Domain1D[H] *: Tuple.Tail[D],
+    Tuple.Head[D] =:= Domain1D[H],
+    Tuple.Tail[D] =:= NonEmptyTail[D],
+    Domain1D[H] *: Tuple.Tail[D] =:= D,
     DomainLike[NonEmptyTail[D]]
   ): DataMulti[V, NonEmptyTail[D]] =
     DataMulti(getByHeadIndexData(headIndex))

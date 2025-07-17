@@ -212,7 +212,9 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
 
   // special handling of versioned data because the public head is in dimension two.
   protected def getByHeadIndexData[H: DomainValueLike](headIndex: Domain1D[H])(using
-    Domain1D[H] =:= Tuple.Head[D],
+    Tuple.Head[D] =:= Domain1D[H],
+    Tuple.Tail[D] =:= NonEmptyTail[D],
+    Domain1D[H] *: Tuple.Tail[D] =:= D,
     DomainLike[NonEmptyTail[D]],
     DomainLike[Versioned[NonEmptyTail[D]]]
   ): Iterable[ValidData[V, Versioned[NonEmptyTail[D]]]] =
@@ -492,7 +494,9 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     *   a lower-dimensional (n-1) projection
     */
   def getByHeadIndex[H: DomainValueLike](headIndex: Domain1D[H])(using
-    Domain1D[H] =:= Tuple.Head[D],
+    Tuple.Head[D] =:= Domain1D[H],
+    Tuple.Tail[D] =:= NonEmptyTail[D],
+    Domain1D[H] *: Tuple.Tail[D] =:= D,
     DomainLike[NonEmptyTail[D]],
     DomainLike[Versioned[NonEmptyTail[D]]]
   ): DimensionalVersionedBase[V, NonEmptyTail[D]]
