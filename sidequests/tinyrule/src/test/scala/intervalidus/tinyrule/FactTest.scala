@@ -7,6 +7,7 @@ import java.time.LocalDate
 
 class FactTest extends AnyFunSuite with Matchers:
 
+  import Attribute.*
   // all supported types and sets of types
   case class BigStuff(
     myBoolean: Boolean,
@@ -49,29 +50,29 @@ class FactTest extends AnyFunSuite with Matchers:
         Set(today, tomorrow)
       )
     val expectedAttributes1 = Set(
-      Attribute("myBoolean", true),
-      Attribute("myInt", 1),
-      Attribute("myString", "hello"),
-      Attribute("myDouble", 1.5),
-      Attribute("myDate", today),
-      Attribute("maybeBoolean", true),
-      Attribute("maybeInt", 1),
-      Attribute("maybeString", "hello"),
-      Attribute("maybeDouble", 1.5),
-      Attribute("maybeDate", today),
-      Attribute("myBooleans", true),
-      Attribute("myBooleans", false),
-      Attribute("myBooleans", true),
-      Attribute("myBooleans", false),
-      Attribute("myInts", 1),
-      Attribute("myInts", 2),
-      Attribute("myInts", 3),
-      Attribute("myStrings", "hello"),
-      Attribute("myStrings", "world"),
-      Attribute("myDoubles", 1.5),
-      Attribute("myDoubles", 1.6),
-      Attribute("myDates", today),
-      Attribute("myDates", tomorrow)
+      "myBoolean" is true,
+      "myInt" is 1,
+      "myString" is "hello",
+      "myDouble" is 1.5,
+      "myDate" is today,
+      "maybeBoolean" is true,
+      "maybeInt" is 1,
+      "maybeString" is "hello",
+      "maybeDouble" is 1.5,
+      "maybeDate" is today,
+      "myBooleans" is true,
+      "myBooleans" is false,
+      "myBooleans" is true,
+      "myBooleans" is false,
+      "myInts" is 1,
+      "myInts" is 2,
+      "myInts" is 3,
+      "myStrings" is "hello",
+      "myStrings" is "world",
+      "myDoubles" is 1.5,
+      "myDoubles" is 1.6,
+      "myDates" is today,
+      "myDates" is tomorrow
     )
     val fact1 = Fact.from(test1)
     fact1.attributes shouldBe expectedAttributes1
@@ -98,11 +99,11 @@ class FactTest extends AnyFunSuite with Matchers:
         Set.empty
       )
     val expectedAttributes2 = Set(
-      Attribute("myBoolean", true),
-      Attribute("myInt", 1),
-      Attribute("myString", "hello"),
-      Attribute("myDouble", 1.5),
-      Attribute("myDate", today)
+      "myBoolean" is true,
+      "myInt" is 1,
+      "myString" is "hello",
+      "myDouble" is 1.5,
+      "myDate" is today
     )
     val fact2 = Fact.from(test2)
     fact2.attributes shouldBe expectedAttributes2
@@ -114,51 +115,51 @@ class FactTest extends AnyFunSuite with Matchers:
 
   test("Basic operations"):
     val today = LocalDate.now()
-    val fact1 = Fact("fact1", Attribute("greeting", "hello world"), Attribute("formal", false))
+    val fact1 = Fact("fact1", "greeting" is "hello world", "formal" is false)
     fact1.id shouldBe "fact1"
     fact1.withId shouldBe ("fact1", fact1)
     fact1.attributes shouldBe Set(
-      StringAttribute("greeting", "hello world"),
-      BooleanAttribute("formal", false)
+      "greeting" is "hello world",
+      "formal" is false
     )
-    (fact1 - "greeting").attributes shouldBe Set(BooleanAttribute("formal", false))
-    (fact1 + Attribute("informal", true)).attributes shouldBe Set(
-      StringAttribute("greeting", "hello world"),
-      BooleanAttribute("formal", false),
-      BooleanAttribute("informal", true)
+    (fact1 - "greeting").attributes shouldBe Set("formal" is false)
+    (fact1 + ("informal" is true)).attributes shouldBe Set(
+      "greeting" is "hello world",
+      "formal" is false,
+      "informal" is true
     )
     fact1.toString shouldBe
       """Fact fact1, attributes:
         | - greeting -> hello world,
         | - formal -> false
         |""".stripMargin.replaceAll("\r", "")
-    val fact2 = Fact("fact2", Attribute("greeting", "Hola Mundo"), Attribute("updated", today))
+    val fact2 = Fact("fact2", ("greeting" is "Hola Mundo"), ("updated" is today))
     fact1.merge(fact2).attributes shouldBe Set(
-      StringAttribute("greeting", "hello world"),
-      StringAttribute("greeting", "Hola Mundo"),
-      BooleanAttribute("formal", false),
-      DateAttribute("updated", today)
+      "greeting" is "hello world",
+      "greeting" is "Hola Mundo",
+      "formal" is false,
+      "updated" is today
     )
 
     fact1.merge(fact2, FactMergeStyle.WhenAbsent).attributes shouldBe Set(
-      StringAttribute("greeting", "hello world"),
-      BooleanAttribute("formal", false),
-      DateAttribute("updated", today)
+      "greeting" is "hello world",
+      "formal" is false,
+      "updated" is today
     )
     fact1.merge(fact2, FactMergeStyle.AsReplacement).attributes shouldBe Set(
-      StringAttribute("greeting", "Hola Mundo"),
-      BooleanAttribute("formal", false),
-      DateAttribute("updated", today)
+      "greeting" is "Hola Mundo",
+      "formal" is false,
+      "updated" is today
     )
 
-    val fact2rhs = Fact("fact2", Attribute("greeting", "HELLO AGAIN"))
-    val fact3rhs = Fact("fact3", Attribute("sad", true))
+    val fact2rhs = Fact("fact2", "greeting" is "HELLO AGAIN")
+    val fact3rhs = Fact("fact3", "sad" is true)
 
     val mergedFacts = Fact.mergeAll(Set(fact1, fact2), Set(fact2rhs, fact3rhs))
     mergedFacts.filter(_.id == "fact1") shouldBe Set(fact1) // lhs only
     mergedFacts.filter(_.id == "fact3") shouldBe Set(fact3rhs) // rhs only
     mergedFacts.filter(_.id == "fact2").flatMap(_.attributes) shouldBe Set( // actually merged
-      StringAttribute("greeting", "Hola Mundo"),
-      StringAttribute("greeting", "HELLO AGAIN"),
-      DateAttribute("updated", today)
+      "greeting" is "Hola Mundo",
+      "greeting" is "HELLO AGAIN",
+      "updated" is today
     )

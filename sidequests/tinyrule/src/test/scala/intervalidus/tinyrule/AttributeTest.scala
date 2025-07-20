@@ -6,18 +6,19 @@ import org.scalatest.matchers.should.Matchers
 import java.time.LocalDate
 
 class AttributeTest extends AnyFunSuite with Matchers:
+  import Attribute.*
 
   test("Constructing"):
-    val stringAttribute = Attribute("name", "hello world")
-    assert(stringAttribute.isInstanceOf[StringAttribute])
+    val stringAttribute = "name" is "hello world"
+    assert(stringAttribute.isInstanceOf[Attribute[String]])
     stringAttribute.name shouldBe "name"
     stringAttribute.value shouldBe "hello world"
 
-    assert(Attribute("name", true).isInstanceOf[BooleanAttribute])
-    assert(Attribute("name", 1).isInstanceOf[IntAttribute])
-    assert(Attribute("name", 1.5).isInstanceOf[DoubleAttribute])
-    assert(Attribute("name", LocalDate.now()).isInstanceOf[DateAttribute])
+    assert(("name" is true).isInstanceOf[Attribute[Boolean]])
+    assert(("name" is 1).isInstanceOf[Attribute[Int]])
+    assert(("name" is 1.5).isInstanceOf[Attribute[Double]])
+    assert(("name" is LocalDate.now()).isInstanceOf[Attribute[LocalDate]])
 
-    val stringyAttribute = Attribute("name", BigInt(12345))
-    assert(stringyAttribute.isInstanceOf[StringAttribute]) // fallback
-    stringyAttribute.value shouldBe "12345"
+    // No given instance of type intervalidus.tinyrule.AttributeValueLike[BigInt] was found
+    // for a context parameter of method is in object Attribute
+    """val _ = "name" is BigInt(12345)""" shouldNot typeCheck

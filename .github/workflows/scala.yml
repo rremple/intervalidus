@@ -32,7 +32,8 @@ jobs:
         jvm: 17
         apps: sbt
     - name: Run checks
-      run: sbt scalafmtCheckAll mimaReportBinaryIssues tastyMiMaReportIssues
+      # for now (pre 1.0) # mimaReportBinaryIssues tastyMiMaReportIssues
+      run: sbt scalafmtCheckAll
     - name: Run tests
       run: sbt coverage test doc coverageReport coverageOff
       # Uploads information to the GitHub dependency graph, unblocking Dependabot alerts for the repository

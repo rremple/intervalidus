@@ -80,6 +80,7 @@ lazy val `intervalidus-upickle` = (project in file("json/upickle"))
   )
 
 lazy val `intervalidus-tinyrule` = (project in file("sidequests/tinyrule"))
+  .disablePlugins(MimaPlugin, TastyMiMaPlugin) // for now (pre 1.0)
   .settings(commonPublishSettings)
   .settings(
     name := "intervalidus-tinyrule"

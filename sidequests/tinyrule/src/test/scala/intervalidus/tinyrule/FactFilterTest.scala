@@ -5,12 +5,13 @@ import org.scalatest.matchers.should.Matchers
 
 class FactFilterTest extends AnyFunSuite with Matchers:
 
+  import Attribute.*
   import FactFilter.*
 
-  private val fact1 = Fact("fact1", Attribute("myInt", 0), Attribute("myDouble", 1.1))
-  private val fact2 = Fact("fact2", Attribute("myInt", 0), Attribute("myDouble", 1.5))
-  private val fact3 = Fact("fact3", Attribute("myInt", 1), Attribute("myDouble", 1.1))
-  private val fact4 = Fact("fact4", Attribute("myInt", 1), Attribute("myDouble", 1.5))
+  private val fact1 = Fact("fact1", "myInt" is 0, "myDouble" is 1.1)
+  private val fact2 = Fact("fact2", "myInt" is 0, "myDouble" is 1.5)
+  private val fact3 = Fact("fact3", "myInt" is 1, "myDouble" is 1.1)
+  private val fact4 = Fact("fact4", "myInt" is 1, "myDouble" is 1.5)
   private val facts = Set(fact1, fact2, fact3, fact4)
   private val filter1 = filter("myInt" attributeEquals 0) // fact 1 and 2
   private val filter2 = filter("myDouble" attributeGreaterThan 1.3) // fact 2 and 4
@@ -22,7 +23,7 @@ class FactFilterTest extends AnyFunSuite with Matchers:
     excludingFilter(facts) shouldBe Set(fact2)
 
   test("Augmenting and redacting filters"):
-    val greeting = Attribute("greeting", "hello world")
+    val greeting = "greeting" is "hello world"
     val augmentFilter = ("myInt" attributeEquals 0).augment(Fact("augments", greeting))
     val augmentFilterAlt = AugmentFilter("myInt" attributeEquals 0, Fact("augments", greeting))
     augmentFilter shouldBe augmentFilterAlt
@@ -32,7 +33,7 @@ class FactFilterTest extends AnyFunSuite with Matchers:
     val expected = Set(fact1 + greeting, fact2 + greeting - "myInt", fact3, fact4 - "myInt")
     redactFilter(newFacts) shouldBe expected
     (augmentFilter and redactFilter)(facts) shouldBe expected
-    val myInt10 = Attribute("myInt", 10)
+    val myInt10 = "myInt" is 10
     val augmentInt = Rule.always.augmentWhenAbsent(Fact("add myInt back", myInt10))
     val expectedInt = Set(fact1 + greeting, fact2 + greeting - "myInt" + myInt10, fact3, fact4 - "myInt" + myInt10)
     augmentInt(expected) shouldBe expectedInt
@@ -41,7 +42,7 @@ class FactFilterTest extends AnyFunSuite with Matchers:
     (filter1 and filter2)(facts) shouldBe Set(fact2)
 
     val filter1Redact = ("myInt" attributeEquals 0).redact("myDouble")
-    val myBiggerDouble = Attribute("myDouble", 1.7)
+    val myBiggerDouble = "myDouble" is 1.7
     val filter2Aug = ("myDouble" attributeGreaterThan 1.3).augmentAsReplacement(Fact("augments", myBiggerDouble))
 
     val fact1Mod = fact1 - "myDouble"

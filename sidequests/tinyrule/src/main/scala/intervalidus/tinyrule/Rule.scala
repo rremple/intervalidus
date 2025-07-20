@@ -41,7 +41,7 @@ enum MatchType:
   /**
     * Provides a way to define attribute rules in an even less verbose way.
     *
-    * For example, `Equals(Attribute("myInt", 10))` is equivalent to `IntRule(Equals, IntAttribute("myInt", 10))`,
+    * For example, `Equals(Attribute("myInt", 10))` is equivalent to `AttributeRule(Equals, Attribute("myInt", 10))`,
     * interpreted as `myInt == 10` when applying the rule to a fact.
     *
     * @param anyAttribute
@@ -49,13 +49,14 @@ enum MatchType:
     * @return
     *   a new attribute rule with a specific subtype of `AttributeRule[?]` based on the attribute type
     */
-  transparent inline def apply(anyAttribute: Any): Any = AttributeRule(this, anyAttribute)
+  def apply[T: AttributeValueLike](anyAttribute: Attribute[T]): AttributeRule[T] =
+    AttributeRule(this, anyAttribute)
 
   /**
     * Provides a way to define attribute rules in a less verbose way.
     *
-    * For example, `Equals("myInt", 10)` is equivalent to `IntRule(Equals, IntAttribute("myInt", 10))`, interpreted as
-    * `myInt == 10` when applying the rule to a fact.
+    * For example, `Equals("myInt", 10)` is equivalent to `AttributeRule(Equals, Attribute("myInt", 10))`, interpreted
+    * as `myInt == 10` when applying the rule to a fact.
     *
     * @param name
     *   attribute name to match
@@ -64,78 +65,31 @@ enum MatchType:
     * @return
     *   a new attribute rule with a specific subtype of `AttributeRule[?]` based on the attribute value type
     */
-  transparent inline def apply(name: String, anyValue: Any): Any = AttributeRule(this, Attribute(name, anyValue))
+  def apply[T: AttributeValueLike](name: String, anyValue: T): AttributeRule[T] =
+    AttributeRule(this, Attribute(name, anyValue))
 
 extension (name: String)
-  transparent inline def attributeEquals(anyValue: Any): Any = MatchType.Equals(name, anyValue)
-  transparent inline def attributeGreaterThan(anyValue: Any): Any = MatchType.GreaterThan(name, anyValue)
-  transparent inline def attributeLessThan(anyValue: Any): Any = MatchType.LessThan(name, anyValue)
-  transparent inline def attributeContains(anyValue: Any): Any = MatchType.Contains(name, anyValue)
+  def attributeEquals[T: AttributeValueLike](anyValue: T): AttributeRule[T] =
+    MatchType.Equals(name, anyValue)
+  def attributeGreaterThan[T: AttributeValueLike](anyValue: T): AttributeRule[T] =
+    MatchType.GreaterThan(name, anyValue)
+  def attributeLessThan[T: AttributeValueLike](anyValue: T): AttributeRule[T] =
+    MatchType.LessThan(name, anyValue)
+  def attributeContains[T: AttributeValueLike](anyValue: T): AttributeRule[T] =
+    MatchType.Contains(name, anyValue)
 
 /**
   * Some match attribute that is tested (based on the match type) against all of a fact's attributes
   * @tparam S
   *   match attribute type
   */
-sealed trait AttributeRule[S] extends Rule:
+case class AttributeRule[S](
+  matchType: MatchType,
+  matchAttribute: Attribute[S]
+)(using attributeValueLike: AttributeValueLike[S])
+  extends Rule:
+
   override def apply(f: Fact): Boolean = f.attributes.exists(apply)
 
   // match a single attribute
-  def apply(that: Attribute[?]): Boolean
-
-  def matchType: MatchType
-  def matchAttribute: Attribute[S]
-  protected def nameAndAttributeMatch(that: Attribute[?])(
-    attributeMatch: PartialFunction[Attribute[?], Boolean]
-  ): Boolean = that.name == matchAttribute.name && attributeMatch.applyOrElse(that, _ => false)
-
-object AttributeRule:
-  transparent inline def apply(matchType: MatchType, anyAttribute: Any): Any = inline anyAttribute match
-    case v: BooleanAttribute => BooleanRule(matchType, v)
-    case v: IntAttribute     => IntRule(matchType, v)
-    case v: DoubleAttribute  => DoubleRule(matchType, v)
-    case v: StringAttribute  => StringRule(matchType, v)
-    case v: DateAttribute    => DateRule(matchType, v)
-
-case class BooleanRule(matchType: MatchType, matchAttribute: BooleanAttribute) extends AttributeRule[Boolean]:
-  override def apply(that: Attribute[?]): Boolean = nameAndAttributeMatch(that):
-    case BooleanAttribute(_, thatValue) =>
-      matchType match
-        case MatchType.Equals => thatValue == matchAttribute.value
-        case _                => false
-
-case class IntRule(matchType: MatchType, matchAttribute: IntAttribute) extends AttributeRule[Int]:
-  override def apply(that: Attribute[?]): Boolean = nameAndAttributeMatch(that):
-    case IntAttribute(_, thatValue) =>
-      matchType match
-        case MatchType.Equals      => thatValue == matchAttribute.value
-        case MatchType.GreaterThan => thatValue > matchAttribute.value
-        case MatchType.LessThan    => thatValue < matchAttribute.value
-        case _                     => false
-
-case class DoubleRule(matchType: MatchType, matchAttribute: DoubleAttribute) extends AttributeRule[Double]:
-  override def apply(that: Attribute[?]): Boolean = nameAndAttributeMatch(that):
-    case DoubleAttribute(_, thatValue) =>
-      matchType match
-        case MatchType.Equals      => thatValue == matchAttribute.value
-        case MatchType.GreaterThan => thatValue > matchAttribute.value
-        case MatchType.LessThan    => thatValue < matchAttribute.value
-        case _                     => false
-
-case class StringRule(matchType: MatchType, matchAttribute: StringAttribute) extends AttributeRule[String]:
-  override def apply(that: Attribute[?]): Boolean = nameAndAttributeMatch(that):
-    case StringAttribute(_, thatValue) =>
-      matchType match
-        case MatchType.Equals      => thatValue == matchAttribute.value
-        case MatchType.GreaterThan => thatValue > matchAttribute.value
-        case MatchType.LessThan    => thatValue < matchAttribute.value
-        case MatchType.Contains    => thatValue.contains(matchAttribute.value)
-
-case class DateRule(matchType: MatchType, matchAttribute: DateAttribute) extends AttributeRule[LocalDate]:
-  override def apply(that: Attribute[?]): Boolean = nameAndAttributeMatch(that):
-    case DateAttribute(_, thatValue) =>
-      matchType match
-        case MatchType.Equals      => thatValue.isEqual(matchAttribute.value)
-        case MatchType.GreaterThan => thatValue.isAfter(matchAttribute.value)
-        case MatchType.LessThan    => thatValue.isBefore(matchAttribute.value)
-        case _                     => false
+  def apply(that: Attribute[?]): Boolean = attributeValueLike.matches(matchType, matchAttribute, that)

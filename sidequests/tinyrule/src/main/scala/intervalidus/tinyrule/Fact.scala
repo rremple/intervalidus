@@ -1,8 +1,7 @@
 package intervalidus.tinyrule
 
-import java.time.LocalDate
 import java.util.UUID
-import scala.compiletime.{constValueTuple, erasedValue}
+import scala.compiletime.{constValueTuple, erasedValue, summonFrom}
 
 import scala.deriving.Mirror
 
@@ -40,7 +39,7 @@ case class Fact(id: String, attributes: Set[Attribute[?]]):
     * @return
     *   a new fact with the same id and updated attributes
     */
-  def +(attribute: Attribute[?]): Fact = copy(attributes = attributes + attribute)
+  def +[T: AttributeValueLike](attribute: Attribute[T]): Fact = copy(attributes = attributes + attribute)
 
   /**
     * Remove an attribute from this fact.
@@ -158,15 +157,13 @@ object Fact:
     *   A collection of attributes representing the provided element.
     */
   private inline def attributesFromOneElement[T](elementName: String, elementValue: T): Iterable[Attribute[?]] =
-    inline elementValue match
-      case a: Boolean   => Seq(BooleanAttribute(elementName, a))
-      case a: Int       => Seq(IntAttribute(elementName, a))
-      case a: Double    => Seq(DoubleAttribute(elementName, a))
-      case a: String    => Seq(StringAttribute(elementName, a))
-      case a: LocalDate => Seq(DateAttribute(elementName, a))
-      case a: Option[?] => a.toSeq.flatMap(attributesFromOneElement(elementName, _))
-      case a: Set[?]    => a.toSeq.flatMap(attributesFromOneElement(elementName, _))
-      case a            => Seq(StringAttribute(elementName, a.toString)) // fallback to String
+    summonFrom:
+      case given AttributeValueLike[T] => Seq(Attribute(elementName, elementValue))
+      case _ =>
+        inline elementValue match
+          case a: Option[?] => a.toSeq.flatMap(attributesFromOneElement(elementName, _))
+          case a: Set[?]    => a.toSeq.flatMap(attributesFromOneElement(elementName, _))
+          case a            => Seq(Attribute(elementName, a.toString)) // TODO: fallback to String
 
   /**
     * Recursively deconstructs the product elements as a set of attributes. Unfortunately, deconstructing
