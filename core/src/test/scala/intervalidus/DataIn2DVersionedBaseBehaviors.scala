@@ -94,6 +94,7 @@ trait DataIn2DVersionedBaseBehaviors:
         intervalToBefore(0) x intervalFrom(0),
         intervalFrom(0) x intervalFromAfter(10)
       )
+      fixture2.values should contain theSameElementsAs List("Hello", "World")
       fixture2.getAt(5, 5) shouldBe Some("Hello")
       fixture2.getDataAt(15, 5) shouldBe Some((intervalFrom(11) x interval(0, 10)) -> "World")
       fixture2.getAt(-1, -1) shouldBe None

@@ -2,8 +2,8 @@ package intervalidus.mutable
 
 import intervalidus.*
 import intervalidus.DiscreteValue.given
-import intervalidus.Domain.In1D as Dim
 import intervalidus.DomainLike.given
+import intervalidus.Domain.In1D as Dim
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
@@ -17,9 +17,15 @@ class DataIn1DMultiTest
 
   import Interval1D.*
 
-  testsFor(
-    basicAndZipTests("Mutable", DataMulti.from(_), DataMulti.from(_), DataMulti.of(_), DataMulti(_))
-  )
+  def usingBuilder(data: Iterable[ValidData[String, Dim[Int]]]): DataMulti[String, Dim[Int]] =
+    val builder = DataMulti.newBuilder[String, Dim[Int]]
+    builder.addOne(Interval.unbounded -> "Junk")
+    builder.clear()
+    data.foldLeft(builder)(_.addOne(_)).result()
+
+  testsFor(basicAndZipTests("Mutable", DataMulti.from(_), DataMulti.from(_), DataMulti.of(_), DataMulti(_)))
+  testsFor(basicAndZipTests("Mutable (builder)", usingBuilder, DataMulti.from(_), DataMulti.of(_), DataMulti(_)))
+
   testsFor(
     addAndRemoveTests[
       Dim[Int],

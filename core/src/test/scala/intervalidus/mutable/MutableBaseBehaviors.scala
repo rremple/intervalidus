@@ -26,12 +26,13 @@ trait MutableBaseBehaviors:
   ](
     mutableFrom: Experimental ?=> Iterable[ValidData[String, D]] => S,
     intervalFrom1D: Interval1D[Int] => Interval[D],
-    mapF: ValidData[String, D] => ValidData[String, D]
+    mapF: ValidData[String, D] => ValidData[String, D],
+    prefix: String = "Mutable"
   )(using Experimental, DomainValueLike[Int]): Unit =
     def dataFrom1D(interval1D: Interval1D[Int], v: String): ValidData[String, D] =
       intervalFrom1D(interval1D) -> v
 
-    test("Mutable: Adding and removing data in intervals"):
+    test(s"$prefix: Adding and removing data in intervals"):
       val allData = List(
         dataFrom1D(interval(0, 10), "Hello"),
         dataFrom1D(intervalFrom(11), "World")
@@ -60,8 +61,8 @@ trait MutableBaseBehaviors:
       fixture.setIfNoConflict(dataFrom1D(intervalTo(-1), "Hey")) shouldBe true
       fixture.getAll.toList shouldBe (dataFrom1D(intervalTo(-1), "Hey") :: expectedData2)
 
-      fixture.set(dataFrom1D(intervalTo(5), "Hey"))
-      fixture.remove(intervalFrom1D(intervalFromAfter(20)))
+      fixture + dataFrom1D(intervalTo(5), "Hey")
+      fixture - intervalFrom1D(intervalFromAfter(20))
       val expectedData3 = List(
         dataFrom1D(intervalTo(5), "Hey"),
         dataFrom1D(intervalFromAfter(5).to(15), "to"),
@@ -96,16 +97,36 @@ trait MutableBaseBehaviors:
       )
       fixture.getAll.toList shouldBe expectedData4
       fixture.remove(intervalFrom1D(interval(5, 15)))
-      val expectedData5 = List(dataFrom1D(intervalToBefore(5), "Hey"), dataFrom1D(intervalFromAfter(15), "World"))
+      val expectedData5 = List(
+        dataFrom1D(intervalToBefore(5), "Hey"),
+        dataFrom1D(intervalFromAfter(15), "World")
+      )
       fixture.getAll.toList shouldBe expectedData5
+
+      fixture -- Seq(intervalFrom1D(intervalTo(0)), intervalFrom1D(intervalFrom(20)))
+      val expectedData6 = List(
+        dataFrom1D(intervalFromAfter(0).toBefore(5), "Hey"),
+        dataFrom1D(intervalFromAfter(15).toBefore(20), "World")
+      )
+      fixture.getAll.toList shouldBe expectedData6
 
       fixture.fill(dataFrom1D(unbounded, "Filled"))
       val expectedFilled = List(
-        dataFrom1D(intervalToBefore(5), "Hey"),
+        dataFrom1D(intervalTo(0), "Filled"),
+        dataFrom1D(intervalFromAfter(0).toBefore(5), "Hey"),
         dataFrom1D(interval(5, 15), "Filled"),
-        dataFrom1D(intervalFromAfter(15), "World")
+        dataFrom1D(intervalFromAfter(15).toBefore(20), "World"),
+        dataFrom1D(intervalFrom(20), "Filled")
       )
       fixture.getAll.toList shouldBe expectedFilled
+      fixture.intervals("Filled") should contain theSameElementsAs List(
+        intervalFrom1D(intervalTo(0)),
+        intervalFrom1D(interval(5, 15)),
+        intervalFrom1D(intervalFrom(20))
+      )
+
+      fixture.removeValue("Filled")
+      fixture.getAll.toList shouldBe expectedData6
 
       val data1 = Data(Seq(intervalFrom(1).to(3) -> "A", intervalFrom(5) -> "B"))
       val data2 = Data(Seq(intervalFrom(2).to(4) -> "C", intervalFrom(6) -> "D"))
@@ -128,7 +149,7 @@ trait MutableBaseBehaviors:
         intervalFrom(6) -> "BD"
       )
 
-    test("Mutable: Filter, mapping, flatmapping, etc."):
+    test(s"$prefix: Filter, mapping, flatmapping, etc."):
       val allData = List(dataFrom1D(intervalTo(4), "Hey"), dataFrom1D(intervalFrom(16), "World"))
 
       val fixture: S = mutableFrom(allData)
@@ -169,42 +190,7 @@ trait MutableBaseBehaviors:
       assertThrows[NoSuchElementException]:
         fixture.get
 
-    test("Mutable: Compressing data in intervals"):
-      val allData = List(
-        dataFrom1D(intervalToBefore(5), "Hello"),
-        dataFrom1D(intervalAt(5), "World"),
-        dataFrom1D(intervalFromAfter(5).toBefore(7), "World"),
-        dataFrom1D(intervalAt(7), "Hello"),
-        dataFrom1D(intervalFromAfter(7).toBefore(10), "Hello"),
-        dataFrom1D(intervalFrom(10), "Hello")
-      )
-
-      val fixture1: S = mutableFrom(allData)
-      fixture1.domain.toList shouldBe List(Interval.unbounded[D])
-      fixture1.domainComplement.toList shouldBe List.empty
-      fixture1.compress("Hello")
-      val expectedData1 = List(
-        dataFrom1D(intervalToBefore(5), "Hello"),
-        dataFrom1D(intervalAt(5), "World"),
-        dataFrom1D(intervalFromAfter(5).toBefore(7), "World"),
-        dataFrom1D(intervalFrom(7), "Hello")
-      )
-      fixture1.getAll.toList shouldBe expectedData1
-      fixture1.domain.toList shouldBe List(Interval.unbounded[D])
-      fixture1.domainComplement.toList shouldBe List.empty
-
-      val fixture2 = mutableFrom(allData)
-      fixture2.compressAll()
-      val expectedData2 = List(
-        dataFrom1D(intervalToBefore(5), "Hello"),
-        dataFrom1D(intervalFrom(5).toBefore(7), "World"),
-        dataFrom1D(intervalFrom(7), "Hello")
-      )
-      fixture2.getAll.toList shouldBe expectedData2
-      fixture2.domain.toList shouldBe List(Interval.unbounded[D])
-      fixture2.domainComplement.toList shouldBe List.empty
-
-    test("Mutable: Updating data in intervals"):
+    test(s"$prefix: Updating data in intervals"):
       val allData = List(
         dataFrom1D(intervalToBefore(5), "Hello"),
         dataFrom1D(interval(5, 6), "World"),
@@ -257,3 +243,49 @@ trait MutableBaseBehaviors:
       fixture.domainComplement.toList shouldBe List(
         intervalFrom1D(interval(2, 9))
       )
+
+  def mutableCompressionTests[
+    D <: NonEmptyTuple: DomainLike,
+    S <: Data[String, D]
+  ](
+    mutableFrom: Experimental ?=> Iterable[ValidData[String, D]] => S,
+    intervalFrom1D: Interval1D[Int] => Interval[D],
+    prefix: String = "Mutable"
+  )(using Experimental, DomainValueLike[Int]): Unit =
+    def dataFrom1D(interval1D: Interval1D[Int], v: String): ValidData[String, D] =
+      intervalFrom1D(interval1D) -> v
+
+    test(s"$prefix: Compressing data in intervals"):
+      val allData = List(
+        dataFrom1D(intervalToBefore(5), "Hello"),
+        dataFrom1D(intervalAt(5), "World"),
+        dataFrom1D(intervalFromAfter(5).toBefore(7), "World"),
+        dataFrom1D(intervalAt(7), "Hello"),
+        dataFrom1D(intervalFromAfter(7).toBefore(10), "Hello"),
+        dataFrom1D(intervalFrom(10), "Hello")
+      )
+
+      val fixture1: S = mutableFrom(allData)
+      fixture1.domain.toList shouldBe List(Interval.unbounded[D])
+      fixture1.domainComplement.toList shouldBe List.empty
+      fixture1.compress("Hello")
+      val expectedData1 = List(
+        dataFrom1D(intervalToBefore(5), "Hello"),
+        dataFrom1D(intervalAt(5), "World"),
+        dataFrom1D(intervalFromAfter(5).toBefore(7), "World"),
+        dataFrom1D(intervalFrom(7), "Hello")
+      )
+      fixture1.getAll.toList shouldBe expectedData1
+      fixture1.domain.toList shouldBe List(Interval.unbounded[D])
+      fixture1.domainComplement.toList shouldBe List.empty
+
+      val fixture2 = mutableFrom(allData)
+      fixture2.compressAll()
+      val expectedData2 = List(
+        dataFrom1D(intervalToBefore(5), "Hello"),
+        dataFrom1D(intervalFrom(5).toBefore(7), "World"),
+        dataFrom1D(intervalFrom(7), "Hello")
+      )
+      fixture2.getAll.toList shouldBe expectedData2
+      fixture2.domain.toList shouldBe List(Interval.unbounded[D])
+      fixture2.domainComplement.toList shouldBe List.empty

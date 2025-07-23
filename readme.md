@@ -306,6 +306,7 @@ These query methods provide various data, difference, and Boolean results:
 - `foldLeft`
 - `isEmpty`
 - `domain` / `domainComplement`
+- `values` / `intervals`
 - `diffActionsFrom`
 
 These methods return a new structure:
@@ -316,10 +317,9 @@ These methods return a new structure:
 
 These mutation methods return a new structure when using immutable and `Unit` when using mutable:
 
-- `remove`
-- `replace` / `replaceByKey`
-- `set` / `setIfNoConflict`
-- `update` / `fill` / `merge`
+- `remove` (`-`) / `removeMany` (`--`) / `removeValue`
+- `replace` / `replaceByKey` / `update` / `merge`
+- `set` (`+`) / `setMany` (`++`) / `setIfNoConflict` / `fill`
 - `compress` / `compressAll` / `recompressAll`
 - `filter`
 - `map` / `mapValues` / `mapIntervals` / `collect` / `flatMap` (the immutable variant allows altering type parameters)

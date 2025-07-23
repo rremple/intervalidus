@@ -179,12 +179,12 @@ object FactsIn1D:
       val fromRecorded = intervalFrom(updatedRecord.recorded)
       val prior = progress(patientId)
       val latest = prior.copy(
-        gender = prior.gender.set(fromRecorded -> updatedRecord.gender),
-        trialGroup = prior.trialGroup.set(fromRecorded -> updatedRecord.trialGroup),
-        bloodPressureCategory = prior.bloodPressureCategory.set(fromRecorded -> updatedRecord.bloodPressureCategory),
-        hypertension = prior.hypertension.set(fromRecorded -> updatedRecord.hypertension),
-        ageBracket = prior.ageBracket.set(fromRecorded -> updatedRecord.ageBracket),
-        minor = prior.minor.set(fromRecorded -> updatedRecord.minor)
+        gender = prior.gender + (fromRecorded -> updatedRecord.gender),
+        trialGroup = prior.trialGroup + (fromRecorded -> updatedRecord.trialGroup),
+        bloodPressureCategory = prior.bloodPressureCategory + (fromRecorded -> updatedRecord.bloodPressureCategory),
+        hypertension = prior.hypertension + (fromRecorded -> updatedRecord.hypertension),
+        ageBracket = prior.ageBracket + (fromRecorded -> updatedRecord.ageBracket),
+        minor = prior.minor + (fromRecorded -> updatedRecord.minor)
       )
       progress.updated(patientId, latest)
 

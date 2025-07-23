@@ -84,6 +84,7 @@ trait DataIn4DBaseBehaviors:
     fixture2.domainComplement.toList shouldBe List(
       unbounded[Int] x unbounded[Int] x intervalToBefore(0) x unbounded[Int]
     )
+    fixture2.values should contain theSameElementsAs List("Hello", "World")
     fixture2.getAt(now x now x 5 x 0) shouldBe Some("Hello")
     fixture2.getAt(now x now x 15 x 0) shouldBe Some("World")
     fixture2.getAt(now x now x -1 x 0) shouldBe None

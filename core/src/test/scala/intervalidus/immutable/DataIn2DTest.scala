@@ -9,7 +9,6 @@ import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
 import java.time.LocalDate
-import scala.annotation.nowarn
 import scala.language.implicitConversions
 
 class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors with ImmutableBaseBehaviors:
@@ -20,13 +19,49 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
   // shared
   testsFor(stringLookupTests("Immutable", Data(_), Data.of(_)))
 
+  def usingBuilder(data: Iterable[ValidData[String, Dim[LocalDate, Int]]]): Data[String, Dim[LocalDate, Int]] =
+    data.foldLeft(Data.newBuilder[String, Dim[LocalDate, Int]])(_.addOne(_)).result()
+
+  def usingSetMany(data: Iterable[ValidData[String, Dim[LocalDate, Int]]]): Data[String, Dim[LocalDate, Int]] =
+    Data[String, Dim[LocalDate, Int]]() ++ data
+
+  def asVertical(interval1D: Interval1D[Int]): Interval[Dim[LocalDate, Int]] =
+    unbounded[LocalDate] x interval1D
+
   testsFor(
     immutableBaseTests[Dim[LocalDate, Int], Data[String, Dim[LocalDate, Int]]](
       Data(_),
-      unbounded[LocalDate] x _
+      asVertical
+    )
+  )
+  testsFor(
+    immutableBaseTests[Dim[LocalDate, Int], Data[String, Dim[LocalDate, Int]]](
+      usingBuilder,
+      asVertical,
+      "Immutable (builder)"
+    )
+  )
+  testsFor(
+    immutableBaseTests[Dim[LocalDate, Int], Data[String, Dim[LocalDate, Int]]](
+      usingSetMany,
+      asVertical,
+      "Immutable (setMany)"
     )
   )
 
+  testsFor(
+    immutableCompressionTests[Dim[LocalDate, Int], Data[String, Dim[LocalDate, Int]]](
+      Data(_),
+      asVertical
+    )
+  )
+  testsFor(
+    immutableCompressionTests[Dim[LocalDate, Int], Data[String, Dim[LocalDate, Int]]](
+      usingBuilder,
+      asVertical,
+      "Immutable (builder)"
+    )
+  )
   override def assertRemoveOrUpdateResult(
     removeExpectedUnsorted: ValidData[String, Dim[LocalDate, Int]]*
   )(

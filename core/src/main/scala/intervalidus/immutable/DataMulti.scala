@@ -38,6 +38,10 @@ object DataMulti extends DimensionalMultiBaseObject:
     val (byStartAsc, byValue, inSearchTree) = constructorParams(initialData)
     new DataMulti(byStartAsc, byValue, inSearchTree)
 
+  override def newBuilder[V, D <: NonEmptyTuple: DomainLike](using
+    Experimental
+  ): mutable.Builder[ValidData[V, D], DataMulti[V, D]] = DimensionalDataMultiBuilder[V, D, DataMulti[V, D]](from(_))
+
 /**
   * Immutable, multivalued dimensional data.
   *

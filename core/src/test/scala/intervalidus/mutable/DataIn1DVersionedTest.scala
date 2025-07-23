@@ -23,8 +23,21 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
       dataIn1DVersioned.incrementCurrentVersion()
     dataIn1DVersioned
 
+  def usingBuilder(data: Iterable[ValidData[String, Dim[Int]]]): DataVersioned[String, Dim[Int]] =
+    val builder = DataVersioned.newBuilder[String, Dim[Int]](0)
+    builder.addOne(Interval.unbounded -> "Junk")
+    builder.clear()
+    data.foldLeft(builder)(_.addOne(_)).result()
+
+  def usingSetMany(data: Iterable[ValidData[String, Dim[Int]]]): DataVersioned[String, Dim[Int]] =
+    val newStructure = DataVersioned[String, Dim[Int]]()
+    newStructure ++ data
+    newStructure
+
   // shared
   testsFor(stringLookupTests("Mutable", newDataIn1DVersioned, DataVersioned(_), DataVersioned.of(_)))
+  testsFor(stringLookupTests("Mutable (builder)", usingBuilder, DataVersioned(_), DataVersioned.of(_)))
+  testsFor(stringLookupTests("Mutable (setMany)", usingSetMany, DataVersioned(_), DataVersioned.of(_)))
 
   test("Mutable: Adding and removing data in intervals"):
     val empty: DataVersioned[String, Dim[Int]] = immutable.DataVersioned[String, Dim[Int]]().toImmutable.toMutable
@@ -88,7 +101,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     fixture.incrementCurrentVersion()
 
     fixture.set(intervalTo(4) -> "Hey")
-    fixture.remove(intervalFrom(21))
+    fixture -- Seq(intervalFrom(21))
     fixture.incrementCurrentVersion()
     val expectedData3 = List(
       intervalTo(4) -> "Hey",
@@ -123,6 +136,9 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     fixture7.fill(Interval1D.unbounded -> "Filled")
     val expectedFilled = List(intervalTo(0) -> "Hey", intervalFrom(1) -> "Filled")
     fixture7.getAll.toList shouldBe expectedFilled
+    fixture7.intervals("Filled").map(_.headInterval1D[Int]) should contain theSameElementsAs List(intervalFrom(1))
+    fixture7.removeValue("Filled")
+    fixture7.getAll.toList shouldBe expectedData6
 
     val data1 = DataVersioned.from(Seq(intervalFrom(1).to(3) -> "A", intervalFrom(5) -> "B"))
     val data2 = DataVersioned.from(Seq(intervalFrom(2).to(4) -> "C", intervalFrom(6) -> "D"))

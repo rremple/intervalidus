@@ -132,6 +132,24 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     result.compressInPlace(newData.value)
 
   /**
+    * Set a collection of new valid data. Replaces any data previously valid in this interval.
+    * @note
+    *   if intervals overlap, later items will update earlier ones, so order can matter.
+    *
+    * @param newData
+    *   collection of valid data to set.
+    * @return
+    *   a new, updated structure.
+    */
+  def setMany(newData: Iterable[ValidData[V, D]]): Self = copyAndModify: result =>
+    val values = newData.map(_.value).toSet
+    newData.foreach: data =>
+      result.updateOrRemove(data.interval, _ => None)
+      result.addValidData(data)
+    values.foreach: value =>
+      result.compressInPlace(value)
+
+  /**
     * Set new valid data, but only if there are no data previously valid in this interval.
     *
     * @param newData
@@ -201,6 +219,31 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     */
   def remove(interval: Interval[D]): Self =
     copyAndModify(_.updateOrRemove(interval, _ => None))
+
+  /**
+    * Remove data in all the intervals. If there are values valid on portions of any interval, those values have their
+    * intervals adjusted (e.g., shortened, shifted, split) accordingly.
+    *
+    * @param intervals
+    *   the interval where any valid values are removed.
+    * @return
+    *   a new, updated structure.
+    */
+  def removeMany(intervals: Iterable[Interval[D]]): Self = copyAndModify: result =>
+    intervals.foreach: interval =>
+      result.updateOrRemove(interval, _ => None)
+
+  /**
+    * Remove data in all the intervals where the specified value is valid.
+    *
+    * @param value
+    *   the value that is removed.
+    * @return
+    *   a new, updated structure.
+    */
+  def removeValue(value: V): Self = copyAndModify: result =>
+    intervals(value).foreach: interval =>
+      result.updateOrRemove(interval, _ => None)
 
   /**
     * Compress out adjacent intervals with the same value.
@@ -291,3 +334,57 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     mergeValues: (V, V) => V = (thisDataValue, _) => thisDataValue
   ): Self = copyAndModify: result =>
     result.mergeInPlace(that.getAll, mergeValues)
+
+  // equivalent symbolic method names
+
+  /**
+    * Same as [[set]]
+    *
+    * Set new valid data. Replaces any data previously valid in this interval.
+    *
+    * @param newData
+    *   the valid data to set.
+    * @return
+    *   a new, updated structure.
+    */
+  infix def +(newData: ValidData[V, D]): Self = set(newData)
+
+  /**
+    * Same as [[setMany]]
+    *
+    * Set a collection of new valid data. Replaces any data previously valid in this interval.
+    *
+    * @note
+    *   if intervals overlap, later items will update earlier ones, so order can matter.
+    * @param newData
+    *   collection of valid data to set.
+    * @return
+    *   a new, updated structure.
+    */
+  infix def ++(newData: Iterable[ValidData[V, D]]): Self = setMany(newData)
+
+  /**
+    * Same as [[remove]]
+    *
+    * Remove valid values on the interval. If there are values valid on portions of the interval, those values have
+    * their intervals adjusted (e.g., shortened, shifted, split) accordingly.
+    *
+    * @param interval
+    *   the interval where any valid values are removed.
+    * @return
+    *   a new, updated structure.
+    */
+  infix def -(interval: Interval[D]): Self = remove(interval)
+
+  /**
+    * Same as [[removeMany]]
+    *
+    * Remove data in all the intervals. If there are values valid on portions of any interval, those values have their
+    * intervals adjusted (e.g., shortened, shifted, split) accordingly.
+    *
+    * @param intervals
+    *   the interval where any valid values are removed.
+    * @return
+    *   a new, updated structure.
+    */
+  infix def --(intervals: Iterable[Interval[D]]): Self = removeMany(intervals)

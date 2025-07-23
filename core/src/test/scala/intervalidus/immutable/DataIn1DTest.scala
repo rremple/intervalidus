@@ -18,12 +18,21 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
   // shared
   testsFor(stringLookupTests("Immutable", Data(_), Data.of(_)))
 
-  testsFor(
-    immutableBaseTests[Dim[Int], Data[String, Dim[Int]]](
-      Data(_),
-      identity
-    )
-  )
+  def usingBuilder(data: Iterable[ValidData[String, Dim[Int]]]): Data[String, Dim[Int]] =
+    val builder = Data.newBuilder[String, Dim[Int]]
+    builder.addOne(Interval.unbounded -> "Junk")
+    builder.clear()
+    data.foldLeft(builder)(_.addOne(_)).result()
+
+  def usingSetMany(data: Iterable[ValidData[String, Dim[Int]]]): Data[String, Dim[Int]] =
+    Data[String, Dim[Int]]() ++ data
+
+  testsFor(immutableBaseTests[Dim[Int], Data[String, Dim[Int]]](Data(_), identity))
+  testsFor(immutableBaseTests[Dim[Int], Data[String, Dim[Int]]](usingBuilder, identity, "Immutable (builder)"))
+  testsFor(immutableBaseTests[Dim[Int], Data[String, Dim[Int]]](usingSetMany, identity, "Immutable (setMany)"))
+
+  testsFor(immutableCompressionTests[Dim[Int], Data[String, Dim[Int]]](Data(_), identity))
+  testsFor(immutableCompressionTests[Dim[Int], Data[String, Dim[Int]]](usingBuilder, identity, "Immutable (builder)"))
 
   testsFor(doubleUseCaseTests("Immutable", Data(_)))
 

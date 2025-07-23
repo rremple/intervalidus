@@ -67,7 +67,7 @@ trait ImmutableMultiBaseBehaviors:
         withHorizontal(intervalFrom(36), Set("A"))
       )
 
-      val f3 = f2.set(withHorizontal(interval(15, 20), Set("A", "B", "C")))
+      val f3 = f2 + withHorizontal(interval(15, 20), Set("A", "B", "C"))
       f3.getAll.toList shouldBe List(
         withHorizontal(interval(5, 9), Set("B")),
         withHorizontal(interval(10, 14), Set("B", "C")),

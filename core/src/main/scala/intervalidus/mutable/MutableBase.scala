@@ -84,6 +84,22 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     compress(newData.value)
 
   /**
+    * Set a collection of new valid data. Replaces any data previously valid in this interval.
+    * @note
+    *   if intervals overlap, later items will update earlier ones, so order can matter.
+    *
+    * @param newData
+    *   collection of valid data to set.
+    */
+  def setMany(newData: Iterable[ValidData[V, D]]): Unit = synchronized:
+    val values = newData.map(_.value).toSet
+    newData.foreach: data =>
+      updateOrRemove(data.interval, _ => None)
+      addValidData(data)
+    values.foreach: value =>
+      compressInPlace(value)
+
+  /**
     * Set new valid data, but only if there are no data previously valid in this interval.
     *
     * @param newData
@@ -141,6 +157,27 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     *   the interval where any valid values are removed.
     */
   def remove(interval: Interval[D]): Unit = updateOrRemove(interval, _ => None)
+
+  /**
+    * Remove data in all the intervals. If there are values valid on portions of any interval, those values have their
+    * intervals adjusted (e.g., shortened, shifted, split) accordingly.
+    *
+    * @param intervals
+    *   the interval where any valid values are removed.
+    */
+  def removeMany(intervals: Iterable[Interval[D]]): Unit =
+    intervals.foreach: interval =>
+      updateOrRemove(interval, _ => None)
+
+  /**
+    * Remove data in all the intervals where the specified value is valid.
+    *
+    * @param value
+    *   the value that is removed.
+    */
+  def removeValue(value: V): Unit =
+    intervals(value).foreach: interval =>
+      updateOrRemove(interval, _ => None)
 
   /**
     * Compress out adjacent intervals with the same value
@@ -214,3 +251,49 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     that: DimensionalBase[V, D],
     mergeValues: (V, V) => V = (thisDataValue, _) => thisDataValue
   ): Unit = mergeInPlace(that.getAll, mergeValues)
+
+  // equivalent symbolic method names
+
+  /**
+    * Same as [[set]]
+    *
+    * Set new valid data. Replaces any data previously valid in this interval.
+    *
+    * @param newData
+    *   the valid data to set.
+    */
+  infix def +(newData: ValidData[V, D]): Unit = set(newData)
+
+  /**
+    * Same as [[setMany]]
+    *
+    * Set a collection of new valid data. Replaces any data previously valid in this interval.
+    *
+    * @note
+    *   if intervals overlap, later items will update earlier ones, so order can matter.
+    * @param newData
+    *   collection of valid data to set.
+    */
+  infix def ++(newData: Iterable[ValidData[V, D]]): Unit = setMany(newData)
+
+  /**
+    * Same as [[remove]]
+    *
+    * Remove valid values on the interval. If there are values valid on portions of the interval, those values have
+    * their intervals adjusted (e.g., shortened, shifted, split) accordingly.
+    *
+    * @param interval
+    *   the interval where any valid values are removed.
+    */
+  infix def -(interval: Interval[D]): Unit = remove(interval)
+
+  /**
+    * Same as [[removeMany]]
+    *
+    * Remove data in all the intervals. If there are values valid on portions of any interval, those values have their
+    * intervals adjusted (e.g., shortened, shifted, split) accordingly.
+    *
+    * @param intervals
+    *   the interval where any valid values are removed.
+    */
+  infix def --(intervals: Iterable[Interval[D]]): Unit = removeMany(intervals)

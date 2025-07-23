@@ -74,6 +74,7 @@ trait DataIn1DVersionedBaseBehaviors:
       val fixture2 = dataIn1DVersionedFrom2D(testDataIn2D(0, allData2))
       fixture2.domain.toList shouldBe List(Interval.in1D(intervalFrom(0)))
       fixture2.domainComplement.toList shouldBe List(Interval.in1D(intervalToBefore(0)))
+      fixture2.values should contain theSameElementsAs List("Hello", "World")
       fixture2.getAt(5) shouldBe Some("Hello")
       fixture2.getDataAt(15) shouldBe Some(intervalFrom(11) -> "World")
       fixture2.getAt(-1) shouldBe None

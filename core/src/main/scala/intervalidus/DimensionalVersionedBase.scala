@@ -2,7 +2,9 @@ package intervalidus
 
 import intervalidus.DiscreteValue.IntDiscreteValue
 import intervalidus.Domain.NonEmptyTail
+import intervalidus.mutable.Data as MutableData
 
+import scala.collection.mutable
 import scala.language.implicitConversions
 
 /**
@@ -123,6 +125,33 @@ trait DimensionalVersionedBaseObject:
     initialVersion: VersionDomainValue
   )(using Experimental, DomainLike[Versioned[D]]): DimensionalVersionedBase[V, D]
 
+  /**
+    * Get a Builder based on an intermediate buffer of valid data.
+    *
+    * @param initialVersion
+    *   the version to start with, typically zero
+    * @tparam V
+    *   the type of the value managed as data.
+    * @tparam D
+    *   the domain type -- [[DomainLike]] non-empty tuples.
+    */
+  def newBuilder[V, D <: NonEmptyTuple: DomainLike](
+    initialVersion: VersionDomainValue
+  )(using
+    Experimental,
+    DomainLike[Versioned[D]]
+  ): mutable.Builder[ValidData[V, D], DimensionalVersionedBase[V, D]]
+
+class DimensionalDataVersionedBuilder[V, D <: NonEmptyTuple: DomainLike, Self <: DimensionalVersionedBase[V, D]](
+  build: List[ValidData[V, D]] => Self
+) extends mutable.ReusableBuilder[ValidData[V, D], Self]:
+  protected val validDataBuilder: mutable.Builder[ValidData[V, D], List[ValidData[V, D]]] = List.newBuilder
+  override def clear(): Unit = validDataBuilder.clear()
+  override def result(): Self = build(validDataBuilder.result())
+  override def addOne(elem: ValidData[V, D]): this.type =
+    validDataBuilder.addOne(elem)
+    this
+
 /**
   * Base for all versioned dimensional data, both mutable and immutable, in any dimension.
   *
@@ -165,7 +194,7 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     withCurrentVersion.getOrElse(Domain1D.Point(initialVersion))
 
   // Underlying n+1 dimensional representation of versioned n dimensional data (mutable)
-  protected val underlying: mutable.Data[V, Versioned[D]] = mutable.Data(initialData)
+  protected val underlying: MutableData[V, Versioned[D]] = MutableData(initialData)
 
   // Construct an underlying domain from a public domain plus version selection
   protected def underlyingDomain(domain: D)(using versionSelection: VersionSelection): Versioned[D] =
@@ -247,7 +276,7 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     */
   def getSelectedDataMutable(using
     versionSelection: VersionSelection
-  ): mutable.Data[V, D] =
+  ): MutableData[V, D] =
     underlying.getByHeadIndex(versionSelection.boundary)
 
   /**
@@ -328,8 +357,6 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     * Returns the value if a single, unbounded valid value exists given some version selection context, otherwise throws
     * an exception.
     *
-    * @return
-    *   a single valid value.
     * @throws NoSuchElementException
     *   if there isn't any valid data, or valid data are bounded (i.e., take on different values in different
     *   intervals), given the version selection provided.
@@ -408,6 +435,20 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     * [[https://en.wikipedia.org/wiki/Complement_(set_theory)]].
     */
   def domainComplement(using VersionSelection): Iterable[Interval[D]] = getSelectedDataMutable.domainComplement
+
+  /**
+    * Returns the distinct values that are valid in some interval given some version selection context.
+    */
+  def values(using VersionSelection): Iterable[V] = getSelectedDataMutable.values
+
+  /**
+    * Returns the intervals in which this value is valid given some version selection context.
+    *
+    * @param value
+    *   the value to look up
+    */
+  def intervals(value: V)(using VersionSelection): Iterable[Interval[D]] =
+    Interval.compress(getSelectedDataMutable.intervals(value))
 
   /**
     * Applies a binary operator to a start value and all valid data, going left to right. Does not use a version

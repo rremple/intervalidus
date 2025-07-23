@@ -82,6 +82,7 @@ trait DataIn3DBaseBehaviors:
     val fixture2 = dataIn3DFrom(allData2)
     fixture2.domain.toList shouldBe List(unbounded[Int] x unbounded[Int] x intervalFrom(0))
     fixture2.domainComplement.toList shouldBe List(unbounded[Int] x unbounded[Int] x intervalToBefore(0))
+    fixture2.values should contain theSameElementsAs List("Hello", "World")
     fixture2.getAt(now x now x 5) shouldBe Some("Hello")
     fixture2.getAt(now x now x 15) shouldBe Some("World")
     fixture2.getAt(now x now x -1) shouldBe None

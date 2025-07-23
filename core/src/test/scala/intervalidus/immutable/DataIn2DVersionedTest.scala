@@ -22,8 +22,19 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
         .set(validData)
         .incrementCurrentVersion()
 
+  def usingBuilder(data: Iterable[ValidData[String, Dim[Int, Int]]]): DataVersioned[String, Dim[Int, Int]] =
+    val builder = DataVersioned.newBuilder[String, Dim[Int, Int]]()
+    builder.addOne(Interval.unbounded -> "Junk")
+    builder.clear()
+    data.foldLeft(builder)(_.addOne(_)).result()
+
+  def usingSetMany(data: Iterable[ValidData[String, Dim[Int, Int]]]): DataVersioned[String, Dim[Int, Int]] =
+    DataVersioned[String, Dim[Int, Int]]() ++ data
+
   // shared
   testsFor(stringLookupTests("Immutable", newDataIn2DVersioned, DataVersioned(_), DataVersioned.of(_)))
+  testsFor(stringLookupTests("Immutable (builder)", usingBuilder, DataVersioned(_), DataVersioned.of(_)))
+  testsFor(stringLookupTests("Immutable (setMany)", usingSetMany, DataVersioned(_), DataVersioned.of(_)))
 
   test("Immutable: Adding and removing data in intervals"):
     val empty: DataVersioned[String, Dim[Int, Int]] =
@@ -91,10 +102,10 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     fixture2.setIfNoConflict((intervalTo(4) x unbounded[Int]) -> "Hey") shouldBe None
     val fixture3 = fixture2.setIfNoConflict((intervalTo(-1) x unbounded[Int]) -> "Hey") match
       case Some(f) =>
-        f.incrementCurrentVersion()
-          .set((intervalTo(4) x unbounded[Int]) -> "Hey")
-          .remove(intervalFrom(21) x unbounded[Int])
-          .incrementCurrentVersion()
+        val f2 = f.incrementCurrentVersion() +
+          ((intervalTo(4) x unbounded[Int]) -> "Hey") -
+          (intervalFrom(21) x unbounded[Int])
+        f2.incrementCurrentVersion()
       case None => fail("unexpected conflict")
 
     val expectedData3 = List(
@@ -117,10 +128,12 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     )
     fixture4.getAll.toList shouldBe expectedData4
 
-    val fixture5 = fixture4
-      .remove(interval(5, 15) x unbounded[Int])
-      .remove(intervalAt(20) x intervalFrom(1))
-      .incrementCurrentVersion()
+    val fixture5 = (
+      fixture4 -- Seq(
+        interval(5, 15) x unbounded[Int],
+        intervalAt(20) x intervalFrom(1)
+      )
+    ).incrementCurrentVersion()
     val expectedData5 = List(
       (intervalTo(4) x unbounded[Int]) -> "Hey",
       (intervalFrom(16) x intervalTo(0)) -> "World"
@@ -137,6 +150,8 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     val fixture7 = fixture6.fill(Interval.unbounded[Dim[Int, Int]] -> "Filled")
     val expectedFilled = List((intervalTo(0) x unbounded[Int]) -> "Hey", (intervalFrom(1) x unbounded[Int]) -> "Filled")
     fixture7.getAll.toList shouldBe expectedFilled
+    fixture7.intervals("Filled") should contain theSameElementsAs List(intervalFrom(1) x unbounded[Int])
+    fixture7.removeValue("Filled").getAll.toList shouldBe expectedData6
 
     val data1 = DataVersioned.from(
       Seq((intervalFrom(1).to(3) x unbounded[Int]) -> "A", (intervalFrom(5) x unbounded[Int]) -> "B")

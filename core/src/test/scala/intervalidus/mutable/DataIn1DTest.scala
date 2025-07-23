@@ -18,17 +18,29 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
   // shared
   testsFor(stringLookupTests("Mutable", Data(_), Data.of(_)))
 
-  testsFor(
-    mutableBaseTests[Dim[Int], Data[String, Dim[Int]]](
-      Data(_),
-      identity,
-      d =>
-        d.copy(
-          value = d.value + "!",
-          interval = d.interval.to(d.interval.end.leftAdjacent)
-        )
+  def usingBuilder(data: Iterable[ValidData[String, Dim[Int]]]): Data[String, Dim[Int]] =
+    val builder = Data.newBuilder[String, Dim[Int]]
+    builder.addOne(Interval.unbounded -> "Junk")
+    builder.clear()
+    data.foldLeft(builder)(_.addOne(_)).result()
+
+  def usingSetMany(data: Iterable[ValidData[String, Dim[Int]]]): Data[String, Dim[Int]] =
+    val newStructure = Data[String, Dim[Int]]()
+    newStructure ++ data
+    newStructure
+
+  def mapf(d: ValidData[String, Dim[Int]]): ValidData[String, Dim[Int]] =
+    d.copy(
+      value = d.value + "!",
+      interval = d.interval.to(d.interval.end.leftAdjacent)
     )
-  )
+
+  testsFor(mutableBaseTests[Dim[Int], Data[String, Dim[Int]]](Data(_), identity, mapf))
+  testsFor(mutableBaseTests[Dim[Int], Data[String, Dim[Int]]](usingBuilder, identity, mapf, "Immutable (builder)"))
+  testsFor(mutableBaseTests[Dim[Int], Data[String, Dim[Int]]](usingSetMany, identity, mapf, "Immutable (setMany)"))
+
+  testsFor(mutableCompressionTests[Dim[Int], Data[String, Dim[Int]]](Data(_), identity))
+  testsFor(mutableCompressionTests[Dim[Int], Data[String, Dim[Int]]](usingBuilder, identity, "Immutable (builder)"))
 
   testsFor(doubleUseCaseTests("Mutable", Data(_)))
 

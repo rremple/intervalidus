@@ -18,7 +18,7 @@ class RuleTest extends AnyFunSuite with Matchers:
   private val fact2d = Fact("fact2d", "myDouble" is 1.0)
 
   test("Constructing and applying BooleanRule"):
-    val booleanRule1 = Equals("myBoolean", false)
+    val booleanRule1 = Equals("myBoolean" is false)
     assert(booleanRule1.isInstanceOf[AttributeRule[Boolean]])
     assert(booleanRule1(fact1b))
     assert(!booleanRule1(fact2b))
@@ -28,7 +28,7 @@ class RuleTest extends AnyFunSuite with Matchers:
     assert(!Contains("myBoolean", true).apply(fact2b)) // not supported
 
   test("Constructing and applying IntRule"):
-    val intRule1 = Equals("myInt", 0)
+    val intRule1 = Equals("myInt" is 0)
     assert(intRule1.isInstanceOf[AttributeRule[Int]])
     assert(intRule1(fact1i))
     assert(!intRule1(fact2i))
@@ -48,7 +48,7 @@ class RuleTest extends AnyFunSuite with Matchers:
     assert(!intRule4(fact2i)) // IntRule does not support Contains
 
   test("Constructing and applying DoubleRule"):
-    val doubleRule1 = Equals("myDouble", 0.0)
+    val doubleRule1 = Equals("myDouble" is 0.0)
     assert(doubleRule1.isInstanceOf[AttributeRule[Double]])
     assert(doubleRule1(fact1d))
     assert(!doubleRule1(fact2d))

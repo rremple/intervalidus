@@ -68,6 +68,30 @@ trait DimensionalBaseObject:
     initialData: Iterable[ValidData[V, D]]
   )(using Experimental): DimensionalBase[V, D]
 
+  /**
+    * Get a Builder based on an intermediate buffer of valid data.
+    *
+    * @tparam V
+    *   the type of the value managed as data.
+    * @tparam D
+    *   the domain type -- [[DomainLike]] non-empty tuples.
+    */
+  def newBuilder[V, D <: NonEmptyTuple: DomainLike](using
+    Experimental
+  ): mutable.Builder[ValidData[V, D], DimensionalBase[V, D]]
+
+class DimensionalDataBuilder[V, D <: NonEmptyTuple: DomainLike, Self <: DimensionalBase[V, D]](
+  build: List[ValidData[V, D]] => Self
+)(using
+  Experimental
+) extends mutable.ReusableBuilder[ValidData[V, D], Self]:
+  protected val validDataBuilder: mutable.Builder[ValidData[V, D], List[ValidData[V, D]]] = List.newBuilder
+  override def clear(): Unit = validDataBuilder.clear()
+  override def result(): Self = build(validDataBuilder.result())
+  override def addOne(elem: ValidData[V, D]): this.type =
+    validDataBuilder.addOne(elem)
+    this
+
 trait DimensionalBaseConstructorParams:
   /**
     * Given a collection of valid data, returns data used to populate the `dataByStartAsc`, `dataByValue`, and
@@ -396,8 +420,8 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     DomainLike[NonEmptyTail[D]]
   ): Iterable[ValidData[V, NonEmptyTail[D]]] =
     val lookup = Interval.unbounded[D].withHeadUpdate[H](_ => Interval1D.intervalAt(headIndex))
-    BoxedPayload
-      .deduplicate(dataInSearchTree.get(lookup.asBox))
+    dataInSearchTree
+      .getAndDeduplicate(lookup.asBox)
       .collect:
         case BoxedPayload(_, ValidData(value, interval), _) if interval intersects lookup =>
           interval.tailInterval -> value
@@ -527,8 +551,8 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   all data that are valid on some or all of the interval (some intersection).
     */
   def getIntersecting(interval: Interval[D]): Iterable[ValidData[V, D]] =
-    BoxedPayload
-      .deduplicate(dataInSearchTree.get(interval.asBox))
+    dataInSearchTree
+      .getAndDeduplicate(interval.asBox)
       .collect:
         case BoxedPayload(_, payload, _) if payload.interval intersects interval => payload
 
@@ -559,6 +583,19 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
   def domainComplement: Iterable[Interval[D]] = Interval.compress(
     Interval.uniqueIntervals(getAll.map(_.interval) ++ Iterable(Interval.unbounded[D])).filter(!intersects(_))
   )
+
+  /**
+    * Returns the distinct values that are valid in some interval.
+    */
+  def values: Iterable[V] = dataByValue.keySet
+
+  /**
+    * Returns the intervals in which this value is valid.
+    *
+    * @param value
+    *   the value to look up
+    */
+  def intervals(value: V): Iterable[Interval[D]] = dataByValue.get(value).map(_.interval)
 
   /**
     * Applies a binary operator to a start value and all valid data, going left to right.

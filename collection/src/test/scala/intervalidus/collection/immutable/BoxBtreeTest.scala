@@ -36,6 +36,7 @@ class BoxBtreeTest extends AnyFunSuite with Matchers:
       box(7, 8) -> "four"
     )
     BoxedPayload.deduplicate(tree.toIterable) should contain theSameElementsAs expected
+    tree.getAndDeduplicate(box(-1, 8)) should contain theSameElementsAs expected
     BoxedPayload.deduplicate(tree.copy.toIterable) should contain theSameElementsAs expected
 
     // Trees always start as a branch and immutable leaves never get copied, so forcing that to happen here just for

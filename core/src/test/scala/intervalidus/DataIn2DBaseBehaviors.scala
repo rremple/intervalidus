@@ -82,6 +82,7 @@ trait DataIn2DBaseBehaviors:
     val fixture2 = dataIn2DFrom(allData2)
     fixture2.domain.toList shouldBe List(unboundedDate x intervalFrom(0))
     fixture2.domainComplement.toList shouldBe List(unboundedDate x intervalToBefore(0))
+    fixture2.values should contain theSameElementsAs List("Hello", "World")
     fixture2.getAt(now, 5) shouldBe Some("Hello")
     fixture2.getAt(now, 15) shouldBe Some("World")
     fixture2.getAt(now, -1) shouldBe None

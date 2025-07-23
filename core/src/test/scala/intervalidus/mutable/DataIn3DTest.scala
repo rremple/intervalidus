@@ -18,15 +18,62 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
   // shared
   testsFor(stringLookupTests("Mutable", Data(_), Data.of(_)))
 
+  def usingBuilder(
+    data: Iterable[ValidData[String, Dim[LocalDate, LocalDate, Int]]]
+  ): Data[String, Dim[LocalDate, LocalDate, Int]] =
+    data.foldLeft(Data.newBuilder[String, Dim[LocalDate, LocalDate, Int]])(_.addOne(_)).result()
+
+  def usingSetMany(
+    data: Iterable[ValidData[String, Dim[LocalDate, LocalDate, Int]]]
+  ): Data[String, Dim[LocalDate, LocalDate, Int]] =
+    val newStructure = Data[String, Dim[LocalDate, LocalDate, Int]]()
+    newStructure ++ data
+    newStructure
+
+  def asDepth(interval1D: Interval1D[Int]): Interval[Dim[LocalDate, LocalDate, Int]] =
+    unbounded[LocalDate] x unbounded[LocalDate] x interval1D
+
+  def mapf(d: ValidData[String, Dim[LocalDate, LocalDate, Int]]): ValidData[String, Dim[LocalDate, LocalDate, Int]] =
+    d.copy(
+      value = d.value + "!",
+      interval = d.interval.to(d.interval.end.leftAdjacent)
+    )
+
   testsFor(
     mutableBaseTests[Dim[LocalDate, LocalDate, Int], Data[String, Dim[LocalDate, LocalDate, Int]]](
       Data(_),
-      i => unbounded[LocalDate] x unbounded[LocalDate] x i,
-      d =>
-        d.copy(
-          value = d.value + "!",
-          interval = d.interval.to(d.interval.end.leftAdjacent)
-        )
+      asDepth,
+      mapf
+    )
+  )
+  testsFor(
+    mutableBaseTests[Dim[LocalDate, LocalDate, Int], Data[String, Dim[LocalDate, LocalDate, Int]]](
+      usingBuilder,
+      asDepth,
+      mapf,
+      "Immutable (builder)"
+    )
+  )
+  testsFor(
+    mutableBaseTests[Dim[LocalDate, LocalDate, Int], Data[String, Dim[LocalDate, LocalDate, Int]]](
+      usingSetMany,
+      asDepth,
+      mapf,
+      "Immutable (setMany)"
+    )
+  )
+
+  testsFor(
+    mutableCompressionTests[Dim[LocalDate, LocalDate, Int], Data[String, Dim[LocalDate, LocalDate, Int]]](
+      Data(_),
+      asDepth
+    )
+  )
+  testsFor(
+    mutableCompressionTests[Dim[LocalDate, LocalDate, Int], Data[String, Dim[LocalDate, LocalDate, Int]]](
+      usingBuilder,
+      asDepth,
+      "Immutable (builder)"
     )
   )
 

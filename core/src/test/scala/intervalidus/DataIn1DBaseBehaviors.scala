@@ -68,6 +68,7 @@ trait DataIn1DBaseBehaviors:
     val fixture2 = dataIn1DFrom(allData2)
     fixture2.domain.toList shouldBe List(Interval.in1D(intervalFrom(0)))
     fixture2.domainComplement.toList shouldBe List(Interval.in1D(intervalToBefore(0)))
+    fixture2.values should contain theSameElementsAs List("Hello", "World")
     fixture2.getAt(5) shouldBe Some("Hello")
     fixture2.getAt(15) shouldBe Some("World")
     fixture2.getAt(-1) shouldBe None

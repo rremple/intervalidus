@@ -30,6 +30,10 @@ object Data extends DimensionalBaseObject with DimensionalBaseConstructorParams:
     val (byStartAsc, byValue, inSearchTree) = constructorParams(initialData)
     new Data(byStartAsc, byValue, inSearchTree)
 
+  override def newBuilder[V, D <: NonEmptyTuple: DomainLike](using
+    Experimental
+  ): mutable.Builder[ValidData[V, D], Data[V, D]] = DimensionalDataBuilder[V, D, Data[V, D]](apply(_))
+
 /**
   * Immutable dimensional data.
   *

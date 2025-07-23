@@ -4,7 +4,6 @@ import java.awt.geom.{Line2D, Point2D, Rectangle2D}
 import java.awt.{Dimension, Graphics, Graphics2D}
 import java.time.LocalDate
 import javax.swing.{JFrame, JPanel, WindowConstants}
-import scala.annotation.nowarn
 import scala.language.implicitConversions
 import scala.util.chaining.*
 

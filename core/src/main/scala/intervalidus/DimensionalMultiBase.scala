@@ -1,5 +1,16 @@
 package intervalidus
 
+import scala.collection.mutable
+
+/**
+  * Common definitions used in all dimensional multivalued data.
+  */
+object DimensionalMultiBase:
+  type In1D[V, R1] = DimensionalMultiBase[V, Domain.In1D[R1]]
+  type In2D[V, R1, R2] = DimensionalMultiBase[V, Domain.In2D[R1, R2]]
+  type In3D[V, R1, R2, R3] = DimensionalMultiBase[V, Domain.In3D[R1, R2, R3]]
+  type In4D[V, R1, R2, R3, R4] = DimensionalMultiBase[V, Domain.In4D[R1, R2, R3, R4]]
+
 /**
   * Constructs multivalued data in multidimensional intervals.
   */
@@ -84,6 +95,30 @@ trait DimensionalMultiBaseObject extends DimensionalBaseConstructorParams:
     initialData: Iterable[ValidData[Set[V], D]]
   )(using Experimental): DimensionalMultiBase[V, D]
 
+  /**
+    * Get a Builder based on an intermediate buffer of valid data.
+    *
+    * @tparam V
+    *   the type of the value managed as data.
+    * @tparam D
+    *   the domain type -- [[DomainLike]] non-empty tuples.
+    */
+  def newBuilder[V, D <: NonEmptyTuple: DomainLike](using
+    Experimental
+  ): mutable.Builder[ValidData[V, D], DimensionalMultiBase[V, D]]
+
+class DimensionalDataMultiBuilder[V, D <: NonEmptyTuple: DomainLike, Self <: DimensionalMultiBase[V, D]](
+  build: List[ValidData[V, D]] => Self
+)(using
+  Experimental
+) extends mutable.ReusableBuilder[ValidData[V, D], Self]:
+  protected val validDataBuilder: mutable.Builder[ValidData[V, D], List[ValidData[V, D]]] = List.newBuilder
+  override def clear(): Unit = validDataBuilder.clear()
+  override def result(): Self = build(validDataBuilder.result())
+  override def addOne(elem: ValidData[V, D]): this.type =
+    validDataBuilder.addOne(elem)
+    this
+
 /**
   * Data that may have multiple values (managed as sets of values) in different intervals.
   *
@@ -123,9 +158,3 @@ trait DimensionalMultiBase[V, D <: NonEmptyTuple: DomainLike](using Experimental
         val newValues = existingValues - data.value
         if newValues.isEmpty then None else Some(newValues)
     )
-
-object DimensionalMultiBase:
-  type In1D[V, R1] = DimensionalMultiBase[V, Domain.In1D[R1]]
-  type In2D[V, R1, R2] = DimensionalMultiBase[V, Domain.In2D[R1, R2]]
-  type In3D[V, R1, R2, R3] = DimensionalMultiBase[V, Domain.In3D[R1, R2, R3]]
-  type In4D[V, R1, R2, R3, R4] = DimensionalMultiBase[V, Domain.In4D[R1, R2, R3, R4]]

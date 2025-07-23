@@ -18,10 +18,51 @@ class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors 
   // shared
   testsFor(stringLookupTests("Immutable", Data(_), Data.of(_)))
 
+  def usingBuilder(
+    data: Iterable[ValidData[String, Dim[LocalDate, LocalDate, Int, Int]]]
+  ): Data[String, Dim[LocalDate, LocalDate, Int, Int]] =
+    data.foldLeft(Data.newBuilder[String, Dim[LocalDate, LocalDate, Int, Int]])(_.addOne(_)).result()
+
+  def usingSetMany(
+    data: Iterable[ValidData[String, Dim[LocalDate, LocalDate, Int, Int]]]
+  ): Data[String, Dim[LocalDate, LocalDate, Int, Int]] =
+    Data[String, Dim[LocalDate, LocalDate, Int, Int]]() ++ data
+
+  def asDepth(interval1D: Interval1D[Int]): Interval[Dim[LocalDate, LocalDate, Int, Int]] =
+    unbounded[LocalDate] x unbounded[LocalDate] x interval1D x unbounded[Int]
+
   testsFor(
     immutableBaseTests[Dim[LocalDate, LocalDate, Int, Int], Data[String, Dim[LocalDate, LocalDate, Int, Int]]](
       Data(_),
-      unbounded[LocalDate] x unbounded[LocalDate] x _ x unbounded[Int]
+      asDepth
+    )
+  )
+  testsFor(
+    immutableBaseTests[Dim[LocalDate, LocalDate, Int, Int], Data[String, Dim[LocalDate, LocalDate, Int, Int]]](
+      usingBuilder,
+      asDepth,
+      "Immutable (builder)"
+    )
+  )
+  testsFor(
+    immutableBaseTests[Dim[LocalDate, LocalDate, Int, Int], Data[String, Dim[LocalDate, LocalDate, Int, Int]]](
+      usingSetMany,
+      asDepth,
+      "Immutable (setMany)"
+    )
+  )
+
+  testsFor(
+    immutableCompressionTests[Dim[LocalDate, LocalDate, Int, Int], Data[String, Dim[LocalDate, LocalDate, Int, Int]]](
+      Data(_),
+      asDepth
+    )
+  )
+  testsFor(
+    immutableCompressionTests[Dim[LocalDate, LocalDate, Int, Int], Data[String, Dim[LocalDate, LocalDate, Int, Int]]](
+      usingBuilder,
+      asDepth,
+      "Immutable (builder)"
     )
   )
 

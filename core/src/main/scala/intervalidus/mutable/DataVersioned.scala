@@ -5,6 +5,7 @@ import intervalidus.DimensionalVersionedBase.{VersionDomain, VersionDomainValue,
 import intervalidus.DiscreteValue.IntDiscreteValue
 import intervalidus.Domain.NonEmptyTail
 
+import scala.collection.mutable
 import scala.language.implicitConversions
 import scala.math.Ordering.Implicits.infixOrderingOps
 
@@ -36,6 +37,14 @@ object DataVersioned extends DimensionalVersionedBaseObject:
     initialData.map(d => (d.interval withHead Interval1D.intervalFrom(initialVersion)) -> d.value),
     initialVersion
   )
+
+  override def newBuilder[V, D <: NonEmptyTuple: DomainLike](
+    initialVersion: VersionDomainValue = 0
+  )(using
+    Experimental,
+    DomainLike[Versioned[D]]
+  ): mutable.Builder[ValidData[V, D], DataVersioned[V, D]] =
+    DimensionalDataVersionedBuilder[V, D, DataVersioned[V, D]](from(_, initialVersion))
 
 /**
   * Immutable versioned dimensional data in any dimension.
@@ -128,6 +137,18 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     underlying.set(underlyingValidDataFromVersionBoundary(data))
 
   /**
+    * Set a collection of new valid data. Given a version selection context, any data previously valid in the intervals
+    * are replaced by these data.
+    *
+    * @note
+    *   if intervals overlap, later items will update earlier ones, so order can matter.
+    * @param data
+    *   collection of valid data to set.
+    */
+  def setMany(data: Iterable[ValidData[V, D]])(using VersionSelection): Unit =
+    underlying.setMany(data.map(underlyingValidDataFromVersionBoundary))
+
+  /**
     * Set new valid data, but only if there are no previously valid values in its interval and given the version
     * selection context.
     *
@@ -146,10 +167,8 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     *
     * @param data
     *   the new value and interval existing data should take on.
-    * @param versionSelection
-    *   version used for updating data -- default is the current version.
     */
-  def update(data: ValidData[V, D])(using versionSelection: VersionSelection): Unit =
+  def update(data: ValidData[V, D])(using VersionSelection): Unit =
     underlying.update(underlyingValidDataFromVersionBoundary(data))
 
   /**
@@ -158,11 +177,29 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     *
     * @param interval
     *   the interval where any valid values are removed.
-    * @param versionSelection
-    *   version used for removing data -- default is the current version.
     */
-  def remove(interval: Interval[D])(using versionSelection: VersionSelection): Unit =
+  def remove(interval: Interval[D])(using VersionSelection): Unit =
     underlying.remove(underlyingIntervalFromVersionBoundary(interval))
+
+  /**
+    * Remove data in all the intervals given a version selection context. If there are values valid on portions of any
+    * interval, those values have their intervals adjusted (e.g., shortened, shifted, split) accordingly.
+    *
+    * @param intervals
+    *   the interval where any valid values are removed.
+    */
+  def removeMany(intervals: Iterable[Interval[D]])(using VersionSelection): Unit =
+    underlying.removeMany(intervals.map(underlyingIntervalFromVersionBoundary))
+
+  /**
+    * Remove data in all the intervals where the specified value is valid in the given version selection context.
+    *
+    * @param value
+    *   the value that is removed.
+    */
+  def removeValue(value: V)(using VersionSelection): Unit =
+    intervals(value).foreach: interval =>
+      underlying.remove(underlyingIntervalFromVersionBoundary(interval))
 
   /**
     * Given the version selection context, adds a value as valid in portions of the interval where there aren't already
@@ -171,7 +208,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     * @param data
     *   value to make valid in any validity gaps found in the interval
     */
-  def fill(data: ValidData[V, D])(using versionSelection: VersionSelection): Unit =
+  def fill(data: ValidData[V, D])(using VersionSelection): Unit =
     underlying.fill(underlyingValidDataFromVersionBoundary(data))
 
   // ------ Implement methods similar to those from MutableVersionedBase, without version selection context ------
@@ -344,7 +381,8 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     compressAll()
 
   /**
-    * Creates a new structure based on the version selection context, but without any version history.
+    * Updates the existing structure to include only data based on the version selection context, but without any
+    * version history.
     */
   def collapseVersionHistory(using versionSelection: VersionSelection): Unit = synchronized:
     filter(versionInterval(_) contains versionSelection.boundary)
@@ -389,35 +427,55 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
       .flatMap(publicValidData(_).interval intersectionWith interval)
       .foreach(remove(_)(using VersionSelection.Current))
 
-  // ---------- Implement methods similar to those in DimensionalBase, but many with version selection ----------
+  // equivalent symbolic method names
 
-//TODO: these may be problematic/misunderstood in the versioned space, so leaving them out for now.
-//  /**
-//    * Remove the old data and replace it with the new data. The new data value and interval can be different. Data
-//    with
-//    * overlaps with the new data interval are adjusted accordingly.
-//    *
-//    * @param oldData
-//    *   the old data to be replaced.
-//    * @param newData
-//    *   the new data replacing the old data
-//    * @param versionSelection
-//    *   version used for updating data -- default is the current version.
-//    */
-//  def replace(oldData: ValidData[V, D], newData: ValidData[V, D])(using versionSelection: VersionSelection): Unit =
-//    underlying.replace(underlyingValidData(oldData), underlyingValidData(newData))
-//
-//  /**
-//    * Remove the old data and replace it with the new data. The new data value and interval can be different. Data
-//    with
-//    * overlaps with the new data interval are adjusted accordingly.
-//    *
-//    * @param key
-//    *   key of the old data to be replaced (the interval start).
-//    * @param newData
-//    *   the new data replacing the old data
-//    * @param versionSelection
-//    *   version used for updating data -- default is the current version.
-//    */
-//  def replaceByKey(key: D, newData: ValidData[V, D])(using versionSelection: VersionSelection): Unit =
-//    underlying.replaceByKey(underlyingDomain(key), underlyingValidData(newData))
+  /**
+    * Same as [[set]]
+    *
+    * Set new valid data. Given a version selection context, any data previously valid in this interval are replaced by
+    * this data.
+    *
+    * @param data
+    *   the valid data to set.
+    */
+  infix def +(data: ValidData[V, D])(using VersionSelection): Unit = set(data)
+
+  /**
+    * Same as [[setMany]]
+    *
+    * Set a collection of new valid data. Given a version selection context, any data previously valid in the intervals
+    * are replaced by these data.
+    *
+    * @note
+    *   if intervals overlap, later items will update earlier ones, so order can matter.
+    * @param data
+    *   collection of valid data to set.
+    */
+  infix def ++(data: Iterable[ValidData[V, D]])(using VersionSelection): Unit = setMany(data)
+
+  /**
+    * Same as [[remove]]
+    *
+    * Remove valid values on the interval and the given version selection context. If there are values valid on portions
+    * of the interval, those values have their intervals adjusted (e.g., shortened, shifted, split) accordingly.
+    *
+    * @param interval
+    *   the interval where any valid values are removed.
+    */
+  infix def -(interval: Interval[D])(using VersionSelection): Unit = remove(interval)
+
+  /**
+    * Same as [[removeMany]]
+    *
+    * Remove data in all the intervals given a version selection context. If there are values valid on portions of any
+    * interval, those values have their intervals adjusted (e.g., shortened, shifted, split) accordingly.
+    *
+    * @param intervals
+    *   the interval where any valid values are removed.
+    */
+  infix def --(intervals: Iterable[Interval[D]])(using VersionSelection): Unit =
+    removeMany(intervals)
+
+// These may be problematic/misunderstood in the versioned space, so leaving them out for now.
+//  def replace(oldData: ValidData[V, D], newData: ValidData[V, D]): Unit
+//  def replaceByKey(key: D, newData: ValidData[V, D]): Unit

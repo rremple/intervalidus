@@ -12,63 +12,63 @@ trait AttributeValueLike[T]:
   def matches(matchType: MatchType, thisAttribute: Attribute[T], thatAttribute: Attribute[?]): Boolean
 
 object AttributeValueLike:
+  import MatchType.*
+
+  private type Matches[T] = PartialFunction[(T, MatchType, T), Boolean]
+
   private inline def nameAndAttributeMatch[T: AttributeValueLike](
+    matchType: MatchType,
     thisAttribute: Attribute[T],
-    thatAttribute: Attribute[?]
-  )(
-    attributeMatch: PartialFunction[Attribute[?], Boolean]
-  ): Boolean = thatAttribute.name == thisAttribute.name &&
-    attributeMatch.applyOrElse(thatAttribute, _ => false)
+    thatAttribute: Attribute[?],
+    matches: Matches[T]
+  ): Boolean = thatAttribute match
+    case Attribute(thatName, thatValue: T) if thatName == thisAttribute.name =>
+      matches.applyOrElse((thatValue, matchType, thisAttribute.value), _ => false)
+    case _ => false
 
   given AttributeValueLike[Boolean] with
+    private val valueMatch: Matches[Boolean] =
+      case (thatValue, Equals, thisValue) => thatValue == thisValue
+
     inline def matches(matchType: MatchType, thisAttribute: Attribute[Boolean], thatAttribute: Attribute[?]): Boolean =
-      nameAndAttributeMatch(thisAttribute, thatAttribute):
-        case Attribute(_, thatValue: Boolean) =>
-          matchType match
-            case MatchType.Equals => thatValue == thisAttribute.value
-            case _                => false
+      nameAndAttributeMatch(matchType, thisAttribute, thatAttribute, valueMatch)
 
   given AttributeValueLike[Int] with
+    private val valueMatch: Matches[Int] =
+      case (thatValue, Equals, thisValue)      => thatValue == thisValue
+      case (thatValue, GreaterThan, thisValue) => thatValue > thisValue
+      case (thatValue, LessThan, thisValue)    => thatValue < thisValue
+
     inline def matches(matchType: MatchType, thisAttribute: Attribute[Int], thatAttribute: Attribute[?]): Boolean =
-      nameAndAttributeMatch(thisAttribute, thatAttribute):
-        case Attribute(_, thatValue: Int) =>
-          matchType match
-            case MatchType.Equals      => thatValue == thisAttribute.value
-            case MatchType.GreaterThan => thatValue > thisAttribute.value
-            case MatchType.LessThan    => thatValue < thisAttribute.value
-            case _                     => false
+      nameAndAttributeMatch(matchType, thisAttribute, thatAttribute, valueMatch)
 
   given AttributeValueLike[Double] with
+    private val valueMatch: Matches[Double] =
+      case (thatValue, Equals, thisValue)      => thatValue == thisValue
+      case (thatValue, GreaterThan, thisValue) => thatValue > thisValue
+      case (thatValue, LessThan, thisValue)    => thatValue < thisValue
+
     inline def matches(matchType: MatchType, thisAttribute: Attribute[Double], thatAttribute: Attribute[?]): Boolean =
-      nameAndAttributeMatch(thisAttribute, thatAttribute):
-        case Attribute(_, thatValue: Double) =>
-          matchType match
-            case MatchType.Equals      => thatValue == thisAttribute.value
-            case MatchType.GreaterThan => thatValue > thisAttribute.value
-            case MatchType.LessThan    => thatValue < thisAttribute.value
-            case _                     => false
+      nameAndAttributeMatch(matchType, thisAttribute, thatAttribute, valueMatch)
 
   given AttributeValueLike[String] with
+    private val valueMatch: Matches[String] =
+      case (thatValue, Equals, thisValue)      => thatValue == thisValue
+      case (thatValue, GreaterThan, thisValue) => thatValue > thisValue
+      case (thatValue, LessThan, thisValue)    => thatValue < thisValue
+      case (thatValue, Contains, thisValue)    => thatValue.contains(thisValue)
+
     inline def matches(matchType: MatchType, thisAttribute: Attribute[String], thatAttribute: Attribute[?]): Boolean =
-      nameAndAttributeMatch(thisAttribute, thatAttribute):
-        case Attribute(_, thatValue: String) =>
-          matchType match
-            case MatchType.Equals      => thatValue == thisAttribute.value
-            case MatchType.GreaterThan => thatValue > thisAttribute.value
-            case MatchType.LessThan    => thatValue < thisAttribute.value
-            case MatchType.Contains    => thatValue.contains(thisAttribute.value)
-            case _                     => false
+      nameAndAttributeMatch(matchType, thisAttribute, thatAttribute, valueMatch)
 
   given AttributeValueLike[LocalDate] with
+    private val valueMatch: Matches[LocalDate] =
+      case (thatValue, Equals, thisValue)      => thatValue isEqual thisValue
+      case (thatValue, GreaterThan, thisValue) => thatValue isAfter thisValue
+      case (thatValue, LessThan, thisValue)    => thatValue isBefore thisValue
+
     inline def matches(
       matchType: MatchType,
       thisAttribute: Attribute[LocalDate],
       thatAttribute: Attribute[?]
-    ): Boolean =
-      nameAndAttributeMatch(thisAttribute, thatAttribute):
-        case Attribute(_, thatValue: LocalDate) =>
-          matchType match
-            case MatchType.Equals      => thatValue.isEqual(thisAttribute.value)
-            case MatchType.GreaterThan => thatValue.isAfter(thisAttribute.value)
-            case MatchType.LessThan    => thatValue.isBefore(thisAttribute.value)
-            case _                     => false
+    ): Boolean = nameAndAttributeMatch(matchType, thisAttribute, thatAttribute, valueMatch)

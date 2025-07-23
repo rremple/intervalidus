@@ -25,8 +25,21 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
       dataIn3DVersioned.incrementCurrentVersion()
     dataIn3DVersioned
 
+  def usingBuilder(data: Iterable[ValidData[String, Dim[Int, Int, Int]]]): DataVersioned[String, Dim[Int, Int, Int]] =
+    val builder = DataVersioned.newBuilder[String, Dim[Int, Int, Int]]()
+    builder.addOne(Interval.unbounded -> "Junk")
+    builder.clear()
+    data.foldLeft(builder)(_.addOne(_)).result()
+
+  def usingSetMany(data: Iterable[ValidData[String, Dim[Int, Int, Int]]]): DataVersioned[String, Dim[Int, Int, Int]] =
+    val newStructure = DataVersioned[String, Dim[Int, Int, Int]]()
+    newStructure ++ data
+    newStructure
+
   // shared
   testsFor(stringLookupTests("Mutable", newDataIn3DVersioned, DataVersioned(_), DataVersioned.of(_)))
+  testsFor(stringLookupTests("Mutable (builder)", usingBuilder, DataVersioned(_), DataVersioned.of(_)))
+  testsFor(stringLookupTests("Mutable (setMany)", usingSetMany, DataVersioned(_), DataVersioned.of(_)))
 
   test("Mutable: Adding and removing data in intervals"):
     val empty: DataVersioned[String, Dim[Int, Int, Int]] =
@@ -119,8 +132,10 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
 
     val fixture4 = fixture.copy
 
-    fixture.remove(interval(5, 15) x unbounded[Int] x unbounded[Int])
-    fixture.remove(intervalAt(20) x intervalFrom(1) x unbounded[Int])
+    fixture -- Seq(
+      interval(5, 15) x unbounded[Int] x unbounded[Int],
+      intervalAt(20) x intervalFrom(1) x unbounded[Int]
+    )
     fixture.incrementCurrentVersion()
     val expectedData5 = List(
       (intervalTo(4) x unbounded[Int] x unbounded[Int]) -> "Hey",
@@ -143,6 +158,11 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
       (intervalFrom(1) x unbounded[Int] x unbounded[Int]) -> "Filled"
     )
     fixture7.getAll.toList shouldBe expectedFilled
+    fixture7.intervals("Filled") should contain theSameElementsAs List(
+      intervalFrom(1) x unbounded[Int] x unbounded[Int]
+    )
+    fixture7.removeValue("Filled")
+    fixture7.getAll.toList shouldBe expectedData6
 
     val data1 = DataVersioned.from(
       Seq(

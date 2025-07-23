@@ -163,7 +163,7 @@ object Fact:
         inline elementValue match
           case a: Option[?] => a.toSeq.flatMap(attributesFromOneElement(elementName, _))
           case a: Set[?]    => a.toSeq.flatMap(attributesFromOneElement(elementName, _))
-          case a            => Seq(Attribute(elementName, a.toString)) // TODO: fallback to String
+          case a            => Seq(Attribute(elementName, a.toString)) // fallback to String
 
   /**
     * Recursively deconstructs the product elements as a set of attributes. Unfortunately, deconstructing

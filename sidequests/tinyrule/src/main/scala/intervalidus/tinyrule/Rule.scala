@@ -1,7 +1,5 @@
 package intervalidus.tinyrule
 
-import java.time.LocalDate
-
 /**
   * A rule can be applied to a fact with a boolean result (i.e., in the language of predicate logic, rules are
   * predicates, facts are constants, and the application of facts to a rule is a proposition). Rules can be combined

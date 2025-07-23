@@ -9,7 +9,6 @@ import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
 import java.time.LocalDate
-import scala.annotation.nowarn
 import scala.language.implicitConversions
 
 class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors with MutableBaseBehaviors:
@@ -20,15 +19,47 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
   // shared
   testsFor(stringLookupTests("Mutable", Data(_), Data.of(_)))
 
+  def usingBuilder(data: Iterable[ValidData[String, Dim[LocalDate, Int]]]): Data[String, Dim[LocalDate, Int]] =
+    data.foldLeft(Data.newBuilder[String, Dim[LocalDate, Int]])(_.addOne(_)).result()
+
+  def usingSetMany(data: Iterable[ValidData[String, Dim[LocalDate, Int]]]): Data[String, Dim[LocalDate, Int]] =
+    val newStructure = Data[String, Dim[LocalDate, Int]]()
+    newStructure ++ data
+    newStructure
+
+  def asVertical(interval1D: Interval1D[Int]): Interval[Dim[LocalDate, Int]] =
+    unbounded[LocalDate] x interval1D
+
+  def mapf(d: ValidData[String, Dim[LocalDate, Int]]): ValidData[String, Dim[LocalDate, Int]] =
+    d.copy(
+      value = d.value + "!",
+      interval = d.interval.to(d.interval.end.leftAdjacent)
+    )
+
+  testsFor(mutableBaseTests[Dim[LocalDate, Int], Data[String, Dim[LocalDate, Int]]](Data(_), asVertical, mapf))
   testsFor(
     mutableBaseTests[Dim[LocalDate, Int], Data[String, Dim[LocalDate, Int]]](
-      Data(_),
-      i => unbounded[LocalDate] x i,
-      d =>
-        d.copy(
-          value = d.value + "!",
-          interval = d.interval.to(d.interval.end.leftAdjacent)
-        )
+      usingBuilder,
+      asVertical,
+      mapf,
+      "Immutable (builder)"
+    )
+  )
+  testsFor(
+    mutableBaseTests[Dim[LocalDate, Int], Data[String, Dim[LocalDate, Int]]](
+      usingSetMany,
+      asVertical,
+      mapf,
+      "Immutable (setMany)"
+    )
+  )
+
+  testsFor(mutableCompressionTests[Dim[LocalDate, Int], Data[String, Dim[LocalDate, Int]]](Data(_), asVertical))
+  testsFor(
+    mutableCompressionTests[Dim[LocalDate, Int], Data[String, Dim[LocalDate, Int]]](
+      usingBuilder,
+      asVertical,
+      "Immutable (builder)"
     )
   )
 

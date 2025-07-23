@@ -46,6 +46,7 @@ class BoxQuadtreeTest extends AnyFunSuite with Matchers:
       Box(Coordinate(-1, -1), Coordinate(1, 1)) -> "four"
     )
     BoxedPayload.deduplicate(tree.toIterable) should contain theSameElementsAs expected
+    tree.getAndDeduplicate(Box(Coordinate(-1, -1), Coordinate(5, 5))) should contain theSameElementsAs expected
     BoxedPayload.deduplicate(tree.copy.toIterable) should contain theSameElementsAs expected
 
     tree.get(Box(Coordinate(4, 4), Coordinate(5, 5))) should contain theSameElementsAs

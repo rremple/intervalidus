@@ -144,8 +144,8 @@ trait Billing:
         Transaction(thisCycle.runDate, customer, tier, period, dailyRate * period.days * amountSign, remark)
 
     import DiffAction.*
-    val newTiersTruncated = newTiers.remove(intervalFromAfter(thisCycle.billToDate))
-    val priorTiersTruncated = priorTiers.remove(intervalFromAfter(priorCycle.billToDate))
+    val newTiersTruncated = newTiers - intervalFromAfter(thisCycle.billToDate)
+    val priorTiersTruncated = priorTiers - intervalFromAfter(priorCycle.billToDate)
     val diffActions = newTiersTruncated.diffActionsFrom(priorTiersTruncated)
 
     diffActions.flatMap:

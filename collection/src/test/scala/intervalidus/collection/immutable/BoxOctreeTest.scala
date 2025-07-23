@@ -49,6 +49,7 @@ class BoxOctreeTest extends AnyFunSuite with Matchers:
       Box(Coordinate(-1, -1, -1), Coordinate(1, 1, 1)) -> "four"
     )
     BoxedPayload.deduplicate(tree.toIterable) should contain theSameElementsAs expected
+    tree.getAndDeduplicate(Box(Coordinate(-1, -1, -1), Coordinate(5, 5, 2))) should contain theSameElementsAs expected
     BoxedPayload.deduplicate(tree.copy.toIterable) should contain theSameElementsAs expected
 
     // Trees always start as a branch and immutable leaves never get copied, so forcing that to happen here just for

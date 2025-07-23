@@ -75,6 +75,16 @@ trait BoxTreeLike[A, Self <: BoxTreeLike[A, Self]]:
   def get(range: Box): Iterable[BoxedPayload[A]]
 
   /**
+    * Queries the tree for boxes intersecting a certain range and deduplicates the results.
+    * @param range
+    *   box to query.
+    * @return
+    *   deduplicated boxed data intersecting the range.
+    */
+  def getAndDeduplicate(range: Box): Iterable[BoxedPayload[A]] =
+    BoxedPayload.deduplicate(get(range))
+
+  /**
     * A utility method to show data (for testing purposes). Because boxes can be split, the data returned can have
     * duplicates
     * @return
