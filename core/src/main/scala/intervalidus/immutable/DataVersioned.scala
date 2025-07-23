@@ -209,7 +209,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     copyAndModify(_.underlying.removeMany(intervals.map(underlyingIntervalFromVersionBoundary)))
 
   /**
-    * Remove data in all the intervals where the specified value is valid in the given version selection context.
+    * Remove the value in all the intervals where it is valid in the given version selection context.
     *
     * @param value
     *   the value that is removed.

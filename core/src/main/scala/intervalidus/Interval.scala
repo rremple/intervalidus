@@ -672,27 +672,23 @@ object Interval:
     compressAdjacent: (Data, Data, State) => State
   )(using domainLike: DomainLike[D]): Result =
     /*
-     * Each mutation gives rise to other compression possibilities. And applying a compression action
-     * can invalidate the remainder of the actions (e.g., three-in-a-row). Unlike in one dimension, there
-     * is no safe order to fold over to avoid these issues. So, instead, we evaluate every entry with every
-     * other entry, get the first compression action, apply it, and recurse until there aren't anymore actions to apply.
+     * Each mutation gives rise to other compression possibilities. And applying a compression action can invalidate
+     * the remainder of the actions (e.g., three-in-a-row). In all dimensions greater than one, there is no safe order
+     * to fold over ordered intervals to avoid these issues. Instead, we evaluate every entry with every other entry,
+     *  get the first compression action, apply it, and recurse until there aren't anymore actions to apply.
      */
     @tailrec
     def compressRecursively(state: State): Result =
-      val maybeUpdate: Option[() => State] = dataIterable(state)
-        .map: data =>
-          domainLike
-            .intervalAdjacentKeys(interval(data))
-            .map: adjacentKey =>
-              lookup(state, adjacentKey).filter: candidate =>
-                valueMatch(data, candidate) && (interval(candidate) isRightAdjacentTo interval(data))
-            .collectFirst:
-              case Some(adjacentData) => () => compressAdjacent(data, adjacentData, state)
-        .collectFirst:
-          case Some(updated) => updated
-      maybeUpdate match
-        case None              => result(state) // done
-        case Some(updateState) => compressRecursively(updateState())
+      val compressionActions: Iterator[State => State] = for
+        data <- dataIterable(state).iterator
+        adjacentKey <- domainLike.intervalAdjacentKeys(interval(data))
+        adjacentData <- lookup(state, adjacentKey).find: candidate =>
+          valueMatch(data, candidate) && (interval(data) isLeftAdjacentTo interval(candidate))
+      yield compressAdjacent(data, adjacentData, _)
+
+      compressionActions.nextOption() match
+        case None         => result(state) // done
+        case Some(update) => compressRecursively(update(state))
 
     compressRecursively(initialState)
 

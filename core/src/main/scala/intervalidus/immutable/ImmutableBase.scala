@@ -234,7 +234,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
       result.updateOrRemove(interval, _ => None)
 
   /**
-    * Remove data in all the intervals where the specified value is valid.
+    * Remove the value in all the intervals where it is valid.
     *
     * @param value
     *   the value that is removed.
