@@ -231,8 +231,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     */
   protected def updateOrRemove(targetInterval: Interval[D], updateValue: V => Option[V]): Unit = synchronized:
     val intersectingValues = getIntersecting(targetInterval).map: overlap =>
-      overlap.interval
-        .intersectionWith(targetInterval)
+      (overlap.interval ∩ targetInterval)
         .foreach: intersection => // there will always be one
           // Creates an atomic deconstruction of the intervals covering the overlap without the intersection
           val atomicNonIntersections = overlap.interval.separateUsing(intersection).filter(_ != intersection)
@@ -326,7 +325,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     interval = _.interval,
     valueMatch = _.value == _.value,
     lookup = (_, start) => dataByStartAsc.get(start),
-    compressAdjacent = (r, s, intervalByStart) =>
+    compressAdjacent = (r, s, _) =>
       removeValidData(s)
       updateValidData(r.interval ∪ s.interval -> value)
   )
@@ -528,7 +527,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     dataInSearchTree
       .get(Box.at(domainIndex.asCoordinate))
       .collectFirst:
-        case d if d.payload.interval.contains(domainIndex) => d.payload
+        case d if domainIndex ∈ d.payload.interval => d.payload
 
   /**
     * Returns a value that is valid at the specified domain element. That is, where the specified domain element is a

@@ -134,7 +134,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     *   the valid data to set.
     */
   def set(data: ValidData[V, D])(using VersionSelection): Unit =
-    underlying.set(underlyingValidDataFromVersionBoundary(data))
+    underlying + underlyingValidDataFromVersionBoundary(data)
 
   /**
     * Set a collection of new valid data. Given a version selection context, any data previously valid in the intervals
@@ -179,7 +179,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     *   the interval where any valid values are removed.
     */
   def remove(interval: Interval[D])(using VersionSelection): Unit =
-    underlying.remove(underlyingIntervalFromVersionBoundary(interval))
+    underlying - underlyingIntervalFromVersionBoundary(interval)
 
   /**
     * Remove data in all the intervals given a version selection context. If there are values valid on portions of any
@@ -199,7 +199,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     */
   def removeValue(value: V)(using VersionSelection): Unit =
     intervals(value).foreach: interval =>
-      underlying.remove(underlyingIntervalFromVersionBoundary(interval))
+      underlying - underlyingIntervalFromVersionBoundary(interval)
 
   /**
     * Given the version selection context, adds a value as valid in portions of the interval where there aren't already
@@ -424,7 +424,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     underlying
       .getIntersecting(underlyingIntervalWithVersion(interval, VersionSelection.Current.intervalFrom))
       .filter(versionInterval(_).end equiv unapprovedStartVersion.leftAdjacent) // only related to unapproved removes
-      .flatMap(publicValidData(_).interval intersectionWith interval)
+      .flatMap(publicValidData(_).interval ∩ interval)
       .foreach(remove(_)(using VersionSelection.Current))
 
   // equivalent symbolic method names

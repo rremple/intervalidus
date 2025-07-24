@@ -43,6 +43,8 @@ class DiscreteValueTest extends AnyFunSuite:
     assert(domain(4) isAdjacentTo domain(3))
     assert(domain(3).leftAdjacent equiv domain(2))
     assert(domain(2) isLeftAdjacentTo domain(3))
+    assert(domain(4) ~ domain(3))
+    assert(domain(2) ~> domain(3))
     assert(domain(maxValue).rightAdjacent equiv top)
     assert(domain(minValue).leftAdjacent equiv bottom)
     assert(bottom.leftAdjacent equiv bottom)

@@ -30,6 +30,8 @@ class ContinuousValueTest extends AnyFunSuite:
     assert(domain(3) isRightAdjacentTo open(3))
     assert(domain(3) isLeftAdjacentTo open(3))
     assert(domain(3) isAdjacentTo open(3))
+    assert(domain(3) ~> open(3))
+    assert(domain(3) ~ open(3))
     assert(domain(maxValue).leftAdjacent equiv open(maxValue))
     assert(domain(minValue).rightAdjacent equiv open(minValue))
     assert(bottom.leftAdjacent equiv bottom)

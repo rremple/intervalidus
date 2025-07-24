@@ -138,7 +138,7 @@ trait Billing:
       for
         ValidData(dailyRate, ratePeriodIn1D) <- tier.dailyRates.getIntersecting(billingPeriod)
         ratePeriod = ratePeriodIn1D.headInterval1D[LocalDate]
-        period <- billingPeriod.intersectionWith(ratePeriod)
+        period <- billingPeriod ∩ ratePeriod
       yield
         val remark = s"$transactionType for $period at the ${tier.description} ${dailyRate.dollarFormat}/day rate"
         Transaction(thisCycle.runDate, customer, tier, period, dailyRate * period.days * amountSign, remark)

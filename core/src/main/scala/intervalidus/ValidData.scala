@@ -59,7 +59,7 @@ case class ValidData[V, D <: NonEmptyTuple](
   override def apply(domainIndex: D): V =
     if isDefinedAt(domainIndex) then value else throw new Exception(s"Not defined at $domainIndex")
 
-  override def isDefinedAt(domainIndex: D): Boolean = interval contains domainIndex
+  override def isDefinedAt(domainIndex: D): Boolean = domainIndex ∈ interval
 
   // inline because it is called from inline methods in DomainLikeTupleOps
   inline def valueToString: String = value match

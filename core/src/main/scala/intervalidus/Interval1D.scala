@@ -74,7 +74,7 @@ case class Interval1D[T](
     * @param that
     *   the interval to test.
     */
-  infix def intersects(that: Interval1D[T]): Boolean = intersectionWith(that).isDefined
+  infix def intersects(that: Interval1D[T]): Boolean = (this ∩ that).isDefined
 
   /**
     * Finds the intersection of this with that. See [[https://en.wikipedia.org/wiki/Intersection_(set_theory)]].
@@ -186,7 +186,7 @@ case class Interval1D[T](
     *   The remainder after excluding that.
     */
   infix def excluding(that: Interval1D[T]): Interval1D.Remainder[Interval1D[T]] =
-    this intersectionWith that match
+    this ∩ that match
       case None => // no intersection, nothing to exclude
         Interval1D.Remainder.Single(this)
       case Some(commonBit) =>
@@ -216,7 +216,7 @@ case class Interval1D[T](
     *   A collection of intervals covering this without overlaps after being separated by that.
     */
   infix def separateUsing(that: Interval1D[T]): Iterable[Interval1D[T]] =
-    this intersectionWith that match
+    this ∩ that match
       case None => // no intersection, nothing to separate
         Seq(this)
       case Some(commonBit) =>
@@ -239,8 +239,7 @@ case class Interval1D[T](
     *   if one exists, some interval representing the gap between this and that in all dimensions, and None otherwise.
     */
   infix def gapWith(that: Interval1D[T]): Option[Interval1D[T]] =
-    if this intersects that then None
-    else if this isAdjacentTo that then None
+    if (this intersects that) || (this ~ that) then None
     else Some(Interval1D((this.end minEnd that.end).rightAdjacent, (this.start maxStart that.start).leftAdjacent))
 
   /**
@@ -314,6 +313,26 @@ case class Interval1D[T](
   /*
    * Equivalent symbolic method names
    */
+
+  /**
+    * Same as [[isAdjacentTo]]
+    *
+    * Tests if there is no gap between this and that.
+    *
+    * @param that
+    *   the interval to test for adjacency.
+    */
+  infix def ~(that: Interval1D[T]): Boolean = isAdjacentTo(that)
+
+  /**
+    * Same as [[isLeftAdjacentTo]]
+    *
+    * Tests if this interval is to the left of that interval and there is no gap between them.
+    *
+    * @param that
+    *   the interval to test for adjacency.
+    */
+  infix def ~>(that: Interval1D[T]): Boolean = isLeftAdjacentTo(that)
 
   /**
     * Same as [[withValue]]
@@ -468,12 +487,12 @@ object Interval1D:
     *   a new (possibly smaller) collection of intervals covering the same domain as the input.
     */
   def compress[T: DomainValueLike](intervals: Iterable[Interval1D[T]]): Iterable[Interval1D[T]] =
-    intervals.toList.foldRight(List.empty[Interval1D[T]]): (r, acc) =>
+    intervals.toList.foldRight(List.empty[Interval1D[T]]): (left, acc) =>
       acc match
-        case head :: tail =>
-          if (r isLeftAdjacentTo head) || (r intersects head) then (r joinedWith head) :: tail
-          else r :: head :: tail
-        case Nil => List(r)
+        case right :: tail =>
+          if (left ~> right) || (left intersects right) then (left ∪ right) :: tail
+          else left :: right :: tail
+        case Nil => List(left)
 
   /**
     * Used internally when formatting a group of intervals for the Data.toString grid.

@@ -218,25 +218,25 @@ object DomainLikeTupleOps:
     ): (Int, Int, Int) =
       val beforeHead = headInterval(beforeDomainTuple)
       val afterHead = headInterval(afterDomainTuple)
-      (if beforeHead equiv afterHead then 1 else 0, if beforeHead isLeftAdjacentTo afterHead then 1 else 0, 1)
+      (if beforeHead equiv afterHead then 1 else 0, if beforeHead ~> afterHead then 1 else 0, 1)
 
     inline override def excludingFromIntervals(
       thisInterval: Interval[OneDimDomain[DV]],
       thatInterval: Interval[OneDimDomain[DV]]
     ): NonEmptyTuple =
-      headInterval(thisInterval).excluding(headInterval(thatInterval)) *: EmptyTuple
+      (headInterval(thisInterval) \ headInterval(thatInterval)) *: EmptyTuple
 
     inline override def separateUsingFromIntervals(
       thisInterval: Interval[OneDimDomain[DV]],
       thatInterval: Interval[OneDimDomain[DV]]
     ): Iterable[Interval[OneDimDomain[DV]]] =
-      headInterval(thisInterval).separateUsing(headInterval(thatInterval)).map(from1d)
+      (headInterval(thisInterval) separateUsing headInterval(thatInterval)).map(from1d)
 
     inline override def gapWithFromIntervals(
       thisInterval: Interval[OneDimDomain[DV]],
       thatInterval: Interval[OneDimDomain[DV]]
     ): Option[Interval[OneDimDomain[DV]]] =
-      headInterval(thisInterval).gapWith(headInterval(thatInterval)).map(from1d)
+      (headInterval(thisInterval) gapWith headInterval(thatInterval)).map(from1d)
 
     inline override def uniqueIntervalsFromInterval(
       intervals: Iterable[Interval[OneDimDomain[DV]]]
@@ -409,7 +409,7 @@ object DomainLikeTupleOps:
       val beforeHead = headInterval(beforeDomainTuple)
       val afterHead = headInterval(afterDomainTuple)
       val equivalent = beforeHead equiv afterHead
-      val adjacent = beforeHead isLeftAdjacentTo afterHead
+      val adjacent = beforeHead ~> afterHead
       val (tailEquivalency, tailAdjacency, tailTotal) =
         applyToTail.equivalencyAndAdjacencyFromIntervals(
           tailInterval(beforeDomainTuple),
@@ -420,7 +420,7 @@ object DomainLikeTupleOps:
     inline override def excludingFromIntervals(
       thisInterval: Interval[MultiDimDomain[DV, DomainTail]],
       thatInterval: Interval[MultiDimDomain[DV, DomainTail]]
-    ): NonEmptyTuple = headInterval(thisInterval).excluding(headInterval(thatInterval)) *:
+    ): NonEmptyTuple = (headInterval(thisInterval) \ headInterval(thatInterval)) *:
       applyToTail.excludingFromIntervals(tailInterval(thisInterval), tailInterval(thatInterval))
 
     def separateUsingFromIntervals(
@@ -428,7 +428,7 @@ object DomainLikeTupleOps:
       thatInterval: Interval[MultiDimDomain[DV, DomainTail]]
     ): Iterable[Interval[MultiDimDomain[DV, DomainTail]]] =
       for
-        headInterval1D <- headInterval(thisInterval).separateUsing(headInterval(thatInterval))
+        headInterval1D <- headInterval(thisInterval) separateUsing headInterval(thatInterval)
         tailInterval <- applyToTail.separateUsingFromIntervals(tailInterval(thisInterval), tailInterval(thatInterval))
       yield tailInterval withHead headInterval1D
 
@@ -437,7 +437,7 @@ object DomainLikeTupleOps:
       thatInterval: Interval[MultiDimDomain[DV, DomainTail]]
     ): Option[Interval[MultiDimDomain[DV, DomainTail]]] =
       for
-        headInterval1D <- headInterval(thisInterval).gapWith(headInterval(thatInterval))
+        headInterval1D <- headInterval(thisInterval) gapWith headInterval(thatInterval)
         tailInterval <- applyToTail.gapWithFromIntervals(tailInterval(thisInterval), tailInterval(thatInterval))
       yield tailInterval withHead headInterval1D
 

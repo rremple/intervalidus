@@ -141,7 +141,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     *   a new, updated structure.
     */
   def set(data: ValidData[V, D])(using VersionSelection): DataVersioned[V, D] =
-    copyAndModify(_.underlying.set(underlyingValidDataFromVersionBoundary(data)))
+    copyAndModify(_.underlying + underlyingValidDataFromVersionBoundary(data))
 
   /**
     * Set a collection of new valid data. Given a version selection context, any data previously valid in the intervals
@@ -194,7 +194,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     *   a new, updated structure.
     */
   def remove(interval: Interval[D])(using VersionSelection): DataVersioned[V, D] =
-    copyAndModify(_.underlying.remove(underlyingIntervalFromVersionBoundary(interval)))
+    copyAndModify(_.underlying - underlyingIntervalFromVersionBoundary(interval))
 
   /**
     * Remove data in all the intervals given a version selection context. If there are values valid on portions of any
@@ -218,7 +218,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     */
   def removeValue(value: V)(using VersionSelection): DataVersioned[V, D] = copyAndModify: result =>
     intervals(value).foreach: interval =>
-      result.underlying.remove(underlyingIntervalFromVersionBoundary(interval))
+      result.underlying - underlyingIntervalFromVersionBoundary(interval)
 
   /**
     * Given the version selection context, adds a value as valid in portions of the interval where there aren't already
@@ -534,7 +534,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     approved.underlying
       .getIntersecting(underlyingIntervalWithVersion(interval, VersionSelection.Current.intervalFrom))
       .filter(versionInterval(_).end equiv unapprovedStartVersion.leftAdjacent) // only related to unapproved removes
-      .flatMap(publicValidData(_).interval intersectionWith interval)
+      .flatMap(publicValidData(_).interval ∩ interval)
       .foldLeft(approved): (prev, i) =>
         prev.remove(i)(using VersionSelection.Current)
 

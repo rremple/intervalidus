@@ -79,7 +79,7 @@ case class Interval[D <: NonEmptyTuple](
     * @param that
     *   the interval to test.
     */
-  infix def intersects(that: Interval[D]): Boolean = intersectionWith(that).isDefined
+  infix def intersects(that: Interval[D]): Boolean = (this ∩ that).isDefined
 
   /**
     * Finds the intersection of this with that. See [[https://en.wikipedia.org/wiki/Intersection_(set_theory)]].
@@ -353,7 +353,7 @@ case class Interval[D <: NonEmptyTuple](
     *   true if that is a subset of this.
     */
   infix def contains(that: Interval[D]): Boolean =
-    intersectionWith(that).contains(that)
+    (this ∩ that).contains(that)
 
   /**
     * Tests if this is a subset (proper or improper) of that. See [[https://en.wikipedia.org/wiki/Subset]].
@@ -402,6 +402,26 @@ case class Interval[D <: NonEmptyTuple](
   /*
    * Equivalent symbolic method names
    */
+
+  /**
+    * Same as [[isAdjacentTo]]
+    *
+    * Tests if there is no gap between this and that.
+    *
+    * @param that
+    *   the interval to test for adjacency.
+    */
+  infix def ~(that: Interval[D]): Boolean = isAdjacentTo(that)
+
+  /**
+    * Same as [[isLeftAdjacentTo()]]
+    *
+    * Tests if this interval is to the left/below/behind/etc. of that interval and there is no gap between them.
+    *
+    * @param that
+    *   the interval to test for adjacency.
+    */
+  infix def ~>(that: Interval[D]): Boolean = isLeftAdjacentTo(that)
 
   /**
     * Same as [[withValue]]
@@ -680,11 +700,11 @@ object Interval:
     @tailrec
     def compressRecursively(state: State): Result =
       val compressionActions: Iterator[State => State] = for
-        data <- dataIterable(state).iterator
-        adjacentKey <- domainLike.intervalAdjacentKeys(interval(data))
-        adjacentData <- lookup(state, adjacentKey).find: candidate =>
-          valueMatch(data, candidate) && (interval(data) isLeftAdjacentTo interval(candidate))
-      yield compressAdjacent(data, adjacentData, _)
+        leftData <- dataIterable(state).iterator
+        candidateAdjacentKey <- domainLike.intervalAdjacentKeys(interval(leftData))
+        rightData <- lookup(state, candidateAdjacentKey).find: candidateRightData =>
+          valueMatch(leftData, candidateRightData) && (interval(leftData) ~> interval(candidateRightData))
+      yield compressAdjacent(leftData, rightData, _)
 
       compressionActions.nextOption() match
         case None         => result(state) // done
@@ -711,7 +731,7 @@ object Interval:
     interval = identity, // data are just intervals
     valueMatch = (_, _) => true, // no value to match
     lookup = _.get(_),
-    compressAdjacent = (r, s, state) => state.removed(s.start).updated(r.start, r ∪ s)
+    compressAdjacent = (r, s, treeMap) => treeMap.removed(s.start).updated(r.start, r ∪ s)
   )
 
   /**
@@ -727,13 +747,9 @@ object Interval:
     *   true if the collection is compressible, false otherwise.
     */
   def isCompressible[D <: NonEmptyTuple: DomainLike](intervals: Iterable[Interval[D]]): Boolean =
-    // evaluates every pair of intervals twice, so we only need to check for before adjacency
-    intervals.exists: r =>
-      intervals
-        .filter: d =>
-          !(d equiv r)
-        .exists: d =>
-          (d isLeftAdjacentTo r) || (d intersects r)
+    intervals.exists: left =>
+      intervals.exists: right =>
+        (left < right) && ((left ~> right) || (left intersects right))
 
   /**
     * Checks if the collection of intervals is disjoint. That is, all neighboring intervals do not intersect. See

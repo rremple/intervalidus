@@ -297,6 +297,24 @@ object Domain1D:
     infix def minEnd(that: Domain1D[T]): Domain1D[T] =
       List(domain, that).min(using Domain1D.endOrdering)
 
+    /*
+     * Equivalent symbolic method names
+     */
+
+    /**
+      * Same as [[isAdjacentTo]]
+      *
+      * Tests if this domain is adjacent to that domain on the left or right.
+      */
+    infix def ~(that: Domain1D[T]): Boolean = isAdjacentTo(that)
+
+    /**
+      * Same as [[isLeftAdjacentTo]]
+      *
+      * Tests if this domain is adjacent to that domain on the left.
+      */
+    infix def ~>(that: Domain1D[T]): Boolean = isLeftAdjacentTo(that)
+
   /**
     * This ordering sorts Bottoms and Tops correctly and leverages the domain value ordering for the data points in
     * between. When open and closed points are at the same value, sorts according to asStart parameter.
