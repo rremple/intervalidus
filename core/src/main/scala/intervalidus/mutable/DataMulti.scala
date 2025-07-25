@@ -27,7 +27,7 @@ object DataMulti extends DimensionalMultiBaseObject:
     initialData: Iterable[ValidData[V, D]]
   )(using Experimental): DataMulti[V, D] =
     val result = DataMulti[V, D]()
-    result.addAll(initialData)
+    result.addOneMany(initialData)
     result
 
   override def from[V, D <: NonEmptyTuple: DomainLike](
@@ -79,7 +79,7 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] protected (
     * @param that
     *   the structure which is going to be concatenated.
     */
-  def concat(that: DataMulti[V, D]): Unit =
+  def mergeOne(that: DataMulti[V, D]): Unit =
     merge(that, _ ++ _)
 
   /**
@@ -108,7 +108,7 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] protected (
     * @param allData
     *   the data to add
     */
-  def addAll(allData: Iterable[ValidData[V, D]]): Unit =
+  def addOneMany(allData: Iterable[ValidData[V, D]]): Unit =
     allData.foreach(addOneInPlace)
 
   /**
@@ -117,7 +117,7 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] protected (
     * @param allData
     *   the data to remove
     */
-  def removeAll(allData: Iterable[ValidData[V, D]]): Unit =
+  def removeOneMany(allData: Iterable[ValidData[V, D]]): Unit =
     allData.foreach(removeOneInPlace)
 
   // ---------- Implement methods from DimensionalBase that create new instances ----------

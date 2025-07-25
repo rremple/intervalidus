@@ -26,7 +26,7 @@ object DataMulti extends DimensionalMultiBaseObject:
   override def from[V, D <: NonEmptyTuple: DomainLike](
     initialData: Iterable[ValidData[V, D]]
   )(using Experimental): DataMulti[V, D] =
-    DataMulti[V, D]().addAll(initialData)
+    DataMulti[V, D]().addOneMany(initialData)
 
   override def from[V, D <: NonEmptyTuple: DomainLike](
     that: DimensionalBase[Set[V], D]
@@ -79,7 +79,7 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] protected (
     * @return
     *   a new, updated structure.
     */
-  def concat(that: DataMulti[V, D]): DataMulti[V, D] =
+  def mergeOne(that: DataMulti[V, D]): DataMulti[V, D] =
     merge(that, _ ++ _)
 
   /**
@@ -114,7 +114,7 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] protected (
     * @return
     *   a new, updated structure
     */
-  def addAll(allData: Iterable[ValidData[V, D]]): DataMulti[V, D] = copyAndModify: result =>
+  def addOneMany(allData: Iterable[ValidData[V, D]]): DataMulti[V, D] = copyAndModify: result =>
     allData.foreach(result.addOneInPlace)
 
   /**
@@ -125,7 +125,7 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] protected (
     * @return
     *   a new, updated structure
     */
-  def removeAll(allData: Iterable[ValidData[V, D]]): DataMulti[V, D] = copyAndModify: result =>
+  def removeOneMany(allData: Iterable[ValidData[V, D]]): DataMulti[V, D] = copyAndModify: result =>
     allData.foreach(result.removeOneInPlace)
 
   // ---------- Implement methods from ImmutableBase that create new instances ----------

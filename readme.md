@@ -513,10 +513,9 @@ You can also extend through object-oriented inheritance. For example `DataMulti`
 of normal `Data` structures to provide multimap-like
 capabilities. The inherited components store and operate on sets of values rather than individual values, which allows
 multiple values to be valid in the same interval. When queried, values are returned as sets. There are also `addOne` /
-`addAll` and `removeOne` / `removeAll` methods which allow mutation of individual values across intervals, `valuesOne`
-and `intervalsOne` methods for querying by individual values rather than value sets, and a `concat` method for combining
-two structures (conceptually similar to `zip` and `merge`, but operating on individual values, and more appropriate for
-a multi-value structure).
+`addOneMany` and `removeOne` / `removeOneMany` methods which allow mutation of individual values across intervals,
+`valuesOne` and `intervalsOne` methods for querying by individual values rather than value sets, and a `mergeOne` method
+for concatenating two structures (a `merge` that preserves individual value validity from both of the structures).
 
 ## Software Structure
 
