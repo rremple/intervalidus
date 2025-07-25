@@ -48,6 +48,8 @@ trait DataIn2DMultiBaseBehaviors:
           withHorizontal(interval(10, 30)) -> "C"
         )
       )
+      f0.valuesOne should contain theSameElementsAs Set("A", "B", "C")
+
       // println(f0.toString)
       f0.toString shouldBe
         """|| 0 .. 4           | 5 .. 9           | 10 .. 20         | 21 .. 25         | 26 .. 30         |
@@ -104,15 +106,18 @@ trait DataIn2DMultiBaseBehaviors:
 
       import DiffAction.*
 
-      val fixture5 = multiFrom(
-        List(
-          withHorizontal(interval(0, 4)) -> "Hello",
-          withHorizontal(interval(5, 15)) -> "to",
-          withHorizontal(interval(16, 19)) -> "World",
-          withHorizontal(interval(20, 25)) -> "!",
-          withHorizontal(intervalFrom(26)) -> "World"
-        )
+      val fixture5Data = List(
+        withHorizontal(interval(0, 4)) -> "Hello",
+        withHorizontal(interval(5, 15)) -> "to",
+        withHorizontal(interval(16, 19)) -> "World",
+        withHorizontal(interval(20, 25)) -> "!",
+        withHorizontal(intervalFrom(26)) -> "World"
       )
+      val fixture5 = multiFrom(fixture5Data)
+
+      val expectedWorldIntervals = fixture5Data.collect:
+        case ValidData("World", interval) => interval
+      fixture5.intervalsOne("World") should contain theSameElementsAs expectedWorldIntervals
 
       val fixture6 = multiFrom(
         List(

@@ -86,6 +86,16 @@ plan1d(date(2024, 3, 15))
 
 will return `Basic` because the user had the Basic tier on 3/15.
 
+You can query the structure for all the distinct values independent of their validity intervals:
+```scala 3 
+println(plan1d.values) // prints `Set(Basic, Premium)`
+```
+
+Or, going the other way, you can query by value to discover the interval(s) in which a particular value is valid:
+```scala 3 
+println(plan1d.intervals("Basic")) // prints `List([2024-01-01..2024-03-31])`
+```
+
 We could have just as easily used the immutable variant of `Data`, and the output would have been the same as
 the above output:
 
@@ -250,17 +260,31 @@ val multi = DataMulti.In1D[Feat,Int]()
   .addOne(intervalFrom(6) -> Feat("D")) // release 6 adds feature D...
   .removeOne(intervalFrom(6) -> Feat("A")) // ...and also drops feature A
 
-println(multi(4)) // what are the features in release 4?
-println
-println(multi) // what are all the feature combinations in all release intervals?
+print("The features in release 4: ")
+println(multi(4).mkString(", "))
+print("The unique feature groups in all releases (probably not very useful): ")
+println(multi.values.mkString("; "))
+print("The unique features in all releases (probably more useful): ")
+println(multi.valuesOne.mkString(", "))
+print("The releases where feature \"A\" existed: ")
+println(multi.intervalsOne(Feat("A")).mkString(", "))
+print("The releases where feature \"C\" existed: ")
+println(multi.intervalsOne(Feat("C")).mkString(", "))
+println("The feature combinations in all release intervals:")
+println(multi)
 ```
 
-The result shows the unique feature combinations in each release-based interval (note that releases 3, 4, and 5 share
-the same feature set, i.e., the combination of feature A and C is "valid" in the [3..5] release interval):
+The results show the various ways to query the structure, including (in the last one) the unique feature combinations in
+each release-based interval. (Note that releases 3, 4, and 5 share the same feature set, i.e., the combination of 
+features A and C is "valid" in the [3..5] release interval.)
 
 ```text
-Set(Feat(A), Feat(C))
-
+The features in release 4: Feat(A), Feat(C)
+The unique feature groups in all releases (probably not very useful): Set(Feat(A), Feat(B)); Set(Feat(A), Feat(B), Feat(C)); Set(Feat(A), Feat(C)); Set(Feat(A), Feat(C), Feat(D)); Set(Feat(A)); Set(Feat(C), Feat(D))
+The unique features in all releases (probably more useful): Feat(A), Feat(B), Feat(C), Feat(D)
+The releases where feature "A" existed: [1..5]
+The releases where feature "C" existed: [3..+∞)
+The feature combinations in all release intervals:
 | 1 .. 1            | 2 .. 2            | 3 .. 5            | 6 .. +∞           |
 | {Feat(A)}         |
                     | {Feat(A),Feat(B)} |
@@ -488,10 +512,11 @@ anything unapproved.
 You can also extend through object-oriented inheritance. For example `DataMulti` extends the underlying class hierarchy
 of normal `Data` structures to provide multimap-like
 capabilities. The inherited components store and operate on sets of values rather than individual values, which allows
-multiple values to be valid in the same interval. When queried, values are returned as sets. There are also `add` and
-`remove` methods which allow mutation of individual values across intervals, and a `merge` method for combining two
-structures (conceptually similar to `zip`, but operating on individual values, and more appropriate for a multi-value
-structure).
+multiple values to be valid in the same interval. When queried, values are returned as sets. There are also `addOne` /
+`addAll` and `removeOne` / `removeAll` methods which allow mutation of individual values across intervals, `valuesOne`
+and `intervalsOne` methods for querying by individual values rather than value sets, and a `concat` method for combining
+two structures (conceptually similar to `zip` and `merge`, but operating on individual values, and more appropriate for
+a multi-value structure).
 
 ## Software Structure
 

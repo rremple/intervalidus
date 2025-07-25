@@ -158,3 +158,18 @@ trait DimensionalMultiBase[V, D <: NonEmptyTuple: DomainLike](using Experimental
         val newValues = existingValues - data.value
         if newValues.isEmpty then None else Some(newValues)
     )
+
+  /**
+    * Returns the distinct individual values that are valid in some interval.
+    */
+  def valuesOne: Iterable[V] = values.flatten.toSet
+
+  /**
+    * Returns the intervals in which this individual value is valid.
+    *
+    * @param value
+    *   the value to look up
+    */
+  def intervalsOne(value: V): Iterable[Interval[D]] = Interval.compress(
+    values.filter(_.contains(value)).flatMap(intervals)
+  )

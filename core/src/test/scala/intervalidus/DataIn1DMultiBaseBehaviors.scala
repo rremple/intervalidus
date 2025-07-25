@@ -51,6 +51,8 @@ trait DataIn1DMultiBaseBehaviors:
           interval(10, 30) -> "C"
         )
       )
+      f0.valuesOne should contain theSameElementsAs Set("A", "B", "C")
+
       // println(f0.toString)
       f0.toString shouldBe
         """|| 0 .. 4   | 5 .. 9   | 10 .. 20 | 21 .. 25 | 26 .. 30 |
@@ -61,8 +63,8 @@ trait DataIn1DMultiBaseBehaviors:
            |                                            | {C}      |
            |""".stripMargin.replaceAll("\r", "")
 
-    // Appropriately fails in one dimension because Tuple.Tail[D] is empty and therefore is not DomainLike
-    """f0.getByHeadIndex(15)""" shouldNot typeCheck
+      // Appropriately fails in one dimension because Tuple.Tail[D] is empty and therefore is not DomainLike
+      """f0.getByHeadIndex(15)""" shouldNot typeCheck
 
     test(s"$prefix: Zipping"):
       multiOf("Hello").zip(multiOf("world")).get shouldBe (
@@ -95,17 +97,21 @@ trait DataIn1DMultiBaseBehaviors:
       fixture4.getAll.toList shouldBe expected4
 
     test(s"$prefix: Getting diff actions"):
+
       import DiffAction.*
 
-      val fixture5 = multiFrom(
-        List(
-          interval(0, 4) -> "Hello",
-          interval(5, 15) -> "to",
-          interval(16, 19) -> "World",
-          interval(20, 25) -> "!",
-          intervalFrom(26) -> "World"
-        )
+      val fixture5Data = List(
+        interval(0, 4) -> "Hello",
+        interval(5, 15) -> "to",
+        interval(16, 19) -> "World",
+        interval(20, 25) -> "!",
+        intervalFrom(26) -> "World"
       )
+      val fixture5 = multiFrom(fixture5Data)
+
+      val expectedWorldIntervals = fixture5Data.collect:
+        case ValidData("World", interval) => interval
+      fixture5.intervalsOne("World") should contain theSameElementsAs expectedWorldIntervals
 
       val fixture6 = multiFrom(
         List(

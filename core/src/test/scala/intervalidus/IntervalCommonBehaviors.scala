@@ -83,6 +83,9 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
 
       Interval(origin, origin).toCodeLikeString shouldBe "intervalAt(0) x intervalAt(0)"
 
+      assert(Interval(origin, origin) equiv Interval(origin, origin))
+      assert(!(Interval(Domain.in2D[Int, Int](-1, -1), origin) equiv Interval(origin, origin)))
+
       assertThrows[IllegalArgumentException]:
         val _ = Interval[Domain.In2D[Int, Int]](dv.top, dv.bottom) // end before start
 
@@ -156,8 +159,6 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       interval(LocalDate.of(2025, 1, 10), LocalDate.of(2025, 1, 11)).toCodeLikeString shouldBe
         "interval(LocalDate.of(2025,1,10), LocalDate.of(2025,1,11))"
       unbounded[LocalDate].toCodeLikeString shouldBe "unbounded"
-//      intervalFrom[LocalDate](Top).toCodeLikeString shouldBe "intervalFrom(Top)"
-//      intervalTo[LocalDate](Bottom).toCodeLikeString shouldBe "intervalTo(Bottom)"
 
     test(s"$prefix: Int 2D interval adjacency, etc."):
       val now = LocalDate.now
