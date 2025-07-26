@@ -76,26 +76,6 @@ Which outputs a handy little Ascii Gantt of the valid values in the structure:
                            | Premium                  |
 ```
 
-Since `Data` is a [partial function](https://docs.scala-lang.org/scala3/book/fun-partial-functions.html),
-you can query individual valid values using that interface (many other query
-methods exist as well). For example, using function application:
-
-```scala 3 
-plan1d(date(2024, 3, 15))
-```
-
-will return `Basic` because the user had the Basic tier on 3/15.
-
-You can query the structure for all the distinct values independent of their validity intervals:
-```scala 3 
-println(plan1d.values) // prints `Set(Basic, Premium)`
-```
-
-Or, going the other way, you can query by value to discover the interval(s) in which a particular value is valid:
-```scala 3 
-println(plan1d.intervals("Basic")) // prints `List([2024-01-01..2024-03-31])`
-```
-
 We could have just as easily used the immutable variant of `Data`, and the output would have been the same as
 the above output:
 
@@ -112,9 +92,29 @@ val plan1d = Data
 println(plan1d)
 ```
 
-On the other hand, you may want two dimensions of time: one to track what is effective and one to track when these facts
+Since `Data` is a [partial function](https://docs.scala-lang.org/scala3/book/fun-partial-functions.html),
+you can query individual valid values using that interface (many other query methods exist as well). For example, using
+function application:
+
+```scala 3 
+plan1d(date(2024, 3, 15))
+```
+
+will return `Basic` because the user had the Basic tier on 3/15.
+
+You can query the structure for all the distinct values independent of their validity intervals:
+```scala 3 
+println(plan1d.values) // prints Set(Basic, Premium)
+```
+
+Or you can query by value to discover the interval(s) in which a particular value is valid:
+```scala 3 
+println(plan1d.intervals("Basic")) // prints List([2024-01-01..2024-03-31])
+```
+
+Going deeper, you may want two dimensions of time: one to track what is effective and one to track when these facts
 were known (sometimes referred to as [bitemporal modeling](https://en.wikipedia.org/wiki/Bitemporal_modeling)).
-For that, you could use Intervalidus `Data` to represent the above as a two-dimensional structure like
+For that, you could use the same Intervalidus `Data` to represent the above as a two-dimensional structure like
 this:
 
 ```scala 3
@@ -280,7 +280,7 @@ features A and C is "valid" in the [3..5] release interval.)
 
 ```text
 The features in release 4: Feat(A), Feat(C)
-The unique feature groups in all releases (probably not very useful): Set(Feat(A), Feat(B)); Set(Feat(A), Feat(B), Feat(C)); Set(Feat(A), Feat(C)); Set(Feat(A), Feat(C), Feat(D)); Set(Feat(A)); Set(Feat(C), Feat(D))
+The unique feature groups in all releases (probably not very useful): Set(Feat(A), Feat(B)); Set(Feat(A), Feat(C)); Set(Feat(A)); Set(Feat(C), Feat(D))
 The unique features in all releases (probably more useful): Feat(A), Feat(B), Feat(C), Feat(D)
 The releases where feature "A" existed: [1..5]
 The releases where feature "C" existed: [3..+∞)

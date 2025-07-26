@@ -63,7 +63,10 @@ class MultiMapSorted[K, V: Ordering] private (dict: mutable.Map[K, SortedSet[V]]
     * @param elem
     *   a key-value pair which should no longer be associated.
     */
-  def subtractOne(elem: (K, V)): Unit = dict.update(elem._1, dict(elem._1) - elem._2)
+  def subtractOne(elem: (K, V)): Unit =
+    val newValue = dict(elem._1) - elem._2
+    if newValue.isEmpty then dict.remove(elem._1)
+    else dict.update(elem._1, newValue)
 
   /**
     * Associate many keys and values.

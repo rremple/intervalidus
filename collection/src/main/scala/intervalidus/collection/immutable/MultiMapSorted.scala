@@ -67,9 +67,12 @@ class MultiMapSorted[K, V: Ordering] private (dict: Map[K, SortedSet[V]]) extend
     * @return
     *   a new multimap that excludes the association
     */
-  def subtractOne(elem: (K, V)): MultiMapSorted[K, V] = new MultiMapSorted(
-    dict.updated(elem._1, dict(elem._1) - elem._2)
-  )
+  def subtractOne(elem: (K, V)): MultiMapSorted[K, V] =
+    val newValue = dict(elem._1) - elem._2
+    new MultiMapSorted(
+      if newValue.isEmpty then dict.removed(elem._1)
+      else dict.updated(elem._1, newValue)
+    )
 
   /**
     * Associate many keys and values.
