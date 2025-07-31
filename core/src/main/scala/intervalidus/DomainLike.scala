@@ -125,11 +125,11 @@ trait DomainLike[D <: NonEmptyTuple]:
   def intervalUniqueIntervals(intervals: Iterable[Interval[D]]): Iterable[Interval[D]]
 
   /**
-    * Supports interval compression.
+    * Keys of all possible right-adjacent intervals. (Supports interval compression.)
     * @return
     *   a list of keys for the only possible intervals that could be adjacent to this interval.
     */
-  def intervalAdjacentKeys(interval: Interval[D]): List[D]
+  def intervalRightAdjacentKeys(interval: Interval[D]): List[D]
 
   /**
     * @return
@@ -391,8 +391,8 @@ object DomainLike:
     private val withOneSwap: PartialFunction[(D, Int), D] =
       case (domain, swaps) if swaps == 1 => domain
 
-    override inline def intervalAdjacentKeys(interval: Interval[D]): List[D] =
-      applyToDomain.potentiallyAdjacentKeysFromInterval(interval).collect(withOneSwap)
+    override inline def intervalRightAdjacentKeys(interval: Interval[D]): List[D] =
+      applyToDomain.rightAdjacentKeysFromInterval(interval).collect(withOneSwap)
 
     override inline def intervalToCodeLikeString(interval: Interval[D], withParens: Boolean): String =
       applyToDomain.toCodeLikeStringsFromInterval(interval) match

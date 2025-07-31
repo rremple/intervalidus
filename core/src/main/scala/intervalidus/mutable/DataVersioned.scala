@@ -1,10 +1,11 @@
 package intervalidus.mutable
 
 import intervalidus.*
-import intervalidus.DimensionalVersionedBase.{VersionDomain, VersionDomainValue, VersionSelection, Versioned}
+import intervalidus.DimensionalVersionedBase.{VersionDomainValue, VersionSelection, Versioned}
 import intervalidus.DiscreteValue.IntDiscreteValue
 import intervalidus.Domain.NonEmptyTail
 
+import java.time.LocalDateTime
 import scala.collection.mutable
 import scala.language.implicitConversions
 import scala.math.Ordering.Implicits.infixOrderingOps
@@ -19,7 +20,7 @@ object DataVersioned extends DimensionalVersionedBaseObject:
   override def of[V, D <: NonEmptyTuple: DomainLike](
     data: ValidData[V, D],
     initialVersion: VersionDomainValue
-  )(using Experimental, DomainLike[Versioned[D]]): DataVersioned[V, D] = from(
+  )(using Experimental, DomainLike[Versioned[D]], CurrentDateTime): DataVersioned[V, D] = from(
     Iterable(data),
     initialVersion
   )
@@ -27,22 +28,24 @@ object DataVersioned extends DimensionalVersionedBaseObject:
   override def of[V, D <: NonEmptyTuple: DomainLike](
     value: V,
     initialVersion: VersionDomainValue = 0
-  )(using Experimental, DomainLike[Versioned[D]]): DataVersioned[V, D] =
+  )(using Experimental, DomainLike[Versioned[D]], CurrentDateTime): DataVersioned[V, D] =
     of(Interval.unbounded[D] -> value, initialVersion)
 
   override def from[V, D <: NonEmptyTuple: DomainLike](
     initialData: Iterable[ValidData[V, D]],
     initialVersion: VersionDomainValue = 0
-  )(using Experimental, DomainLike[Versioned[D]]): DataVersioned[V, D] = DataVersioned[V, D](
+  )(using Experimental, DomainLike[Versioned[D]], CurrentDateTime): DataVersioned[V, D] = DataVersioned[V, D](
     initialData.map(d => (d.interval withHead Interval1D.intervalFrom(initialVersion)) -> d.value),
-    initialVersion
+    initialVersion,
+    mutable.Map(initialVersion -> summon[CurrentDateTime].now())
   )
 
   override def newBuilder[V, D <: NonEmptyTuple: DomainLike](
     initialVersion: VersionDomainValue = 0
   )(using
     Experimental,
-    DomainLike[Versioned[D]]
+    DomainLike[Versioned[D]],
+    CurrentDateTime
   ): mutable.Builder[ValidData[V, D], DataVersioned[V, D]] =
     DimensionalDataVersionedBuilder[V, D, DataVersioned[V, D]](from(_, initialVersion))
 
@@ -71,17 +74,22 @@ object DataVersioned extends DimensionalVersionedBaseObject:
 class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   initialData: Iterable[ValidData[V, Versioned[D]]] = Iterable.empty[ValidData[V, Versioned[D]]],
   initialVersion: VersionDomainValue = 0,
-  withCurrentVersion: Option[VersionDomain] = None
+  versionTimestamps: mutable.Map[VersionDomainValue, LocalDateTime] = mutable.Map.empty,
+  withCurrentVersion: Option[VersionDomainValue] = None
 )(using
   Experimental,
-  DomainLike[Versioned[D]]
-) extends DimensionalVersionedBase[V, D](initialData, initialVersion, withCurrentVersion):
+  DomainLike[Versioned[D]],
+  CurrentDateTime
+) extends DimensionalVersionedBase[V, D](initialData, initialVersion, versionTimestamps, withCurrentVersion):
+
+  if versionTimestamps.isEmpty then versionTimestamps.addOne(initialVersion -> summon[CurrentDateTime].now())
 
   // ---------- Implement methods from DimensionalVersionedBase ----------
 
   override def copy: DataVersioned[V, D] = DataVersioned(
     underlying.getAll,
     initialVersion,
+    versionTimestamps,
     Some(currentVersion)
   )
 
@@ -89,6 +97,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     DataVersioned(
       underlying.zip(that.getVersionedData).getAll,
       initialVersion,
+      mergeVersionTimestamps(that),
       Some(currentVersion)
     )
 
@@ -100,6 +109,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     DataVersioned(
       underlying.zipAll(that.getVersionedData, thisDefault, thatDefault).getAll,
       initialVersion,
+      mergeVersionTimestamps(that),
       Some(currentVersion)
     )
 
@@ -113,12 +123,14 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     DataVersioned(
       getByHeadIndexData(headIndex),
       initialVersion,
+      versionTimestamps,
       Some(currentVersion)
     )
 
   override def toImmutable: intervalidus.immutable.DataVersioned[V, D] = intervalidus.immutable.DataVersioned(
     underlying.getAll,
     initialVersion,
+    versionTimestamps,
     Some(currentVersion)
   )
 
@@ -146,7 +158,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     *   collection of valid data to set.
     */
   def setMany(data: Iterable[ValidData[V, D]])(using VersionSelection): Unit =
-    underlying.setMany(data.map(underlyingValidDataFromVersionBoundary))
+    underlying ++ data.map(underlyingValidDataFromVersionBoundary)
 
   /**
     * Set new valid data, but only if there are no previously valid values in its interval and given the version
@@ -189,7 +201,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     *   the interval where any valid values are removed.
     */
   def removeMany(intervals: Iterable[Interval[D]])(using VersionSelection): Unit =
-    underlying.removeMany(intervals.map(underlyingIntervalFromVersionBoundary))
+    underlying -- intervals.map(underlyingIntervalFromVersionBoundary)
 
   /**
     * Remove the value in all the intervals where it is valid in the given version selection context.
@@ -329,7 +341,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   /**
     * Merges this structure with data from that structure. In intervals where both structures have valid values, the two
     * values are merged (e.g., keep this data). In intervals where this does not have valid data but that does, the data
-    * are added (a fill operation).
+    * are added (a fill operation). (Version timestamps of this and that are merged.)
     *
     * @param that
     *   versioned structure to merge into this one
@@ -340,28 +352,35 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   def merge(
     that: DimensionalVersionedBase[V, D],
     mergeValues: (V, V) => V = (thisDataValue, _) => thisDataValue
-  ): Unit = underlying.merge(that.getVersionedData, mergeValues)
+  ): Unit = synchronized:
+    underlying.merge(that.getVersionedData, mergeValues)
+    val mergedTimestamps = mergeVersionTimestamps(that)
+    versionTimestamps.clear()
+    versionTimestamps.addAll(mergedTimestamps)
 
   // --- API methods unique to this "versioned" variant
 
   /**
     * Sets the current version. No version history is rewritten, which may cause some unexpected results (especially if
-    * the version is set to something from the past). Use with caution.
+    * the version is set to something from the past, which also rewrites version timestamp history). Use with caution.
     *
     * @param version
     *   the new current version
     */
-  def setCurrentVersion(version: VersionDomain): Unit = synchronized:
+  def setCurrentVersion(version: VersionDomainValue)(using dateTime: CurrentDateTime): Unit = synchronized:
     if version >= unapprovedStartVersion then throw Exception("version too large")
-    else if version equiv Domain1D.Bottom then throw Exception("version too small")
-    else currentVersion = version
+    else
+      currentVersion = version
+      versionTimestamps.addOne(currentVersion -> dateTime.now())
 
   /**
     * Increments the current version.
     */
-  def incrementCurrentVersion(): Unit = synchronized:
-    if currentVersion.rightAdjacent equiv unapprovedStartVersion then throw Exception("wow, ran out of versions!")
-    else currentVersion = currentVersion.rightAdjacent
+  def incrementCurrentVersion()(using dateTime: CurrentDateTime): Unit = synchronized:
+    if currentVersion + 1 == unapprovedStartVersion then throw Exception("wow, ran out of versions!")
+    else
+      currentVersion = currentVersion + 1
+      versionTimestamps.addOne(currentVersion -> dateTime.now())
 
   /**
     * Eliminate all version information after the specified version (including any unapproved changes).
@@ -369,7 +388,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     * @param version
     *   the version after which all version information is removed.
     */
-  def resetToVersion(version: VersionDomain): Unit =
+  def resetToVersion(version: VersionDomainValue): Unit = synchronized: 
     val keep = VersionSelection(version)
     filter(versionInterval(_) intersects keep.intervalTo)
     map(d =>
@@ -378,6 +397,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
       else d
     )
     setCurrentVersion(version)
+    versionTimestamps.filterInPlace((key, _) => key <= version)
     compressAll()
 
   /**
@@ -398,7 +418,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     * @return
     *   true if the unapproved version was found and approved, false otherwise
     */
-  def approve(data: ValidData[V, D]): Boolean =
+  def approve(data: ValidData[V, D]): Boolean = synchronized:
     val allUnapproved = underlying
       .getIntersecting(underlyingIntervalWithVersion(data.interval, VersionSelection.Unapproved.intervalFrom))
       .filter(versionInterval(_).start equiv unapprovedStartVersion) // only unapproved
@@ -415,7 +435,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     * @param interval
     *   interval in which all changes (updates and deletes) are approved
     */
-  def approveAll(interval: Interval[D]): Unit =
+  def approveAll(interval: Interval[D]): Unit = synchronized:
     underlying
       .getIntersecting(underlyingIntervalWithVersion(interval, VersionSelection.Unapproved.intervalFrom))
       .filter(versionInterval(_).start equiv unapprovedStartVersion) // only unapproved
@@ -423,7 +443,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
       .foreach(approve)
     underlying
       .getIntersecting(underlyingIntervalWithVersion(interval, VersionSelection.Current.intervalFrom))
-      .filter(versionInterval(_).end equiv unapprovedStartVersion.leftAdjacent) // only related to unapproved removes
+      .filter(versionInterval(_).end equiv unapprovedStartVersion - 1) // only related to unapproved removes
       .flatMap(publicValidData(_).interval ∩ interval)
       .foreach(remove(_)(using VersionSelection.Current))
 

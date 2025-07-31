@@ -292,8 +292,9 @@ The feature combinations in all release intervals:
                                                             | {Feat(C),Feat(D)} |
 ```
 
-For the same reasons explained earlier, one might want to use `DataMulti` instead to model what features belong in
-what releases as well as when the product management decisions were made to include/exclude features in each release.
+For the same reasons explained earlier, one might want to use `DataMulti` with two dimensions instead of one to model
+what features belong in what releases (integer-based release dimension) as well as when the product management decisions
+were made to include/exclude features in each release (temporal-based knowledge dimension).
 
 Another example might be representing [piecewise functions](https://en.wikipedia.org/wiki/Piecewise_function) coherently
 by using a function type as the value where different function pieces are valid in different domain intervals. The reLU
@@ -319,7 +320,7 @@ println(s"reLU at  1 = ${reLU( 1)}") // reLU at  1 = 1
 
 ---
 
-The same methods are available in both mutable/immutable varients (though parameter and
+The same methods are available in both mutable/immutable variants (though parameter and
 return types vary). See the [full API documentation](https://rremple.github.io/intervalidus/latest/api/intervalidus) for details on
 these methods.
 
@@ -507,7 +508,7 @@ structure of a higher dimension (i.e., with an additional integer head dimension
 The "current" version is tracked as internal state and methods accept version selection as a
 [context parameter](https://docs.scala-lang.org/scala3/book/ca-context-parameters.html), with "current" as the
 default version selection applied. Also, a notion of approval is supported by specifying a specific future version for
-anything unapproved.
+anything unapproved, and a timestamped history of versions is maintained.
 
 You can also extend through object-oriented inheritance. For example `DataMulti` extends the underlying class hierarchy
 of normal `Data` structures to provide multimap-like

@@ -45,7 +45,7 @@ case class Interval1D[T](
   def points: Iterable[Domain1D[T]] = start.pointsTo(end)
 
   /**
-    * Tests if there is no gap between this and that.
+    * Tests if there is no gap or overlap between this and that.
     *
     * @param that
     *   the interval to test for adjacency.
@@ -53,7 +53,7 @@ case class Interval1D[T](
   infix def isAdjacentTo(that: Interval1D[T]): Boolean = (this isLeftAdjacentTo that) || (that isLeftAdjacentTo this)
 
   /**
-    * Tests if this interval is to the left of that interval and there is no gap between them.
+    * Tests if this interval is to the left of that interval and there is no gap or overlap between them.
     *
     * @param that
     *   the interval to test for adjacency.
@@ -61,7 +61,7 @@ case class Interval1D[T](
   infix def isLeftAdjacentTo(that: Interval1D[T]): Boolean = this.end isLeftAdjacentTo that.start
 
   /**
-    * Tests if this interval is to the right of that interval and there is no gap between them.
+    * Tests if this interval is to the right of that interval and there is no gap or overlap between them.
     *
     * @param that
     *   the interval to test for adjacency.

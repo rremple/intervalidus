@@ -91,7 +91,7 @@ trait DomainLikeTupleOps[D <: NonEmptyTuple]:
 
   def uniqueIntervalsFromInterval(intervals: Iterable[Interval[D]]): Iterable[Interval[D]]
 
-  def potentiallyAdjacentKeysFromInterval(interval: Interval[D]): List[(D, Int)]
+  def rightAdjacentKeysFromInterval(interval: Interval[D]): List[(D, Int)]
 
   def toStringsFromInterval(interval: Interval[D]): List[String]
 
@@ -243,7 +243,7 @@ object DomainLikeTupleOps:
     ): Iterable[Interval[OneDimDomain[DV]]] =
       Interval1D.uniqueIntervals(intervals.map(headInterval)).map(from1d)
 
-    inline override def potentiallyAdjacentKeysFromInterval(
+    inline override def rightAdjacentKeysFromInterval(
       interval: Interval[OneDimDomain[DV]]
     ): List[(OneDimDomain[DV], Int)] = List((interval.end.head.rightAdjacent, 1), (interval.start, 0))
 
@@ -449,12 +449,12 @@ object DomainLikeTupleOps:
         tailInterval <- applyToTail.uniqueIntervalsFromInterval(intervals.map(tailInterval))
       yield tailInterval withHead headInterval1D
 
-    inline override def potentiallyAdjacentKeysFromInterval(
+    inline override def rightAdjacentKeysFromInterval(
       interval: Interval[MultiDimDomain[DV, DomainTail]]
     ): List[(MultiDimDomain[DV, DomainTail], Int)] =
       for
         (head, headSwaps) <- List((interval.end.head.rightAdjacent, 1), (interval.start.head, 0))
-        (tail, tailSwaps) <- applyToTail.potentiallyAdjacentKeysFromInterval(tailInterval(interval))
+        (tail, tailSwaps) <- applyToTail.rightAdjacentKeysFromInterval(tailInterval(interval))
         if headSwaps + tailSwaps <= 1
       yield (head *: tail, headSwaps + tailSwaps)
 

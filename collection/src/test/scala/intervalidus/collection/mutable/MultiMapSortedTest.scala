@@ -19,5 +19,9 @@ class MultiMapSortedTest extends AnyFunSuite with Matchers:
     dict2.subtractOne("me" -> 2)
     assertResult(Seq(1, 2, 3))(dict.get("me"))
     assertResult(Seq(1, 3))(dict2.get("me"))
+    val dict3 = dict2.clone
+    dict3.subtractOne("me" -> 1)
+    dict3.subtractOne("me" -> 3)
+    assertResult(Seq())(dict3.get("me"))
     dict2.clear()
     assertResult(Seq())(dict2.get("me"))

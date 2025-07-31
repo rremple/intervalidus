@@ -50,7 +50,7 @@ case class Interval[D <: NonEmptyTuple](
   def points: Iterable[D] = start.pointsTo(end)
 
   /**
-    * Tests if there is no gap between this and that.
+    * Tests if there is no gap or overlap between this and that, and they could be merged to form a single interval.
     *
     * @param that
     *   the interval to test for adjacency.
@@ -58,7 +58,8 @@ case class Interval[D <: NonEmptyTuple](
   infix def isAdjacentTo(that: Interval[D]): Boolean = isLeftAdjacentTo(that) || isRightAdjacentTo(that)
 
   /**
-    * Tests if this interval is to the left/below/behind/etc. of that interval and there is no gap between them.
+    * Tests if this interval is to the left of/below/behind/etc. that interval, and there is no gap or overlap between
+    * them.
     *
     * @param that
     *   the interval to test for adjacency.
@@ -66,7 +67,8 @@ case class Interval[D <: NonEmptyTuple](
   infix def isLeftAdjacentTo(that: Interval[D]): Boolean = domainLike.intervalIsLeftAdjacentTo(this, that)
 
   /**
-    * Tests if this interval is to the right/above/in front/etc. of that interval and there is no gap between them.
+    * Tests if this interval is to the right of/above/in front of/etc. that interval, and there is no gap or overlap
+    * between them.
     *
     * @param that
     *   the interval to test for adjacency.
@@ -406,7 +408,7 @@ case class Interval[D <: NonEmptyTuple](
   /**
     * Same as [[isAdjacentTo]]
     *
-    * Tests if there is no gap between this and that.
+    * Tests if there is no gap or overlap between this and that, and they could be merged to form a single interval.
     *
     * @param that
     *   the interval to test for adjacency.
@@ -414,9 +416,10 @@ case class Interval[D <: NonEmptyTuple](
   infix def ~(that: Interval[D]): Boolean = isAdjacentTo(that)
 
   /**
-    * Same as [[isLeftAdjacentTo()]]
+    * Same as [[isLeftAdjacentTo]]
     *
-    * Tests if this interval is to the left/below/behind/etc. of that interval and there is no gap between them.
+    * Tests if this interval is to the left of/below/behind/etc. that interval, and there is no gap or overlap between
+    * them.
     *
     * @param that
     *   the interval to test for adjacency.
@@ -701,9 +704,9 @@ object Interval:
     def compressRecursively(state: State): Result =
       val compressionActions: Iterator[State => State] = for
         leftData <- dataIterable(state).iterator
-        candidateAdjacentKey <- domainLike.intervalAdjacentKeys(interval(leftData))
-        rightData <- lookup(state, candidateAdjacentKey).find: candidateRightData =>
-          valueMatch(leftData, candidateRightData) && (interval(leftData) ~> interval(candidateRightData))
+        rightAdjacentKey <- domainLike.intervalRightAdjacentKeys(interval(leftData))
+        rightData <- lookup(state, rightAdjacentKey)
+        if valueMatch(leftData, rightData) && (interval(leftData) ~> interval(rightData))
       yield compressAdjacent(leftData, rightData, _)
 
       compressionActions.nextOption() match

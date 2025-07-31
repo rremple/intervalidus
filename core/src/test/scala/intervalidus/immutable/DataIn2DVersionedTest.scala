@@ -7,7 +7,7 @@ import intervalidus.Domain.In2D as Dim
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
-import java.time.LocalDate
+import java.time.{LocalDate, LocalDateTime}
 import scala.language.implicitConversions
 
 class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersionedBaseBehaviors:
@@ -16,7 +16,7 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
   import Interval1D.*
 
   // increment current version with each data element
-  def newDataIn2DVersioned(allData: Iterable[ValidData[String, Dim[Int, Int]]]): DataVersioned[String, Dim[Int, Int]] =
+  def newDataIn2DVersioned(allData: Iterable[ValidData[String, Dim[Int, Int]]])(using CurrentDateTime): DataVersioned[String, Dim[Int, Int]] =
     allData.foldLeft(DataVersioned[String, Dim[Int, Int]]()): (dataIn2DVersioned, validData) =>
       dataIn2DVersioned
         .set(validData)
@@ -43,12 +43,6 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     assertThrows[Exception]: // version too large
       empty.setCurrentVersion(Int.MaxValue)
 
-    assertThrows[Exception]: // version too large
-      empty.setCurrentVersion(Domain1D.Top)
-
-    assertThrows[Exception]: // version too small
-      empty.setCurrentVersion(Domain1D.Bottom)
-
     val emptyAtMaxVersion = empty.setCurrentVersion(Int.MaxValue - 1) // last approved version
     assertThrows[Exception]: // wow, ran out of versions!
       emptyAtMaxVersion.incrementCurrentVersion()
@@ -57,12 +51,12 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
       (interval(0, 9) x intervalFrom(0)) -> "Hello",
       (intervalFrom(10) x intervalTo(0)) -> "World"
     )
-    val fixture0 = newDataIn2DVersioned(allData)
+    val fixture0 = newDataIn2DVersioned(allData)(using CurrentDateTime.simulated(LocalDateTime.of(2025,8,1,8,0)))
     fixture0.getByHeadIndex(0).getAt(0) shouldBe Some("Hello")
 
     val fixture1 = fixture0
       .set((interval(5, 15) x unbounded[Int]) -> "to")
-      .incrementCurrentVersion()
+      .incrementCurrentVersion()(using CurrentDateTime.simulated(LocalDateTime.of(2025,8,2,8,0)))
     val expectedData1 = List(
       (interval(0, 4) x intervalFrom(0)) -> "Hello",
       (interval(5, 15) x unbounded[Int]) -> "to",
@@ -72,7 +66,7 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
 
     val fixture2 = fixture1
       .set((interval(20, 25) x unbounded[Int]) -> "!") // split
-      .incrementCurrentVersion()
+      .incrementCurrentVersion()(using CurrentDateTime.simulated(LocalDateTime.of(2025,8,2,9,0)))
       .recompressAll() // not needed, but addresses coverage gap
     val expectedData2 = List(
       (interval(0, 4) x intervalFrom(0)) -> "Hello",
@@ -83,6 +77,13 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     )
     fixture2.getAll.toList shouldBe expectedData2
 
+    fixture2.getVersionTimestamps.toList should contain theSameElementsAs List(
+      0 -> LocalDateTime.of(2025,8,1,8,0),
+      1 -> LocalDateTime.of(2025,8,1,8,0),
+      2 -> LocalDateTime.of(2025,8,1,8,0),
+      3 -> LocalDateTime.of(2025,8,2,8,0),
+      4 -> LocalDateTime.of(2025,8,2,9,0),
+    )
     // println(fixture2.toString)
     // format: off
     fixture2.toString shouldBe
