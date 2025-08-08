@@ -34,6 +34,14 @@ object DimensionalVersionedBase:
   type Versioned[X <: NonEmptyTuple] = VersionDomain *: X
 
   /**
+    * Metadata tracked per version: datetime and comment
+    */
+  type VersionMetadata = (LocalDateTime, String)
+
+  // Special version at which we place (or delete) unapproved stuff (fixed)
+  val unapprovedStartVersion: VersionDomainValue = IntDiscreteValue.maxValue
+
+  /**
     * Context parameter for selecting the version interval on which to operate in selection and mutation. Typically,
     * "Current" is the right thing to use (and is provided as the default given) unless you are operating only on
     * potentially unapproved data or delving into version history by operating on a specific past version.
@@ -41,7 +49,7 @@ object DimensionalVersionedBase:
   enum VersionSelection:
     case Current
     case Unapproved // potentially: when used in selection, returns unapproved plus approved not occluded by unapproved
-    case Specific(version: VersionDomain)
+    case Specific(version: VersionDomainValue)
 
   /**
     * Default version selection context when it isn't overridden locally or specified explicitly.
@@ -59,9 +67,16 @@ object DimensionalVersionedBase:
       * @return
       *   version selection for that specific version.
       */
-    def apply(version: VersionDomain): VersionSelection = VersionSelection.Specific(version)
+    def apply(version: VersionDomainValue): VersionSelection = VersionSelection.Specific(version)
 
-import DimensionalVersionedBase.{Versioned, VersionDomain, VersionDomainValue, VersionSelection}
+import DimensionalVersionedBase.{
+  unapprovedStartVersion,
+  Versioned,
+  VersionDomain,
+  VersionDomainValue,
+  VersionMetadata,
+  VersionSelection
+}
 
 /**
   * Constructs data in multidimensional intervals that are also versioned (hidden extra dimension).
@@ -84,7 +99,8 @@ trait DimensionalVersionedBaseObject:
     */
   def of[V, D <: NonEmptyTuple: DomainLike](
     data: ValidData[V, D],
-    initialVersion: VersionDomainValue
+    initialVersion: VersionDomainValue,
+    initialComment: String
   )(using Experimental, DomainLike[Versioned[D]], CurrentDateTime): DimensionalVersionedBase[V, D]
 
   /**
@@ -104,7 +120,8 @@ trait DimensionalVersionedBaseObject:
     */
   def of[V, D <: NonEmptyTuple: DomainLike](
     value: V,
-    initialVersion: VersionDomainValue
+    initialVersion: VersionDomainValue,
+    initialComment: String
   )(using Experimental, DomainLike[Versioned[D]], CurrentDateTime): DimensionalVersionedBase[V, D]
 
   /**
@@ -123,7 +140,8 @@ trait DimensionalVersionedBaseObject:
     */
   def from[V, D <: NonEmptyTuple: DomainLike](
     initialData: Iterable[ValidData[V, D]],
-    initialVersion: VersionDomainValue
+    initialVersion: VersionDomainValue,
+    initialComment: String
   )(using Experimental, DomainLike[Versioned[D]], CurrentDateTime): DimensionalVersionedBase[V, D]
 
   /**
@@ -137,7 +155,8 @@ trait DimensionalVersionedBaseObject:
     *   the domain type -- [[DomainLike]] non-empty tuples.
     */
   def newBuilder[V, D <: NonEmptyTuple: DomainLike](
-    initialVersion: VersionDomainValue
+    initialVersion: VersionDomainValue,
+    initialComment: String
   )(using
     Experimental,
     DomainLike[Versioned[D]],
@@ -179,7 +198,7 @@ class DimensionalDataVersionedBuilder[V, D <: NonEmptyTuple: DomainLike, Self <:
 trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
   initialData: Iterable[ValidData[V, Versioned[D]]],
   initialVersion: VersionDomainValue,
-  versionTimestamps: mutable.Map[VersionDomainValue, LocalDateTime],
+  versionTimestamps: mutable.Map[VersionDomainValue, VersionMetadata],
   withCurrentVersion: Option[VersionDomainValue]
 )(using
   Experimental,
@@ -199,18 +218,23 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
   // prefer the later timestamp of both this and that
   protected def mergeVersionTimestamps(
     that: DimensionalVersionedBase[?, ?]
-  ): mutable.Map[VersionDomainValue, LocalDateTime] =
+  ): mutable.Map[VersionDomainValue, VersionMetadata] =
     val those = that.getVersionTimestamps
     mutable.Map.from(
       (versionTimestamps.keySet ++ those.keySet)
         .map(k => (k, versionTimestamps.get(k), those.get(k)))
         .collect:
-          case (k, Some(left), None)        => k -> left
-          case (k, None, Some(right))       => k -> right
-          case (k, Some(left), Some(right)) => k -> (if left isAfter right then left else right)
+          case (k, Some(left), None)  => k -> left
+          case (k, None, Some(right)) => k -> right
+          case (k, Some(left), Some(right)) =>
+            val laterTimestamp = if left._1 isAfter right._1 then left._1 else right._1
+            val combinedComment = (left._2, right._2) match
+              case (leftComment, rightComment) if leftComment == rightComment => leftComment
+              case (leftComment, rightComment)                                => s"$leftComment & $rightComment"
+            k -> (laterTimestamp, combinedComment)
     )
 
-  def getVersionTimestamps: Map[VersionDomainValue, LocalDateTime] =
+  def getVersionTimestamps: Map[VersionDomainValue, VersionMetadata] =
     versionTimestamps.toMap
 
   // Underlying n+1 dimensional representation of versioned n dimensional data (mutable)
@@ -273,9 +297,6 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
         val versionInterval = data.interval.headInterval1D[VersionDomainValue]
         val tailInterval: Interval[NonEmptyTail[D]] = data.interval.tailInterval.tailInterval
         (tailInterval withHead versionInterval) -> data.value
-
-  // Special version at which we place (or delete) unapproved stuff (fixed)
-  protected val unapprovedStartVersion: VersionDomainValue = IntDiscreteValue.maxValue
 
   // ---------- API methods that are not similar to those in DimensionalBase ----------
 
@@ -499,6 +520,22 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
   def diffActionsFrom(old: DimensionalVersionedBase[V, D]): Iterable[DiffAction[V, Versioned[D]]] =
     underlying.diffActionsFrom(old.underlying)
 
+  /**
+    * Constructs a sequence of diff actions that, if applied to an old version of this structure, would synchronize it
+    * with the newer version.
+    *
+    * @param olderVersion
+    *   version selection for the older version of this structure.
+    * @param newerVersion
+    *   version selection for the newer version of this structure.
+    * @return
+    *   a sequence of diff actions that would synchronize the older version with the newer one.
+    */
+  def diffActionsBetween(
+    olderVersion: VersionSelection,
+    newerVersion: VersionSelection
+  ): Iterable[DiffAction[V, Versioned[D]]]
+
   // ---------- To be implemented by inheritor ----------
 
   /**
@@ -527,7 +564,7 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     * Returns a new structure formed from this structure and another structure by combining the corresponding elements
     * (all intervals in both this and that) in a pair. If one of the two collections has a valid value in an interval
     * where the other one doesn't, default elements are used in the result. The other structure can have a different
-    * value type but must have the same interval type.  (Version timestamps of this and that are merged.)
+    * value type but must have the same interval type. (Version timestamps of this and that are merged.)
     *
     * @param that
     *   the structure which is going to be zipped.

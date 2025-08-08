@@ -31,8 +31,11 @@ trait DataIn1DBaseBehaviors:
     }
 
     val empty: S = dataIn1DFrom(List.empty)
+    assert(empty.isEmpty)
+    empty.toString shouldBe "<nothing is valid>"
     assert(empty.getAll.isEmpty)
     assert(empty.domain.isEmpty)
+    empty.domainComplement.toList shouldBe List(Interval.unbounded[Domain.In1D[Int]])
 
     dataIn1DOf("Hello").zip(dataIn1DOf("world")).get shouldBe ("Hello", "world")
 

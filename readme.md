@@ -294,7 +294,8 @@ The feature combinations in all release intervals:
 
 For the same reasons explained earlier, one might want to use `DataMulti` with two dimensions instead of one to model
 what features belong in what releases (integer-based release dimension) as well as when the product management decisions
-were made to include/exclude features in each release (temporal-based knowledge dimension).
+were made to include/exclude features in each release (temporal-based knowledge dimension). These ideas are explored
+further in the `SoftwareProductFeatureManagement` example.
 
 Another example might be representing [piecewise functions](https://en.wikipedia.org/wiki/Piecewise_function) coherently
 by using a function type as the value where different function pieces are valid in different domain intervals. The reLU
@@ -591,6 +592,10 @@ Apart from `collection`, there are a few other subprojects that are worth mentio
 
 - As described earlier, in the `intervalidus-examples` subproject there is a sample billing application that shows how
   Intervalidus structures can be used to support time-oriented logic like billing directly.
+
+- Also in the `intervalidus-examples` subproject there is a sample "Software Product Feature Lifecycle and Rollout
+  Management" application. It shows how Intervalidus structures, including the unique features of `DataMulti` and
+  `DataVersioned`, could be used to manage and track the evolution of a software product.
 
 - Also in the `intervalidus-examples` subproject there is a sample rules-based application that shows how Intervalidus
   structures can be used to capture the outcomes of patients in a clinical trial. It uses a toy rules engine to

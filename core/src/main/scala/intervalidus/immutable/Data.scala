@@ -103,7 +103,7 @@ class Data[V, D <: NonEmptyTuple: DomainLike] protected (
     Domain1D[H] *: Tuple.Tail[D] =:= D,
     DomainLike[NonEmptyTail[D]]
   ): Data[V, NonEmptyTail[D]] =
-    Data(getByHeadIndexData(headIndex))
+    Data(getByHeadIndexData(headIndex)).compressAll()
 
   override def toMutable: intervalidus.mutable.Data[V, D] =
     intervalidus.mutable.Data(getAll)

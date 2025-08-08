@@ -71,7 +71,9 @@ class Data[V, D <: NonEmptyTuple: DomainLike] protected (
     Domain1D[H] *: Tuple.Tail[D] =:= D,
     DomainLike[NonEmptyTail[D]]
   ): Data[V, NonEmptyTail[D]] =
-    Data(getByHeadIndexData(headIndex))
+    val result = Data(getByHeadIndexData(headIndex))
+    result.compressAll()
+    result
 
   override def toMutable: intervalidus.mutable.Data[V, D] =
     this

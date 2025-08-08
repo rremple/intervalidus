@@ -353,6 +353,20 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     dataByValue.keySet.foreach(compressInPlace)
 
   /**
+    * Applies a diff action to this structure.
+    *
+    * @param diffAction
+    *   action to be applied.
+    */
+  protected def applyDiffActionInPlace(diffAction: DiffAction[V, D]): Unit = synchronized:
+    diffAction match
+      case DiffAction.Create(data: ValidData[V, D]) => addValidData(data)
+      case DiffAction.Update(data: ValidData[V, D]) => updateValidData(data)
+      case DiffAction.Delete(key)                   => removeValidDataByKey(key)
+    // Not sure why, but returning explicit Unit here resolves runtime type check warning above
+    ()
+
+  /**
     * Internal method, to zip with the data of another dimensional structure with the same domain type. The result
     * domain will be the intersection of this domain and that domain.
     *
@@ -429,7 +443,8 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
 
   // from Object
   // print a uniform grid representing the data.
-  override def toString: String =
+  override def toString: String = if getAll.isEmpty then "<nothing is valid>"
+  else
     // tuples of first dimension start string, first dimension end string, first dimension string (header)
     val horizontalIntervalStrings = domainLike.intervalPreprocessForGrid(getAll.map(_.interval))
     // tuples of first dimension start string, first dimension end string, value + remaining dimension string

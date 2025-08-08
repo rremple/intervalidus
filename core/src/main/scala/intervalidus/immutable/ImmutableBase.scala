@@ -257,7 +257,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     copyAndModify(_.compressInPlace(value))
 
   /**
-    * Compress out adjacent intervals with the same value for all values. (Shouldn't ever need to do this.)
+    * Compress out adjacent intervals with the same value for all values.
     *
     * @return
     *   a new, updated structure.
@@ -289,10 +289,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     */
   def applyDiffActions(diffActions: Iterable[DiffAction[V, D]]): Self =
     copyAndModify: result =>
-      diffActions.foreach:
-        case DiffAction.Create(data: ValidData[V, D]) => result.addValidData(data)
-        case DiffAction.Update(data: ValidData[V, D]) => result.updateValidData(data)
-        case DiffAction.Delete(key)                   => result.removeValidDataByKey(key)
+      diffActions.foreach(result.applyDiffActionInPlace)
 
   /**
     * Synchronizes this with another structure by getting and applying the applicable diff actions.

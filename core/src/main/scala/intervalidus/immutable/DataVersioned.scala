@@ -1,11 +1,10 @@
 package intervalidus.immutable
 
 import intervalidus.*
-import intervalidus.DimensionalVersionedBase.{VersionDomainValue, VersionSelection, Versioned}
+import intervalidus.DimensionalVersionedBase.*
 import intervalidus.DiscreteValue.IntDiscreteValue
 import intervalidus.Domain.NonEmptyTail
 
-import java.time.LocalDateTime
 import scala.collection.mutable
 import scala.language.implicitConversions
 import scala.math.Ordering.Implicits.infixOrderingOps
@@ -19,35 +18,40 @@ object DataVersioned extends DimensionalVersionedBaseObject:
 
   override def of[V, D <: NonEmptyTuple: DomainLike](
     data: ValidData[V, D],
-    initialVersion: VersionDomainValue
+    initialVersion: VersionDomainValue,
+    initialComment: String
   )(using Experimental, DomainLike[Versioned[D]], CurrentDateTime): DataVersioned[V, D] = from(
     Iterable(data),
-    initialVersion
+    initialVersion,
+    initialComment
   )
 
   override def of[V, D <: NonEmptyTuple: DomainLike](
     value: V,
-    initialVersion: VersionDomainValue = 0
+    initialVersion: VersionDomainValue = 0,
+    initialComment: String = "init"
   )(using Experimental, DomainLike[Versioned[D]], CurrentDateTime): DataVersioned[V, D] =
-    of(Interval.unbounded[D] -> value, initialVersion)
+    of(Interval.unbounded[D] -> value, initialVersion, initialComment)
 
   override def from[V, D <: NonEmptyTuple: DomainLike](
     initialData: Iterable[ValidData[V, D]],
-    initialVersion: VersionDomainValue = 0
+    initialVersion: VersionDomainValue = 0,
+    initialComment: String = "init"
   )(using Experimental, DomainLike[Versioned[D]], CurrentDateTime): DataVersioned[V, D] = DataVersioned[V, D](
     initialData.map(d => (d.interval withHead Interval1D.intervalFrom(initialVersion)) -> d.value),
     initialVersion,
-    mutable.Map(initialVersion -> summon[CurrentDateTime].now())
+    mutable.Map(initialVersion -> (summon[CurrentDateTime].now(), initialComment))
   )
 
   override def newBuilder[V, D <: NonEmptyTuple: DomainLike](
-    initialVersion: VersionDomainValue = 0
+    initialVersion: VersionDomainValue = 0,
+    initialComment: String = "init"
   )(using
     Experimental,
     DomainLike[Versioned[D]],
     CurrentDateTime
   ): mutable.Builder[ValidData[V, D], DataVersioned[V, D]] =
-    DimensionalDataVersionedBuilder[V, D, DataVersioned[V, D]](from(_, initialVersion))
+    DimensionalDataVersionedBuilder[V, D, DataVersioned[V, D]](from(_, initialVersion, initialComment))
 
 /**
   * Immutable versioned dimensional data in any dimension.
@@ -74,7 +78,7 @@ object DataVersioned extends DimensionalVersionedBaseObject:
 class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   initialData: Iterable[ValidData[V, Versioned[D]]] = Iterable.empty[ValidData[V, Versioned[D]]],
   initialVersion: VersionDomainValue = 0,
-  val versionTimestamps: mutable.Map[VersionDomainValue, LocalDateTime] = mutable.Map.empty,
+  val versionTimestamps: mutable.Map[VersionDomainValue, VersionMetadata] = mutable.Map.empty,
   withCurrentVersion: Option[VersionDomainValue] = None
 )(using
   Experimental,
@@ -82,7 +86,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   CurrentDateTime
 ) extends DimensionalVersionedBase[V, D](initialData, initialVersion, versionTimestamps, withCurrentVersion):
 
-  if versionTimestamps.isEmpty then versionTimestamps.addOne(initialVersion -> summon[CurrentDateTime].now())
+  if versionTimestamps.isEmpty then versionTimestamps.addOne(initialVersion -> (summon[CurrentDateTime].now(), "init"))
 
   protected def copyAndModify(f: DataVersioned[V, D] => Unit): DataVersioned[V, D] =
     val result = copy
@@ -94,7 +98,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   override def copy: DataVersioned[V, D] = DataVersioned(
     underlying.getAll,
     initialVersion,
-    versionTimestamps,
+    versionTimestamps.clone(),
     Some(currentVersion)
   )
 
@@ -128,16 +132,16 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     DataVersioned(
       getByHeadIndexData(headIndex),
       initialVersion,
-      versionTimestamps,
+      versionTimestamps.clone(),
       Some(currentVersion)
-    )
+    ).compressAll()
 
   override def toImmutable: DataVersioned[V, D] = this
 
   override def toMutable: intervalidus.mutable.DataVersioned[V, D] = intervalidus.mutable.DataVersioned(
     underlying.getAll,
     initialVersion,
-    versionTimestamps,
+    versionTimestamps.clone(),
     Some(currentVersion)
   )
 
@@ -257,7 +261,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   def compress(value: V): DataVersioned[V, D] = copyAndModify(_.underlying.compress(value))
 
   /**
-    * Compress out adjacent intervals with the same value for all values. (Shouldn't ever need to do this.)
+    * Compress out adjacent intervals with the same value for all values.
     *
     * @return
     *   a new, updated structure.
@@ -266,7 +270,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
 
   /**
     * Compress out adjacent intervals with the same value for all values after decompressing everything, resulting in a
-    * unique physical representation. (Shouldn't ever need to do this.)
+    * unique physical representation.
     *
     * Does not use a version selection context -- operates on full underlying structure.
     *
@@ -282,9 +286,21 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     *
     * @param diffActions
     *   actions to be applied.
+    * @return
+    *   a new, updated structure.
     */
   def applyDiffActions(diffActions: Iterable[DiffAction[V, Versioned[D]]]): DataVersioned[V, D] =
     copyAndModify(_.underlying.applyDiffActions(diffActions))
+
+  override def diffActionsBetween(
+    olderVersion: VersionSelection,
+    newerVersion: VersionSelection
+  ): Iterable[DiffAction[V, Versioned[D]]] =
+    def resetTo(selection: VersionSelection) = selection match
+      case VersionSelection.Unapproved        => this
+      case VersionSelection.Current           => resetToVersion(currentVersion)
+      case VersionSelection.Specific(version) => resetToVersion(version)
+    resetTo(newerVersion).diffActionsFrom(resetTo(olderVersion))
 
   /**
     * Synchronizes this with another structure by getting and applying the applicable diff actions.
@@ -313,7 +329,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   def filter(p: ValidData[V, Versioned[D]] => Boolean): DataVersioned[V, D] = DataVersioned(
     underlying.getAll.filter(p),
     initialVersion,
-    versionTimestamps,
+    versionTimestamps.clone(),
     Some(currentVersion)
   )
 
@@ -339,7 +355,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     DataVersioned(
       underlying.getAll.map(f),
       initialVersion,
-      versionTimestamps,
+      versionTimestamps.clone(),
       Some(currentVersion)
     )
 
@@ -366,7 +382,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     DataVersioned(
       underlying.getAll.collect(pf),
       initialVersion,
-      versionTimestamps,
+      versionTimestamps.clone(),
       Some(currentVersion)
     )
 
@@ -387,7 +403,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   def mapValues[B](f: V => B): DataVersioned[B, D] = DataVersioned(
     underlying.getAll.map(d => d.copy(value = f(d.value))),
     initialVersion,
-    versionTimestamps,
+    versionTimestamps.clone(),
     Some(currentVersion)
   )
 
@@ -410,7 +426,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   )(using DomainLike[Versioned[S]]): DataVersioned[V, S] = DataVersioned(
     underlying.getAll.map(d => d.copy(interval = f(d.interval))),
     initialVersion,
-    versionTimestamps,
+    versionTimestamps.clone(),
     Some(currentVersion)
   ).compressAll()
 
@@ -437,7 +453,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     DataVersioned(
       underlying.getAll.flatMap(f(_).underlying.getAll),
       initialVersion,
-      versionTimestamps,
+      versionTimestamps.clone(),
       Some(currentVersion)
     )
 
@@ -474,24 +490,27 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     * @return
     *   a new structure with the current version set.
     */
-  def setCurrentVersion(version: VersionDomainValue)(using dateTime: CurrentDateTime): DataVersioned[V, D] =
+  def setCurrentVersion(
+    version: VersionDomainValue,
+    comment: String = "version set"
+  )(using dateTime: CurrentDateTime): DataVersioned[V, D] =
     if version >= unapprovedStartVersion then throw Exception("version too large")
     else
       copyAndModify: result =>
         result.currentVersion = version
-        result.versionTimestamps.addOne(result.currentVersion -> dateTime.now())
+        result.versionTimestamps.addOne(result.currentVersion -> (dateTime.now(), comment))
 
   /**
     * Increments the current version.
     * @return
     *   a new structure with the current version incremented.
     */
-  def incrementCurrentVersion()(using dateTime: CurrentDateTime): DataVersioned[V, D] =
+  def incrementCurrentVersion(comment: String = "incremented")(using dateTime: CurrentDateTime): DataVersioned[V, D] =
     if currentVersion + 1 equiv unapprovedStartVersion then throw Exception("wow, ran out of versions!")
     else
       copyAndModify: result =>
         result.currentVersion = currentVersion + 1
-        result.versionTimestamps.addOne(result.currentVersion -> dateTime.now())
+        result.versionTimestamps.addOne(result.currentVersion -> (dateTime.now(), comment))
 
   /**
     * Eliminate all version information after the specified version (including any unapproved changes).

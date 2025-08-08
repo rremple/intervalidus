@@ -137,7 +137,9 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] protected (
     Domain1D[H] *: Tuple.Tail[D] =:= D,
     DomainLike[NonEmptyTail[D]]
   ): DataMulti[V, NonEmptyTail[D]] =
-    DataMulti(getByHeadIndexData(headIndex))
+    val result = DataMulti(getByHeadIndexData(headIndex))
+    result.compressAll()
+    result
 
   override def toMutable: intervalidus.mutable.DataMulti[V, D] =
     this

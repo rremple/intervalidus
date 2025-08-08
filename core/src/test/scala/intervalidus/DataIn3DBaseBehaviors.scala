@@ -43,8 +43,11 @@ trait DataIn3DBaseBehaviors:
     }
 
     val empty = dataIn3DFrom(List.empty)
+    assert(empty.isEmpty)
+    empty.toString shouldBe "<nothing is valid>"
     assert(empty.getAll.isEmpty)
     assert(empty.domain.isEmpty)
+    empty.domainComplement.toList shouldBe List(Interval.unbounded[Dim[LocalDate, LocalDate, Int]])
 
     val single = dataIn3DOf("Hello world")
     single.get shouldBe "Hello world"

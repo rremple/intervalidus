@@ -12,11 +12,13 @@ import scala.language.implicitConversions
 
 class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersionedBaseBehaviors:
 
-  import DimensionalVersionedBase.VersionSelection
+  import DimensionalVersionedBase.*
   import Interval1D.*
 
   // increment current version with each data element
-  def newDataIn1DVersioned(allData: Iterable[ValidData[String, Dim[Int]]])(using CurrentDateTime): DataVersioned[String, Dim[Int]] =
+  def newDataIn1DVersioned(
+    allData: Iterable[ValidData[String, Dim[Int]]]
+  )(using CurrentDateTime): DataVersioned[String, Dim[Int]] =
     val dataIn1DVersioned = DataVersioned[String, Dim[Int]]()
     allData.foreach: validData =>
       dataIn1DVersioned.set(validData)
@@ -78,11 +80,11 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     fixture.getAll.toList shouldBe expectedData2
 
     fixture.getVersionTimestamps should contain theSameElementsAs Map(
-      0 -> dayZero,
-      1 -> dayZero,
-      2 -> dayZero,
-      3 -> dayZero.plusDays(1),
-      4 -> dayZero.plusDays(1).plusHours(1)
+      0 -> (dayZero, "init"),
+      1 -> (dayZero, "incremented"),
+      2 -> (dayZero, "incremented"),
+      3 -> (dayZero.plusDays(1), "incremented"),
+      4 -> (dayZero.plusDays(1).plusHours(1), "incremented")
     )
     // println(fixture.toString)
     fixture.toString shouldBe
@@ -144,44 +146,44 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     fixture7.removeValue("Filled")
     fixture7.getAll.toList shouldBe expectedData6
 
-    val data1 = DataVersioned.of(intervalFrom(1).to(3) -> "A", 1) // no version 0, version 1 at day zero
-    data1.incrementCurrentVersion()(using CurrentDateTime.simulated(dayZero.plusDays(3))) // version 2 at day 3
-    data1.set(intervalFrom(5) -> "B")
-    data1.incrementCurrentVersion()(using CurrentDateTime.simulated(dayZero.plusDays(4))) // version 3 at day 4
-    data1.getVersionTimestamps should contain theSameElementsAs Map(
-      1 -> dayZero,
-      2 -> dayZero.plusDays(3),
-      3 -> dayZero.plusDays(4)
+    val dataL = DataVersioned.of(intervalFrom(1).to(3) -> "A", 1, "L init v1") // version 1 at day zero
+    dataL.incrementCurrentVersion("L to v2")(using CurrentDateTime.simulated(dayZero.plusDays(3))) // version 2 at day 3
+    dataL.set(intervalFrom(5) -> "B")
+    dataL.incrementCurrentVersion("L to v3")(using CurrentDateTime.simulated(dayZero.plusDays(4))) // version 3 at day 4
+    dataL.getVersionTimestamps should contain theSameElementsAs Map(
+      1 -> (dayZero, "L init v1"),
+      2 -> (dayZero.plusDays(3), "L to v2"),
+      3 -> (dayZero.plusDays(4), "L to v3")
     )
-    val data2 = DataVersioned.of(intervalFrom(2).to(4) -> "C", 0) // version 0 at day zero
-    data2.incrementCurrentVersion()(using CurrentDateTime.simulated(dayZero.plusDays(1))) // version 1 at day 1
-    data2.set(intervalFrom(6) -> "D")
-    data2.incrementCurrentVersion()(using CurrentDateTime.simulated(dayZero.plusDays(2))) // version 2 at day 2
-    data2.getVersionTimestamps should contain theSameElementsAs Map(
-      0 -> dayZero,
-      1 -> dayZero.plusDays(1),
-      2 -> dayZero.plusDays(2)
+    val dataR = DataVersioned.of(intervalFrom(2).to(4) -> "C", 0, "R init v0") // version 0 at day zero
+    dataR.incrementCurrentVersion("R to v1")(using CurrentDateTime.simulated(dayZero.plusDays(1))) // version 1 at day 1
+    dataR.set(intervalFrom(6) -> "D")
+    dataR.incrementCurrentVersion("R to v2")(using CurrentDateTime.simulated(dayZero.plusDays(2))) // version 2 at day 2
+    dataR.getVersionTimestamps should contain theSameElementsAs Map(
+      0 -> (dayZero, "R init v0"),
+      1 -> (dayZero.plusDays(1), "R to v1"),
+      2 -> (dayZero.plusDays(2), "R to v2")
     )
 
     // Default merge operation will "prioritize left"
-    val defaultMerge = data1.copy
-    defaultMerge.merge(data2)
+    val defaultMerge = dataL.copy
+    defaultMerge.merge(dataR)
     defaultMerge.getAll.toList shouldBe List(
       intervalFrom(1).to(3) -> "A",
       intervalFromAfter(3).to(4) -> "C",
       intervalFrom(5) -> "B"
     )
     defaultMerge.getVersionTimestamps should contain theSameElementsAs Map(
-      //                           *  _left__    _right_
-      0 -> dayZero, //             *  0 day 0              => (None, Some(right))
-      1 -> dayZero.plusDays(1), // *  1 day 0    1 day 1   => (Some(left), Some(right)), left < right
-      2 -> dayZero.plusDays(3), // *  2 day 3    2 day 2   => (Some(left), Some(right)), left > right
-      3 -> dayZero.plusDays(4) //  *  3 day 4              => (Some(left), None)
+      //                                                    *  L (left)   R (right)
+      0 -> (dayZero, "R init v0"), //                       *  0 day 0              => (None, Some(R))
+      1 -> (dayZero.plusDays(1), "L init v1 & R to v1"), // *  1 day 0    1 day 1   => (Some(L), Some(R)), L < R
+      2 -> (dayZero.plusDays(3), "L to v2 & R to v2"), //   *  2 day 3    2 day 2   => (Some(L), Some(R)), L > R
+      3 -> (dayZero.plusDays(4), "L to v3") //              *  3 day 4              => (Some(L), None)
     )
 
     // Custom merge operation will combine overlapping elements
-    val customMerge = data1.copy
-    customMerge.merge(data2, _ + _)
+    val customMerge = dataL.copy
+    customMerge.merge(dataR, _ + _)
     customMerge.getAll.toList shouldBe List(
       intervalFrom(1).toBefore(2) -> "A",
       intervalFrom(2).to(3) -> "AC",
@@ -190,6 +192,11 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
       intervalFrom(6) -> "BD"
     )
     defaultMerge.getVersionTimestamps should contain theSameElementsAs customMerge.getVersionTimestamps
+
+    val selfMerge = dataL.copy
+    selfMerge.merge(dataL)
+    selfMerge.getAll should contain theSameElementsAs dataL.getAll
+    selfMerge.getVersionTimestamps should contain theSameElementsAs dataL.getVersionTimestamps
 
     import DiffAction.*
 
@@ -216,6 +223,34 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
 
     fixture2.syncWith(fixture6)
     fixture2.getAll(using VersionSelection(fixture6.getCurrentVersion)).toList shouldBe expectedData6
+
+    val actionsFromVersion7 = fixture6.diffActionsBetween(VersionSelection(7), VersionSelection.Current)
+    // actionsFromVersion7.foreach(a => println(a.toCodeLikeString))
+    actionsFromVersion7.toList shouldBe List(
+      Update((interval(2, 7) x interval(16, 19)) -> "World"),
+      Update((intervalFrom(5) x intervalTo(0)) -> "Hey"),
+      Create((interval(5, 7) x interval(1, 4)) -> "Hey"),
+      Update((interval(6, 7) x intervalFrom(20)) -> "World")
+    )
+    val fixture6Sync = fixture6.copy
+    fixture6Sync.resetToVersion(7)
+    fixture6Sync.applyDiffActions(actionsFromVersion7)
+    fixture6Sync.getVersionedData.getAll should contain theSameElementsAs fixture6.getVersionedData.getAll
+
+    val fixture8 = fixture6.copy
+    fixture8.set(intervalFrom(30) -> "World?")(using VersionSelection.Unapproved)
+    fixture8.remove(intervalFrom(40))(using VersionSelection.Unapproved)
+
+    fixture6.getAll should contain theSameElementsAs fixture8.getAll
+    val unapprovedActions = fixture8.diffActionsBetween(VersionSelection.Current, VersionSelection.Unapproved)
+    unapprovedActions.toList shouldBe List(
+      Create((intervalFrom(unapprovedStartVersion) x interval(30, 39)) -> "World?")
+    )
+
+    val fixture9 = fixture8.copy
+    fixture9.resetToVersion(fixture8.getCurrentVersion) // removes unapproved updates
+    fixture9.applyDiffActions(unapprovedActions)
+    fixture8.getVersionedData.getAll should contain theSameElementsAs fixture9.getVersionedData.getAll
 
   test("Mutable: Mapping, flat mapping, etc."):
     val allData = List(intervalTo(4) -> "Hey", intervalFrom(16) -> "World")
@@ -273,16 +308,21 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     fixture1.compress("Hello")
     val expectedData1 = List(
       intervalTo(4) -> "Hello",
-      intervalAt(5) -> "World",
-      intervalAt(6) -> "World",
+      interval(5, 6) -> "World",
       intervalFrom(7) -> "Hello"
     )
+    // getSelectedDataMutable compresses
     fixture1.getSelectedDataMutable.getAll.toList shouldBe expectedData1
 
     val fixture2 = DataVersioned.from(allData)
     fixture2.compressAll()
-    val expectedData2 = List(intervalTo(4) -> "Hello", interval(5, 6) -> "World", intervalFrom(7) -> "Hello")
-    fixture2.getSelectedDataMutable.getAll.toList shouldBe expectedData2
+    def versioned(i: Interval1D[Int]): Interval.In2D[Int, Int] = intervalFrom(0) x i
+    val expectedData2 = List(
+      versioned(intervalTo(4)) -> "Hello",
+      versioned(interval(5, 6)) -> "World",
+      versioned(intervalFrom(7)) -> "Hello"
+    )
+    fixture2.getVersionedData.getAll.toList shouldBe expectedData2
 
   test("Mutable: Updating data in intervals"):
     val one: DataVersioned[String, Dim[Int]] = DataVersioned.of("value")

@@ -16,7 +16,9 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
   import Interval1D.*
 
   // increment current version with each data element
-  def newDataIn2DVersioned(allData: Iterable[ValidData[String, Dim[Int, Int]]])(using CurrentDateTime): DataVersioned[String, Dim[Int, Int]] =
+  def newDataIn2DVersioned(
+    allData: Iterable[ValidData[String, Dim[Int, Int]]]
+  )(using CurrentDateTime): DataVersioned[String, Dim[Int, Int]] =
     allData.foldLeft(DataVersioned[String, Dim[Int, Int]]()): (dataIn2DVersioned, validData) =>
       dataIn2DVersioned
         .set(validData)
@@ -37,6 +39,7 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
   testsFor(stringLookupTests("Immutable (setMany)", usingSetMany, DataVersioned(_), DataVersioned.of(_)))
 
   test("Immutable: Adding and removing data in intervals"):
+    val dayZero = LocalDateTime.of(2025, 8, 1, 8, 0)
     val empty: DataVersioned[String, Dim[Int, Int]] =
       mutable.DataVersioned[String, Dim[Int, Int]]().toMutable.toImmutable
 
@@ -51,12 +54,12 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
       (interval(0, 9) x intervalFrom(0)) -> "Hello",
       (intervalFrom(10) x intervalTo(0)) -> "World"
     )
-    val fixture0 = newDataIn2DVersioned(allData)(using CurrentDateTime.simulated(LocalDateTime.of(2025,8,1,8,0)))
+    val fixture0 = newDataIn2DVersioned(allData)(using CurrentDateTime.simulated(LocalDateTime.of(2025, 8, 1, 8, 0)))
     fixture0.getByHeadIndex(0).getAt(0) shouldBe Some("Hello")
 
     val fixture1 = fixture0
       .set((interval(5, 15) x unbounded[Int]) -> "to")
-      .incrementCurrentVersion()(using CurrentDateTime.simulated(LocalDateTime.of(2025,8,2,8,0)))
+      .incrementCurrentVersion()(using CurrentDateTime.simulated(LocalDateTime.of(2025, 8, 2, 8, 0)))
     val expectedData1 = List(
       (interval(0, 4) x intervalFrom(0)) -> "Hello",
       (interval(5, 15) x unbounded[Int]) -> "to",
@@ -66,7 +69,7 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
 
     val fixture2 = fixture1
       .set((interval(20, 25) x unbounded[Int]) -> "!") // split
-      .incrementCurrentVersion()(using CurrentDateTime.simulated(LocalDateTime.of(2025,8,2,9,0)))
+      .incrementCurrentVersion()(using CurrentDateTime.simulated(LocalDateTime.of(2025, 8, 2, 9, 0)))
       .recompressAll() // not needed, but addresses coverage gap
     val expectedData2 = List(
       (interval(0, 4) x intervalFrom(0)) -> "Hello",
@@ -78,11 +81,11 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     fixture2.getAll.toList shouldBe expectedData2
 
     fixture2.getVersionTimestamps.toList should contain theSameElementsAs List(
-      0 -> LocalDateTime.of(2025,8,1,8,0),
-      1 -> LocalDateTime.of(2025,8,1,8,0),
-      2 -> LocalDateTime.of(2025,8,1,8,0),
-      3 -> LocalDateTime.of(2025,8,2,8,0),
-      4 -> LocalDateTime.of(2025,8,2,9,0),
+      0 -> (dayZero, "init"),
+      1 -> (dayZero, "incremented"),
+      2 -> (dayZero, "incremented"),
+      3 -> (dayZero.plusDays(1), "incremented"),
+      4 -> (dayZero.plusDays(1).plusHours(1), "incremented")
     )
     // println(fixture2.toString)
     // format: off
@@ -160,6 +163,7 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     val data2 = DataVersioned.from(
       Seq((intervalFrom(2).to(4) x unbounded[Int]) -> "C", (intervalFrom(6) x unbounded[Int]) -> "D")
     )
+
     // Default merge operation will "prioritize left"
     val defaultMerge = data1.merge(data2)
     defaultMerge.getAll.toList shouldBe List(
@@ -176,6 +180,11 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
       (intervalFrom(5).toBefore(6) x unbounded[Int]) -> "B",
       (intervalFrom(6) x unbounded[Int]) -> "BD"
     )
+    defaultMerge.getVersionTimestamps should contain theSameElementsAs customMerge.getVersionTimestamps
+
+    val selfMerge = data1.merge(data1)
+    selfMerge.getAll should contain theSameElementsAs data1.getAll
+    selfMerge.getVersionTimestamps should contain theSameElementsAs data1.getVersionTimestamps
 
     import DiffAction.*
 
@@ -282,25 +291,15 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
       .compress("Hello")
     val expectedData1 = List(
       (intervalTo(4) x unbounded[Int]) -> "Hello",
-      (intervalAt(5) x unbounded[Int]) -> "World",
-      (intervalAt(6) x unbounded[Int]) -> "World",
-      (intervalFrom(7) x unbounded[Int]) -> "Hello"
-    )
-    fixture1.getSelectedDataMutable.getAll.toList shouldBe expectedData1
-
-    val fixture2 = DataVersioned
-      .from(allData)
-      .compressAll()
-    val expectedData2 = List(
-      (intervalTo(4) x unbounded[Int]) -> "Hello",
       (interval(5, 6) x unbounded[Int]) -> "World",
       (intervalFrom(7) x unbounded[Int]) -> "Hello"
     )
-    fixture2.getSelectedDataMutable.getAll.toList shouldBe expectedData2
+    // getSelectedDataMutable compresses
+    fixture1.getSelectedDataMutable.getAll.toList shouldBe expectedData1
 
   test("Immutable: Updating data in intervals"):
     val one: DataVersioned[String, Dim[Int, Int]] = DataVersioned
-      .of("value")
+      .of[String, Dim[Int, Int]]("value")
       .incrementCurrentVersion()
 
     val oneSplit = one.remove(intervalAt(0) x unbounded[Int]) // split

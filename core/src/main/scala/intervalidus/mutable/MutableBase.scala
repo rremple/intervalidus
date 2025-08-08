@@ -189,7 +189,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     compressInPlace(value)
 
   /**
-    * Compress out adjacent intervals with the same value for all values. (Shouldn't ever need to do this.)
+    * Compress out adjacent intervals with the same value for all values.
     */
   def compressAll(): Unit = synchronized:
     dataByValue.keySet.foreach(compress)
@@ -203,7 +203,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     * recompresses the data, which results in a unique physical representation. It may be useful when comparing two
     * structures to see if they are logically equivalent even if, physically, they differ in how they are compressed.
     */
-  def recompressAll(): Unit = synchronized:
+  def recompressAll(): Unit =
     recompressInPlace()
 
   /**
@@ -213,10 +213,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     *   actions to be applied.
     */
   def applyDiffActions(diffActions: Iterable[DiffAction[V, D]]): Unit = synchronized:
-    diffActions.foreach:
-      case DiffAction.Create(data: ValidData[V, D]) => addValidData(data)
-      case DiffAction.Update(data: ValidData[V, D]) => updateValidData(data)
-      case DiffAction.Delete(key)                   => removeValidDataByKey(key)
+    diffActions.foreach(applyDiffActionInPlace)
 
   /**
     * Synchronizes this with another structure by getting and applying the applicable diff actions.
