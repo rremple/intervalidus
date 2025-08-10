@@ -261,6 +261,14 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       d.start shouldBe ((Bottom, now, 0): Domain.In3D[LocalDate, LocalDate, Int])
       d.end shouldBe ((now, Top, Top): Domain.In3D[LocalDate, LocalDate, Int])
 
+      val i = interval3d(1, 2, 3, 4, 5, 6)
+      i.headInterval1D[Int] shouldBe interval(1, 2)
+      i.tailInterval shouldBe (interval(3, 4) x interval(5, 6))
+      i[Int](0) shouldBe interval(1, 2)
+      i[Int](1) shouldBe interval(3, 4)
+      i[Int](2) shouldBe interval(5, 6)
+      i shouldBe (i[Int](0) x i[Int](1) x i[Int](2))
+
       interval3d(1, 2, 3, 4, 5, 6) intersectionWith interval3d(2, 3, 4, 5, 6, 7) shouldBe Some(
         interval3d(2, 2, 4, 4, 6, 6)
       )

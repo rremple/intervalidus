@@ -25,8 +25,7 @@ trait DataIn1DVersionedBaseBehaviors:
   def validString(s: String, validTime: Interval[Dim[LocalDate]]): ValidData[String, Dim[LocalDate]] =
     validTime -> s
 
-  def horizontal[H: DomainValueLike](interval: Interval[Versioned[Domain.In1D[H]]]): Interval1D[H] = interval match
-    case _ x_: horizontal => horizontal
+  def horizontal[H: DomainValueLike](interval: Interval[Versioned[Domain.In1D[H]]]): Interval1D[H] = interval(1)
 
   protected def testDataIn2D[T](
     current: Domain1D[Int],

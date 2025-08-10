@@ -69,14 +69,7 @@ object DimensionalVersionedBase:
       */
     def apply(version: VersionDomainValue): VersionSelection = VersionSelection.Specific(version)
 
-import DimensionalVersionedBase.{
-  unapprovedStartVersion,
-  Versioned,
-  VersionDomain,
-  VersionDomainValue,
-  VersionMetadata,
-  VersionSelection
-}
+import DimensionalVersionedBase.*
 
 /**
   * Constructs data in multidimensional intervals that are also versioned (hidden extra dimension).
@@ -294,9 +287,7 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     underlying.getAll
       .filter(_.interval.tailInterval.headInterval1D[H] contains headIndex)
       .map: data =>
-        val versionInterval = data.interval.headInterval1D[VersionDomainValue]
-        val tailInterval: Interval[NonEmptyTail[D]] = data.interval.tailInterval.tailInterval
-        (tailInterval withHead versionInterval) -> data.value
+        (data.interval.tailInterval.tailInterval withHead versionInterval(data)) -> data.value
 
   // ---------- API methods that are not similar to those in DimensionalBase ----------
 

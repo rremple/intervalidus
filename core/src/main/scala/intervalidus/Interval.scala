@@ -291,7 +291,23 @@ case class Interval[D <: NonEmptyTuple](
     Interval(start withHead that.start, end withHead that.end)
 
   /**
-    * Extract the one-dimensional head interval.
+    * Extract a one-dimensional interval in a particular dimension.
+    *
+    * @param dimensionIndex
+    *   the dimension to extract (e.g., the head dimension is index 0)
+    * @tparam H
+    *   the domain value type of the element at the extracted dimension. There is a type safety check that ensures the
+    *   domain type for the extracted dimension is `Domain1D[H]`.
+    * @return
+    *   the one-dimensional interval.
+    */
+  def apply[H: DomainValueLike](dimensionIndex: Int)(using
+    Tuple.Elem[D, dimensionIndex.type] =:= Domain1D[H]
+  ): Interval1D[H] =
+    Interval1D(start(dimensionIndex), end(dimensionIndex))
+
+  /**
+    * Extract the one-dimensional head interval. (Equivalent to `apply[H](0)`)
     *
     * @tparam H
     *   the domain value type of the head element. There is a type safety check that ensures the head domain type is

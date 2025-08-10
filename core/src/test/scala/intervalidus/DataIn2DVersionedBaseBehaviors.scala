@@ -31,8 +31,7 @@ trait DataIn2DVersionedBaseBehaviors:
 
   def horizontal[H: DomainValueLike, V: DomainValueLike](
     interval: Interval[Versioned[Domain.In2D[H, V]]]
-  ): Interval1D[H] = (interval: @nowarn("msg=match may not be exhaustive")) match
-    case _ x_: horizontal x_: _ => horizontal
+  ): Interval1D[H] = interval(1)
 
   protected def testDataIn3D[T](
     current: Domain1D[Int],
