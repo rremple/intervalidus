@@ -263,7 +263,7 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
 
   // Extract the version interval from some underlying valid data
   protected def versionInterval(data: ValidData[V, Versioned[D]]): VersionInterval =
-    data.interval.headInterval1D[VersionDomainValue]
+    data.interval.headInterval1D
 
   // Construct new underlying valid data with an updated version interval
   protected def withVersionUpdate(
@@ -280,12 +280,11 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
   protected def getByHeadIndexData[H: DomainValueLike](headIndex: Domain1D[H])(using
     Tuple.Head[D] =:= Domain1D[H],
     Tuple.Tail[D] =:= NonEmptyTail[D],
-    Domain1D[H] *: Tuple.Tail[D] =:= D,
     DomainLike[NonEmptyTail[D]],
     DomainLike[Versioned[NonEmptyTail[D]]]
   ): Iterable[ValidData[V, Versioned[NonEmptyTail[D]]]] =
     underlying.getAll
-      .filter(_.interval.tailInterval.headInterval1D[H] contains headIndex)
+      .filter(_.interval.tailInterval.headInterval1D contains headIndex)
       .map: data =>
         (data.interval.tailInterval.tailInterval withHead versionInterval(data)) -> data.value
 
@@ -585,7 +584,6 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
   def getByHeadIndex[H: DomainValueLike](headIndex: Domain1D[H])(using
     Tuple.Head[D] =:= Domain1D[H],
     Tuple.Tail[D] =:= NonEmptyTail[D],
-    Domain1D[H] *: Tuple.Tail[D] =:= D,
     DomainLike[NonEmptyTail[D]],
     DomainLike[Versioned[NonEmptyTail[D]]]
   ): DimensionalVersionedBase[V, NonEmptyTail[D]]

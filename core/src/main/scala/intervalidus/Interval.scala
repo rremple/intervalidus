@@ -347,7 +347,7 @@ case class Interval[D <: NonEmptyTuple](
     Tuple.Head[D] =:= Domain1D[H],
     Domain1D[H] *: Tuple.Tail[D] =:= D
   ): Interval[D] =
-    val updatedHead = update(headInterval1D[H])
+    val updatedHead = update(headInterval1D)
     Interval(updatedHead.start *: start.tail, updatedHead.end *: end.tail)
 
   /**

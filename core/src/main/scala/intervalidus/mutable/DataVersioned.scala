@@ -120,7 +120,6 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   override def getByHeadIndex[H: DomainValueLike](headIndex: Domain1D[H])(using
     Tuple.Head[D] =:= Domain1D[H],
     Tuple.Tail[D] =:= NonEmptyTail[D],
-    Domain1D[H] *: Tuple.Tail[D] =:= D,
     DomainLike[NonEmptyTail[D]],
     DomainLike[Versioned[NonEmptyTail[D]]]
   ): DataVersioned[V, NonEmptyTail[D]] =
