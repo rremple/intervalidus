@@ -902,11 +902,129 @@ node3 -> node2;
            </div>
           </div>
          </div>
+         <div class="documentableElement" id="dropDimension-a3d">
+          <div class="documentableElement-expander">
+           <button class="icon-button ar show-content"></button>
+           <div class="header monospace mono-medium">
+            <div class="signature">
+             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DomainLike.html#dropDimension-a3d" t="n" class="documentableName ">dropDimension</a>[<span t="k"></span><span data-unresolved-link="" t="t">R</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">NonEmptyTuple</span> : <a href="DomainLike.html" t="t">DomainLike</a>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">dimensionIndex</span>: <span data-unresolved-link="" t="t">Int</span>)(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">evidence$1</span>: <a href="DomainLike.html" t="t">DomainLike</a>[<span data-unresolved-link="" t="t">R</span>], <span t="k"></span><span data-unresolved-link="" t="t">Concat</span>[<span data-unresolved-link="" t="t">Take</span>[<span t="t">D</span>, <span t="t">dimensionIndex</span>.<span t="k">type</span>], <span data-unresolved-link="" t="t">Drop</span>[<span t="t">D</span>, <span data-unresolved-link="" t="t">S</span>[<span t="t">dimensionIndex</span>.<span t="k">type</span>]]] <span data-unresolved-link="" t="t">=:=</span> <span t="t">R</span>): <span data-unresolved-link="" t="t">R</span>
+            </div>
+           </div>
+          </div>
+          <div class="docs">
+           <span class="modifiers"></span>
+           <div>
+            <div class="originInfo"></div>
+            <div class="memberDocumentation">
+             <div class="documentableBrief doc">
+              <p>Extract a lower-dimensional domain by dropping a dimension.</p>
+             </div>
+             <div class="cover">
+              <div class="doc">
+               <p>Extract a lower-dimensional domain by dropping a dimension.</p>
+              </div>
+              <h2 class="h200">Type parameters</h2>
+              <dl class="attributes attributes-small">
+               <dt class="body-small">
+                R
+               </dt>
+               <dd class="body-medium">
+                <p>the result domain. There is a type safety check that ensures the domain type for the result dimension is a concatenation of elements before and after the dropped dimension.</p>
+               </dd>
+              </dl>
+              <h2 class="h200">Value parameters</h2>
+              <dl class="attributes attributes-small">
+               <dt class="body-small">
+                dimensionIndex
+               </dt>
+               <dd class="body-medium">
+                <p>the dimension to drop (e.g., the head dimension is index 0)</p>
+               </dd>
+              </dl>
+              <h2 class="h200">Attributes</h2>
+              <dl class="attributes attributes-small">
+               <dt class="body-small">
+                Returns
+               </dt>
+               <dd class="body-medium">
+                <p>a new lower-dimensional domain</p>
+               </dd>
+              </dl>
+             </div>
+            </div>
+           </div>
+          </div>
+         </div>
          <div class="documentableElement" id="equiv-c00" data-f-keywords="infix">
           <div class="documentableElement-expander">
            <div class="header monospace mono-medium">
             <div class="signature">
              <span class="modifiers"><span t="k">infix </span></span><span class="kind"><span t="k">def </span></span><a href="DomainLike.html#equiv-c00" t="n" class="documentableName ">equiv</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <span t="t">D</span>): <span data-unresolved-link="" t="t">Boolean</span>
+            </div>
+           </div>
+          </div>
+         </div>
+         <div class="documentableElement" id="insertDimension-fffff65b">
+          <div class="documentableElement-expander">
+           <button class="icon-button ar show-content"></button>
+           <div class="header monospace mono-medium">
+            <div class="signature">
+             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DomainLike.html#insertDimension-fffff65b" t="n" class="documentableName ">insertDimension</a>[<span t="k"></span><span data-unresolved-link="" t="t">H</span> : <a href="DomainValueLike.html" t="t">DomainValueLike</a>, <span t="k"></span><span data-unresolved-link="" t="t">R</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">NonEmptyTuple</span> : <a href="DomainLike.html" t="t">DomainLike</a>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">dimensionIndex</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">domain1D</span>: <a href="Domain1D.html" t="t">Domain1D</a>[<span t="t">H</span>])(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">evidence$1</span>: <a href="DomainValueLike.html" t="t">DomainValueLike</a>[<span data-unresolved-link="" t="t">H</span>], <span t="k"></span><span data-unresolved-link="" t="n">evidence$2</span>: <a href="DomainLike.html" t="t">DomainLike</a>[<span data-unresolved-link="" t="t">R</span>], <span t="k"></span><span data-unresolved-link="" t="t">Concat</span>[<span data-unresolved-link="" t="t">Take</span>[<span t="t">D</span>, <span t="t">dimensionIndex</span>.<span t="k">type</span>], <a href="Domain1D.html" t="t">Domain1D</a>[<span t="t">H</span>] <span data-unresolved-link="" t="t">*:</span> <span data-unresolved-link="" t="t">Drop</span>[<span t="t">D</span>, <span t="t">dimensionIndex</span>.<span t="k">type</span>]] <span data-unresolved-link="" t="t">=:=</span> <span t="t">R</span>): <span data-unresolved-link="" t="t">R</span>
+            </div>
+           </div>
+          </div>
+          <div class="docs">
+           <span class="modifiers"></span>
+           <div>
+            <div class="originInfo"></div>
+            <div class="memberDocumentation">
+             <div class="documentableBrief doc">
+              <p>Create a higher-dimensional domain by inserting a dimension.</p>
+             </div>
+             <div class="cover">
+              <div class="doc">
+               <p>Create a higher-dimensional domain by inserting a dimension.</p>
+              </div>
+              <h2 class="h200">Type parameters</h2>
+              <dl class="attributes attributes-small">
+               <dt class="body-small">
+                H
+               </dt>
+               <dd class="body-medium">
+                <p>the domain value type of the domain inserted</p>
+               </dd>
+               <dt class="body-small">
+                R
+               </dt>
+               <dd class="body-medium">
+                <p>the result domain. There is a type safety check that ensures the domain type for the result dimension is a concatenation of elements before the insert, the inserted domain, and the elements after the insert.</p>
+               </dd>
+              </dl>
+              <h2 class="h200">Value parameters</h2>
+              <dl class="attributes attributes-small">
+               <dt class="body-small">
+                dimensionIndex
+               </dt>
+               <dd class="body-medium">
+                <p>the dimension where the domain is inserted (e.g., inserting a new head dimension is index 0). Existing dimensions are pushed to the right.</p>
+               </dd>
+               <dt class="body-small">
+                domain1D
+               </dt>
+               <dd class="body-medium">
+                <p>the domain to be inserted</p>
+               </dd>
+              </dl>
+              <h2 class="h200">Attributes</h2>
+              <dl class="attributes attributes-small">
+               <dt class="body-small">
+                Returns
+               </dt>
+               <dd class="body-medium">
+                <p>a new higher-dimensional domain</p>
+               </dd>
+              </dl>
+             </div>
             </div>
            </div>
           </div>
@@ -1255,6 +1373,69 @@ node3 -> node2;
               </div>
               <h2 class="h200">Attributes</h2>
               <dl class="attributes attributes-small"></dl>
+             </div>
+            </div>
+           </div>
+          </div>
+         </div>
+         <div class="documentableElement" id="updateDimension-189">
+          <div class="documentableElement-expander">
+           <button class="icon-button ar show-content"></button>
+           <div class="header monospace mono-medium">
+            <div class="signature">
+             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DomainLike.html#updateDimension-189" t="n" class="documentableName ">updateDimension</a>[<span t="k"></span><span data-unresolved-link="" t="t">H</span> : <a href="DomainValueLike.html" t="t">DomainValueLike</a>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">dimensionIndex</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">updated</span>: <a href="Domain1D.html" t="t">Domain1D</a>[<span t="t">H</span>])(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">evidence$1</span>: <a href="DomainValueLike.html" t="t">DomainValueLike</a>[<span data-unresolved-link="" t="t">H</span>], <span t="k"></span><span data-unresolved-link="" t="t">Elem</span>[<span t="t">D</span>, <span t="t">dimensionIndex</span>.<span t="k">type</span>] <span data-unresolved-link="" t="t">=:=</span> <a href="Domain1D.html" t="t">Domain1D</a>[<span t="t">H</span>], <span t="k"></span><span data-unresolved-link="" t="t">Concat</span>[<span data-unresolved-link="" t="t">Take</span>[<span t="t">D</span>, <span t="t">dimensionIndex</span>.<span t="k">type</span>], <a href="Domain1D.html" t="t">Domain1D</a>[<span t="t">H</span>] <span data-unresolved-link="" t="t">*:</span> <span data-unresolved-link="" t="t">Drop</span>[<span t="t">D</span>, <span data-unresolved-link="" t="t">S</span>[<span t="t">dimensionIndex</span>.<span t="k">type</span>]]] <span data-unresolved-link="" t="t">=:=</span> <span t="t">D</span>): <span t="t">D</span>
+            </div>
+           </div>
+          </div>
+          <div class="docs">
+           <span class="modifiers"></span>
+           <div>
+            <div class="originInfo"></div>
+            <div class="memberDocumentation">
+             <div class="documentableBrief doc">
+              <p>Update the domain at a particular dimension.</p>
+             </div>
+             <div class="cover">
+              <div class="doc">
+               <p>Update the domain at a particular dimension.</p>
+              </div>
+              <h2 class="h200">Type parameters</h2>
+              <dl class="attributes attributes-small">
+               <dt class="body-small">
+                H
+               </dt>
+               <dd class="body-medium">
+                <p>the domain value type of the domain updated. There are type safety checks that ensure</p>
+                <ul>
+                 <li>the domain at the specified dimension index is of the specified domain type, and</li>
+                 <li>the domain type for the result dimension is a concatenation of elements before the update, the updated domain, and the elements after the update.</li>
+                </ul>
+               </dd>
+              </dl>
+              <h2 class="h200">Value parameters</h2>
+              <dl class="attributes attributes-small">
+               <dt class="body-small">
+                dimensionIndex
+               </dt>
+               <dd class="body-medium">
+                <p>the dimension in which the domain is updated (e.g., the head dimension is index 0)</p>
+               </dd>
+               <dt class="body-small">
+                updated
+               </dt>
+               <dd class="body-medium">
+                <p>the domain updated</p>
+               </dd>
+              </dl>
+              <h2 class="h200">Attributes</h2>
+              <dl class="attributes attributes-small">
+               <dt class="body-small">
+                Returns
+               </dt>
+               <dd class="body-medium">
+                <p>a new domain of the same dimension with the update applied</p>
+               </dd>
+              </dl>
              </div>
             </div>
            </div>

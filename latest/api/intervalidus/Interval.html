@@ -256,6 +256,59 @@ node6 -> node2;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="apply-67a">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Interval.html#apply-67a" t="n" class="documentableName ">apply</a>[<span t="k"></span><span data-unresolved-link="" t="t">H</span> : <a href="DomainValueLike.html" t="t">DomainValueLike</a>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">dimensionIndex</span>: <span data-unresolved-link="" t="t">Int</span>)(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">evidence$1</span>: <a href="DomainValueLike.html" t="t">DomainValueLike</a>[<span data-unresolved-link="" t="t">H</span>], <span t="k"></span><span data-unresolved-link="" t="t">Elem</span>[<span t="t">D</span>, <span t="t">dimensionIndex</span>.<span t="k">type</span>] <span data-unresolved-link="" t="t">=:=</span> <a href="Domain1D.html" t="t">Domain1D</a>[<span t="t">H</span>]): <a href="Interval1D.html" t="t">Interval1D</a>[<span data-unresolved-link="" t="t">H</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Extract a one-dimensional interval in a particular dimension.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Extract a one-dimensional interval in a particular dimension.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               H
+              </dt>
+              <dd class="body-medium">
+               <p>the domain value type of the element at the extracted dimension. There is a type safety check that ensures the domain type for the extracted dimension is <code>Domain1D[H]</code>.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               dimensionIndex
+              </dt>
+              <dd class="body-medium">
+               <p>the dimension to extract (e.g., the head dimension is index 0)</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>the one-dimensional interval.</p>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="asBox-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -456,6 +509,59 @@ node6 -> node2;
               </dt>
               <dd class="body-medium">
                <p>true if that is a subset of this.</p>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="dropDimension-fffff2b2">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Interval.html#dropDimension-fffff2b2" t="n" class="documentableName ">dropDimension</a>[<span t="k"></span><span data-unresolved-link="" t="t">R</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">NonEmptyTuple</span> : <a href="DomainLike.html" t="t">DomainLike</a>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">dimensionIndex</span>: <span data-unresolved-link="" t="t">Int</span>)(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">evidence$1</span>: <a href="DomainLike.html" t="t">DomainLike</a>[<span data-unresolved-link="" t="t">R</span>], <span t="k"></span><span data-unresolved-link="" t="t">Concat</span>[<span data-unresolved-link="" t="t">Take</span>[<span t="t">D</span>, <span t="t">dimensionIndex</span>.<span t="k">type</span>], <span data-unresolved-link="" t="t">Drop</span>[<span t="t">D</span>, <span data-unresolved-link="" t="t">S</span>[<span t="t">dimensionIndex</span>.<span t="k">type</span>]]] <span data-unresolved-link="" t="t">=:=</span> <span t="t">R</span>): <a href="Interval.html" t="t">Interval</a>[<span data-unresolved-link="" t="t">R</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Extract a lower-dimensional interval by dropping a particular dimension.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Extract a lower-dimensional interval by dropping a particular dimension.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               R
+              </dt>
+              <dd class="body-medium">
+               <p>the result domain. There is a type safety check that ensures the domain type for the result domain is a concatenation of elements before and after the dropped dimension.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               dimensionIndex
+              </dt>
+              <dd class="body-medium">
+               <p>the dimension to drop (e.g., the head dimension is index 0)</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>a new lower-dimensional interval</p>
               </dd>
              </dl>
             </div>
@@ -792,11 +898,11 @@ node6 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Extract the one-dimensional head interval.</p>
+             <p>Extract the one-dimensional head interval. (Equivalent to <code>apply[H](0)</code>, though the type checking is simpler.)</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Extract the one-dimensional head interval.</p>
+              <p>Extract the one-dimensional head interval. (Equivalent to <code>apply[H](0)</code>, though the type checking is simpler.)</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -814,6 +920,71 @@ node6 -> node2;
               </dt>
               <dd class="body-medium">
                <p>the one-dimensional head interval.</p>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="insertDimension-fffff2c1">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Interval.html#insertDimension-fffff2c1" t="n" class="documentableName ">insertDimension</a>[<span t="k"></span><span data-unresolved-link="" t="t">H</span> : <a href="DomainValueLike.html" t="t">DomainValueLike</a>, <span t="k"></span><span data-unresolved-link="" t="t">R</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">NonEmptyTuple</span> : <a href="DomainLike.html" t="t">DomainLike</a>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">dimensionIndex</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">interval1D</span>: <a href="Interval1D.html" t="t">Interval1D</a>[<span t="t">H</span>])(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">evidence$1</span>: <a href="DomainValueLike.html" t="t">DomainValueLike</a>[<span data-unresolved-link="" t="t">H</span>], <span t="k"></span><span data-unresolved-link="" t="n">evidence$2</span>: <a href="DomainLike.html" t="t">DomainLike</a>[<span data-unresolved-link="" t="t">R</span>], <span t="k"></span><span data-unresolved-link="" t="t">Concat</span>[<span data-unresolved-link="" t="t">Take</span>[<span t="t">D</span>, <span t="t">dimensionIndex</span>.<span t="k">type</span>], <a href="Domain1D.html" t="t">Domain1D</a>[<span t="t">H</span>] <span data-unresolved-link="" t="t">*:</span> <span data-unresolved-link="" t="t">Drop</span>[<span t="t">D</span>, <span t="t">dimensionIndex</span>.<span t="k">type</span>]] <span data-unresolved-link="" t="t">=:=</span> <span t="t">R</span>): <a href="Interval.html" t="t">Interval</a>[<span data-unresolved-link="" t="t">R</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Create a higher-dimensional interval by inserting a dimension.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Create a higher-dimensional interval by inserting a dimension.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               H
+              </dt>
+              <dd class="body-medium">
+               <p>the domain value type of the 1D interval inserted</p>
+              </dd>
+              <dt class="body-small">
+               R
+              </dt>
+              <dd class="body-medium">
+               <p>the result domain. There is a type safety check that ensures the domain type for the resulting interval is a concatenation of elements before the insert, the inserted 1D interval, and the elements after the insert.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               dimensionIndex
+              </dt>
+              <dd class="body-medium">
+               <p>the dimension where the 1D interval is inserted (e.g., inserting a new head dimension is index 0). Existing dimensions are pushed to the right.</p>
+              </dd>
+              <dt class="body-small">
+               interval1D
+              </dt>
+              <dd class="body-medium">
+               <p>the 1D interval to be inserted</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>a new higher-dimensional interval</p>
               </dd>
              </dl>
             </div>
@@ -1445,6 +1616,69 @@ node6 -> node2;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="withDimensionUpdate-906">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Interval.html#withDimensionUpdate-906" t="n" class="documentableName ">withDimensionUpdate</a>[<span t="k"></span><span data-unresolved-link="" t="t">H</span> : <a href="DomainValueLike.html" t="t">DomainValueLike</a>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">dimensionIndex</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">update</span>: (<a href="Interval1D.html" t="t">Interval1D</a>[<span t="t">H</span>])<span t="k"> =&gt; </span><a href="Interval1D.html" t="t">Interval1D</a>[<span t="t">H</span>])(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">evidence$1</span>: <a href="DomainValueLike.html" t="t">DomainValueLike</a>[<span data-unresolved-link="" t="t">H</span>], <span t="k"></span><span data-unresolved-link="" t="t">Elem</span>[<span t="t">D</span>, <span t="t">dimensionIndex</span>.<span t="k">type</span>] <span data-unresolved-link="" t="t">=:=</span> <a href="Domain1D.html" t="t">Domain1D</a>[<span t="t">H</span>], <span t="k"></span><span data-unresolved-link="" t="t">Concat</span>[<span data-unresolved-link="" t="t">Take</span>[<span t="t">D</span>, <span t="t">dimensionIndex</span>.<span t="k">type</span>], <a href="Domain1D.html" t="t">Domain1D</a>[<span t="t">H</span>] <span data-unresolved-link="" t="t">*:</span> <span data-unresolved-link="" t="t">Drop</span>[<span t="t">D</span>, <span data-unresolved-link="" t="t">S</span>[<span t="t">dimensionIndex</span>.<span t="k">type</span>]]] <span data-unresolved-link="" t="t">=:=</span> <span t="t">D</span>): <a href="Interval.html" t="t">Interval</a>[<span t="t">D</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Update the interval at a particular dimension.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Update the interval at a particular dimension.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               H
+              </dt>
+              <dd class="body-medium">
+               <p>the domain value type of the 1D interval updated. There are type safety checks that ensure</p>
+               <ul>
+                <li>the domain at the specified dimension index is of the specified domain type</li>
+                <li>the domain type of the result interval is a concatenation of elements before the update, the updated domain, and the elements after the update.</li>
+               </ul>
+              </dd>
+             </dl>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               dimensionIndex
+              </dt>
+              <dd class="body-medium">
+               <p>the dimension in which the interval is updated (e.g., the head dimension is index 0)</p>
+              </dd>
+              <dt class="body-small">
+               update
+              </dt>
+              <dd class="body-medium">
+               <p>function to update the specified 1D interval</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>a new interval of the same dimension with the update applied</p>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="withHead-6d5" data-f-keywords="infix">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -1518,6 +1752,7 @@ node6 -> node2;
             <div class="cover">
              <div class="doc">
               <p>Returns a new interval with an updated head interval and the other dimensions unchanged.</p>
+              <p>(Equivalent to <code>withDimensionUpdate[H](0, update)</code>, though the type checking is simpler.)</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">

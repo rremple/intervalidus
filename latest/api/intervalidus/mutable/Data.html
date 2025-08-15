@@ -170,12 +170,89 @@ node7 -> node4;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="getByHeadIndex-405" data-f-keywords="override">
+        <div class="documentableElement" id="getByDimension-fffff745" data-f-keywords="override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="Data.html#getByHeadIndex-405" t="n" class="documentableName ">getByHeadIndex</a>[<span t="k"></span><span data-unresolved-link="" t="t">H</span> : <a href="../DomainValueLike.html" t="t">DomainValueLike</a>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">headIndex</span>: <a href="../Domain1D.html" t="t">Domain1D</a>[<span t="t">H</span>])(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">evidence$1</span>: <a href="../DomainValueLike.html" t="t">DomainValueLike</a>[<span data-unresolved-link="" t="t">H</span>], <span t="k"></span><span data-unresolved-link="" t="t">Head</span>[<span t="t">D</span>] <span data-unresolved-link="" t="t">=:=</span> <a href="../Domain1D.html" t="t">Domain1D</a>[<span t="t">H</span>], <span t="k"></span><span data-unresolved-link="" t="t">Tail</span>[<span t="t">D</span>] <span data-unresolved-link="" t="t">=:=</span> <a href="../Domain$.html#NonEmptyTail-0" t="t">NonEmptyTail</a>[<span t="t">D</span>], <span t="k"></span>(<a href="../Domain1D.html" t="t">Domain1D</a>[<span t="t">H</span>] <span data-unresolved-link="" t="t">*:</span> <span data-unresolved-link="" t="t">Tail</span>[<span t="t">D</span>]) <span data-unresolved-link="" t="t">=:=</span> <span t="t">D</span>, <span t="k"></span><a href="../DomainLike.html" t="t">DomainLike</a>[<a href="../Domain$.html#NonEmptyTail-0" t="t">NonEmptyTail</a>[<span t="t">D</span>]]): <a href="Data.html" t="t">Data</a>[<span t="t">V</span>, <a href="../Domain$.html#NonEmptyTail-0" t="t">NonEmptyTail</a>[<span t="t">D</span>]]
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="Data.html#getByDimension-fffff745" t="n" class="documentableName ">getByDimension</a>[<span t="k"></span><span data-unresolved-link="" t="t">H</span> : <a href="../DomainValueLike.html" t="t">DomainValueLike</a>, <span t="k"></span><span data-unresolved-link="" t="t">R</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">NonEmptyTuple</span> : <a href="../DomainLike.html" t="t">DomainLike</a>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">dimensionIndex</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">domain</span>: <a href="../Domain1D.html" t="t">Domain1D</a>[<span t="t">H</span>])(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">evidence$1</span>: <a href="../DomainValueLike.html" t="t">DomainValueLike</a>[<span data-unresolved-link="" t="t">H</span>], <span t="k"></span><span data-unresolved-link="" t="n">evidence$2</span>: <a href="../DomainLike.html" t="t">DomainLike</a>[<span data-unresolved-link="" t="t">R</span>], <span t="k"></span><span data-unresolved-link="" t="t">Elem</span>[<span t="t">D</span>, <span t="t">dimensionIndex</span>.<span t="k">type</span>] <span data-unresolved-link="" t="t">=:=</span> <a href="../Domain1D.html" t="t">Domain1D</a>[<span t="t">H</span>], <span t="k"></span><span data-unresolved-link="" t="t">Concat</span>[<span data-unresolved-link="" t="t">Take</span>[<span t="t">D</span>, <span t="t">dimensionIndex</span>.<span t="k">type</span>], <a href="../Domain1D.html" t="t">Domain1D</a>[<span t="t">H</span>] <span data-unresolved-link="" t="t">*:</span> <span data-unresolved-link="" t="t">Drop</span>[<span t="t">D</span>, <span data-unresolved-link="" t="t">S</span>[<span t="t">dimensionIndex</span>.<span t="k">type</span>]]] <span data-unresolved-link="" t="t">=:=</span> <span t="t">D</span>, <span t="k"></span><span data-unresolved-link="" t="t">Concat</span>[<span data-unresolved-link="" t="t">Take</span>[<span t="t">D</span>, <span t="t">dimensionIndex</span>.<span t="k">type</span>], <span data-unresolved-link="" t="t">Drop</span>[<span t="t">D</span>, <span data-unresolved-link="" t="t">S</span>[<span t="t">dimensionIndex</span>.<span t="k">type</span>]]] <span data-unresolved-link="" t="t">=:=</span> <span t="t">R</span>): <a href="../DimensionalBase.html" t="t">DimensionalBase</a>[<span t="t">V</span>, <span data-unresolved-link="" t="t">R</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Project as data in n-1 dimensions based on a lookup in the specified dimension.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Project as data in n-1 dimensions based on a lookup in the specified dimension.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               H
+              </dt>
+              <dd class="body-medium">
+               <p>the domain value type of the domain used for filtering. There are type safety checks that ensure</p>
+               <ul>
+                <li>the 1D domain at the specified dimension index has the specified domain value type</li>
+                <li>the current domain type can be constructed by concatenating the elements before the domain, the domain itself, and the elements after the domain.</li>
+               </ul>
+              </dd>
+              <dt class="body-small">
+               R
+              </dt>
+              <dd class="body-medium">
+               <p>domain of intervals in the returned structure. There is a type safety check that ensures the domain type for this result type can be constructed by concatenating the elements before and after the dropped dimension.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               dimensionIndex
+              </dt>
+              <dd class="body-medium">
+               <p>dimension to filter on and drop. Must be a value with a singleton type known at compile time, e.g., a numeric literal. (The head dimension is dimension 0.)</p>
+              </dd>
+              <dt class="body-small">
+               domain
+              </dt>
+              <dd class="body-medium">
+               <p>the domain element used for filtering</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>a lower-dimensional (n-1) projection</p>
+              </dd>
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <a href="../DimensionalBase.html">DimensionalBase</a>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="getByHeadDimension-405" data-f-keywords="override">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="Data.html#getByHeadDimension-405" t="n" class="documentableName ">getByHeadDimension</a>[<span t="k"></span><span data-unresolved-link="" t="t">H</span> : <a href="../DomainValueLike.html" t="t">DomainValueLike</a>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">domain</span>: <a href="../Domain1D.html" t="t">Domain1D</a>[<span t="t">H</span>])(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">evidence$1</span>: <a href="../DomainValueLike.html" t="t">DomainValueLike</a>[<span data-unresolved-link="" t="t">H</span>], <span t="k"></span><span data-unresolved-link="" t="t">Head</span>[<span t="t">D</span>] <span data-unresolved-link="" t="t">=:=</span> <a href="../Domain1D.html" t="t">Domain1D</a>[<span t="t">H</span>], <span t="k"></span><span data-unresolved-link="" t="t">Tail</span>[<span t="t">D</span>] <span data-unresolved-link="" t="t">=:=</span> <a href="../Domain$.html#NonEmptyTail-0" t="t">NonEmptyTail</a>[<span t="t">D</span>], <span t="k"></span>(<a href="../Domain1D.html" t="t">Domain1D</a>[<span t="t">H</span>] <span data-unresolved-link="" t="t">*:</span> <span data-unresolved-link="" t="t">Tail</span>[<span t="t">D</span>]) <span data-unresolved-link="" t="t">=:=</span> <span t="t">D</span>, <span t="k"></span><a href="../DomainLike.html" t="t">DomainLike</a>[<a href="../Domain$.html#NonEmptyTail-0" t="t">NonEmptyTail</a>[<span t="t">D</span>]]): <a href="Data.html" t="t">Data</a>[<span t="t">V</span>, <a href="../Domain$.html#NonEmptyTail-0" t="t">NonEmptyTail</a>[<span t="t">D</span>]]
            </div>
           </div>
          </div>
@@ -190,11 +267,26 @@ node7 -> node4;
             <div class="cover">
              <div class="doc">
               <p>Project as data in n-1 dimensions based on a lookup in the head dimension.</p>
+              <p>(Equivalent to <code>getByDimension[H, NonEmptyTail[D]](0, domain)</code>, though the type checking is simpler)</p>
              </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               H
+              </dt>
+              <dd class="body-medium">
+               <p>the domain value type of the 1D domain used for filtering. There are type safety checks that ensure</p>
+               <ul>
+                <li>the head 1D domain has the specified domain value type</li>
+                <li>the current domain tail is a non-empty domain (i.e., the current domain type <code>D</code> has at least two dimensions)</li>
+                <li>the current domain type can be constructed by concatenating the 1D domain type specified and the current domain tail.</li>
+               </ul>
+              </dd>
+             </dl>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
-               headIndex
+               domain
               </dt>
               <dd class="body-medium">
                <p>the head dimension domain element</p>
