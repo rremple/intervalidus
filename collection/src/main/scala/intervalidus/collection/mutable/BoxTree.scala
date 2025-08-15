@@ -7,18 +7,18 @@ import intervalidus.collection.*
   */
 object BoxTree extends BoxTreeObjectLike:
   def apply[A](
-    boundary: Box,
-    capacity: Int = defaultCapacity,
+    boundary: Boundary,
+    nodeCapacity: Int = defaultNodeCapacity,
     depthLimit: Int = defaultDepthLimit
-  ): BoxTree[A] = BoxTreeBranch[A](boundary, 0, capacity, depthLimit)
+  ): BoxTree[A] = BoxTreeBranch[A](boundary, 0, nodeCapacity, depthLimit)
 
   def from[A](
-    boundary: Box,
+    boundary: Boundary,
     ds: IterableOnce[BoxedPayload[A]],
-    capacity: Int = defaultCapacity,
+    nodeCapacity: Int = defaultNodeCapacity,
     depthLimit: Int = defaultDepthLimit
   ): BoxTree[A] =
-    val newTree: BoxTree[A] = apply(boundary, capacity, depthLimit)
+    val newTree: BoxTree[A] = apply(boundary, nodeCapacity, depthLimit)
     newTree.addAll(ds)
     newTree
 
@@ -70,19 +70,20 @@ sealed trait BoxTree[A] extends BoxTreeLike[A, BoxTree[A]]:
     ds.iterator.foreach(addOne)
 
 /**
-  * A leaf holds a list of data (up to capacity) for a particular subtree.
+  * A leaf holds a list of data (up to the node capacity) for a particular subtree.
   */
-class BoxTreeLeaf[A](val boundary: Box, val depth: Int, val capacity: Int, val depthLimit: Int) extends BoxTree[A]:
+class BoxTreeLeaf[A](val boundary: Boundary, val depth: Int, val nodeCapacity: Int, val depthLimit: Int)
+  extends BoxTree[A]:
 
   // state
   private var data: List[BoxedPayload[A]] = List.empty
 
   override def copy: BoxTree[A] =
-    val newLeaf = BoxTreeLeaf[A](boundary, depth, capacity, depthLimit)
+    val newLeaf = BoxTreeLeaf[A](boundary, depth, nodeCapacity, depthLimit)
     newLeaf.data = this.data // safe because data is a mutable reference to an immutable list
     newLeaf
 
-  override def hasCapacity: Boolean = data.length < capacity || depth == depthLimit
+  override def hasCapacity: Boolean = data.length < nodeCapacity || depth == depthLimit
 
   override def addOne(d: BoxedPayload[A]): Unit =
     data = d :: data
@@ -101,15 +102,28 @@ class BoxTreeLeaf[A](val boundary: Box, val depth: Int, val capacity: Int, val d
 /**
   * A branch divides the management of data into multiple subtrees -- no data are stored on the branch itself.
   */
-class BoxTreeBranch[A](val boundary: Box, val depth: Int, val capacity: Int, val depthLimit: Int) extends BoxTree[A]:
+class BoxTreeBranch[A](initialBoundary: Boundary, val depth: Int, val nodeCapacity: Int, val depthLimit: Int)
+  extends BoxTree[A]:
 
   // manage subtree state
-  private val subtreeBoundaries: Vector[Box] = boundary.binarySplit
+  private var dynamicBoundary: Boundary = initialBoundary // can grow
+  private var subtreeBoundaries: Vector[Boundary] = dynamicBoundary.binarySplit
   private var subtrees: Vector[BoxTree[A]] =
-    subtreeBoundaries.map(BoxTreeLeaf[A](_, depth + 1, capacity, depthLimit))
+    subtreeBoundaries.map(BoxTreeLeaf[A](_, depth + 1, nodeCapacity, depthLimit))
+
+  // A subtree boundary within a branch always has the properties that
+  //  `branch.box contains subtree.box` and `branch.capacity contains subtree.capacity`
+  // require(
+  //  subtreeBoundaries.forall(subtree =>
+  //    (boundary.box contains subtree.box) && (boundary.capacity contains subtree.capacity)
+  //  ),
+  //  s"not all subtrees are nested properly in the boundary"
+  // )
+
+  override def boundary: Boundary = dynamicBoundary
 
   override def copy: BoxTree[A] =
-    val newTree = BoxTreeBranch[A](boundary, depth, capacity, depthLimit)
+    val newTree = BoxTreeBranch[A](boundary, depth, nodeCapacity, depthLimit)
     newTree.subtrees = subtrees.map(_.copy)
     newTree
 
@@ -117,9 +131,20 @@ class BoxTreeBranch[A](val boundary: Box, val depth: Int, val capacity: Int, val
 
   // Here we may have to split boxes that overlap our subtree boundaries
   override def addOne(d: BoxedPayload[A]): Unit =
-    val boxSplits = subtreeBoundaries.count(d.box.intersects) > 1
+    // If this is the root branch, we may have to grow the boundary and rehash if the boxed payload is out of bounds
+    if depth == 0 && !(boundary contains d.box)
+    then // out of bounds, so first we grow the boundary and repartition everything
+      val newBoundary = boundary.growAround(d.box)
+      // println(s"resizing based on ${d.box} not fitting in capacity ${boundary.capacity}")
+      val tempBranch = BoxTreeBranch[A](newBoundary, depth, nodeCapacity, depthLimit)
+      tempBranch.addAll(BoxedPayload.deduplicate(toIterable))
+      dynamicBoundary = newBoundary
+      subtreeBoundaries = tempBranch.subtreeBoundaries
+      subtrees = tempBranch.subtrees
+
+    val boxSplits = subtreeBoundaries.count(_.box.intersects(d.box)) > 1
     val updatedSubtrees = subtrees.map: subtree =>
-      d.box.intersection(subtree.boundary) match
+      d.box.intersection(subtree.boundary.box) match
         case None => subtree
         case Some(newBox) =>
           val dataToAdd =
@@ -131,7 +156,7 @@ class BoxTreeBranch[A](val boundary: Box, val depth: Int, val capacity: Int, val
             subtree.addOne(dataToAdd)
             subtree
           else
-            val newSubtree = BoxTreeBranch[A](subtree.boundary, depth + 1, capacity, depthLimit)
+            val newSubtree = BoxTreeBranch[A](subtree.boundary, depth + 1, nodeCapacity, depthLimit)
             newSubtree.addAll(subtree.toIterable)
             newSubtree.addOne(dataToAdd)
             newSubtree
@@ -140,13 +165,13 @@ class BoxTreeBranch[A](val boundary: Box, val depth: Int, val capacity: Int, val
   override def remove(d: BoxedPayload[A]): Unit =
     subtrees.foreach: subtree =>
       d.box
-        .intersection(subtree.boundary)
+        .intersection(subtree.boundary.box)
         .foreach: newBox =>
           subtree.remove(d.withBox(newBox))
 
   override def get(range: Box): Iterable[BoxedPayload[A]] =
-    if boundary.intersects(range)
-    then subtrees.flatMap(subtree => range.intersection(subtree.boundary).flatMap(subtree.get))
+    if boundary.box.intersects(range)
+    then subtrees.flatMap(subtree => range.intersection(subtree.boundary.box).flatMap(subtree.get))
     else Vector.empty
 
   override def toIterable: Iterable[BoxedPayload[A]] = subtrees.flatMap(_.toIterable)

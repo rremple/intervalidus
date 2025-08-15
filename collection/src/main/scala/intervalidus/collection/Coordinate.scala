@@ -3,16 +3,26 @@ package intervalidus.collection
 import scala.annotation.tailrec
 
 /**
-  * Represents a point in multidimensional double space.
+  * Represents a point or unbound limit in multidimensional double space. Unbounded limits are represented using None.
   */
-opaque type Coordinate = Vector[Double]
+opaque type Coordinate = Vector[Option[Double]]
 
 object Coordinate:
   private type MinMaxCoordinates = (Coordinate, Coordinate)
 
-  def apply(coordinates: Double*): Coordinate = coordinates.toVector
+  def apply(coordinates: Option[Double]*): Coordinate = coordinates.toVector
 
-  def apply(coordinates: Vector[Double]): Coordinate = coordinates
+  def apply(coordinates: Vector[Option[Double]]): Coordinate = coordinates
+
+  /**
+    * Construct a coordinate that is unbound in all dimensions.
+    *
+    * @param arity
+    *   number of dimensions
+    * @return
+    *   a new coordinate
+    */
+  def unbound(arity: Int): Coordinate = Vector.fill(arity)(None)
 
   /**
     * Evaluate each corresponding dimension of the two arguments and only return true if the function applied to each
@@ -28,7 +38,7 @@ object Coordinate:
     *   true if f applied to each corresponding dimension of the coordinate pairs is true, false otherwise
     */
   def minMaxForall(minMax1: MinMaxCoordinates, minMax2: MinMaxCoordinates)(
-    f: (Double, Double, Double, Double) => Boolean
+    f: (Option[Double], Option[Double], Option[Double], Option[Double]) => Boolean
   ): Boolean = (minMax1, minMax2) match
     case ((min1, max1), (min2, max2)) =>
       min1.indices.forall: i =>
@@ -36,27 +46,67 @@ object Coordinate:
 
   extension (coordinates: Coordinate)
     private def combineWith(other: Coordinate)(
-      f: (Double, Double) => Double
+      f: (Option[Double], Option[Double]) => Option[Double]
     ): Coordinate = coordinates.indices.toVector.map: i =>
       f(coordinates(i), other(i))
+
+    /** Number of dimensions */
+    def arity: Int = coordinates.size
+
+    private def fixWith(boundary: CoordinateFixed, f: (Double, Double) => Double): CoordinateFixed = CoordinateFixed(
+      coordinates.indices.toVector.map: i =>
+        f(coordinates(i).getOrElse(boundary(i)), boundary(i))
+    )
+
+    /**
+      * Fix these coordinates based on some fixed boundary coordinates. Any coordinates that are unbounded are fixed to
+      * the boundary. Useful when rescaling a boundary capacity based on a box not strictly contained within it.
+      * @param boundary
+      *   fixed coordinates representing a boundary capacity minimum or maximum.
+      * @return
+      *   these coordinates with unbound elements fixed to the boundary
+      */
+    def fixUnbounded(boundary: CoordinateFixed): CoordinateFixed = fixWith(boundary, (keepLeft, _) => keepLeft)
+
+    /**
+      * Fix these coordinates based on some fixed boundary coordinates. Any coordinates that are unbounded or greater
+      * than the boundary are fixed to the boundary.
+      * @param boundary
+      *   fixed coordinates representing a boundary capacity minimum or maximum.
+      * @return
+      *   these coordinates with unbound or larger elements fixed to the boundary
+      */
+    def fixMin(boundary: CoordinateFixed): CoordinateFixed = fixWith(boundary, _ min _)
+
+    /**
+      * Fix these coordinates based on some fixed boundary coordinates. Any coordinates that are unbounded or less than
+      * the boundary are fixed to the boundary.
+      * @param boundary
+      *   fixed coordinates representing a boundary capacity minimum or maximum.
+      * @return
+      *   these coordinates with unbound or smaller elements fixed to the boundary
+      */
+    def fixMax(boundary: CoordinateFixed): CoordinateFixed = fixWith(boundary, _ max _)
 
     /**
       * Treating the other coordinate as the opposite corner of a box, return a vector of coordinate pairs that
       * represent the corners of boxes which make a binary split in all dimensions.
       *
+      * @param midPoint
+      *   coordinate of the midpoint to the opposite corner, as calculated from the boundary capacity
       * @param other
       *   coordinate of the opposite corner
       * @return
-      *   pairs of vectors for constructing boxes that split the space
+      *   pairs of coordinates for constructing boxes that split the space
       */
-    def binarySplit(other: Coordinate): Vector[MinMaxCoordinates] =
+    def binarySplit(midPoint: Coordinate, other: Coordinate): Vector[MinMaxCoordinates] =
       @tailrec
       def helper(
-        minMidMax: Vector[(Double, Double, Double)],
+        minMidMax: Vector[(Option[Double], Option[Double], Option[Double])],
         protoBoxes: Vector[MinMaxCoordinates] = Vector.empty
       ): Vector[MinMaxCoordinates] = minMidMax.headOption match
         case Some((min, mid, max)) =>
-          def growProtoBox(b: MinMaxCoordinates, appendMin: Double, appendMax: Double) = b match
+          def growProtoBox(b: MinMaxCoordinates, appendMin: Option[Double], appendMax: Option[Double]) = b match
             case (protoMin, protoMax) => (protoMin.appended(appendMin), protoMax.appended(appendMax))
 
           val newProtoBoxes =
@@ -66,47 +116,75 @@ object Coordinate:
 
         case None => protoBoxes
 
-      val otherMid = mid(other)
       val minMidMax = coordinates.indices.toVector.map: i =>
-        (coordinates(i), otherMid(i), other(i))
+        (coordinates(i), midPoint(i), other(i))
 
       helper(minMidMax)
 
     /**
-      * Returns the point where each dimension is the min of this and the other point. It is less than or equal to the
-      * other point in every dimension.
+      * Returns the point where each dimension is the min of this and the other point. Treats unbounded coordinates as
+      * smaller than bounded coordinates, suitable for a box minPoint. It is less than or equal to the other point in
+      * every dimension.
       *
       * @param other
       *   coordinate
       * @return
       *   a new coordinate point with minimum coordinates.
       */
-    def projectBefore(other: Coordinate): Coordinate = combineWith(other)(_ min _)
+    def projectBeforeStart(other: Coordinate): Coordinate = combineWith(other):
+      case (Some(t), Some(o)) => Some(t min o)
+      case _                  => None
 
     /**
-      * Returns midpoint between this and other.
+      * Returns the point where each dimension is the min of this and the other point. Treats unbounded coordinates as
+      * larger than bounded coordinates, suitable for a box maxPoint. It is less than or equal to the other point in
+      * every dimension.
       *
       * @param other
       *   coordinate
       * @return
-      *   midpoint
+      *   a new coordinate point with minimum coordinates.
       */
-    infix def mid(other: Coordinate): Coordinate = combineWith(other)(_ / 2.0 + _ / 2.0)
+    def projectBeforeEnd(other: Coordinate): Coordinate = combineWith(other):
+      case (None, None)       => None
+      case (Some(t), Some(o)) => Some(t min o)
+      case (someT, None)      => someT
+      case (None, someO)      => someO
 
     /**
-      * Returns the point where each dimension is the max of this and the other point. It is greater than or equal to
-      * the other point in every dimension.
+      * Returns the point where each dimension is the max of this and the other point. Treats unbounded coordinates as
+      * larger than bounded coordinates, suitable for a box maxPoint. It is greater than or equal to the other point in
+      * every dimension.
       *
       * @param other
       *   coordinate
       * @return
       *   a new coordinate point with maximum coordinates.
       */
-    def projectAfter(other: Coordinate): Coordinate = combineWith(other)(_ max _)
+    def projectAfterEnd(other: Coordinate): Coordinate = combineWith(other):
+      case (Some(t), Some(o)) => Some(t max o)
+      case _                  => None
+
+    /**
+      * Returns the point where each dimension is the max of this and the other point. Treats unbounded coordinates as
+      * smaller than bounded coordinates, suitable for a box minPoint. It is greater than or equal to the other point in
+      * every dimension.
+      *
+      * @param other
+      *   coordinate
+      * @return
+      *   a new coordinate point with maximum coordinates.
+      */
+    def projectAfterStart(other: Coordinate): Coordinate = combineWith(other):
+      case (None, None)       => None
+      case (Some(t), Some(o)) => Some(t max o)
+      case (someT, None)      => someT
+      case (None, someO)      => someO
 
     /**
       * Can't override `toString` through an extension method, so we give it a slightly different name. Only used by
       * Box.toString
       */
     def asString: String =
-      if coordinates.size == 1 then coordinates(0).toString else coordinates.mkString("(", ",", ")")
+      val strings = coordinates.map(_.map(_.toString).getOrElse("<unbounded>"))
+      if arity == 1 then strings(0) else strings.mkString("(", ",", ")")

@@ -29,7 +29,8 @@ trait BenchBase(baselineFeature: Option[String], featuredFeature: Option[String]
   abstract class GenericBench
 
   val rand = Random()
-  val (fullRangeMin, fullRangeMax) = (-500_000, 500_000)
+  def fullRangeMin: Int
+  def fullRangeMax: Int
   def fullRangeSize = fullRangeMax - fullRangeMin
 
   def randDomainValue(): Int = rand.nextInt(fullRangeSize) + fullRangeMin

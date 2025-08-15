@@ -10,12 +10,17 @@ package intervalidus.collection
   *   Coordinate of the maximum corner (right/upper/front/etc., depending on dimension)
   */
 case class Box(minPoint: Coordinate, maxPoint: Coordinate):
+  require(minPoint.arity == maxPoint.arity, s"minPoint $minPoint and maxPoint $maxPoint must have the same arity")
+
+  /** Min and max points */
   private def corners: (Coordinate, Coordinate) = (minPoint, maxPoint)
 
-  /**
-    * The center of the box -- the point halfway between the mid and max point.
-    */
-  val midPoint: Coordinate = minPoint mid maxPoint
+  /** Number of dimensions */
+  def arity: Int = minPoint.arity
+
+  /** Fix unbound coordinates to the coordinates of the given fixed capacity */
+  def fixUnbounded(capacity: Capacity): Capacity =
+    Capacity(minPoint.fixUnbounded(capacity.minPoint), maxPoint.fixUnbounded(capacity.maxPoint))
 
   /**
     * Does this box fully contain the other box?
@@ -25,9 +30,18 @@ case class Box(minPoint: Coordinate, maxPoint: Coordinate):
     * @return
     *   true or false
     */
-  def contains(other: Box): Boolean = Coordinate.minMaxForall(this.corners, other.corners):
-    case (thisMin, thisMax, otherMin, otherMax) =>
-      otherMin >= thisMin && otherMax <= thisMax
+  infix def contains(other: Box): Boolean = Coordinate.minMaxForall(this.corners, other.corners):
+    (thisMin, thisMax, otherMin, otherMax) =>
+      def otherMinGeqThisMin = (otherMin, thisMin) match
+        case (_, None)                => true
+        case (None, _)                => false
+        case (Some(oMin), Some(tMin)) => oMin >= tMin
+      def otherMaxLeqThisMax = (otherMax, thisMax) match
+        case (_, None)                => true
+        case (None, _)                => false
+        case (Some(oMax), Some(tMax)) => oMax <= tMax
+      // otherMin >= thisMin && otherMax <= thisMax
+      otherMinGeqThisMin && otherMaxLeqThisMax
 
   /**
     * Does this box intersect the other box? (Touching or overlapping.)
@@ -39,9 +53,16 @@ case class Box(minPoint: Coordinate, maxPoint: Coordinate):
     * @return
     *   true or false
     */
-  def intersects(other: Box): Boolean = Coordinate.minMaxForall(this.corners, other.corners):
-    case (thisMin, thisMax, otherMin, otherMax) =>
-      otherMin <= thisMax && otherMax >= thisMin
+  infix def intersects(other: Box): Boolean = Coordinate.minMaxForall(this.corners, other.corners):
+    (thisMin, thisMax, otherMin, otherMax) =>
+      def otherMinLeqThisMax = (otherMin, thisMax) match
+        case (None, _) | (_, None)    => true
+        case (Some(oMin), Some(tMax)) => oMin <= tMax
+      def otherMaxGeqThisMin = (otherMax, thisMin) match
+        case (None, _) | (_, None)    => true
+        case (Some(oMax), Some(tMin)) => oMax >= tMin
+      // otherMin <= thisMax && otherMax >= thisMin
+      otherMinLeqThisMax && otherMaxGeqThisMin
 
   /**
     * The intersection of this and the other box.
@@ -56,19 +77,14 @@ case class Box(minPoint: Coordinate, maxPoint: Coordinate):
     */
   def intersection(other: Box): Option[Box] =
     if intersects(other)
-    then Some(Box(minPoint.projectAfter(other.minPoint), maxPoint.projectBefore(other.maxPoint)))
+    then Some(Box(minPoint.projectAfterStart(other.minPoint), maxPoint.projectBeforeEnd(other.maxPoint)))
     else None
 
   /**
-    * Constructs a boxes based on binary splits in each dimension. For n dimensions, there are 2<sup>n</sup> boxes
-    * created (hyperoctants), which generalizes subtree branches in B-trees (2 boxes in one dimension), quadtrees (4
-    * boxes in two dimensions), octrees (8 boxes in three dimensions), 4D hyperoctrees (16 boxes in four dimensions),
-    * etc.
-    *
-    * @return
-    *   a vector of boxes that can be used for subtree boundaries
+    * When some other box does not fit in this box, returns a new larger box containing the other box.
     */
-  def binarySplit: Vector[Box] = minPoint.binarySplit(maxPoint).map(Box(_, _))
+  def growAround(other: Box): Box =
+    Box(minPoint.projectBeforeStart(other.minPoint), maxPoint.projectAfterEnd(other.maxPoint))
 
   /**
     * Construct a new boxed payload from this box
@@ -85,6 +101,17 @@ case class Box(minPoint: Coordinate, maxPoint: Coordinate):
   override def toString: String = s"[${minPoint.asString}..${maxPoint.asString}]"
 
 object Box:
+  /**
+    * Construct a box that is unbound in all dimensions.
+    *
+    * @param arity
+    *   number of dimensions
+    * @return
+    *   a new box
+    */
+  def unbound(arity: Int): Box =
+    Box(Coordinate.unbound(arity), Coordinate.unbound(arity))
+
   /**
     * Construct a box at a single coordinate point.
     *

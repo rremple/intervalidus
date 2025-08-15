@@ -8,6 +8,7 @@ import org.openjdk.jmh.annotations.*
 import scala.language.implicitConversions
 
 object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"), featuredFeature = None):
+  override val (fullRangeMin, fullRangeMax) = (-500_000, 500_000)
 
   // benchmark only the remove method to see what affect noSearchTree has on updateOrRemove performance.
 

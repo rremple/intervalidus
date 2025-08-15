@@ -1,7 +1,5 @@
 package intervalidus
 
-import scala.language.implicitConversions
-
 object Domain:
   // NonEmptyTail[D] is only valid when the dimension of D is greater than one
   type NonEmptyTail[D <: NonEmptyTuple] = Tuple.Tail[D] & NonEmptyTuple

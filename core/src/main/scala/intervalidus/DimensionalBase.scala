@@ -2,7 +2,7 @@ package intervalidus
 
 import intervalidus.Domain.NonEmptyTail
 import intervalidus.DomainLike.given
-import intervalidus.collection.{Box, BoxedPayload}
+import intervalidus.collection.{Boundary, Box, BoxedPayload, Capacity}
 import intervalidus.collection.mutable.{BoxTree, MultiMapSorted}
 
 import scala.Tuple.{Concat, Drop, Elem, Head, Take, Tail}
@@ -98,6 +98,10 @@ trait DimensionalBaseConstructorParams:
   /**
     * Given a collection of valid data, returns data used to populate the `dataByStartAsc`, `dataByValue`, and
     * `dataInSearchTree` internal data structures.
+    * @note
+    *   A tight boundary around the origin with a capacity large enough to contain the initial data is used. Benchmarks
+    *   have shown that a tightly-defined capacity has better insert performance even if it has to be resized at some
+    *   point.
     *
     * @param initialData
     *   a collection of values valid within intervals -- intervals must be disjoint.
@@ -115,11 +119,15 @@ trait DimensionalBaseConstructorParams:
     mutable.TreeMap[D, ValidData[V, D]],
     MultiMapSorted[V, ValidData[V, D]],
     BoxTree[ValidData[V, D]]
-  ) = (
-    mutable.TreeMap.from(initialData.map(_.withStartKey)),
-    MultiMapSorted.from(initialData.map(_.withValueKey)),
-    BoxTree.from[ValidData[V, D]](Interval.unbounded[D].asBox, initialData.map(_.asBoxedPayload))
-  )
+  ) =
+    val initialPayloads = initialData.map(_.asBoxedPayload)
+    val initialCapacity = initialPayloads.foldLeft(Capacity.aroundOrigin(domainValue.arity)): (capacity, payload) =>
+      capacity.growAround(payload.box)
+    (
+      mutable.TreeMap.from(initialData.map(_.withStartKey)),
+      MultiMapSorted.from(initialData.map(_.withValueKey)),
+      BoxTree.from(Boundary(initialCapacity), initialPayloads)
+    )
 
 /**
   * Base for all dimensional data, both mutable and immutable, of arbitrary dimensions.
@@ -442,8 +450,13 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     Domain1D[H] *: Tail[D] =:= D,
     DomainLike[NonEmptyTail[D]]
   ): Iterable[ValidData[V, NonEmptyTail[D]]] =
-    val lookup = Interval.unbounded[D].withHeadUpdate[H](_ => Interval1D.intervalAt(domain))
-    getIntersecting(lookup).map: data =>
+    val filteredData = domain match
+      case Domain1D.Top | Domain1D.Bottom =>
+        getAll.filter(_.interval.headInterval1D contains domain)
+      case _ =>
+        val lookup = Interval.unbounded[D].withHeadUpdate[H](_ => Interval1D.intervalAt(domain))
+        getIntersecting(lookup)
+    filteredData.map: data =>
       data.interval.tailInterval -> data.value
 
   /**
@@ -473,8 +486,13 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     Concat[Take[D, dimensionIndex.type], Domain1D[H] *: Drop[D, S[dimensionIndex.type]]] =:= D,
     Concat[Take[D, dimensionIndex.type], Drop[D, S[dimensionIndex.type]]] =:= R
   ): Iterable[ValidData[V, R]] =
-    val lookup = Interval.unbounded[D].withDimensionUpdate[H](dimensionIndex, _ => Interval1D.intervalAt(domain))
-    getIntersecting(lookup).map: data =>
+    val filteredData = domain match
+      case Domain1D.Top | Domain1D.Bottom =>
+        getAll.filter(_.interval(dimensionIndex) contains domain)
+      case _ =>
+        val lookup = Interval.unbounded[D].withDimensionUpdate[H](dimensionIndex, _ => Interval1D.intervalAt(domain))
+        getIntersecting(lookup)
+    filteredData.map: data =>
       data.interval.dropDimension(dimensionIndex) -> data.value
 
   // ---------- API methods implemented here ----------

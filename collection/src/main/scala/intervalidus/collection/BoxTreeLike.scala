@@ -38,13 +38,13 @@ trait BoxTreeLike[A, Self <: BoxTreeLike[A, Self]]:
   /**
     * The box in which data can be managed.
     */
-  def boundary: Box
+  def boundary: Boundary
 
   /**
     * The target number of elements a leaf can manage until it is split into a branch. The number of elements can exceed
     * this target if the tree reaches the depth limit.
     */
-  def capacity: Int
+  def nodeCapacity: Int
 
   /**
     * The depth of this leaf/branch.
@@ -52,14 +52,14 @@ trait BoxTreeLike[A, Self <: BoxTreeLike[A, Self]]:
   def depth: Int
 
   /**
-    * Leaves are split into branches when they reach capacity **unless** that would add a leaf to a depth that would
-    * exceed this depth limit.
+    * Leaves are split into branches when they reach the node capacity **unless** that would add a leaf to a depth that
+    * would exceed this depth limit.
     *
     * @note
     *   Having a depth limit is not just an optimization, it is important functionally because of the potential of
     *   ordered hash collisions used as the box coordinates. Say that there are many source discrete values that hash to
-    *   the same double value. If the number of these colliding items reaches the capacity of a leaf, without a depth
-    *   limit, there would be an infinite regression of branch creations until OOM.
+    *   the same double value. If the number of these colliding items reaches the node capacity of a leaf, without a
+    *   depth limit, there would be an infinite regression of branch creations until OOM.
     */
   def depthLimit: Int
 
@@ -98,17 +98,17 @@ trait BoxTreeLike[A, Self <: BoxTreeLike[A, Self]]:
 trait BoxTreeObjectLike:
   // based on benchmarks of 2D "set" on initial 10K random boxes (up to 1K on each side) in [-500K..500K]^2 space
   /**
-    * Default capacity of leaf nodes. Default is 256, which was found to be optimal in benchmarks. Can be overridden by
-    * setting the environment variable `INTERVALIDUS_TREE_NODE_CAPACITY`.
+    * Default capacity of leaf nodes. Default is 256, which was found to be optimal in benchmarks. It can be overridden
+    * by setting the environment variable `INTERVALIDUS_TREE_NODE_CAPACITY`.
     */
-  val defaultCapacity: Int = Properties
+  val defaultNodeCapacity: Int = Properties
     .envOrElse("INTERVALIDUS_TREE_NODE_CAPACITY", "256")
     .toInt
-  // println(s"using search tree leaf node capacity = $defaultCapacity")
+  // println(s"using search tree node capacity = defaultNodeCapacity")
 
   /**
     * Default depth limit of trees. Default is 32, which was found to be optimal in "set" benchmarks (though it was
-    * observed that any value > 17 is good). It Can be overridden by setting the environment variable
+    * observed that any value > 17 is good). It can be overridden by setting the environment variable
     * `INTERVALIDUS_TREE_DEPTH_LIMIT`.
     */
   val defaultDepthLimit: Int = Properties

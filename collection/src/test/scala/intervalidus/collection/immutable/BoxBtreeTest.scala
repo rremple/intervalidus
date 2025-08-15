@@ -5,12 +5,14 @@ import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
 class BoxBtreeTest extends AnyFunSuite with Matchers:
+  def capacity(start: Double, end: Double): Capacity =
+    Capacity(CoordinateFixed(start), CoordinateFixed(end))
   def box(start: Double, end: Double): Box =
-    Box(Coordinate(start), Coordinate(end))
+    Box(Coordinate(Some(start)), Coordinate(Some(end)))
 
   test("Immutable: BoxTree (1D -- B-tree) methods"):
     // Create a B-tree with a small capacity per node and insert some boxes
-    val boundary = box(-8, 8)
+    val boundary = Boundary(capacity(-8, 8))
     val tree = BoxTree[String](boundary)
       .addOne(box(3, 5) -> "one") // right
       .addOne(box(-1, 3) -> "two") // left and right (split)
@@ -41,7 +43,7 @@ class BoxBtreeTest extends AnyFunSuite with Matchers:
 
     // Trees always start as a branch and immutable leaves never get copied, so forcing that to happen here just for
     // coverage -- won't happen in real life!
-    val leaf = BoxTreeLeaf[String](boundary, depth = 0, capacity = 1, depthLimit = 1)
+    val leaf = BoxTreeLeaf[String](boundary, depth = 0, nodeCapacity = 1, depthLimit = 1)
       .addOne(box(3, 5) -> "one")
     val leafCopy = leaf.copy
     leaf.toIterable should contain theSameElementsAs List(box(3, 5) -> "one")
@@ -87,3 +89,29 @@ class BoxBtreeTest extends AnyFunSuite with Matchers:
       .clear
 
     assert(emptyTree.toIterable.isEmpty)
+
+    val boundary44 = Boundary(capacity(-4, 4)).withBox(box(-8, 8))
+    val boundaryTree0 = BoxTree[String](boundary44)
+    boundaryTree0.get(box(10, 10)) shouldBe List.empty // outside the boundary box
+
+    assertResult(boundary44)(boundaryTree0.boundary) // start
+
+    val boundaryTree1 = boundaryTree0.addOne(box(3, 6) -> "one")
+    //  new unscaled capacity = capacity(-4, 6), midPoint = 1
+    //  scaling by 2x distance from 1, so 5*2=10, yielding capacity(-9, 11)
+    assertResult(Boundary(capacity(-9, 11)).withBox(box(-8, 8)))(boundaryTree1.boundary)
+
+    val boundaryTree2 = boundaryTree1.addOne(box(-9, 3) -> "two")
+    //  new scaled box = box(-9, 8), capacity unaffected
+    assertResult(Boundary(capacity(-9, 11)).withBox(box(-9, 8)))(boundaryTree2.boundary)
+
+    val boundaryTree3 = boundaryTree2.addOne(box(6, 13) -> "three")
+    //  new unscaled capacity = capacity(-9, 13), midPoint = 2
+    //  scaling by 2x distance from 2, so 11*2=22, yielding capacity(-20, 24)
+    assertResult(Boundary(capacity(-20, 24)).withBox(box(-9, 13)))(boundaryTree3.boundary)
+
+    val boundaryTree4 = boundaryTree3.addOne(Box(Coordinate(None), Coordinate(Some(-9.0))) -> "four")
+    //  new scaled box = box(<unbounded>, 8), capacity (weirdly) unaffected
+    assertResult(
+      Boundary(capacity(-20, 24)).withBox(Box(Coordinate(None), Coordinate(Some(13.0))))
+    )(boundaryTree4.boundary)

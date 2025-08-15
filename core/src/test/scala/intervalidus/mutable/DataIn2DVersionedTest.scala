@@ -59,7 +59,9 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     )
     val fixture = newDataIn2DVersioned(allData)(using CurrentDateTime.simulated(LocalDateTime.of(2025, 8, 1, 8, 0)))
     fixture.getByHeadDimension(0).getAt(0) shouldBe Some("Hello")
+    fixture.getByHeadDimension[Int](Domain1D.Top).getAt(0) shouldBe Some("World")
     fixture.getByDimension[Int, Domain.In1D[Int]](1, 0).getAt(0) shouldBe Some("Hello")
+    fixture.getByDimension[Int, Domain.In1D[Int]](1, Domain1D.Bottom).getAt(10) shouldBe Some("World")
 
     fixture.set((interval(5, 15) x unbounded[Int]) -> "to")
     fixture.incrementCurrentVersion()(using CurrentDateTime.simulated(LocalDateTime.of(2025, 8, 2, 8, 0)))

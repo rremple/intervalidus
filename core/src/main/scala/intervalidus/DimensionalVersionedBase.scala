@@ -286,11 +286,14 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     DomainLike[NonEmptyTail[D]],
     DomainLike[Versioned[NonEmptyTail[D]]]
   ): Iterable[ValidData[V, Versioned[NonEmptyTail[D]]]] =
-    val lookup = Interval.unbounded[D].withHeadUpdate[H](_ => Interval1D.intervalAt(domain))
-    underlying
-      .getIntersecting(lookup.withHead(Interval1D.unbounded))
-      .map: data =>
-        (data.interval.tailInterval.tailInterval withHead versionInterval(data)) -> data.value
+    val filteredUnderlyingData = domain match
+      case Domain1D.Top | Domain1D.Bottom =>
+        underlying.getAll.filter(_.interval.tailInterval.headInterval1D[H] contains domain)
+      case _ =>
+        val lookup = Interval.unbounded[D].withHeadUpdate[H](_ => Interval1D.intervalAt(domain))
+        underlying.getIntersecting(lookup.withHead(Interval1D.unbounded))
+    filteredUnderlyingData.map: data =>
+      (data.interval.tailInterval.tailInterval withHead versionInterval(data)) -> data.value
 
   // special handling of versioned data because the public dimension n is in dimension n + 1.
   protected def getByDimensionData[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
@@ -302,11 +305,14 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     Concat[Take[D, dimensionIndex.type], Drop[D, S[dimensionIndex.type]]] =:= R,
     DomainLike[Versioned[R]]
   ): Iterable[ValidData[V, Versioned[R]]] =
-    val lookup = Interval.unbounded[D].withDimensionUpdate[H](dimensionIndex, _ => Interval1D.intervalAt(domain))
-    underlying
-      .getIntersecting(lookup.withHead(Interval1D.unbounded))
-      .map: data =>
-        (data.interval.tailInterval.dropDimension(dimensionIndex) withHead versionInterval(data)) -> data.value
+    val filteredUnderlyingData = domain match
+      case Domain1D.Top | Domain1D.Bottom =>
+        underlying.getAll.filter(_.interval.tailInterval(dimensionIndex) contains domain)
+      case _ =>
+        val lookup = Interval.unbounded[D].withDimensionUpdate[H](dimensionIndex, _ => Interval1D.intervalAt(domain))
+        underlying.getIntersecting(lookup.withHead(Interval1D.unbounded))
+    filteredUnderlyingData.map: data =>
+      (data.interval.tailInterval.dropDimension(dimensionIndex) withHead versionInterval(data)) -> data.value
 
   // ---------- API methods that are not similar to those in DimensionalBase ----------
 

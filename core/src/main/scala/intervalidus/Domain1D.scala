@@ -1,7 +1,6 @@
 package intervalidus
 
 import java.time.{LocalDate, LocalDateTime}
-import scala.language.implicitConversions
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 /**
@@ -127,7 +126,7 @@ object Domain1D:
     * @return
     *   the closed domain point of the domain value
     */
-  def domain[T: DomainValueLike](t: T): Domain1D[T] = t
+  def domain[T: DomainValueLike](t: T): Domain1D[T] = Point(t)
 
   /**
     * Construct a domain point (open) based on a domain value.
@@ -229,6 +228,17 @@ object Domain1D:
         case OpenPoint(p) => p.orderedHashValue
         case Top          => domainValueType.maxValue.orderedHashValue
         case Bottom       => domainValueType.minValue.orderedHashValue
+
+    /**
+      * Similar to [[orderedHash]], this is a special totally ordered hash of this domain used for mapping intervals to
+      * box search trees in double space. We avoid representing unbounded data with fixed double value that have very
+      * large magnitudes, which are proven to be a performance issue.
+      */
+    def orderedHashUnfixed: Option[Double] =
+      domain match
+        case Point(p)     => Some(p.orderedHashValue)
+        case OpenPoint(p) => Some(p.orderedHashValue)
+        case Top | Bottom => None
 
     /**
       * Tests if this domain is adjacent to that domain on the left or right.

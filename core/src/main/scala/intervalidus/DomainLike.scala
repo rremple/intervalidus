@@ -1,6 +1,6 @@
 package intervalidus
 
-import intervalidus.collection.Coordinate
+import intervalidus.collection.{Coordinate, CoordinateFixed}
 
 import scala.Tuple.{Append, Concat, Drop, Elem, Take}
 import scala.compiletime.ops.int.S
@@ -240,12 +240,20 @@ trait DomainLike[D <: NonEmptyTuple]:
     def toCodeLikeString: String
 
     /**
-      * Approximate this domain as a coordinate in double space based on the domain ordered hash.
+      * Approximate this domain as a (potentially unfixed) coordinate in double space based on the domain ordered hash.
       *
       * @return
       *   a new coordinate for boxes managed in box search trees
       */
     def asCoordinate: Coordinate
+
+    /**
+      * Approximate this domain as a fixed coordinate in double space based on the domain ordered hash.
+      *
+      * @return
+      *   a new coordinate for box tree boundary capacities
+      */
+    def asCoordinateFixed: CoordinateFixed
 
     /**
       * Domain adjacent to this in all dimensions from the "right", where `Bottom` and `Top` are considered
@@ -490,7 +498,9 @@ object DomainLike:
       override inline def toCodeLikeString: String =
         applyToDomain.toCodeLikeStringsFromDomain(domainTuple).mkString(" x ")
       override inline def asCoordinate: Coordinate =
-        Coordinate(applyToDomain.orderedHashesFromDomain(domainTuple).toVector)
+        Coordinate(applyToDomain.unfixedOrderedHashesFromDomain(domainTuple).toVector)
+      override inline def asCoordinateFixed: CoordinateFixed =
+        CoordinateFixed(applyToDomain.orderedHashesFromDomain(domainTuple).toVector)
       override inline def rightAdjacent: D =
         applyToDomain.rightAdjacentFromDomain(domainTuple)
       override inline def leftAdjacent: D =

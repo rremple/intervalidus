@@ -66,6 +66,8 @@ object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature
   // BenchBruteForce.Mutable3dBench1x1k.baselineRemove      thrpt    3  40664.705 ±  2540.047  ops/s
   // BenchBruteForce.Mutable3dBench1x1k.featuredRemove      thrpt    3  33470.399 ± 41855.520  ops/s
 
+  override val (fullRangeMin, fullRangeMax) = (-500_000, 500_000)
+
   // Returns an interval overlapping an existing interval in some random way
   def randSubinterval(existing: Interval1D[Int]): Interval1D[Int] =
     existing match

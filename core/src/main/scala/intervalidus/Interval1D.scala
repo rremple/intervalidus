@@ -5,7 +5,6 @@ import intervalidus.Interval1D.{intervalFrom, intervalTo}
 
 import java.time.{LocalDate, LocalDateTime}
 import scala.annotation.nowarn
-import scala.language.implicitConversions
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 /**
@@ -256,7 +255,7 @@ case class Interval1D[T](
   infix def x[T2: DomainValueLike](
     that: Interval1D[T2]
   ): Interval.In2D[T, T2] =
-    Interval(this.start *: that.start, this.end *: that.end)
+    Interval((this.start, that.start), (this.end, that.end))
 
   /**
     * Test for equivalence by comparing the start and end of this and that.
@@ -267,6 +266,29 @@ case class Interval1D[T](
     *   true if this and that have the same start and end.
     */
   infix def equiv(that: Interval1D[T]): Boolean = (start equiv that.start) && (end equiv that.end)
+
+  /**
+    * Tests if this interval contains a specific element of the domain.
+    *
+    * @param domain
+    *   domain element to test.
+    * @return
+    *   true if the domain element is contained in this interval.
+    */
+  infix def contains(domain: Domain1D[T]): Boolean =
+    domain.isClosedOrUnbounded && // strictly speaking, open points are not "contained" in anything
+      (domain afterOrAtStart start) && (domain beforeOrAtEnd end)
+
+  /**
+    * Tests if that is a subset (proper or improper) of this.
+    *
+    * @param that
+    *   the interval to test.
+    * @return
+    *   true if that is a subset of this.
+    */
+  infix def contains(that: Interval1D[T]): Boolean =
+    (this ∩ that).contains(that)
 
   // Use mathematical interval notation -- default.
   override def toString: String = s"${start.leftBrace}$start${domainValue.bracePunctuation}$end${end.rightBrace}"

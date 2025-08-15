@@ -113,6 +113,9 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     fixture.getAll.toList shouldBe allData
 
     fixture.getByHeadDimension(dayZero).getAt(0) shouldBe Some("Hello")
+    fixture.getByHeadDimension[LocalDate](Domain1D.Bottom).getAt(0) shouldBe Some("Hello")
+    fixture.getByDimension[Int, Domain.In1D[LocalDate]](1, 0).getAt(dayZero) shouldBe Some("Hello")
+    fixture.getByDimension[Int, Domain.In1D[LocalDate]](1, Domain1D.Top).getAt(day(1)) shouldBe Some("World")
 
   test("Mutable: Diff actions"):
     val expectedData2 = List(

@@ -28,6 +28,8 @@ trait DomainLikeTupleOps[D <: NonEmptyTuple]:
 
   def toCodeLikeStringsFromDomain(domainTuple: D): List[String]
 
+  def unfixedOrderedHashesFromDomain(domainTuple: D): List[Option[Double]]
+
   def orderedHashesFromDomain(domainTuple: D): List[Double]
 
   def rightAdjacentFromDomain(domainTuple: D): D
@@ -124,6 +126,9 @@ object DomainLikeTupleOps:
 
     inline override def toCodeLikeStringsFromDomain(domainTuple: OneDimDomain[DV]): List[String] =
       List(domainTuple.head.toCodeLikeString)
+
+    inline override def unfixedOrderedHashesFromDomain(domainTuple: OneDimDomain[DV]): List[Option[Double]] =
+      List(domainTuple.head.orderedHashUnfixed)
 
     inline override def orderedHashesFromDomain(domainTuple: OneDimDomain[DV]): List[Double] =
       List(domainTuple.head.orderedHash)
@@ -278,6 +283,11 @@ object DomainLikeTupleOps:
 
     inline override def toCodeLikeStringsFromDomain(domainTuple: MultiDimDomain[DV, DomainTail]): List[String] =
       domainTuple.head.toCodeLikeString :: applyToTail.toCodeLikeStringsFromDomain(domainTuple.tail)
+
+    inline override def unfixedOrderedHashesFromDomain(
+      domainTuple: MultiDimDomain[DV, DomainTail]
+    ): List[Option[Double]] = domainTuple.head.orderedHashUnfixed ::
+      applyToTail.unfixedOrderedHashesFromDomain(domainTuple.tail)
 
     inline override def orderedHashesFromDomain(domainTuple: MultiDimDomain[DV, DomainTail]): List[Double] =
       domainTuple.head.orderedHash :: applyToTail.orderedHashesFromDomain(domainTuple.tail)

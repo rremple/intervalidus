@@ -1,7 +1,7 @@
 package intervalidus
 
 import intervalidus.Domain.NonEmptyTail
-import intervalidus.collection.Box
+import intervalidus.collection.{Box, Capacity}
 
 import scala.Tuple.{Append, Concat, Drop, Elem, Head, Tail, Take}
 import scala.annotation.tailrec
@@ -256,6 +256,29 @@ case class Interval[D <: NonEmptyTuple](
     */
   infix def equiv(that: Interval[D]): Boolean = (start equiv that.start) && (end equiv that.end)
 
+  /**
+    * Tests if this interval contains a specific element of the domain.
+    *
+    * @param domain
+    *   domain element to test.
+    * @return
+    *   true if the domain element is contained in this interval.
+    */
+  infix def contains(domain: D): Boolean =
+    domain.isClosedOrUnbounded && // strictly speaking, open points are not "contained" in anything
+      (domain afterOrAtStart start) && (domain beforeOrAtEnd end)
+
+  /**
+    * Tests if that is a subset (proper or improper) of this.
+    *
+    * @param that
+    *   the interval to test.
+    * @return
+    *   true if that is a subset of this.
+    */
+  infix def contains(that: Interval[D]): Boolean =
+    (this ∩ that).contains(that)
+
   // Use mathematical interval notation -- default.
   override def toString: String = domainLike.intervalToString(this, withBraces = true)
 
@@ -422,29 +445,6 @@ case class Interval[D <: NonEmptyTuple](
   ): Interval[D] =
     val updatedHead = update(headInterval1D)
     Interval(updatedHead.start *: start.tail, updatedHead.end *: end.tail)
-
-  /**
-    * Tests if this interval contains a specific element of the domain.
-    *
-    * @param domain
-    *   domain element to test.
-    * @return
-    *   true if the domain element is contained in this interval.
-    */
-  infix def contains(domain: D): Boolean =
-    domain.isClosedOrUnbounded && // strictly speaking, open points are not "contained" in anything
-      (domain afterOrAtStart start) && (domain beforeOrAtEnd end)
-
-  /**
-    * Tests if that is a subset (proper or improper) of this.
-    *
-    * @param that
-    *   the interval to test.
-    * @return
-    *   true if that is a subset of this.
-    */
-  infix def contains(that: Interval[D]): Boolean =
-    (this ∩ that).contains(that)
 
   /**
     * Tests if this is a subset (proper or improper) of that. See [[https://en.wikipedia.org/wiki/Subset]].
