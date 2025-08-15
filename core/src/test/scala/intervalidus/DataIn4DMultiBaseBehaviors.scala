@@ -63,9 +63,21 @@ trait DataIn4DMultiBaseBehaviors:
            |                                                                                                                                                                    | {C} (-∞..+∞) x (-∞..+∞) x (-∞..+∞)     |
            |""".stripMargin.replaceAll("\r", "")
       // format: on
-      f0.getByHeadIndex(15).toString shouldBe
+      f0.getByHeadDimension(15).toString shouldBe
         """|| -∞ .. +∞                    |
            || {A,B,C} (-∞..+∞) x (-∞..+∞) |
+           |""".stripMargin.replaceAll("\r", "")
+
+      f0
+        .getByDimension[Int, Domain.In3D[Int, Int, Int]](1, 15)
+        .getByDimension[Int, Domain.In2D[Int, Int]](2, 15)
+        .toString shouldBe
+        """|| 0 .. 4           | 5 .. 9           | 10 .. 20         | 21 .. 25         | 26 .. 30         |
+           || {A} (-∞..+∞)     |
+           |                   | {A,B} (-∞..+∞)   |
+           |                                      | {A,B,C} (-∞..+∞) |
+           |                                                         | {B,C} (-∞..+∞)   |
+           |                                                                            | {C} (-∞..+∞)     |
            |""".stripMargin.replaceAll("\r", "")
 
     test(s"$prefix: Zipping"):
@@ -154,4 +166,9 @@ trait DataIn4DMultiBaseBehaviors:
         (intervalFrom(1) x intervalFrom(11) x intervalFrom(21) x unbounded[Int]) -> "World"
       )
       val fixture1: S = multiFrom(allData)
-      fixture1.getByHeadIndex(0).getByHeadIndex(5).getByHeadIndex(10).getAt(10) shouldBe Some(Set("Hello"))
+      fixture1.getByHeadDimension(0).getByHeadDimension(5).getByHeadDimension(10).getAt(10) shouldBe Some(Set("Hello"))
+      fixture1
+        .getByDimension[Int, Domain.In3D[Int, Int, Int]](2, 10)
+        .getByDimension[Int, Domain.In2D[Int, Int]](2, 10)
+        .getByDimension[Int, Domain.In1D[Int]](1, 5)
+        .getAt(0) shouldBe Some(Set("Hello"))

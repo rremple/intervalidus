@@ -65,8 +65,6 @@ object SoftwareProductFeatureManagement:
 
     // SDLC releasing implies availability in later releases
 
-    def onlyRelease(release: Release): Interval1D[Release] = intervalAt(release)
-
     def inRelease(release: Release): Interval1D[Release] = intervalFrom(release)
 
     def inRelease(double: Double): Interval1D[Release] = inRelease(Release(double))
@@ -126,7 +124,7 @@ object SoftwareProductFeatureManagement:
     import DimensionalVersionedBase.VersionSelection.{Current, Unapproved}
     import Environment.*
     import Region.*
-    import Release.{inRelease, onlyRelease}
+    import Release.inRelease
 
     // Simulate "now" as a fixed datetime
     given CurrentDateTime = CurrentDateTime.simulated(LocalDate.of(2025, 8, 1).atStartOfDay)
@@ -156,7 +154,7 @@ object SoftwareProductFeatureManagement:
       ]
     ]()
 
-    def currentFeatureReleasePlan(using CurrentDateTime) = featureReleasePlan.getByHeadIndex(now)
+    def currentFeatureReleasePlan(using CurrentDateTime) = featureReleasePlan.getByHeadDimension(now)
 
     // Samples
 
@@ -228,7 +226,7 @@ object SoftwareProductFeatureManagement:
       ]
     ]()
 
-    def currentRegionalDeploymentPlan(using CurrentDateTime) = regionalDeploymentPlan.getByHeadIndex(now)
+    def currentRegionalDeploymentPlan(using CurrentDateTime) = regionalDeploymentPlan.getByHeadDimension(now)
 
     // Samples
 
@@ -337,12 +335,12 @@ object SoftwareProductFeatureManagement:
     println(releasePlan)
 
     println("\n[before production approval] What features are planned for our next major release (+unapproved data)?")
-    println(releasePlan.getByHeadIndex(Production).getSelectedDataMutable(using Unapproved))
+    println(releasePlan.getByHeadDimension(Production).getSelectedDataMutable(using Unapproved))
 
     println(
       "\n[before production approval] What features are currently live in production (approved/current version data)?"
     )
-    println(releasePlan.getByHeadIndex(Production).getSelectedDataMutable(using Current))
+    println(releasePlan.getByHeadDimension(Production).getSelectedDataMutable(using Current))
 
     val releaseApproved = releasePlan.approve(releaseA)
     releasePlan.incrementCurrentVersion()
@@ -385,26 +383,26 @@ object SoftwareProductFeatureManagement:
     println(s"\nversion timestamps: ${releasePlan.getVersionTimestamps.toList}")
 
     println("\n[after production approval] What features are planned for our next major release (+unapproved data)?")
-    println(releasePlan.getByHeadIndex(Production).getSelectedDataMutable(using Unapproved))
+    println(releasePlan.getByHeadDimension(Production).getSelectedDataMutable(using Unapproved))
 
     println(
       "\n[after production approval] What features are currently live in production (approved/current version data)?"
     )
-    println(releasePlan.getByHeadIndex(Production).getSelectedDataMutable(using Current))
+    println(releasePlan.getByHeadDimension(Production).getSelectedDataMutable(using Current))
 
     println("\n--- Release Plan (with unapproved and approved data) ---")
     println(releasePlan)
 
     println("\n--- Queries on `releasePlan` with new data ---")
     println("[current version] What features are currently approved for Release 2.0 in Production?")
-    println(releasePlan.getByHeadIndex(Production).getAt(Release(2.0))(using Current))
+    println(releasePlan.getByHeadDimension(Production).getAt(Release(2.0))(using Current))
 
     println("[unapproved version] What features are *planned* for Release 3.0 in Production?")
     // Querying Production environment specifically for Release 3.0's unapproved state [S68]
-    println(releasePlan.getByHeadIndex(Production).getAt(Release(3.0))(using Unapproved))
+    println(releasePlan.getByHeadDimension(Production).getAt(Release(3.0))(using Unapproved))
 
     println("[current version] What features are currently approved for Release 3.0 in Development?")
-    println(releasePlan.getByHeadIndex(Development).getAt(Release(3.0))(using Current))
+    println(releasePlan.getByHeadDimension(Development).getAt(Release(3.0))(using Current))
 
     /**
       * Extensive Use of values and intervals(value):
@@ -442,12 +440,13 @@ object SoftwareProductFeatureManagement:
     println(s"\nFeature B release environments/regions: ${releasePlan.intervals(Feat("B"))}")
 
     println("Release 2.0 regional deployments:")
-    currentRegionalDeploymentPlan
-      .getByHeadIndex(today) // effective today
-      .getIntersecting(anyEnvironment x onlyRelease(Release(2.0))) // any environment for v2.0
-      .foreach:
-        case (environments x_: _) ->: regions =>
-          println(s" - in region(s) ${regions.mkString("/")} - environment(s): $environments")
+    val regionsByEnvironment: DataMulti[Region, Domain.In1D[Environment]] =
+      currentRegionalDeploymentPlan
+        .getByHeadDimension(today) // effective today
+        .getByDimension(1, Release(2.0)) // for v2.0
+    regionsByEnvironment.getAll.foreach:
+      case ValidData(regions, environments) =>
+        println(s" - in region(s) ${regions.mkString("/")} - environment(s): $environments")
 
     /**
       * "Across what time periods and environments was the specific combination {Feat("C"), Feat("D")} active?" This
@@ -463,16 +462,10 @@ object SoftwareProductFeatureManagement:
       case None => println(s"never released")
       case Some((effectiveDate, release)) =>
         println(s"initially released on $effectiveDate in $release - regional deployment history:")
-        val subsetData = Data( // this release effective in our timeline
-          currentRegionalDeploymentPlan
-            .getIntersecting(effectiveOn(effectiveDate) x anyEnvironment x onlyRelease(release))
-            .map: // drop the release dimension
-              case (effective x_: environments x_: _) ->: regions => (effective x environments) -> regions
-              case theUnexpected => throw Exception(s"should have expected: $theUnexpected")
-        )
+        val subsetData: DataMulti[Region, Domain.In2D[LocalDate, Environment]] =
+          currentRegionalDeploymentPlan.getByDimension(2, release) // for this release
         subsetData
-          .compressAll() // since we dropped a dimension
-          .getAll
+          .getIntersecting(effectiveOn(effectiveDate) x anyEnvironment) // effective in our timeline
           .foreach:
             case (effective x_: environments) ->: regions =>
               println(s" - effective $effective deployed to ${regions.mkString("/")} in $environments environment(s)")

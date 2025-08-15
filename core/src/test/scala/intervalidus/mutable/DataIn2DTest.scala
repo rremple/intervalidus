@@ -112,7 +112,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     val fixture = immutable.Data(allData).toImmutable.toMutable
     fixture.getAll.toList shouldBe allData
 
-    fixture.getByHeadIndex(dayZero).getAt(0) shouldBe Some("Hello")
+    fixture.getByHeadDimension(dayZero).getAt(0) shouldBe Some("Hello")
 
   test("Mutable: Diff actions"):
     val expectedData2 = List(

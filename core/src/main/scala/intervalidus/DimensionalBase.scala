@@ -5,7 +5,9 @@ import intervalidus.DomainLike.given
 import intervalidus.collection.{Box, BoxedPayload}
 import intervalidus.collection.mutable.{BoxTree, MultiMapSorted}
 
+import scala.Tuple.{Concat, Drop, Elem, Head, Take, Tail}
 import scala.collection.mutable
+import scala.compiletime.ops.int.S
 
 /**
   * Common definitions used in all dimensional data.
@@ -421,23 +423,59 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
   /**
     * Internal method to get all data as data in n-1 dimensions based on a lookup in the head dimension.
     *
-    * @param headIndex
-    *   the first dimension domain element
+    * (Equivalent to `getByDimensionData[H, NonEmptyTail[D]](0, domain)`, though the type checking is simpler.)
+    *
+    * @tparam H
+    *   the domain value type of the 1D domain used for filtering. There are type safety checks that ensure
+    *   - the head 1D domain has the specified domain value type
+    *   - the current domain tail is a non-empty domain (i.e., the current domain type `D` has at least two dimensions)
+    *   - the current domain type can be constructed by concatenating the 1D domain type specified and the current
+    *     domain tail.
+    * @param domain
+    *   the head dimension domain element used for filtering
     * @return
     *   a collection of valid data representing the lower-dimensional (n-1) projection
     */
-  protected def getByHeadIndexData[H: DomainValueLike](headIndex: Domain1D[H])(using
-    Tuple.Head[D] =:= Domain1D[H],
-    Tuple.Tail[D] =:= NonEmptyTail[D],
-    Domain1D[H] *: Tuple.Tail[D] =:= D,
+  protected def getByHeadDimensionData[H: DomainValueLike](domain: Domain1D[H])(using
+    Head[D] =:= Domain1D[H],
+    Tail[D] =:= NonEmptyTail[D],
+    Domain1D[H] *: Tail[D] =:= D,
     DomainLike[NonEmptyTail[D]]
   ): Iterable[ValidData[V, NonEmptyTail[D]]] =
-    val lookup = Interval.unbounded[D].withHeadUpdate[H](_ => Interval1D.intervalAt(headIndex))
-    dataInSearchTree
-      .getAndDeduplicate(lookup.asBox)
-      .collect:
-        case BoxedPayload(_, ValidData(value, interval), _) if interval intersects lookup =>
-          interval.tailInterval -> value
+    val lookup = Interval.unbounded[D].withHeadUpdate[H](_ => Interval1D.intervalAt(domain))
+    getIntersecting(lookup).map: data =>
+      data.interval.tailInterval -> data.value
+
+  /**
+    * Internal method to get all data as data in n-1 dimensions based on a lookup in the specified dimension.
+    *
+    * @param dimensionIndex
+    *   dimension to filter on and drop. Must be a value with a singleton type known at compile time, e.g., a numeric
+    *   literal. (The head dimension is dimension 0.)
+    * @param domain
+    *   the domain element used for filtering
+    * @tparam H
+    *   the domain value type of the domain used for filtering. There are type safety checks that ensure
+    *   - the 1D domain at the specified dimension index has the specified domain value type
+    *   - the current domain type can be constructed by concatenating the elements before the domain, the domain itself,
+    *     and the elements after the domain.
+    * @tparam R
+    *   domain of intervals in the returned valid data. There is a type safety check that ensures the domain type for
+    *   this result type can be constructed by concatenating the elements before and after the dropped dimension.
+    * @return
+    *   a collection of valid data representing the lower-dimensional (n-1) projection
+    */
+  protected def getByDimensionData[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+    dimensionIndex: Int,
+    domain: Domain1D[H]
+  )(using
+    Elem[D, dimensionIndex.type] =:= Domain1D[H],
+    Concat[Take[D, dimensionIndex.type], Domain1D[H] *: Drop[D, S[dimensionIndex.type]]] =:= D,
+    Concat[Take[D, dimensionIndex.type], Drop[D, S[dimensionIndex.type]]] =:= R
+  ): Iterable[ValidData[V, R]] =
+    val lookup = Interval.unbounded[D].withDimensionUpdate[H](dimensionIndex, _ => Interval1D.intervalAt(domain))
+    getIntersecting(lookup).map: data =>
+      data.interval.dropDimension(dimensionIndex) -> data.value
 
   // ---------- API methods implemented here ----------
 
@@ -708,17 +746,53 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
   /**
     * Project as data in n-1 dimensions based on a lookup in the head dimension.
     *
-    * @param headIndex
+    * (Equivalent to `getByDimension[H, NonEmptyTail[D]](0, domain)`, though the type checking is simpler)
+    *
+    * @tparam H
+    *   the domain value type of the 1D domain used for filtering. There are type safety checks that ensure
+    *   - the head 1D domain has the specified domain value type
+    *   - the current domain tail is a non-empty domain (i.e., the current domain type `D` has at least two dimensions)
+    *   - the current domain type can be constructed by concatenating the 1D domain type specified and the current
+    *     domain tail.
+    * @param domain
     *   the head dimension domain element
     * @return
     *   a lower-dimensional (n-1) projection
     */
-  def getByHeadIndex[H: DomainValueLike](headIndex: Domain1D[H])(using
-    Tuple.Head[D] =:= Domain1D[H],
-    Tuple.Tail[D] =:= NonEmptyTail[D],
-    Domain1D[H] *: Tuple.Tail[D] =:= D,
+  def getByHeadDimension[H: DomainValueLike](domain: Domain1D[H])(using
+    Head[D] =:= Domain1D[H],
+    Tail[D] =:= NonEmptyTail[D],
+    Domain1D[H] *: Tail[D] =:= D,
     DomainLike[NonEmptyTail[D]]
   ): DimensionalBase[V, NonEmptyTail[D]]
+
+  /**
+    * Project as data in n-1 dimensions based on a lookup in the specified dimension.
+    *
+    * @param dimensionIndex
+    *   dimension to filter on and drop. Must be a value with a singleton type known at compile time, e.g., a numeric
+    *   literal. (The head dimension is dimension 0.)
+    * @param domain
+    *   the domain element used for filtering
+    * @tparam H
+    *   the domain value type of the domain used for filtering. There are type safety checks that ensure
+    *   - the 1D domain at the specified dimension index has the specified domain value type
+    *   - the current domain type can be constructed by concatenating the elements before the domain, the domain itself,
+    *     and the elements after the domain.
+    * @tparam R
+    *   domain of intervals in the returned structure. There is a type safety check that ensures the domain type for
+    *   this result type can be constructed by concatenating the elements before and after the dropped dimension.
+    * @return
+    *   a lower-dimensional (n-1) projection
+    */
+  def getByDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+    dimensionIndex: Int,
+    domain: Domain1D[H]
+  )(using
+    Elem[D, dimensionIndex.type] =:= Domain1D[H],
+    Concat[Take[D, dimensionIndex.type], Domain1D[H] *: Drop[D, S[dimensionIndex.type]]] =:= D,
+    Concat[Take[D, dimensionIndex.type], Drop[D, S[dimensionIndex.type]]] =:= R
+  ): DimensionalBase[V, R]
 
   /**
     * Returns this as a mutable structure.

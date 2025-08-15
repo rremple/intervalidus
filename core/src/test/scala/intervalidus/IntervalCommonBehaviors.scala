@@ -76,7 +76,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
   def commonBehaviors(prefix: String): Unit =
 
     test(s"$prefix: Int interval validity"):
-      val dv = summon[DomainLike[Domain.In2D[Int, Int]]]
+      val dv = summon[DomainLike[Dim2Domain]]
       val origin = Domain.in2D[Int, Int](0, 0)
       origin.size shouldBe 2
       dv.arity shouldBe 2
@@ -87,13 +87,13 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       assert(!(Interval(Domain.in2D[Int, Int](-1, -1), origin) equiv Interval(origin, origin)))
 
       assertThrows[IllegalArgumentException]:
-        val _ = Interval[Domain.In2D[Int, Int]](dv.top, dv.bottom) // end before start
+        val _ = Interval[Dim2Domain](dv.top, dv.bottom) // end before start
 
       assertThrows[IllegalArgumentException]:
-        val _ = Interval[Domain.In2D[Int, Int]](dv.bottom, dv.bottom) // empty interval
+        val _ = Interval[Dim2Domain](dv.bottom, dv.bottom) // empty interval
 
       assertThrows[IllegalArgumentException]:
-        val _ = Interval[Domain.In2D[Int, Int]](dv.top, dv.top) // empty interval
+        val _ = Interval[Dim2Domain](dv.top, dv.top) // empty interval
 
       assertThrows[IllegalArgumentException]:
         val _ = interval(2, 1) // end before start
@@ -269,6 +269,20 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       i[Int](2) shouldBe interval(5, 6)
       i shouldBe (i[Int](0) x i[Int](1) x i[Int](2))
 
+      i.dropDimension[Dim2Domain](0) shouldBe (i[Int](1) x i[Int](2))
+      i.dropDimension[Dim2Domain](1) shouldBe (i[Int](0) x i[Int](2))
+      i.dropDimension[Dim2Domain](2) shouldBe (i[Int](0) x i[Int](1))
+
+      val newDim = intervalAt(-1)
+      i.insertDimension[Int, Dim4Domain](0, newDim) shouldBe (newDim x i[Int](0) x i[Int](1) x i[Int](2))
+      i.insertDimension[Int, Dim4Domain](1, newDim) shouldBe (i[Int](0) x newDim x i[Int](1) x i[Int](2))
+      i.insertDimension[Int, Dim4Domain](2, newDim) shouldBe (i[Int](0) x i[Int](1) x newDim x i[Int](2))
+      i.insertDimension[Int, Dim4Domain](3, newDim) shouldBe (i[Int](0) x i[Int](1) x i[Int](2) x newDim)
+
+      i.withDimensionUpdate[Int](0, _ => newDim) shouldBe (newDim x i[Int](1) x i[Int](2))
+      i.withDimensionUpdate[Int](1, _ => newDim) shouldBe (i[Int](0) x newDim x i[Int](2))
+      i.withDimensionUpdate[Int](2, _ => newDim) shouldBe (i[Int](0) x i[Int](1) x newDim)
+
       interval3d(1, 2, 3, 4, 5, 6) intersectionWith interval3d(2, 3, 4, 5, 6, 7) shouldBe Some(
         interval3d(2, 2, 4, 4, 6, 6)
       )
@@ -363,6 +377,9 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
         "intervalAt(0) x intervalAt(0) x intervalAt(0)"
 
       assertResult(interval3d(0, 2, 3, 4, 5, 6))(interval3d(1, 2, 3, 4, 5, 6).withHeadUpdate[Int](_.from(0)))
+      assertResult(interval3d(0, 2, 3, 4, 5, 6))(interval3d(1, 2, 3, 4, 5, 6).withDimensionUpdate[Int](0, _.from(0)))
+      assertResult(interval3d(1, 2, 0, 4, 5, 6))(interval3d(1, 2, 3, 4, 5, 6).withDimensionUpdate[Int](1, _.from(0)))
+      assertResult(interval3d(1, 2, 3, 4, 0, 6))(interval3d(1, 2, 3, 4, 5, 6).withDimensionUpdate[Int](2, _.from(0)))
 
       interval3d(1, 2, 3, 4, 5, 6).fromBottom shouldBe interval3dTo(2, 4, 6)
       interval3d(1, 2, 3, 4, 5, 6).toTop shouldBe interval3dFrom(1, 3, 5)
@@ -503,6 +520,9 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
         "intervalFrom(0) x intervalTo(0) x intervalAt(0)"
 
       assertResult(interval4d(0, 2, 3, 4, 5, 6))(interval4d(1, 2, 3, 4, 5, 6).withHeadUpdate[Int](_.from(0)))
+      assertResult(interval4d(0, 2, 3, 4, 5, 6))(interval4d(1, 2, 3, 4, 5, 6).withDimensionUpdate[Int](0, _.from(0)))
+      assertResult(interval4d(1, 2, 0, 4, 5, 6))(interval4d(1, 2, 3, 4, 5, 6).withDimensionUpdate[Int](1, _.from(0)))
+      assertResult(interval4d(1, 2, 3, 4, 0, 6))(interval4d(1, 2, 3, 4, 5, 6).withDimensionUpdate[Int](2, _.from(0)))
 
       interval4d(1, 2, 3, 4, 5, 6).fromBottom shouldBe interval4dTo(2, 4, 6)
       interval4d(1, 2, 3, 4, 5, 6).toTop shouldBe interval4dFrom(1, 3, 5)
@@ -671,7 +691,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       )
       val intervals1 = intervalsUnsorted1.sorted
 
-      assert(!isCompressible[Domain.In2D[Int, Int]](Nil))
+      assert(!isCompressible[Dim2Domain](Nil))
       assert(isCompressible(intervals1.map(_ x Interval1D.unbounded[Int])))
       assert(isCompressible(intervals1.map(Interval1D.unbounded[Int] x _)))
       assert(
@@ -691,7 +711,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
         )
       )
 
-      uniqueIntervals[Domain.In2D[Int, Int]](Nil) shouldBe Nil
+      uniqueIntervals[Dim2Domain](Nil) shouldBe Nil
 
       // | -∞ ........... 5 |        |        | 10 ........................ 20 |          | 30 .. +∞ |
       //           | 3 ........... 7 |                   | 14 .. 16 |
@@ -738,7 +758,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       )
       val intervals1 = intervalsUnsorted1.sorted
 
-      assert(!isCompressible[Domain.In3D[Int, Int, Int]](Nil))
+      assert(!isCompressible[Dim3Domain](Nil))
       assert(isCompressible(intervals1.map(_ x Interval1D.unbounded[Int] x Interval1D.unbounded[Int])))
       assert(isCompressible(intervals1.map(Interval1D.unbounded[Int] x _ x Interval1D.unbounded[Int])))
       assert(isCompressible(intervals1.map(Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x _)))
@@ -767,7 +787,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
         )
       )
 
-      uniqueIntervals[Domain.In3D[Int, Int, Int]](Nil) shouldBe Nil
+      uniqueIntervals[Dim3Domain](Nil) shouldBe Nil
 
       // | -∞ ........... 5 |        |        | 10 ........................ 20 |          | 30 .. +∞ |
       //           | 3 ........... 7 |                   | 14 .. 16 |
@@ -818,7 +838,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       )
       val intervals1 = intervalsUnsorted1.sorted
 
-      assert(!isCompressible[Domain.In4D[Int, Int, Int, Int]](Nil))
+      assert(!isCompressible[Dim4Domain](Nil))
       assert(
         isCompressible(
           intervals1.map(_ x Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x Interval1D.unbounded[Int])
@@ -872,7 +892,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
         )
       )
 
-      uniqueIntervals[Domain.In4D[Int, Int, Int, Int]](Nil) shouldBe Nil
+      uniqueIntervals[Dim4Domain](Nil) shouldBe Nil
 
       val intervals2 = List(
         Interval1D.unbounded[Int] x intervalTo(0) x intervalTo(5) x Interval1D.unbounded[Int],

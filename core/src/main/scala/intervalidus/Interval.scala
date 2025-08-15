@@ -3,8 +3,10 @@ package intervalidus
 import intervalidus.Domain.NonEmptyTail
 import intervalidus.collection.Box
 
+import scala.Tuple.{Append, Concat, Drop, Elem, Head, Tail, Take}
 import scala.annotation.tailrec
 import scala.collection.immutable.TreeMap
+import scala.compiletime.ops.int.S
 import scala.language.implicitConversions
 import scala.math.Ordering.Implicits.infixOrderingOps
 
@@ -240,8 +242,8 @@ case class Interval[D <: NonEmptyTuple](
     *   a new higher-dimensional interval with that interval appended.
     */
   infix def x[X: DomainValueLike](that: Interval1D[X])(using
-    DomainLike[Tuple.Append[D, Domain1D[X]]]
-  ): Interval[Tuple.Append[D, Domain1D[X]]] =
+    DomainLike[Append[D, Domain1D[X]]]
+  ): Interval[Append[D, Domain1D[X]]] =
     Interval(start x that.start, end x that.end)
 
   /**
@@ -302,12 +304,12 @@ case class Interval[D <: NonEmptyTuple](
     *   the one-dimensional interval.
     */
   def apply[H: DomainValueLike](dimensionIndex: Int)(using
-    Tuple.Elem[D, dimensionIndex.type] =:= Domain1D[H]
+    Elem[D, dimensionIndex.type] =:= Domain1D[H]
   ): Interval1D[H] =
     Interval1D(start(dimensionIndex), end(dimensionIndex))
 
   /**
-    * Extract the one-dimensional head interval. (Equivalent to `apply[H](0)`)
+    * Extract the one-dimensional head interval. (Equivalent to `apply[H](0)`, though the type checking is simpler.)
     *
     * @tparam H
     *   the domain value type of the head element. There is a type safety check that ensures the head domain type is
@@ -316,9 +318,78 @@ case class Interval[D <: NonEmptyTuple](
     *   the one-dimensional head interval.
     */
   def headInterval1D[H: DomainValueLike](using
-    Tuple.Head[D] =:= Domain1D[H]
+    Head[D] =:= Domain1D[H]
   ): Interval1D[H] =
     Interval1D(start.head, end.head)
+
+  /**
+    * Extract a lower-dimensional interval by dropping a particular dimension.
+    *
+    * @param dimensionIndex
+    *   the dimension to drop (e.g., the head dimension is index 0)
+    * @tparam R
+    *   the result domain. There is a type safety check that ensures the domain type for the result domain is a
+    *   concatenation of elements before and after the dropped dimension.
+    * @return
+    *   a new lower-dimensional interval
+    */
+  def dropDimension[R <: NonEmptyTuple: DomainLike](dimensionIndex: Int)(using
+    Concat[Take[D, dimensionIndex.type], Drop[D, S[dimensionIndex.type]]] =:= R
+  ): Interval[R] = Interval(
+    start.dropDimension(dimensionIndex),
+    end.dropDimension(dimensionIndex)
+  )
+
+  /**
+    * Create a higher-dimensional interval by inserting a dimension.
+    *
+    * @param dimensionIndex
+    *   the dimension where the 1D interval is inserted (e.g., inserting a new head dimension is index 0). Existing
+    *   dimensions are pushed to the right.
+    * @param interval1D
+    *   the 1D interval to be inserted
+    * @tparam H
+    *   the domain value type of the 1D interval inserted
+    * @tparam R
+    *   the result domain. There is a type safety check that ensures the domain type for the resulting interval is a
+    *   concatenation of elements before the insert, the inserted 1D interval, and the elements after the insert.
+    * @return
+    *   a new higher-dimensional interval
+    */
+  def insertDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+    dimensionIndex: Int,
+    interval1D: Interval1D[H]
+  )(using
+    Concat[Take[D, dimensionIndex.type], Domain1D[H] *: Drop[D, dimensionIndex.type]] =:= R
+  ): Interval[R] = Interval(
+    start.insertDimension(dimensionIndex, interval1D.start),
+    end.insertDimension(dimensionIndex, interval1D.end)
+  )
+
+  /**
+    * Update the interval at a particular dimension.
+    *
+    * @param dimensionIndex
+    *   the dimension in which the interval is updated (e.g., the head dimension is index 0)
+    * @param update
+    *   function to update the specified 1D interval
+    * @tparam H
+    *   the domain value type of the 1D interval updated. There are type safety checks that ensure
+    *   - the domain at the specified dimension index is of the specified domain type
+    *   - the domain type of the result interval is a concatenation of elements before the update, the updated domain,
+    *     and the elements after the update.
+    * @return
+    *   a new interval of the same dimension with the update applied
+    */
+  def withDimensionUpdate[H: DomainValueLike](
+    dimensionIndex: Int,
+    update: Interval1D[H] => Interval1D[H]
+  )(using
+    Elem[D, dimensionIndex.type] =:= Domain1D[H],
+    Concat[Take[D, dimensionIndex.type], Domain1D[H] *: Drop[D, S[dimensionIndex.type]]] =:= D
+  ): Interval[D] =
+    val updated = update(apply(dimensionIndex))
+    Interval(start.updateDimension(dimensionIndex, updated.start), end.updateDimension(dimensionIndex, updated.end))
 
   /**
     * For an n-dimensional interval where n > 1, extracts the tail interval of n-1 dimensions.
@@ -330,12 +401,14 @@ case class Interval[D <: NonEmptyTuple](
     *   the tail interval of n-1 dimensions.
     */
   def tailInterval(using
-    Tuple.Tail[D] =:= NonEmptyTail[D],
+    Tail[D] =:= NonEmptyTail[D],
     DomainLike[NonEmptyTail[D]]
   ): Interval[NonEmptyTail[D]] = Interval(start.tail, end.tail)
 
   /**
     * Returns a new interval with an updated head interval and the other dimensions unchanged.
+    *
+    * (Equivalent to `withDimensionUpdate[H](0, update)`, though the type checking is simpler.)
     *
     * @tparam H
     *   the domain value type of the head element. There are type safety checks that ensure the head domain type is
@@ -344,8 +417,8 @@ case class Interval[D <: NonEmptyTuple](
     *   function to apply to this head interval, used in the head dimension of the returned interval.
     */
   def withHeadUpdate[H: DomainValueLike](update: Interval1D[H] => Interval1D[H])(using
-    Tuple.Head[D] =:= Domain1D[H],
-    Domain1D[H] *: Tuple.Tail[D] =:= D
+    Head[D] =:= Domain1D[H],
+    Domain1D[H] *: Tail[D] =:= D
   ): Interval[D] =
     val updatedHead = update(headInterval1D)
     Interval(updatedHead.start *: start.tail, updatedHead.end *: end.tail)
@@ -528,8 +601,8 @@ object Interval:
         * }}}
         */
       def unapply[D <: NonEmptyTuple, H](i: Interval[D])(using
-        Tuple.Head[D] =:= Domain1D[H],
-        Tuple.Tail[D] =:= NonEmptyTail[D],
+        Head[D] =:= Domain1D[H],
+        Tail[D] =:= NonEmptyTail[D],
         DomainLike[NonEmptyTail[D]],
         DomainValueLike[H]
       ): (Interval1D[H], Interval[NonEmptyTail[D]]) =

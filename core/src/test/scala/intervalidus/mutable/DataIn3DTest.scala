@@ -127,7 +127,11 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
     val fixture = immutable.Data(allData).toImmutable.toMutable
     fixture.getAll.toList shouldBe allData
 
-    fixture.getByHeadIndex(dayZero).getByHeadIndex(dayZero).getAt(0) shouldBe Some("Hello")
+    fixture.getByHeadDimension(dayZero).getByHeadDimension(dayZero).getAt(0) shouldBe Some("Hello")
+    fixture
+      .getByDimension[Int, Domain.In2D[LocalDate, LocalDate]](2, 0)
+      .getByDimension[LocalDate, Domain.In1D[LocalDate]](1, dayZero)
+      .getAt(dayZero) shouldBe Some("Hello")
 
   test("Mutable: Simple toString"):
     val fixturePadData = Data

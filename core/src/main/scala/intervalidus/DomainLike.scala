@@ -2,6 +2,9 @@ package intervalidus
 
 import intervalidus.collection.Coordinate
 
+import scala.Tuple.{Append, Concat, Drop, Elem, Take}
+import scala.compiletime.ops.int.S
+
 /**
   * Type class with operations on a domain with multiple discrete and/or continuous dimensions.
   *
@@ -153,6 +156,70 @@ trait DomainLike[D <: NonEmptyTuple]:
    */
 
   extension (domain: D)
+    // to equate type-level integer successor with the incremented value of an integer
+    private def s(arg: Int): S[arg.type] = (arg + 1).asInstanceOf[S[arg.type]]
+
+    /**
+      * Extract a lower-dimensional domain by dropping a dimension.
+      *
+      * @param dimensionIndex
+      *   the dimension to drop (e.g., the head dimension is index 0)
+      * @tparam R
+      *   the result domain. There is a type safety check that ensures the domain type for the result dimension is a
+      *   concatenation of elements before and after the dropped dimension.
+      * @return
+      *   a new lower-dimensional domain
+      */
+    def dropDimension[R <: NonEmptyTuple: DomainLike](dimensionIndex: Int)(using
+      Concat[Take[D, dimensionIndex.type], Drop[D, S[dimensionIndex.type]]] =:= R
+    ): R = domain.take(dimensionIndex) ++ domain.drop(s(dimensionIndex))
+
+    /**
+      * Create a higher-dimensional domain by inserting a dimension.
+      *
+      * @param dimensionIndex
+      *   the dimension where the domain is inserted (e.g., inserting a new head dimension is index 0). Existing
+      *   dimensions are pushed to the right.
+      * @param domain1D
+      *   the domain to be inserted
+      * @tparam H
+      *   the domain value type of the domain inserted
+      * @tparam R
+      *   the result domain. There is a type safety check that ensures the domain type for the result dimension is a
+      *   concatenation of elements before the insert, the inserted domain, and the elements after the insert.
+      * @return
+      *   a new higher-dimensional domain
+      */
+    def insertDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+      dimensionIndex: Int,
+      domain1D: Domain1D[H]
+    )(using
+      Concat[Take[D, dimensionIndex.type], Domain1D[H] *: Drop[D, dimensionIndex.type]] =:= R
+    ): R = domain.take(dimensionIndex) ++ (domain1D *: domain.drop(dimensionIndex))
+
+    /**
+      * Update the domain at a particular dimension.
+      *
+      * @param dimensionIndex
+      *   the dimension in which the domain is updated (e.g., the head dimension is index 0)
+      * @param updated
+      *   the domain updated
+      * @tparam H
+      *   the domain value type of the domain updated. There are type safety checks that ensure
+      *   - the domain at the specified dimension index is of the specified domain type, and
+      *   - the domain type for the result dimension is a concatenation of elements before the update, the updated
+      *     domain, and the elements after the update.
+      * @return
+      *   a new domain of the same dimension with the update applied
+      */
+    def updateDimension[H: DomainValueLike](
+      dimensionIndex: Int,
+      updated: Domain1D[H]
+    )(using
+      Elem[D, dimensionIndex.type] =:= Domain1D[H],
+      Concat[Take[D, dimensionIndex.type], Domain1D[H] *: Drop[D, S[dimensionIndex.type]]] =:= D
+    ): D = domain.take(dimensionIndex) ++ (updated *: domain.drop(s(dimensionIndex)))
+
     infix def equiv(that: D): Boolean
 
     /**
@@ -283,7 +350,7 @@ trait DomainLike[D <: NonEmptyTuple]:
     /**
       * Appends that domain to this one.
       */
-    infix def x[X: DomainValueLike](that: Domain1D[X]): Tuple.Append[D, Domain1D[X]] = domain :* that
+    infix def x[X: DomainValueLike](that: Domain1D[X]): Append[D, Domain1D[X]] = domain :* that
 
     /**
       * Prepends that domain to this one.

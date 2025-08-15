@@ -55,7 +55,11 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
       (intervalFrom(10) x intervalTo(0) x unbounded[Int]) -> "World"
     )
     val fixture0 = newDataIn3DVersioned(allData)(using CurrentDateTime.simulated(LocalDateTime.of(2025, 8, 1, 8, 0)))
-    fixture0.getByHeadIndex(0).getByHeadIndex(0).getAt(0) shouldBe Some("Hello")
+    fixture0.getByHeadDimension(0).getByHeadDimension(0).getAt(0) shouldBe Some("Hello")
+    fixture0
+      .getByDimension[Int, Domain.In2D[Int, Int]](2, 0)
+      .getByDimension[Int, Domain.In1D[Int]](1, 0)
+      .getAt(0) shouldBe Some("Hello")
 
     val fixture1 = fixture0
       .set((interval(5, 15) x unbounded[Int] x unbounded[Int]) -> "to")

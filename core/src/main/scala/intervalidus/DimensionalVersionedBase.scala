@@ -5,7 +5,9 @@ import intervalidus.Domain.NonEmptyTail
 import intervalidus.mutable.Data as MutableData
 
 import java.time.LocalDateTime
+import scala.Tuple.{Concat, Drop, Elem, Head, Tail, Take}
 import scala.collection.mutable
+import scala.compiletime.ops.int.S
 import scala.language.implicitConversions
 
 /**
@@ -277,16 +279,34 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     data.interval.tailInterval -> data.value
 
   // special handling of versioned data because the public head is in dimension two.
-  protected def getByHeadIndexData[H: DomainValueLike](headIndex: Domain1D[H])(using
-    Tuple.Head[D] =:= Domain1D[H],
-    Tuple.Tail[D] =:= NonEmptyTail[D],
+  protected def getByHeadDimensionData[H: DomainValueLike](domain: Domain1D[H])(using
+    Head[D] =:= Domain1D[H],
+    Tail[D] =:= NonEmptyTail[D],
+    Domain1D[H] *: Tuple.Tail[D] =:= D,
     DomainLike[NonEmptyTail[D]],
     DomainLike[Versioned[NonEmptyTail[D]]]
   ): Iterable[ValidData[V, Versioned[NonEmptyTail[D]]]] =
-    underlying.getAll
-      .filter(_.interval.tailInterval.headInterval1D contains headIndex)
+    val lookup = Interval.unbounded[D].withHeadUpdate[H](_ => Interval1D.intervalAt(domain))
+    underlying
+      .getIntersecting(lookup.withHead(Interval1D.unbounded))
       .map: data =>
         (data.interval.tailInterval.tailInterval withHead versionInterval(data)) -> data.value
+
+  // special handling of versioned data because the public dimension n is in dimension n + 1.
+  protected def getByDimensionData[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+    dimensionIndex: Int,
+    domain: Domain1D[H]
+  )(using
+    Elem[D, dimensionIndex.type] =:= Domain1D[H],
+    Concat[Take[D, dimensionIndex.type], Domain1D[H] *: Drop[D, S[dimensionIndex.type]]] =:= D,
+    Concat[Take[D, dimensionIndex.type], Drop[D, S[dimensionIndex.type]]] =:= R,
+    DomainLike[Versioned[R]]
+  ): Iterable[ValidData[V, Versioned[R]]] =
+    val lookup = Interval.unbounded[D].withDimensionUpdate[H](dimensionIndex, _ => Interval1D.intervalAt(domain))
+    underlying
+      .getIntersecting(lookup.withHead(Interval1D.unbounded))
+      .map: data =>
+        (data.interval.tailInterval.dropDimension(dimensionIndex) withHead versionInterval(data)) -> data.value
 
   // ---------- API methods that are not similar to those in DimensionalBase ----------
 
@@ -308,7 +328,7 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
   def getSelectedDataMutable(using
     versionSelection: VersionSelection
   ): MutableData[V, D] =
-    underlying.getByHeadIndex(versionSelection.boundary)
+    underlying.getByHeadDimension(versionSelection.boundary)
 
   /**
     * Given some version selection context, gets all the data (compressed, immutable).
@@ -576,17 +596,56 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
   /**
     * Project as data in n-1 dimensions based on a lookup in the head dimension -- version information is preserved.
     *
-    * @param headIndex
+    * (Equivalent to `getByDimension[H, NonEmptyTail[D]](0, domain)`, though the type checking is simpler)
+    *
+    * @tparam H
+    *   the domain value type of the 1D domain used for filtering. There are type safety checks that ensure
+    *   - the head 1D domain has the specified domain value type
+    *   - the current domain tail is a non-empty domain (i.e., the current domain type `D` has at least two dimensions)
+    *   - the current domain type can be constructed by concatenating the 1D domain type specified and the current
+    *     domain tail.
+    * @param domain
     *   the head dimension domain element
     * @return
     *   a lower-dimensional (n-1) projection
     */
-  def getByHeadIndex[H: DomainValueLike](headIndex: Domain1D[H])(using
-    Tuple.Head[D] =:= Domain1D[H],
-    Tuple.Tail[D] =:= NonEmptyTail[D],
+  def getByHeadDimension[H: DomainValueLike](domain: Domain1D[H])(using
+    Head[D] =:= Domain1D[H],
+    Tail[D] =:= NonEmptyTail[D],
+    Domain1D[H] *: Tuple.Tail[D] =:= D,
     DomainLike[NonEmptyTail[D]],
     DomainLike[Versioned[NonEmptyTail[D]]]
   ): DimensionalVersionedBase[V, NonEmptyTail[D]]
+
+  /**
+    * Project as data in n-1 dimensions based on a lookup in the specified dimension -- version information is
+    * preserved.
+    *
+    * @param dimensionIndex
+    *   dimension to filter on and drop. Must be a value with a singleton type known at compile time, e.g., a numeric
+    *   literal. (The head dimension is dimension 0.)
+    * @param domain
+    *   the domain element used for filtering
+    * @tparam H
+    *   the domain value type of the domain used for filtering. There are type safety checks that ensure
+    *   - the 1D domain at the specified dimension index has the specified domain value type
+    *   - the current domain type can be constructed by concatenating the elements before the domain, the domain itself,
+    *     and the elements after the domain.
+    * @tparam R
+    *   domain of intervals in the returned structure. There is a type safety check that ensures the domain type for
+    *   this result type can be constructed by concatenating the elements before and after the dropped dimension.
+    * @return
+    *   a lower-dimensional (n-1) projection
+    */
+  def getByDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+    dimensionIndex: Int,
+    domain: Domain1D[H]
+  )(using
+    Elem[D, dimensionIndex.type] =:= Domain1D[H],
+    Concat[Take[D, dimensionIndex.type], Domain1D[H] *: Drop[D, S[dimensionIndex.type]]] =:= D,
+    Concat[Take[D, dimensionIndex.type], Drop[D, S[dimensionIndex.type]]] =:= R,
+    DomainLike[Versioned[R]]
+  ): DimensionalVersionedBase[V, R]
 
   /**
     * Returns this as a mutable structure.

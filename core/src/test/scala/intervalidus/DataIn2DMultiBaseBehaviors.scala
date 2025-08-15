@@ -60,9 +60,18 @@ trait DataIn2DMultiBaseBehaviors:
            |                                                                            | {C} (-∞..+∞)     |
            |""".stripMargin.replaceAll("\r", "")
 
-      f0.getByHeadIndex(15).toString shouldBe
+      f0.getByHeadDimension(15).toString shouldBe
         """|| -∞ .. +∞ |
            || {A,B,C}  |
+           |""".stripMargin.replaceAll("\r", "")
+
+      f0.getByDimension[Int, Domain.In1D[Int]](1, 15).toString shouldBe
+        """|| 0 .. 4   | 5 .. 9   | 10 .. 20 | 21 .. 25 | 26 .. 30 |
+           || {A}      |
+           |           | {A,B}    |
+           |                      | {A,B,C}  |
+           |                                 | {B,C}    |
+           |                                            | {C}      |
            |""".stripMargin.replaceAll("\r", "")
 
     test(s"$prefix: Zipping"):
@@ -150,5 +159,6 @@ trait DataIn2DMultiBaseBehaviors:
         (intervalTo(14) x interval(0, 10)) -> "Hello",
         (intervalFrom(1) x intervalFrom(11)) -> "World"
       )
-      val fixture1 = multiFrom(allData)
-      fixture1.getByHeadIndex(0).getAt(0) shouldBe Some(Set("Hello"))
+      val fixture1: S = multiFrom(allData)
+      fixture1.getByHeadDimension(0).getAt(0) shouldBe Some(Set("Hello"))
+      fixture1.getByDimension[Int, Domain.In1D[Int]](1, 0).getAt(0) shouldBe Some(Set("Hello"))

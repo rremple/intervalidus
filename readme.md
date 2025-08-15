@@ -165,7 +165,9 @@ the past (or future). For example, leveraging `plan2d` as a partial function (wi
 
 ```scala 3
 val futureEffectiveDate: Domain1D[LocalDate] = date(2024, 8, 1)
-List(date(2023, 12, 15), date(2024, 1, 15), date(2024, 5, 15), date(2024, 7, 15)).foreach: knownDate => 
+val knownDates = List(date(2023, 12, 15), date(2024, 1, 15), date(2024, 5, 15), date(2024, 7, 15))
+
+knownDates.foreach: knownDate =>
   futureEffectiveDate x knownDate match
     case plan2d(tier) => println(s"On $knownDate, forecasted $tier tier on $futureEffectiveDate")
     case _            => println(s"On $knownDate, no forecasted tier on $futureEffectiveDate")
@@ -180,7 +182,37 @@ On 2024-05-15, forecasted Premium tier on 2024-08-01
 On 2024-07-15, no forecasted tier on 2024-08-01
 ```
 
-Going further, lets say tracking the known date is not enough. There are transactions that drive this new knowledge, 
+Or to see all the effective-dated information on these known dates, we can extract one-dimensional structures
+(effective dates form dimension index 0, and known dates form dimension index 1).
+```scala 3
+def plan2dOn(knownDate: LocalDate): Data[String, Domain.In1D[LocalDate]] =
+  plan2d.getByDimension(dimensionIndex = 1, knownDate)
+knownDates.foreach: knownDate =>
+  println(s"On $knownDate:\n${plan2dOn(knownDate).toString}")
+```
+
+The result shows how `plan2d` keeps a complete history of all one-dimensional effective periods:
+
+```text
+On 2023-12-15:
+<nothing is valid>
+
+On 2024-01-15:
+| 2024-01-01 .. +∞ |
+| Basic            |
+
+On 2024-05-15:
+| 2024-01-01 .. 2024-03-31 | 2024-04-01 .. +∞         |
+| Basic                    |
+                           | Premium                  |
+
+On 2024-07-15:
+| 2024-01-01 .. 2024-03-31 | 2024-04-01 .. 2024-06-30 |
+| Basic                    |
+                           | Premium                  |
+```
+
+Going further, let's say tracking the known date is not enough. There are transactions that drive this new knowledge, 
 and those transactions are timestamped. Then using an interval in the "knowledge" dimension based on a datetime rather
 than a date would be more appropriate. But timestamps are better thought of as continuous rather than discrete values.
 So we can use a continuous value in the knowledge dimension, and continue to use a discrete value in the effective date
@@ -209,8 +241,8 @@ Which results in the following output, which is similar to what was shown in the
 ```
 
 The two main differences are:
-- The timestamps are included in the knowledge dimension
-- The notation for the intervals in this dimension is different, where the boundary of each interval can either be
+- The timestamps are included in the knowledge dimension.
+- The notation for the intervals in this dimension is different. The boundary of each interval can either be
   closed (denoted with brackets) or open (denoted with parens), and the start and end of each interval is separated by
   a comma rather than two dots. 
 
@@ -339,7 +371,7 @@ These methods return a new structure:
 
 - `copy` / `toImmutable` / `toMutable`
 - `zip` / `zipAll`
-- `getByHeadIndex`
+- `getByDimension` / `getByHeadDimension`
 
 These mutation methods return a new structure when using immutable and `Unit` when using mutable:
 
@@ -468,7 +500,7 @@ val thoughtsByColor = Data[String, Domain.In1D[Color]]()
   .set(intervalAt(Color.Red) -> "I like this too")
 println(thoughtsByColor)
 ```
-This associates our thoughts with color-based intervals rather than a wavelength-based intervals, with the following
+This associates our thoughts with color-based intervals rather than wavelength-based intervals, with the following
 output.
 ```text
 | Violet .. Green                | Yellow .. Orange               | Red .. Red                     |
@@ -561,9 +593,8 @@ structures internally for managing state, two of which are custom (in the `colle
   supports quick
   retrieval by interval. Box search trees manage "boxed" data in multidimensional double space. Unlike classic
   spacial search trees (used in collision detection and the like), these data structures manage "boxes" rather than
-  individual points, where boxes are split and stored in all applicable subtrees (hyperoctants) of the data structure
-  as subtrees are
-  split. Intervalildus uses the ordered hashes defined on domain components of intervals to approximate all
+  individual points. Boxes are split and stored in all applicable subtrees (hyperoctants) of the data structure as 
+  subtrees are split. Intervalildus uses the ordered hashes defined on domain components of intervals to approximate all
   domain intervals as boxes in double space, and then manages valid data associated with these boxes in the box
   search tree. This not only results in dramatically faster retrieval (e.g., `getAt` and `getIntersecting`), since many
   mutation operations use intersection retrieval in their own logic, they are made dramatically faster as well. Only the
@@ -609,7 +640,7 @@ Apart from `collection`, there are a few other subprojects that are worth mentio
   methods, including relative performance of experimental vs. non-experimental features.
 
 - There are sample JSON pickling subprojects `intervalidus-upickle` and `intervalidus-weepickle` which could be useful
-  when managing Intervalidus data in a JSON data store (e.g. MongoDB) and/or serializing data through web services.
+  when managing Intervalidus data in a JSON data store (e.g., MongoDB) and/or serializing data through web services.
   (There are many JSON frameworks, and one could use these subprojects as a starting point to add support for others.)
 
 Lastly, there is a context parameter component used to enable/disable experimental features (a.k.a., feature flagging)

@@ -5,7 +5,9 @@ import intervalidus.DimensionalVersionedBase.*
 import intervalidus.DiscreteValue.IntDiscreteValue
 import intervalidus.Domain.NonEmptyTail
 
+import scala.Tuple.{Concat, Drop, Elem, Head, Tail, Take}
 import scala.collection.mutable
+import scala.compiletime.ops.int.S
 import scala.language.implicitConversions
 import scala.math.Ordering.Implicits.infixOrderingOps
 
@@ -117,14 +119,33 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
       Some(currentVersion)
     )
 
-  override def getByHeadIndex[H: DomainValueLike](headIndex: Domain1D[H])(using
-    Tuple.Head[D] =:= Domain1D[H],
-    Tuple.Tail[D] =:= NonEmptyTail[D],
+  override def getByHeadDimension[H: DomainValueLike](domain: Domain1D[H])(using
+    Head[D] =:= Domain1D[H],
+    Tail[D] =:= NonEmptyTail[D],
+    Domain1D[H] *: Tuple.Tail[D] =:= D,
     DomainLike[NonEmptyTail[D]],
     DomainLike[Versioned[NonEmptyTail[D]]]
   ): DataVersioned[V, NonEmptyTail[D]] =
     val result = DataVersioned(
-      getByHeadIndexData(headIndex),
+      getByHeadDimensionData(domain),
+      initialVersion,
+      versionTimestamps.clone(),
+      Some(currentVersion)
+    )
+    result.compressAll()
+    result
+
+  override def getByDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+    dimensionIndex: VersionDomainValue,
+    domain: Domain1D[H]
+  )(using
+    Elem[D, dimensionIndex.type] =:= Domain1D[H],
+    Concat[Take[D, dimensionIndex.type], Domain1D[H] *: Drop[D, S[dimensionIndex.type]]] =:= D,
+    Concat[Take[D, dimensionIndex.type], Drop[D, S[dimensionIndex.type]]] =:= R,
+    DomainLike[Versioned[R]]
+  ): DataVersioned[V, R] =
+    val result = DataVersioned(
+      getByDimensionData[H, R](dimensionIndex, domain),
       initialVersion,
       versionTimestamps.clone(),
       Some(currentVersion)

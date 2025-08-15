@@ -87,10 +87,8 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
     f1.getAll.toList shouldBe allData
     f1.getAt(0) shouldBe Some("Hello")
 
-    // Appropriately fails in one dimension because the compiler cannot prove that
-    // Domain1D[Int] *: EmptyTuple =:=
-    // Domain1D[Int] *: Domain.NonEmptyTail[Domain1D[Int] *: EmptyTuple].
-    """f1.getByHeadIndex(0)""" shouldNot typeCheck
+    // Appropriately fails in one dimension because Tuple.Tail[Domain.In1D[Int]] is empty.
+    """f1.getByHeadDimension(0)""" shouldNot typeCheck
 
     val concat = f1.foldLeft(StringBuilder()): (b, d) =>
       b.append(d.value).append("->").append(d.interval.toString).append(" ")

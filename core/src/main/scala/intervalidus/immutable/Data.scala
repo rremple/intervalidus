@@ -4,7 +4,9 @@ import intervalidus.*
 import intervalidus.Domain.NonEmptyTail
 import intervalidus.collection.mutable.{BoxTree, MultiMapSorted}
 
+import scala.Tuple.{Concat, Drop, Elem, Head, Tail, Take}
 import scala.collection.mutable
+import scala.compiletime.ops.int.S
 
 /**
   * Constructs data in multidimensional intervals.
@@ -97,13 +99,23 @@ class Data[V, D <: NonEmptyTuple: DomainLike] protected (
   override def zipAll[B](that: DimensionalBase[B, D], thisDefault: V, thatDefault: B): Data[(V, B), D] =
     Data(zipAllData(that, thisDefault, thatDefault))
 
-  override def getByHeadIndex[H: DomainValueLike](headIndex: Domain1D[H])(using
-    Tuple.Head[D] =:= Domain1D[H],
-    Tuple.Tail[D] =:= NonEmptyTail[D],
-    Domain1D[H] *: Tuple.Tail[D] =:= D,
+  override def getByHeadDimension[H: DomainValueLike](domain: Domain1D[H])(using
+    Head[D] =:= Domain1D[H],
+    Tail[D] =:= NonEmptyTail[D],
+    Domain1D[H] *: Tail[D] =:= D,
     DomainLike[NonEmptyTail[D]]
   ): Data[V, NonEmptyTail[D]] =
-    Data(getByHeadIndexData(headIndex)).compressAll()
+    Data(getByHeadDimensionData(domain)).compressAll()
+
+  override def getByDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+    dimensionIndex: Int,
+    domain: Domain1D[H]
+  )(using
+    Elem[D, dimensionIndex.type] =:= Domain1D[H],
+    Concat[Take[D, dimensionIndex.type], Domain1D[H] *: Drop[D, S[dimensionIndex.type]]] =:= D,
+    Concat[Take[D, dimensionIndex.type], Drop[D, S[dimensionIndex.type]]] =:= R
+  ): Data[V, R] =
+    Data(getByDimensionData(dimensionIndex, domain)).compressAll()
 
   override def toMutable: intervalidus.mutable.Data[V, D] =
     intervalidus.mutable.Data(getAll)

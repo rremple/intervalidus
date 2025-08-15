@@ -111,7 +111,11 @@ class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors 
     )
     val fixture = mutable.Data(allData).toMutable.toImmutable
 
-    fixture.getByHeadIndex(dayZero).getByHeadIndex(dayZero).getByHeadIndex(0).getAt(0) shouldBe Some("Hello")
+    fixture
+      .getByHeadDimension(dayZero)
+      .getByHeadDimension(dayZero)
+      .getByHeadDimension(0)
+      .getAt(0) shouldBe Some("Hello")
 
   test("Immutable: Simple toString"):
     val fixturePadData = Data

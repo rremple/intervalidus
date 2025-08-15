@@ -54,10 +54,8 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     val allData = List(interval(0, 9) -> "Hello", intervalFrom(10) -> "World")
     val fixture0 = newDataIn1DVersioned(allData)(using CurrentDateTime.simulated(dayZero))
 
-    // Appropriately fails in one dimension because the compiler cannot prove that
-    // Domain1D[Int] *: EmptyTuple =:=
-    // Domain1D[Int] *: Domain.NonEmptyTail[Domain1D[Int] *: EmptyTuple].
-    """fixture0.getByHeadIndex(0)""" shouldNot typeCheck
+    // Appropriately fails in one dimension because Tuple.Tail[Domain.In1D[Int]] is empty.
+    """fixture0.getByHeadDimension(0)""" shouldNot typeCheck
 
     val fixture1 = fixture0
       .set(interval(5, 15) -> "to")

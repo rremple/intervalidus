@@ -147,7 +147,7 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
     ](intervalRange, data, baselineData, featuredData, randDomain2d, randInterval2d, randValue2d, randValue2dWithKey):
 
     @Benchmark
-    def baselineGetByHeadIndex: mutable.Data.In1D[String, Int] = baselineData.getByHeadIndex(randDomain1d())
+    def baselineGetByHeadDimension: mutable.Data.In1D[String, Int] = baselineData.getByHeadDimension(randDomain1d())
 
   abstract class GenericMutable3dBench(
     intervalRange: Int,
@@ -160,12 +160,12 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
     ](intervalRange, data, baselineData, featuredData, randDomain3d, randInterval3d, randValue3d, randValue3dWithKey):
 
     @Benchmark
-    def baselineGetByHeadIndex: mutable.Data.In2D[String, Int, Int] =
-      baselineData.getByHeadIndex(randDomain1d())
+    def baselineGetByHeadDimension: mutable.Data.In2D[String, Int, Int] =
+      baselineData.getByHeadDimension(randDomain1d())
 
     @Benchmark
-    def featuredGetByHeadIndex: mutable.Data.In2D[String, Int, Int] =
-      featuredData.getByHeadIndex(randDomain1d())
+    def featuredGetByHeadDimension: mutable.Data.In2D[String, Int, Int] =
+      featuredData.getByHeadDimension(randDomain1d())
 
   //// --- Immutable Bases ---
 
@@ -308,12 +308,12 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
     ](intervalRange, data, baselineData, featuredData, randDomain2d, randInterval2d, randValue2d, randValue2dWithKey):
 
     @Benchmark
-    def baselineGetByHeadIndex: immutable.Data.In1D[String, Int] =
-      baselineData.getByHeadIndex(randDomain1d())
+    def baselineGetByHeadDimension: immutable.Data.In1D[String, Int] =
+      baselineData.getByHeadDimension(randDomain1d())
 
     @Benchmark
-    def featuredGetByHeadIndex: immutable.Data.In1D[String, Int] =
-      featuredData.getByHeadIndex(randDomain1d())
+    def featuredGetByHeadDimension: immutable.Data.In1D[String, Int] =
+      featuredData.getByHeadDimension(randDomain1d())
 
   abstract class GenericImmutable3dBench(
     intervalRange: Int,
@@ -326,12 +326,12 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
     ](intervalRange, data, baselineData, featuredData, randDomain3d, randInterval3d, randValue3d, randValue3dWithKey):
 
     @Benchmark
-    def baselineGetByHeadIndex: immutable.Data.In2D[String, Int, Int] =
-      baselineData.getByHeadIndex[Int](randDomain1d())
+    def baselineGetByHeadDimension: immutable.Data.In2D[String, Int, Int] =
+      baselineData.getByHeadDimension[Int](randDomain1d())
 
     @Benchmark
-    def featuredGetByHeadIndex: immutable.Data.In2D[String, Int, Int] =
-      featuredData.getByHeadIndex(randDomain1d())
+    def featuredGetByHeadDimension: immutable.Data.In2D[String, Int, Int] =
+      featuredData.getByHeadDimension(randDomain1d())
 
   //// --- Concrete Benchmark Classes ---
 
