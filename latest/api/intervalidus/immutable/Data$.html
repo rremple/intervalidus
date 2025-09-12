@@ -476,6 +476,16 @@ node5 -> node1;
                <p>tuple of <code>TreeMap</code> data, <code>MultiMapSorted</code> data, and <code>BoxTree</code> data used when constructing something that is a <code>DimensionalBase</code> and has overridden <code>dataByStartAsc</code>, <code>dataByValue</code>, and <code>dataInSearchTree</code> in the constructor.</p>
               </dd>
               <dt class="body-small">
+               Note
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <div>
+                 <p>A tight boundary around the origin with a capacity large enough to contain the initial data is used. Benchmarks have shown that a tightly-defined capacity has better insert performance even if it has to be resized at some point.</p>
+                </div>
+               </div>
+              </dd>
+              <dt class="body-small">
                Inherited from:
               </dt>
               <dd class="body-medium">
