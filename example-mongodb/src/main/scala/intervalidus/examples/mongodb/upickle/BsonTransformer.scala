@@ -22,7 +22,7 @@ object BsonTransformer:
 
   given Reader[BsonValue] = Reader.Delegate(bsonValueTransformer)
 
-  given (using bsonValueWriter: Writer[BsonValue]): Writer[BsonDocument] = bsonValueWriter.comap(_.toBsonDocument)
+  given (using bsonValueWriter: Writer[BsonValue]): Writer[BsonDocument] = bsonValueWriter.narrow
 
   given (using bsonValueReader: Reader[BsonValue]): Reader[BsonDocument] = bsonValueReader.map(_.asDocument())
 

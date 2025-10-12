@@ -22,7 +22,7 @@ object BsonTransformer:
 
   given To[BsonValue] = To.Delegate(bsonValueTransformer)
 
-  given (using fromBsonValue: From[BsonValue]): From[BsonDocument] = fromBsonValue.comap(_.toBsonDocument)
+  given (using fromBsonValue: From[BsonValue]): From[BsonDocument] = fromBsonValue.narrow
 
   given (using toBsonValue: To[BsonValue]): To[BsonDocument] = toBsonValue.map(_.asDocument())
 
