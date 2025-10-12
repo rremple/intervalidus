@@ -68,13 +68,11 @@ class DataPersistenceTest extends AnyFlatSpec with Matchers with MongoDBContaine
     )
 
     // Modify the database by applying each of the diff actions
+    def byKey(intervalStart: In1D[Int]): BsonDocument = BsonDocument("interval.start", intervalStart.as[BsonValue])
     modifications.foreach:
-      case Create(data: ValidIn1D) =>
-        collection.insertOne(data.as[BsonDocument])
-      case Update(data: ValidIn1D) =>
-        collection.replaceOne(BsonDocument("interval.start", data.interval.start.as[BsonValue]), data.as[BsonDocument])
-      case Delete(start) =>
-        collection.deleteOne(BsonDocument("interval.start", (start: In1D[Int]).as[BsonValue]))
+      case Create(data: ValidIn1D) => collection.insertOne(data.as[BsonDocument])
+      case Update(data: ValidIn1D) => collection.replaceOne(byKey(data.interval.start), data.as[BsonDocument])
+      case Delete(intervalStart)   => collection.deleteOne(byKey(intervalStart))
 
     // Retrieve modifications from the database -- should match the local modifications
     val modifiedRetrieved: DataIn1D = collection.find().asScala.as[DataIn1D]
