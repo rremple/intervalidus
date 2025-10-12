@@ -1,0 +1,85 @@
+package intervalidus.examples.mongodb.upickle
+
+import intervalidus.ValidData
+import intervalidus.DiffAction.{Create, Delete, Update}
+import intervalidus.DiscreteValue.given
+import intervalidus.Domain.In1D
+import intervalidus.Interval1D.{interval, intervalFrom, intervalTo}
+import intervalidus.examples.mongodb.MongoDBContainerLike
+import intervalidus.immutable.Data
+import org.bson.{BsonDocument, BsonValue}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+
+import scala.jdk.CollectionConverters.*
+import scala.language.implicitConversions
+
+/**
+  * Demonstrate how dimensional data can be managed in a database. Uses MongoDB (via Testcontainers) to store, retrieve,
+  * and update data, where JSON (actually BSON) pickling is provided by Upickle.
+  */
+class DataPersistenceTest extends AnyFlatSpec with Matchers with MongoDBContainerLike:
+
+  import BsonTransformer.given
+
+  import intervalidus.json.upickle.Json.given
+  import upickle.default.{Reader, Writer, transform}
+
+  extension [T](value: T)(using Writer[T]) def as[S](using Reader[S]): S = transform(value).to[S]
+
+  "Upickle/MongoDB container" should "be able to represent evolving intervalidus data" in withContainers: container =>
+    val client = container.client
+    val collection = client.collection("upickle")
+
+    type DataIn1D = Data[String, In1D[Int]]
+    type ValidIn1D = ValidData[String, In1D[Int]]
+
+    // Define locally
+    val initialData = List(
+      intervalTo(4) -> "Hey",
+      interval(5, 15) -> "to",
+      intervalFrom(16) -> "World"
+    )
+    val definedLocally: DataIn1D = Data(initialData)
+
+    // Store in the database
+    val insertResult = collection.insertMany(definedLocally.as[Seq[BsonDocument]].asJava)
+    insertResult.getInsertedIds should not be null
+    insertResult.getInsertedIds.size() shouldBe initialData.size
+
+    // Retrieve from the database -- should match the local definition
+    val initialRetrieved: DataIn1D = collection.find().asScala.as[DataIn1D]
+    initialRetrieved.getAll.toList shouldBe definedLocally.getAll.toList
+
+    // Modify locally
+    val modifiedLocally = definedLocally.remove(interval(1, 19))
+    modifiedLocally.getAll.toList shouldBe List(
+      intervalTo(0) -> "Hey", // truncated
+      intervalFrom(20) -> "World" // new start
+    )
+
+    // Determine the differences applied
+    val modifications = modifiedLocally.diffActionsFrom(definedLocally)
+    modifications shouldBe List(
+      Update(intervalTo(0) -> "Hey"),
+      Delete(interval(5, 15).start),
+      Delete(intervalFrom(16).start),
+      Create(intervalFrom(20) -> "World")
+    )
+
+    // Modify the database by applying each of the diff actions
+    modifications.foreach:
+      case Create(data: ValidIn1D) =>
+        collection.insertOne(data.as[BsonDocument])
+      case Update(data: ValidIn1D) =>
+        collection.replaceOne(BsonDocument("interval.start", data.interval.start.as[BsonValue]), data.as[BsonDocument])
+      case Delete(start) =>
+        collection.deleteOne(BsonDocument("interval.start", (start: In1D[Int]).as[BsonValue]))
+
+    // Retrieve modifications from the database -- should match the local modifications
+    val modifiedRetrieved: DataIn1D = collection.find().asScala.as[DataIn1D]
+    modifiedRetrieved.getAll.toList shouldBe modifiedLocally.getAll.toList
+
+    // probably not necessary
+    // collection.drop()
+    // client.close()

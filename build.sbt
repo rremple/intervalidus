@@ -36,6 +36,7 @@ lazy val root = (project in file("."))
     `intervalidus-upickle`,
     `intervalidus-tinyrule`,
     `intervalidus-examples`,
+    `intervalidus-example-mongodb`,
     `bench`
   )
   .settings(
@@ -76,7 +77,7 @@ lazy val `intervalidus-upickle` = (project in file("json/upickle"))
   .settings(commonPublishSettings)
   .settings(
     name := "intervalidus-upickle",
-    libraryDependencies += "com.lihaoyi" %% "upickle" % "4.2.1"
+    libraryDependencies += "com.lihaoyi" %% "upickle" % "4.3.2"
   )
 
 lazy val `intervalidus-tinyrule` = (project in file("sidequests/tinyrule"))
@@ -90,6 +91,20 @@ lazy val `intervalidus-examples` = (project in file("examples"))
   .disablePlugins(MimaPlugin, TastyMiMaPlugin)
   .dependsOn(core, `intervalidus-tinyrule`)
   .settings(commonNoPublishSettings)
+
+lazy val `intervalidus-example-mongodb` = (project in file("example-mongodb"))
+  .disablePlugins(MimaPlugin, TastyMiMaPlugin)
+  .dependsOn(core, `intervalidus-weepickle`, `intervalidus-upickle`)
+  .settings(
+    commonNoPublishSettings,
+    libraryDependencies ++= Seq(
+      "org.mongodb" % "bson" % "5.6.1",
+      "org.mongodb" % "mongodb-driver-sync" % "5.6.1",
+      "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.43.0" % Test,
+      "com.dimafeng" %% "testcontainers-scala-mongodb" % "0.43.0" % Test,
+      "org.slf4j" % "slf4j-nop" % "2.0.17" % Test
+    )
+  )
 
 lazy val bench = project
   .enablePlugins(JmhPlugin)

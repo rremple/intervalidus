@@ -643,6 +643,9 @@ Apart from `collection`, there are a few other subprojects that are worth mentio
   when managing Intervalidus data in a JSON data store (e.g., MongoDB) and/or serializing data through web services.
   (There are many JSON frameworks, and one could use these subprojects as a starting point to add support for others.)
 
+- The `intervalidus-example-mongodb` subproject leverages these pickling subprojects to demonstrate how dimensional data
+  can be managed in a database. It uses MongoDB (via Testcontainers) to store, retrieve, and update data.
+
 Lastly, there is a context parameter component used to enable/disable experimental features (a.k.a., feature flagging)
 called `Experimental`. The default implementation given disables all experimental features. But one can enable something
 experimental simply by giving an alternative implementation of `Experimental` when the structure is constructed.
