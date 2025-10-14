@@ -24,20 +24,20 @@ class DataPersistenceTest extends AnyFlatSpec with Matchers with MongoDBContaine
   import BsonTransformer.given
 
   import intervalidus.json.upickle.Json.given
-  import upickle.default.{Reader, Writer, transform}
+  import upickle.default.{Reader, Writer}
 
-  extension [T](value: T)(using Writer[T]) def as[S](using Reader[S]): S = transform(value).to[S]
+  extension [T](value: T)(using writeT: Writer[T]) def as[S](using readS: Reader[S]): S = writeT.transform(value, readS)
 
   case class Word(english: String, italian: String) derives Writer, Reader
+
+  type DataIn1D = Data[Word, In1D[Int]]
+  type ValidIn1D = ValidData[Word, In1D[Int]]
 
   "Upickle/MongoDB container" should "be able to represent evolving intervalidus data" in withContainers: container =>
     val client = container.client
     val collection = client.collection("upickle")
     val intervalStartPath = "interval.start"
     collection.createIndex(Indexes.ascending(intervalStartPath), IndexOptions().name("PK").unique(true))
-
-    type DataIn1D = Data[Word, In1D[Int]]
-    type ValidIn1D = ValidData[Word, In1D[Int]]
 
     // Define locally
     val initialData = List(
@@ -49,7 +49,6 @@ class DataPersistenceTest extends AnyFlatSpec with Matchers with MongoDBContaine
 
     // Store in the database
     val insertResult = collection.insertMany(definedLocally.as[Seq[BsonDocument]].asJava)
-    insertResult.getInsertedIds should not be null
     insertResult.getInsertedIds.size() shouldBe initialData.size
 
     // Retrieve from the database -- should match the local definition

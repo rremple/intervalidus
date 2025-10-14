@@ -33,9 +33,9 @@ object BsonTransformer:
     override def transform[T](bsonValue: BsonValue, to: Visitor[?, T]): T = bsonValue match
       case doc: BsonDocument  => transformObject(to, doc.entrySet().asScala.map(e => e.getKey -> e.getValue))
       case arr: BsonArray     => transformArray(to, arr.asScala)
-      case num: BsonInt32     => to.visitInt32(num.intValue())
-      case num: BsonInt64     => to.visitInt64(num.longValue())
-      case num: BsonDouble    => to.visitFloat64(num.doubleValue())
+      case num: BsonInt32     => to.visitInt32(num.getValue)
+      case num: BsonInt64     => to.visitInt64(num.getValue)
+      case num: BsonDouble    => to.visitFloat64(num.getValue)
       case _: BsonNull        => to.visitNull()
       case bool: BsonBoolean  => if bool.getValue then to.visitTrue() else to.visitFalse()
       case string: BsonString => to.visitString(string.getValue)
@@ -46,10 +46,10 @@ object BsonTransformer:
     // To
 
     override def visitObject(length: Int): ObjVisitor[BsonValue, BsonValue] =
-      new AstObjVisitor[Seq[(String, BsonValue)]](a => new BsonDocument(a.map(BsonElement(_, _)).asJava))
+      AstObjVisitor[Seq[(String, BsonValue)]](a => BsonDocument(a.map(BsonElement(_, _)).asJava))
 
     override def visitArray(length: Int): ArrVisitor[BsonValue, BsonValue] =
-      new AstArrVisitor[Seq](a => new BsonArray(a.asJava))
+      AstArrVisitor[Seq](a => BsonArray(a.asJava))
 
     override def visitFloat64StringParts(cs: CharSequence, decIndex: Int, expIndex: Int): BsonValue =
       val double = cs.toString.toDouble

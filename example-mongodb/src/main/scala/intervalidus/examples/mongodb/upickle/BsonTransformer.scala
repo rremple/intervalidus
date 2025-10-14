@@ -1,9 +1,9 @@
 package intervalidus.examples.mongodb.upickle
 
-import org.bson.*
 import ujson.AstTransformer
+import upickle.default.{Reader, Writer}
 import upickle.core.{ArrVisitor, ObjVisitor, Visitor}
-import upickle.default.*
+import org.bson.*
 
 import scala.jdk.CollectionConverters.*
 
@@ -18,7 +18,7 @@ import scala.jdk.CollectionConverters.*
 object BsonTransformer:
 
   given Writer[BsonValue] with
-    def write0[V](out: Visitor[_, V], v: BsonValue): V = bsonValueTransformer.transform(v, out)
+    def write0[Out](out: Visitor[?, Out], in: BsonValue): Out = bsonValueTransformer.transform(in, out)
 
   given Reader[BsonValue] = Reader.Delegate(bsonValueTransformer)
 
@@ -33,9 +33,9 @@ object BsonTransformer:
     override def transform[T](bsonValue: BsonValue, to: Visitor[?, T]): T = bsonValue match
       case doc: BsonDocument  => transformObject(to, doc.entrySet().asScala.map(e => e.getKey -> e.getValue))
       case arr: BsonArray     => transformArray(to, arr.asScala)
-      case num: BsonInt32     => to.visitInt32(num.intValue(), -1)
-      case num: BsonInt64     => to.visitInt64(num.longValue(), -1)
-      case num: BsonDouble    => to.visitFloat64(num.doubleValue(), -1)
+      case num: BsonInt32     => to.visitInt32(num.getValue, -1)
+      case num: BsonInt64     => to.visitInt64(num.getValue, -1)
+      case num: BsonDouble    => to.visitFloat64(num.getValue, -1)
       case _: BsonNull        => to.visitNull(-1)
       case bool: BsonBoolean  => if bool.getValue then to.visitTrue(-1) else to.visitFalse(-1)
       case string: BsonString => to.visitString(string.getValue, -1)
@@ -46,10 +46,10 @@ object BsonTransformer:
     // Reader
 
     override def visitJsonableObject(length: Int, index: Int): ObjVisitor[BsonValue, BsonValue] =
-      new AstObjVisitor[Seq[(String, BsonValue)]](a => new BsonDocument(a.map(BsonElement(_, _)).asJava))
+      AstObjVisitor[Seq[(String, BsonValue)]](a => BsonDocument(a.map(BsonElement(_, _)).asJava))
 
     override def visitArray(length: Int, index: Int): ArrVisitor[BsonValue, BsonValue] =
-      new AstArrVisitor[Seq](a => new BsonArray(a.asJava))
+      AstArrVisitor[Seq](a => BsonArray(a.asJava))
 
     override def visitFloat64StringParts(cs: CharSequence, decIndex: Int, expIndex: Int, index: Int): BsonValue =
       val double = cs.toString.toDouble
