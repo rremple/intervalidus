@@ -32,6 +32,7 @@ lazy val root = (project in file("."))
   .aggregate(
     core,
     collection,
+    `intervalidus-pickle`,
     `intervalidus-weepickle`,
     `intervalidus-upickle`,
     `intervalidus-tinyrule`,
@@ -62,9 +63,17 @@ lazy val collection = project
     name := "intervalidus-collection"
   )
 
-lazy val `intervalidus-weepickle` = (project in file("json/weepickle"))
+lazy val `intervalidus-pickle` = (project in file("json/common"))
   .disablePlugins(MimaPlugin, TastyMiMaPlugin) // for now (pre 1.0)
   .dependsOn(core)
+  .settings(commonPublishSettings)
+  .settings(
+    name := "intervalidus-pickle-common"
+  )
+
+lazy val `intervalidus-weepickle` = (project in file("json/weepickle"))
+  .disablePlugins(MimaPlugin, TastyMiMaPlugin) // for now (pre 1.0)
+  .dependsOn(core, `intervalidus-pickle` % "compile->compile;test->test")
   .settings(commonPublishSettings)
   .settings(
     name := "intervalidus-weepickle",
@@ -73,7 +82,7 @@ lazy val `intervalidus-weepickle` = (project in file("json/weepickle"))
 
 lazy val `intervalidus-upickle` = (project in file("json/upickle"))
   .disablePlugins(MimaPlugin, TastyMiMaPlugin) // for now (pre 1.0)
-  .dependsOn(core)
+  .dependsOn(core, `intervalidus-pickle` % "compile->compile;test->test")
   .settings(commonPublishSettings)
   .settings(
     name := "intervalidus-upickle",
@@ -102,6 +111,7 @@ lazy val `intervalidus-example-mongodb` = (project in file("example-mongodb"))
       "org.mongodb" % "mongodb-driver-sync" % "5.6.1",
       "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.43.0" % Test,
       "com.dimafeng" %% "testcontainers-scala-mongodb" % "0.43.0" % Test,
+      "org.apache.commons" % "commons-compress" % "1.28.0", // bump 1.24.0 for CVE-2024-26308 and -25710
       "org.slf4j" % "slf4j-nop" % "2.0.17" % Test
     )
   )

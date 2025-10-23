@@ -18,7 +18,7 @@ class BsonTransformerTest extends AnyFlatSpec with Matchers:
   val arrValue = Arr(1, Arr(2, Arr(3, 4)))
   val objValue = Obj("hello" -> Arr(1, 2, 3), "world" -> false)
 
-  "Upickle transformer" should "be able to transform BSON types" in:
+  "uPickle transformer" should "be able to transform BSON types" in:
     val arrBson = arrValue.as[BsonValue]
     assert(arrBson.isArray)
     arrBson.as[Value] shouldBe arrValue
