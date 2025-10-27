@@ -1,7 +1,7 @@
 package intervalidus
 
 import intervalidus.Domain.NonEmptyTail
-import intervalidus.collection.{Box, Capacity}
+import intervalidus.collection.Box
 
 import scala.Tuple.{Append, Concat, Drop, Elem, Head, Tail, Take}
 import scala.annotation.tailrec
@@ -14,6 +14,13 @@ import scala.math.Ordering.Implicits.infixOrderingOps
   * An interval in multiple dimensions over a contiguous set of domain values in D. See
   * [[https://en.wikipedia.org/wiki/Interval_(mathematics)]] for more information.
   *
+  * @define dataValueType
+  *   the type of the value managed as data.
+  * @define intervalDomainType
+  *   the domain type -- a non-empty tuple that is DomainLike.
+  * @define intervalToTest
+  *   the interval to test.
+  *
   * @param start
   *   the "infimum", i.e., the left (and/or below and/or back, depending on dimensions and context) boundary of the
   *   interval
@@ -21,7 +28,7 @@ import scala.math.Ordering.Implicits.infixOrderingOps
   *   the "supremum", i.e., the right (and/or above and/or front, depending on dimensions and context) boundary of the
   *   interval -- must be greater than or equal to the start in all dimensions
   * @tparam D
-  *   the domain type -- [[DomainLike]] non-empty tuples.
+  *   $intervalDomainType
   */
 case class Interval[D <: NonEmptyTuple](
   start: D,
@@ -39,7 +46,7 @@ case class Interval[D <: NonEmptyTuple](
     * @param value
     *   the value in the valid data
     * @tparam V
-    *   the value type
+    *   $dataValueType
     * @return
     *   valid data in this interval
     */
@@ -55,7 +62,7 @@ case class Interval[D <: NonEmptyTuple](
     * Tests if there is no gap or overlap between this and that, and they could be merged to form a single interval.
     *
     * @param that
-    *   the interval to test for adjacency.
+    *   $intervalToTest
     */
   infix def isAdjacentTo(that: Interval[D]): Boolean = isLeftAdjacentTo(that) || isRightAdjacentTo(that)
 
@@ -64,7 +71,7 @@ case class Interval[D <: NonEmptyTuple](
     * them.
     *
     * @param that
-    *   the interval to test for adjacency.
+    *   $intervalToTest
     */
   infix def isLeftAdjacentTo(that: Interval[D]): Boolean = domainLike.intervalIsLeftAdjacentTo(this, that)
 
@@ -73,7 +80,7 @@ case class Interval[D <: NonEmptyTuple](
     * between them.
     *
     * @param that
-    *   the interval to test for adjacency.
+    *   $intervalToTest
     */
   infix def isRightAdjacentTo(that: Interval[D]): Boolean = that isLeftAdjacentTo this
 
@@ -81,7 +88,7 @@ case class Interval[D <: NonEmptyTuple](
     * Tests if this and that have elements of the domain in common (not disjoint).
     *
     * @param that
-    *   the interval to test.
+    *   $intervalToTest
     */
   infix def intersects(that: Interval[D]): Boolean = (this ∩ that).isDefined
 
@@ -250,7 +257,7 @@ case class Interval[D <: NonEmptyTuple](
     * Test for equivalence by comparing the start and end of this and that.
     *
     * @param that
-    *   the interval to test.
+    *   $intervalToTest
     * @return
     *   true if this and that have the same start and end.
     */
@@ -272,7 +279,7 @@ case class Interval[D <: NonEmptyTuple](
     * Tests if that is a subset (proper or improper) of this.
     *
     * @param that
-    *   the interval to test.
+    *   $intervalToTest
     * @return
     *   true if that is a subset of this.
     */
@@ -450,7 +457,7 @@ case class Interval[D <: NonEmptyTuple](
     * Tests if this is a subset (proper or improper) of that. See [[https://en.wikipedia.org/wiki/Subset]].
     *
     * @param that
-    *   the interval to test.
+    *   $intervalToTest
     * @return
     *   true if this is a subset of that.
     */
@@ -476,7 +483,7 @@ case class Interval[D <: NonEmptyTuple](
     * Tests if this and that have the same start.
     *
     * @param that
-    *   the interval to test.
+    *   $intervalToTest
     */
   infix def hasSameStartAs(that: Interval[D]): Boolean =
     start equiv that.start
@@ -485,7 +492,7 @@ case class Interval[D <: NonEmptyTuple](
     * Tests if this and that have the same end.
     *
     * @param that
-    *   the interval to test.
+    *   $intervalToTest
     */
   infix def hasSameEndAs(that: Interval[D]): Boolean =
     end equiv that.end
@@ -500,7 +507,7 @@ case class Interval[D <: NonEmptyTuple](
     * Tests if there is no gap or overlap between this and that, and they could be merged to form a single interval.
     *
     * @param that
-    *   the interval to test for adjacency.
+    *   $intervalToTest
     */
   infix def ~(that: Interval[D]): Boolean = isAdjacentTo(that)
 
@@ -511,7 +518,7 @@ case class Interval[D <: NonEmptyTuple](
     * them.
     *
     * @param that
-    *   the interval to test for adjacency.
+    *   $intervalToTest
     */
   infix def ~>(that: Interval[D]): Boolean = isLeftAdjacentTo(that)
 
@@ -523,7 +530,7 @@ case class Interval[D <: NonEmptyTuple](
     * @param value
     *   the value in the valid data
     * @tparam V
-    *   the value type
+    *   $dataValueType
     * @return
     *   valid data in this interval
     */
@@ -561,7 +568,7 @@ case class Interval[D <: NonEmptyTuple](
     * Tests if this is a subset (proper or improper) of that. See [[https://en.wikipedia.org/wiki/Subset]].
     *
     * @param that
-    *   the interval to test.
+    *   $intervalToTest
     * @return
     *   true if this is a subset of that.
     */
@@ -582,6 +589,8 @@ case class Interval[D <: NonEmptyTuple](
 
 /**
   * Companion for the multidimensional interval used in defining and operating on valid data.
+  * @define intervalDomainType
+  *   the domain type -- a non-empty tuple that is DomainLike.
   */
 object Interval:
   import DomainLike.given
@@ -727,7 +736,7 @@ object Interval:
     * @param after
     *   interval on the right/top/front side
     * @tparam D
-    *   the domain type -- [[DomainLike]] non-empty tuples.
+    *   $intervalDomainType
     * @return
     *   the interval made from the gap between the two inputs
     */
@@ -770,7 +779,7 @@ object Interval:
     * @tparam Result
     *   the result type
     * @tparam D
-    *   the domain type -- [[DomainLike]] non-empty tuples.
+    *   $intervalDomainType
     * @return
     *   a result extracted from the final state
     */
@@ -810,7 +819,7 @@ object Interval:
     * @param intervals
     *   a collection of intervals.
     * @tparam D
-    *   the domain type -- [[DomainLike]] non-empty tuples.
+    *   $intervalDomainType
     * @return
     *   a new (possibly smaller) collection of intervals covering the same domain as the input.
     */
@@ -834,7 +843,7 @@ object Interval:
     * @param intervals
     *   a collection of intervals -- must be ordered by start.
     * @tparam D
-    *   the domain type -- [[DomainLike]] non-empty tuples.
+    *   $intervalDomainType
     * @return
     *   true if the collection is compressible, false otherwise.
     */
@@ -850,7 +859,7 @@ object Interval:
     * @param intervals
     *   a collection of intervals -- must be ordered by start.
     * @tparam D
-    *   the domain type -- [[DomainLike]] non-empty tuples.
+    *   $intervalDomainType
     * @return
     *   true if the collection is disjoint, false otherwise.
     */
@@ -869,7 +878,7 @@ object Interval:
     * @param intervals
     *   collection of intervals
     * @tparam D
-    *   the domain type -- [[DomainLike]] non-empty tuples.
+    *   $intervalDomainType
     * @return
     *   a new collection of intervals representing disjoint intervals covering the span of the input.
     */
@@ -887,7 +896,7 @@ object Interval:
     * @param intervals
     *   a collection of intervals -- must be disjoint and ordered by start.
     * @tparam T
-    *   the domain type -- [[DomainLike]] non-empty tuples.
+    *   $intervalDomainType
     * @return
     *   a new collection of intervals representing disjoint intervals covering the span of the input.
     */

@@ -56,26 +56,17 @@ object DataVersioned extends DimensionalVersionedBaseObject:
     DimensionalDataVersionedBuilder[V, D, DataVersioned[V, D]](from(_, initialVersion, initialComment))
 
 /**
-  * Immutable versioned dimensional data in any dimension.
+  * Mutable versioned dimensional data in any dimension.
   *
-  * Interface is similar to [[Data]], but it operates on an underlying [[mutable.Data]] using an extra integer-valued
-  * head dimension to version data. One use case would be versioned data that are valid in two dimensions of time, so
-  * the underlying data actually vary in terms of version and two dimensions of time (three dimensions total). Most
-  * methods require some generic version selection criteria rather than specific integer intervals, therefore this does
-  * not extend [[DimensionalBase]].
+  * @inheritdoc
   *
-  * The "current" version is managed as state (a `var`). Versioning also separates notions of approved vs. unapproved
-  * data (unapproved data are pushed up to start at version maxValue).
-  *
-  * When getting data, by default, we return "current" version data (a.k.a., approved). When updating data, by default,
-  * we don't rewrite history, so mutations start with the "current" version too.
   * @note
-  *   Updates starting with "current" also update unapproved changes (since intervalFrom goes to the Top).
+  *   $classNote
   *
   * @tparam V
-  *   the value type for valid data.
+  *   $dataValueType
   * @tparam D
-  *   the domain type for intervals in the public interface -- [[DomainLike]] non-empty tuples.
+  *   $intervalDomainType1
   */
 class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   initialData: Iterable[ValidData[V, Versioned[D]]] = Iterable.empty[ValidData[V, Versioned[D]]],
@@ -91,6 +82,15 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   if versionTimestamps.isEmpty then versionTimestamps.addOne(initialVersion -> (summon[CurrentDateTime].now(), "init"))
 
   // ---------- Implement methods from DimensionalVersionedBase ----------
+
+  override protected def resetTo(selection: VersionSelection): DataVersioned[V, D] = selection match
+    case VersionSelection.Unapproved => this
+    case notUnapproved @ (VersionSelection.Current | VersionSelection.Specific(_)) =>
+      val resetCopy = copy
+      notUnapproved match
+        case VersionSelection.Current           => resetCopy.resetToVersion(currentVersion)
+        case VersionSelection.Specific(version) => resetCopy.resetToVersion(version)
+      resetCopy
 
   override def copy: DataVersioned[V, D] = DataVersioned(
     underlying.getAll,
@@ -165,33 +165,30 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   // ------ Implement methods similar to those from MutableVersionedBase, but with a version selection context ------
 
   /**
-    * Set new valid data. Given a version selection context, any data previously valid in this interval are replaced by
-    * this data.
+    * $setDesc $mutableAction
     *
     * @param data
-    *   the valid data to set.
+    *   $setParamData
     */
   def set(data: ValidData[V, D])(using VersionSelection): Unit =
     underlying + underlyingValidDataFromVersionBoundary(data)
 
   /**
-    * Set a collection of new valid data. Given a version selection context, any data previously valid in the intervals
-    * are replaced by these data.
+    * $setManyDesc $mutableAction
     *
     * @note
-    *   if intervals overlap, later items will update earlier ones, so order can matter.
+    *   $setManyNote
     * @param data
-    *   collection of valid data to set.
+    *   $setManyParamData
     */
   def setMany(data: Iterable[ValidData[V, D]])(using VersionSelection): Unit =
     underlying ++ data.map(underlyingValidDataFromVersionBoundary)
 
   /**
-    * Set new valid data, but only if there are no previously valid values in its interval and given the version
-    * selection context.
+    * $setIfNoConflictDesc $mutableAction
     *
     * @param newData
-    *   the valid data to set.
+    *   $setIfNoConflictParamNewData
     * @return
     *   true if there were no conflicts and new data was set, false otherwise.
     */
@@ -199,52 +196,47 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     underlying.setIfNoConflict(underlyingValidDataFromVersionBoundary(newData))
 
   /**
-    * Update everything valid in the specified interval and the given version selection context to have the specified
-    * value. No new intervals of validity are added as part of this operation. Data with overlaps are adjusted
-    * accordingly.
+    * $updateDesc $mutableAction
     *
     * @param data
-    *   the new value and interval existing data should take on.
+    *   $updateParamData
     */
   def update(data: ValidData[V, D])(using VersionSelection): Unit =
     underlying.update(underlyingValidDataFromVersionBoundary(data))
 
   /**
-    * Remove valid values on the interval and the given version selection context. If there are values valid on portions
-    * of the interval, those values have their intervals adjusted (e.g., shortened, shifted, split) accordingly.
+    * $removeDesc $mutableAction
     *
     * @param interval
-    *   the interval where any valid values are removed.
+    *   $removeParamInterval
     */
   def remove(interval: Interval[D])(using VersionSelection): Unit =
     underlying - underlyingIntervalFromVersionBoundary(interval)
 
   /**
-    * Remove data in all the intervals given a version selection context. If there are values valid on portions of any
-    * interval, those values have their intervals adjusted (e.g., shortened, shifted, split) accordingly.
+    * $removeManyDesc $mutableAction
     *
     * @param intervals
-    *   the interval where any valid values are removed.
+    *   $removeManyParamIntervals
     */
   def removeMany(intervals: Iterable[Interval[D]])(using VersionSelection): Unit =
     underlying -- intervals.map(underlyingIntervalFromVersionBoundary)
 
   /**
-    * Remove the value in all the intervals where it is valid in the given version selection context.
+    * $removeValueDesc $mutableAction
     *
     * @param value
-    *   the value that is removed.
+    *   $removeValueParamValue
     */
   def removeValue(value: V)(using VersionSelection): Unit =
     intervals(value).foreach: interval =>
       underlying - underlyingIntervalFromVersionBoundary(interval)
 
   /**
-    * Given the version selection context, adds a value as valid in portions of the interval where there aren't already
-    * valid values.
+    * $fillDesc $mutableAction
     *
     * @param data
-    *   value to make valid in any validity gaps found in the interval
+    *   $fillParamData
     */
   def fill(data: ValidData[V, D])(using VersionSelection): Unit =
     underlying.fill(underlyingValidDataFromVersionBoundary(data))
@@ -252,145 +244,111 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   // ------ Implement methods similar to those from MutableVersionedBase, without version selection context ------
 
   /**
-    * Compress out adjacent intervals with the same value.
+    * $compressDesc $mutableAction $noVersionSelection
     *
     * @param value
-    *   value for which valid data are compressed.
+    *   $compressParamValue
     */
   def compress(value: V): Unit = underlying.compress(value)
 
   /**
-    * Compress out adjacent intervals with the same value for all values.
+    * $compressAllDesc $mutableAction $noVersionSelection
     */
   def compressAll(): Unit = underlying.compressAll()
 
   /**
-    * Compress out adjacent intervals with the same value for all values after decompressing everything, resulting in a
-    * unique physical representation.
-    *
-    * Does not use a version selection context -- operates on full underlying structure.
+    * $recompressAllDesc $mutableAction $noVersionSelection
     */
   def recompressAll(): Unit = underlying.recompressAll()
 
   /**
-    * Applies a sequence of diff actions to this structure.
-    *
-    * Does not use a version selection context -- operates on full underlying structure.
+    * $applyDiffActionsDesc $mutableAction $noVersionSelection
     *
     * @param diffActions
-    *   actions to be applied.
+    *   $applyDiffActionsParamDiffActions
     */
   def applyDiffActions(diffActions: Iterable[DiffAction[V, Versioned[D]]]): Unit =
     underlying.applyDiffActions(diffActions)
 
-  override def diffActionsBetween(
-    olderVersion: VersionSelection,
-    newerVersion: VersionSelection
-  ): Iterable[DiffAction[V, Versioned[D]]] =
-    def resetTo(selection: VersionSelection) = selection match
-      case VersionSelection.Unapproved => this
-      case VersionSelection.Current =>
-        val current = copy
-        current.resetToVersion(currentVersion)
-        current
-      case VersionSelection.Specific(version) =>
-        val specific = copy
-        specific.resetToVersion(version)
-        specific
-
-    resetTo(newerVersion).diffActionsFrom(resetTo(olderVersion))
-
   /**
-    * Synchronizes this with another structure by getting and applying the applicable diff actions.
-    *
-    * Does not use a version selection context -- operates on full underlying structure.
+    * $syncWithDesc $mutableAction $noVersionSelection
     *
     * @param that
-    *   the structure with which this is synchronized.
+    *   $syncWithParamThat
     */
   def syncWith(that: DataVersioned[V, D]): Unit =
     applyDiffActions(that.diffActionsFrom(this))
 
   /**
-    * Updates structure to only include elements which satisfy a predicate. Data are mutated in place.
+    * $filterDesc $mutableAction
     *
-    * Does not use a version selection context -- the predicate is applied to the underlying data, so it can operate on
-    * the underlying version information as well as the valid interval/value.
+    * $noVersionSelectionFunction $noVersionSelectionApply
     *
     * @param p
-    *   the predicate used to test elements.
+    *   $filterParamP
     */
   def filter(p: ValidData[V, Versioned[D]] => Boolean): Unit = underlying.filter(p)
 
   /**
-    * Applies a function to all valid data. Data are mutated in place.
+    * $mapDesc $mutableAction
     *
-    * Does not use a version selection context -- the function is applied to the underlying data, so it can operate on
-    * the underlying version information as well as the valid interval/value.
+    * $noVersionSelectionFunction $noVersionSelectionApply
     *
     * @param f
-    *   the function to apply to each valid data element.
+    *   $mapParamF
     */
   def map(f: ValidData[V, Versioned[D]] => ValidData[V, Versioned[D]]): Unit = underlying.map(f)
 
   /**
-    * Applies a partial function to all valid data on which it is defined. Data are mutated in place.
+    * $collectDesc $mutableAction
     *
-    * Does not use a version selection context -- the function is applied to the underlying data, so it can operate on
-    * the underlying version information as well as the valid interval/value.
+    * $noVersionSelectionFunction $noVersionSelectionApply
     *
     * @param pf
-    *   the partial function to apply to each versioned data element.
+    *   $collectParamPf
     */
   def collect(
     pf: PartialFunction[ValidData[V, Versioned[D]], ValidData[V, Versioned[D]]]
   ): Unit = underlying.collect(pf)
 
   /**
-    * Applies a function to all valid data values. Data are mutated in place.
+    * $mapValuesDesc $mutableAction
     *
-    * Does not use a version selection context -- the function is applied to the underlying data, so it maps all values
-    * in all versions.
+    * $noVersionSelectionFunction maps all values in all versions.
     *
     * @param f
-    *   the function to apply to the value part of each valid data element.
+    *   $mapValuesParamF
     */
   def mapValues(f: V => V): Unit = underlying.mapValues(f)
 
   /**
-    * Applies a function to all valid data intervals. Data are mutated in place.
+    * $mapIntervalsDesc $mutableAction
     *
-    * Does not use a version selection context -- the function is applied to the underlying data, so it maps all
-    * intervals in all versions.
+    * $noVersionSelectionFunction maps all intervals in all versions.
     *
     * @param f
-    *   the function to apply to the versioned interval part of each valid data element.
+    *   $mapIntervalsParamF
     */
   def mapIntervals(f: Interval[Versioned[D]] => Interval[Versioned[D]]): Unit = underlying.mapIntervals(f)
 
   /**
-    * Applies a function to all the elements of this structure and updates valid values from the elements of the
-    * resulting structures.
+    * $flatMapDesc and updates valid values from the elements of the resulting structures. $mutableAction
     *
-    * Does not use a version selection context -- the function is applied to the underlying data, so it can operate on
-    * the underlying version information as well as the valid interval/value.
+    * $noVersionSelectionFunction $noVersionSelectionApply
     *
     * @param f
-    *   the function to apply to each valid data element which results in a new structure.
+    *   $flatMapParamF
     */
   def flatMap(f: ValidData[V, Versioned[D]] => DataVersioned[V, D]): Unit =
     underlying.flatMap(f(_).underlying)
 
   /**
-    * Merges this structure with data from that structure. In intervals where both structures have valid values, the two
-    * values are merged (e.g., keep this data). In intervals where this does not have valid data but that does, the data
-    * are added (a fill operation). (Version timestamps of this and that are merged.)
+    * $mergeDesc $mutableAction
     *
     * @param that
-    *   versioned structure to merge into this one
+    *   $mergeParamThat
     * @param mergeValues
-    *   function that merges values where both this and that have valid values, where the default merge operation is to
-    *   give this data values priority and drop that data values
+    *   $mergeParamMergeValues
     */
   def merge(
     that: DimensionalVersionedBase[V, D],
@@ -404,11 +362,10 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   // --- API methods unique to this "versioned" variant
 
   /**
-    * Sets the current version. No version history is rewritten, which may cause some unexpected results (especially if
-    * the version is set to something from the past, which also rewrites version timestamp history). Use with caution.
+    * $setCurrentVersionDesc $mutableAction
     *
     * @param version
-    *   the new current version
+    *   $setCurrentVersionParamVersion
     */
   def setCurrentVersion(
     version: VersionDomainValue,
@@ -420,7 +377,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
       versionTimestamps.addOne(currentVersion -> (dateTime.now(), comment))
 
   /**
-    * Increments the current version.
+    * $incrementCurrentVersionDesc $mutableAction
     */
   def incrementCurrentVersion(comment: String = "incremented")(using dateTime: CurrentDateTime): Unit = synchronized:
     if currentVersion + 1 == unapprovedStartVersion then throw Exception("wow, ran out of versions!")
@@ -429,10 +386,10 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
       versionTimestamps.addOne(currentVersion -> (dateTime.now(), comment))
 
   /**
-    * Eliminate all version information after the specified version (including any unapproved changes).
+    * $resetToVersionDesc $mutableAction
     *
     * @param version
-    *   the version after which all version information is removed.
+    *   $resetToVersionParamVersion
     */
   def resetToVersion(version: VersionDomainValue): Unit = synchronized:
     val keep = VersionSelection(version)
@@ -447,8 +404,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     compressAll()
 
   /**
-    * Updates the existing structure to include only data based on the version selection context, but without any
-    * version history.
+    * $collapseVersionHistoryDesc $mutableAction
     */
   def collapseVersionHistory(using versionSelection: VersionSelection): Unit = synchronized:
     filter(versionInterval(_) contains versionSelection.boundary)
@@ -457,10 +413,10 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     setCurrentVersion(initialVersion)
 
   /**
-    * Special case where we change the version interval by approving everything that is unapproved.
+    * $approveDesc $mutableAction
     *
     * @param data
-    *   currently unapproved data to approved
+    *   $approveDesc
     * @return
     *   true if the unapproved version was found and approved, false otherwise
     */
@@ -476,10 +432,10 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
         false
 
   /**
-    * Useful when approving everything in a range, including empty space (i.e., an unapproved removal)
+    * $approveAllDesc $mutableAction
     *
     * @param interval
-    *   interval in which all changes (updates and deletes) are approved
+    *   $approveAllParamInterval
     */
   def approveAll(interval: Interval[D]): Unit = synchronized:
     underlying
@@ -498,46 +454,42 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   /**
     * Same as [[set]]
     *
-    * Set new valid data. Given a version selection context, any data previously valid in this interval are replaced by
-    * this data.
+    * $setDesc $mutableAction
     *
     * @param data
-    *   the valid data to set.
+    *   $setParamData
     */
   infix def +(data: ValidData[V, D])(using VersionSelection): Unit = set(data)
 
   /**
     * Same as [[setMany]]
     *
-    * Set a collection of new valid data. Given a version selection context, any data previously valid in the intervals
-    * are replaced by these data.
+    * $setManyDesc $mutableAction
     *
     * @note
-    *   if intervals overlap, later items will update earlier ones, so order can matter.
+    *   $setManyNote
     * @param data
-    *   collection of valid data to set.
+    *   $setManyParamData
     */
   infix def ++(data: Iterable[ValidData[V, D]])(using VersionSelection): Unit = setMany(data)
 
   /**
     * Same as [[remove]]
     *
-    * Remove valid values on the interval and the given version selection context. If there are values valid on portions
-    * of the interval, those values have their intervals adjusted (e.g., shortened, shifted, split) accordingly.
+    * $removeDesc $mutableAction
     *
     * @param interval
-    *   the interval where any valid values are removed.
+    *   $removeParamInterval
     */
   infix def -(interval: Interval[D])(using VersionSelection): Unit = remove(interval)
 
   /**
     * Same as [[removeMany]]
     *
-    * Remove data in all the intervals given a version selection context. If there are values valid on portions of any
-    * interval, those values have their intervals adjusted (e.g., shortened, shifted, split) accordingly.
+    * $removeManyDesc $mutableAction
     *
     * @param intervals
-    *   the interval where any valid values are removed.
+    *   $removeManyParamIntervals
     */
   infix def --(intervals: Iterable[Interval[D]])(using VersionSelection): Unit =
     removeMany(intervals)

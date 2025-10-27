@@ -15,7 +15,10 @@ import scala.compiletime.ops.int.S
   * need to use these methods directly -- they are here primarily to support methods on `Interval` and `ValidData`.
   *
   * @tparam D
-  *   Domain type, a tuple of one-dimensional domains (where each can have a different domain value type).
+  *   the domain type -- a non-empty tuple of one-dimensional domains, where each can have its own domain value type.
+  * @define minMaxNote
+  *   Because each dimension is evaluated independently, there is no guarantee the result will equal either of the
+  *   arguments.
   */
 trait DomainLike[D <: NonEmptyTuple]:
   /*
@@ -316,8 +319,7 @@ trait DomainLike[D <: NonEmptyTuple]:
       * Find the max domain components in each dimension of two starts, treating open > closed at the same point by
       * using the default ordering.
       * @note
-      *   Because each dimension is evaluated independently, there is no guarantee the result will equal either of the
-      *   arguments.
+      *   $minMaxNote
       */
     infix def maxStart(that: D): D
 
@@ -325,8 +327,7 @@ trait DomainLike[D <: NonEmptyTuple]:
       * Find the max domain components in each dimension of two ends, treating open < closed at the same point by using
       * the non-default ordering.
       * @note
-      *   Because each dimension is evaluated independently, there is no guarantee the result will equal either of the
-      *   arguments.
+      *   $minMaxNote
       */
     infix def maxEnd(that: D): D
 
@@ -334,8 +335,7 @@ trait DomainLike[D <: NonEmptyTuple]:
       * Find the min domain components in each dimension of two starts, treating open > closed at the same point by
       * using the default ordering.
       * @note
-      *   Because each dimension is evaluated independently, there is no guarantee the result will equal either of the
-      *   arguments.
+      *   $minMaxNote
       */
     infix def minStart(that: D): D
 
@@ -343,8 +343,7 @@ trait DomainLike[D <: NonEmptyTuple]:
       * Find the min domain components in each dimension of two ends, treating open < closed at the same point by using
       * the non-default ordering.
       * @note
-      *   Because each dimension is evaluated independently, there is no guarantee the result will equal either of the
-      *   arguments.
+      *   $minMaxNote
       */
     infix def minEnd(that: D): D
 

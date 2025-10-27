@@ -6,9 +6,9 @@ import intervalidus.*
   * Immutable dimensional data.
   *
   * @tparam V
-  *   the value type for valid data.
+  *   $dataValueType
   * @tparam D
-  *   the domain type -- [[DomainLike]] non-empty tuples.
+  *   $intervalDomainType
   * @tparam Self
   *   F-bounded self-type.
   */
@@ -26,27 +26,26 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
   override def copy: Self // refine the result type for `copyAndModify`
 
   /**
-    * Applies a function to all valid data. Both the valid data value and interval types can be changed in the mapping.
+    * $mapDesc Both the valid data value and interval types can be changed in the mapping.
     *
     * @param f
-    *   the function to apply to each valid data element.
+    *   $mapParamF
     * @tparam B
     *   the valid data value type of the returned structure.
     * @tparam S
     *   the valid data interval domain type of the returned structure.
     * @return
-    *   a new structure resulting from applying the provided function f to each element of this structure.
+    *   a new structure resulting from applying the provided function to each element of this structure.
     */
   def map[B, S <: NonEmptyTuple: DomainLike](
     f: ValidData[V, D] => ValidData[B, S]
   ): DimensionalBase[B, S]
 
   /**
-    * Applies a partial function to all valid data on which it is defined. Both the valid data value and interval types
-    * can be changed in the mapping.
+    * $collectDesc Both the valid data value and interval types can be changed in the mapping.
     *
     * @param pf
-    *   the partial function to apply to each data element.
+    *   $collectParamPf
     * @tparam B
     *   the valid data value type of the returned structure.
     * @tparam S
@@ -60,10 +59,10 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
   ): DimensionalBase[B, S]
 
   /**
-    * Applies a function to all valid data values. Only the valid data value type can be changed in the mapping.
+    * $mapValuesDesc Only the valid data value type can be changed in the mapping.
     *
     * @param f
-    *   the function to apply to the value part of each valid data element.
+    *   $mapValuesParamF
     * @tparam B
     *   the valid data value type of the returned structure.
     * @return
@@ -74,10 +73,10 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
   ): DimensionalBase[B, D]
 
   /**
-    * Applies a function to all valid data intervals. The interval type can be changed in the mapping.
+    * $mapIntervalsDesc The interval type can be changed in the mapping.
     *
     * @param f
-    *   the function to apply to the interval part of each valid data element.
+    *   $mapIntervalsParamF
     * @tparam S
     *   the valid data interval domain type of the returned structure.
     * @return
@@ -88,11 +87,11 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
   ): DimensionalBase[V, S]
 
   /**
-    * Builds a new structure by applying a function to all elements of this collection and concatenating the elements of
-    * the resulting structures.
+    * Builds a new structure by applying a function to all the elements of this collection and concatenating the
+    * elements of the resulting structures.
     *
     * @param f
-    *   the function to apply to each valid data element which results in a new structure.
+    *   $flatMapParamF
     * @tparam B
     *   the valid data value type of the returned structure.
     * @tparam S
@@ -111,7 +110,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     * Selects all elements that satisfy a predicate.
     *
     * @param p
-    *   the predicate used to test elements.
+    *   $filterParamP
     * @return
     *   a new structure consisting of all elements that satisfy the provided predicate p.
     */
@@ -119,12 +118,12 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     getAll.filterNot(p).foreach(result.removeValidData)
 
   /**
-    * Set new valid data. Replaces any data previously valid in this interval.
+    * $setDesc
     *
     * @param newData
-    *   the valid data to set.
+    *   $setParamNewData
     * @return
-    *   a new, updated structure.
+    *   $immutableReturn
     */
   def set(newData: ValidData[V, D]): Self = copyAndModify: result =>
     result.updateOrRemove(newData.interval, _ => None)
@@ -132,14 +131,12 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     result.compressInPlace(newData.value)
 
   /**
-    * Set a collection of new valid data. Replaces any data previously valid in this interval.
-    * @note
-    *   if intervals overlap, later items will update earlier ones, so order can matter.
+    * $setManyDesc @note $setManyNote
     *
     * @param newData
-    *   collection of valid data to set.
+    *   $setManyParamNewData
     * @return
-    *   a new, updated structure.
+    *   $immutableReturn
     */
   def setMany(newData: Iterable[ValidData[V, D]]): Self = copyAndModify: result =>
     val values = newData.map(_.value).toSet
@@ -150,10 +147,10 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
       result.compressInPlace(value)
 
   /**
-    * Set new valid data, but only if there are no data previously valid in this interval.
+    * $setIfNoConflictDesc
     *
     * @param newData
-    *   the valid data to set.
+    *   $setIfNoConflictParamNewData
     * @return
     *   some new, updated structure if there were no conflicts and new data was set, None otherwise.
     */
@@ -166,27 +163,25 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
       )
 
   /**
-    * Update everything valid in data's interval to have the data's value. No new intervals of validity are added as
-    * part of this operation. Data with overlaps are adjusted accordingly.
+    * $updateDesc
     *
     * @param data
-    *   the new value existing data in the interval should take on
+    *   $updateParamNewData
     * @return
-    *   a new, updated structure.
+    *   $immutableReturn
     */
   def update(data: ValidData[V, D]): Self =
     copyAndModify(_.updateOrRemove(data.interval, _ => Some(data.value)))
 
   /**
-    * Remove the old data and replace it with the new data. The new data value and interval can be different. Data with
-    * overlaps with the new data interval are adjusted accordingly.
+    * $replaceDesc
     *
     * @param oldData
-    *   the old data to be replaced.
+    *   $replaceParamOldData
     * @param newData
-    *   the new data replacing the old data
+    *   $replaceParamNewData
     * @return
-    *   a new, updated structure.
+    *   $immutableReturn
     */
   def replace(oldData: ValidData[V, D], newData: ValidData[V, D]): Self = copyAndModify: result =>
     result.removeValidData(oldData)
@@ -195,136 +190,126 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     result.compressInPlace(newData.value)
 
   /**
-    * Remove the old data and replace it with the new data. The new data value and interval can be different. Data with
-    * overlaps with the new data interval are adjusted accordingly.
+    * $replaceByKeyDesc
     *
     * @param key
-    *   key of the old data to be replaced (the interval start).
+    *   $replaceByKeyParamKey
     * @param newData
-    *   the new data replacing the old data
+    *   $replaceByKeyParamNewData
     * @return
-    *   a new, updated structure.
+    *   $immutableReturn
     */
   def replaceByKey(key: D, newData: ValidData[V, D]): Self =
     replace(dataByStartAsc(key), newData)
 
   /**
-    * Remove valid values on the interval. If there are values valid on portions of the interval, those values have
-    * their intervals adjusted (e.g., shortened, shifted, split) accordingly.
+    * $removeDesc
     *
     * @param interval
-    *   the interval where any valid values are removed.
+    *   $removeParamInterval
     * @return
-    *   a new, updated structure.
+    *   $immutableReturn
     */
   def remove(interval: Interval[D]): Self =
     copyAndModify(_.updateOrRemove(interval, _ => None))
 
   /**
-    * Remove data in all the intervals. If there are values valid on portions of any interval, those values have their
-    * intervals adjusted (e.g., shortened, shifted, split) accordingly.
+    * $removeManyDesc
     *
     * @param intervals
-    *   the interval where any valid values are removed.
+    *   $removeManyParamIntervals
     * @return
-    *   a new, updated structure.
+    *   $immutableReturn
     */
   def removeMany(intervals: Iterable[Interval[D]]): Self = copyAndModify: result =>
     intervals.foreach: interval =>
       result.updateOrRemove(interval, _ => None)
 
   /**
-    * Remove the value in all the intervals where it is valid.
+    * $removeValueDesc
     *
     * @param value
-    *   the value that is removed.
+    *   $removeValueParamValue
     * @return
-    *   a new, updated structure.
+    *   $immutableReturn
     */
   def removeValue(value: V): Self = copyAndModify: result =>
     intervals(value).foreach: interval =>
       result.updateOrRemove(interval, _ => None)
 
   /**
-    * Compress out adjacent intervals with the same value.
+    * $compressDesc
     *
     * @param value
-    *   value to be evaluated
+    *   $compressParamValue
     * @return
-    *   a new, updated structure.
+    *   $immutableReturn
     */
   def compress(value: V): Self =
     copyAndModify(_.compressInPlace(value))
 
   /**
-    * Compress out adjacent intervals with the same value for all values.
+    * $compressAllDesc
     *
     * @return
-    *   a new, updated structure.
+    *   $immutableReturn
     */
   def compressAll(): Self = copyAndModify: result =>
     dataByValue.keySet.foreach(result.compressInPlace)
 
   /**
-    * Unlike in 1D, there is no unique compression in higher dimensions. For example, {[1..5], [1..2]} + {[1..2],
-    * [3..4]} could also be represented physically as {[1..2], [1..4]} + {[3..5], [1..2]}.
+    * $recompressAllDesc1
     *
-    * First, this method decompresses data to use a unique arrangement of "atomic" intervals. In the above example, that
-    * would be the following "atomic" intervals: {[1..2], [1..2]} + {[3..5], [1..2]} + {[1..2], [3..4]}. Next, it
-    * recompresses the data, which results in a unique physical representation. It may be useful when comparing two
-    * structures to see if they are logically equivalent even if, physically, they differ in how they are compressed.
+    * $recompressAllDesc2
     *
     * @return
-    *   a new, updated structure.
+    *   $immutableReturn
     */
   def recompressAll(): Self = copyAndModify(_.recompressInPlace())
 
   /**
-    * Applies a sequence of diff actions to this structure.
+    * $applyDiffActionsDesc
     *
     * @param diffActions
-    *   actions to be applied.
+    *   $applyDiffActionsParamDiffActions
     * @return
-    *   a new, updated structure.
+    *   $immutableReturn
     */
   def applyDiffActions(diffActions: Iterable[DiffAction[V, D]]): Self =
     copyAndModify: result =>
       diffActions.foreach(result.applyDiffActionInPlace)
 
   /**
-    * Synchronizes this with another structure by getting and applying the applicable diff actions.
+    * $syncWithDesc
     *
     * @param that
-    *   the structure with which this is synchronized.
+    *   $syncWithParamThat
     * @return
-    *   a new, updated structure.
+    *   $immutableReturn
     */
   def syncWith(that: Self): Self =
     applyDiffActions(that.diffActionsFrom(this))
 
   /**
-    * Adds a value as valid in portions of the interval where there aren't already valid values.
+    * $fillDesc
     *
     * @param data
-    *   value to make valid in any validity gaps found in the interval
+    *   $fillParamData
     * @return
-    *   a new, updated structure.
+    *   $immutableReturn
     */
   def fill(data: ValidData[V, D]): Self = copyAndModify: result =>
     result.fillInPlace(data)
 
   /**
-    * Merges this structure with data from that structure. In intervals where both structures have valid values, the two
-    * values are merged (e.g., keep this data). In intervals where this does not have valid data but that does, the data
-    * are added (a fill operation).
+    * $mergeDesc
     *
     * @param that
-    *   structure to merge with this one
+    *   $mergeParamThat
     * @param mergeValues
-    *   function that merges values where both this and that have valid values, where the default merge operation is to
-    *   give this data values priority and drop that data values
+    *   $mergeParamMergeValues
     * @return
-    *   a new, updated structure.
+    *   $immutableReturn
     */
   def merge(
     that: Self,
@@ -337,51 +322,47 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
   /**
     * Same as [[set]]
     *
-    * Set new valid data. Replaces any data previously valid in this interval.
+    * $setDesc
     *
     * @param newData
-    *   the valid data to set.
+    *   $setParamNewData
     * @return
-    *   a new, updated structure.
+    *   $immutableReturn
     */
   infix def +(newData: ValidData[V, D]): Self = set(newData)
 
   /**
     * Same as [[setMany]]
     *
-    * Set a collection of new valid data. Replaces any data previously valid in this interval.
+    * $setManyDesc @note $setManyNote
     *
-    * @note
-    *   if intervals overlap, later items will update earlier ones, so order can matter.
     * @param newData
-    *   collection of valid data to set.
+    *   $setManyParamNewData
     * @return
-    *   a new, updated structure.
+    *   $immutableReturn
     */
   infix def ++(newData: Iterable[ValidData[V, D]]): Self = setMany(newData)
 
   /**
     * Same as [[remove]]
     *
-    * Remove valid values on the interval. If there are values valid on portions of the interval, those values have
-    * their intervals adjusted (e.g., shortened, shifted, split) accordingly.
+    * $removeDesc
     *
     * @param interval
-    *   the interval where any valid values are removed.
+    *   $removeParamInterval
     * @return
-    *   a new, updated structure.
+    *   $immutableReturn
     */
   infix def -(interval: Interval[D]): Self = remove(interval)
 
   /**
     * Same as [[removeMany]]
     *
-    * Remove data in all the intervals. If there are values valid on portions of any interval, those values have their
-    * intervals adjusted (e.g., shortened, shifted, split) accordingly.
+    * $removeManyDesc
     *
     * @param intervals
-    *   the interval where any valid values are removed.
+    *   $removeManyParamIntervals
     * @return
-    *   a new, updated structure.
+    *   $immutableReturn
     */
   infix def --(intervals: Iterable[Interval[D]]): Self = removeMany(intervals)

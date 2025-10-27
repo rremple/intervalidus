@@ -19,16 +19,21 @@ object DimensionalBase:
   type In4D[V, R1, R2, R3, R4] = DimensionalBase[V, Domain.In4D[R1, R2, R3, R4]]
 
 /**
-  * Constructs data in multidimensional intervals.
+  * @define objectDesc
+  *   Constructs data in multidimensional intervals.
+  * @define dataValueType
+  *   the type of the value managed as data.
+  * @define intervalDomainType
+  *   the domain type -- a non-empty tuple that is DomainLike.
   */
 trait DimensionalBaseObject:
   /**
     * Shorthand constructor for a single initial value that is valid in a particular interval.
     *
     * @tparam V
-    *   the type of the value managed as data.
+    *   $dataValueType
     * @tparam D
-    *   the domain type -- [[DomainLike]] non-empty tuples.
+    *   $intervalDomainType
     * @param data
     *   value valid within an interval.
     * @return
@@ -42,9 +47,9 @@ trait DimensionalBaseObject:
     * Shorthand constructor for a single initial value that is valid in the full interval domain.
     *
     * @tparam V
-    *   the type of the value managed as data.
+    *   $dataValueType
     * @tparam D
-    *   the domain type -- [[DomainLike]] non-empty tuples.
+    *   $intervalDomainType
     * @param value
     *   value that is valid in the full domain (`Interval.unbounded[D]`).
     * @return
@@ -60,9 +65,9 @@ trait DimensionalBaseObject:
     * @param initialData
     *   a collection of values valid within intervals -- intervals must be disjoint.
     * @tparam V
-    *   the type of the value managed as data.
+    *   $dataValueType
     * @tparam D
-    *   the domain type -- [[DomainLike]] non-empty tuples.
+    *   $intervalDomainType
     * @return
     *   [[DimensionalBase]] structure with zero or more valid values.
     */
@@ -74,9 +79,9 @@ trait DimensionalBaseObject:
     * Get a Builder based on an intermediate buffer of valid data.
     *
     * @tparam V
-    *   the type of the value managed as data.
+    *   $dataValueType
     * @tparam D
-    *   the domain type -- [[DomainLike]] non-empty tuples.
+    *   $intervalDomainType
     */
   def newBuilder[V, D <: NonEmptyTuple: DomainLike](using
     Experimental
@@ -94,6 +99,12 @@ class DimensionalDataBuilder[V, D <: NonEmptyTuple: DomainLike, Self <: Dimensio
     validDataBuilder.addOne(elem)
     this
 
+/**
+  * @define dataValueType
+  *   the type of the value managed as data.
+  * @define intervalDomainType
+  *   the domain type -- a non-empty tuple that is DomainLike.
+  */
 trait DimensionalBaseConstructorParams:
   /**
     * Given a collection of valid data, returns data used to populate the `dataByStartAsc`, `dataByValue`, and
@@ -106,9 +117,9 @@ trait DimensionalBaseConstructorParams:
     * @param initialData
     *   a collection of values valid within intervals -- intervals must be disjoint.
     * @tparam V
-    *   the type of the value managed as data.
+    *   $dataValueType
     * @tparam D
-    *   the domain type -- [[DomainLike]] non-empty tuples.
+    *   $intervalDomainType
     * @return
     *   tuple of `TreeMap` data, `MultiMapSorted` data, and `BoxTree` data used when constructing something that is a
     *   `DimensionalBase` and has overridden `dataByStartAsc`, `dataByValue`, and `dataInSearchTree` in the constructor.
@@ -132,10 +143,122 @@ trait DimensionalBaseConstructorParams:
 /**
   * Base for all dimensional data, both mutable and immutable, of arbitrary dimensions.
   *
+  * @define dataValueType
+  *   the type of the value managed as data.
+  * @define intervalDomainType
+  *   the domain type -- a non-empty tuple that is DomainLike.
+  *
   * @tparam V
-  *   the value type for valid data.
+  *   $dataValueType
   * @tparam D
-  *   the domain type -- [[DomainLike]] non-empty tuples.
+  *   $intervalDomainType
+  *
+  * @define immutableReturn
+  *   a new, updated structure.
+  * @define mutableAction
+  *   Data are mutated in place.
+  * @define mapDesc
+  *   Applies a function to all valid data.
+  * @define mapParamF
+  *   the function to apply to each valid data element.
+  * @define collectDesc
+  *   Applies a partial function to all valid data on which it is defined.
+  * @define collectParamPf
+  *   the partial function to apply to each data element.
+  * @define mapValuesDesc
+  *   Applies a function to all valid data values.
+  * @define mapValuesParamF
+  *   the function to apply to the value part of each valid data element.
+  * @define mapIntervalsDesc
+  *   Applies a function to all valid data intervals.
+  * @define mapIntervalsParamF
+  *   the function to apply to the interval part of each valid data element.
+  * @define flatMapParamF
+  *   the function to apply to each valid data element which results in a new structure.
+  * @define filterParamP
+  *   the predicate used to test elements.
+  * @define setDesc
+  *   Set new valid data. Replaces any data previously valid in this interval.
+  * @define setParamNewData
+  *   the valid data to set.
+  * @define setManyDesc
+  *   Set a collection of new valid data. Replaces any data previously valid in this interval.
+  * @define setManyNote
+  *   if intervals overlap, later items will update earlier ones, so order can matter.
+  * @define setManyParamNewData
+  *   collection of valid data to set.
+  * @define setIfNoConflictDesc
+  *   Set new valid data, but only if there are no data previously valid in this interval.
+  * @define setIfNoConflictParamNewData
+  *   the valid data to set.
+  * @define updateDesc
+  *   Update everything valid in data's interval to have the data's value. No new intervals of validity are added as
+  *   part of this operation. Data that overlaps are adjusted accordingly.
+  * @define updateParamNewData
+  *   the new value existing data in the interval should take on
+  * @define replaceDesc
+  *   Remove the old data and replace it with the new data. The new data value and interval can be different. Data that
+  *   overlaps with the new data interval are adjusted accordingly.
+  * @define replaceParamOldData
+  *   the old data to be replaced.
+  * @define replaceParamNewData
+  *   the new data replacing the old data
+  * @define replaceByKeyDesc
+  *   Remove the old data and replace it with the new data. The new data value and interval can be different. Data that
+  *   overlaps with the new data interval are adjusted accordingly.
+  * @define replaceByKeyParamKey
+  *   key of the old data to be replaced (the interval start).
+  * @define replaceByKeyParamNewData
+  *   the new data replacing the old data
+  * @define removeDesc
+  *   Remove valid values on the interval. If there are values valid on portions of the interval, those values have
+  *   their intervals adjusted (e.g., shortened, shifted, split) accordingly.
+  * @define removeParamInterval
+  *   the interval where any valid values are removed.
+  * @define removeManyDesc
+  *   Remove data in all the intervals. If there are values valid on portions of any interval, those values have their
+  *   intervals adjusted (e.g., shortened, shifted, split) accordingly.
+  * @define removeManyParamIntervals
+  *   the intervals where any valid values are removed.
+  * @define removeValueDesc
+  *   Remove the value in all the intervals where it is valid.
+  * @define removeValueParamValue
+  *   the value that is removed.
+  * @define compressDesc
+  *   Compress out adjacent intervals with the same value.
+  * @define compressParamValue
+  *   value to be evaluated.
+  * @define compressAllDesc
+  *   Compress out adjacent intervals with the same value for all values.
+  * @define recompressAllDesc1
+  *   Unlike in 1D, there is no unique compression in higher dimensions. For example, {[1..5], [1..2]} + {[1..2],
+  *   [3..4]} could also be represented physically as {[1..2], [1..4]} + {[3..5], [1..2]}.
+  * @define recompressAllDesc2
+  *   First, this method decompresses data to use a unique arrangement of "atomic" intervals. In the above example, that
+  *   would be the following "atomic" intervals: {[1..2], [1..2]} + {[3..5], [1..2]} + {[1..2], [3..4]}. Next, it
+  *   recompresses the data, which results in a unique physical representation. It may be useful when comparing two
+  *   structures to see if they are logically equivalent even if, physically, they differ in how they are compressed.
+  * @define applyDiffActionsDesc
+  *   Applies a sequence of diff actions to this structure.
+  * @define applyDiffActionsParamDiffActions
+  *   actions to be applied.
+  * @define syncWithDesc
+  *   Synchronizes this with another structure by getting and applying the applicable diff actions.
+  * @define syncWithParamThat
+  *   the structure with which this is synchronized.
+  * @define fillDesc
+  *   Adds a value as valid in portions of the interval where there aren't already valid values.
+  * @define fillParamData
+  *   value to make valid in any validity gaps found in the interval
+  * @define mergeDesc
+  *   Merges this structure with data from that structure. In intervals where both structures have valid values, the two
+  *   values are merged (e.g., keep this data). In intervals where this does not have valid data but that does, the data
+  *   are added (a fill operation).
+  * @define mergeParamThat
+  *   structure to merge with this one
+  * @define mergeParamMergeValues
+  *   function that merges values where both this and that have valid values, where the default merge operation is to
+  *   give this data values priority and drop that data values
   */
 trait DimensionalBase[V, D <: NonEmptyTuple](using
   domainLike: DomainLike[D]

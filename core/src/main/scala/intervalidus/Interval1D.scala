@@ -10,6 +10,8 @@ import scala.math.Ordering.Implicits.infixOrderingOps
 /**
   * A one-dimensional interval over a contiguous set of domain values in T. See
   * [[https://en.wikipedia.org/wiki/Interval_(mathematics)]] for more information.
+  * @define intervalToTest
+  *   the interval to test.
   *
   * @tparam T
   *   a domain value type for this interval's domain (e.g., Int, LocalDate) -- boundaries of the interval are defined in
@@ -47,7 +49,7 @@ case class Interval1D[T](
     * Tests if there is no gap or overlap between this and that.
     *
     * @param that
-    *   the interval to test for adjacency.
+    *   $intervalToTest
     */
   infix def isAdjacentTo(that: Interval1D[T]): Boolean = (this isLeftAdjacentTo that) || (that isLeftAdjacentTo this)
 
@@ -55,7 +57,7 @@ case class Interval1D[T](
     * Tests if this interval is to the left of that interval and there is no gap or overlap between them.
     *
     * @param that
-    *   the interval to test for adjacency.
+    *   $intervalToTest
     */
   infix def isLeftAdjacentTo(that: Interval1D[T]): Boolean = this.end isLeftAdjacentTo that.start
 
@@ -63,7 +65,7 @@ case class Interval1D[T](
     * Tests if this interval is to the right of that interval and there is no gap or overlap between them.
     *
     * @param that
-    *   the interval to test for adjacency.
+    *   $intervalToTest
     */
   infix def isRightAdjacentTo(that: Interval1D[T]): Boolean = that isLeftAdjacentTo this
 
@@ -71,7 +73,7 @@ case class Interval1D[T](
     * Tests if this and that have elements of the domain in common (not disjoint).
     *
     * @param that
-    *   the interval to test.
+    *   $intervalToTest
     */
   infix def intersects(that: Interval1D[T]): Boolean = (this ∩ that).isDefined
 
@@ -261,7 +263,7 @@ case class Interval1D[T](
     * Test for equivalence by comparing the start and end of this and that.
     *
     * @param that
-    *   the interval to test.
+    *   $intervalToTest
     * @return
     *   true if this and that have the same start and end.
     */
@@ -283,7 +285,7 @@ case class Interval1D[T](
     * Tests if that is a subset (proper or improper) of this.
     *
     * @param that
-    *   the interval to test.
+    *   $intervalToTest
     * @return
     *   true if that is a subset of this.
     */
@@ -342,7 +344,7 @@ case class Interval1D[T](
     * Tests if there is no gap between this and that.
     *
     * @param that
-    *   the interval to test for adjacency.
+    *   $intervalToTest
     */
   infix def ~(that: Interval1D[T]): Boolean = isAdjacentTo(that)
 
@@ -352,7 +354,7 @@ case class Interval1D[T](
     * Tests if this interval is to the left of that interval and there is no gap between them.
     *
     * @param that
-    *   the interval to test for adjacency.
+    *   $intervalToTest
     */
   infix def ~>(that: Interval1D[T]): Boolean = isLeftAdjacentTo(that)
 
@@ -422,6 +424,9 @@ object Interval1D:
     * the bounds open.
     * @note
     *   This means that intervals of the form `(Top, Top)` and `(Bottom, Bottom)` are not allowed.
+    *
+    * @define domainValueType
+    *   domain value type of these intervals
     */
   def validBounds[T: DomainValueLike](start: Domain1D[T], end: Domain1D[T]): Boolean = (start, end) match
     case _ if (start beforeEnd end) && (end afterStart start) => true
@@ -480,7 +485,7 @@ object Interval1D:
     * @param after
     *   interval on the right side
     * @tparam T
-    *   domain value type of these intervals
+    *   $domainValueType
     * @return
     *   the interval made from the gap between the two inputs
     */
@@ -504,7 +509,7 @@ object Interval1D:
     * @param intervals
     *   a collection of intervals -- must be ordered by start.
     * @tparam T
-    *   domain value type of these intervals
+    *   $domainValueType
     * @return
     *   a new (possibly smaller) collection of intervals covering the same domain as the input.
     */
@@ -534,7 +539,7 @@ object Interval1D:
     * @param intervals
     *   a collection of intervals -- must be ordered by start.
     * @tparam T
-    *   domain value type of these intervals
+    *   $domainValueType
     * @return
     *   true if the collection is compressible, false otherwise.
     */
@@ -552,7 +557,7 @@ object Interval1D:
     * @param intervals
     *   a collection of intervals -- must be ordered by start.
     * @tparam T
-    *   domain value type of these intervals
+    *   $domainValueType
     * @return
     *   true if the collection is disjoint, false otherwise.
     */
@@ -568,7 +573,7 @@ object Interval1D:
     * @param intervals
     *   collection of intervals
     * @tparam T
-    *   domain value type of these intervals
+    *   $domainValueType
     * @return
     *   a new collection of intervals representing disjoint intervals covering the span of the input.
     */
@@ -592,7 +597,7 @@ object Interval1D:
     * @param intervals
     *   a collection of intervals -- must be disjoint and ordered by start.
     * @tparam T
-    *   domain value type of these intervals
+    *   $domainValueType
     * @return
     *   a new collection of intervals representing disjoint intervals covering the span of the input.
     */

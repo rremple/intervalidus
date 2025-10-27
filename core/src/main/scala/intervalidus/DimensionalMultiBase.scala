@@ -19,9 +19,9 @@ trait DimensionalMultiBaseObject extends DimensionalBaseConstructorParams:
     * Shorthand constructor for a single initial value that is valid in a particular interval.
     *
     * @tparam V
-    *   the type of the value managed as data.
+    *   $dataValueType
     * @tparam D
-    *   the domain type -- [[DomainLike]] non-empty tuples.
+    *   $intervalDomainType
     * @param data
     *   value valid within an interval.
     * @return
@@ -35,9 +35,9 @@ trait DimensionalMultiBaseObject extends DimensionalBaseConstructorParams:
     * Shorthand constructor for a single initial value that is valid in the full interval domain.
     *
     * @tparam V
-    *   the type of the value managed as data.
+    *   $dataValueType
     * @tparam D
-    *   the domain type -- [[DomainLike]] non-empty tuples.
+    *   $intervalDomainType
     * @param value
     *   value that is valid in the full domain (`Interval.unbounded[D]`).
     * @return
@@ -53,9 +53,9 @@ trait DimensionalMultiBaseObject extends DimensionalBaseConstructorParams:
     * @param initialData
     *   a collection of values valid within intervals -- intervals must be disjoint.
     * @tparam V
-    *   the type of the value managed as data.
+    *   $dataValueType
     * @tparam D
-    *   the domain type -- [[DomainLike]] non-empty tuples.
+    *   $intervalDomainType
     * @return
     *   [[DimensionalMultiBase]] structure with zero or more valid values.
     */
@@ -69,9 +69,9 @@ trait DimensionalMultiBaseObject extends DimensionalBaseConstructorParams:
     * @param that
     *   dimensional data of value sets valid within intervals -- intervals must be disjoint.
     * @tparam V
-    *   the type of the value managed as data.
+    *   $dataValueType
     * @tparam D
-    *   the domain type -- [[DomainLike]] non-empty tuples.
+    *   $intervalDomainType
     * @return
     *   [[DimensionalMultiBase]] structure with the same valid values as that data structure.
     */
@@ -85,9 +85,9 @@ trait DimensionalMultiBaseObject extends DimensionalBaseConstructorParams:
     * @param initialData
     *   a collection of valid data sets within intervals -- intervals must be disjoint.
     * @tparam V
-    *   the type of the value managed as data.
+    *   $dataValueType
     * @tparam D
-    *   the domain type -- [[DomainLike]] non-empty tuples.
+    *   $intervalDomainType
     * @return
     *   [[DimensionalMultiBase]] structure with zero or more valid values.
     */
@@ -99,9 +99,9 @@ trait DimensionalMultiBaseObject extends DimensionalBaseConstructorParams:
     * Get a Builder based on an intermediate buffer of valid data.
     *
     * @tparam V
-    *   the type of the value managed as data.
+    *   $dataValueType
     * @tparam D
-    *   the domain type -- [[DomainLike]] non-empty tuples.
+    *   $intervalDomainType
     */
   def newBuilder[V, D <: NonEmptyTuple: DomainLike](using
     Experimental
@@ -123,9 +123,31 @@ class DimensionalDataMultiBuilder[V, D <: NonEmptyTuple: DomainLike, Self <: Dim
   * Data that may have multiple values (managed as sets of values) in different intervals.
   *
   * @tparam V
-  *   the value type for valid data.
+  *   $dataValueType
   * @tparam D
-  *   the domain type -- [[DomainLike]] non-empty tuples.
+  *   $intervalDomainType
+  * @define mergeOneDesc
+  *   Concatenates all valid data in this and that structure into a new one.
+  * @define mergeOneParamThat
+  *   the structure which is going to be concatenated.
+  * @define addOneDesc
+  *   Update everything valid in data's interval to have the data's value. New intervals of validity are added where no
+  *   data in the interval are valid. Data with overlaps are adjusted accordingly.
+  * @define addOneParamData
+  *   the data to add
+  * @define removeOneDesc
+  *   Remove valid values on the interval. Intervals of validity are removed where only this value is valid. Data with
+  *   overlaps are adjusted accordingly.
+  * @define removeOneParamData
+  *   the data to remove
+  * @define addOneManyDesc
+  *   Add all the values following the logic in
+  * @define addOneManyParamAllData
+  *   the data to add
+  * @define removeOneManyDesc
+  *   Remove all the values following the logic in
+  * @define removeOneManyParamAllData
+  *   the data to remove
   */
 trait DimensionalMultiBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends DimensionalBase[Set[V], D]:
 

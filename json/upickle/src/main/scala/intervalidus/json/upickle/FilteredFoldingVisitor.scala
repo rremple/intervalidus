@@ -2,10 +2,14 @@ package intervalidus.json.upickle
 
 import upickle.core.{ArrVisitor, NoOpVisitor, ObjVisitor, StringVisitor, Visitor}
 import upickle.default.Reader
-import intervalidus.json.{FilterPath, FilteredFoldingVisitorLike, FilteredFoldingVisitorObjectLike, PathComponent}
+import intervalidus.json.{FilterPath, FilteredFoldingVisitorObjectLike, PathComponent}
 
 /**
-  * $inherited
+  * Sometimes you only want to process a slice of a very large JSON. Or maybe you want to process a small slice of a
+  * giant array, but without mapping the whole thing into memory at once. This special visitor allows you to filter out
+  * subsections of the source data, and "fold" over them, returning some consolidated results. It is very memory
+  * efficient, and does not add much overhead to processing. Paths to subdocuments can be expressed flexibly, including
+  * optional slicing constraints on array indexes.
   */
 class FilteredFoldingVisitor[A, B] private (
   filterPath: FilterPath,
@@ -13,8 +17,7 @@ class FilteredFoldingVisitor[A, B] private (
   zero: B,
   parentPath: FilterPath
 )(op: (B, A) => B)
-  extends NoOpFixedReader[B](zero)
-  with FilteredFoldingVisitorLike:
+  extends NoOpFixedReader[B](zero):
 
   override def visitObject(length: Int, jsonableKeys: Boolean, index: Int): ObjVisitor[Any, B] =
     new ObjVisitor[Any, B] with FilterPath:

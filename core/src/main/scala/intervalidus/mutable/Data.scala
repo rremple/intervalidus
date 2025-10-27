@@ -9,7 +9,7 @@ import scala.collection.mutable
 import scala.compiletime.ops.int.S
 
 /**
-  * Constructs data in multidimensional intervals.
+  * $objectDesc
   */
 object Data extends DimensionalBaseObject with DimensionalBaseConstructorParams:
 
@@ -40,9 +40,9 @@ object Data extends DimensionalBaseObject with DimensionalBaseConstructorParams:
   * Mutable dimensional data.
   *
   * @tparam V
-  *   the value type for valid data.
+  *   $dataValueType
   * @tparam D
-  *   the domain type -- [[DomainLike]] non-empty tuples.
+  *   $intervalDomainType
   */
 class Data[V, D <: NonEmptyTuple: DomainLike] protected (
   override val dataByStartAsc: mutable.TreeMap[D, ValidData[V, D]],

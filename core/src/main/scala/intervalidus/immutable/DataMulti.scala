@@ -54,9 +54,9 @@ object DataMulti extends DimensionalMultiBaseObject:
   * intervals, and a concat method for combining two structures (a merge where overlaps are concatenated).
   *
   * @tparam V
-  *   the value type for valid data.
+  *   $dataValueType
   * @tparam D
-  *   the domain type -- [[DomainLike]] non-empty tuples.
+  *   $intervalDomainType
   */
 class DataMulti[V, D <: NonEmptyTuple: DomainLike] protected (
   override val dataByStartAsc: mutable.TreeMap[D, ValidData[Set[V], D]],
@@ -74,58 +74,56 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] protected (
   // ---------- Specific multivalue methods that have immutable signatures ----------
 
   /**
-    * Concatenates all valid data in this and that structure into a new one.
+    * $mergeOneDesc
     *
     * @param that
-    *   the structure which is going to be concatenated.
+    *   $mergeOneParamThat
     * @return
-    *   a new, updated structure.
+    *   $immutableReturn
     */
   def mergeOne(that: DataMulti[V, D]): DataMulti[V, D] =
     merge(that, _ ++ _)
 
   /**
-    * Update everything valid in data's interval to have the data's value. New intervals of validity are added where no
-    * data in the interval are valid. Data with overlaps are adjusted accordingly.
+    * $addOneDesc
     *
     * @param data
-    *   the data to add
+    *   $addOneParamData
     * @return
-    *   a new, updated structure
+    *   $immutableReturn
     */
   def addOne(data: ValidData[V, D]): DataMulti[V, D] =
     copyAndModify(_.addOneInPlace(data))
 
   /**
-    * Remove valid values on the interval. Intervals of validity are removed where only this value is valid. Data with
-    * overlaps are adjusted accordingly.
+    * $removeOneDesc
     *
     * @param data
-    *   the data to remove
+    *   $removeOneParamData
     * @return
-    *   a new, updated structure
+    *   $immutableReturn
     */
   def removeOne(data: ValidData[V, D]): DataMulti[V, D] =
     copyAndModify(_.removeOneInPlace(data))
 
   /**
-    * Add all the values following the logic in [[addOne]].
+    * $addOneManyDesc [[addOne]].
     *
     * @param allData
-    *   the data to add
+    *   $addOneManyParamAllData
     * @return
-    *   a new, updated structure
+    *   $immutableReturn
     */
   def addOneMany(allData: Iterable[ValidData[V, D]]): DataMulti[V, D] = copyAndModify: result =>
     allData.foreach(result.addOneInPlace)
 
   /**
-    * Remove all the values following the logic in [[removeOne]].
+    * $removeOneManyDesc [[removeOne]].
     *
     * @param allData
-    *   the data to remove
+    *   $removeOneManyParamAllData
     * @return
-    *   a new, updated structure
+    *   $immutableReturn
     */
   def removeOneMany(allData: Iterable[ValidData[V, D]]): DataMulti[V, D] = copyAndModify: result =>
     allData.foreach(result.removeOneInPlace)

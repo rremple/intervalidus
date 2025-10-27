@@ -56,9 +56,9 @@ object DataMulti extends DimensionalMultiBaseObject:
   * intervals, and a concat method for combining two structures (a merge where overlaps are concatenated).
   *
   * @tparam V
-  *   the value type for valid data.
+  *   $dataValueType
   * @tparam D
-  *   the domain type -- [[DomainLike]] non-empty tuples.
+  *   $intervalDomainType
   */
 class DataMulti[V, D <: NonEmptyTuple: DomainLike] protected (
   override val dataByStartAsc: mutable.TreeMap[D, ValidData[Set[V], D]],
@@ -76,48 +76,46 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] protected (
   // ---------- Specific multivalue methods that have mutable signatures ----------
 
   /**
-    * Concatenates all valid data in that structure into this one.
+    * $mergeOneDesc $mutableAction
     *
     * @param that
-    *   the structure which is going to be concatenated.
+    *   $mergeOneParamThat
     */
   def mergeOne(that: DataMulti[V, D]): Unit =
     merge(that, _ ++ _)
 
   /**
-    * Update everything valid in data's interval to have the data's value. New intervals of validity are added where no
-    * data in the interval are valid. Data with overlaps are adjusted accordingly.
+    * $addOneDesc $mutableAction
     *
     * @param data
-    *   the data to add
+    *   $addOneParamData
     */
   def addOne(data: ValidData[V, D]): Unit =
     addOneInPlace(data)
 
   /**
-    * Remove valid values on the interval. Intervals of validity are removed where only this value is valid. Data with
-    * overlaps are adjusted accordingly.
+    * $removeOneDesc $mutableAction
     *
     * @param data
-    *   the data to remove
+    *   $removeOneParamData
     */
   def removeOne(data: ValidData[V, D]): Unit =
     removeOneInPlace(data)
 
   /**
-    * Add all the values following the logic in [[addOne]]
+    * $addOneManyDesc [[addOne]]. $mutableAction
     *
     * @param allData
-    *   the data to add
+    *   $addOneManyParamAllData
     */
   def addOneMany(allData: Iterable[ValidData[V, D]]): Unit =
     allData.foreach(addOneInPlace)
 
   /**
-    * Remove all the values following the logic in [[removeOne]].
+    * $removeOneManyDesc [[removeOne]]. $mutableAction
     *
     * @param allData
-    *   the data to remove
+    *   $removeOneManyParamAllData
     */
   def removeOneMany(allData: Iterable[ValidData[V, D]]): Unit =
     allData.foreach(removeOneInPlace)
