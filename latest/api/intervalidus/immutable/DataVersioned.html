@@ -15,10 +15,8 @@
 </div>
 <div class="cover">
  <div class="doc">
-  <p>Immutable versioned dimensional data in any dimension.</p>
-  <p>Interface is similar to <a href="Data.html">Data</a>, but it operates on an underlying <a href="../mutable/Data.html">mutable.Data</a> using an extra integer-valued head dimension to version data. One use case would be versioned data that are valid in two dimensions of time, so the underlying data actually vary in terms of version and two dimensions of time (three dimensions total). Most methods require some generic version selection criteria rather than specific integer intervals, therefore this does not extend <a href="../DimensionalBase.html">DimensionalBase</a>.</p>
-  <p>The "current" version is managed as state (a <code>var</code>). Versioning also separates notions of approved vs. unapproved data (unapproved data are pushed up to start at version maxValue).</p>
-  <p>When getting data, by default, we return "current" version data (a.k.a., approved). When updating data, by default, we don't rewrite history, so mutations start with the "current" version too.</p>
+  <p>Immutable versioned dimensional data in any dimension.</p><invalid inheritdoc annotation>
+  </invalid>
  </div>
  <section id="attributes">
   <h2 class="h500">Type parameters</h2>
@@ -27,13 +25,13 @@
     D
    </dt>
    <dd class="body-medium">
-    <p>the domain type for intervals in the public interface -- <a href="../DomainLike.html">DomainLike</a> non-empty tuples.</p>
+    <p>the domain type -- a non-empty tuple that is DomainLike.</p>
    </dd>
    <dt class="body-small">
     V
    </dt>
    <dd class="body-medium">
-    <p>the value type for valid data.</p>
+    <p>the type of the value managed as data.</p>
    </dd>
   </dl>
   <h2 class="h500">Attributes</h2>
@@ -338,12 +336,11 @@ node6 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Applies a sequence of diff actions to this structure.</p>
+             <p>Applies a sequence of diff actions to this structure. Does not use a version selection context -- operates on full underlying structure.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Applies a sequence of diff actions to this structure.</p>
-              <p>Does not use a version selection context -- operates on full underlying structure.</p>
+              <p>Applies a sequence of diff actions to this structure. Does not use a version selection context -- operates on full underlying structure.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -395,7 +392,7 @@ node6 -> node1;
                data
               </dt>
               <dd class="body-medium">
-               <p>currently unapproved data to approved</p>
+               <p>Special case where we change the version interval by approving everything that is unapproved.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -471,11 +468,11 @@ node6 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Creates a new structure based that includes only data based on the version selection context, but without any version history.</p>
+             <p>Include only data based on the version selection context, but without any version history.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Creates a new structure based that includes only data based on the version selection context, but without any version history.</p>
+              <p>Include only data based on the version selection context, but without any version history.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -566,11 +563,11 @@ node6 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Compress out adjacent intervals with the same value.</p>
+             <p>Compress out adjacent intervals with the same value. Does not use a version selection context -- operates on full underlying structure.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Compress out adjacent intervals with the same value.</p>
+              <p>Compress out adjacent intervals with the same value. Does not use a version selection context -- operates on full underlying structure.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -610,11 +607,11 @@ node6 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Compress out adjacent intervals with the same value for all values.</p>
+             <p>Compress out adjacent intervals with the same value for all values. Does not use a version selection context -- operates on full underlying structure.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Compress out adjacent intervals with the same value for all values.</p>
+              <p>Compress out adjacent intervals with the same value for all values. Does not use a version selection context -- operates on full underlying structure.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -658,64 +655,6 @@ node6 -> node1;
               </dt>
               <dd class="body-medium">
                <p>a new structure with the same data and initial/current version.</p>
-              </dd>
-              <dt class="body-small">
-               Definition Classes
-              </dt>
-              <dd class="body-medium">
-               <div>
-                <a href="../DimensionalVersionedBase.html">DimensionalVersionedBase</a>
-               </div>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="diffActionsBetween-eda" data-f-keywords="override">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="DataVersioned.html#diffActionsBetween-eda" t="n" class="documentableName ">diffActionsBetween</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">olderVersion</span>: <a href="../DimensionalVersionedBase$$VersionSelection.html" t="t">VersionSelection</a>, <span t="k"></span><span data-unresolved-link="" t="n">newerVersion</span>: <a href="../DimensionalVersionedBase$$VersionSelection.html" t="t">VersionSelection</a>): <span data-unresolved-link="" t="t">Iterable</span>[<a href="../DiffAction.html" t="t">DiffAction</a>[<span t="t">V</span>, <a href="../DimensionalVersionedBase$.html#Versioned-0" t="t">Versioned</a>[<span t="t">D</span>]]]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Constructs a sequence of diff actions that, if applied to an old version of this structure, would synchronize it with the newer version.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Constructs a sequence of diff actions that, if applied to an old version of this structure, would synchronize it with the newer version.</p>
-             </div>
-             <h2 class="h200">Value parameters</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               newerVersion
-              </dt>
-              <dd class="body-medium">
-               <p>version selection for the newer version of this structure.</p>
-              </dd>
-              <dt class="body-small">
-               olderVersion
-              </dt>
-              <dd class="body-medium">
-               <p>version selection for the older version of this structure.</p>
-              </dd>
-             </dl>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Returns
-              </dt>
-              <dd class="body-medium">
-               <p>a sequence of diff actions that would synchronize the older version with the newer one.</p>
               </dd>
               <dt class="body-small">
                Definition Classes
@@ -795,7 +734,7 @@ node6 -> node1;
             <div class="cover">
              <div class="doc">
               <p>Updates structure to only include elements which satisfy a predicate.</p>
-              <p>Does not use a version selection context -- the predicate is applied to the underlying data, so it can operate on the underlying version information as well as the valid interval/value.</p>
+              <p>Does not use a version selection context -- the function is applied to the underlying data, so it can operate on the underlying version information as well as the valid interval/value.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -803,7 +742,7 @@ node6 -> node1;
                p
               </dt>
               <dd class="body-medium">
-               <p>the predicate used to test elements.</p>
+               <p>the predicate function used to test elements.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -835,11 +774,11 @@ node6 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Builds a new structure by applying a function to all elements of this collection and concatenating the elements of the resulting structures.</p>
+             <p>Applies a function to all the elements of this structure and builds a new structure by concatenating the elements of the resulting structures.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Builds a new structure by applying a function to all elements of this collection and concatenating the elements of the resulting structures.</p>
+              <p>Applies a function to all the elements of this structure and builds a new structure by concatenating the elements of the resulting structures.</p>
               <p>Does not use a version selection context -- the function is applied to the underlying data, so it can operate on the underlying version information as well as the valid interval/value.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
@@ -1292,12 +1231,11 @@ node6 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Compress out adjacent intervals with the same value for all values after decompressing everything, resulting in a unique physical representation.</p>
+             <p>Compress out adjacent intervals with the same value for all values after decompressing everything, resulting in a unique physical representation. Does not use a version selection context -- operates on full underlying structure.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Compress out adjacent intervals with the same value for all values after decompressing everything, resulting in a unique physical representation.</p>
-              <p>Does not use a version selection context -- operates on full underlying structure.</p>
+              <p>Compress out adjacent intervals with the same value for all values after decompressing everything, resulting in a unique physical representation. Does not use a version selection context -- operates on full underlying structure.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -1690,12 +1628,11 @@ node6 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Synchronizes this with another structure by getting and applying the applicable diff actions.</p>
+             <p>Synchronizes this with another structure by getting and applying the applicable diff actions. Does not use a version selection context -- operates on full underlying structure.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Synchronizes this with another structure by getting and applying the applicable diff actions.</p>
-              <p>Does not use a version selection context -- operates on full underlying structure.</p>
+              <p>Synchronizes this with another structure by getting and applying the applicable diff actions. Does not use a version selection context -- operates on full underlying structure.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -1712,7 +1649,7 @@ node6 -> node1;
                Returns
               </dt>
               <dd class="body-medium">
-               <p>a new, updated structure</p>
+               <p>a new, updated structure.</p>
               </dd>
              </dl>
             </div>
@@ -2169,6 +2106,62 @@ node6 -> node1;
               </dt>
               <dd class="body-medium">
                <span data-unresolved-link="">Function1</span>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="diffActionsBetween-eda" data-f-inherited="DimensionalVersionedBase">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DataVersioned.html#diffActionsBetween-eda" t="n" class="documentableName ">diffActionsBetween</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">olderVersion</span>: <a href="../DimensionalVersionedBase$$VersionSelection.html" t="t">VersionSelection</a>, <span t="k"></span><span data-unresolved-link="" t="n">newerVersion</span>: <a href="../DimensionalVersionedBase$$VersionSelection.html" t="t">VersionSelection</a>): <span data-unresolved-link="" t="t">Iterable</span>[<a href="../DiffAction.html" t="t">DiffAction</a>[<span t="t">V</span>, <a href="../DimensionalVersionedBase$.html#Versioned-0" t="t">Versioned</a>[<span t="t">D</span>]]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Constructs a sequence of diff actions that, if applied to an old version of this structure, would synchronize it with the newer version.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Constructs a sequence of diff actions that, if applied to an old version of this structure, would synchronize it with the newer version.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               newerVersion
+              </dt>
+              <dd class="body-medium">
+               <p>version selection for the newer version of this structure.</p>
+              </dd>
+              <dt class="body-small">
+               olderVersion
+              </dt>
+              <dd class="body-medium">
+               <p>version selection for the older version of this structure.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>a sequence of diff actions that would synchronize the older version with the newer one.</p>
+              </dd>
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="../DimensionalVersionedBase.html#diffActionsBetween-eda">DimensionalVersionedBase</a>
               </dd>
              </dl>
             </div>

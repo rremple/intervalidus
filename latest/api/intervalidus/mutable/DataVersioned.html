@@ -15,10 +15,8 @@
 </div>
 <div class="cover">
  <div class="doc">
-  <p>Immutable versioned dimensional data in any dimension.</p>
-  <p>Interface is similar to <a href="Data.html">Data</a>, but it operates on an underlying <a href="Data.html">mutable.Data</a> using an extra integer-valued head dimension to version data. One use case would be versioned data that are valid in two dimensions of time, so the underlying data actually vary in terms of version and two dimensions of time (three dimensions total). Most methods require some generic version selection criteria rather than specific integer intervals, therefore this does not extend <a href="../DimensionalBase.html">DimensionalBase</a>.</p>
-  <p>The "current" version is managed as state (a <code>var</code>). Versioning also separates notions of approved vs. unapproved data (unapproved data are pushed up to start at version maxValue).</p>
-  <p>When getting data, by default, we return "current" version data (a.k.a., approved). When updating data, by default, we don't rewrite history, so mutations start with the "current" version too.</p>
+  <p>Mutable versioned dimensional data in any dimension.</p><invalid inheritdoc annotation>
+  </invalid>
  </div>
  <section id="attributes">
   <h2 class="h500">Type parameters</h2>
@@ -27,13 +25,13 @@
     D
    </dt>
    <dd class="body-medium">
-    <p>the domain type for intervals in the public interface -- <a href="../DomainLike.html">DomainLike</a> non-empty tuples.</p>
+    <p>$intervalDomainType1</p>
    </dd>
    <dt class="body-small">
     V
    </dt>
    <dd class="body-medium">
-    <p>the value type for valid data.</p>
+    <p>the type of the value managed as data.</p>
    </dd>
   </dl>
   <h2 class="h500">Attributes</h2>
@@ -153,7 +151,7 @@ node6 -> node1;
             <div class="cover">
              <div class="doc">
               <p>Same as <a href="DataVersioned.html#set-67b">set</a></p>
-              <p>Set new valid data. Given a version selection context, any data previously valid in this interval are replaced by this data.</p>
+              <p>Set new valid data. Given a version selection context, any data previously valid in this interval are replaced by this data. Data are mutated in place.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -191,7 +189,7 @@ node6 -> node1;
             <div class="cover">
              <div class="doc">
               <p>Same as <a href="DataVersioned.html#setMany-b7">setMany</a></p>
-              <p>Set a collection of new valid data. Given a version selection context, any data previously valid in the intervals are replaced by these data.</p>
+              <p>Set a collection of new valid data. Given a version selection context, any data previously valid in the intervals are replaced by these data. Data are mutated in place.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -240,7 +238,7 @@ node6 -> node1;
             <div class="cover">
              <div class="doc">
               <p>Same as <a href="DataVersioned.html#remove-fffffbbc">remove</a></p>
-              <p>Remove valid values on the interval and the given version selection context. If there are values valid on portions of the interval, those values have their intervals adjusted (e.g., shortened, shifted, split) accordingly.</p>
+              <p>Remove valid values on the interval and the given version selection context. If there are values valid on portions of the interval, those values have their intervals adjusted (e.g., shortened, shifted, split) accordingly. Data are mutated in place.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -278,7 +276,7 @@ node6 -> node1;
             <div class="cover">
              <div class="doc">
               <p>Same as <a href="DataVersioned.html#removeMany-b7">removeMany</a></p>
-              <p>Remove data in all the intervals given a version selection context. If there are values valid on portions of any interval, those values have their intervals adjusted (e.g., shortened, shifted, split) accordingly.</p>
+              <p>Remove data in all the intervals given a version selection context. If there are values valid on portions of any interval, those values have their intervals adjusted (e.g., shortened, shifted, split) accordingly. Data are mutated in place.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -311,12 +309,11 @@ node6 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Applies a sequence of diff actions to this structure.</p>
+             <p>Applies a sequence of diff actions to this structure. Data are mutated in place. Does not use a version selection context -- operates on full underlying structure.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Applies a sequence of diff actions to this structure.</p>
-              <p>Does not use a version selection context -- operates on full underlying structure.</p>
+              <p>Applies a sequence of diff actions to this structure. Data are mutated in place. Does not use a version selection context -- operates on full underlying structure.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -349,11 +346,11 @@ node6 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Special case where we change the version interval by approving everything that is unapproved.</p>
+             <p>Special case where we change the version interval by approving everything that is unapproved. Data are mutated in place.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Special case where we change the version interval by approving everything that is unapproved.</p>
+              <p>Special case where we change the version interval by approving everything that is unapproved. Data are mutated in place.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -361,7 +358,7 @@ node6 -> node1;
                data
               </dt>
               <dd class="body-medium">
-               <p>currently unapproved data to approved</p>
+               <p>Special case where we change the version interval by approving everything that is unapproved.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -393,11 +390,11 @@ node6 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Useful when approving everything in a range, including empty space (i.e., an unapproved removal)</p>
+             <p>Useful when approving everything in a range, including empty space (i.e., an unapproved removal) Data are mutated in place.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Useful when approving everything in a range, including empty space (i.e., an unapproved removal)</p>
+              <p>Useful when approving everything in a range, including empty space (i.e., an unapproved removal) Data are mutated in place.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -430,11 +427,11 @@ node6 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Updates the existing structure to include only data based on the version selection context, but without any version history.</p>
+             <p>Include only data based on the version selection context, but without any version history. Data are mutated in place.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Updates the existing structure to include only data based on the version selection context, but without any version history.</p>
+              <p>Include only data based on the version selection context, but without any version history. Data are mutated in place.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -496,11 +493,11 @@ node6 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Compress out adjacent intervals with the same value.</p>
+             <p>Compress out adjacent intervals with the same value. Data are mutated in place. Does not use a version selection context -- operates on full underlying structure.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Compress out adjacent intervals with the same value.</p>
+              <p>Compress out adjacent intervals with the same value. Data are mutated in place. Does not use a version selection context -- operates on full underlying structure.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -533,11 +530,11 @@ node6 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Compress out adjacent intervals with the same value for all values.</p>
+             <p>Compress out adjacent intervals with the same value for all values. Data are mutated in place. Does not use a version selection context -- operates on full underlying structure.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Compress out adjacent intervals with the same value for all values.</p>
+              <p>Compress out adjacent intervals with the same value for all values. Data are mutated in place. Does not use a version selection context -- operates on full underlying structure.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -589,64 +586,6 @@ node6 -> node1;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="diffActionsBetween-eda" data-f-keywords="override">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="DataVersioned.html#diffActionsBetween-eda" t="n" class="documentableName ">diffActionsBetween</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">olderVersion</span>: <a href="../DimensionalVersionedBase$$VersionSelection.html" t="t">VersionSelection</a>, <span t="k"></span><span data-unresolved-link="" t="n">newerVersion</span>: <a href="../DimensionalVersionedBase$$VersionSelection.html" t="t">VersionSelection</a>): <span data-unresolved-link="" t="t">Iterable</span>[<a href="../DiffAction.html" t="t">DiffAction</a>[<span t="t">V</span>, <a href="../DimensionalVersionedBase$.html#Versioned-0" t="t">Versioned</a>[<span t="t">D</span>]]]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Constructs a sequence of diff actions that, if applied to an old version of this structure, would synchronize it with the newer version.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Constructs a sequence of diff actions that, if applied to an old version of this structure, would synchronize it with the newer version.</p>
-             </div>
-             <h2 class="h200">Value parameters</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               newerVersion
-              </dt>
-              <dd class="body-medium">
-               <p>version selection for the newer version of this structure.</p>
-              </dd>
-              <dt class="body-small">
-               olderVersion
-              </dt>
-              <dd class="body-medium">
-               <p>version selection for the older version of this structure.</p>
-              </dd>
-             </dl>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Returns
-              </dt>
-              <dd class="body-medium">
-               <p>a sequence of diff actions that would synchronize the older version with the newer one.</p>
-              </dd>
-              <dt class="body-small">
-               Definition Classes
-              </dt>
-              <dd class="body-medium">
-               <div>
-                <a href="../DimensionalVersionedBase.html">DimensionalVersionedBase</a>
-               </div>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
         <div class="documentableElement" id="fill-67b">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -662,11 +601,11 @@ node6 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Given the version selection context, adds a value as valid in portions of the interval where there aren't already valid values.</p>
+             <p>Given the version selection context, adds a value as valid in portions of the interval where there aren't already valid values. Data are mutated in place.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Given the version selection context, adds a value as valid in portions of the interval where there aren't already valid values.</p>
+              <p>Given the version selection context, adds a value as valid in portions of the interval where there aren't already valid values. Data are mutated in place.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -704,7 +643,7 @@ node6 -> node1;
             <div class="cover">
              <div class="doc">
               <p>Updates structure to only include elements which satisfy a predicate. Data are mutated in place.</p>
-              <p>Does not use a version selection context -- the predicate is applied to the underlying data, so it can operate on the underlying version information as well as the valid interval/value.</p>
+              <p>Does not use a version selection context -- the function is applied to the underlying data, so it can operate on the underlying version information as well as the valid interval/value.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -712,7 +651,7 @@ node6 -> node1;
                p
               </dt>
               <dd class="body-medium">
-               <p>the predicate used to test elements.</p>
+               <p>the predicate function used to test elements.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -737,11 +676,11 @@ node6 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Applies a function to all the elements of this structure and updates valid values from the elements of the resulting structures.</p>
+             <p>Applies a function to all the elements of this structure and updates valid values from the elements of the resulting structures. Data are mutated in place.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Applies a function to all the elements of this structure and updates valid values from the elements of the resulting structures.</p>
+              <p>Applies a function to all the elements of this structure and updates valid values from the elements of the resulting structures. Data are mutated in place.</p>
               <p>Does not use a version selection context -- the function is applied to the underlying data, so it can operate on the underlying version information as well as the valid interval/value.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
@@ -919,11 +858,11 @@ node6 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Increments the current version.</p>
+             <p>Increments the current version. Data are mutated in place.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Increments the current version.</p>
+              <p>Increments the current version. Data are mutated in place.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -1061,11 +1000,11 @@ node6 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Merges this structure with data from that structure. In intervals where both structures have valid values, the two values are merged (e.g., keep this data). In intervals where this does not have valid data but that does, the data are added (a fill operation). (Version timestamps of this and that are merged.)</p>
+             <p>Merges this structure with data from that structure. In intervals where both structures have valid values, the two values are merged (e.g., keep this data). In intervals where this does not have valid data but that does, the data are added (a fill operation). (Version timestamps of this and that are merged.) Data are mutated in place.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Merges this structure with data from that structure. In intervals where both structures have valid values, the two values are merged (e.g., keep this data). In intervals where this does not have valid data but that does, the data are added (a fill operation). (Version timestamps of this and that are merged.)</p>
+              <p>Merges this structure with data from that structure. In intervals where both structures have valid values, the two values are merged (e.g., keep this data). In intervals where this does not have valid data but that does, the data are added (a fill operation). (Version timestamps of this and that are merged.) Data are mutated in place.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -1104,12 +1043,11 @@ node6 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Compress out adjacent intervals with the same value for all values after decompressing everything, resulting in a unique physical representation.</p>
+             <p>Compress out adjacent intervals with the same value for all values after decompressing everything, resulting in a unique physical representation. Data are mutated in place. Does not use a version selection context -- operates on full underlying structure.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Compress out adjacent intervals with the same value for all values after decompressing everything, resulting in a unique physical representation.</p>
-              <p>Does not use a version selection context -- operates on full underlying structure.</p>
+              <p>Compress out adjacent intervals with the same value for all values after decompressing everything, resulting in a unique physical representation. Data are mutated in place. Does not use a version selection context -- operates on full underlying structure.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -1133,11 +1071,11 @@ node6 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Remove valid values on the interval and the given version selection context. If there are values valid on portions of the interval, those values have their intervals adjusted (e.g., shortened, shifted, split) accordingly.</p>
+             <p>Remove valid values on the interval and the given version selection context. If there are values valid on portions of the interval, those values have their intervals adjusted (e.g., shortened, shifted, split) accordingly. Data are mutated in place.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Remove valid values on the interval and the given version selection context. If there are values valid on portions of the interval, those values have their intervals adjusted (e.g., shortened, shifted, split) accordingly.</p>
+              <p>Remove valid values on the interval and the given version selection context. If there are values valid on portions of the interval, those values have their intervals adjusted (e.g., shortened, shifted, split) accordingly. Data are mutated in place.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -1170,11 +1108,11 @@ node6 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Remove data in all the intervals given a version selection context. If there are values valid on portions of any interval, those values have their intervals adjusted (e.g., shortened, shifted, split) accordingly.</p>
+             <p>Remove data in all the intervals given a version selection context. If there are values valid on portions of any interval, those values have their intervals adjusted (e.g., shortened, shifted, split) accordingly. Data are mutated in place.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Remove data in all the intervals given a version selection context. If there are values valid on portions of any interval, those values have their intervals adjusted (e.g., shortened, shifted, split) accordingly.</p>
+              <p>Remove data in all the intervals given a version selection context. If there are values valid on portions of any interval, those values have their intervals adjusted (e.g., shortened, shifted, split) accordingly. Data are mutated in place.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -1207,11 +1145,11 @@ node6 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Remove the value in all the intervals where it is valid in the given version selection context.</p>
+             <p>Remove the value in all the intervals where it is valid in the given version selection context. Data are mutated in place.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Remove the value in all the intervals where it is valid in the given version selection context.</p>
+              <p>Remove the value in all the intervals where it is valid in the given version selection context. Data are mutated in place.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -1244,11 +1182,11 @@ node6 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Eliminate all version information after the specified version (including any unapproved changes).</p>
+             <p>Eliminate all version information after the specified version (including any unapproved changes). Data are mutated in place.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Eliminate all version information after the specified version (including any unapproved changes).</p>
+              <p>Eliminate all version information after the specified version (including any unapproved changes). Data are mutated in place.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -1281,11 +1219,11 @@ node6 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Set new valid data. Given a version selection context, any data previously valid in this interval are replaced by this data.</p>
+             <p>Set new valid data. Given a version selection context, any data previously valid in this interval are replaced by this data. Data are mutated in place.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Set new valid data. Given a version selection context, any data previously valid in this interval are replaced by this data.</p>
+              <p>Set new valid data. Given a version selection context, any data previously valid in this interval are replaced by this data. Data are mutated in place.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -1318,11 +1256,11 @@ node6 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Sets the current version. No version history is rewritten, which may cause some unexpected results (especially if the version is set to something from the past, which also rewrites version timestamp history). Use with caution.</p>
+             <p>Sets the current version. No version history is rewritten, which may cause some unexpected results (especially if the version is set to something from the past, which also rewrites version timestamp history). Use with caution. Data are mutated in place.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Sets the current version. No version history is rewritten, which may cause some unexpected results (especially if the version is set to something from the past, which also rewrites version timestamp history). Use with caution.</p>
+              <p>Sets the current version. No version history is rewritten, which may cause some unexpected results (especially if the version is set to something from the past, which also rewrites version timestamp history). Use with caution. Data are mutated in place.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -1355,11 +1293,11 @@ node6 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Set new valid data, but only if there are no previously valid values in its interval and given the version selection context.</p>
+             <p>Set new valid data, but only if there are no previously valid values in its interval and given the version selection context. Data are mutated in place.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Set new valid data, but only if there are no previously valid values in its interval and given the version selection context.</p>
+              <p>Set new valid data, but only if there are no previously valid values in its interval and given the version selection context. Data are mutated in place.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -1399,11 +1337,11 @@ node6 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Set a collection of new valid data. Given a version selection context, any data previously valid in the intervals are replaced by these data.</p>
+             <p>Set a collection of new valid data. Given a version selection context, any data previously valid in the intervals are replaced by these data. Data are mutated in place.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Set a collection of new valid data. Given a version selection context, any data previously valid in the intervals are replaced by these data.</p>
+              <p>Set a collection of new valid data. Given a version selection context, any data previously valid in the intervals are replaced by these data. Data are mutated in place.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -1447,12 +1385,11 @@ node6 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Synchronizes this with another structure by getting and applying the applicable diff actions.</p>
+             <p>Synchronizes this with another structure by getting and applying the applicable diff actions. Data are mutated in place. Does not use a version selection context -- operates on full underlying structure.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Synchronizes this with another structure by getting and applying the applicable diff actions.</p>
-              <p>Does not use a version selection context -- operates on full underlying structure.</p>
+              <p>Synchronizes this with another structure by getting and applying the applicable diff actions. Data are mutated in place. Does not use a version selection context -- operates on full underlying structure.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -1559,11 +1496,11 @@ node6 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Update everything valid in the specified interval and the given version selection context to have the specified value. No new intervals of validity are added as part of this operation. Data with overlaps are adjusted accordingly.</p>
+             <p>Update everything valid in the specified interval and the given version selection context to have the specified value. No new intervals of validity are added as part of this operation. Data with overlaps are adjusted accordingly. Data are mutated in place.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Update everything valid in the specified interval and the given version selection context to have the specified value. No new intervals of validity are added as part of this operation. Data with overlaps are adjusted accordingly.</p>
+              <p>Update everything valid in the specified interval and the given version selection context to have the specified value. No new intervals of validity are added as part of this operation. Data with overlaps are adjusted accordingly. Data are mutated in place.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -1912,6 +1849,62 @@ node6 -> node1;
               </dt>
               <dd class="body-medium">
                <span data-unresolved-link="">Function1</span>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="diffActionsBetween-eda" data-f-inherited="DimensionalVersionedBase">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DataVersioned.html#diffActionsBetween-eda" t="n" class="documentableName ">diffActionsBetween</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">olderVersion</span>: <a href="../DimensionalVersionedBase$$VersionSelection.html" t="t">VersionSelection</a>, <span t="k"></span><span data-unresolved-link="" t="n">newerVersion</span>: <a href="../DimensionalVersionedBase$$VersionSelection.html" t="t">VersionSelection</a>): <span data-unresolved-link="" t="t">Iterable</span>[<a href="../DiffAction.html" t="t">DiffAction</a>[<span t="t">V</span>, <a href="../DimensionalVersionedBase$.html#Versioned-0" t="t">Versioned</a>[<span t="t">D</span>]]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Constructs a sequence of diff actions that, if applied to an old version of this structure, would synchronize it with the newer version.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Constructs a sequence of diff actions that, if applied to an old version of this structure, would synchronize it with the newer version.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               newerVersion
+              </dt>
+              <dd class="body-medium">
+               <p>version selection for the newer version of this structure.</p>
+              </dd>
+              <dt class="body-small">
+               olderVersion
+              </dt>
+              <dd class="body-medium">
+               <p>version selection for the older version of this structure.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>a sequence of diff actions that would synchronize the older version with the newer one.</p>
+              </dd>
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="../DimensionalVersionedBase.html#diffActionsBetween-eda">DimensionalVersionedBase</a>
               </dd>
              </dl>
             </div>

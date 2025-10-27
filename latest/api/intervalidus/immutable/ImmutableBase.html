@@ -21,7 +21,7 @@
     D
    </dt>
    <dd class="body-medium">
-    <p>the domain type -- <a href="../DomainLike.html">DomainLike</a> non-empty tuples.</p>
+    <p>the domain type -- a non-empty tuple that is DomainLike.</p>
    </dd>
    <dt class="body-small">
     Self
@@ -33,7 +33,7 @@
     V
    </dt>
    <dd class="body-medium">
-    <p>the value type for valid data.</p>
+    <p>the type of the value managed as data.</p>
    </dd>
   </dl>
   <h2 class="h500">Attributes</h2>
@@ -251,11 +251,11 @@ node8 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Builds a new structure by applying a function to all elements of this collection and concatenating the elements of the resulting structures.</p>
+             <p>Builds a new structure by applying a function to all the elements of this collection and concatenating the elements of the resulting structures.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Builds a new structure by applying a function to all elements of this collection and concatenating the elements of the resulting structures.</p>
+              <p>Builds a new structure by applying a function to all the elements of this collection and concatenating the elements of the resulting structures.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -346,7 +346,7 @@ node8 -> node0;
                Returns
               </dt>
               <dd class="body-medium">
-               <p>a new structure resulting from applying the provided function f to each element of this structure.</p>
+               <p>a new structure resulting from applying the provided function to each element of this structure.</p>
               </dd>
              </dl>
             </div>
@@ -533,7 +533,7 @@ node8 -> node0;
             <div class="cover">
              <div class="doc">
               <p>Same as <a href="ImmutableBase.html#setMany-fffff171">setMany</a></p>
-              <p>Set a collection of new valid data. Replaces any data previously valid in this interval.</p>
+              <p>Set a collection of new valid data. Replaces any data previously valid in this interval. @note if intervals overlap, later items will update earlier ones, so order can matter.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -551,16 +551,6 @@ node8 -> node0;
               </dt>
               <dd class="body-medium">
                <p>a new, updated structure.</p>
-              </dd>
-              <dt class="body-small">
-               Note
-              </dt>
-              <dd class="body-medium">
-               <div>
-                <div>
-                 <p>if intervals overlap, later items will update earlier ones, so order can matter.</p>
-                </div>
-               </div>
               </dd>
              </dl>
             </div>
@@ -641,7 +631,7 @@ node8 -> node0;
                intervals
               </dt>
               <dd class="body-medium">
-               <p>the interval where any valid values are removed.</p>
+               <p>the intervals where any valid values are removed.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -729,7 +719,7 @@ node8 -> node0;
                value
               </dt>
               <dd class="body-medium">
-               <p>value to be evaluated</p>
+               <p>value to be evaluated.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -1035,7 +1025,7 @@ node8 -> node0;
                intervals
               </dt>
               <dd class="body-medium">
-               <p>the interval where any valid values are removed.</p>
+               <p>the intervals where any valid values are removed.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -1111,11 +1101,11 @@ node8 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Remove the old data and replace it with the new data. The new data value and interval can be different. Data with overlaps with the new data interval are adjusted accordingly.</p>
+             <p>Remove the old data and replace it with the new data. The new data value and interval can be different. Data that overlaps with the new data interval are adjusted accordingly.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Remove the old data and replace it with the new data. The new data value and interval can be different. Data with overlaps with the new data interval are adjusted accordingly.</p>
+              <p>Remove the old data and replace it with the new data. The new data value and interval can be different. Data that overlaps with the new data interval are adjusted accordingly.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -1161,11 +1151,11 @@ node8 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Remove the old data and replace it with the new data. The new data value and interval can be different. Data with overlaps with the new data interval are adjusted accordingly.</p>
+             <p>Remove the old data and replace it with the new data. The new data value and interval can be different. Data that overlaps with the new data interval are adjusted accordingly.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Remove the old data and replace it with the new data. The new data value and interval can be different. Data with overlaps with the new data interval are adjusted accordingly.</p>
+              <p>Remove the old data and replace it with the new data. The new data value and interval can be different. Data that overlaps with the new data interval are adjusted accordingly.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -1299,11 +1289,11 @@ node8 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Set a collection of new valid data. Replaces any data previously valid in this interval.</p>
+             <p>Set a collection of new valid data. Replaces any data previously valid in this interval. @note if intervals overlap, later items will update earlier ones, so order can matter.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Set a collection of new valid data. Replaces any data previously valid in this interval.</p>
+              <p>Set a collection of new valid data. Replaces any data previously valid in this interval. @note if intervals overlap, later items will update earlier ones, so order can matter.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -1321,16 +1311,6 @@ node8 -> node0;
               </dt>
               <dd class="body-medium">
                <p>a new, updated structure.</p>
-              </dd>
-              <dt class="body-small">
-               Note
-              </dt>
-              <dd class="body-medium">
-               <div>
-                <div>
-                 <p>if intervals overlap, later items will update earlier ones, so order can matter.</p>
-                </div>
-               </div>
               </dd>
              </dl>
             </div>
@@ -1397,11 +1377,11 @@ node8 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Update everything valid in data's interval to have the data's value. No new intervals of validity are added as part of this operation. Data with overlaps are adjusted accordingly.</p>
+             <p>Update everything valid in data's interval to have the data's value. No new intervals of validity are added as part of this operation. Data that overlaps are adjusted accordingly.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Update everything valid in data's interval to have the data's value. No new intervals of validity are added as part of this operation. Data with overlaps are adjusted accordingly.</p>
+              <p>Update everything valid in data's interval to have the data's value. No new intervals of validity are added as part of this operation. Data that overlaps are adjusted accordingly.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
