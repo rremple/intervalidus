@@ -352,10 +352,12 @@
           <div>
            <div class="originInfo"></div>
            <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Constructs data in multidimensional intervals that are also versioned (hidden extra dimension).</p>
+            </div>
             <div class="cover">
              <div class="doc">
-              <invalid inheritdoc annotation>
-              </invalid>
+              <p>Constructs data in multidimensional intervals that are also versioned (hidden extra dimension).</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -420,8 +422,9 @@
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Mutable versioned dimensional data in any dimension.</p><invalid inheritdoc annotation>
-              </invalid>
+              <p>Mutable versioned dimensional data in any dimension.</p>
+              <p>Interface is similar to <a href="mutable/Data.html">Data</a>, but it operates on an underlying <a href="mutable/Data.html">Data</a> using an extra integer-valued head dimension to version data. One use case would be versioned data that are valid in two dimensions of time, so the underlying data actually vary in terms of version and two dimensions of time (three dimensions). Most methods require some generic version selection criteria rather than specific integer intervals, therefore this does not extend <a href="mutable/Data.html">Data</a>.</p>
+              <p>The "current" version is managed as state (a var). Versioning also separates notions of approved vs. unapproved data (unapproved data are pushed up to start at version maxValue). When getting data, by default, we return "current" version data (a.k.a., approved). When updating data, by default, we don't rewrite history, so mutations start with the "current" version too.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">

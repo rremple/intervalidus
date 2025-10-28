@@ -15,9 +15,14 @@
 </div>
 <div class="cover">
  <div class="doc">
-  <p>Type class for a continuous value.</p><invalid inheritdoc annotation>
-   <p>Unlike discrete values, there is no requirement for having predecessors and successors defined. Although every digitized data structure is discrete, it is often easier to work with some data types when they are treated as continuous. For example, integer values and local dates are good candidates for being discrete where double-precision float values and local date-times are better treated as continuous.</p>
-  </invalid>
+  <p>Type class for a continuous value.</p>
+  <p>A domain value is at least</p>
+  <ol>
+   <li>finite, with a max and min value (think <code>Double</code> with its <code>MaxValue</code> and <code>MinValue</code> methods)</li>
+   <li>totally ordered (this type class extends the <span data-unresolved-link="">Ordering</span> type class, requiring a compare method).</li>
+   <li>mappable to a similarly ordered double value (potentially with collisions)</li>
+  </ol>
+  <p>Unlike discrete values, there is no requirement for having predecessors and successors defined. Although every digitized data structure is discrete, it is often easier to work with some data types when they are treated as continuous. For example, integer values and local dates are good candidates for being discrete where double-precision float values and local date-times are better treated as continuous.</p>
  </div>
  <section id="attributes">
   <h2 class="h500">Type parameters</h2>
