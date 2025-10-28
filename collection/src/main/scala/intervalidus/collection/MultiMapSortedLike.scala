@@ -3,14 +3,15 @@ package intervalidus.collection
 import scala.collection.immutable.SortedSet
 
 /**
-  * A multimap where multiple values can be associated with the same key. Similar to `SortedMultiDict` in
-  * `scala-collection-contrib`, but this returns values in order (values are stored in a sorted set), not keys. Also,
-  * this only implements a small subset of methods needed in this project.
-  *
+  * $classDesc
   * @tparam K
   *   key type
   * @tparam V
   *   value type (uses `Ordering[V]`)
+  * @define classDesc
+  *   A multimap where multiple values can be associated with the same key. Similar to `SortedMultiDict` in
+  *   `scala-collection-contrib`, but this returns values in order (values are stored in a sorted set), not keys. Also,
+  *   this only implements a small subset of methods needed in this project.
   */
 trait MultiMapSortedLike[K, V: Ordering](dict: collection.Map[K, SortedSet[V]]):
 

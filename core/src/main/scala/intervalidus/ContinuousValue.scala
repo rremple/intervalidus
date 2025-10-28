@@ -3,7 +3,10 @@ package intervalidus
 /**
   * Type class for a continuous value.
   *
-  * @inheritdoc
+  * A domain value is at least
+  *   1. finite, with a max and min value (think `Double` with its `MaxValue` and `MinValue` methods)
+  *   1. totally ordered (this type class extends the [[Ordering]] type class, requiring a compare method).
+  *   1. mappable to a similarly ordered double value (potentially with collisions)
   *
   * Unlike discrete values, there is no requirement for having predecessors and successors defined. Although every
   * digitized data structure is discrete, it is often easier to work with some data types when they are treated as

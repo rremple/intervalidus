@@ -11,7 +11,7 @@ import scala.compiletime.ops.int.S
 import scala.language.implicitConversions
 import scala.math.Ordering.Implicits.infixOrderingOps
 
-/** @inheritdoc */
+/** $objectDesc */
 object DataVersioned extends DimensionalVersionedBaseObject:
   type In1D[V, R1] = DataVersioned[V, Domain.In1D[R1]]
   type In2D[V, R1, R2] = DataVersioned[V, Domain.In2D[R1, R2]]
@@ -58,7 +58,11 @@ object DataVersioned extends DimensionalVersionedBaseObject:
 /**
   * Immutable versioned dimensional data in any dimension.
   *
-  * @inheritdoc
+  * Interface is similar to [[Data]], but it operates on an underlying [[intervalidus.mutable.Data]] using an extra
+  * integer-valued head dimension to version data. $classDescUseCase Most methods require some generic version selection
+  * criteria rather than specific integer intervals, therefore this does not extend [[Data]].
+  *
+  * $classDescFeatures
   *
   * @note
   *   $classNote

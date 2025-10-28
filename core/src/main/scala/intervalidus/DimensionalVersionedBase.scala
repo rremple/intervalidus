@@ -74,8 +74,9 @@ object DimensionalVersionedBase:
 import DimensionalVersionedBase.*
 
 /**
-  * Constructs data in multidimensional intervals that are also versioned (hidden extra dimension).
-  *
+  * $objectDesc
+  * @define objectDesc
+  *   Constructs data in multidimensional intervals that are also versioned (hidden extra dimension).
   * @define dataValueType
   *   the type of the value managed as data.
   * @define intervalDomainType
@@ -176,23 +177,11 @@ class DimensionalDataVersionedBuilder[V, D <: NonEmptyTuple: DomainLike, Self <:
     this
 
 /**
-  * Interface is similar to [[DimensionalBase]], but it operates on an underlying [[mutable.Data]] using an extra
-  * integer-valued head dimension to version data. One use case would be versioned data that are valid in two dimensions
-  * of time, so the underlying data actually vary in terms of version and two dimensions of time (three dimensions).
-  * Most methods require some generic version selection criteria rather than specific integer intervals, therefore this
-  * does not extend [[DimensionalBase]].
+  * Interface is similar to [[DimensionalBase]], but it operates on an underlying [[intervalidus.mutable.Data]] using an
+  * extra integer-valued head dimension to version data. $classDescUseCase Most methods require some generic version
+  * selection criteria rather than specific integer intervals, therefore this does not extend [[DimensionalBase]].
   *
-  * The "current" version is managed as state (a var). Versioning also separates notions of approved vs. unapproved data
-  * (unapproved data are pushed up to start at version maxValue).
-  *
-  * When getting data, by default, we return "current" version data (a.k.a., approved). When updating data, by default,
-  * we don't rewrite history, so mutations start with the "current" version too.
-  * @define classNote
-  *   Updates starting with "current" also update unapproved changes (since intervalFrom goes to the Top).
-  * @define dataValueType
-  *   the type of the value managed as data.
-  * @define intervalDomainType
-  *   the domain type -- a non-empty tuple that is DomainLike.
+  * $classDescFeatures
   *
   * @note
   *   $classNote
@@ -201,6 +190,20 @@ class DimensionalDataVersionedBuilder[V, D <: NonEmptyTuple: DomainLike, Self <:
   * @tparam D
   *   $intervalDomainType
   *
+  * @define classDescUseCase
+  *   One use case would be versioned data that are valid in two dimensions of time, so the underlying data actually
+  *   vary in terms of version and two dimensions of time (three dimensions).
+  * @define classDescFeatures
+  *   The "current" version is managed as state (a var). Versioning also separates notions of approved vs. unapproved
+  *   data (unapproved data are pushed up to start at version maxValue). When getting data, by default, we return
+  *   "current" version data (a.k.a., approved). When updating data, by default, we don't rewrite history, so mutations
+  *   start with the "current" version too.
+  * @define classNote
+  *   Updates starting with "current" also update unapproved changes (since intervalFrom goes to the Top).
+  * @define dataValueType
+  *   the type of the value managed as data.
+  * @define intervalDomainType
+  *   the domain type -- a non-empty tuple that is DomainLike.
   * @define noVersionSelection
   *   Does not use a version selection context -- operates on full underlying structure.
   * @define noVersionSelectionFunction

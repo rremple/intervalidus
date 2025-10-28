@@ -39,7 +39,7 @@ object MultiMapSorted:
     new MultiMapSorted[K, V](dict)
 
 /**
-  * @inheritdoc
+  * $classDesc
   *
   * @tparam K
   *   key type
