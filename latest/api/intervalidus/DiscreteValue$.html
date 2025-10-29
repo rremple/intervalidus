@@ -496,11 +496,20 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Constructs a type class from a non-empty, distinct sequence of values. Useful when representing enums as discrete values when auto-derivation is not possible or not desired, for example:</p>
+             <p>Constructs a type class from a non-empty, distinct, and indexed sequence of values, for example:</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Constructs a type class from a non-empty, distinct sequence of values. Useful when representing enums as discrete values when auto-derivation is not possible or not desired, for example:</p>
+              <p>Constructs a type class from a non-empty, distinct, and indexed sequence of values, for example:</p>
+              <div class="snippet mono-small-block">
+               <pre><code class="language-"><span line-number="1" class=""><span class="tooltip-container"></span><span class="hideable"> </span>case class Num(i: Int)
+</span><span line-number="2" class=""><span class="tooltip-container"></span><span class="hideable"> </span>object Num:
+</span><span line-number="3" class=""><span class="tooltip-container"></span><span class="hideable"> </span>  val values = IndexedSeq(Num(1), Num(2), Num(3), Num(5), Num(8), Num(13))
+</span><span line-number="4" class=""><span class="tooltip-container"></span><span class="hideable"> </span>given DiscreteValue[Num] = DiscreteValue.fromSeq(Num.values)
+</span></code></pre>
+               <div class="buttons"></div>
+              </div>
+              <p>Useful when representing enums as discrete values when auto-derivation is not possible or not desired, for example:</p>
               <div class="snippet mono-small-block">
                <pre><code class="language-"><span line-number="1" class=""><span class="tooltip-container"></span><span class="hideable"> </span>enum Color:
 </span><span line-number="2" class=""><span class="tooltip-container"></span><span class="hideable"> </span>  case Red, Yellow, Green, Cyan, Blue, Magenta
@@ -524,7 +533,7 @@ node3 -> node2;
                values
               </dt>
               <dd class="body-medium">
-               <p>a non-empty, distinct sequence of values</p>
+               <p>a non-empty, distinct, indexed sequence of values</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>

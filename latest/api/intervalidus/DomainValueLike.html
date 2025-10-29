@@ -14,10 +14,11 @@
  <div class="doc">
   <p>A domain value is at least</p>
   <ol>
-   <li>finite, with a max and min value (think <code>Double</code> with its <code>MaxValue</code> and <code>MinValue</code> methods)</li>
-   <li>totally ordered (this type class extends the <span data-unresolved-link="">Ordering</span> type class, requiring a compare method).</li>
-   <li>mappable to a similarly ordered double value (potentially with collisions)</li>
+   <li>bounded, with both a lower bound (<a href="DomainValueLike.html#minValue-0">minValue</a>) and an upper bound (<a href="DomainValueLike.html#maxValue-0">maxValue</a>)</li>
+   <li>totally ordered (extends <span data-unresolved-link="">Ordering</span>, requiring a <a href="DomainValueLike.html#compare-cc1">compare</a> method).</li>
+   <li>mappable to a weakly monotonic double value (requires an <a href="DomainValueLike.html#orderedHashOf-fffffeac">orderedHashOf</a> method that may have "collisions").</li>
   </ol>
+  <p>See <a href="https://en.wikipedia.org/wiki/Bounded_set">https://en.wikipedia.org/wiki/Bounded_set</a>, <a href="https://en.wikipedia.org/wiki/Maximum_and_minimum">https://en.wikipedia.org/wiki/Maximum_and_minimum</a>, <a href="https://en.wikipedia.org/wiki/Total_order">https://en.wikipedia.org/wiki/Total_order</a>, and <a href="https://en.wikipedia.org/wiki/Monotonic_function">https://en.wikipedia.org/wiki/Monotonic_function</a>.</p>
  </div>
  <section id="attributes">
   <h2 class="h500">Type parameters</h2>
@@ -26,7 +27,7 @@
     T
    </dt>
    <dd class="body-medium">
-    <p>a value that has continuous or discrete value behavior (e.g., <code>Double</code>)</p>
+    <p>a type with continuous or discrete value behavior (e.g., <code>Double</code>)</p>
    </dd>
   </dl>
   <h2 class="h500">Attributes</h2>
@@ -289,11 +290,11 @@ node19 -> node15;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Maximum value. See <a href="https://en.wikipedia.org/wiki/Maximum_and_minimum">https://en.wikipedia.org/wiki/Maximum_and_minimum</a>.</p>
+             <p>Maximum value (upper bound). See <a href="https://en.wikipedia.org/wiki/Maximum_and_minimum">https://en.wikipedia.org/wiki/Maximum_and_minimum</a>.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Maximum value. See <a href="https://en.wikipedia.org/wiki/Maximum_and_minimum">https://en.wikipedia.org/wiki/Maximum_and_minimum</a>.</p>
+              <p>Maximum value (upper bound). See <a href="https://en.wikipedia.org/wiki/Maximum_and_minimum">https://en.wikipedia.org/wiki/Maximum_and_minimum</a>.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -317,11 +318,11 @@ node19 -> node15;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Minimum value. See <a href="https://en.wikipedia.org/wiki/Maximum_and_minimum">https://en.wikipedia.org/wiki/Maximum_and_minimum</a>.</p>
+             <p>Minimum value (lower bound). See <a href="https://en.wikipedia.org/wiki/Maximum_and_minimum">https://en.wikipedia.org/wiki/Maximum_and_minimum</a>.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Minimum value. See <a href="https://en.wikipedia.org/wiki/Maximum_and_minimum">https://en.wikipedia.org/wiki/Maximum_and_minimum</a>.</p>
+              <p>Minimum value (lower bound). See <a href="https://en.wikipedia.org/wiki/Maximum_and_minimum">https://en.wikipedia.org/wiki/Maximum_and_minimum</a>.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
