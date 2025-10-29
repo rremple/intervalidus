@@ -219,7 +219,7 @@ class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors 
     )
 
     val fixture1 = Data(allData)
-    fixture1.copy.getAll.toList shouldBe fixture1.getAll.toList
+    fixture1.copy shouldBe fixture1
 
     val fixture2 = fixture1.map(d =>
       d.copy(

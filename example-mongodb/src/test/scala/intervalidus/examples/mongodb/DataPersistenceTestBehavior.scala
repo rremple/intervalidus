@@ -7,7 +7,7 @@ import intervalidus.DiscreteValue.given
 import intervalidus.Domain.In1D
 import intervalidus.Interval1D.{interval, intervalFrom, intervalTo}
 import intervalidus.immutable.Data
-import org.bson.{BsonDocument, BsonValue}
+import org.bson.{BsonDocument, BsonInt32, BsonValue}
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
@@ -15,6 +15,11 @@ import scala.jdk.CollectionConverters.*
 import scala.language.implicitConversions
 
 case class Word(english: String, italian: String)
+
+type WordIn1D = Data[Word, In1D[Int]]
+type ValidWord = ValidData[Word, In1D[Int]]
+
+case class LevelWord(level: Int, word: WordIn1D)
 
 /**
   * Demonstrate how dimensional data can be managed in a database. Uses MongoDB (via Testcontainers) to store, retrieve,
@@ -30,12 +35,14 @@ trait DataPersistenceTestBehavior[W[_], R[_]](using
   W[BsonDocument],
   W[Iterable[BsonDocument]],
   W[Domain.In1D[Int]],
-  W[ValidData[Word, In1D[Int]]],
-  W[Data[Word, In1D[Int]]],
+  W[ValidWord],
+  W[WordIn1D],
+  W[LevelWord],
   R[BsonValue],
   R[BsonDocument],
   R[Seq[BsonDocument]],
-  R[Data[Word, In1D[Int]]]
+  R[WordIn1D],
+  R[LevelWord]
 ) extends MongoDBContainerLike:
   this: AnyFunSuite with Matchers =>
 
@@ -43,10 +50,13 @@ trait DataPersistenceTestBehavior[W[_], R[_]](using
 
   extension [T: W](value: T) def as[S: R]: S = transform(value)
 
-  type DataIn1D = Data[Word, In1D[Int]]
-  type ValidIn1D = ValidData[Word, In1D[Int]]
-
   def commonBehaviors(prefix: String): Unit =
+    val initialData = List(
+      intervalTo(4) -> Word("Hey", "Ciao"),
+      interval(5, 15) -> Word("to", "al"),
+      intervalFrom(16) -> Word("World", "Mondo")
+    )
+
     test(s"$prefix: MongoDB container should be able to represent evolving intervalidus data"):
       withContainers: container =>
         val client = container.client
@@ -54,21 +64,19 @@ trait DataPersistenceTestBehavior[W[_], R[_]](using
         val intervalStartPath = "interval.start"
         collection.createIndex(Indexes.ascending(intervalStartPath), IndexOptions().name("PK").unique(true))
 
+        def byKey(intervalStart: In1D[Int]): BsonDocument = BsonDocument(intervalStartPath, intervalStart.as[BsonValue])
+
+        def retrieve(): WordIn1D = collection.find().asScala.as[WordIn1D]
+
         // Define locally
-        val initialData = List(
-          intervalTo(4) -> Word("Hey", "Ciao"),
-          interval(5, 15) -> Word("to", "al"),
-          intervalFrom(16) -> Word("World", "Mondo")
-        )
-        val definedLocally: DataIn1D = Data(initialData)
+        val definedLocally: WordIn1D = Data(initialData)
 
         // Store in the database
         val insertResult = collection.insertMany(definedLocally.as[Seq[BsonDocument]].asJava)
         insertResult.getInsertedIds.size() shouldBe initialData.size
 
         // Retrieve from the database -- should match the local definition
-        val initialRetrieved: DataIn1D = collection.find().asScala.as[DataIn1D]
-        initialRetrieved.getAll.toList shouldBe definedLocally.getAll.toList
+        retrieve() shouldBe definedLocally
 
         // Modify locally
         val modifiedLocally = definedLocally.remove(interval(1, 19))
@@ -88,15 +96,40 @@ trait DataPersistenceTestBehavior[W[_], R[_]](using
         )
 
         // Modify the database by applying each of the diff actions
-        def byKey(intervalStart: In1D[Int]): BsonDocument = BsonDocument(intervalStartPath, intervalStart.as[BsonValue])
         modifications.foreach:
-          case Create(data: ValidIn1D) => collection.insertOne(data.as[BsonDocument])
-          case Update(data: ValidIn1D) => collection.replaceOne(byKey(data.interval.start), data.as[BsonDocument])
+          case Create(data: ValidWord) => collection.insertOne(data.as[BsonDocument])
+          case Update(data: ValidWord) => collection.replaceOne(byKey(data.interval.start), data.as[BsonDocument])
           case Delete(intervalStart)   => collection.deleteOne(byKey(intervalStart))
 
         // Retrieve modifications from the database -- should match the local modifications
-        val modifiedRetrieved: DataIn1D = collection.find().asScala.as[DataIn1D]
-        modifiedRetrieved.getAll.toList shouldBe modifiedLocally.getAll.toList
+        retrieve() shouldBe modifiedLocally
+
+        // probably not necessary
+        // collection.drop()
+        // client.close()
+
+    test(s"$prefix: MongoDB container should be able to represent intervalidus data as elements"):
+      withContainers: container =>
+        val client = container.client
+        val collection = client.collection(s"$prefix-level")
+        val levelPath = "level"
+        collection.createIndex(Indexes.ascending(levelPath), IndexOptions().name("PK").unique(true))
+
+        def byKey(level: Int): BsonDocument = BsonDocument(levelPath, BsonInt32(level))
+
+        def retrieve(level: Int): Option[LevelWord] =
+          collection.find(byKey(level)).asScala.headOption.map(_.as[LevelWord])
+
+        // Define locally
+        val definedLocally: LevelWord = LevelWord(level = 1, Data(initialData))
+
+        val insertResult = collection.insertOne(definedLocally.as[BsonDocument])
+        assert(Option(insertResult.getInsertedId).isDefined)
+        retrieve(definedLocally.level) shouldBe Some(definedLocally)
+
+        val modifiedLocally = definedLocally.copy(word = definedLocally.word.remove(interval(1, 19)))
+        collection.replaceOne(byKey(modifiedLocally.level), modifiedLocally.as[BsonDocument])
+        retrieve(modifiedLocally.level) shouldBe Some(modifiedLocally)
 
         // probably not necessary
         // collection.drop()

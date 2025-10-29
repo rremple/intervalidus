@@ -251,7 +251,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     val allData = List(intervalTo(4) -> "Hey", intervalFrom(16) -> "World")
 
     val fixture1 = newDataIn1DVersioned(allData)
-    fixture1.copy.getAll.toList shouldBe fixture1.getAll.toList
+    fixture1.copy shouldBe fixture1
 
     val concat = fixture1.foldLeft(StringBuilder()): (b, d) =>
       b.append(d.value).append("->").append(horizontal(d.interval).toString).append(" ")

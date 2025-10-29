@@ -227,7 +227,7 @@ trait DimensionalBaseConstructorParams:
   * @define compressDesc
   *   Compress out adjacent intervals with the same value.
   * @define compressParamValue
-  *   value to be evaluated.
+  *   value for which valid data are compressed.
   * @define compressAllDesc
   *   Compress out adjacent intervals with the same value for all values.
   * @define recompressAllDesc1
@@ -264,6 +264,11 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
   domainLike: DomainLike[D]
 )(using Experimental)
   extends PartialFunction[D, V]:
+
+  override def equals(obj: Any): Boolean = obj match
+    case that: DimensionalBase[V, D] @unchecked =>
+      size == that.size && getAll.zip(that.getAll).forall(_ == _)
+    case _ => false
 
   // Utility methods for managing state, not part of API
 
@@ -684,6 +689,11 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   true if there are no valid data, false otherwise.
     */
   def isEmpty: Boolean = dataByStartAsc.isEmpty
+
+  /**
+    * The number of valid data entries.
+    */
+  def size: Int = dataByStartAsc.size
 
   /**
     * Returns the value if a single, unbounded valid value exists, otherwise throws an exception.

@@ -232,7 +232,7 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     )
 
     val fixture = newDataIn2DVersioned(allData)
-    fixture.copy.getAll.toList shouldBe fixture.getAll.toList
+    fixture.copy shouldBe fixture
 
     val concat = fixture.foldLeft(StringBuilder()): (b, d) =>
       b.append(d.value).append("->").append(horizontal(d.interval).toString).append(" ")

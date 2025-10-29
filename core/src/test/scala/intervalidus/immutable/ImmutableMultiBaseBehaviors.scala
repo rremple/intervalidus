@@ -194,7 +194,7 @@ trait ImmutableMultiBaseBehaviors:
       val fixture7 = multiOf(intervalFrom1D(intervalTo(0)) -> "Hey")
 
       val f6sync = fixture5.applyDiffActions(fixture6.diffActionsFrom(fixture5))
-      f6sync.getAll.toList shouldBe fixture6.getAll.toList
+      f6sync shouldBe fixture6
 
       val f7sync = fixture5.syncWith(fixture7)
-      f7sync.getAll.toList shouldBe fixture7.getAll.toList
+      f7sync shouldBe fixture7

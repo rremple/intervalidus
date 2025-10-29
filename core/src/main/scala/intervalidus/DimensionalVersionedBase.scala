@@ -246,7 +246,7 @@ class DimensionalDataVersionedBuilder[V, D <: NonEmptyTuple: DomainLike, Self <:
   *   Remove data in all the intervals given a version selection context. If there are values valid on portions of any
   *   interval, those values have their intervals adjusted (e.g., shortened, shifted, split) accordingly.
   * @define removeManyParamIntervals
-  *   the interval where any valid values are removed.
+  *   the intervals where any valid values are removed.
   * @define removeValueDesc
   *   Remove the value in all the intervals where it is valid in the given version selection context.
   * @define removeValueParamValue
@@ -302,7 +302,7 @@ class DimensionalDataVersionedBuilder[V, D <: NonEmptyTuple: DomainLike, Self <:
   *   values are merged (e.g., keep this data). In intervals where this does not have valid data but that does, the data
   *   are added (a fill operation). (Version timestamps of this and that are merged.)
   * @define mergeParamThat
-  *   versioned structure to merge into this one
+  *   versioned structure to merge with this one
   * @define mergeParamMergeValues
   *   function that merges values where both this and that have valid values, where the default merge operation is to
   *   give this data values priority and drop that data values
@@ -337,6 +337,11 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
   Experimental,
   DomainLike[Versioned[D]]
 ) extends PartialFunction[Versioned[D], V]:
+
+  override def equals(obj: Any): Boolean = obj match
+    case that: DimensionalVersionedBase[V, D] @unchecked =>
+      size == that.size && underlying.getAll.zip(that.underlying.getAll).forall(_ == _)
+    case _ => false
 
   // Utility methods for managing "versioned" state, not part of API
 
@@ -549,6 +554,11 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
   def isEmpty(using VersionSelection): Boolean = getSelectedDataMutable.isEmpty
 
   /**
+    * The number of valid data entries. $noVersionSelection
+    */
+  def size: Int = underlying.size
+
+  /**
     * Returns the value if a single, unbounded valid value exists given some version selection context, otherwise throws
     * an exception.
     *
@@ -646,9 +656,8 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     Interval.compress(getSelectedDataMutable.intervals(value))
 
   /**
-    * Applies a binary operator to a start value and all valid data, going left to right. Does not use a version
-    * selection context -- the function is applied to the underlying data, so it can operate on the underlying version
-    * information as well as the valid interval/value.
+    * Applies a binary operator to a start value and all valid data, going left to right. $noVersionSelectionFunction
+    * can operate on the underlying version information as well as the valid interval/value.
     *
     * @param z
     *   the start value.
@@ -664,7 +673,7 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
 
   /**
     * Constructs a sequence of diff actions that, if applied to the old structure, would synchronize it with this one.
-    * Does not use a version selection context -- operates on full underlying structure.
+    * $noVersionSelection
     *
     * @param old
     *   the old structure from which we are comparing.

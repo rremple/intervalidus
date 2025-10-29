@@ -189,7 +189,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
         Data(flippedValidData)
 
     val fixture1 = Data(allData)
-    fixture1.copy.getAll.toList shouldBe fixture1.getAll.toList
+    fixture1.copy shouldBe fixture1
 
     fixture1.flipEverything.getAll.toList shouldBe List(
       (intervalTo(4) x unbounded[LocalDate]) -> "yeH",

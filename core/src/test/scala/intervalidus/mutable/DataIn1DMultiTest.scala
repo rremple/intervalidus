@@ -71,8 +71,8 @@ class DataIn1DMultiTest
 
     val f6sync = fixture5.copy
     f6sync.applyDiffActions(fixture6.diffActionsFrom(fixture5))
-    f6sync.getAll.toList shouldBe fixture6.getAll.toList
+    f6sync shouldBe fixture6
 
     val f7sync = fixture5.copy
     f7sync.syncWith(fixture7)
-    f7sync.getAll.toList shouldBe fixture7.getAll.toList
+    f7sync shouldBe fixture7

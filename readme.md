@@ -362,7 +362,7 @@ These query methods provide various data, difference, and Boolean results:
 - `get` / `getOption` / `getAt` / `getDataAt` / `getAll` / `getIntersecting`
 - `intersects`
 - `foldLeft`
-- `isEmpty`
+- `isEmpty` / `size`
 - `domain` / `domainComplement`
 - `values` / `intervals`
 - `diffActionsFrom`

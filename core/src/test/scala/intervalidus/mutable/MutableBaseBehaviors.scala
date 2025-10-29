@@ -153,7 +153,7 @@ trait MutableBaseBehaviors:
       val allData = List(dataFrom1D(intervalTo(4), "Hey"), dataFrom1D(intervalFrom(16), "World"))
 
       val fixture: S = mutableFrom(allData)
-      fixture.copy.getAll.toList shouldBe fixture.getAll.toList
+      fixture.copy shouldBe fixture
 
       fixture.map(mapF)
       val expectedData2 = List(dataFrom1D(intervalToBefore(4), "Hey!"), dataFrom1D(intervalFrom(16), "World!"))

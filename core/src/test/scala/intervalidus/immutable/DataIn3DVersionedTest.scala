@@ -236,7 +236,7 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
     )
 
     val fixture1 = newDataIn3DVersioned(allData)
-    fixture1.copy.getAll.toList shouldBe fixture1.getAll.toList
+    fixture1.copy shouldBe fixture1
 
     val concat = fixture1.foldLeft(StringBuilder()): (b, d) =>
       b.append(d.value).append("->").append(horizontal(d.interval).toString).append(" ")

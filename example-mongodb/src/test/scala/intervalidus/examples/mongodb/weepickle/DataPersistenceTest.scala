@@ -3,12 +3,13 @@ package intervalidus.examples.mongodb.weepickle
 import com.rallyhealth.weepickle.v1.WeePickle.{From, FromTo, To, macroFromTo}
 import intervalidus.DiscreteValue.given
 import intervalidus.examples.mongodb.weepickle.BsonTransformer.given
-import intervalidus.examples.mongodb.{DataPersistenceTestBehavior, Word}
+import intervalidus.examples.mongodb.{DataPersistenceTestBehavior, LevelWord, Word}
 import intervalidus.json.weepickle.Json.given
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
 given FromTo[Word] = macroFromTo
+given FromTo[LevelWord] = macroFromTo
 
 /**
   * Demonstrate how dimensional data can be managed in a database. Uses MongoDB (via Testcontainers) to store, retrieve,

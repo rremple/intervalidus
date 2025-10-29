@@ -162,7 +162,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
     val allData = List(intervalTo(4) -> "Hey", intervalFrom(16) -> "World")
 
     val fixture1 = Data(allData)
-    fixture1.copy.getAll.toList shouldBe fixture1.getAll.toList
+    fixture1.copy shouldBe fixture1
 
     val fixture2 = fixture1.map(d => d.interval.to(d.interval.end.rightAdjacent) -> (d.value + "!"))
     val expectedData2 = List(intervalTo(5) -> "Hey!", intervalFrom(16) -> "World!")

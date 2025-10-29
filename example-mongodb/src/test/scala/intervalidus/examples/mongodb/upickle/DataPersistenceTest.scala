@@ -3,12 +3,13 @@ package intervalidus.examples.mongodb.upickle
 import upickle.default.{ReadWriter, Reader, Writer, macroRW}
 import intervalidus.DiscreteValue.given
 import intervalidus.examples.mongodb.upickle.BsonTransformer.given
-import intervalidus.examples.mongodb.{DataPersistenceTestBehavior, Word}
+import intervalidus.examples.mongodb.{DataPersistenceTestBehavior, LevelWord, Word}
 import intervalidus.json.upickle.Json.given
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
 given ReadWriter[Word] = macroRW
+given ReadWriter[LevelWord] = macroRW
 
 /**
   * Demonstrate how dimensional data can be managed in a database. Uses MongoDB (via Testcontainers) to store, retrieve,
