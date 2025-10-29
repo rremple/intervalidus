@@ -2,12 +2,15 @@ package intervalidus
 
 /**
   * A domain value is at least
-  *   1. finite, with a max and min value (think `Double` with its `MaxValue` and `MinValue` methods)
-  *   1. totally ordered (this type class extends the [[Ordering]] type class, requiring a compare method).
-  *   1. mappable to a similarly ordered double value (potentially with collisions)
+  *   1. bounded, with both a lower bound ([[minValue]]) and an upper bound ([[maxValue]])
+  *   1. totally ordered (extends [[Ordering]], requiring a [[compare]] method).
+  *   1. mappable to a weakly monotonic double value (requires an [[orderedHashOf]] method that may have "collisions").
+  *
+  * See [[https://en.wikipedia.org/wiki/Bounded_set]], [[https://en.wikipedia.org/wiki/Maximum_and_minimum]],
+  * [[https://en.wikipedia.org/wiki/Total_order]], and [[https://en.wikipedia.org/wiki/Monotonic_function]].
   *
   * @tparam T
-  *   a value that has continuous or discrete value behavior (e.g., `Double`)
+  *   a type with continuous or discrete value behavior (e.g., `Double`)
   */
 trait DomainValueLike[T] extends Ordering[T]:
   /**
@@ -17,12 +20,12 @@ trait DomainValueLike[T] extends Ordering[T]:
   def bracePunctuation: String
 
   /**
-    * Maximum value. See [[https://en.wikipedia.org/wiki/Maximum_and_minimum]].
+    * Maximum value (upper bound). See [[https://en.wikipedia.org/wiki/Maximum_and_minimum]].
     */
   def maxValue: T
 
   /**
-    * Minimum value. See [[https://en.wikipedia.org/wiki/Maximum_and_minimum]].
+    * Minimum value (lower bound). See [[https://en.wikipedia.org/wiki/Maximum_and_minimum]].
     */
   def minValue: T
 

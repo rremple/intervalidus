@@ -1,46 +1,49 @@
 package intervalidus
 
 /**
-  * Type class for a discrete value.
+  * Type class for discrete values, which are:
+  *   1. bounded, with both a lower bound ([[minValue]]) and an upper bound ([[maxValue]])
+  *   1. totally ordered (extends [[Ordering]], requiring a [[compare]] method).
+  *   1. mappable to a weakly monotonic double value (requires an [[orderedHashOf]] method that may have "collisions").
+  *   1. well ordered, having both a [[predecessorOf]] and [[successorOf]] function (unlike a [[ContinuousValue]]).
   *
-  * A domain value is at least
-  *   1. finite, with a max and min value (think `Double` with its `MaxValue` and `MinValue` methods)
-  *   1. totally ordered (this type class extends the [[Ordering]] type class, requiring a compare method).
-  *   1. mappable to a similarly ordered double value (potentially with collisions)
-  *
-  * Unlike continuous values, discrete values also have predecessors and successors, which are properly defined on `x`:
-  * `maxValue < x < minValue`. Having predecessors and successors defined this way avoids issues where the natural
-  * successor functions of the underlying types behave unexpectedly/inconsistently on the boundaries, e.g., how
-  * `Int.MaxValue + 1` and `Int.MinValue - 1` silently wrap around to each other, vs. how both
+  * The predecessor must only be defined for values strictly greater than `minValue` and the successor only for values
+  * strictly less than `maxValue`. Having the predecessor and successor definitions limited in this way avoids issues
+  * where related methods of the underlying data types behave unexpectedly/inconsistently on the boundaries. For
+  * example, `Int.MaxValue + 1` and `Int.MinValue - 1` silently wrap around to each other, whereas both
   * `LocalDate.MAX.plusDays(1)` and `LocalDate.MIN.minusDays(1)` throw a `DateTimeException`.
   *
+  * See [[https://en.wikipedia.org/wiki/Bounded_set]], [[https://en.wikipedia.org/wiki/Maximum_and_minimum]],
+  * [[https://en.wikipedia.org/wiki/Total_order]], [[https://en.wikipedia.org/wiki/Monotonic_function]], and
+  * [[https://en.wikipedia.org/wiki/Well-order]].
+  *
   * @tparam T
-  *   a value that has discrete value behavior (e.g., `Int`)
+  *   a type with discrete value behavior (e.g., `Int`)
   */
 trait DiscreteValue[T] extends DomainValueLike[T]:
   override def bracePunctuation: String = ".."
 
   /**
-    * Successor of a discrete value, when defined: only successorOf(maxValue) is not defined. See
+    * Successor of a discrete value, when defined: only `successorOf(maxValue)` is not defined. See
     * [[https://en.wikipedia.org/wiki/Successor_function]].
     */
   def successorOf(x: T): Option[T]
 
   /**
-    * Predecessor of a discrete value, when defined: only predecessorOf(minValue) is not defined. See
+    * Predecessor of a discrete value, when defined: only `predecessorOf(minValue)` is not defined. See
     * [[https://en.wikipedia.org/wiki/Primitive_recursive_function#Predecessor]].
     */
   def predecessorOf(x: T): Option[T]
 
   extension (lhs: T)
     /**
-      * Successor of this discrete value, when defined: only maxValue.successorValue is not defined. See
+      * Successor of this discrete value, when defined: only `maxValue.successorValue` is not defined. See
       * [[https://en.wikipedia.org/wiki/Successor_function]].
       */
     def successorValue: Option[T] = successorOf(lhs)
 
     /**
-      * Predecessor of this discrete value, when defined: only minValue.predecessorValue is not defined. See
+      * Predecessor of this discrete value, when defined: only `minValue.predecessorValue` is not defined. See
       * [[https://en.wikipedia.org/wiki/Primitive_recursive_function#Predecessor]].
       */
     def predecessorValue: Option[T] = predecessorOf(lhs)
@@ -131,8 +134,15 @@ object DiscreteValue:
     override lazy val minValue: BigInteger = maxValue.negate
 
   /**
-    * Constructs a type class from a non-empty, distinct sequence of values. Useful when representing enums as discrete
-    * values when auto-derivation is not possible or not desired, for example:
+    * Constructs a type class from a non-empty, distinct, and indexed sequence of values, for example:
+    * {{{
+    *   case class Num(i: Int)
+    *   object Num:
+    *     val values = IndexedSeq(Num(1), Num(2), Num(3), Num(5), Num(8), Num(13))
+    *   given DiscreteValue[Num] = DiscreteValue.fromSeq(Num.values)
+    * }}}
+    * Useful when representing enums as discrete values when auto-derivation is not possible or not desired, for
+    * example:
     * {{{
     *   enum Color:
     *     case Red, Yellow, Green, Cyan, Blue, Magenta
@@ -140,7 +150,7 @@ object DiscreteValue:
     * }}}
     *
     * @param values
-    *   a non-empty, distinct sequence of values
+    *   a non-empty, distinct, indexed sequence of values
     * @tparam E
     *   type for this discrete value
     * @return

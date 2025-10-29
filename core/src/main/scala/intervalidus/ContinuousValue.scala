@@ -1,20 +1,23 @@
 package intervalidus
 
 /**
-  * Type class for a continuous value.
+  * Type class for discrete values, which are:
+  *   1. bounded, with both a lower bound ([[minValue]]) and an upper bound ([[maxValue]])
+  *   1. totally ordered (extends [[Ordering]], requiring a [[compare]] method).
+  *   1. mappable to a weakly monotonic double value (requires an [[orderedHashOf]] method that may have "collisions").
   *
-  * A domain value is at least
-  *   1. finite, with a max and min value (think `Double` with its `MaxValue` and `MinValue` methods)
-  *   1. totally ordered (this type class extends the [[Ordering]] type class, requiring a compare method).
-  *   1. mappable to a similarly ordered double value (potentially with collisions)
+  * Unlike a [[DiscreteValue]], a continuous value is not necessarily well-ordered. That is, there is no requirement for
+  * having predecessors and successors defined. Although one can say that every digitized data structure is, by its very
+  * nature, discrete, it is often easier to reason about some data types when treated as continuous. For example,
+  * integer values and local dates are good candidates for being treated as discrete where double-precision float values
+  * and local date-times are often better treated as continuous.
   *
-  * Unlike discrete values, there is no requirement for having predecessors and successors defined. Although every
-  * digitized data structure is discrete, it is often easier to work with some data types when they are treated as
-  * continuous. For example, integer values and local dates are good candidates for being discrete where
-  * double-precision float values and local date-times are better treated as continuous.
+  * See [[https://en.wikipedia.org/wiki/Bounded_set]], [[https://en.wikipedia.org/wiki/Maximum_and_minimum]],
+  * [[https://en.wikipedia.org/wiki/Total_order]], [[https://en.wikipedia.org/wiki/Monotonic_function]], and
+  * [[https://en.wikipedia.org/wiki/Well-order]].
   *
   * @tparam T
-  *   a value that has continuous value behavior (e.g., `Double`)
+  *   a type with continuous value behavior (e.g., `Double`)
   */
 trait ContinuousValue[T] extends DomainValueLike[T]:
   override def bracePunctuation: String = ", "
