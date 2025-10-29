@@ -18,7 +18,7 @@
   <p>Type class for discrete values, which are:</p>
   <ol>
    <li>bounded, with both a lower bound (<a href="ContinuousValue.html#minValue-0">minValue</a>) and an upper bound (<a href="ContinuousValue.html#maxValue-0">maxValue</a>)</li>
-   <li>totally ordered (extends <span data-unresolved-link="">Ordering</span>, requiring a <a href="ContinuousValue.html#compare-cc1">compare</a> method).</li>
+   <li>totally ordered (extends <span data-unresolved-link="">math.Ordering</span>, requiring a <a href="ContinuousValue.html#compare-cc1">compare</a> method).</li>
    <li>mappable to a weakly monotonic double value (requires an <a href="ContinuousValue.html#orderedHashOf-fffffeac">orderedHashOf</a> method that may have "collisions").</li>
   </ol>
   <p>Unlike a <a href="DiscreteValue.html">DiscreteValue</a>, a continuous value is not necessarily well-ordered. That is, there is no requirement for having predecessors and successors defined. Although one can say that every digitized data structure is, by its very nature, discrete, it is often easier to reason about some data types when treated as continuous. For example, integer values and local dates are good candidates for being treated as discrete where double-precision float values and local date-times are often better treated as continuous.</p>

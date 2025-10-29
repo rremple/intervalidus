@@ -140,7 +140,7 @@
               <p>Type class for discrete values, which are:</p>
               <ol>
                <li>bounded, with both a lower bound (<a href="intervalidus/ContinuousValue.html#minValue-0">minValue</a>) and an upper bound (<a href="intervalidus/ContinuousValue.html#maxValue-0">maxValue</a>)</li>
-               <li>totally ordered (extends <span data-unresolved-link="">Ordering</span>, requiring a <a href="intervalidus/ContinuousValue.html#compare-cc1">compare</a> method).</li>
+               <li>totally ordered (extends <span data-unresolved-link="">math.Ordering</span>, requiring a <a href="intervalidus/ContinuousValue.html#compare-cc1">compare</a> method).</li>
                <li>mappable to a weakly monotonic double value (requires an <a href="intervalidus/ContinuousValue.html#orderedHashOf-fffffeac">orderedHashOf</a> method that may have "collisions").</li>
               </ol>
               <p>Unlike a <a href="intervalidus/DiscreteValue.html">DiscreteValue</a>, a continuous value is not necessarily well-ordered. That is, there is no requirement for having predecessors and successors defined. Although one can say that every digitized data structure is, by its very nature, discrete, it is often easier to reason about some data types when treated as continuous. For example, integer values and local dates are good candidates for being treated as discrete where double-precision float values and local date-times are often better treated as continuous.</p>
@@ -1433,7 +1433,7 @@
               <p>Type class for discrete values, which are:</p>
               <ol>
                <li>bounded, with both a lower bound (<a href="intervalidus/DiscreteValue.html#minValue-0">minValue</a>) and an upper bound (<a href="intervalidus/DiscreteValue.html#maxValue-0">maxValue</a>)</li>
-               <li>totally ordered (extends <span data-unresolved-link="">Ordering</span>, requiring a <a href="intervalidus/DiscreteValue.html#compare-cc1">compare</a> method).</li>
+               <li>totally ordered (extends <span data-unresolved-link="">math.Ordering</span>, requiring a <a href="intervalidus/DiscreteValue.html#compare-cc1">compare</a> method).</li>
                <li>mappable to a weakly monotonic double value (requires an <a href="intervalidus/DiscreteValue.html#orderedHashOf-fffffeac">orderedHashOf</a> method that may have "collisions").</li>
                <li>well ordered, having both a <a href="intervalidus/DiscreteValue.html#predecessorOf-fffffb50">predecessorOf</a> and <a href="intervalidus/DiscreteValue.html#successorOf-fffffb50">successorOf</a> function (unlike a <a href="intervalidus/ContinuousValue.html">ContinuousValue</a>).</li>
               </ol>
@@ -2044,7 +2044,7 @@
               <p>A domain value is at least</p>
               <ol>
                <li>bounded, with both a lower bound (<a href="intervalidus/DomainValueLike.html#minValue-0">minValue</a>) and an upper bound (<a href="intervalidus/DomainValueLike.html#maxValue-0">maxValue</a>)</li>
-               <li>totally ordered (extends <span data-unresolved-link="">Ordering</span>, requiring a <a href="intervalidus/DomainValueLike.html#compare-cc1">compare</a> method).</li>
+               <li>totally ordered (extends <span data-unresolved-link="">math.Ordering</span>, requiring a <a href="intervalidus/DomainValueLike.html#compare-cc1">compare</a> method).</li>
                <li>mappable to a weakly monotonic double value (requires an <a href="intervalidus/DomainValueLike.html#orderedHashOf-fffffeac">orderedHashOf</a> method that may have "collisions").</li>
               </ol>
               <p>See <a href="https://en.wikipedia.org/wiki/Bounded_set">https://en.wikipedia.org/wiki/Bounded_set</a>, <a href="https://en.wikipedia.org/wiki/Maximum_and_minimum">https://en.wikipedia.org/wiki/Maximum_and_minimum</a>, <a href="https://en.wikipedia.org/wiki/Total_order">https://en.wikipedia.org/wiki/Total_order</a>, and <a href="https://en.wikipedia.org/wiki/Monotonic_function">https://en.wikipedia.org/wiki/Monotonic_function</a>.</p>
