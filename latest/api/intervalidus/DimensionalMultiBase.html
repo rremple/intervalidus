@@ -556,6 +556,71 @@ node8 -> node0;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="equals-4ad" data-f-keywords="override" data-f-inherited="DimensionalBase">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="DimensionalMultiBase.html#equals-4ad" t="n" class="documentableName ">equals</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">obj</span>: <span data-unresolved-link="" t="t">Any</span>): <span data-unresolved-link="" t="t">Boolean</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Compares the receiver object (<code>this</code>) with the argument object (<code>that</code>) for equivalence.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Compares the receiver object (<code>this</code>) with the argument object (<code>that</code>) for equivalence.</p>
+              <p>Any implementation of this method should be an <a href="https://en.wikipedia.org/wiki/Equivalence_relation">equivalence relation</a>:</p>
+              <ul>
+               <li>It is reflexive: for any instance <code>x</code> of type <code>Any</code>, <code>x.equals(x)</code> should return <code>true</code>.</li>
+               <li>It is symmetric: for any instances <code>x</code> and <code>y</code> of type <code>Any</code>, <code>x.equals(y)</code> should return <code>true</code> if and only if <code>y.equals(x)</code> returns <code>true</code>.</li>
+               <li>It is transitive: for any instances <code>x</code>, <code>y</code>, and <code>z</code> of type <code>Any</code> if <code>x.equals(y)</code> returns <code>true</code> and <code>y.equals(z)</code> returns <code>true</code>, then <code>x.equals(z)</code> should return <code>true</code>.</li>
+              </ul>
+              <p>If you override this method, you should verify that your implementation remains an equivalence relation. Additionally, when overriding this method it is usually necessary to override <code>hashCode</code> to ensure that objects which are "equal" (<code>o1.equals(o2)</code> returns <code>true</code>) hash to the same <span data-unresolved-link="">scala.Int</span>. (<code>o1.hashCode.equals(o2.hashCode)</code>).</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               that
+              </dt>
+              <dd class="body-medium">
+               <p>the object to compare against this object for equality.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p><code>true</code> if the receiver object is equivalent to the argument; <code>false</code> otherwise.</p>
+              </dd>
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <a href="DimensionalBase.html#equals-4ad">DimensionalBase</a> -&gt; <span data-unresolved-link="">Any</span>
+               </div>
+              </dd>
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="DimensionalBase.html#equals-4ad">DimensionalBase</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="foldLeft-fffff9e1" data-f-inherited="DimensionalBase">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -1143,6 +1208,41 @@ node8 -> node0;
               </dt>
               <dd class="body-medium">
                <span data-unresolved-link="">PartialFunction</span>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="size-0" data-f-inherited="DimensionalBase">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DimensionalMultiBase.html#size-0" t="n" class="documentableName ">size</a>: <span data-unresolved-link="" t="t">Int</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>The number of valid data entries.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>The number of valid data entries.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="DimensionalBase.html#size-0">DimensionalBase</a>
               </dd>
              </dl>
             </div>
