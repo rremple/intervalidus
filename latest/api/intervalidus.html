@@ -642,8 +642,28 @@
           <div>
            <div class="originInfo"></div>
            <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Base for all dimensional data, both mutable and immutable, of arbitrary dimensions.</p>
+            </div>
             <div class="cover">
-             <div class="doc"></div>
+             <div class="doc">
+              <p>Base for all dimensional data, both mutable and immutable, of arbitrary dimensions.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               D
+              </dt>
+              <dd class="body-medium">
+               <p>the domain type -- a non-empty tuple that is DomainLike.</p>
+              </dd>
+              <dt class="body-small">
+               V
+              </dt>
+              <dd class="body-medium">
+               <p>the type of the value managed as data.</p>
+              </dd>
+             </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
@@ -784,8 +804,13 @@
           <div>
            <div class="originInfo"></div>
            <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Constructs data in multidimensional intervals.</p>
+            </div>
             <div class="cover">
-             <div class="doc"></div>
+             <div class="doc">
+              <p>Constructs data in multidimensional intervals.</p>
+             </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
@@ -1055,8 +1080,28 @@
           <div>
            <div class="originInfo"></div>
            <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Data that may have multiple values (managed as sets of values) in different intervals.</p>
+            </div>
             <div class="cover">
-             <div class="doc"></div>
+             <div class="doc">
+              <p>Data that may have multiple values (managed as sets of values) in different intervals.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               D
+              </dt>
+              <dd class="body-medium">
+               <p>the domain type -- a non-empty tuple that is DomainLike.</p>
+              </dd>
+              <dt class="body-small">
+               V
+              </dt>
+              <dd class="body-medium">
+               <p>the type of the value managed as data.</p>
+              </dd>
+             </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
@@ -1246,10 +1291,41 @@
           <div>
            <div class="originInfo"></div>
            <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Interface is similar to <a href="intervalidus/DimensionalBase.html">DimensionalBase</a>, but it operates on an underlying <a href="intervalidus/mutable/Data.html">intervalidus.mutable.Data</a> using an extra integer-valued head dimension to version data. One use case would be versioned data that are valid in two dimensions of time, so the underlying data actually * vary in terms of version and two dimensions of time (three dimensions). Most methods require some generic version selection criteria rather than specific integer intervals, therefore this does not extend <a href="intervalidus/DimensionalBase.html">DimensionalBase</a>.</p>
+            </div>
             <div class="cover">
-             <div class="doc"></div>
+             <div class="doc">
+              <p>Interface is similar to <a href="intervalidus/DimensionalBase.html">DimensionalBase</a>, but it operates on an underlying <a href="intervalidus/mutable/Data.html">intervalidus.mutable.Data</a> using an extra integer-valued head dimension to version data. One use case would be versioned data that are valid in two dimensions of time, so the underlying data actually * vary in terms of version and two dimensions of time (three dimensions). Most methods require some generic version selection criteria rather than specific integer intervals, therefore this does not extend <a href="intervalidus/DimensionalBase.html">DimensionalBase</a>.</p>
+              <p>The "current" version is managed as state (a var). Versioning also separates notions of approved vs. unapproved data (unapproved data are pushed up to start at version maxValue). When getting data, by default, we return "current" version data (a.k.a., approved). When updating data, by default, we don't rewrite history, so mutations start with the "current" version too.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               D
+              </dt>
+              <dd class="body-medium">
+               <p>the domain type -- a non-empty tuple that is DomainLike.</p>
+              </dd>
+              <dt class="body-small">
+               V
+              </dt>
+              <dd class="body-medium">
+               <p>the type of the value managed as data.</p>
+              </dd>
+             </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Note
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <div>
+                 <p>Updates starting with "current" also update unapproved changes (since intervalFrom goes to the Top).</p>
+                </div>
+               </div>
+              </dd>
               <dt class="body-small">
                Companion
               </dt>
@@ -1311,8 +1387,13 @@
           <div>
            <div class="originInfo"></div>
            <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Constructs data in multidimensional intervals that are also versioned (hidden extra dimension).</p>
+            </div>
             <div class="cover">
-             <div class="doc"></div>
+             <div class="doc">
+              <p>Constructs data in multidimensional intervals that are also versioned (hidden extra dimension).</p>
+             </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
@@ -1732,8 +1813,24 @@
           <div>
            <div class="originInfo"></div>
            <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Type class with operations on a domain with multiple discrete and/or continuous dimensions.</p>
+            </div>
             <div class="cover">
-             <div class="doc"></div>
+             <div class="doc">
+              <p>Type class with operations on a domain with multiple discrete and/or continuous dimensions.</p>
+              <p>An n-dimensional domain is represented by a tuple of <code>Domain1D[T</code><sup>i</sup><code>]</code> values (where i varies from 1 to n), and each <code>T</code><sup>i</sup> is a (potentially different) domain value type that is <code>DomainValueLike</code>.</p>
+              <p>An n-dimensional domain is used in defining the boundaries of an n-dimensional interval. Generally, you will not need to use these methods directly -- they are here primarily to support methods on <code>Interval</code> and <code>ValidData</code>.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               D
+              </dt>
+              <dd class="body-medium">
+               <p>the domain type -- a non-empty tuple of one-dimensional domains, where each can have its own domain value type.</p>
+              </dd>
+             </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
@@ -2186,8 +2283,37 @@
           <div>
            <div class="originInfo"></div>
            <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>An interval in multiple dimensions over a contiguous set of domain values in D. See <a href="https://en.wikipedia.org/wiki/Interval_(mathematics)">https://en.wikipedia.org/wiki/Interval_(mathematics)</a> for more information.</p>
+            </div>
             <div class="cover">
-             <div class="doc"></div>
+             <div class="doc">
+              <p>An interval in multiple dimensions over a contiguous set of domain values in D. See <a href="https://en.wikipedia.org/wiki/Interval_(mathematics)">https://en.wikipedia.org/wiki/Interval_(mathematics)</a> for more information.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               D
+              </dt>
+              <dd class="body-medium">
+               <p>the domain type -- a non-empty tuple that is DomainLike.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               end
+              </dt>
+              <dd class="body-medium">
+               <p>the "supremum", i.e., the right (and/or above and/or front, depending on dimensions and context) boundary of the interval -- must be greater than or equal to the start in all dimensions</p>
+              </dd>
+              <dt class="body-small">
+               start
+              </dt>
+              <dd class="body-medium">
+               <p>the "infimum", i.e., the left (and/or below and/or back, depending on dimensions and context) boundary of the interval</p>
+              </dd>
+             </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
@@ -2241,8 +2367,13 @@
           <div>
            <div class="originInfo"></div>
            <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Companion for the multidimensional interval used in defining and operating on valid data.</p>
+            </div>
             <div class="cover">
-             <div class="doc"></div>
+             <div class="doc">
+              <p>Companion for the multidimensional interval used in defining and operating on valid data.</p>
+             </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
@@ -2298,8 +2429,37 @@
           <div>
            <div class="originInfo"></div>
            <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>A one-dimensional interval over a contiguous set of domain values in T. See <a href="https://en.wikipedia.org/wiki/Interval_(mathematics)">https://en.wikipedia.org/wiki/Interval_(mathematics)</a> for more information.</p>
+            </div>
             <div class="cover">
-             <div class="doc"></div>
+             <div class="doc">
+              <p>A one-dimensional interval over a contiguous set of domain values in T. See <a href="https://en.wikipedia.org/wiki/Interval_(mathematics)">https://en.wikipedia.org/wiki/Interval_(mathematics)</a> for more information.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               T
+              </dt>
+              <dd class="body-medium">
+               <p>a domain value type for this interval's domain (e.g., Int, LocalDate) -- boundaries of the interval are defined in terms of <code>Domain1D[T]</code> given the type class <code>DomainValueLike[T]</code>.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               end
+              </dt>
+              <dd class="body-medium">
+               <p>the "supremum", i.e., the right boundary of the interval -- must be greater than or equal to the start</p>
+              </dd>
+              <dt class="body-small">
+               start
+              </dt>
+              <dd class="body-medium">
+               <p>the "infimum", i.e., the left boundary of the interval</p>
+              </dd>
+             </dl>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">

@@ -437,7 +437,7 @@ node6 -> node1;
                interval
               </dt>
               <dd class="body-medium">
-               <p>interval in which all changes (updates and deletes) are approved Interface is similar to <a href="../DimensionalBase.html">DimensionalBase</a>, but it operates on an underlying <a href="../mutable/Data.html">intervalidus.mutable.Data</a> using an extra integer-valued head dimension to version data. One use case would be versioned data that are valid in two dimensions of time, so the underlying data actually vary in terms of version and two dimensions of time (three dimensions). Most methods require some generic version selection criteria rather than specific integer intervals, therefore this does not extend <a href="../DimensionalBase.html">DimensionalBase</a>. The "current" version is managed as state (a var). Versioning also separates notions of approved vs. unapproved data (unapproved data are pushed up to start at version maxValue). When getting data, by default, we return "current" version data (a.k.a., approved). When updating data, by default, we don't rewrite history, so mutations start with the "current" version too.</p>
+               <p>interval in which all changes (updates and deletes) are approved</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>

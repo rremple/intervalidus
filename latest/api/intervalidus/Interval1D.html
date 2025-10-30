@@ -14,8 +14,34 @@
  </div>
 </div>
 <div class="cover">
- <div class="doc"></div>
+ <div class="doc">
+  <p>A one-dimensional interval over a contiguous set of domain values in T. See <a href="https://en.wikipedia.org/wiki/Interval_(mathematics)">https://en.wikipedia.org/wiki/Interval_(mathematics)</a> for more information.</p>
+ </div>
  <section id="attributes">
+  <h2 class="h500">Type parameters</h2>
+  <dl class="attributes">
+   <dt class="body-small">
+    T
+   </dt>
+   <dd class="body-medium">
+    <p>a domain value type for this interval's domain (e.g., Int, LocalDate) -- boundaries of the interval are defined in terms of <code>Domain1D[T]</code> given the type class <code>DomainValueLike[T]</code>.</p>
+   </dd>
+  </dl>
+  <h2 class="h500">Value parameters</h2>
+  <dl class="attributes">
+   <dt class="body-small">
+    end
+   </dt>
+   <dd class="body-medium">
+    <p>the "supremum", i.e., the right boundary of the interval -- must be greater than or equal to the start</p>
+   </dd>
+   <dt class="body-small">
+    start
+   </dt>
+   <dd class="body-medium">
+    <p>the "infimum", i.e., the left boundary of the interval</p>
+   </dd>
+  </dl>
   <h2 class="h500">Attributes</h2>
   <dl class="attributes">
    <dt class="body-small">
@@ -385,7 +411,7 @@ node6 -> node2;
                that
               </dt>
               <dd class="body-medium">
-               <p>the interval to test. A one-dimensional interval over a contiguous set of domain values in T. See <a href="https://en.wikipedia.org/wiki/Interval_(mathematics)">https://en.wikipedia.org/wiki/Interval_(mathematics)</a> for more information.</p>
+               <p>the interval to test.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -429,7 +455,7 @@ node6 -> node2;
                that
               </dt>
               <dd class="body-medium">
-               <p>the interval to test. A one-dimensional interval over a contiguous set of domain values in T. See <a href="https://en.wikipedia.org/wiki/Interval_(mathematics)">https://en.wikipedia.org/wiki/Interval_(mathematics)</a> for more information.</p>
+               <p>the interval to test.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -741,7 +767,7 @@ node6 -> node2;
                that
               </dt>
               <dd class="body-medium">
-               <p>the interval to test. A one-dimensional interval over a contiguous set of domain values in T. See <a href="https://en.wikipedia.org/wiki/Interval_(mathematics)">https://en.wikipedia.org/wiki/Interval_(mathematics)</a> for more information.</p>
+               <p>the interval to test.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -778,7 +804,7 @@ node6 -> node2;
                that
               </dt>
               <dd class="body-medium">
-               <p>the interval to test. A one-dimensional interval over a contiguous set of domain values in T. See <a href="https://en.wikipedia.org/wiki/Interval_(mathematics)">https://en.wikipedia.org/wiki/Interval_(mathematics)</a> for more information.</p>
+               <p>the interval to test.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -815,7 +841,7 @@ node6 -> node2;
                that
               </dt>
               <dd class="body-medium">
-               <p>the interval to test. A one-dimensional interval over a contiguous set of domain values in T. See <a href="https://en.wikipedia.org/wiki/Interval_(mathematics)">https://en.wikipedia.org/wiki/Interval_(mathematics)</a> for more information.</p>
+               <p>the interval to test.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -852,7 +878,7 @@ node6 -> node2;
                that
               </dt>
               <dd class="body-medium">
-               <p>the interval to test. A one-dimensional interval over a contiguous set of domain values in T. See <a href="https://en.wikipedia.org/wiki/Interval_(mathematics)">https://en.wikipedia.org/wiki/Interval_(mathematics)</a> for more information.</p>
+               <p>the interval to test.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -1291,7 +1317,7 @@ node6 -> node2;
                that
               </dt>
               <dd class="body-medium">
-               <p>the interval to test. A one-dimensional interval over a contiguous set of domain values in T. See <a href="https://en.wikipedia.org/wiki/Interval_(mathematics)">https://en.wikipedia.org/wiki/Interval_(mathematics)</a> for more information.</p>
+               <p>the interval to test.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -1329,7 +1355,7 @@ node6 -> node2;
                that
               </dt>
               <dd class="body-medium">
-               <p>the interval to test. A one-dimensional interval over a contiguous set of domain values in T. See <a href="https://en.wikipedia.org/wiki/Interval_(mathematics)">https://en.wikipedia.org/wiki/Interval_(mathematics)</a> for more information.</p>
+               <p>the interval to test.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -1504,4 +1530,4 @@ node6 -> node2;
    </div>
   </div>
  </div>
-</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Attributes</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Value-members">Value members</a><ul><li><a href="#Concrete-methods">Concrete methods</a></li><li><a href="#Inherited-methods">Inherited methods</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
+</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Type parameters</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Value-members">Value members</a><ul><li><a href="#Concrete-methods">Concrete methods</a></li><li><a href="#Inherited-methods">Inherited methods</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
