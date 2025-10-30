@@ -15,10 +15,16 @@
 </div>
 <div class="cover">
  <div class="doc">
-  <p>A domain is based on an underlying domain value type, and is used to define the boundaries of interval. It describes specific data points in the domain value range as well as the special "<code>Bottom</code>" and "<code>Top</code>" cases which conceptually lie below and above this finite range of data points (logically below and above <code>minValue</code> and <code>maxValue</code> respectively). Domains can be based on domain values that are discrete or continuous. When continuous, a boundary point can either be open or closed, where discrete points must always be closed. This also gives a way to completely describe adjacency.</p>
-  <p>When domain values are discrete, the left and right adjacent domains of a point are the respective predecessors and successors of the domain value. This also gives us a way to accommodate having a predecessor or successor on a boundary, i.e., <code>maxValue.rightAdjacent == Top</code> and <code>minValue.leftAdjacent == Bottom</code>.</p>
-  <p>When domain values are continuous, the left and right adjacent domains are always the same: open if the point is closed and closed if the point is open.</p>
-  <p>In both discrete and continuous domains, <code>Top</code> and <code>Bottom</code> are considered self-adjacent.</p>
+  <p>A one-dimensional domain based on an underlying domain value type. One-dimensional domains are used to define the boundaries of one-dimensional intervals, and tuples of one-dimensional domains are used to define the boundaries of multidimensional intervals. It describes specific data points in the domain value range as well as the special <code>Bottom</code> and <code>Top</code> cases which conceptually lie below and above this finite range of data points (logically below and above <code>minValue</code> and <code>maxValue</code> respectively). Domains can be based on domain values that are discrete or continuous. When continuous, a boundary point can either be open or closed, where discrete points must always be closed.</p>
+  <p>This also gives a way to completely describe adjacency.</p>
+  <ul>
+   <li>
+    <p>When domain values are discrete, the left and right adjacent domains of a point are the respective predecessors and successors of the domain value. This also gives us a way to accommodate having predecessors/successors on the boundaries, i.e., <code>domain(maxValue).rightAdjacent == Top</code> and <code>domain(minValue).leftAdjacent == Bottom</code>.</p></li>
+   <li>
+    <p>When domain values are continuous, the left and right adjacent domains are always the same: open if the point is closed and closed if the point is open.</p></li>
+   <li>
+    <p>In both discrete and continuous domains, <code>Top</code> and <code>Bottom</code> are considered self-adjacent.</p></li>
+  </ul>
  </div>
  <section id="attributes">
   <h2 class="h500">Type parameters</h2>
@@ -183,11 +189,11 @@ node9 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Exclude a single data point in the finite range of this domain. This is suitable for the start or end of an interval over continuous values. This case is not used in intervals over discrete values.</p>
+             <p>A single open data point in the finite range of this domain. This is suitable for the start or end of an interval over continuous values. This case is not used in intervals over discrete values.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Exclude a single data point in the finite range of this domain. This is suitable for the start or end of an interval over continuous values. This case is not used in intervals over discrete values.</p>
+              <p>A single open data point in the finite range of this domain. This is suitable for the start or end of an interval over continuous values. This case is not used in intervals over discrete values.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>
@@ -211,11 +217,11 @@ node9 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>A single data point in the finite range of this domain</p>
+             <p>A single closed data point in the finite range of this domain</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>A single data point in the finite range of this domain</p>
+              <p>A single closed data point in the finite range of this domain</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small"></dl>

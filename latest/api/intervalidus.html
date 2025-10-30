@@ -133,15 +133,15 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Type class for discrete values, which are:</p>
+             <p>Type class for continuous values, which are:</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Type class for discrete values, which are:</p>
+              <p>Type class for continuous values, which are:</p>
               <ol>
                <li>bounded, with both a lower bound (<a href="intervalidus/ContinuousValue.html#minValue-0">minValue</a>) and an upper bound (<a href="intervalidus/ContinuousValue.html#maxValue-0">maxValue</a>)</li>
-               <li>totally ordered (extends <span data-unresolved-link="">Ordering</span>, requiring a <a href="intervalidus/ContinuousValue.html#compare-cc1">compare</a> method).</li>
-               <li>mappable to a weakly monotonic double value (requires an <a href="intervalidus/ContinuousValue.html#orderedHashOf-fffffeac">orderedHashOf</a> method that may have "collisions").</li>
+               <li>totally ordered (extends <span data-unresolved-link="">Ordering</span>, requiring a <a href="intervalidus/ContinuousValue.html#compare-cc1">compare</a> method)</li>
+               <li>mappable to a weakly monotonic double value (requires an <a href="intervalidus/ContinuousValue.html#orderedHashOf-fffffeac">orderedHashOf</a> method that may have "collisions")</li>
               </ol>
               <p>Unlike a <a href="intervalidus/DiscreteValue.html">DiscreteValue</a>, a continuous value is not necessarily well-ordered. That is, there is no requirement for having predecessors and successors defined. Although one can say that every digitized data structure is, by its very nature, discrete, it is often easier to reason about some data types when treated as continuous. For example, integer values and local dates are good candidates for being treated as discrete where double-precision float values and local date-times are often better treated as continuous.</p>
               <p>See <a href="https://en.wikipedia.org/wiki/Bounded_set">https://en.wikipedia.org/wiki/Bounded_set</a>, <a href="https://en.wikipedia.org/wiki/Maximum_and_minimum">https://en.wikipedia.org/wiki/Maximum_and_minimum</a>, <a href="https://en.wikipedia.org/wiki/Total_order">https://en.wikipedia.org/wiki/Total_order</a>, <a href="https://en.wikipedia.org/wiki/Monotonic_function">https://en.wikipedia.org/wiki/Monotonic_function</a>, and <a href="https://en.wikipedia.org/wiki/Well-order">https://en.wikipedia.org/wiki/Well-order</a>.</p>
@@ -432,13 +432,13 @@
                D
               </dt>
               <dd class="body-medium">
-               <p>for <code>Create</code> and <code>Update</code>, the type of domain used in the interval assigned to each valid value, and for <code>Delete</code>, the type of domain used as the key.</p>
+               <p>for <code>Create</code> and <code>Update</code>, the type of domain used in the interval assigned to the valid value, and for <code>Delete</code>, the type of domain used as the key.</p>
               </dd>
               <dt class="body-small">
                V
               </dt>
               <dd class="body-medium">
-               <p>the type of the value managed as data (not used in Delete).</p>
+               <p>the type of the value managed as data (not used in <code>Delete</code>).</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -1292,11 +1292,11 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Interface is similar to <a href="intervalidus/DimensionalBase.html">DimensionalBase</a>, but it operates on an underlying <a href="intervalidus/mutable/Data.html">intervalidus.mutable.Data</a> using an extra integer-valued head dimension to version data. One use case would be versioned data that are valid in two dimensions of time, so the underlying data actually * vary in terms of version and two dimensions of time (three dimensions). Most methods require some generic version selection criteria rather than specific integer intervals, therefore this does not extend <a href="intervalidus/DimensionalBase.html">DimensionalBase</a>.</p>
+             <p>Interface is similar to <a href="intervalidus/DimensionalBase.html">DimensionalBase</a>, but it operates on an underlying <a href="intervalidus/mutable/Data.html">intervalidus.mutable.Data</a> using an extra integer-valued head dimension to version data. One use case would be versioned data that are valid in two dimensions of time, so the underlying data actually vary in terms of version and two dimensions of time (three dimensions). Most methods require some generic version selection criteria rather than specific integer intervals, therefore this does not extend <a href="intervalidus/DimensionalBase.html">DimensionalBase</a>.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Interface is similar to <a href="intervalidus/DimensionalBase.html">DimensionalBase</a>, but it operates on an underlying <a href="intervalidus/mutable/Data.html">intervalidus.mutable.Data</a> using an extra integer-valued head dimension to version data. One use case would be versioned data that are valid in two dimensions of time, so the underlying data actually * vary in terms of version and two dimensions of time (three dimensions). Most methods require some generic version selection criteria rather than specific integer intervals, therefore this does not extend <a href="intervalidus/DimensionalBase.html">DimensionalBase</a>.</p>
+              <p>Interface is similar to <a href="intervalidus/DimensionalBase.html">DimensionalBase</a>, but it operates on an underlying <a href="intervalidus/mutable/Data.html">intervalidus.mutable.Data</a> using an extra integer-valued head dimension to version data. One use case would be versioned data that are valid in two dimensions of time, so the underlying data actually vary in terms of version and two dimensions of time (three dimensions). Most methods require some generic version selection criteria rather than specific integer intervals, therefore this does not extend <a href="intervalidus/DimensionalBase.html">DimensionalBase</a>.</p>
               <p>The "current" version is managed as state (a var). Versioning also separates notions of approved vs. unapproved data (unapproved data are pushed up to start at version maxValue). When getting data, by default, we return "current" version data (a.k.a., approved). When updating data, by default, we don't rewrite history, so mutations start with the "current" version too.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
@@ -1453,8 +1453,8 @@
               <p>Type class for discrete values, which are:</p>
               <ol>
                <li>bounded, with both a lower bound (<a href="intervalidus/DiscreteValue.html#minValue-0">minValue</a>) and an upper bound (<a href="intervalidus/DiscreteValue.html#maxValue-0">maxValue</a>)</li>
-               <li>totally ordered (extends <span data-unresolved-link="">Ordering</span>, requiring a <a href="intervalidus/DiscreteValue.html#compare-cc1">compare</a> method).</li>
-               <li>mappable to a weakly monotonic double value (requires an <a href="intervalidus/DiscreteValue.html#orderedHashOf-fffffeac">orderedHashOf</a> method that may have "collisions").</li>
+               <li>totally ordered (extends <span data-unresolved-link="">Ordering</span>, requiring a <a href="intervalidus/DiscreteValue.html#compare-cc1">compare</a> method)</li>
+               <li>mappable to a weakly monotonic double value (requires an <a href="intervalidus/DiscreteValue.html#orderedHashOf-fffffeac">orderedHashOf</a> method that may have "collisions")</li>
                <li>well ordered, having both a <a href="intervalidus/DiscreteValue.html#predecessorOf-fffffb50">predecessorOf</a> and <a href="intervalidus/DiscreteValue.html#successorOf-fffffb50">successorOf</a> function (unlike a <a href="intervalidus/ContinuousValue.html">ContinuousValue</a>).</li>
               </ol>
               <p>The predecessor must only be defined for values strictly greater than <code>minValue</code> and the successor only for values strictly less than <code>maxValue</code>. Having the predecessor and successor definitions limited in this way avoids issues where related methods of the underlying data types behave unexpectedly/inconsistently on the boundaries. For example, <code>Int.MaxValue + 1</code> and <code>Int.MinValue - 1</code> silently wrap around to each other, whereas both <code>LocalDate.MAX.plusDays(1)</code> and <code>LocalDate.MIN.minusDays(1)</code> throw a <code>DateTimeException</code>.</p>
@@ -1664,14 +1664,20 @@
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>A domain is based on an underlying domain value type, and is used to define the boundaries of interval. It describes specific data points in the domain value range as well as the special "<code>Bottom</code>" and "<code>Top</code>" cases which conceptually lie below and above this finite range of data points (logically below and above <code>minValue</code> and <code>maxValue</code> respectively). Domains can be based on domain values that are discrete or continuous. When continuous, a boundary point can either be open or closed, where discrete points must always be closed. This also gives a way to completely describe adjacency.</p>
+             <p>A one-dimensional domain based on an underlying domain value type. One-dimensional domains are used to define the boundaries of one-dimensional intervals, and tuples of one-dimensional domains are used to define the boundaries of multidimensional intervals. It describes specific data points in the domain value range as well as the special <code>Bottom</code> and <code>Top</code> cases which conceptually lie below and above this finite range of data points (logically below and above <code>minValue</code> and <code>maxValue</code> respectively). Domains can be based on domain values that are discrete or continuous. When continuous, a boundary point can either be open or closed, where discrete points must always be closed.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>A domain is based on an underlying domain value type, and is used to define the boundaries of interval. It describes specific data points in the domain value range as well as the special "<code>Bottom</code>" and "<code>Top</code>" cases which conceptually lie below and above this finite range of data points (logically below and above <code>minValue</code> and <code>maxValue</code> respectively). Domains can be based on domain values that are discrete or continuous. When continuous, a boundary point can either be open or closed, where discrete points must always be closed. This also gives a way to completely describe adjacency.</p>
-              <p>When domain values are discrete, the left and right adjacent domains of a point are the respective predecessors and successors of the domain value. This also gives us a way to accommodate having a predecessor or successor on a boundary, i.e., <code>maxValue.rightAdjacent == Top</code> and <code>minValue.leftAdjacent == Bottom</code>.</p>
-              <p>When domain values are continuous, the left and right adjacent domains are always the same: open if the point is closed and closed if the point is open.</p>
-              <p>In both discrete and continuous domains, <code>Top</code> and <code>Bottom</code> are considered self-adjacent.</p>
+              <p>A one-dimensional domain based on an underlying domain value type. One-dimensional domains are used to define the boundaries of one-dimensional intervals, and tuples of one-dimensional domains are used to define the boundaries of multidimensional intervals. It describes specific data points in the domain value range as well as the special <code>Bottom</code> and <code>Top</code> cases which conceptually lie below and above this finite range of data points (logically below and above <code>minValue</code> and <code>maxValue</code> respectively). Domains can be based on domain values that are discrete or continuous. When continuous, a boundary point can either be open or closed, where discrete points must always be closed.</p>
+              <p>This also gives a way to completely describe adjacency.</p>
+              <ul>
+               <li>
+                <p>When domain values are discrete, the left and right adjacent domains of a point are the respective predecessors and successors of the domain value. This also gives us a way to accommodate having predecessors/successors on the boundaries, i.e., <code>domain(maxValue).rightAdjacent == Top</code> and <code>domain(minValue).leftAdjacent == Bottom</code>.</p></li>
+               <li>
+                <p>When domain values are continuous, the left and right adjacent domains are always the same: open if the point is closed and closed if the point is open.</p></li>
+               <li>
+                <p>In both discrete and continuous domains, <code>Top</code> and <code>Bottom</code> are considered self-adjacent.</p></li>
+              </ul>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -2064,8 +2070,8 @@
               <p>A domain value is at least</p>
               <ol>
                <li>bounded, with both a lower bound (<a href="intervalidus/DomainValueLike.html#minValue-0">minValue</a>) and an upper bound (<a href="intervalidus/DomainValueLike.html#maxValue-0">maxValue</a>)</li>
-               <li>totally ordered (extends <span data-unresolved-link="">Ordering</span>, requiring a <a href="intervalidus/DomainValueLike.html#compare-cc1">compare</a> method).</li>
-               <li>mappable to a weakly monotonic double value (requires an <a href="intervalidus/DomainValueLike.html#orderedHashOf-fffffeac">orderedHashOf</a> method that may have "collisions").</li>
+               <li>totally ordered (extends <span data-unresolved-link="">Ordering</span>, requiring a <a href="intervalidus/DomainValueLike.html#compare-cc1">compare</a> method)</li>
+               <li>mappable to a weakly monotonic double value (requires an <a href="intervalidus/DomainValueLike.html#orderedHashOf-fffffeac">orderedHashOf</a> method that may have "collisions")</li>
               </ol>
               <p>See <a href="https://en.wikipedia.org/wiki/Bounded_set">https://en.wikipedia.org/wiki/Bounded_set</a>, <a href="https://en.wikipedia.org/wiki/Maximum_and_minimum">https://en.wikipedia.org/wiki/Maximum_and_minimum</a>, <a href="https://en.wikipedia.org/wiki/Total_order">https://en.wikipedia.org/wiki/Total_order</a>, and <a href="https://en.wikipedia.org/wiki/Monotonic_function">https://en.wikipedia.org/wiki/Monotonic_function</a>.</p>
              </div>
