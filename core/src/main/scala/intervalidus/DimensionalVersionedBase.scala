@@ -74,7 +74,8 @@ object DimensionalVersionedBase:
 import DimensionalVersionedBase.*
 
 /**
-  * $objectDesc
+  * Constructs data in multidimensional intervals that are also versioned (hidden extra dimension).
+  *
   * @define objectDesc
   *   Constructs data in multidimensional intervals that are also versioned (hidden extra dimension).
   * @define dataValueType
@@ -178,17 +179,22 @@ class DimensionalDataVersionedBuilder[V, D <: NonEmptyTuple: DomainLike, Self <:
 
 /**
   * Interface is similar to [[DimensionalBase]], but it operates on an underlying [[intervalidus.mutable.Data]] using an
-  * extra integer-valued head dimension to version data. $classDescUseCase Most methods require some generic version
-  * selection criteria rather than specific integer intervals, therefore this does not extend [[DimensionalBase]].
+  * extra integer-valued head dimension to version data. One use case would be versioned data that are valid in two
+  * dimensions of time, so the underlying data actually vary in terms of version and two dimensions of time (three
+  * dimensions). Most methods require some generic version selection criteria rather than specific integer intervals,
+  * therefore this does not extend [[DimensionalBase]].
   *
-  * $classDescFeatures
+  * The "current" version is managed as state (a var). Versioning also separates notions of approved vs. unapproved data
+  * (unapproved data are pushed up to start at version maxValue). When getting data, by default, we return "current"
+  * version data (a.k.a., approved). When updating data, by default, we don't rewrite history, so mutations start with
+  * the "current" version too.
   *
   * @note
-  *   $classNote
+  *   Updates starting with "current" also update unapproved changes (since intervalFrom goes to the Top).
   * @tparam V
-  *   $dataValueType
+  *   the type of the value managed as data.
   * @tparam D
-  *   $intervalDomainType
+  *   the domain type -- a non-empty tuple that is DomainLike.
   *
   * @define classDescUseCase
   *   One use case would be versioned data that are valid in two dimensions of time, so the underlying data actually
@@ -628,7 +634,7 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     underlying.intersects(underlyingIntervalAtVersionBoundary(interval))
 
   /**
-    * Returns all the intervals (compressed) in which there are valid values given some version selection context. See *
+    * Returns all the intervals (compressed) in which there are valid values given some version selection context. See
     * [[https://en.wikipedia.org/wiki/Domain_of_a_function]].
     */
   def domain(using VersionSelection): Iterable[Interval[D]] = getSelectedDataMutable.domain

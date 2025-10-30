@@ -16,6 +16,7 @@ import scala.compiletime.ops.int.S
   *
   * @tparam D
   *   the domain type -- a non-empty tuple of one-dimensional domains, where each can have its own domain value type.
+  *
   * @define minMaxNote
   *   Because each dimension is evaluated independently, there is no guarantee the result will equal either of the
   *   arguments.

@@ -14,13 +14,6 @@ import scala.math.Ordering.Implicits.infixOrderingOps
   * An interval in multiple dimensions over a contiguous set of domain values in D. See
   * [[https://en.wikipedia.org/wiki/Interval_(mathematics)]] for more information.
   *
-  * @define dataValueType
-  *   the type of the value managed as data.
-  * @define intervalDomainType
-  *   the domain type -- a non-empty tuple that is DomainLike.
-  * @define intervalToTest
-  *   the interval to test.
-  *
   * @param start
   *   the "infimum", i.e., the left (and/or below and/or back, depending on dimensions and context) boundary of the
   *   interval
@@ -28,7 +21,14 @@ import scala.math.Ordering.Implicits.infixOrderingOps
   *   the "supremum", i.e., the right (and/or above and/or front, depending on dimensions and context) boundary of the
   *   interval -- must be greater than or equal to the start in all dimensions
   * @tparam D
-  *   $intervalDomainType
+  *   the domain type -- a non-empty tuple that is DomainLike.
+  *
+  * @define dataValueType
+  *   the type of the value managed as data.
+  * @define intervalDomainType
+  *   the domain type -- a non-empty tuple that is DomainLike.
+  * @define intervalToTest
+  *   the interval to test.
   */
 case class Interval[D <: NonEmptyTuple](
   start: D,
@@ -589,6 +589,7 @@ case class Interval[D <: NonEmptyTuple](
 
 /**
   * Companion for the multidimensional interval used in defining and operating on valid data.
+  *
   * @define intervalDomainType
   *   the domain type -- a non-empty tuple that is DomainLike.
   */

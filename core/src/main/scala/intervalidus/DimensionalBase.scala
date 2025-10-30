@@ -19,6 +19,8 @@ object DimensionalBase:
   type In4D[V, R1, R2, R3, R4] = DimensionalBase[V, Domain.In4D[R1, R2, R3, R4]]
 
 /**
+  * Constructs data in multidimensional intervals.
+  *
   * @define objectDesc
   *   Constructs data in multidimensional intervals.
   * @define dataValueType
@@ -143,16 +145,15 @@ trait DimensionalBaseConstructorParams:
 /**
   * Base for all dimensional data, both mutable and immutable, of arbitrary dimensions.
   *
+  * @tparam V
+  *   the type of the value managed as data.
+  * @tparam D
+  *   the domain type -- a non-empty tuple that is DomainLike.
+  *
   * @define dataValueType
   *   the type of the value managed as data.
   * @define intervalDomainType
   *   the domain type -- a non-empty tuple that is DomainLike.
-  *
-  * @tparam V
-  *   $dataValueType
-  * @tparam D
-  *   $intervalDomainType
-  *
   * @define immutableReturn
   *   a new, updated structure.
   * @define mutableAction

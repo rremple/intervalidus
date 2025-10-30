@@ -3,8 +3,8 @@ package intervalidus
 /**
   * A domain value is at least
   *   1. bounded, with both a lower bound ([[minValue]]) and an upper bound ([[maxValue]])
-  *   1. totally ordered (extends [[Ordering]], requiring a [[compare]] method).
-  *   1. mappable to a weakly monotonic double value (requires an [[orderedHashOf]] method that may have "collisions").
+  *   1. totally ordered (extends [[Ordering]], requiring a [[compare]] method)
+  *   1. mappable to a weakly monotonic double value (requires an [[orderedHashOf]] method that may have "collisions")
   *
   * See [[https://en.wikipedia.org/wiki/Bounded_set]], [[https://en.wikipedia.org/wiki/Maximum_and_minimum]],
   * [[https://en.wikipedia.org/wiki/Total_order]], and [[https://en.wikipedia.org/wiki/Monotonic_function]].

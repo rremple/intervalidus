@@ -126,6 +126,7 @@ class DimensionalDataMultiBuilder[V, D <: NonEmptyTuple: DomainLike, Self <: Dim
   *   $dataValueType
   * @tparam D
   *   $intervalDomainType
+  *
   * @define mergeOneDesc
   *   Concatenates all valid data in this and that structure into a new one.
   * @define mergeOneParamThat

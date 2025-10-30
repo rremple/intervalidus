@@ -10,8 +10,6 @@ import scala.math.Ordering.Implicits.infixOrderingOps
 /**
   * A one-dimensional interval over a contiguous set of domain values in T. See
   * [[https://en.wikipedia.org/wiki/Interval_(mathematics)]] for more information.
-  * @define intervalToTest
-  *   the interval to test.
   *
   * @tparam T
   *   a domain value type for this interval's domain (e.g., Int, LocalDate) -- boundaries of the interval are defined in
@@ -20,6 +18,9 @@ import scala.math.Ordering.Implicits.infixOrderingOps
   *   the "infimum", i.e., the left boundary of the interval
   * @param end
   *   the "supremum", i.e., the right boundary of the interval -- must be greater than or equal to the start
+  *
+  * @define intervalToTest
+  *   the interval to test.
   */
 case class Interval1D[T](
   start: Domain1D[T],
@@ -413,6 +414,9 @@ case class Interval1D[T](
 
 /**
   * Companion for the one-dimensional interval used in defining and operating on valid data.
+  *
+  * @define domainValueType
+  *   domain value type of these intervals
   */
 object Interval1D:
   /**
@@ -424,9 +428,6 @@ object Interval1D:
     * the bounds open.
     * @note
     *   This means that intervals of the form `(Top, Top)` and `(Bottom, Bottom)` are not allowed.
-    *
-    * @define domainValueType
-    *   domain value type of these intervals
     */
   def validBounds[T: DomainValueLike](start: Domain1D[T], end: Domain1D[T]): Boolean = (start, end) match
     case _ if (start beforeEnd end) && (end afterStart start) => true

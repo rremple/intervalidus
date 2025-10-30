@@ -1,10 +1,10 @@
 package intervalidus
 
 /**
-  * Type class for discrete values, which are:
+  * Type class for continuous values, which are:
   *   1. bounded, with both a lower bound ([[minValue]]) and an upper bound ([[maxValue]])
-  *   1. totally ordered (extends [[Ordering]], requiring a [[compare]] method).
-  *   1. mappable to a weakly monotonic double value (requires an [[orderedHashOf]] method that may have "collisions").
+  *   1. totally ordered (extends [[Ordering]], requiring a [[compare]] method)
+  *   1. mappable to a weakly monotonic double value (requires an [[orderedHashOf]] method that may have "collisions")
   *
   * Unlike a [[DiscreteValue]], a continuous value is not necessarily well-ordered. That is, there is no requirement for
   * having predecessors and successors defined. Although one can say that every digitized data structure is, by its very

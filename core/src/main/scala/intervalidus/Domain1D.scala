@@ -4,21 +4,23 @@ import java.time.{LocalDate, LocalDateTime}
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 /**
-  * A domain is based on an underlying domain value type, and is used to define the boundaries of interval. It describes
-  * specific data points in the domain value range as well as the special "`Bottom`" and "`Top`" cases which
-  * conceptually lie below and above this finite range of data points (logically below and above `minValue` and
-  * `maxValue` respectively). Domains can be based on domain values that are discrete or continuous. When continuous, a
-  * boundary point can either be open or closed, where discrete points must always be closed. This also gives a way to
-  * completely describe adjacency.
+  * A one-dimensional domain based on an underlying domain value type. One-dimensional domains are used to define the
+  * boundaries of one-dimensional intervals, and tuples of one-dimensional domains are used to define the boundaries of
+  * multidimensional intervals. It describes specific data points in the domain value range as well as the special
+  * `Bottom` and `Top` cases which conceptually lie below and above this finite range of data points (logically below
+  * and above `minValue` and `maxValue` respectively). Domains can be based on domain values that are discrete or
+  * continuous. When continuous, a boundary point can either be open or closed, where discrete points must always be
+  * closed.
   *
-  * When domain values are discrete, the left and right adjacent domains of a point are the respective predecessors and
-  * successors of the domain value. This also gives us a way to accommodate having a predecessor or successor on a
-  * boundary, i.e., `maxValue.rightAdjacent == Top` and `minValue.leftAdjacent == Bottom`.
+  * This also gives a way to completely describe adjacency.
+  *   - When domain values are discrete, the left and right adjacent domains of a point are the respective predecessors
+  *     and successors of the domain value. This also gives us a way to accommodate having predecessors/successors on
+  *     the boundaries, i.e., `domain(maxValue).rightAdjacent == Top` and `domain(minValue).leftAdjacent == Bottom`.
   *
-  * When domain values are continuous, the left and right adjacent domains are always the same: open if the point is
-  * closed and closed if the point is open.
+  *   - When domain values are continuous, the left and right adjacent domains are always the same: open if the point is
+  *     closed and closed if the point is open.
   *
-  * In both discrete and continuous domains, `Top` and `Bottom` are considered self-adjacent.
+  *   - In both discrete and continuous domains, `Top` and `Bottom` are considered self-adjacent.
   *
   * @tparam T
   *   expected to be a domain value (i.e., `DomainValueLike[T]` should be given).
@@ -30,13 +32,13 @@ enum Domain1D[+T]:
   case Bottom
 
   /**
-    * A single data point in the finite range of this domain
+    * A single closed data point in the finite range of this domain
     */
   case Point[P: DomainValueLike](value: P) extends Domain1D[P]
 
   /**
-    * Exclude a single data point in the finite range of this domain. This is suitable for the start or end of an
-    * interval over continuous values. This case is not used in intervals over discrete values.
+    * A single open data point in the finite range of this domain. This is suitable for the start or end of an interval
+    * over continuous values. This case is not used in intervals over discrete values.
     */
   case OpenPoint[P: DomainValueLike](value: P) extends Domain1D[P]
 

@@ -3,8 +3,8 @@ package intervalidus
 /**
   * Type class for discrete values, which are:
   *   1. bounded, with both a lower bound ([[minValue]]) and an upper bound ([[maxValue]])
-  *   1. totally ordered (extends [[Ordering]], requiring a [[compare]] method).
-  *   1. mappable to a weakly monotonic double value (requires an [[orderedHashOf]] method that may have "collisions").
+  *   1. totally ordered (extends [[Ordering]], requiring a [[compare]] method)
+  *   1. mappable to a weakly monotonic double value (requires an [[orderedHashOf]] method that may have "collisions")
   *   1. well ordered, having both a [[predecessorOf]] and [[successorOf]] function (unlike a [[ContinuousValue]]).
   *
   * The predecessor must only be defined for values strictly greater than `minValue` and the successor only for values

@@ -70,7 +70,7 @@ object DataVersioned extends DimensionalVersionedBaseObject:
   * @tparam V
   *   $dataValueType
   * @tparam D
-  *   $intervalDomainType1
+  *   $intervalDomainType
   */
 class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   initialData: Iterable[ValidData[V, Versioned[D]]] = Iterable.empty[ValidData[V, Versioned[D]]],

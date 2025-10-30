@@ -7,9 +7,9 @@ package intervalidus
   *   intervalidus does not have event-sourced data structures, and the history of mutations is not maintained.
   *
   * @tparam V
-  *   the type of the value managed as data (not used in Delete).
+  *   the type of the value managed as data (not used in `Delete`).
   * @tparam D
-  *   for `Create` and `Update`, the type of domain used in the interval assigned to each valid value, and for `Delete`,
+  *   for `Create` and `Update`, the type of domain used in the interval assigned to the valid value, and for `Delete`,
   *   the type of domain used as the key.
   */
 enum DiffAction[+V, +D <: NonEmptyTuple](using DomainLike[D]):
