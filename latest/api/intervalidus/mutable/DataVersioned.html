@@ -652,7 +652,7 @@ node6 -> node1;
                p
               </dt>
               <dd class="body-medium">
-               <p>the predicate function used to test elements.</p>
+               <p>the predicate used to test elements.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -1284,7 +1284,7 @@ node6 -> node1;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DataVersioned.html#setIfNoConflict-7d1" t="n" class="documentableName ">setIfNoConflict</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">newData</span>: <a href="../ValidData.html" t="t">ValidData</a>[<span t="t">V</span>, <span t="t">D</span>])(<span t="k">using </span><span t="k"></span><a href="../DimensionalVersionedBase$$VersionSelection.html" t="t">VersionSelection</a>): <span data-unresolved-link="" t="t">Boolean</span>
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DataVersioned.html#setIfNoConflict-7d1" t="n" class="documentableName ">setIfNoConflict</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">data</span>: <a href="../ValidData.html" t="t">ValidData</a>[<span t="t">V</span>, <span t="t">D</span>])(<span t="k">using </span><span t="k"></span><a href="../DimensionalVersionedBase$$VersionSelection.html" t="t">VersionSelection</a>): <span data-unresolved-link="" t="t">Boolean</span>
            </div>
           </div>
          </div>
@@ -1303,7 +1303,7 @@ node6 -> node1;
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
-               newData
+               data
               </dt>
               <dd class="body-medium">
                <p>the valid data to set.</p>
@@ -1497,11 +1497,11 @@ node6 -> node1;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Update everything valid in the specified interval and the given version selection context to have the specified value. No new intervals of validity are added as part of this operation. Data with overlaps are adjusted accordingly. Data are mutated in place.</p>
+             <p>Update everything valid in the data's interval and the given version selection context to have the data's value. No new intervals of validity are added as part of this operation. Data with overlaps are adjusted accordingly. Data are mutated in place.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Update everything valid in the specified interval and the given version selection context to have the specified value. No new intervals of validity are added as part of this operation. Data with overlaps are adjusted accordingly. Data are mutated in place.</p>
+              <p>Update everything valid in the data's interval and the given version selection context to have the data's value. No new intervals of validity are added as part of this operation. Data with overlaps are adjusted accordingly. Data are mutated in place.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">

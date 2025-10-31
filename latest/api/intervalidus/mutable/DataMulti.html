@@ -16,7 +16,7 @@
 <div class="cover">
  <div class="doc">
   <p>Mutable, multivalued dimensional data.</p>
-  <p>Data may have multiple values valid in different intervals of arbitrary dimensions, conceptually similar to a multimap. For example, one may want to represent when the data are valid in time and over certain versions, or in two dimensions of time, simultaneously. When queried, values are returned as a set. The standard mutation methods operate on these sets of values. There are also add and remove methods allow mutation of individual values across intervals, and a concat method for combining two structures (a merge where overlaps are concatenated).</p>
+  <p>Data may have multiple values valid in different intervals of arbitrary dimensions, conceptually similar to a multimap. When queried, values are returned as a set. In addition to the standard methods that operate on these sets of values. there are methods that operate on individual set members. For example, <code>addOne</code> and <code>removeOne</code> allow mutation of individual values across intervals, and <code>mergeOne</code> combines two structures (a merge where overlaps are concatenated).</p>
  </div>
  <section id="attributes">
   <h2 class="h500">Type parameters</h2>
@@ -728,7 +728,7 @@ node8 -> node4;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"><span t="k">infix </span></span><span class="kind"><span t="k">def </span></span><a href="DataMulti.html#+-fffffcc2" t="n" class="documentableName ">+</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">newData</span>: <a href="../ValidData.html" t="t">ValidData</a>[<span data-unresolved-link="" t="t">Set</span>[<span t="t">V</span>], <span t="t">D</span>]): <span data-unresolved-link="" t="t">Unit</span>
+            <span class="modifiers"><span t="k">infix </span></span><span class="kind"><span t="k">def </span></span><a href="DataMulti.html#+-fffffcc2" t="n" class="documentableName ">+</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">data</span>: <a href="../ValidData.html" t="t">ValidData</a>[<span data-unresolved-link="" t="t">Set</span>[<span t="t">V</span>], <span t="t">D</span>]): <span data-unresolved-link="" t="t">Unit</span>
            </div>
           </div>
          </div>
@@ -748,7 +748,7 @@ node8 -> node4;
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
-               newData
+               data
               </dt>
               <dd class="body-medium">
                <p>the valid data to set.</p>
@@ -773,7 +773,7 @@ node8 -> node4;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"><span t="k">infix </span></span><span class="kind"><span t="k">def </span></span><a href="DataMulti.html#++-fffff606" t="n" class="documentableName ">++</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">newData</span>: <span data-unresolved-link="" t="t">Iterable</span>[<a href="../ValidData.html" t="t">ValidData</a>[<span data-unresolved-link="" t="t">Set</span>[<span t="t">V</span>], <span t="t">D</span>]]): <span data-unresolved-link="" t="t">Unit</span>
+            <span class="modifiers"><span t="k">infix </span></span><span class="kind"><span t="k">def </span></span><a href="DataMulti.html#++-fffff606" t="n" class="documentableName ">++</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">data</span>: <span data-unresolved-link="" t="t">Iterable</span>[<a href="../ValidData.html" t="t">ValidData</a>[<span data-unresolved-link="" t="t">Set</span>[<span t="t">V</span>], <span t="t">D</span>]]): <span data-unresolved-link="" t="t">Unit</span>
            </div>
           </div>
          </div>
@@ -793,7 +793,7 @@ node8 -> node4;
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
-               newData
+               data
               </dt>
               <dd class="body-medium">
                <p>collection of valid data to set.</p>
@@ -2713,7 +2713,7 @@ node8 -> node4;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DataMulti.html#set-fffffcc2" t="n" class="documentableName ">set</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">newData</span>: <a href="../ValidData.html" t="t">ValidData</a>[<span data-unresolved-link="" t="t">Set</span>[<span t="t">V</span>], <span t="t">D</span>]): <span data-unresolved-link="" t="t">Unit</span>
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DataMulti.html#set-fffffcc2" t="n" class="documentableName ">set</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">data</span>: <a href="../ValidData.html" t="t">ValidData</a>[<span data-unresolved-link="" t="t">Set</span>[<span t="t">V</span>], <span t="t">D</span>]): <span data-unresolved-link="" t="t">Unit</span>
            </div>
           </div>
          </div>
@@ -2732,7 +2732,7 @@ node8 -> node4;
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
-               newData
+               data
               </dt>
               <dd class="body-medium">
                <p>the valid data to set.</p>
@@ -2757,7 +2757,7 @@ node8 -> node4;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DataMulti.html#setIfNoConflict-82a" t="n" class="documentableName ">setIfNoConflict</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">newData</span>: <a href="../ValidData.html" t="t">ValidData</a>[<span data-unresolved-link="" t="t">Set</span>[<span t="t">V</span>], <span t="t">D</span>]): <span data-unresolved-link="" t="t">Boolean</span>
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DataMulti.html#setIfNoConflict-82a" t="n" class="documentableName ">setIfNoConflict</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">data</span>: <a href="../ValidData.html" t="t">ValidData</a>[<span data-unresolved-link="" t="t">Set</span>[<span t="t">V</span>], <span t="t">D</span>]): <span data-unresolved-link="" t="t">Boolean</span>
            </div>
           </div>
          </div>
@@ -2776,7 +2776,7 @@ node8 -> node4;
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
-               newData
+               data
               </dt>
               <dd class="body-medium">
                <p>the valid data to set.</p>
@@ -2807,7 +2807,7 @@ node8 -> node4;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DataMulti.html#setMany-fffff606" t="n" class="documentableName ">setMany</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">newData</span>: <span data-unresolved-link="" t="t">Iterable</span>[<a href="../ValidData.html" t="t">ValidData</a>[<span data-unresolved-link="" t="t">Set</span>[<span t="t">V</span>], <span t="t">D</span>]]): <span data-unresolved-link="" t="t">Unit</span>
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="DataMulti.html#setMany-fffff606" t="n" class="documentableName ">setMany</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">data</span>: <span data-unresolved-link="" t="t">Iterable</span>[<a href="../ValidData.html" t="t">ValidData</a>[<span data-unresolved-link="" t="t">Set</span>[<span t="t">V</span>], <span t="t">D</span>]]): <span data-unresolved-link="" t="t">Unit</span>
            </div>
           </div>
          </div>
@@ -2826,7 +2826,7 @@ node8 -> node4;
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
-               newData
+               data
               </dt>
               <dd class="body-medium">
                <p>collection of valid data to set.</p>
@@ -3020,11 +3020,11 @@ node8 -> node4;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Update everything valid in data's interval to have the data's value. No new intervals of validity are added as part of this operation. Data that overlaps are adjusted accordingly. Data are mutated in place.</p>
+             <p>Update everything valid in the data's interval to have the data's value. No new intervals of validity are added as part of this operation. Data with overlaps are adjusted accordingly. Data are mutated in place.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Update everything valid in data's interval to have the data's value. No new intervals of validity are added as part of this operation. Data that overlaps are adjusted accordingly. Data are mutated in place.</p>
+              <p>Update everything valid in the data's interval to have the data's value. No new intervals of validity are added as part of this operation. Data with overlaps are adjusted accordingly. Data are mutated in place.</p>
              </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
@@ -3032,7 +3032,7 @@ node8 -> node4;
                data
               </dt>
               <dd class="body-medium">
-               <p>the new value existing data in the interval should take on</p>
+               <p>the new value and interval existing data should take on.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
