@@ -47,11 +47,7 @@ object DataMulti extends DimensionalMultiBaseObject:
 /**
   * Immutable, multivalued dimensional data.
   *
-  * Data may have multiple values valid in different intervals of arbitrary dimensions, conceptually similar to a
-  * multimap. For example, one may want to represent when the data are valid in time and over certain versions, or in
-  * two dimensions of time, simultaneously. When queried, values are returned as a set. The standard mutation methods
-  * operate on these sets of values. There are also add and remove methods allow mutation of individual values across
-  * intervals, and a concat method for combining two structures (a merge where overlaps are concatenated).
+  * $classDesc
   *
   * @tparam V
   *   $dataValueType

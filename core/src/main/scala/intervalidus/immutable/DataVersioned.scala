@@ -192,14 +192,14 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   /**
     * $setIfNoConflictDesc
     *
-    * @param newData
-    *   $setIfNoConflictParamNewData
+    * @param data
+    *   $setIfNoConflictParamData
     * @return
     *   Some new structure data if there were no conflicts and new data was set, None otherwise.
     */
-  def setIfNoConflict(newData: ValidData[V, D])(using VersionSelection): Option[DataVersioned[V, D]] =
+  def setIfNoConflict(data: ValidData[V, D])(using VersionSelection): Option[DataVersioned[V, D]] =
     val result = copy
-    val updated = result.underlying.setIfNoConflict(underlyingValidDataFromVersionBoundary(newData))
+    val updated = result.underlying.setIfNoConflict(underlyingValidDataFromVersionBoundary(data))
     if updated then Some(result) else None
 
   /**
@@ -506,11 +506,10 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     DataVersioned(
       underlying.getAll
         .filter(versionInterval(_) intersects keep.intervalTo)
-        .map(d =>
+        .map: d =>
           if versionInterval(d).end >= keep.boundary
           then withVersionUpdate(d, _.toTop)
-          else d
-        ),
+          else d,
       initialVersion,
       mutable.Map.from(versionTimestamps.iterator.filter(_._1 <= version)),
       Some(version)

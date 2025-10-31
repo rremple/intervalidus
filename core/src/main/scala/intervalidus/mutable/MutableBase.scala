@@ -41,8 +41,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
   def mapValues(f: V => V): Unit =
     getAll
       .map(d => d.copy(value = f(d.value)))
-      .foreach: newData =>
-        updateValidData(newData)
+      .foreach(updateValidData)
 
   /**
     * $mapIntervalsDesc $mutableAction
@@ -75,40 +74,38 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
   /**
     * $setDesc $mutableAction
     *
-    * @param newData
-    *   $setParamNewData
+    * @param data
+    *   $setParamData
     */
-  def set(newData: ValidData[V, D]): Unit = synchronized:
-    remove(newData.interval)
-    addValidData(newData)
-    compress(newData.value)
+  def set(data: ValidData[V, D]): Unit = synchronized:
+    remove(data.interval)
+    addValidData(data)
+    compress(data.value)
 
   /**
     * $setManyDesc $mutableAction @note $setManyNote
     *
-    * @param newData
-    *   $setManyParamNewData
+    * @param data
+    *   $setManyParamData
     */
-  def setMany(newData: Iterable[ValidData[V, D]]): Unit = synchronized:
-    val values = newData.map(_.value).toSet
-    newData.foreach: data =>
-      updateOrRemove(data.interval, _ => None)
-      addValidData(data)
-    values.foreach: value =>
-      compressInPlace(value)
+  def setMany(data: Iterable[ValidData[V, D]]): Unit = synchronized:
+    data.foreach: d =>
+      updateOrRemove(d.interval, _ => None)
+      addValidData(d)
+    values.foreach(compressInPlace)
 
   /**
     * $setIfNoConflictDesc $mutableAction
     *
-    * @param newData
-    *   $setIfNoConflictParamNewData
+    * @param data
+    *   $setIfNoConflictParamData
     * @return
     *   true if there were no conflicts and new data was set, false otherwise.
     */
-  def setIfNoConflict(newData: ValidData[V, D]): Boolean = synchronized:
-    if getIntersecting(newData.interval).isEmpty then
-      addValidData(newData)
-      compress(newData.value)
+  def setIfNoConflict(data: ValidData[V, D]): Boolean = synchronized:
+    if getIntersecting(data.interval).isEmpty then
+      addValidData(data)
+      compress(data.value)
       true
     else false
 
@@ -116,7 +113,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     * $updateDesc $mutableAction
     *
     * @param data
-    *   $updateParamNewData
+    *   $updateParamData
     */
   def update(data: ValidData[V, D]): Unit =
     updateOrRemove(data.interval, _ => Some(data.value))
@@ -159,8 +156,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     *   $removeManyParamIntervals
     */
   def removeMany(intervals: Iterable[Interval[D]]): Unit =
-    intervals.foreach: interval =>
-      updateOrRemove(interval, _ => None)
+    intervals.foreach(updateOrRemove(_, _ => None))
 
   /**
     * $removeValueDesc $mutableAction
@@ -169,8 +165,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     *   $removeValueParamValue
     */
   def removeValue(value: V): Unit =
-    intervals(value).foreach: interval =>
-      updateOrRemove(interval, _ => None)
+    intervals(value).foreach(updateOrRemove(_, _ => None))
 
   /**
     * $compressDesc $mutableAction
@@ -247,20 +242,20 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     *
     * $setDesc $mutableAction
     *
-    * @param newData
-    *   $setParamNewData
+    * @param data
+    *   $setParamData
     */
-  infix def +(newData: ValidData[V, D]): Unit = set(newData)
+  infix def +(data: ValidData[V, D]): Unit = set(data)
 
   /**
     * Same as [[setMany]]
     *
     * $setManyDesc $mutableAction @note $setManyNote
     *
-    * @param newData
-    *   $setManyParamNewData
+    * @param data
+    *   $setManyParamData
     */
-  infix def ++(newData: Iterable[ValidData[V, D]]): Unit = setMany(newData)
+  infix def ++(data: Iterable[ValidData[V, D]]): Unit = setMany(data)
 
   /**
     * Same as [[remove]]

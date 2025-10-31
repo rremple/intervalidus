@@ -3,11 +3,9 @@ package intervalidus.examples.spfm
 import intervalidus.*
 import intervalidus.ContinuousValue.LocalDateTimeContinuousValue
 import intervalidus.DiscreteValue.{IntDiscreteValue, LocalDateDiscreteValue}
-import intervalidus.Domain.NonEmptyTail
 import intervalidus.Domain1D.Point
 import intervalidus.Interval.Patterns.*
 import intervalidus.Interval1D.*
-import intervalidus.immutable.Data
 import intervalidus.mutable.{DataMulti, DataVersioned}
 
 import java.time.{LocalDate, LocalDateTime}
@@ -154,7 +152,8 @@ object SoftwareProductFeatureManagement:
       ]
     ]()
 
-    def currentFeatureReleasePlan(using CurrentDateTime) = featureReleasePlan.getByHeadDimension(now)
+    def currentFeatureReleasePlan(using CurrentDateTime): DataMulti[Feat, Domain.In2D[LocalDate, Release]] =
+      featureReleasePlan.getByHeadDimension(now)
 
     // Samples
 
@@ -226,7 +225,10 @@ object SoftwareProductFeatureManagement:
       ]
     ]()
 
-    def currentRegionalDeploymentPlan(using CurrentDateTime) = regionalDeploymentPlan.getByHeadDimension(now)
+    def currentRegionalDeploymentPlan(using
+      CurrentDateTime
+    ): DataMulti[Region, Domain.In3D[LocalDate, Environment, Release]] =
+      regionalDeploymentPlan.getByHeadDimension(now)
 
     // Samples
 
@@ -303,106 +305,104 @@ object SoftwareProductFeatureManagement:
       ]
     ]()
 
+    def proposeRelease(featureRelease: ValidData[Feat, Domain.In2D[Environment, Release]]): Unit =
+      releasePlan.set(featureRelease)(using Unapproved)
+
+    def approveRelease(featureRelease: ValidData[Feat, Domain.In2D[Environment, Release]]): Boolean =
+      releasePlan.approve(featureRelease)
+
+    def releasePlanFor(environment: Environment): DataVersioned[Feat, Domain.In1D[Release]] =
+      releasePlan.getByHeadDimension(environment)
+
     val developA = (availableIn(Development) x inRelease(2.0)) -> Feat("A")
-    releasePlan.set(developA)(using Unapproved)
-    println("\nRelease plan before feature A development approval:")
-    println(releasePlan)
-    val developmentApproved = releasePlan.approve(developA)
+    proposeRelease(developA)
+    println(s"\nRelease plan before feature A development approval:\n$releasePlan")
+    val developmentApproved = approveRelease(developA)
     releasePlan.incrementCurrentVersion()
-    println(s"*feature A development approved: $developmentApproved")
-    println(releasePlan)
+    println(s"*feature A development approved: $developmentApproved\n$releasePlan")
 
     val stageA = (availableIn(Staging) x inRelease(2.0)) -> Feat("A")
-    releasePlan.set(stageA)(using Unapproved)
-    println("\nRelease plan before feature A staging approval:")
-    println(releasePlan)
-    val stagingApproved = releasePlan.approve(stageA)
+    proposeRelease(stageA)
+    println(s"\nRelease plan before feature A staging approval:\n$releasePlan")
+    val stagingApproved = approveRelease(stageA)
     releasePlan.incrementCurrentVersion()
-    println(s"*feature A staging approved: $stagingApproved")
-    println(releasePlan)
+    println(s"*feature A staging approved: $stagingApproved\n$releasePlan")
 
     val releaseA = (availableIn(Production) x inRelease(2.0)) -> Feat("A")
-    releasePlan.set(releaseA)(using Unapproved)
+    proposeRelease(releaseA)
     val unapproved = releasePlan.getSelectedData(using Unapproved)
     val approved = releasePlan.getSelectedData(using Current)
-    println(s"\nDiff actions from approved to unapproved")
+    println(s"\nDiff actions from approved to unapproved:")
     unapproved
       .diffActionsFrom(approved)
       .foreach: action =>
         println(s" - $action") //  prints - Update({[Development..Production], [v2.0..+∞)} -> Feat(A))
 
-    println("\nRelease plan before feature A production approval:")
-    println(releasePlan)
+    println("\nRelease plan before feature A production approval:\n$releasePlan")
 
     println("\n[before production approval] What features are planned for our next major release (+unapproved data)?")
-    println(releasePlan.getByHeadDimension(Production).getSelectedDataMutable(using Unapproved))
+    println(releasePlanFor(Production).getSelectedData(using Unapproved))
 
-    println(
-      "\n[before production approval] What features are currently live in production (approved/current version data)?"
-    )
-    println(releasePlan.getByHeadDimension(Production).getSelectedDataMutable(using Current))
+    println("\n[before production approval] What features are currently live in production (approved/current data)?")
+    println(releasePlanFor(Production).getSelectedData(using Current))
 
-    val releaseApproved = releasePlan.approve(releaseA)
+    val releaseApproved = approveRelease(releaseA)
     releasePlan.incrementCurrentVersion()
-    println(s"*feature A release approved: $releaseApproved")
-    println(releasePlan)
+    println(s"*feature A release approved: $releaseApproved\n$releasePlan")
 
     // Feat B for Release 2.0, initially planned for Development (unapproved)
     val developB = (availableIn(Development) x inRelease(2.0)) -> Feat("B")
-    releasePlan.set(developB)(using Unapproved)
+    proposeRelease(developB)
     // Feat B for Release 2.0 then gets approved for Development
-    releasePlan.approve(developB)
+    approveRelease(developB)
 
     // Feat C for Release 2.0, planned for Development and Staging (unapproved)
     val developC = (availableIn(Development) x inRelease(2.0)) -> Feat("C")
-    releasePlan.set(developC)(using Unapproved)
+    proposeRelease(developC)
     val stageC = (availableIn(Staging) x inRelease(2.0)) -> Feat("C")
-    releasePlan.set(stageC)(using Unapproved)
+    proposeRelease(stageC)
     // Feat C is approved for Development but not yet Staging
-    releasePlan.approve(developC)
+    approveRelease(developC)
 
     // A new feature, Feat D, is introduced for Release 3.0 in Development (unapproved)
     val developD = (availableIn(Development) x inRelease(3.0)) -> Feat("D")
-    releasePlan.set(developD)(using Unapproved)
+    proposeRelease(developD)
     // Feat D is also planned for Staging in Release 3.0 (unapproved)
     val stageD = (availableIn(Staging) x inRelease(3.0)) -> Feat("D")
-    releasePlan.set(stageD)(using Unapproved)
+    proposeRelease(stageD)
     // Feat D is then approved for Development in Release 3.0
-    releasePlan.approve(developD)
+    approveRelease(developD)
 
     // Simulate an unplanned hotfix feature, Feat E, for Release 3.0.1 directly into Production (unapproved first)
     val prodE = (availableInOnly(Production) x inRelease("3.0.1")) -> Feat("E")
-    releasePlan.set(prodE)(using Unapproved)
+    proposeRelease(prodE)
     // And quickly approved
-    releasePlan.approve(prodE)
+    approveRelease(prodE)
 
     // Feat F for Release 3.0 is planned for Production (unapproved)
     val prodF = (availableIn(Production) x inRelease(3.0)) -> Feat("F")
-    releasePlan.set(prodF)(using Unapproved)
+    proposeRelease(prodF)
 
     println(s"\nversion timestamps: ${releasePlan.getVersionTimestamps.toList}")
 
     println("\n[after production approval] What features are planned for our next major release (+unapproved data)?")
-    println(releasePlan.getByHeadDimension(Production).getSelectedDataMutable(using Unapproved))
+    println(releasePlanFor(Production).getSelectedData(using Unapproved))
 
-    println(
-      "\n[after production approval] What features are currently live in production (approved/current version data)?"
-    )
-    println(releasePlan.getByHeadDimension(Production).getSelectedDataMutable(using Current))
+    println("\n[after production approval] What features are currently live in production (approved/current data)?")
+    println(releasePlanFor(Production).getSelectedData(using Current))
 
-    println("\n--- Release Plan (with unapproved and approved data) ---")
-    println(releasePlan)
+    println(s"\n--- Release Plan (with unapproved and approved data) ---\n$releasePlan")
 
     println("\n--- Queries on `releasePlan` with new data ---")
     println("[current version] What features are currently approved for Release 2.0 in Production?")
-    println(releasePlan.getByHeadDimension(Production).getAt(Release(2.0))(using Current))
+    println(releasePlanFor(Production).getAt(Release(2.0))(using Current))
 
     println("[unapproved version] What features are *planned* for Release 3.0 in Production?")
     // Querying Production environment specifically for Release 3.0's unapproved state [S68]
-    println(releasePlan.getByHeadDimension(Production).getAt(Release(3.0))(using Unapproved))
+    println(releasePlanFor(Production).getAt(Release(3.0))(using Unapproved))
 
     println("[current version] What features are currently approved for Release 3.0 in Development?")
-    println(releasePlan.getByHeadDimension(Development).getAt(Release(3.0))(using Current))
+    println(releasePlanFor(Development).getAt(Release(3.0))(using Current))
 
     /**
       * Extensive Use of values and intervals(value):
@@ -410,32 +410,25 @@ object SoftwareProductFeatureManagement:
       * productSystem.valuesOne: To get a complete list of all unique features that have ever existed across all
       * versions, environments, and regions. This is useful for feature catalogs or audit trails.
       */
-    println(s"\nAll features: ${featureReleasePlan.valuesOne.toList
-        .map(_.id)
-        .sorted
-        .mkString(" | ")}")
-    println(s"All feature sets: ${featureReleasePlan.values.toList
-        .map(_.toList.map(_.id).sorted.mkString("/"))
-        .sorted
-        .mkString(" | ")}")
-    println(s"All deployment regions: ${regionalDeploymentPlan.valuesOne.toList
-        .map(_.toString)
-        .sorted
-        .mkString(" | ")}")
-    println(s"All deployment regions sets: ${regionalDeploymentPlan.values.toList
-        .map(_.toList.map(_.toString).sorted.mkString("/"))
-        .sorted
-        .mkString(" | ")}")
+    def formatPlan[S, T](source: S, extractValues: S => Iterable[T], format: T => String) =
+      extractValues(source).toList.map(format).sorted.mkString(" | ")
+    def formatIterable[T](format: T => String)(source: Iterable[T]): String =
+      source.toList.map(format).sorted.mkString("/")
+
+    println(s"\nAll features: ${formatPlan(featureReleasePlan, _.valuesOne, _.id)}")
+    println(s"All feature sets: ${formatPlan(featureReleasePlan, _.values, formatIterable(_.id))}")
+    println(s"All deployment regions: ${formatPlan(regionalDeploymentPlan, _.valuesOne, _.toString)}")
+    println(s"All deployment regions sets: ${formatPlan(regionalDeploymentPlan, _.values, formatIterable(_.toString))}")
 
     /**
       * productSystem.intervalsOne(Feat("A")): Crucially, this method (which we discussed adding examples for) would
-      * allow direct queries like: "In which product versions was Feat("A") available?".
+      * allow direct queries like: "In which product versions was Feat('A') available?".
       */
     println(s"\nFeature A releases: ${currentFeatureReleasePlan.intervalsOne(Feat("A"))}")
     println(s"NorthAmerica regional releases: ${currentRegionalDeploymentPlan.intervalsOne(NorthAmerica)}")
 
     /**
-      * "In which environments did Feat("B") get deployed?"
+      * "In which environments did Feat('B') get deployed?"
       */
     println(s"\nFeature B release environments/regions: ${releasePlan.intervals(Feat("B"))}")
 
@@ -449,11 +442,13 @@ object SoftwareProductFeatureManagement:
         println(s" - in region(s) ${regions.mkString("/")} - environment(s): $environments")
 
     /**
-      * "Across what time periods and environments was the specific combination {Feat("C"), Feat("D")} active?" This
+      * "Across what time periods and environments was the specific combination {Feat('A'), Feat('B')} active?" This
       * goes beyond individual features to sets of features, leveraging DataMulti's design.
       */
-    val comboReleased: Option[(LocalDate, Release)] = currentFeatureReleasePlan
-      .intervals(Set(Feat("A"), Feat("B"))) // specific combination
+    val comboReleased: Option[(LocalDate, Release)] = currentFeatureReleasePlan.toImmutable
+      .filter(d => (d.value contains Feat("A")) && (d.value contains Feat("B")))
+      .getAll
+      .map(_.interval)
       .collectFirst: // gets the earliest effective date and release for that feature combination
         case Interval1D(Point(starting), _) x_: Interval1D(Point(release), _) => (starting, release)
 

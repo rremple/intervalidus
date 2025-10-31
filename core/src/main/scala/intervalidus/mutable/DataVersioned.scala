@@ -191,13 +191,13 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   /**
     * $setIfNoConflictDesc $mutableAction
     *
-    * @param newData
-    *   $setIfNoConflictParamNewData
+    * @param data
+    *   $setIfNoConflictParamData
     * @return
     *   true if there were no conflicts and new data was set, false otherwise.
     */
-  def setIfNoConflict(newData: ValidData[V, D])(using VersionSelection): Boolean =
-    underlying.setIfNoConflict(underlyingValidDataFromVersionBoundary(newData))
+  def setIfNoConflict(data: ValidData[V, D])(using VersionSelection): Boolean =
+    underlying.setIfNoConflict(underlyingValidDataFromVersionBoundary(data))
 
   /**
     * $updateDesc $mutableAction
@@ -398,11 +398,10 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   def resetToVersion(version: VersionDomainValue): Unit = synchronized:
     val keep = VersionSelection(version)
     filter(versionInterval(_) intersects keep.intervalTo)
-    map(d =>
+    map: d =>
       if versionInterval(d).end >= keep.boundary
       then withVersionUpdate(d, _.toTop)
       else d
-    )
     setCurrentVersion(version)
     versionTimestamps.filterInPlace((key, _) => key <= version)
     compressAll()

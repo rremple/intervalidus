@@ -206,83 +206,20 @@ class DimensionalDataVersionedBuilder[V, D <: NonEmptyTuple: DomainLike, Self <:
   *   start with the "current" version too.
   * @define classNote
   *   Updates starting with "current" also update unapproved changes (since intervalFrom goes to the Top).
-  * @define dataValueType
-  *   the type of the value managed as data.
-  * @define intervalDomainType
-  *   the domain type -- a non-empty tuple that is DomainLike.
   * @define noVersionSelection
   *   Does not use a version selection context -- operates on full underlying structure.
   * @define noVersionSelectionFunction
   *   Does not use a version selection context -- the function is applied to the underlying data, so it
   * @define noVersionSelectionApply
   *   can operate on the underlying version information as well as the valid interval/value.
+  * @define dataValueType
+  *   the type of the value managed as data.
+  * @define intervalDomainType
+  *   the domain type -- a non-empty tuple that is DomainLike.
   * @define immutableReturn
   *   a new, updated structure.
   * @define mutableAction
   *   Data are mutated in place.
-  * @define setDesc
-  *   Set new valid data. Given a version selection context, any data previously valid in this interval are replaced by
-  *   this data.
-  * @define setParamData
-  *   the valid data to set.
-  * @define setManyDesc
-  *   Set a collection of new valid data. Given a version selection context, any data previously valid in the intervals
-  *   are replaced by these data.
-  * @define setManyNote
-  *   if intervals overlap, later items will update earlier ones, so order can matter.
-  * @define setManyParamData
-  *   collection of valid data to set.
-  * @define setIfNoConflictDesc
-  *   Set new valid data, but only if there are no previously valid values in its interval and given the version
-  *   selection context.
-  * @define setIfNoConflictParamNewData
-  *   the valid data to set.
-  * @define updateDesc
-  *   Update everything valid in the specified interval and the given version selection context to have the specified
-  *   value. No new intervals of validity are added as part of this operation. Data with overlaps are adjusted
-  *   accordingly.
-  * @define updateParamData
-  *   the new value and interval existing data should take on.
-  * @define removeDesc
-  *   Remove valid values on the interval and the given version selection context. If there are values valid on portions
-  *   of the interval, those values have their intervals adjusted (e.g., shortened, shifted, split) accordingly.
-  * @define removeParamInterval
-  *   the interval where any valid values are removed.
-  * @define removeManyDesc
-  *   Remove data in all the intervals given a version selection context. If there are values valid on portions of any
-  *   interval, those values have their intervals adjusted (e.g., shortened, shifted, split) accordingly.
-  * @define removeManyParamIntervals
-  *   the intervals where any valid values are removed.
-  * @define removeValueDesc
-  *   Remove the value in all the intervals where it is valid in the given version selection context.
-  * @define removeValueParamValue
-  *   the value that is removed.
-  * @define fillDesc
-  *   Given the version selection context, adds a value as valid in portions of the interval where there aren't already
-  *   valid values.
-  * @define fillParamData
-  *   value to make valid in any validity gaps found in the interval
-  * @define compressDesc
-  *   Compress out adjacent intervals with the same value.
-  * @define compressParamValue
-  *   value for which valid data are compressed.
-  * @define compressAllDesc
-  *   Compress out adjacent intervals with the same value for all values.
-  * @define recompressAllDesc
-  *   Compress out adjacent intervals with the same value for all values after decompressing everything, resulting in a
-  *   unique physical representation.
-  * @define applyDiffActionsDesc
-  *   Applies a sequence of diff actions to this structure.
-  * @define applyDiffActionsParamDiffActions
-  *   actions to be applied.
-  * @define syncWithDesc
-  *   Synchronizes this with another structure by getting and applying the applicable diff actions.
-  * @define syncWithParamThat
-  *   the structure with which this is synchronized.
-  * @define filterDesc
-  *   Updates structure to only include elements which satisfy a predicate.
-  * @define filterParamP
-  *   the predicate function used to test elements.
   * @define mapDesc
   *   Applies a function to all valid data.
   * @define mapParamF
@@ -303,6 +240,68 @@ class DimensionalDataVersionedBuilder[V, D <: NonEmptyTuple: DomainLike, Self <:
   *   Applies a function to all the elements of this structure
   * @define flatMapParamF
   *   the function to apply to each valid data element which results in a new structure.
+  * @define filterDesc
+  *   Updates structure to only include elements which satisfy a predicate.
+  * @define filterParamP
+  *   the predicate used to test elements.
+  * @define setDesc
+  *   Set new valid data. Given a version selection context, any data previously valid in this interval are replaced by
+  *   this data.
+  * @define setParamData
+  *   the valid data to set.
+  * @define setManyDesc
+  *   Set a collection of new valid data. Given a version selection context, any data previously valid in the intervals
+  *   are replaced by these data.
+  * @define setManyNote
+  *   if intervals overlap, later items will update earlier ones, so order can matter.
+  * @define setManyParamData
+  *   collection of valid data to set.
+  * @define setIfNoConflictDesc
+  *   Set new valid data, but only if there are no previously valid values in its interval and given the version
+  *   selection context.
+  * @define setIfNoConflictParamData
+  *   the valid data to set.
+  * @define updateDesc
+  *   Update everything valid in the data's interval and the given version selection context to have the data's value.
+  *   No new intervals of validity are added as part of this operation. Data with overlaps are adjusted accordingly.
+  * @define updateParamData
+  *   the new value and interval existing data should take on.
+  * @define removeDesc
+  *   Remove valid values on the interval and the given version selection context. If there are values valid on portions
+  *   of the interval, those values have their intervals adjusted (e.g., shortened, shifted, split) accordingly.
+  * @define removeParamInterval
+  *   the interval where any valid values are removed.
+  * @define removeManyDesc
+  *   Remove data in all the intervals given a version selection context. If there are values valid on portions of any
+  *   interval, those values have their intervals adjusted (e.g., shortened, shifted, split) accordingly.
+  * @define removeManyParamIntervals
+  *   the intervals where any valid values are removed.
+  * @define removeValueDesc
+  *   Remove the value in all the intervals where it is valid in the given version selection context.
+  * @define removeValueParamValue
+  *   the value that is removed.
+  * @define compressDesc
+  *   Compress out adjacent intervals with the same value.
+  * @define compressParamValue
+  *   value for which valid data are compressed.
+  * @define compressAllDesc
+  *   Compress out adjacent intervals with the same value for all values.
+  * @define recompressAllDesc
+  *   Compress out adjacent intervals with the same value for all values after decompressing everything, resulting in a
+  *   unique physical representation.
+  * @define applyDiffActionsDesc
+  *   Applies a sequence of diff actions to this structure.
+  * @define applyDiffActionsParamDiffActions
+  *   actions to be applied.
+  * @define syncWithDesc
+  *   Synchronizes this with another structure by getting and applying the applicable diff actions.
+  * @define syncWithParamThat
+  *   the structure with which this is synchronized.
+  * @define fillDesc
+  *   Given the version selection context, adds a value as valid in portions of the interval where there aren't already
+  *   valid values.
+  * @define fillParamData
+  *   value to make valid in any validity gaps found in the interval
   * @define mergeDesc
   *   Merges this structure with data from that structure. In intervals where both structures have valid values, the two
   *   values are merged (e.g., keep this data). In intervals where this does not have valid data but that does, the data

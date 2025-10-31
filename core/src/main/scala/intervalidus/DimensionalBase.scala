@@ -30,7 +30,7 @@ object DimensionalBase:
   */
 trait DimensionalBaseObject:
   /**
-    * Shorthand constructor for a single initial value that is valid in a particular interval.
+    * Shorthand constructor for a single initial value that is valid in a specific interval.
     *
     * @tparam V
     *   $dataValueType
@@ -180,37 +180,23 @@ trait DimensionalBaseConstructorParams:
   *   the predicate used to test elements.
   * @define setDesc
   *   Set new valid data. Replaces any data previously valid in this interval.
-  * @define setParamNewData
+  * @define setParamData
   *   the valid data to set.
   * @define setManyDesc
   *   Set a collection of new valid data. Replaces any data previously valid in this interval.
   * @define setManyNote
   *   if intervals overlap, later items will update earlier ones, so order can matter.
-  * @define setManyParamNewData
+  * @define setManyParamData
   *   collection of valid data to set.
   * @define setIfNoConflictDesc
   *   Set new valid data, but only if there are no data previously valid in this interval.
-  * @define setIfNoConflictParamNewData
+  * @define setIfNoConflictParamData
   *   the valid data to set.
   * @define updateDesc
-  *   Update everything valid in data's interval to have the data's value. No new intervals of validity are added as
-  *   part of this operation. Data that overlaps are adjusted accordingly.
-  * @define updateParamNewData
-  *   the new value existing data in the interval should take on
-  * @define replaceDesc
-  *   Remove the old data and replace it with the new data. The new data value and interval can be different. Data that
-  *   overlaps with the new data interval are adjusted accordingly.
-  * @define replaceParamOldData
-  *   the old data to be replaced.
-  * @define replaceParamNewData
-  *   the new data replacing the old data
-  * @define replaceByKeyDesc
-  *   Remove the old data and replace it with the new data. The new data value and interval can be different. Data that
-  *   overlaps with the new data interval are adjusted accordingly.
-  * @define replaceByKeyParamKey
-  *   key of the old data to be replaced (the interval start).
-  * @define replaceByKeyParamNewData
-  *   the new data replacing the old data
+  *   Update everything valid in the data's interval to have the data's value. No new intervals of validity are added as
+  *   part of this operation. Data with overlaps are adjusted accordingly.
+  * @define updateParamData
+  *   the new value and interval existing data should take on.
   * @define removeDesc
   *   Remove valid values on the interval. If there are values valid on portions of the interval, those values have
   *   their intervals adjusted (e.g., shortened, shifted, split) accordingly.
@@ -260,6 +246,20 @@ trait DimensionalBaseConstructorParams:
   * @define mergeParamMergeValues
   *   function that merges values where both this and that have valid values, where the default merge operation is to
   *   give this data values priority and drop that data values
+  * @define replaceDesc
+  *   Remove the old data and replace it with the new data. The new data value and interval can be different. Data that
+  *   overlaps with the new data interval are adjusted accordingly.
+  * @define replaceParamOldData
+  *   the old data to be replaced.
+  * @define replaceParamNewData
+  *   the new data replacing the old data
+  * @define replaceByKeyDesc
+  *   Remove the old data and replace it with the new data. The new data value and interval can be different. Data that
+  *   overlaps with the new data interval are adjusted accordingly.
+  * @define replaceByKeyParamKey
+  *   key of the old data to be replaced (the interval start).
+  * @define replaceByKeyParamNewData
+  *   the new data replacing the old data
   */
 trait DimensionalBase[V, D <: NonEmptyTuple](using
   domainLike: DomainLike[D]

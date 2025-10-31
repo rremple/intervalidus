@@ -120,53 +120,51 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
   /**
     * $setDesc
     *
-    * @param newData
-    *   $setParamNewData
+    * @param data
+    *   $setParamData
     * @return
     *   $immutableReturn
     */
-  def set(newData: ValidData[V, D]): Self = copyAndModify: result =>
-    result.updateOrRemove(newData.interval, _ => None)
-    result.addValidData(newData)
-    result.compressInPlace(newData.value)
+  def set(data: ValidData[V, D]): Self = copyAndModify: result =>
+    result.updateOrRemove(data.interval, _ => None)
+    result.addValidData(data)
+    result.compressInPlace(data.value)
 
   /**
     * $setManyDesc @note $setManyNote
     *
-    * @param newData
-    *   $setManyParamNewData
+    * @param data
+    *   $setManyParamData
     * @return
     *   $immutableReturn
     */
-  def setMany(newData: Iterable[ValidData[V, D]]): Self = copyAndModify: result =>
-    val values = newData.map(_.value).toSet
-    newData.foreach: data =>
+  def setMany(data: Iterable[ValidData[V, D]]): Self = copyAndModify: result =>
+    data.foreach: data =>
       result.updateOrRemove(data.interval, _ => None)
       result.addValidData(data)
-    values.foreach: value =>
-      result.compressInPlace(value)
+    values.foreach(result.compressInPlace)
 
   /**
     * $setIfNoConflictDesc
     *
-    * @param newData
-    *   $setIfNoConflictParamNewData
+    * @param data
+    *   $setIfNoConflictParamData
     * @return
     *   some new, updated structure if there were no conflicts and new data was set, None otherwise.
     */
-  def setIfNoConflict(newData: ValidData[V, D]): Option[Self] =
-    if intersects(newData.interval) then None
+  def setIfNoConflict(data: ValidData[V, D]): Option[Self] =
+    if intersects(data.interval) then None
     else
       Some(copyAndModify: result =>
-        result.addValidData(newData)
-        compressInPlace(newData.value)
+        result.addValidData(data)
+        compressInPlace(data.value)
       )
 
   /**
     * $updateDesc
     *
     * @param data
-    *   $updateParamNewData
+    *   $updateParamData
     * @return
     *   $immutableReturn
     */
@@ -222,8 +220,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     *   $immutableReturn
     */
   def removeMany(intervals: Iterable[Interval[D]]): Self = copyAndModify: result =>
-    intervals.foreach: interval =>
-      result.updateOrRemove(interval, _ => None)
+    intervals.foreach(result.updateOrRemove(_, _ => None))
 
   /**
     * $removeValueDesc
@@ -234,8 +231,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     *   $immutableReturn
     */
   def removeValue(value: V): Self = copyAndModify: result =>
-    intervals(value).foreach: interval =>
-      result.updateOrRemove(interval, _ => None)
+    intervals(value).foreach(result.updateOrRemove(_, _ => None))
 
   /**
     * $compressDesc
@@ -275,9 +271,8 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     * @return
     *   $immutableReturn
     */
-  def applyDiffActions(diffActions: Iterable[DiffAction[V, D]]): Self =
-    copyAndModify: result =>
-      diffActions.foreach(result.applyDiffActionInPlace)
+  def applyDiffActions(diffActions: Iterable[DiffAction[V, D]]): Self = copyAndModify: result =>
+    diffActions.foreach(result.applyDiffActionInPlace)
 
   /**
     * $syncWithDesc
@@ -314,8 +309,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
   def merge(
     that: Self,
     mergeValues: (V, V) => V = (thisDataValue, _) => thisDataValue
-  ): Self = copyAndModify: result =>
-    result.mergeInPlace(that.getAll, mergeValues)
+  ): Self = copyAndModify(_.mergeInPlace(that.getAll, mergeValues))
 
   // equivalent symbolic method names
 
@@ -324,24 +318,24 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     *
     * $setDesc
     *
-    * @param newData
-    *   $setParamNewData
+    * @param data
+    *   $setParamData
     * @return
     *   $immutableReturn
     */
-  infix def +(newData: ValidData[V, D]): Self = set(newData)
+  infix def +(data: ValidData[V, D]): Self = set(data)
 
   /**
     * Same as [[setMany]]
     *
     * $setManyDesc @note $setManyNote
     *
-    * @param newData
-    *   $setManyParamNewData
+    * @param data
+    *   $setManyParamData
     * @return
     *   $immutableReturn
     */
-  infix def ++(newData: Iterable[ValidData[V, D]]): Self = setMany(newData)
+  infix def ++(data: Iterable[ValidData[V, D]]): Self = setMany(data)
 
   /**
     * Same as [[remove]]
