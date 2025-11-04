@@ -142,7 +142,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     data.foreach: data =>
       result.updateOrRemove(data.interval, _ => None)
       result.addValidData(data)
-    values.foreach(result.compressInPlace)
+    result.values.foreach(result.compressInPlace)
 
   /**
     * $setIfNoConflictDesc

@@ -5,7 +5,6 @@ import intervalidus.Interval1D.*
 import intervalidus.DomainLike.given
 import intervalidus.Domain.In1D as Dim
 import intervalidus.DimensionalVersionedBase.Versioned
-import intervalidus.Interval.Patterns.*
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
@@ -52,6 +51,7 @@ trait DataIn1DVersionedBaseBehaviors:
       val empty: S = dataIn1DVersionedFrom1D(Seq.empty)
       assert(empty.getAll.isEmpty)
       assert(empty.domain.isEmpty)
+      assert((empty: Any) != ("<nothing is valid>": Any))
 
       val single = dataIn1DVersionedOf("Hello world")
       single.get shouldBe "Hello world"
@@ -74,6 +74,7 @@ trait DataIn1DVersionedBaseBehaviors:
       fixture2.domain.toList shouldBe List(Interval.in1D(intervalFrom(0)))
       fixture2.domainComplement.toList shouldBe List(Interval.in1D(intervalToBefore(0)))
       fixture2.values should contain theSameElementsAs List("Hello", "World")
+      fixture2.allIntervals should contain theSameElementsAs List(interval(0, 10), intervalFrom(11)).map(Interval.in1D)
       fixture2.getAt(5) shouldBe Some("Hello")
       fixture2.getDataAt(15) shouldBe Some(intervalFrom(11) -> "World")
       fixture2.getAt(-1) shouldBe None

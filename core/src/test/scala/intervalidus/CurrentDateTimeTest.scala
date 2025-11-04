@@ -1,12 +1,9 @@
 package intervalidus
 
-import intervalidus.*
-import intervalidus.DomainLike.given
 import org.scalatest.compatible.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 
-import java.time.{Instant, LocalDate, LocalDateTime, ZoneOffset}
-import scala.math.Ordering.Implicits.infixOrderingOps
+import java.time.LocalDateTime
 
 class CurrentDateTimeTest extends AnyFunSuite:
   test("Default"):

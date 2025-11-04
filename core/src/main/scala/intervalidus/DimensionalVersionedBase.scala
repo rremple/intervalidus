@@ -343,6 +343,7 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
   DomainLike[Versioned[D]]
 ) extends PartialFunction[Versioned[D], V]:
 
+  // considers versions, but does not consider version metadata history in equality check
   override def equals(obj: Any): Boolean = obj match
     case that: DimensionalVersionedBase[V, D] @unchecked =>
       size == that.size && underlying.getAll.zip(that.underlying.getAll).forall(_ == _)
@@ -350,7 +351,6 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
 
   // Utility methods for managing "versioned" state, not part of API
 
-  private type VersionValue = DiscreteValue[VersionDomainValue]
   private type VersionInterval = Interval1D[VersionDomainValue]
   private val VersionInterval = intervalidus.Interval1D
 
@@ -369,11 +369,9 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
         .collect:
           case (k, Some(left), None)  => k -> left
           case (k, None, Some(right)) => k -> right
-          case (k, Some(left), Some(right)) =>
-            val laterTimestamp = if left._1 isAfter right._1 then left._1 else right._1
-            val combinedComment = (left._2, right._2) match
-              case (leftComment, rightComment) if leftComment == rightComment => leftComment
-              case (leftComment, rightComment)                                => s"$leftComment & $rightComment"
+          case (k, Some((leftTimestamp, leftComment)), Some((rightTimestamp, rightComment))) =>
+            val laterTimestamp = if leftTimestamp isAfter rightTimestamp then leftTimestamp else rightTimestamp
+            val combinedComment = if leftComment == rightComment then leftComment else s"$leftComment & $rightComment"
             k -> (laterTimestamp, combinedComment)
     )
 
@@ -659,6 +657,12 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     */
   def intervals(value: V)(using VersionSelection): Iterable[Interval[D]] =
     Interval.compress(getSelectedDataMutable.intervals(value))
+
+  /**
+    * Returns the intervals in which any values are valid given some version selection context.
+    */
+  def allIntervals(using VersionSelection): Iterable[Interval[D]] =
+    getSelectedData.allIntervals
 
   /**
     * Applies a binary operator to a start value and all valid data, going left to right. $noVersionSelectionFunction

@@ -369,47 +369,45 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   maps a current value to some updated value, or None if the value should be removed.
     */
   protected def updateOrRemove(targetInterval: Interval[D], updateValue: V => Option[V]): Unit = synchronized:
-    val intersectingValues = getIntersecting(targetInterval).map: overlap =>
-      (overlap.interval ∩ targetInterval)
-        .foreach: intersection => // there will always be one
-          // Creates an atomic deconstruction of the intervals covering the overlap without the intersection
-          val atomicNonIntersections = overlap.interval.separateUsing(intersection).filter(_ != intersection)
-          /*
-           * Compression is important to minimize add/update calls (which are expensive). Initially, to avoid the
-           * TreeMap build in `Interval.compress`, a linear folding algorithm was used here that only looked back two
-           * elements. Although it worked, compression had more of an "above" than "right" bias leading to results
-           * that, although properly compressed, differed from the results of `recompressAll`. By benchmarking
-           * `remove` using these alternative approaches (folding vs. `Interval.compress`) it was shown that the
-           * throughput was kind of a wash in two dimensions, but the throughput in three dimensions was more than 40%
-           * better using `Interval.compress`. This is probably because, to effectively compress in n dimensions, the
-           * folding method would need to look back at least n elements, and 3 > 2. The ineffective compression led
-           * to more unnecessary update/add calls, and therefore lower throughput. This effect is likely even more
-           * pronounced in higher dimensions. That's why this just uses standard `Interval.compress` now, and it is a
-           * nice side effect that all the compressions are consistent without taking the performance hit of
-           * `recompressAll`.
-           */
-          val nonIntersections = Interval.compress(atomicNonIntersections)
+    val intersectingValues = getIntersecting(targetInterval).flatMap: overlap =>
+      val updatedValueOption = updateValue(overlap.value)
+      (overlap.interval ∩ targetInterval).foreach: intersection => // there will always be one
+        // Creates an atomic deconstruction of the intervals covering the overlap without the intersection
+        val atomicNonIntersections = overlap.interval.separateUsing(intersection).filter(_ != intersection)
+        /*
+         * Compression is important to minimize add/update calls (which are expensive). Initially, to avoid the
+         * TreeMap build in `Interval.compress`, a linear folding algorithm was used here that only looked back two
+         * elements. Although it worked, compression had more of an "above" than "right" bias leading to results
+         * that, although properly compressed, differed from the results of `recompressAll`. By benchmarking
+         * `remove` using these alternative approaches (folding vs. `Interval.compress`) it was shown that the
+         * throughput was kind of a wash in two dimensions, but the throughput in three dimensions was more than 40%
+         * better using `Interval.compress`. This is probably because, to effectively compress in n dimensions, the
+         * folding method would need to look back at least n elements, and 3 > 2. The ineffective compression led
+         * to more unnecessary update/add calls, and therefore lower throughput. This effect is likely even more
+         * pronounced in higher dimensions. That's why this just uses standard `Interval.compress` now, and it is a
+         * nice side effect that all the compressions are consistent without taking the performance hit of
+         * `recompressAll`.
+         */
+        val nonIntersections = Interval.compress(atomicNonIntersections)
 
-          // remove the intersecting region if it happens to have the same key as the overlap
-          if intersection hasSameStartAs overlap.interval then removeValidData(overlap)
+        // remove the intersecting region if it happens to have the same key as the overlap
+        if intersection hasSameStartAs overlap.interval then removeValidData(overlap)
 
-          // add/update non-intersecting regions
-          nonIntersections.foreach: subinterval =>
-            if subinterval hasSameStartAs overlap.interval
-            then updateValidData(subinterval -> overlap.value)
-            else addValidData(subinterval -> overlap.value)
+        // add/update non-intersecting regions
+        nonIntersections.foreach: subinterval =>
+          if subinterval hasSameStartAs overlap.interval
+          then updateValidData(subinterval -> overlap.value)
+          else addValidData(subinterval -> overlap.value)
 
-          // if there is an updated value, add it back in
-          updateValue(overlap.value).foreach: newValue =>
-            addValidData(intersection -> newValue)
+        // if there is an updated value, add it back in
+        updatedValueOption.foreach: newValue =>
+          addValidData(intersection -> newValue)
 
-      // intersecting value result for compression later
-      overlap.value
+      // intersecting and updated value results for compression later
+      Seq(overlap.value) ++ updatedValueOption
 
     // compress all potentially affected values
-    val intersectingValueSet = intersectingValues.toSet
-    val potentiallyAffectedValues = intersectingValueSet ++ intersectingValueSet.flatMap(updateValue)
-    potentiallyAffectedValues.foreach(compressInPlace)
+    intersectingValues.toSet.foreach(compressInPlace)
 
   /**
     * Internal method, to fill in place.
@@ -420,9 +418,8 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   specifies the interval in which the value should be filled
     */
   protected def fillInPlace(data: ValidData[V, D]): Unit = synchronized:
-    val intersectingIntervals = getIntersecting(data.interval).map(_.interval)
     Interval
-      .uniqueIntervals(intersectingIntervals.toSeq :+ data.interval)
+      .uniqueIntervals(getIntersecting(data.interval).map(_.interval).toSeq :+ data.interval)
       .foreach: i =>
         if data.interval.intersects(i) && !this.intersects(i) then addValidData(i -> data.value)
     compressInPlace(data.value)
@@ -483,7 +480,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
   protected def recompressInPlace(): Unit = synchronized:
     // decompress
     val atomicData = for
-      atomicInterval <- Interval.uniqueIntervals(getAll.map(_.interval))
+      atomicInterval <- Interval.uniqueIntervals(allIntervals)
       intersecting <- getIntersecting(atomicInterval) // always returns either one or zero results
     yield intersecting.copy(interval = atomicInterval)
     replaceValidData(atomicData)
@@ -518,7 +515,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     */
   protected def zipData[B](that: DimensionalBase[B, D]): Iterable[ValidData[(V, B), D]] =
     for
-      subInterval <- Interval.uniqueIntervals(getAll.map(_.interval) ++ that.getAll.map(_.interval))
+      subInterval <- Interval.uniqueIntervals(allIntervals ++ that.allIntervals)
       thisValue <- getIntersecting(subInterval).headOption.map(_.value)
       thatValue <- that.getIntersecting(subInterval).headOption.map(_.value)
     yield subInterval -> (thisValue, thatValue)
@@ -547,7 +544,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     thatDefault: B
   ): Iterable[ValidData[(V, B), D]] =
     for
-      subInterval <- Interval.uniqueIntervals(getAll.map(_.interval) ++ that.getAll.map(_.interval))
+      subInterval <- Interval.uniqueIntervals(allIntervals ++ that.allIntervals)
       thisValueOption = getIntersecting(subInterval).headOption.map(_.value)
       thatValueOption = that.getIntersecting(subInterval).headOption.map(_.value)
       valuePair <- (thisValueOption, thatValueOption) match
@@ -628,44 +625,48 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
 
   // from Object
   // print a uniform grid representing the data.
-  override def toString: String = if getAll.isEmpty then "<nothing is valid>"
-  else
-    // tuples of first dimension start string, first dimension end string, first dimension string (header)
-    val horizontalIntervalStrings = domainLike.intervalPreprocessForGrid(getAll.map(_.interval))
-    // tuples of first dimension start string, first dimension end string, value + remaining dimension string
-    val validDataStrings = getAll.map(_.preprocessForGrid)
-    val maxDataSize = validDataStrings
-      .map(_._3.length + 3)
-      .maxOption
-      .getOrElse(3)
-    val maxHorizontalIntervalsSize = horizontalIntervalStrings
-      .map(_._3.length)
-      .maxOption
-      .getOrElse(7)
+  override def toString: String =
+    if getAll.isEmpty then "<nothing is valid>"
+    else
+      // tuples of first dimension start string, first dimension end string, first dimension string (header)
+      val horizontalIntervalStrings = domainLike.intervalPreprocessForGrid(allIntervals)
+      // tuples of first dimension start string, first dimension end string, value + remaining dimension string
+      val validDataStrings = getAll.map(_.preprocessForGrid)
+      val maxDataSize = validDataStrings
+        .map: (_, _, valueString) =>
+          valueString.length + 3
+        .maxOption
+        .getOrElse(3)
+      val maxHorizontalIntervalsSize = horizontalIntervalStrings
+        .map: (_, _, intervalString) =>
+          intervalString.length
+        .maxOption
+        .getOrElse(7)
 
-    val cellSize = math.max(maxDataSize, maxHorizontalIntervalsSize)
+      val cellSize = math.max(maxDataSize, maxHorizontalIntervalsSize)
 
-    def pad(chars: Int, p: String = " "): String = p * chars
+      def pad(chars: Int, p: String = " "): String = p * chars
 
-    val (horizontalStringBuilder, horizontalStartPositionBuilder, horizontalEndPositionBuilder) =
-      horizontalIntervalStrings.zipWithIndex.foldLeft(
-        (StringBuilder(), Map.newBuilder[String, Int], Map.newBuilder[String, Int])
-      ):
-        case ((stringBuilder, startPositionBuilder, endPositionBuilder), ((startString, endString, formatted), pos)) =>
-          startPositionBuilder.addOne(startString, stringBuilder.size)
-          stringBuilder.append(formatted)
-          val padTo = cellSize * (pos + 1)
-          if stringBuilder.size < padTo then stringBuilder.append(pad(padTo - stringBuilder.size))
-          endPositionBuilder.addOne(endString, stringBuilder.size)
-          (stringBuilder, startPositionBuilder, endPositionBuilder)
+      val (horizontalStringBuilder, horizontalStartPositionBuilder, horizontalEndPositionBuilder) =
+        horizontalIntervalStrings.zipWithIndex.foldLeft(
+          (StringBuilder(), Map.newBuilder[String, Int], Map.newBuilder[String, Int])
+        ):
+          case (
+                (stringBuilder, startPositionBuilder, endPositionBuilder),
+                ((startString, endString, formatted), pos)
+              ) =>
+            startPositionBuilder.addOne(startString, stringBuilder.size)
+            stringBuilder.append(formatted)
+            val padTo = cellSize * (pos + 1)
+            if stringBuilder.size < padTo then stringBuilder.append(pad(padTo - stringBuilder.size))
+            endPositionBuilder.addOne(endString, stringBuilder.size)
+            (stringBuilder, startPositionBuilder, endPositionBuilder)
 
-    val horizontalStartPosition = horizontalStartPositionBuilder.result()
-    val horizontalEndPosition = horizontalEndPositionBuilder.result()
-    horizontalStringBuilder.append("|\n")
+      val horizontalStartPosition = horizontalStartPositionBuilder.result()
+      val horizontalEndPosition = horizontalEndPositionBuilder.result()
+      horizontalStringBuilder.append("|\n")
 
-    validDataStrings
-      // .sortBy(dataToSortBy) // if needed, could be hard to implement...
-      .foreach: (startString, endString, valueString) =>
+      validDataStrings.foreach: (startString, endString, valueString) =>
         val leftPosition = horizontalStartPosition(startString)
         val rightPosition = horizontalEndPosition(endString)
         val valuePadding = rightPosition - leftPosition - valueString.length - 2
@@ -673,7 +674,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
           s"${pad(leftPosition)}| $valueString${pad(valuePadding)}|\n"
         )
 
-    horizontalStringBuilder.result()
+      horizontalStringBuilder.result()
 
   // from PartialFunction
   override def isDefinedAt(key: D): Boolean = getAt(key).isDefined
@@ -776,7 +777,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     * [[https://en.wikipedia.org/wiki/Domain_of_a_function]].
     */
   def domain: Iterable[Interval[D]] = Interval.compress(
-    Interval.uniqueIntervals(getAll.map(_.interval)).filter(intersects)
+    Interval.uniqueIntervals(allIntervals).filter(intersects)
   )
 
   /**
@@ -785,7 +786,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     * [[https://en.wikipedia.org/wiki/Complement_(set_theory)]].
     */
   def domainComplement: Iterable[Interval[D]] = Interval.compress(
-    Interval.uniqueIntervals(getAll.map(_.interval) ++ Iterable(Interval.unbounded[D])).filter(!intersects(_))
+    Interval.uniqueIntervals(allIntervals ++ Iterable(Interval.unbounded[D])).filter(!intersects(_))
   )
 
   /**
@@ -800,6 +801,11 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   the value to look up
     */
   def intervals(value: V): Iterable[Interval[D]] = dataByValue.get(value).map(_.interval)
+
+  /**
+    * Returns the intervals in which any values are valid.
+    */
+  def allIntervals: Iterable[Interval[D]] = getAll.map(_.interval)
 
   /**
     * Applies a binary operator to a start value and all valid data, going left to right.
@@ -825,7 +831,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   a sequence of diff actions that would synchronize it with this.
     */
   def diffActionsFrom(old: DimensionalBase[V, D]): Iterable[DiffAction[V, D]] =
-    (dataByStartAsc.keys.toSet ++ old.dataByStartAsc.keys).toList.sorted.flatMap: key =>
+    (dataByStartAsc.keySet ++ old.dataByStartAsc.keys).toList.flatMap: key =>
       (old.dataByStartAsc.get(key), dataByStartAsc.get(key)) match
         case (Some(oldData), Some(newData)) if oldData != newData => Some(DiffAction.Update(newData))
         case (None, Some(newData))                                => Some(DiffAction.Create(newData))

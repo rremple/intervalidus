@@ -1,15 +1,12 @@
 package intervalidus
 
-import intervalidus.DiscreteValue.IntDiscreteValue
 import intervalidus.DomainLike.given
 import intervalidus.Domain.In2D as Dim
 import intervalidus.DimensionalVersionedBase.Versioned
-import intervalidus.Interval.Patterns.*
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
 import java.time.LocalDate
-import scala.annotation.nowarn
 import scala.language.implicitConversions
 
 /*
@@ -65,6 +62,7 @@ trait DataIn2DVersionedBaseBehaviors:
       val empty: S = dataIn2DVersionedFrom2D(Seq.empty)
       assert(empty.getAll.isEmpty)
       assert(empty.domain.isEmpty)
+      assert((empty: Any) != ("<nothing is valid>": Any))
 
       val single = dataIn2DVersionedOf("Hello world")
       single.get shouldBe "Hello world"
@@ -94,6 +92,10 @@ trait DataIn2DVersionedBaseBehaviors:
         intervalFrom(0) x intervalFromAfter(10)
       )
       fixture2.values should contain theSameElementsAs List("Hello", "World")
+      fixture2.allIntervals should contain theSameElementsAs List(
+        interval(0, 10) x interval(0, 10),
+        intervalFrom(11) x interval(0, 10)
+      )
       fixture2.getAt(5, 5) shouldBe Some("Hello")
       fixture2.getDataAt(15, 5) shouldBe Some((intervalFrom(11) x interval(0, 10)) -> "World")
       fixture2.getAt(-1, -1) shouldBe None

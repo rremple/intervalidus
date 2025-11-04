@@ -364,7 +364,7 @@ These query methods provide various data, difference, and Boolean results:
 - `foldLeft`
 - `isEmpty` / `size`
 - `domain` / `domainComplement`
-- `values` / `intervals`
+- `values` / `intervals` / `allIntervals`
 - `diffActionsFrom`
 
 These methods return a new structure:

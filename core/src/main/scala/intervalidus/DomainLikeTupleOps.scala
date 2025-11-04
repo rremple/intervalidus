@@ -28,9 +28,9 @@ trait DomainLikeTupleOps[D <: NonEmptyTuple]:
 
   def toCodeLikeStringsFromDomain(domainTuple: D): List[String]
 
-  def unfixedOrderedHashesFromDomain(domainTuple: D): List[Option[Double]]
+  def unfixedOrderedHashesFromDomain(domainTuple: D): Vector[Option[Double]]
 
-  def orderedHashesFromDomain(domainTuple: D): List[Double]
+  def orderedHashesFromDomain(domainTuple: D): Vector[Double]
 
   def rightAdjacentFromDomain(domainTuple: D): D
 
@@ -127,11 +127,11 @@ object DomainLikeTupleOps:
     inline override def toCodeLikeStringsFromDomain(domainTuple: OneDimDomain[DV]): List[String] =
       List(domainTuple.head.toCodeLikeString)
 
-    inline override def unfixedOrderedHashesFromDomain(domainTuple: OneDimDomain[DV]): List[Option[Double]] =
-      List(domainTuple.head.orderedHashUnfixed)
+    inline override def unfixedOrderedHashesFromDomain(domainTuple: OneDimDomain[DV]): Vector[Option[Double]] =
+      Vector(domainTuple.head.orderedHashUnfixed)
 
-    inline override def orderedHashesFromDomain(domainTuple: OneDimDomain[DV]): List[Double] =
-      List(domainTuple.head.orderedHash)
+    inline override def orderedHashesFromDomain(domainTuple: OneDimDomain[DV]): Vector[Double] =
+      Vector(domainTuple.head.orderedHash)
 
     inline override def rightAdjacentFromDomain(domainTuple: OneDimDomain[DV]): OneDimDomain[DV] =
       Domain.in1D(domainTuple.head.rightAdjacent)
@@ -286,11 +286,11 @@ object DomainLikeTupleOps:
 
     inline override def unfixedOrderedHashesFromDomain(
       domainTuple: MultiDimDomain[DV, DomainTail]
-    ): List[Option[Double]] = domainTuple.head.orderedHashUnfixed ::
+    ): Vector[Option[Double]] = domainTuple.head.orderedHashUnfixed +:
       applyToTail.unfixedOrderedHashesFromDomain(domainTuple.tail)
 
-    inline override def orderedHashesFromDomain(domainTuple: MultiDimDomain[DV, DomainTail]): List[Double] =
-      domainTuple.head.orderedHash :: applyToTail.orderedHashesFromDomain(domainTuple.tail)
+    inline override def orderedHashesFromDomain(domainTuple: MultiDimDomain[DV, DomainTail]): Vector[Double] =
+      domainTuple.head.orderedHash +: applyToTail.orderedHashesFromDomain(domainTuple.tail)
 
     inline override def rightAdjacentFromDomain(
       domainTuple: MultiDimDomain[DV, DomainTail]

@@ -45,6 +45,7 @@ trait DataIn4DBaseBehaviors:
     val empty = dataIn4DFrom(List.empty)
     assert(empty.isEmpty)
     empty.toString shouldBe "<nothing is valid>"
+    assert((empty: Any) != ("<nothing is valid>": Any))
     assert(empty.getAll.isEmpty)
     assert(empty.domain.isEmpty)
     empty.domainComplement.toList shouldBe List(Interval.unbounded[Dim[LocalDate, LocalDate, Int, Int]])

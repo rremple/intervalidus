@@ -5,10 +5,8 @@ import org.scalatest.matchers.should.Matchers
 
 class PathComponentTest extends AnyFunSuite with Matchers:
 
-  import PathComponent.{ArrayPathComponent, ObjectPathComponent}
-
   test("Path component constructors"):
-    PathComponent.toObject("key") shouldBe ObjectPathComponent("key")
+    PathComponent.toObject("key").toString shouldBe "key"
     PathComponent.toArrayIndex(1).toString shouldBe "[1]"
     PathComponent.toArrayAll.toString shouldBe "[*]"
     PathComponent.toArraySlice(from = 1).toString shouldBe "[1:]"

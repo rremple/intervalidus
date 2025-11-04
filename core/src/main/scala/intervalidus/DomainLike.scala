@@ -498,9 +498,9 @@ object DomainLike:
       override inline def toCodeLikeString: String =
         applyToDomain.toCodeLikeStringsFromDomain(domainTuple).mkString(" x ")
       override inline def asCoordinate: Coordinate =
-        Coordinate(applyToDomain.unfixedOrderedHashesFromDomain(domainTuple).toVector)
+        Coordinate(applyToDomain.unfixedOrderedHashesFromDomain(domainTuple))
       override inline def asCoordinateFixed: CoordinateFixed =
-        CoordinateFixed(applyToDomain.orderedHashesFromDomain(domainTuple).toVector)
+        CoordinateFixed(applyToDomain.orderedHashesFromDomain(domainTuple))
       override inline def rightAdjacent: D =
         applyToDomain.rightAdjacentFromDomain(domainTuple)
       override inline def leftAdjacent: D =
