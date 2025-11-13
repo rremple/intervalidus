@@ -153,7 +153,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     val bottomInt: Domain1D[Int] = Domain1D.Bottom
 
     val actionsFrom2To3 = fixture3.diffActionsFrom(fixture2)
-    actionsFrom2To3.toList shouldBe List(
+    actionsFrom2To3 shouldBe Iterable(
       Create(vertical2D(intervalTo(4)) -> "Hey"),
       Delete(bottomInt x 0),
       Update(vertical2D(intervalFrom(16)) -> "World"),
@@ -169,7 +169,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     )
 
     val actionsFrom3To5 = fixture5.diffActionsFrom(fixture3)
-    actionsFrom3To5.toList shouldBe List(
+    actionsFrom3To5 shouldBe Iterable(
       Update(vertical2D(intervalTo(0)) -> "Hey"),
       Create((intervalTo(day(0)) x interval(1, 4)) -> "Hey"),
       Delete(bottomInt x 5),

@@ -419,7 +419,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     */
   protected def fillInPlace(data: ValidData[V, D]): Unit = synchronized:
     Interval
-      .uniqueIntervals(getIntersecting(data.interval).map(_.interval).toSeq :+ data.interval)
+      .uniqueIntervals(getIntersecting(data.interval).map(_.interval) ++ Seq(data.interval))
       .foreach: i =>
         if data.interval.intersects(i) && !this.intersects(i) then addValidData(i -> data.value)
     compressInPlace(data.value)
@@ -647,10 +647,9 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
 
       def pad(chars: Int, p: String = " "): String = p * chars
 
+      val horizontalBuilders = (StringBuilder(), Map.newBuilder[String, Int], Map.newBuilder[String, Int])
       val (horizontalStringBuilder, horizontalStartPositionBuilder, horizontalEndPositionBuilder) =
-        horizontalIntervalStrings.zipWithIndex.foldLeft(
-          (StringBuilder(), Map.newBuilder[String, Int], Map.newBuilder[String, Int])
-        ):
+        horizontalIntervalStrings.zipWithIndex.foldLeft(horizontalBuilders):
           case (
                 (stringBuilder, startPositionBuilder, endPositionBuilder),
                 ((startString, endString, formatted), pos)
@@ -731,7 +730,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     */
   def getDataAt(domainIndex: D): Option[ValidData[V, D]] =
     dataInSearchTree
-      .get(Box.at(domainIndex.asCoordinate))
+      .get(Box.at(domainIndex.asCoordinateUnfixed))
       .collectFirst:
         case d if domainIndex ∈ d.payload.interval => d.payload
 
@@ -831,7 +830,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   a sequence of diff actions that would synchronize it with this.
     */
   def diffActionsFrom(old: DimensionalBase[V, D]): Iterable[DiffAction[V, D]] =
-    (dataByStartAsc.keySet ++ old.dataByStartAsc.keys).toList.flatMap: key =>
+    (dataByStartAsc.keySet ++ old.dataByStartAsc.keys).toSeq.flatMap: key =>
       (old.dataByStartAsc.get(key), dataByStartAsc.get(key)) match
         case (Some(oldData), Some(newData)) if oldData != newData => Some(DiffAction.Update(newData))
         case (None, Some(newData))                                => Some(DiffAction.Create(newData))

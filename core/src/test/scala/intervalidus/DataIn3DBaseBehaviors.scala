@@ -54,7 +54,7 @@ trait DataIn3DBaseBehaviors:
     single.get shouldBe "Hello world"
     single.getOption shouldBe Some("Hello world")
     single.domain.toList shouldBe List(Interval.unbounded[Dim[LocalDate, LocalDate, Int]])
-    single.domainComplement.toList shouldBe List.empty
+    assert(single.domainComplement.isEmpty)
 
     val bounded = (intervalFrom(0) x intervalTo(0) x intervalTo(0)) -> "Hello world"
     bounded.toString shouldBe "{[0..+∞), (-∞..0], (-∞..0]} -> Hello world"

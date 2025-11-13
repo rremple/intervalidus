@@ -124,7 +124,7 @@ trait DataIn1DMultiBaseBehaviors:
       val fixture7 = multiFrom(List(intervalTo(0) -> "Hey"))
 
       val actionsFrom5To6 = fixture6.diffActionsFrom(fixture5)
-      actionsFrom5To6.toList shouldBe List(
+      actionsFrom5To6 shouldBe Iterable(
         Create(intervalTo(4) -> Set("Hey")),
         Delete(Point(0)),
         Update(intervalFrom(16) -> Set("World")),
@@ -133,7 +133,7 @@ trait DataIn1DMultiBaseBehaviors:
       )
 
       val actionsFrom6To7 = fixture7.diffActionsFrom(fixture6)
-      actionsFrom6To7.toList shouldBe List(
+      actionsFrom6To7 shouldBe Iterable(
         Update(intervalTo(0) -> Set("Hey")),
         Delete(Point(5)),
         Delete(Point(16))

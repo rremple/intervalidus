@@ -44,7 +44,7 @@ trait DataIn1DBaseBehaviors:
     single.get shouldBe "Hello world"
     single.getOption shouldBe Some("Hello world")
     single.domain.toList shouldBe List(Interval.unbounded[Domain.In1D[Int]])
-    single.domainComplement.toList shouldBe List.empty
+    assert(single.domainComplement.isEmpty)
 
     val bracePunctuation = domainValue.bracePunctuation
     val boundedInt = intervalFrom(0) -> 1

@@ -1,10 +1,12 @@
 package intervalidus
 
 import intervalidus.DomainLike.given
+import intervalidus.collection.{Coordinate, CoordinateFixed}
 import org.scalatest.compatible.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 
 import java.time.LocalDate
+import scala.language.implicitConversions
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 class DiscreteValueTest extends AnyFunSuite:
@@ -27,9 +29,9 @@ class DiscreteValueTest extends AnyFunSuite:
     assert(4 > 0)
 
   test("Ops on Int Domain"):
-    import Domain1D.*
     import DiscreteValue.IntDiscreteValue
     import DiscreteValue.IntDiscreteValue.{maxValue, minValue}
+    import Domain1D.*
 
     def top: Domain1D[Int] = Top
     def bottom: Domain1D[Int] = Bottom
@@ -63,15 +65,27 @@ class DiscreteValueTest extends AnyFunSuite:
     assert(!(bottom > bottom))
     assert(!(bottom equiv top))
 
-    assert(domain(3).orderedHash == domain(3).orderedHash)
-    assert(domain(0).orderedHash <= domain(4).orderedHash)
-    assert(bottom.orderedHash <= domain(4).orderedHash)
-    assert(domain(4).orderedHash <= top.orderedHash)
-    assert(bottom.orderedHash <= top.orderedHash)
-    assert(bottom.orderedHash <= top.orderedHash)
+    assert(domain(3).orderedHashFixed == domain(3).orderedHashFixed)
+    assert(domain(0).orderedHashFixed <= domain(4).orderedHashFixed)
+    assert(bottom.orderedHashFixed <= domain(4).orderedHashFixed)
+    assert(domain(4).orderedHashFixed <= top.orderedHashFixed)
+    assert(bottom.orderedHashFixed <= top.orderedHashFixed)
+    assert(bottom.orderedHashFixed <= top.orderedHashFixed)
 
+    assert(Domain.in1D(4) afterStart Domain.in1D(3))
+    assert(!(Domain.in1D(4) afterStart Domain.in1D(4)))
+    assert(Domain.in1D(4) afterOrAtStart Domain.in1D(4))
+    assert(Domain.in1D(4) beforeOrAtEnd Domain.in1D(4))
+    assert(!(Domain.in1D(4) beforeEnd Domain.in1D(4)))
+    assert(Domain.in1D(3) beforeEnd Domain.in1D(4))
+
+    assertResult("3")(Domain.in1D(3).asString)
+    assertResult("{3, -∞}")((domain(3) x Bottom).asString)
     assertResult("Point(3) x Bottom")((domain(3) x Bottom).toCodeLikeString)
     assertResult("Point(3) x Bottom x Top")((domain(3) x Bottom x Top).toCodeLikeString)
+
+    assertResult(Coordinate(Some(3), None))((domain(3) x Bottom).asCoordinateUnfixed)
+    assertResult(CoordinateFixed(3, Int.MinValue))((domain(3) x Bottom).asCoordinateFixed)
 
   test("Ops on Enum and Enum Domain"):
     // Can't be empty
@@ -127,12 +141,12 @@ class DiscreteValueTest extends AnyFunSuite:
     assertCompare(!(bottom > bottom))
     assertCompare(!(bottom equiv top))
 
-    assertCompare(domain(Cyan).orderedHash == domain(Cyan).orderedHash)
-    assertCompare(domain(Red).orderedHash <= domain(Blue).orderedHash)
-    assertCompare(bottom.orderedHash <= domain(Blue).orderedHash)
-    assertCompare(domain(Blue).orderedHash <= top.orderedHash)
-    assertCompare(bottom.orderedHash <= top.orderedHash)
-    assertCompare(bottom.orderedHash <= top.orderedHash)
+    assertCompare(domain(Cyan).orderedHashFixed == domain(Cyan).orderedHashFixed)
+    assertCompare(domain(Red).orderedHashFixed <= domain(Blue).orderedHashFixed)
+    assertCompare(bottom.orderedHashFixed <= domain(Blue).orderedHashFixed)
+    assertCompare(domain(Blue).orderedHashFixed <= top.orderedHashFixed)
+    assertCompare(bottom.orderedHashFixed <= top.orderedHashFixed)
+    assertCompare(bottom.orderedHashFixed <= top.orderedHashFixed)
 
     assertResult("Point(Cyan) x Bottom")((domain(Cyan) x Bottom).toCodeLikeString)
     assertResult("Point(Cyan) x Bottom x Top")((domain(Cyan) x Bottom x Top).toCodeLikeString)
@@ -150,9 +164,9 @@ class DiscreteValueTest extends AnyFunSuite:
     assert(4 > 0)
 
   test("Ops on Long Domain"):
-    import Domain1D.*
     import DiscreteValue.LongDiscreteValue
     import DiscreteValue.LongDiscreteValue.{maxValue, minValue}
+    import Domain1D.*
 
     def point(v: Long): Domain1D[Long] = domain(v)
     def top: Domain1D[Long] = Top
@@ -179,18 +193,19 @@ class DiscreteValueTest extends AnyFunSuite:
     assert(!(bottom > bottom))
     assert(!(bottom equiv top))
 
-    assert(point(3).orderedHash == point(3).orderedHash)
-    assert(point(0).orderedHash <= point(4).orderedHash)
-    assert(bottom.orderedHash <= point(4).orderedHash)
-    assert(point(4).orderedHash <= top.orderedHash)
-    assert(bottom.orderedHash <= top.orderedHash)
-    assert(bottom.orderedHash <= top.orderedHash)
+    assert(point(3).orderedHashFixed == point(3).orderedHashFixed)
+    assert(point(0).orderedHashFixed <= point(4).orderedHashFixed)
+    assert(bottom.orderedHashFixed <= point(4).orderedHashFixed)
+    assert(point(4).orderedHashFixed <= top.orderedHashFixed)
+    assert(bottom.orderedHashFixed <= top.orderedHashFixed)
+    assert(bottom.orderedHashFixed <= top.orderedHashFixed)
 
     assertResult("Point(3) x Bottom")((point(3) x Bottom).toCodeLikeString)
     assertResult("Point(3) x Bottom x Top")((point(3) x Bottom x Top).toCodeLikeString)
 
   test("Ops on BigIntegers"):
     import DiscreteValue.BigIntegerDiscreteValue
+
     import java.math.BigInteger.valueOf
     assert(valueOf(1).predecessorValue equiv Some(valueOf(0)))
     assert(BigIntegerDiscreteValue.minValue.predecessorValue equiv None)
@@ -203,9 +218,10 @@ class DiscreteValueTest extends AnyFunSuite:
     assert(valueOf(4) > valueOf(0))
 
   test("Ops on BigInteger Domain"):
-    import Domain1D.*
     import DiscreteValue.BigIntegerDiscreteValue
     import DiscreteValue.BigIntegerDiscreteValue.{maxValue, minValue}
+    import Domain1D.*
+
     import java.math.BigInteger
     import java.math.BigInteger.valueOf
 
@@ -234,12 +250,12 @@ class DiscreteValueTest extends AnyFunSuite:
     assert(!(bottom > bottom))
     assert(!(bottom equiv top))
 
-    assert(point(3).orderedHash == point(3).orderedHash)
-    assert(point(0).orderedHash <= point(4).orderedHash)
-    assert(bottom.orderedHash <= point(4).orderedHash)
-    assert(point(4).orderedHash <= top.orderedHash)
-    assert(bottom.orderedHash <= top.orderedHash)
-    assert(bottom.orderedHash <= top.orderedHash)
+    assert(point(3).orderedHashFixed == point(3).orderedHashFixed)
+    assert(point(0).orderedHashFixed <= point(4).orderedHashFixed)
+    assert(bottom.orderedHashFixed <= point(4).orderedHashFixed)
+    assert(point(4).orderedHashFixed <= top.orderedHashFixed)
+    assert(bottom.orderedHashFixed <= top.orderedHashFixed)
+    assert(bottom.orderedHashFixed <= top.orderedHashFixed)
 
     assertResult("Point(3) x Bottom")((point(3) x Bottom).toCodeLikeString)
     assertResult("Point(3) x Bottom x Top")((point(3) x Bottom x Top).toCodeLikeString)
@@ -261,9 +277,9 @@ class DiscreteValueTest extends AnyFunSuite:
     assert(date4 > date0)
 
   test("Ops on LocalDate Domain"):
-    import Domain1D.*
     import DiscreteValue.LocalDateDiscreteValue
     import DiscreteValue.LocalDateDiscreteValue.{maxValue, minValue}
+    import Domain1D.*
 
     def top: Domain1D[LocalDate] = Top
     def bottom: Domain1D[LocalDate] = Bottom
@@ -283,12 +299,12 @@ class DiscreteValueTest extends AnyFunSuite:
     assert(!(bottom > top))
     assert(!(bottom equiv top))
 
-    assert(domain(date3).orderedHash == domain(date3).orderedHash)
-    assert(domain(date0).orderedHash <= domain(date4).orderedHash)
-    assert(domain(date4).orderedHash >= domain(date0).orderedHash)
-    assert(bottom.orderedHash <= domain(date4).orderedHash)
-    assert(domain(date4).orderedHash <= top.orderedHash)
-    assert(bottom.orderedHash <= top.orderedHash)
+    assert(domain(date3).orderedHashFixed == domain(date3).orderedHashFixed)
+    assert(domain(date0).orderedHashFixed <= domain(date4).orderedHashFixed)
+    assert(domain(date4).orderedHashFixed >= domain(date0).orderedHashFixed)
+    assert(bottom.orderedHashFixed <= domain(date4).orderedHashFixed)
+    assert(domain(date4).orderedHashFixed <= top.orderedHashFixed)
+    assert(bottom.orderedHashFixed <= top.orderedHashFixed)
 
     assert(domain(maxValue).rightAdjacent equiv top)
     assert(domain(minValue).leftAdjacent equiv bottom)

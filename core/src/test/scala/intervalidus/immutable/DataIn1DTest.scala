@@ -131,7 +131,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
     import DiffAction.*
 
     val actionsFrom2To3 = f3.diffActionsFrom(f2)
-    actionsFrom2To3.toList shouldBe List(
+    actionsFrom2To3 shouldBe Iterable(
       Create(intervalTo(4) -> "Hey"),
       Delete(Point(0)),
       Update(intervalFrom(16) -> "World"),
@@ -147,7 +147,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
     )
 
     val actionsFrom3To4 = f4.diffActionsFrom(f3)
-    actionsFrom3To4.toList shouldBe List(
+    actionsFrom3To4 shouldBe Iterable(
       Update(intervalTo(0) -> "Hey"),
       Delete(Point(5)),
       Delete(Point(16))

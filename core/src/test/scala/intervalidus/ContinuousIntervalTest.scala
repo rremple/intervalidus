@@ -21,10 +21,10 @@ class ContinuousIntervalTest extends AnyFunSuite with Matchers with IntervalComm
     interval4d(1, 2, 3, 4, 5, 6).toString shouldBe "{[1, 2], [3, 4], [5, 6], (-∞, +∞)}"
 
     // Points
-    interval(1, 3).points.toList shouldBe List.empty
-    interval2d(1, 3, 1, 3).points.toList shouldBe List.empty
-    interval3d(1, 2, 1, 2, 1, 2).points.toList shouldBe List.empty
-    interval4d(1, 2, 1, 2, 1, 2, 1, 2).points.toList shouldBe List.empty
+    assert(interval(1, 3).points.isEmpty)
+    assert(interval2d(1, 3, 1, 3).points.isEmpty)
+    assert(interval3d(1, 2, 1, 2, 1, 2).points.isEmpty)
+    assert(interval4d(1, 2, 1, 2, 1, 2, 1, 2).points.isEmpty)
 
     // Other
     assert(!(intervalTo(5) contains open(3)))

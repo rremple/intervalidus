@@ -119,7 +119,7 @@ class DataIn1DContinuousTest extends AnyFunSuite with Matchers with DataIn1DBase
     import DiffAction.*
 
     val actionsFrom2To3 = fixture3.diffActionsFrom(fixture2)
-    actionsFrom2To3.toList shouldBe List(
+    actionsFrom2To3 shouldBe Iterable(
       Create(intervalToBefore(5) -> "Hey"),
       Delete(Point(0)),
       Update(intervalFrom(16) -> "World"),
@@ -135,7 +135,7 @@ class DataIn1DContinuousTest extends AnyFunSuite with Matchers with DataIn1DBase
     )
 
     val actionsFrom3To4 = fixture4.diffActionsFrom(fixture3)
-    actionsFrom3To4.toList shouldBe List(
+    actionsFrom3To4 shouldBe Iterable(
       Update(intervalTo(0) -> "Hey"),
       Delete(Point(5)),
       Delete(Point(16))

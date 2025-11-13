@@ -607,6 +607,8 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       assert(interval(4, 5) isSubsetOf interval(3, 6))
       assert(interval(4, 5) ⊆ interval(3, 6))
       assert(!interval(3, 5).contains(Bottom))
+      assert(Point(3) belongsTo intervalTo(5))
+      assert(Point(3) ∈ intervalTo(5))
 
       assert((Point(3) x Point(5)) ∈ (intervalTo(5) x intervalTo(7)))
       assert((Point(3) x Point(5)) belongsTo (intervalTo(5) x intervalTo(7)))
@@ -660,7 +662,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       //           | 3 ........... 7 |                   | 14 .. 16 |
       val intervals2 = List(intervalTo(5), interval(3, 7), interval(10, 20), interval(14, 16), intervalFrom(30))
       val intervals3 = compress(intervals2)
-      intervals3.toList shouldBe List(intervalTo(7), interval(10, 20), intervalFrom(30))
+      intervals3 shouldBe Iterable(intervalTo(7), interval(10, 20), intervalFrom(30))
       complement(intervals3) shouldBe List(intervalFromAfter(7).toBefore(10), intervalFromAfter(20).toBefore(30))
       complement(intervals3.dropRight(1)) shouldBe List(intervalFromAfter(7).toBefore(10), intervalFromAfter(20))
       complement(intervals3.drop(1)) shouldBe List(intervalToBefore(10), intervalFromAfter(20).toBefore(30))
@@ -698,7 +700,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
         isCompressible(
           List(
             interval(1, 15) x Interval1D.unbounded[Int],
-            interval(11, 20) x Interval1D.unbounded[Int] // overlap
+            intervalFromAfter(15).to(20) x Interval1D.unbounded[Int]
           )
         )
       )
@@ -706,7 +708,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
         isCompressible(
           List(
             Interval1D.unbounded[Int] x interval(1, 15),
-            Interval1D.unbounded[Int] x interval(11, 20) // overlap
+            Interval1D.unbounded[Int] x intervalFromAfter(15).to(20)
           )
         )
       )
@@ -766,7 +768,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
         isCompressible(
           List(
             interval(1, 15) x Interval1D.unbounded[Int] x Interval1D.unbounded[Int],
-            interval(11, 20) x Interval1D.unbounded[Int] x Interval1D.unbounded[Int] // overlap
+            intervalFromAfter(15).to(20) x Interval1D.unbounded[Int] x Interval1D.unbounded[Int]
           )
         )
       )
@@ -774,7 +776,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
         isCompressible(
           List(
             Interval1D.unbounded[Int] x interval(1, 15) x Interval1D.unbounded[Int],
-            Interval1D.unbounded[Int] x interval(11, 20) x Interval1D.unbounded[Int] // overlap
+            Interval1D.unbounded[Int] x intervalFromAfter(15).to(20) x Interval1D.unbounded[Int]
           )
         )
       )
@@ -782,7 +784,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
         isCompressible(
           List(
             Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x interval(1, 15),
-            Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x interval(11, 20) // overlap
+            Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x intervalFromAfter(15).to(20)
           )
         )
       )
@@ -859,11 +861,12 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
           intervals1.map(Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x _)
         )
       )
+      val after15 = intervalFromAfter(15).to(20)
       assert(
         isCompressible(
           List(
             interval(1, 15) x Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x Interval1D.unbounded[Int],
-            interval(11, 20) x Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x Interval1D.unbounded[Int]
+            after15 x Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x Interval1D.unbounded[Int]
           )
         )
       )
@@ -871,7 +874,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
         isCompressible(
           List(
             Interval1D.unbounded[Int] x interval(1, 15) x Interval1D.unbounded[Int] x Interval1D.unbounded[Int],
-            Interval1D.unbounded[Int] x interval(11, 20) x Interval1D.unbounded[Int] x Interval1D.unbounded[Int]
+            Interval1D.unbounded[Int] x after15 x Interval1D.unbounded[Int] x Interval1D.unbounded[Int]
           )
         )
       )
@@ -879,7 +882,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
         isCompressible(
           List(
             Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x interval(1, 15),
-            Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x interval(11, 20)
+            Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x after15
           )
         )
       )
@@ -887,7 +890,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
         isCompressible(
           List(
             Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x interval(1, 15) x Interval1D.unbounded[Int],
-            Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x interval(11, 20) x Interval1D.unbounded[Int]
+            Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x after15 x Interval1D.unbounded[Int]
           )
         )
       )

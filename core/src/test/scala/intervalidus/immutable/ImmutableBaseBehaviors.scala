@@ -239,7 +239,7 @@ trait ImmutableBaseBehaviors:
 
       val fixture0: S = immutableFrom(allData)
       fixture0.domain.toList shouldBe List(Interval.unbounded[D])
-      fixture0.domainComplement.toList shouldBe List.empty
+      assert(fixture0.domainComplement.isEmpty)
       val fixture1 = fixture0.compress("Hello")
       val expectedData1 = List(
         dataFrom1D(intervalTo(4), "Hello"),
@@ -249,7 +249,7 @@ trait ImmutableBaseBehaviors:
       )
       fixture1.getAll.toList shouldBe expectedData1
       fixture1.domain.toList shouldBe List(Interval.unbounded[D])
-      fixture1.domainComplement.toList shouldBe List.empty
+      assert(fixture1.domainComplement.isEmpty)
 
       val fixture2 = immutableFrom(allData)
         .compressAll()
@@ -260,4 +260,4 @@ trait ImmutableBaseBehaviors:
       )
       fixture2.getAll.toList shouldBe expectedData2
       fixture2.domain.toList shouldBe List(Interval.unbounded[D])
-      fixture2.domainComplement.toList shouldBe List.empty
+      assert(fixture2.domainComplement.isEmpty)

@@ -67,7 +67,7 @@ trait DataIn3DVersionedBaseBehaviors:
       single.get shouldBe "Hello world"
       single.getOption shouldBe Some("Hello world")
       single.domain.toList shouldBe List(Interval.unbounded[Dim[Int, Int, Int]])
-      single.domainComplement.toList shouldBe List.empty
+      assert(single.domainComplement.isEmpty)
 
       val fixture1: S =
         dataIn3DVersionedFrom3D(List((intervalFrom(0) x intervalFrom(0) x unbounded[Int]) -> "Hello world"))

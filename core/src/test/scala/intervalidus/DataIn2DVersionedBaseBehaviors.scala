@@ -68,7 +68,7 @@ trait DataIn2DVersionedBaseBehaviors:
       single.get shouldBe "Hello world"
       single.getOption shouldBe Some("Hello world")
       single.domain.toList shouldBe List(Interval.unbounded[Dim[Int, Int]])
-      single.domainComplement.toList shouldBe List.empty
+      assert(single.domainComplement.isEmpty)
 
       val fixture1: S = dataIn2DVersionedFrom2D(List((intervalFrom(0) x intervalFrom(0)) -> "Hello world"))
       fixture1.getOption shouldBe None

@@ -267,7 +267,7 @@ trait MutableBaseBehaviors:
 
       val fixture1: S = mutableFrom(allData)
       fixture1.domain.toList shouldBe List(Interval.unbounded[D])
-      fixture1.domainComplement.toList shouldBe List.empty
+      assert(fixture1.domainComplement.isEmpty)
       fixture1.compress("Hello")
       val expectedData1 = List(
         dataFrom1D(intervalToBefore(5), "Hello"),
@@ -277,7 +277,7 @@ trait MutableBaseBehaviors:
       )
       fixture1.getAll.toList shouldBe expectedData1
       fixture1.domain.toList shouldBe List(Interval.unbounded[D])
-      fixture1.domainComplement.toList shouldBe List.empty
+      assert(fixture1.domainComplement.isEmpty)
 
       val fixture2 = mutableFrom(allData)
       fixture2.compressAll()
@@ -288,4 +288,4 @@ trait MutableBaseBehaviors:
       )
       fixture2.getAll.toList shouldBe expectedData2
       fixture2.domain.toList shouldBe List(Interval.unbounded[D])
-      fixture2.domainComplement.toList shouldBe List.empty
+      assert(fixture2.domainComplement.isEmpty)

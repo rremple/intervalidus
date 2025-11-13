@@ -57,7 +57,7 @@ trait DataIn1DVersionedBaseBehaviors:
       single.get shouldBe "Hello world"
       single.getOption shouldBe Some("Hello world")
       single.domain.toList shouldBe List(Interval.unbounded[Dim[Int]])
-      single.domainComplement.toList shouldBe List.empty
+      assert(single.domainComplement.isEmpty)
 
       val fixture1: S = dataIn1DVersionedFrom1D(List(intervalFrom(0) -> "Hello world"))
       fixture1.getOption shouldBe None

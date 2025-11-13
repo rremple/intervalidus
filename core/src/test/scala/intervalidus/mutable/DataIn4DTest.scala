@@ -206,7 +206,7 @@ class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors 
     val bottomInt: Domain1D[Int] = Domain1D.Bottom
 
     val actionsFrom2To3 = fixture3.diffActionsFrom(fixture2)
-    actionsFrom2To3.toList shouldBe List(
+    actionsFrom2To3 shouldBe Iterable(
       Create(vertical4D(intervalTo(4)) -> "Hey"),
       Delete(bottomInt x bottomInt x 0 x bottomInt),
       Update(vertical4D(intervalFrom(16)) -> "World"),
@@ -222,7 +222,7 @@ class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors 
     )
 
     val actionsFrom3To5 = fixture5.diffActionsFrom(fixture3)
-    actionsFrom3To5.toList shouldBe List(
+    actionsFrom3To5 shouldBe Iterable(
       Update((unboundedDate x unboundedDate x intervalTo(0) x unbounded[Int]) -> "Hey"),
       Create((intervalTo(day(0)) x unboundedDate x interval(1, 4) x unbounded[Int]) -> "Hey"),
       Delete(bottomInt x bottomInt x 5 x bottomInt),

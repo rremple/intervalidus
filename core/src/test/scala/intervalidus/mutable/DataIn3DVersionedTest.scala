@@ -210,7 +210,7 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
     import DiffAction.*
 
     val actionsFrom2To4 = fixture4.diffActionsFrom(fixture2)
-    actionsFrom2To4.toList shouldBe List(
+    actionsFrom2To4 shouldBe Iterable(
       Update((interval(0, 4) x interval(0, 4) x intervalFrom(0) x unbounded[Int]) -> "Hello"),
       Update((interval(3, 5) x intervalAt(20) x unbounded[Int] x unbounded[Int]) -> "!"),
       Create((interval(3, 4) x interval(21, 25) x unbounded[Int] x unbounded[Int]) -> "!"),
@@ -222,7 +222,7 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
     )
 
     val actionsFrom4To6 = fixture6.diffActionsFrom(fixture4)
-    actionsFrom4To6.toList shouldBe List(
+    actionsFrom4To6 shouldBe Iterable(
       Update((interval(2, 6) x interval(5, 15) x unbounded[Int] x unbounded[Int]) -> "to"),
       Update((interval(2, 7) x interval(16, 19) x intervalTo(0) x unbounded[Int]) -> "World"),
       Update((intervalFrom(5) x intervalTo(0) x unbounded[Int] x unbounded[Int]) -> "Hey"),

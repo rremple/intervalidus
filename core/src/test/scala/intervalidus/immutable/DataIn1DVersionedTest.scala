@@ -194,7 +194,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     import DiffAction.*
 
     val actionsFrom2To4 = fixture4.diffActionsFrom(fixture2)
-    actionsFrom2To4.toList shouldBe List(
+    actionsFrom2To4 shouldBe Iterable(
       Update((interval(0, 4) x interval(0, 4)) -> "Hello"),
       Update((interval(3, 5) x intervalAt(20)) -> "!"),
       Create((interval(3, 4) x interval(21, 25)) -> "!"),
@@ -204,7 +204,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
       Create((intervalFrom(6) x intervalFrom(20)) -> "World")
     )
     val actionsFrom4To6 = fixture6.diffActionsFrom(fixture4)
-    actionsFrom4To6.toList shouldBe List(
+    actionsFrom4To6 shouldBe Iterable(
       Update((interval(2, 6) x interval(5, 15)) -> "to"),
       Update((interval(2, 7) x interval(16, 19)) -> "World"),
       Update((intervalFrom(5) x intervalTo(0)) -> "Hey"),
@@ -219,7 +219,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
 
     val actionsFromVersion7 = fixture6.diffActionsBetween(VersionSelection(7), VersionSelection.Current)
     // actionsFromVersion7.foreach(a => println(a.toCodeLikeString))
-    actionsFromVersion7.toList shouldBe List(
+    actionsFromVersion7 shouldBe Iterable(
       Update((interval(2, 7) x interval(16, 19)) -> "World"),
       Update((intervalFrom(5) x intervalTo(0)) -> "Hey"),
       Create((interval(5, 7) x interval(1, 4)) -> "Hey"),
@@ -237,7 +237,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
 
     fixture6.getAll should contain theSameElementsAs fixture8.getAll
     val unapprovedActions = fixture8.diffActionsBetween(VersionSelection.Current, VersionSelection.Unapproved)
-    unapprovedActions.toList shouldBe List(
+    unapprovedActions shouldBe Iterable(
       Create((intervalFrom(unapprovedStartVersion) x interval(30, 39)) -> "World?")
     )
 
