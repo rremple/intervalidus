@@ -356,8 +356,6 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"intervalidus","t":"intervalidu
 {"l":"intervalidus/DiscreteValue$$LongDiscreteValue$.html#","e":false,"i":"","n":"LongDiscreteValue","t":"LongDiscreteValue extends DiscreteValue[Long]","d":"intervalidus.DiscreteValue","k":"object","x":""},
 {"l":"intervalidus/DiscreteValue$$LongDiscreteValue$.html#maxValue-0","e":false,"i":"","n":"maxValue","t":"maxValue: Long","d":"intervalidus.DiscreteValue.LongDiscreteValue","k":"val","x":""},
 {"l":"intervalidus/DiscreteValue$$LongDiscreteValue$.html#minValue-0","e":false,"i":"","n":"minValue","t":"minValue: Long","d":"intervalidus.DiscreteValue.LongDiscreteValue","k":"val","x":""},
-{"l":"intervalidus/Domain.html#","e":false,"i":"","n":"Domain","t":"Domain[D]","d":"intervalidus","k":"trait","x":""},
-{"l":"intervalidus/Domain.html#asString-9f8","e":false,"i":"extension (domain: D)","n":"asString","t":"asString: String","d":"intervalidus.Domain","k":"def","x":""},
 {"l":"intervalidus/Domain$.html#","e":false,"i":"","n":"Domain","t":"Domain","d":"intervalidus","k":"object","x":""},
 {"l":"intervalidus/Domain$.html#In1D-0","e":false,"i":"","n":"In1D","t":"In1D[R1] = Domain1D[R1] *: EmptyTuple","d":"intervalidus.Domain","k":"type","x":""},
 {"l":"intervalidus/Domain$.html#In2D-0","e":false,"i":"","n":"In2D","t":"In2D[R1, R2] = (Domain1D[R1], Domain1D[R2])","d":"intervalidus.Domain","k":"type","x":""},
