@@ -1,7 +1,6 @@
 package intervalidus
 
 import scala.language.implicitConversions
-import scala.math.Ordering.Implicits.infixOrderingOps
 
 /**
   * Internal type class for operating on domains and related structures of arbitrary dimension.

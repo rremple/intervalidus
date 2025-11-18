@@ -15,11 +15,11 @@ package intervalidus
   * @define intervalToTest
   *   the interval to test.
   */
-trait IntervalLike[
+trait IntervalBase[
   MinorD,
   MajorD <: NonEmptyTuple: DomainLike,
   Remainder,
-  Self <: IntervalLike[MinorD, MajorD, Remainder, Self]
+  Self <: IntervalBase[MinorD, MajorD, Remainder, Self]
 ]:
   this: Self =>
 

@@ -33,7 +33,7 @@ types, various collections, etc.) is great. But the notion of how to express the
 application design consideration. But it is such a common pattern, it is odd that there isn’t some more direct support
 in libraries for representing validity as a kind of collection. There are lots of libraries for representing intervals
 and even interval sets, but not intervals as they relate to data as a kind of collection, and not multidimensional
-intervals. (Intervalidus has no upper bound on the number of dimensions supported!)
+intervals. (Intervalidus has no upper bound on the number of dimensions!)
 
 For example, what is valid may depend on time. Say that on December 25<sup>th</sup> a user signs up for a basic tier of
 service effective January 1<sup>st</sup>. Then, on March 15<sup>th</sup>, they upgrade to the premium service tier
@@ -351,6 +351,35 @@ println(s"reLU at  0 = ${reLU( 0)}") // reLU at  0 = 0
 println(s"reLU at  1 = ${reLU( 1)}") // reLU at  1 = 1
 ```
 
+Another application is a simple variable, i.e., having a value that varies in time. The twist here is that an underlying
+`Data`structure maintains all historical values assigned with nanosecond resolution. Both mutable and immutable forms of
+this `Variable` structure are available. Here's an example using the mutable form:
+```scala 3
+import intervalidus.mutable.Variable
+
+val start = java.time.Instant.now()
+val x = Variable(5.0)
+x.set(5.1)
+x.set(5.2)
+println(x.history)
+println(s"current value:  ${x.get}")
+println(s"prior value:    ${x.getPrior}")
+println(s"starting value: ${x.getAt(start)}")
+println(s"all values:     ${x.history.values}")
+```
+This prints:
+```text
+| -∞ .. 2025-11-18T17:57:36.754972399Z                             | 2025-11-18T17:57:36.754972400Z .. 2025-11-18T17:57:36.813380099Z | 2025-11-18T17:57:36.813380100Z .. +∞                             |
+| 5.0                                                              |
+                                                                   | 5.1                                                              |
+                                                                                                                                      | 5.2                                                              |
+
+current value:  5.2
+prior value:    Some(5.1)
+starting value: 5.0
+all values:     Set(5.2, 5.1, 5.0)
+```
+
 ---
 
 The same methods are available in both mutable/immutable variants (though parameter and
@@ -536,7 +565,8 @@ enum Color derives DiscreteValue:
 val thoughtsByColor = Data[String, Domain.In1D[Color]]() //...
 ```
 
-You can extend through composition. For example `DataVersioned` mimics the `Data` API but uses an underlying `Data`
+You can extend through composition. One example is `Variable`, described above. Another is `DataVersioned`, which mimics
+the `Data` API but uses an underlying `Data`
 structure of a higher dimension (i.e., with an additional integer head dimension) to create a versioned data structure.
 The "current" version is tracked as internal state and methods accept version selection as a
 [context parameter](https://docs.scala-lang.org/scala3/book/ca-context-parameters.html), with "current" as the

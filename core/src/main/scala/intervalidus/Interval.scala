@@ -31,7 +31,7 @@ case class Interval[D <: NonEmptyTuple](
   start: D,
   end: D
 )(using domainLike: DomainLike[D])
-  extends IntervalLike[D, D, NonEmptyTuple, Interval[D]]:
+  extends IntervalBase[D, D, NonEmptyTuple, Interval[D]]:
 
   /**
     * Either the start is before end (by both start and end ordering), or, when equal, both bounds must be closed (i.e.,

@@ -23,7 +23,7 @@ case class Interval1D[T](
   start: Domain1D[T],
   end: Domain1D[T]
 )(using domainValue: DomainValueLike[T])
-  extends IntervalLike[Domain1D[T], Domain.In1D[T], Interval1D.Remainder[Interval1D[T]], Interval1D[T]]:
+  extends IntervalBase[Domain1D[T], Domain.In1D[T], Interval1D.Remainder[Interval1D[T]], Interval1D[T]]:
 
   require(Interval1D.validBounds(start, end), s"Interval $this invalid")
 

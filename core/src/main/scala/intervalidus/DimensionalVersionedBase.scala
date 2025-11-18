@@ -352,7 +352,6 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
   // Utility methods for managing "versioned" state, not part of API
 
   private type VersionInterval = Interval1D[VersionDomainValue]
-  private val VersionInterval = intervalidus.Interval1D
 
   // The current version, mutable via access methods only
   protected var currentVersion: VersionDomainValue =
@@ -526,17 +525,17 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     /**
       * Returns the interval to the boundary of this version selection
       */
-    def intervalTo: VersionInterval = VersionInterval.intervalTo(boundary)
+    def intervalTo: VersionInterval = Interval1D.intervalTo(boundary)
 
     /**
       * Returns the interval at the boundary of this version selection
       */
-    def intervalAt: VersionInterval = VersionInterval.intervalAt(boundary)
+    def intervalAt: VersionInterval = Interval1D.intervalAt(boundary)
 
     /**
       * Returns the interval from the boundary of this version selection
       */
-    def intervalFrom: VersionInterval = VersionInterval.intervalFrom(boundary)
+    def intervalFrom: VersionInterval = Interval1D.intervalFrom(boundary)
 
   // ---------- Implement methods like those in DimensionalBase ----------
 
