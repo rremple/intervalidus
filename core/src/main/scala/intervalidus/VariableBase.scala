@@ -40,7 +40,7 @@ import VariableBase.{Instant1D, given}
   * @tparam T
   *   the value type
   */
-trait VariableBase[T] extends PartialFunction[Instant1D, T]:
+trait VariableBase[T] extends (Instant1D => T):
 
   // could be mutable or immutable
   protected def underlyingData: DimensionalBase[T, Instant1D]
@@ -48,10 +48,7 @@ trait VariableBase[T] extends PartialFunction[Instant1D, T]:
   // from Object - print latest
   override def toString: String = get.toString
 
-  // from PartialFunction - delegate to underlyingData (should always be true)
-  override def isDefinedAt(key: Instant1D): Boolean = underlyingData.isDefinedAt(key)
-
-  // from PartialFunction - delegate to underlyingData
+  // from Function - delegate to underlyingData
   override def apply(key: Instant1D): T = underlyingData(key)
 
   // on conflict, add 10 ns (0.00001 ms) to make the instant unique (ouch!)

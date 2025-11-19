@@ -20,8 +20,6 @@ class VariableTest extends AnyFunSuite with Matchers:
     assert(fixture0.lastChange.isEmpty)
     fixture0.get shouldBe "Hello"
     fixture0.toString shouldBe "Hello"
-    assert(fixture0.isDefinedAt(time1))
-    assert(fixture0.isDefinedAt(time2))
     fixture0(time1) shouldBe "Hello"
     fixture0(time2) shouldBe "Hello"
     fixture0.getPrior shouldBe None
