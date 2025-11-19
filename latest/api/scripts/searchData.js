@@ -645,7 +645,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"intervalidus","t":"intervalidu
 {"l":"intervalidus/VariableBase$$InstantDiscreteValue$.html#","e":false,"i":"","n":"InstantDiscreteValue","t":"InstantDiscreteValue extends DiscreteValue[Instant]","d":"intervalidus.VariableBase","k":"object","x":""},
 {"l":"intervalidus/VariableBase$$InstantDiscreteValue$.html#maxValue-0","e":false,"i":"","n":"maxValue","t":"maxValue: Instant","d":"intervalidus.VariableBase.InstantDiscreteValue","k":"val","x":""},
 {"l":"intervalidus/VariableBase$$InstantDiscreteValue$.html#minValue-0","e":false,"i":"","n":"minValue","t":"minValue: Instant","d":"intervalidus.VariableBase.InstantDiscreteValue","k":"val","x":""},
-{"l":"intervalidus/VariableBase.html#","e":false,"i":"","n":"VariableBase","t":"VariableBase[T] extends PartialFunction[Instant1D, T]","d":"intervalidus","k":"trait","x":""},
+{"l":"intervalidus/VariableBase.html#","e":false,"i":"","n":"VariableBase","t":"VariableBase[T] extends Instant1D => T","d":"intervalidus","k":"trait","x":""},
 {"l":"intervalidus/VariableBase.html#get-0","e":false,"i":"","n":"get","t":"get: T","d":"intervalidus.VariableBase","k":"def","x":""},
 {"l":"intervalidus/VariableBase.html#getAt-fffffd7f","e":false,"i":"","n":"getAt","t":"getAt(past: Instant): T","d":"intervalidus.VariableBase","k":"def","x":""},
 {"l":"intervalidus/VariableBase.html#getPrior-0","e":false,"i":"","n":"getPrior","t":"getPrior: Option[T]","d":"intervalidus.VariableBase","k":"def","x":""},

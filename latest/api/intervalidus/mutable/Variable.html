@@ -48,8 +48,7 @@ node1 [id=node1, label="<span style=\"color: #FFFFFF;\">class <span data-unresol
 node2 [id=node2, label="<span style=\"color: #FFFFFF;\">class <span data-unresolved-link=\"\" t=\"n\">Any</span></span>", class="class vertex"];
 node3 [id=node3, label="<span style=\"color: #FFFFFF;\">trait <span data-unresolved-link=\"\" t=\"n\">Matchable</span></span>", class="trait vertex"];
 node4 [id=node4, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../VariableBase.html\" t=\"n\">VariableBase</a>[<span t=\"t\">T</span>]</span>", class="trait vertex"];
-node5 [id=node5, label="<span style=\"color: #FFFFFF;\">trait <span data-unresolved-link=\"\" t=\"n\">PartialFunction</span>[<a href=\"../VariableBase$.html#Instant1D-0\" t=\"t\">Instant1D</a>, <span t=\"t\">T</span>]</span>", class="trait vertex"];
-node6 [id=node6, label="<span style=\"color: #FFFFFF;\">class <a href=\"../VariableBase$.html#Instant1D-0\" t=\"n\">Instant1D</a><span t=\"k\"> =&gt; </span><span t=\"t\">T</span></span>", class="class vertex"];
+node5 [id=node5, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../VariableBase$.html#Instant1D-0\" t=\"n\">Instant1D</a><span t=\"k\"> =&gt; </span><span t=\"t\">T</span></span>", class="trait vertex"];
 
 
  node0 -> node1;
@@ -60,8 +59,6 @@ node0 -> node4;
 node4 -> node1;
 node4 -> node5;
 node5 -> node1;
-node5 -> node6;
-node6 -> node1;
 
 }
 </script>
@@ -76,9 +73,6 @@ node6 -> node1;
       trait <a href="../VariableBase.html" t="n">VariableBase</a>[<span t="t">T</span>]
      </div>
      <div>
-      trait <span data-unresolved-link="" t="n">PartialFunction</span>[<a href="../VariableBase$.html#Instant1D-0" t="t">Instant1D</a>, <span t="t">T</span>]
-     </div>
-     <div>
       trait <a href="../VariableBase$.html#Instant1D-0" t="n">Instant1D</a><span t="k"> =&gt; </span><span t="t">T</span>
      </div>
      <div>
@@ -89,7 +83,7 @@ node6 -> node1;
      </div>
      <div>
       class <span data-unresolved-link="" t="n">Any</span>
-     </div><span class="show-all-code show-content text-button h100">Show all</span>
+     </div><span></span>
     </div>
    </dd>
   </dl>
@@ -253,12 +247,12 @@ node6 -> node1;
          <button class="icon-button show-content expand"></button>
          <h4 class="groupHeader h200">Inherited methods</h4>
         </div>
-        <div class="documentableElement" id="andThen-b91" data-f-inherited="PartialFunction">
+        <div class="documentableElement" id="andThen-51" data-f-inherited="Function1">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Variable.html#andThen-b91" t="n" class="documentableName ">andThen</a>[<span t="k"></span><span data-unresolved-link="" t="t">C</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">k</span>: <span data-unresolved-link="" t="t">PartialFunction</span>[<span t="t">T</span>, <span t="t">C</span>]): <span data-unresolved-link="" t="t">PartialFunction</span>[<a href="../VariableBase$.html#Instant1D-0" t="t">Instant1D</a>, <span data-unresolved-link="" t="t">C</span>]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Variable.html#andThen-51" t="n" class="documentableName ">andThen</a>[<span t="k"></span><span data-unresolved-link="" t="t">A</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">g</span>: <span t="t">T</span><span t="k"> =&gt; </span><span t="t">A</span>): <a href="../VariableBase$.html#Instant1D-0" t="t">Instant1D</a><span t="k"> =&gt; </span><span data-unresolved-link="" t="t">A</span>
            </div>
           </div>
          </div>
@@ -275,45 +269,7 @@ node6 -> node1;
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <span data-unresolved-link="">PartialFunction</span>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="andThen-f71" data-f-keywords="override" data-f-inherited="PartialFunction">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="Variable.html#andThen-f71" t="n" class="documentableName ">andThen</a>[<span t="k"></span><span data-unresolved-link="" t="t">C</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">k</span>: <span t="t">T</span><span t="k"> =&gt; </span><span t="t">C</span>): <span data-unresolved-link="" t="t">PartialFunction</span>[<a href="../VariableBase$.html#Instant1D-0" t="t">Instant1D</a>, <span data-unresolved-link="" t="t">C</span>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="cover">
-             <div class="doc"></div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Definition Classes
-              </dt>
-              <dd class="body-medium">
-               <div>
-                <span data-unresolved-link="">PartialFunction</span> -&gt; <span data-unresolved-link="">Function1</span>
-               </div>
-              </dd>
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <span data-unresolved-link="">PartialFunction</span>
+               <span data-unresolved-link="">Function1</span>
               </dd>
              </dl>
             </div>
@@ -359,66 +315,6 @@ node6 -> node1;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="applyOrElse-fffffdbf" data-f-inherited="PartialFunction">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Variable.html#applyOrElse-fffffdbf" t="n" class="documentableName ">applyOrElse</a>[<span t="k"></span><span data-unresolved-link="" t="t">A1</span><span t="k"> &lt;: </span><a href="../VariableBase$.html#Instant1D-0" t="t">Instant1D</a>, <span t="k"></span><span data-unresolved-link="" t="t">B1</span><span t="k"> &gt;: </span><span t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">x</span>: <span t="t">A1</span>, <span t="k"></span><span data-unresolved-link="" t="n">default</span>: <span t="t">A1</span><span t="k"> =&gt; </span><span t="t">B1</span>): <span data-unresolved-link="" t="t">B1</span>
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="cover">
-             <div class="doc"></div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <span data-unresolved-link="">PartialFunction</span>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="compose-b91" data-f-inherited="PartialFunction">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Variable.html#compose-b91" t="n" class="documentableName ">compose</a>[<span t="k"></span><span data-unresolved-link="" t="t">R</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">k</span>: <span data-unresolved-link="" t="t">PartialFunction</span>[<span t="t">R</span>, <a href="../VariableBase$.html#Instant1D-0" t="t">Instant1D</a>]): <span data-unresolved-link="" t="t">PartialFunction</span>[<span data-unresolved-link="" t="t">R</span>, <span t="t">T</span>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="cover">
-             <div class="doc"></div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <span data-unresolved-link="">PartialFunction</span>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
         <div class="documentableElement" id="compose-51" data-f-inherited="Function1">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -442,36 +338,6 @@ node6 -> node1;
               </dt>
               <dd class="body-medium">
                <span data-unresolved-link="">Function1</span>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="elementWise-0" data-f-inherited="PartialFunction">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Variable.html#elementWise-0" t="n" class="documentableName ">elementWise</a>: <span data-unresolved-link="" t="t">ElementWiseExtractor</span>[<a href="../VariableBase$.html#Instant1D-0" t="t">Instant1D</a>, <span t="t">T</span>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="cover">
-             <div class="doc"></div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <span data-unresolved-link="">PartialFunction</span>
               </dd>
              </dl>
             </div>
@@ -606,44 +472,6 @@ node6 -> node1;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="isDefinedAt-fffff699" data-f-keywords="override" data-f-inherited="VariableBase">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="Variable.html#isDefinedAt-fffff699" t="n" class="documentableName ">isDefinedAt</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">key</span>: <a href="../VariableBase$.html#Instant1D-0" t="t">Instant1D</a>): <span data-unresolved-link="" t="t">Boolean</span>
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="cover">
-             <div class="doc"></div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Definition Classes
-              </dt>
-              <dd class="body-medium">
-               <div>
-                <a href="../VariableBase.html#isDefinedAt-fffff699">VariableBase</a> -&gt; <span data-unresolved-link="">PartialFunction</span>
-               </div>
-              </dd>
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <a href="../VariableBase.html#isDefinedAt-fffff699">VariableBase</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
         <div class="documentableElement" id="lastChange-0" data-f-inherited="VariableBase">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -678,96 +506,6 @@ node6 -> node1;
               </dt>
               <dd class="body-medium">
                <a href="../VariableBase.html#lastChange-0">VariableBase</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="lift-0" data-f-inherited="PartialFunction">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Variable.html#lift-0" t="n" class="documentableName ">lift</a>: <a href="../VariableBase$.html#Instant1D-0" t="t">Instant1D</a><span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Option</span>[<span t="t">T</span>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="cover">
-             <div class="doc"></div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <span data-unresolved-link="">PartialFunction</span>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="orElse-a52" data-f-inherited="PartialFunction">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Variable.html#orElse-a52" t="n" class="documentableName ">orElse</a>[<span t="k"></span><span data-unresolved-link="" t="t">A1</span><span t="k"> &lt;: </span><a href="../VariableBase$.html#Instant1D-0" t="t">Instant1D</a>, <span t="k"></span><span data-unresolved-link="" t="t">B1</span><span t="k"> &gt;: </span><span t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">that</span>: <span data-unresolved-link="" t="t">PartialFunction</span>[<span t="t">A1</span>, <span t="t">B1</span>]): <span data-unresolved-link="" t="t">PartialFunction</span>[<span data-unresolved-link="" t="t">A1</span>, <span data-unresolved-link="" t="t">B1</span>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="cover">
-             <div class="doc"></div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <span data-unresolved-link="">PartialFunction</span>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="runWith-51" data-f-inherited="PartialFunction">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Variable.html#runWith-51" t="n" class="documentableName ">runWith</a>[<span t="k"></span><span data-unresolved-link="" t="t">U</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">action</span>: <span t="t">T</span><span t="k"> =&gt; </span><span t="t">U</span>): <a href="../VariableBase$.html#Instant1D-0" t="t">Instant1D</a><span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Boolean</span>
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="cover">
-             <div class="doc"></div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <span data-unresolved-link="">PartialFunction</span>
               </dd>
              </dl>
             </div>
@@ -818,36 +556,6 @@ node6 -> node1;
               </dt>
               <dd class="body-medium">
                <a href="../VariableBase.html#toString-0">VariableBase</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="unapply-fffffb50" data-f-inherited="PartialFunction">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Variable.html#unapply-fffffb50" t="n" class="documentableName ">unapply</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">a</span>: <a href="../VariableBase$.html#Instant1D-0" t="t">Instant1D</a>): <span data-unresolved-link="" t="t">Option</span>[<span t="t">T</span>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="cover">
-             <div class="doc"></div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <span data-unresolved-link="">PartialFunction</span>
               </dd>
              </dl>
             </div>
