@@ -128,17 +128,17 @@ object Json:
     asValueObj.bimap[immutable.DataVersioned[V, D]](
       data =>
         Obj(
-          "data" -> writeJs(data.getVersionedData.getAll),
-          "version" -> writeJs(data.getVersionTimestamps.keySet.minOption.getOrElse(0)),
-          "timestamps" -> writeJs(data.getVersionTimestamps.toSeq),
-          "current" -> writeJs(Some(data.getCurrentVersion))
+          "initialVersion" -> writeJs(data.getVersionTimestamps.keySet.minOption.getOrElse(0)),
+          "currentVersion" -> writeJs(Some(data.getCurrentVersion)),
+          "versionTimestamps" -> writeJs(data.getVersionTimestamps.toSeq),
+          "data" -> writeJs(data.getVersionedData.getAll)
         ),
       obj =>
         immutable.DataVersioned[V, D](
           obj("data").as[Iterable[ValidData[V, Versioned[D]]]],
-          obj("version").as[VersionDomainValue],
-          scala.collection.mutable.Map.from(obj("timestamps").as[Seq[(VersionDomainValue, VersionMetadata)]]),
-          obj("current").as[Option[VersionDomainValue]]
+          obj("initialVersion").as[VersionDomainValue],
+          scala.collection.mutable.Map.from(obj("versionTimestamps").as[Seq[(VersionDomainValue, VersionMetadata)]]),
+          obj("currentVersion").as[Option[VersionDomainValue]]
         )
     )
 
@@ -178,17 +178,17 @@ object Json:
     asValueObj.bimap[mutable.DataVersioned[V, D]](
       data =>
         Obj(
-          "data" -> writeJs(data.getVersionedData.getAll),
-          "version" -> writeJs(data.getVersionTimestamps.keySet.minOption.getOrElse(0)),
-          "timestamps" -> writeJs(data.getVersionTimestamps.toSeq),
-          "current" -> writeJs(Some(data.getCurrentVersion))
+          "initialVersion" -> writeJs(data.getVersionTimestamps.keySet.minOption.getOrElse(0)),
+          "currentVersion" -> writeJs(Some(data.getCurrentVersion)),
+          "versionTimestamps" -> writeJs(data.getVersionTimestamps.toSeq),
+          "data" -> writeJs(data.getVersionedData.getAll)
         ),
       obj =>
         mutable.DataVersioned[V, D](
           obj("data").as[Iterable[ValidData[V, Versioned[D]]]],
-          obj("version").as[VersionDomainValue],
-          scala.collection.mutable.Map.from(obj("timestamps").as[Seq[(VersionDomainValue, VersionMetadata)]]),
-          obj("current").as[Option[VersionDomainValue]]
+          obj("initialVersion").as[VersionDomainValue],
+          scala.collection.mutable.Map.from(obj("versionTimestamps").as[Seq[(VersionDomainValue, VersionMetadata)]]),
+          obj("currentVersion").as[Option[VersionDomainValue]]
         )
     )
 

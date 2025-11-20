@@ -355,12 +355,12 @@ trait JsonTestBehavior[W[_], R[_]](using
       mutableDataVersioned.set(intervalToBefore(0) -> "Goodbye")
 
       val json =
-        """{"data":[""" +
+        """{"initialVersion":0,"currentVersion":1""" +
+          ""","versionTimestamps":[[0,["2025-11-19T12:15","custom init"]],[1,["2025-11-19T12:16","to one"]]]""" +
+          ""","data":[""" +
           """{"value":"Hello","interval":{"start":[{"point":0},{"point":0}],"end":["Top","Top"]}},""" +
-          """{"value":"Goodbye","interval":{"start":[{"point":1},"Bottom"],"end":["Top",{"point":-1}]}}]""" +
-          ""","version":0""" +
-          ""","timestamps":[[0,["2025-11-19T12:15","custom init"]],[1,["2025-11-19T12:16","to one"]]]""" +
-          ""","current":1}"""
+          """{"value":"Goodbye","interval":{"start":[{"point":1},"Bottom"],"end":["Top",{"point":-1}]}}""" +
+          """]}"""
 
       type VersionedInt = DimensionalVersionedBase.Versioned[Domain.In1D[Int]]
       isomorphicData[immutable.DataVersioned.In1D[String, Int], ValidData[String, VersionedInt]](
