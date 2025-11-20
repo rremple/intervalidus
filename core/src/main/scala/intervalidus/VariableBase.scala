@@ -34,6 +34,27 @@ object VariableBase:
 
 import VariableBase.{Instant1D, given}
 
+trait VariableObjectBase:
+  /**
+    * @param initialValue
+    *   initial value of this variable
+    * @tparam T
+    *   the value type
+    * @return
+    *   a new variable
+    */
+  def apply[T](initialValue: T): VariableBase[T]
+
+  /**
+    * @param history
+    *   historical values of this variable
+    * @tparam T
+    *   the value type
+    * @return
+    *   a new variable
+    */
+  def fromHistory[T](history: Iterable[ValidData[T, Instant1D]]): VariableBase[T]
+
 /**
   * A value that varies in time.
   *

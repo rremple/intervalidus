@@ -8,14 +8,19 @@ import scala.language.implicitConversions
 
 /**
   * A value that varies in time.
-  * @param initialValue
-  *   initial value of this variable
+  */
+object Variable extends VariableObjectBase:
+  override def apply[T](initialValue: T): Variable[T] = new Variable(Data.of(initialValue))
+
+  override def fromHistory[T](history: Iterable[ValidData[T, Instant1D]]): Variable[T] = new Variable(Data(history))
+
+/**
+  * A value that varies in time.
+  *
   * @tparam T
   *   the value type
   */
-class Variable[T](initialValue: T) extends VariableBase[T]:
-
-  override protected val underlyingData: Data[T, Instant1D] = Data.of(initialValue)
+class Variable[T] private (override protected val underlyingData: Data[T, Instant1D]) extends VariableBase[T]:
 
   override def history: immutable.Data[T, Instant1D] = underlyingData.toImmutable
 

@@ -4,11 +4,12 @@ import intervalidus.*
 import intervalidus.DiscreteValue.given
 import intervalidus.Domain1D.{Bottom, OpenPoint, Point, Top}
 import intervalidus.DomainLike.given
-import intervalidus.Interval1D.{intervalFrom, intervalTo, unbounded}
+import intervalidus.Interval1D.{interval, intervalFrom, intervalFromAfter, intervalTo, intervalToBefore, unbounded}
 import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
+import java.time.{Instant, LocalDateTime, ZoneOffset}
 import scala.language.implicitConversions
 
 /**
@@ -33,12 +34,18 @@ trait JsonTestBehavior[W[_], R[_]](using
   W[DiffAction.In1D[String, Int]],
   W[DiffAction.In2D[String, Int, Int]],
   W[DiffAction.In3D[String, Int, Int, Int]],
+  W[mutable.Variable[String]],
+  W[immutable.Variable[String]],
   W[mutable.Data.In1D[String, Int]],
   W[mutable.Data.In2D[String, Int, Int]],
   W[mutable.Data.In3D[String, Int, Int, Int]],
   W[immutable.Data.In1D[String, Int]],
   W[immutable.Data.In2D[String, Int, Int]],
   W[immutable.Data.In3D[String, Int, Int, Int]],
+  W[mutable.DataVersioned.In1D[String, Int]],
+  W[immutable.DataVersioned.In1D[String, Int]],
+  W[mutable.DataMulti.In1D[String, Int]],
+  W[immutable.DataMulti.In1D[String, Int]],
   R[Domain1D[Int]],
   R[Domain.In1D[Int]],
   R[Domain.In2D[Int, Int]],
@@ -52,12 +59,18 @@ trait JsonTestBehavior[W[_], R[_]](using
   R[DiffAction.In1D[String, Int]],
   R[DiffAction.In2D[String, Int, Int]],
   R[DiffAction.In3D[String, Int, Int, Int]],
+  R[mutable.Variable[String]],
+  R[immutable.Variable[String]],
   R[mutable.Data.In1D[String, Int]],
   R[mutable.Data.In2D[String, Int, Int]],
   R[mutable.Data.In3D[String, Int, Int, Int]],
   R[immutable.Data.In1D[String, Int]],
   R[immutable.Data.In2D[String, Int, Int]],
-  R[immutable.Data.In3D[String, Int, Int, Int]]
+  R[immutable.Data.In3D[String, Int, Int, Int]],
+  R[mutable.DataVersioned.In1D[String, Int]],
+  R[immutable.DataVersioned.In1D[String, Int]],
+  R[mutable.DataMulti.In1D[String, Int]],
+  R[immutable.DataMulti.In1D[String, Int]]
 ):
   this: AnyFunSuite & Matchers =>
 
@@ -232,6 +245,29 @@ trait JsonTestBehavior[W[_], R[_]](using
           ""","key":[{"point":0},{"point":1},{"point":3}]}"""
       )
 
+    test(s"$prefix: Variables encoded as arrays"):
+      import VariableBase.given
+      val now: Domain1D[Instant] = LocalDateTime.of(2025, 11, 19, 12, 15).toInstant(ZoneOffset.UTC)
+      val data = Seq(
+        intervalTo(now) -> "Hello",
+        intervalFromAfter(now) -> "Goodbye"
+      )
+      val json =
+        """[""" +
+          """{"value":"Hello","interval":{"start":["Bottom"],"end":[{"point":"2025-11-19T12:15:00Z"}]}}""" +
+          """,{"value":"Goodbye","interval":{"start":[{"point":"2025-11-19T12:15:00.000000001Z"}],"end":["Top"]}}""" +
+          "]"
+      isomorphicData[immutable.Variable[String], ValidData[String, VariableBase.Instant1D]](
+        immutable.Variable.fromHistory(data),
+        json,
+        _.history.getAll
+      )
+      isomorphicData[mutable.Variable[String], ValidData[String, VariableBase.Instant1D]](
+        mutable.Variable.fromHistory(data),
+        json,
+        _.history.getAll
+      )
+
     test(s"$prefix: Dimensional data encoded as arrays - 1D"):
       val data = Seq(
         intervalFrom(1) -> "Hello",
@@ -299,6 +335,76 @@ trait JsonTestBehavior[W[_], R[_]](using
       )
       isomorphicData[mutable.Data.In3D[String, Int, Int, Int], ValidData.In3D[String, Int, Int, Int]](
         mutable.Data(data),
+        json,
+        _.getAll
+      )
+
+    test(s"$prefix: Dimensional versioned data encoded as objects - 1D (underlying 2D)"):
+      val initTime = LocalDateTime.of(2025, 11, 19, 12, 15)
+      val incrementTime = initTime.plusMinutes(1)
+      given CurrentDateTime = CurrentDateTime.simulated(initTime)
+
+      val immutableDataVersioned = immutable.DataVersioned
+        .of(intervalFrom(0) -> "Hello", 0, "custom init")
+        .incrementCurrentVersion("to one")(using CurrentDateTime.simulated(incrementTime))
+        .set(intervalToBefore(0) -> "Goodbye")
+
+      val mutableDataVersioned = mutable.DataVersioned
+        .of(intervalFrom(0) -> "Hello", 0, "custom init")
+      mutableDataVersioned.incrementCurrentVersion("to one")(using CurrentDateTime.simulated(incrementTime))
+      mutableDataVersioned.set(intervalToBefore(0) -> "Goodbye")
+
+      val json =
+        """{"data":[""" +
+          """{"value":"Hello","interval":{"start":[{"point":0},{"point":0}],"end":["Top","Top"]}},""" +
+          """{"value":"Goodbye","interval":{"start":[{"point":1},"Bottom"],"end":["Top",{"point":-1}]}}]""" +
+          ""","version":0""" +
+          ""","timestamps":[[0,["2025-11-19T12:15","custom init"]],[1,["2025-11-19T12:16","to one"]]]""" +
+          ""","current":1}"""
+
+      type VersionedInt = DimensionalVersionedBase.Versioned[Domain.In1D[Int]]
+      isomorphicData[immutable.DataVersioned.In1D[String, Int], ValidData[String, VersionedInt]](
+        immutableDataVersioned,
+        json,
+        _.getVersionedData.getAll
+      )
+      isomorphicData[mutable.DataVersioned.In1D[String, Int], ValidData[String, VersionedInt]](
+        mutableDataVersioned,
+        json,
+        _.getVersionedData.getAll
+      )
+
+    test(s"$prefix: Dimensional multi data encoded as arrays - 1D (underlying sets of values)"):
+      val data = List(
+        interval(0, 20) -> "A",
+        interval(5, 25) -> "B",
+        interval(10, 30) -> "C"
+      )
+
+      // Resulting sets of values:
+      //  | 0 .. 4   | 5 .. 9   | 10 .. 20 | 21 .. 25 | 26 .. 30 |
+      //  | {A}      |
+      //             | {A,B}    |
+      //                        | {A,B,C}  |
+      //                                   | {B,C}    |
+      //                                              | {C}      |
+
+      val json =
+        """[""" +
+          """{"value":["A"],"interval":{"start":[{"point":0}],"end":[{"point":4}]}},""" +
+          """{"value":["A","B"],"interval":{"start":[{"point":5}],"end":[{"point":9}]}},""" +
+          """{"value":["A","B","C"],"interval":{"start":[{"point":10}],"end":[{"point":20}]}},""" +
+          """{"value":["B","C"],"interval":{"start":[{"point":21}],"end":[{"point":25}]}},""" +
+          """{"value":["C"],"interval":{"start":[{"point":26}],"end":[{"point":30}]}}""" +
+          """]"""
+
+      isomorphicData[immutable.DataMulti.In1D[String, Int], ValidData.In1D[Set[String], Int]](
+        immutable.DataMulti.from(data),
+        json,
+        _.getAll
+      )
+      isomorphicData[mutable.DataMulti.In1D[String, Int], ValidData.In1D[Set[String], Int]](
+        mutable.DataMulti.from(data),
         json,
         _.getAll
       )

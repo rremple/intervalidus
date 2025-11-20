@@ -4,6 +4,7 @@ import com.rallyhealth.weejson.v1.jackson.{FromJson, ToJson}
 import com.rallyhealth.weepickle.v1.WeePickle.{From, To}
 import intervalidus.DiscreteValue.given
 import intervalidus.DomainLike.given
+import intervalidus.VariableBase.given
 import intervalidus.json.JsonTestBehavior
 import intervalidus.json.weepickle.Json.given
 import org.scalatest.funsuite.AnyFunSuite

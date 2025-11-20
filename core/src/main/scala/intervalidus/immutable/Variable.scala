@@ -9,16 +9,10 @@ import scala.language.implicitConversions
 /**
   * A value that varies in time.
   */
-object Variable:
-  /**
-    * @param initialValue
-    *   initial value of this variable
-    * @tparam T
-    *   the value type
-    * @return
-    *   a new variable
-    */
-  def apply[T](initialValue: T): Variable[T] = new Variable(Data.of(initialValue))
+object Variable extends VariableObjectBase:
+  override def apply[T](initialValue: T): Variable[T] = new Variable(Data.of(initialValue))
+
+  override def fromHistory[T](history: Iterable[ValidData[T, Instant1D]]): Variable[T] = new Variable(Data(history))
 
 /**
   * A value that varies in time.

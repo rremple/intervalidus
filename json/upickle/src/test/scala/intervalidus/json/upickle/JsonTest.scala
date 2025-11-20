@@ -4,6 +4,7 @@ import upickle.default.{Reader, Writer, write}
 import ujson.StringParser
 import intervalidus.DiscreteValue.given
 import intervalidus.DomainLike.given
+import intervalidus.VariableBase.given
 import intervalidus.json.JsonTestBehavior
 import intervalidus.json.upickle.Json.given
 import org.scalatest.funsuite.AnyFunSuite
