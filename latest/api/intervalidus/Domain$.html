@@ -87,6 +87,86 @@ node3 -> node2;
          <button class="icon-button show-content expand"></button>
          <h4 class="groupHeader h200">Types</h4>
         </div>
+        <div class="documentableElement" id="Appended-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">type </span></span><a href="Domain$.html#Appended-0" t="n" class="documentableName ">Appended</a>[<span t="k"></span><span data-unresolved-link="" t="t">D</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">NonEmptyTuple</span>, <span t="k"></span><span data-unresolved-link="" t="t">X</span>] = <span data-unresolved-link="" t="t">Append</span>[<span data-unresolved-link="" t="t">D</span>, <a href="Domain1D.html" t="t">Domain1D</a>[<span data-unresolved-link="" t="t">X</span>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>A multidimensional domain with an appended one-dimensional domain.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>A multidimensional domain with an appended one-dimensional domain.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               D
+              </dt>
+              <dd class="body-medium">
+               <p>a multidimensional domain</p>
+              </dd>
+              <dt class="body-small">
+               X
+              </dt>
+              <dd class="body-medium">
+               <p>appended domain value type</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="HasAtLeastTwoDimensions-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">type </span></span><a href="Domain$.html#HasAtLeastTwoDimensions-0" t="n" class="documentableName ">HasAtLeastTwoDimensions</a>[<span t="k"></span><span data-unresolved-link="" t="t">D</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">NonEmptyTuple</span>] = <span data-unresolved-link="" t="t">Tail</span>[<span data-unresolved-link="" t="t">D</span>] <span data-unresolved-link="" t="t">=:=</span> <a href="Domain$.html#NonEmptyTail-0" t="t">NonEmptyTail</a>[<span data-unresolved-link="" t="t">D</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Witnesses that a multidimensional domain type has a non-empty tail, i.e., it has two or more dimensions.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Witnesses that a multidimensional domain type has a non-empty tail, i.e., it has two or more dimensions.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               D
+              </dt>
+              <dd class="body-medium">
+               <p>a multidimensional domain</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="In1D-0">
          <div class="documentableElement-expander">
           <div class="header monospace mono-medium">
@@ -123,11 +203,327 @@ node3 -> node2;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="IsAtHead-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">type </span></span><a href="Domain$.html#IsAtHead-0" t="n" class="documentableName ">IsAtHead</a>[<span t="k"></span><span data-unresolved-link="" t="t">D</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">NonEmptyTuple</span>, <span t="k"></span><span data-unresolved-link="" t="t">H</span>] = <span data-unresolved-link="" t="t">Head</span>[<span data-unresolved-link="" t="t">D</span>] <span data-unresolved-link="" t="t">=:=</span> <a href="Domain1D.html" t="t">Domain1D</a>[<span data-unresolved-link="" t="t">H</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Witnesses that a multidimensional domain type contains a specific one-dimensional domain of the specified domain value type at the head.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Witnesses that a multidimensional domain type contains a specific one-dimensional domain of the specified domain value type at the head.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               D
+              </dt>
+              <dd class="body-medium">
+               <p>the original multidimensional domain</p>
+              </dd>
+              <dt class="body-small">
+               H
+              </dt>
+              <dd class="body-medium">
+               <p>head domain value type</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="IsAtIndex-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">type </span></span><a href="Domain$.html#IsAtIndex-0" t="n" class="documentableName ">IsAtIndex</a>[<span t="k"></span><span data-unresolved-link="" t="t">D</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">NonEmptyTuple</span>, <span t="k"></span><span data-unresolved-link="" t="t">I</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">Int</span><span t="k"> &amp; </span><span data-unresolved-link="" t="t">Singleton</span>, <span t="k"></span><span data-unresolved-link="" t="t">H</span>] = <span data-unresolved-link="" t="t">Elem</span>[<span data-unresolved-link="" t="t">D</span>, <span data-unresolved-link="" t="t">I</span>] <span data-unresolved-link="" t="t">=:=</span> <a href="Domain1D.html" t="t">Domain1D</a>[<span data-unresolved-link="" t="t">H</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Witnesses that a multidimensional domain type contains a specific one-dimensional domain of the specified domain value type at the specified index.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Witnesses that a multidimensional domain type contains a specific one-dimensional domain of the specified domain value type at the specified index.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               D
+              </dt>
+              <dd class="body-medium">
+               <p>the original multidimensional domain</p>
+              </dd>
+              <dt class="body-small">
+               H
+              </dt>
+              <dd class="body-medium">
+               <p>indexed domain value type</p>
+              </dd>
+              <dt class="body-small">
+               I
+              </dt>
+              <dd class="body-medium">
+               <p>index of a one-dimensional domain</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="IsDroppedInResult-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">type </span></span><a href="Domain$.html#IsDroppedInResult-0" t="n" class="documentableName ">IsDroppedInResult</a>[<span t="k"></span><span data-unresolved-link="" t="t">D</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">NonEmptyTuple</span>, <span t="k"></span><span data-unresolved-link="" t="t">I</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">Int</span><span t="k"> &amp; </span><span data-unresolved-link="" t="t">Singleton</span>, <span t="k"></span><span data-unresolved-link="" t="t">R</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">NonEmptyTuple</span>] = <span data-unresolved-link="" t="t">Concat</span>[<span data-unresolved-link="" t="t">Take</span>[<span data-unresolved-link="" t="t">D</span>, <span data-unresolved-link="" t="t">I</span>], <span data-unresolved-link="" t="t">Drop</span>[<span data-unresolved-link="" t="t">D</span>, <span data-unresolved-link="" t="t">S</span>[<span data-unresolved-link="" t="t">I</span>]]] <span data-unresolved-link="" t="t">=:=</span> <span data-unresolved-link="" t="t">R</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Witnesses that the specified result can be constructed by concatenating the elements before the deletion point and the elements after the deletion point.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Witnesses that the specified result can be constructed by concatenating the elements before the deletion point and the elements after the deletion point.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               D
+              </dt>
+              <dd class="body-medium">
+               <p>the original multidimensional domain</p>
+              </dd>
+              <dt class="body-small">
+               I
+              </dt>
+              <dd class="body-medium">
+               <p>index of the one-dimensional domain will be deleted</p>
+              </dd>
+              <dt class="body-small">
+               R
+              </dt>
+              <dd class="body-medium">
+               <p>the multidimensional domain result after deletion</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="IsInsertedInResult-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">type </span></span><a href="Domain$.html#IsInsertedInResult-0" t="n" class="documentableName ">IsInsertedInResult</a>[<span t="k"></span><span data-unresolved-link="" t="t">D</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">NonEmptyTuple</span>, <span t="k"></span><span data-unresolved-link="" t="t">I</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">Int</span><span t="k"> &amp; </span><span data-unresolved-link="" t="t">Singleton</span>, <span t="k"></span><span data-unresolved-link="" t="t">H</span>, <span t="k"></span><span data-unresolved-link="" t="t">R</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">NonEmptyTuple</span>] = <span data-unresolved-link="" t="t">Concat</span>[<span data-unresolved-link="" t="t">Take</span>[<span data-unresolved-link="" t="t">D</span>, <span data-unresolved-link="" t="t">I</span>], <a href="Domain1D.html" t="t">Domain1D</a>[<span data-unresolved-link="" t="t">H</span>] <span data-unresolved-link="" t="t">*:</span> <span data-unresolved-link="" t="t">Drop</span>[<span data-unresolved-link="" t="t">D</span>, <span data-unresolved-link="" t="t">I</span>]] <span data-unresolved-link="" t="t">=:=</span> <span data-unresolved-link="" t="t">R</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Witnesses that the specified result can be constructed by concatenating the elements before the insertion point, the provided one-dimensional domain of the specified domain value type, and the elements after the insertion point.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Witnesses that the specified result can be constructed by concatenating the elements before the insertion point, the provided one-dimensional domain of the specified domain value type, and the elements after the insertion point.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               D
+              </dt>
+              <dd class="body-medium">
+               <p>the original multidimensional domain</p>
+              </dd>
+              <dt class="body-small">
+               H
+              </dt>
+              <dd class="body-medium">
+               <p>indexed domain value type</p>
+              </dd>
+              <dt class="body-small">
+               I
+              </dt>
+              <dd class="body-medium">
+               <p>index after which the provided one-dimensional domain will be inserted</p>
+              </dd>
+              <dt class="body-small">
+               R
+              </dt>
+              <dd class="body-medium">
+               <p>the multidimensional domain result after insertion</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="IsReconstructible-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">type </span></span><a href="Domain$.html#IsReconstructible-0" t="n" class="documentableName ">IsReconstructible</a>[<span t="k"></span><span data-unresolved-link="" t="t">D</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">NonEmptyTuple</span>, <span t="k"></span><span data-unresolved-link="" t="t">I</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">Int</span><span t="k"> &amp; </span><span data-unresolved-link="" t="t">Singleton</span>, <span t="k"></span><span data-unresolved-link="" t="t">H</span>] = <span data-unresolved-link="" t="t">Concat</span>[<span data-unresolved-link="" t="t">Take</span>[<span data-unresolved-link="" t="t">D</span>, <span data-unresolved-link="" t="t">I</span>], <a href="Domain1D.html" t="t">Domain1D</a>[<span data-unresolved-link="" t="t">H</span>] <span data-unresolved-link="" t="t">*:</span> <span data-unresolved-link="" t="t">Drop</span>[<span data-unresolved-link="" t="t">D</span>, <span data-unresolved-link="" t="t">S</span>[<span data-unresolved-link="" t="t">I</span>]]] <span data-unresolved-link="" t="t">=:=</span> <span data-unresolved-link="" t="t">D</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Witnesses that a multidimensional domain type can be reconstructed by concatenating the elements before the indexed one-dimensional domain, the indexed one-dimensional domain itself of the specified domain value type, and the elements after the indexed one-dimensional domain.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Witnesses that a multidimensional domain type can be reconstructed by concatenating the elements before the indexed one-dimensional domain, the indexed one-dimensional domain itself of the specified domain value type, and the elements after the indexed one-dimensional domain.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               D
+              </dt>
+              <dd class="body-medium">
+               <p>the original multidimensional domain</p>
+              </dd>
+              <dt class="body-small">
+               H
+              </dt>
+              <dd class="body-medium">
+               <p>indexed domain value type</p>
+              </dd>
+              <dt class="body-small">
+               I
+              </dt>
+              <dd class="body-medium">
+               <p>index of a one-dimensional domain</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="IsReconstructibleFromHead-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">type </span></span><a href="Domain$.html#IsReconstructibleFromHead-0" t="n" class="documentableName ">IsReconstructibleFromHead</a>[<span t="k"></span><span data-unresolved-link="" t="t">D</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">NonEmptyTuple</span>, <span t="k"></span><span data-unresolved-link="" t="t">H</span>] = (<a href="Domain1D.html" t="t">Domain1D</a>[<span data-unresolved-link="" t="t">H</span>] <span data-unresolved-link="" t="t">*:</span> <span data-unresolved-link="" t="t">Tail</span>[<span data-unresolved-link="" t="t">D</span>]) <span data-unresolved-link="" t="t">=:=</span> <span data-unresolved-link="" t="t">D</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Witnesses that a multidimensional domain type can be reconstructed by concatenating the head one-dimensional domain of the specified domain value type and the multidimensional tail.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Witnesses that a multidimensional domain type can be reconstructed by concatenating the head one-dimensional domain of the specified domain value type and the multidimensional tail.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               D
+              </dt>
+              <dd class="body-medium">
+               <p>the original multidimensional domain</p>
+              </dd>
+              <dt class="body-small">
+               H
+              </dt>
+              <dd class="body-medium">
+               <p>head domain value type</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="NonEmptyTail-0">
          <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">type </span></span><a href="Domain$.html#NonEmptyTail-0" t="n" class="documentableName ">NonEmptyTail</a>[<span t="k"></span><span data-unresolved-link="" t="t">D</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">NonEmptyTuple</span>] = <span data-unresolved-link="" t="t">Tail</span>[<span data-unresolved-link="" t="t">D</span>]<span t="k"> &amp; </span><span data-unresolved-link="" t="t">NonEmptyTuple</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>NonEmptyTail[D] is only valid when a multidimensional domain type has a non-empty tail, i.e., it has two or more dimensions.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>NonEmptyTail[D] is only valid when a multidimensional domain type has a non-empty tail, i.e., it has two or more dimensions.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               D
+              </dt>
+              <dd class="body-medium">
+               <p>a multidimensional domain</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
            </div>
           </div>
          </div>
