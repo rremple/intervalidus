@@ -1,7 +1,6 @@
 package intervalidus
 
 import java.time.{LocalDate, LocalDateTime}
-import scala.language.implicitConversions
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 /**
@@ -63,7 +62,7 @@ sealed trait Domain1D[+D]:
     */
   def pointsTo[T >: D](
     end: Domain1D[T]
-  )(using domainValueType: DomainValueLike[T]): Iterable[Domain1D[T]] = domainValueType match
+  )(using domainValue: DomainValueLike[T]): Iterable[Domain1D[T]] = domainValue match
     case _: ContinuousValue[T] => Iterable.empty // undefined for continuous
     case discrete: DiscreteValue[T] =>
       def nearest(d: Domain1D[T]): Domain1D[T] = d match
@@ -90,7 +89,7 @@ sealed trait Domain1D[+D]:
     * @return
     *   left complement of this
     */
-  def leftAdjacent[T >: D](using domainValueType: DomainValueLike[T]): Domain1D[T] = domainValueType match
+  def leftAdjacent[T >: D](using domainValue: DomainValueLike[T]): Domain1D[T] = domainValue match
     case _: ContinuousValue[T] =>
       this match
         case Point(value)     => OpenPoint(value: T)
@@ -110,7 +109,7 @@ sealed trait Domain1D[+D]:
     * @return
     *   right complement of this
     */
-  def rightAdjacent[T >: D](using domainValueType: DomainValueLike[T]): Domain1D[T] = domainValueType match
+  def rightAdjacent[T >: D](using domainValue: DomainValueLike[T]): Domain1D[T] = domainValue match
     case _: ContinuousValue[T] => leftAdjacent // left and right are the same for continuous
     case discrete: DiscreteValue[T] =>
       this match
@@ -168,7 +167,7 @@ sealed trait Domain1D[+D]:
     *   a new two-dimensional domain tuple with this as the head (horizontal) dimension component and that as the second
     *   (vertical) dimension component.
     */
-  infix def x[T >: D: DomainValueLike, X: DomainValueLike](that: Domain1D[X]): Domain.In2D[T, X] = (this, that)
+  infix def x[X: DomainValueLike](that: Domain1D[X]): Domain.In2D[D, X] = (this, that)
 
   /**
     * Tests if this belongs to an interval. See [[https://en.wikipedia.org/wiki/Element_(mathematics)]].
@@ -185,6 +184,11 @@ sealed trait Domain1D[+D]:
    */
 
   /**
+    * Returns this specialized one-dimensional domain as a general domain tuple.
+    */
+  def tupled[T >: D: DomainValueLike]: Domain.In1D[T] = Domain.in1D[T](this)
+
+  /**
     * A special totally ordered hash of this domain used for mapping intervals to box search trees in double space. If
     * `x1 < x2` (based on default ordering), then `orderedHashOf(x1) ≤ orderedHashOf(x2)`.
     *
@@ -192,11 +196,11 @@ sealed trait Domain1D[+D]:
     *   having equal `orderedHashOf` results for different inputs is allowed, but represents a hash collision. If the
     *   `orderedHashOf` method has too many collisions, the performance of box search trees will suffer.
     */
-  def orderedHashFixed[T >: D](using domainValueType: DomainValueLike[T]): Double = this match
+  def orderedHashFixed[T >: D](using domainValue: DomainValueLike[T]): Double = this match
     case Point(p)     => p.orderedHashValue
     case OpenPoint(p) => p.orderedHashValue
-    case Top          => domainValueType.maxValue.orderedHashValue
-    case Bottom       => domainValueType.minValue.orderedHashValue
+    case Top          => domainValue.maxValue.orderedHashValue
+    case Bottom       => domainValue.minValue.orderedHashValue
 
   /**
     * Similar to [[orderedHashFixed]], this is a special totally ordered hash of this domain used for mapping intervals
@@ -337,7 +341,7 @@ object Domain1D:
     */
   def open[T](t: T)(using domainValue: DomainValueLike[T]): Domain1D[T] = domainValue match
     case _: ContinuousValue[T] => OpenPoint(t)
-    case _: DiscreteValue[T]   => throw new IllegalArgumentException("discrete domains can't have open points")
+    case _: DiscreteValue[T]   => throw IllegalArgumentException("discrete domains can't have open points")
 
   /**
     * This ordering sorts Bottoms and Tops correctly and leverages the domain value ordering for the data points in
@@ -406,7 +410,7 @@ object Domain1D:
   /**
     * Wrap 1D domain as a tuple so 1D doesn't have to be domain-like itself to be used as a domain
     */
-  given [T: DomainValueLike]: Conversion[Domain1D[T], Domain.In1D[T]] = Domain.in1D
+  given [T: DomainValueLike]: Conversion[Domain1D[T], Domain.In1D[T]] = _.tupled
 
   /**
     * Other conversions take domain values `T => Domain1D[T]` and `Domain1D[T] => Domain.In1D[T]` (which is
@@ -414,4 +418,4 @@ object Domain1D:
     * is available in a context requiring something that is [[DomainLike]]. So this converts strait from a domain value
     * `T` directly to a domain, i.e., `T => Domain.In1D[T]`
     */
-  given [T: DomainValueLike]: Conversion[T, Domain.In1D[T]] = Domain.in1D
+  given [T: DomainValueLike]: Conversion[T, Domain.In1D[T]] = t => domain(t).tupled

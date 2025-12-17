@@ -2,7 +2,6 @@ package intervalidus.collection.immutable
 
 import intervalidus.collection.MultiMapSortedLike
 
-import scala.collection.immutable
 import scala.collection.immutable.SortedSet
 
 /**

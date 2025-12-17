@@ -54,7 +54,11 @@ protected class Visualize2D[V, R1: DomainValueLike, R2: DomainValueLike](
 
   override protected def paintComponent(graphicsOld: Graphics): Unit =
     super.paintComponent(graphicsOld)
-    val graphics = graphicsOld.asInstanceOf[Graphics2D]
+    graphicsOld match
+      case graphics: Graphics2D => paintComponent2D(graphics)
+      case unexpected           => throw Exception(s"graphics type was $unexpected")
+
+  private def paintComponent2D(graphics: Graphics2D): Unit =
     val fontMetrics = graphics.getFontMetrics
 
     def centerString(string: String, rectangle: Rectangle2D.Double): Point2D.Double =

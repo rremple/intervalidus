@@ -7,8 +7,8 @@ package intervalidus.tinyrule
   */
 sealed trait Rule:
   def apply(f: Fact): Boolean
-  def and(that: Rule): AndRule = AndRule(this, that)
-  def or(that: Rule): OrRule = OrRule(this, that)
+  infix def and(that: Rule): AndRule = AndRule(this, that)
+  infix def or(that: Rule): OrRule = OrRule(this, that)
 object Rule:
   def not(that: Rule): NotRule = NotRule(that)
   def always: Rule = WildcardRule
@@ -67,13 +67,13 @@ enum MatchType:
     AttributeRule(this, Attribute(name, anyValue))
 
 extension (name: String)
-  def attributeEquals[T: AttributeValueLike](anyValue: T): AttributeRule[T] =
+  infix def attributeEquals[T: AttributeValueLike](anyValue: T): AttributeRule[T] =
     MatchType.Equals(name, anyValue)
-  def attributeGreaterThan[T: AttributeValueLike](anyValue: T): AttributeRule[T] =
+  infix def attributeGreaterThan[T: AttributeValueLike](anyValue: T): AttributeRule[T] =
     MatchType.GreaterThan(name, anyValue)
-  def attributeLessThan[T: AttributeValueLike](anyValue: T): AttributeRule[T] =
+  infix def attributeLessThan[T: AttributeValueLike](anyValue: T): AttributeRule[T] =
     MatchType.LessThan(name, anyValue)
-  def attributeContains[T: AttributeValueLike](anyValue: T): AttributeRule[T] =
+  infix def attributeContains[T: AttributeValueLike](anyValue: T): AttributeRule[T] =
     MatchType.Contains(name, anyValue)
 
 /**

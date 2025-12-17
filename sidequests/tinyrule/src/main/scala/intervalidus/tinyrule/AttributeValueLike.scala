@@ -63,9 +63,9 @@ object AttributeValueLike:
 
   given AttributeValueLike[LocalDate] with
     private val valueMatch: Matches[LocalDate] =
-      case (thatValue, Equals, thisValue)      => thatValue isEqual thisValue
-      case (thatValue, GreaterThan, thisValue) => thatValue isAfter thisValue
-      case (thatValue, LessThan, thisValue)    => thatValue isBefore thisValue
+      case (thatValue, Equals, thisValue)      => thatValue.isEqual(thisValue)
+      case (thatValue, GreaterThan, thisValue) => thatValue.isAfter(thisValue)
+      case (thatValue, LessThan, thisValue)    => thatValue.isBefore(thisValue)
 
     inline def matches(
       matchType: MatchType,

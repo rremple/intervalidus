@@ -9,7 +9,7 @@ class CurrentDateTimeTest extends AnyFunSuite:
   test("Default"):
     val nowBase = LocalDateTime.now()
     val nowSim = summon[CurrentDateTime].now()
-    assert(nowBase == nowSim || (nowBase isBefore nowSim))
+    assert(nowBase == nowSim || nowBase.isBefore(nowSim))
 
   test("Non-default"):
     val simDate = LocalDateTime.of(2025, 8, 1, 8, 25)

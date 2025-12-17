@@ -17,7 +17,6 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
   import Domain1D.{Bottom, Point, Top}
   import Interval1D.*
   import DomainLike.given
-  import Domain1D.*
 
   type Dim2Domain = Domain.In2D[Int, Int]
   type Dim3Domain = Domain.In3D[Int, Int, Int]

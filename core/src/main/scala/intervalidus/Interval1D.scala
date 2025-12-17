@@ -31,7 +31,7 @@ case class Interval1D[T](
    * General IntervalLike behaviors/definitions
    */
 
-  override infix def withValue[V](value: V): ValidData.In1D[V, T] = ValidData(value, Interval.in1D(this))
+  override infix def withValue[V](value: V): ValidData.In1D[V, T] = ValidData(value, this.tupled)
 
   override def points: Iterable[Domain1D[T]] = start.pointsTo(end)
 
@@ -153,6 +153,11 @@ case class Interval1D[T](
     */
   infix def x[X: DomainValueLike](that: Interval1D[X]): Interval.In2D[T, X] =
     Interval((this.start, that.start), (this.end, that.end))
+
+  /**
+    * Returns this specialized one-dimensional interval as a general interval based on domain tuples.
+    */
+  def tupled: Interval.In1D[T] = Interval.in1D(this)
 
   /**
     * Used internally when formatting a single interval for the Data.toString grid.
@@ -372,10 +377,10 @@ object Interval1D:
   /**
     * Intervals are ordered by start
     */
-  given [T: DomainValueLike](using domainOrder: Ordering[Domain1D[T]]): Ordering[Interval1D[T]] with
+  given [T](using domainOrder: Ordering[Domain1D[T]]): Ordering[Interval1D[T]] with
     override def compare(x: Interval1D[T], y: Interval1D[T]): Int = domainOrder.compare(x.start, y.start)
 
   /**
     * So a fixed one-dimensional interval can be used when the general notion of a multidimensional interval is needed.
     */
-  given [T: DomainValueLike]: Conversion[Interval1D[T], Interval.In1D[T]] = Interval.in1D
+  given [T: DomainValueLike]: Conversion[Interval1D[T], Interval.In1D[T]] = _.tupled

@@ -6,7 +6,6 @@ import intervalidus.Interval1D.*
 import intervalidus.tinyrule.*
 
 import java.time.LocalDate
-import java.util.UUID
 import scala.language.implicitConversions
 
 object FactsIn1D:

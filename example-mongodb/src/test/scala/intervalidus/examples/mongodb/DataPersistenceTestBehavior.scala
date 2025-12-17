@@ -34,7 +34,7 @@ trait DataPersistenceTestBehavior[W[_], R[_]](using
   W[BsonValue],
   W[BsonDocument],
   W[Iterable[BsonDocument]],
-  W[Domain.In1D[Int]],
+  W[In1D[Int]],
   W[ValidWord],
   W[WordIn1D],
   W[LevelWord],
@@ -44,7 +44,7 @@ trait DataPersistenceTestBehavior[W[_], R[_]](using
   R[WordIn1D],
   R[LevelWord]
 ) extends MongoDBContainerLike:
-  this: AnyFunSuite with Matchers =>
+  this: AnyFunSuite & Matchers =>
 
   protected def transform[T, S](t: T)(using W[T], R[S]): S
 

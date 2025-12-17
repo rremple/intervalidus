@@ -4,6 +4,8 @@ import upickle.core.{ArrVisitor, NoOpVisitor, ObjVisitor, StringVisitor, Visitor
 import upickle.default.Reader
 import intervalidus.json.{FilterPath, FilteredFoldingVisitorObjectLike, PathComponent}
 
+import scala.language.adhocExtensions
+
 /**
   * Sometimes you only want to process a slice of a very large JSON. Or maybe you want to process a small slice of a
   * giant array, but without mapping the whole thing into memory at once. This special visitor allows you to filter out
@@ -27,7 +29,7 @@ class FilteredFoldingVisitor[A, B] private (
       // subVisitor is called after visitKeyValue, so key should always be defined at this point
       override def path: List[PathComponent] = key.map(PathComponent.toObject) ++: parentPath.path
 
-      override def visitKey(index: Int): Visitor[_, _] = StringVisitor
+      override def visitKey(index: Int): Visitor[?, ?] = StringVisitor
 
       override def visitKeyValue(s: Any): Unit =
         key = Some(s.toString)

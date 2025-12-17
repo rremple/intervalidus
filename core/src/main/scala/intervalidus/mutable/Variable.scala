@@ -4,8 +4,6 @@ import intervalidus.*
 import intervalidus.Interval1D.{intervalFrom, unbounded}
 import intervalidus.VariableBase.{Instant1D, given}
 
-import scala.language.implicitConversions
-
 /**
   * A value that varies in time.
   */

@@ -53,7 +53,7 @@ case class Boundary private (box: Box, capacity: Capacity):
     * @return
     *   true or false
     */
-  def contains(otherBox: Box): Boolean =
+  infix def contains(otherBox: Box): Boolean =
     (capacity contains otherBox) && (box contains otherBox)
 
   /**

@@ -44,7 +44,7 @@ case class Capacity(minPoint: CoordinateFixed, maxPoint: CoordinateFixed):
     * @return
     *   true or false
     */
-  def contains(box: Box): Boolean =
+  infix def contains(box: Box): Boolean =
     contains(box.fixUnbounded(this))
 
   /**

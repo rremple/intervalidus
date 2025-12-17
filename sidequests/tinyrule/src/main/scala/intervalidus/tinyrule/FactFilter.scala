@@ -8,11 +8,11 @@ sealed trait FactFilter:
   def apply(facts: Set[Fact]): Set[Fact]
 
   def excluding(factIds: String*): ExcludeFilter = ExcludeFilter(this, factIds.toSet)
-  def and(that: FactFilter): AndFilter = AndFilter(List(this, that))
+  infix def and(that: FactFilter): AndFilter = AndFilter(List(this, that))
 
-  def or(that: FactFilter): OrFilter = OrFilter(List(this, that), FactMergeStyle.KeepingAll)
-  def orWhenAbsent(that: FactFilter): OrFilter = OrFilter(List(this, that), FactMergeStyle.WhenAbsent)
-  def orAsReplacement(that: FactFilter): OrFilter = OrFilter(List(this, that), FactMergeStyle.AsReplacement)
+  infix def or(that: FactFilter): OrFilter = OrFilter(List(this, that), FactMergeStyle.KeepingAll)
+  infix def orWhenAbsent(that: FactFilter): OrFilter = OrFilter(List(this, that), FactMergeStyle.WhenAbsent)
+  infix def orAsReplacement(that: FactFilter): OrFilter = OrFilter(List(this, that), FactMergeStyle.AsReplacement)
 
 object FactFilter:
   extension (r: Rule)

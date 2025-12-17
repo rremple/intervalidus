@@ -4,6 +4,8 @@ import com.rallyhealth.weepickle.v1.core.{ArrVisitor, NoOpVisitor, ObjVisitor, S
 import com.rallyhealth.weepickle.v1.WeePickle.To
 import intervalidus.json.{FilterPath, FilteredFoldingVisitorObjectLike, PathComponent}
 
+import scala.language.adhocExtensions
+
 /**
   * Sometimes you only want to process a slice of a very large JSON. Or maybe you want to process a small slice of a
   * giant array, but without mapping the whole thing into memory at once. This special visitor allows you to filter out
@@ -27,7 +29,7 @@ class FilteredFoldingVisitor[A, B] private (
       // subVisitor is called after visitKeyValue, so key should always be defined at this point
       override def path: List[PathComponent] = key.map(PathComponent.toObject) ++: parentPath.path
 
-      override def visitKey(): Visitor[_, _] = StringVisitor
+      override def visitKey(): Visitor[?, ?] = StringVisitor
 
       override def visitKeyValue(s: Any): Unit =
         key = Some(s.toString)

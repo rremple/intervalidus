@@ -1,14 +1,10 @@
 package intervalidus
 
 import intervalidus.DiscreteValue.IntDiscreteValue
-import intervalidus.Domain.NonEmptyTail
 import intervalidus.mutable.Data as MutableData
 
 import java.time.LocalDateTime
-import scala.Tuple.{Concat, Drop, Elem, Head, Tail, Take}
 import scala.collection.mutable
-import scala.compiletime.ops.int.S
-import scala.language.implicitConversions
 
 /**
   * Common definitions used in all versioned dimensional data (with a hidden version dimension).
@@ -42,6 +38,8 @@ object DimensionalVersionedBase:
 
   // Special version at which we place (or delete) unapproved stuff (fixed)
   val unapprovedStartVersion: VersionDomainValue = IntDiscreteValue.maxValue
+  val unapprovedStartVersionDomain: VersionDomain = Domain1D.domain(unapprovedStartVersion)
+  val approvedEndVersionDomain: VersionDomain = unapprovedStartVersionDomain.leftAdjacent
 
   /**
     * Context parameter for selecting the version interval on which to operate in selection and mutation. Typically,
@@ -369,7 +367,7 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
           case (k, Some(left), None)  => k -> left
           case (k, None, Some(right)) => k -> right
           case (k, Some((leftTimestamp, leftComment)), Some((rightTimestamp, rightComment))) =>
-            val laterTimestamp = if leftTimestamp isAfter rightTimestamp then leftTimestamp else rightTimestamp
+            val laterTimestamp = if leftTimestamp.isAfter(rightTimestamp) then leftTimestamp else rightTimestamp
             val combinedComment = if leftComment == rightComment then leftComment else s"$leftComment & $rightComment"
             k -> (laterTimestamp, combinedComment)
     )
@@ -425,12 +423,12 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
 
   // special handling of versioned data because the public head is in dimension two.
   protected def getByHeadDimensionData[H: DomainValueLike](domain: Domain1D[H])(using
-    Head[D] =:= Domain1D[H],
-    Tail[D] =:= NonEmptyTail[D],
-    Domain1D[H] *: Tuple.Tail[D] =:= D,
-    DomainLike[NonEmptyTail[D]],
-    DomainLike[Versioned[NonEmptyTail[D]]]
-  ): Iterable[ValidData[V, Versioned[NonEmptyTail[D]]]] =
+    Domain.IsAtHead[D, H],
+    Domain.HasAtLeastTwoDimensions[D],
+    Domain.IsReconstructibleFromHead[D, H],
+    DomainLike[Domain.NonEmptyTail[D]],
+    DomainLike[Versioned[Domain.NonEmptyTail[D]]]
+  ): Iterable[ValidData[V, Versioned[Domain.NonEmptyTail[D]]]] =
     val filteredUnderlyingData = domain match
       case Domain1D.Top | Domain1D.Bottom =>
         underlying.getAll.filter(_.interval.tailInterval.headInterval1D[H] contains domain)
@@ -442,12 +440,12 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
 
   // special handling of versioned data because the public dimension n is in dimension n + 1.
   protected def getByDimensionData[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
-    dimensionIndex: Int,
+    dimensionIndex: Int & Singleton,
     domain: Domain1D[H]
   )(using
-    Elem[D, dimensionIndex.type] =:= Domain1D[H],
-    Concat[Take[D, dimensionIndex.type], Domain1D[H] *: Drop[D, S[dimensionIndex.type]]] =:= D,
-    Concat[Take[D, dimensionIndex.type], Drop[D, S[dimensionIndex.type]]] =:= R,
+    Domain.IsAtIndex[D, dimensionIndex.type, H],
+    Domain.IsReconstructible[D, dimensionIndex.type, H],
+    Domain.IsDroppedInResult[D, dimensionIndex.type, R],
     DomainLike[Versioned[R]]
   ): Iterable[ValidData[V, Versioned[R]]] =
     val filteredUnderlyingData = domain match
@@ -518,9 +516,9 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
       * Returns the boundary of this version selection as a domain element
       */
     protected def boundary: VersionDomain = versionSelection match
-      case VersionSelection.Current           => getCurrentVersion
-      case VersionSelection.Unapproved        => unapprovedStartVersion
-      case VersionSelection.Specific(version) => version
+      case VersionSelection.Current           => Domain1D.domain(getCurrentVersion)
+      case VersionSelection.Unapproved        => Domain1D.domain(unapprovedStartVersion)
+      case VersionSelection.Specific(version) => Domain1D.domain(version)
 
     /**
       * Returns the interval to the boundary of this version selection
@@ -766,7 +764,7 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
   /**
     * Project as data in n-1 dimensions based on a lookup in the head dimension -- version information is preserved.
     *
-    * (Equivalent to `getByDimension[H, NonEmptyTail[D]](0, domain)`, though the type checking is simpler)
+    * (Equivalent to `getByDimension[H, Domain.NonEmptyTail[D]](0, domain)`, though the type checking is simpler)
     *
     * @tparam H
     *   the domain value type of the 1D domain used for filtering. There are type safety checks that ensure
@@ -780,12 +778,12 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     *   a lower-dimensional (n-1) projection
     */
   def getByHeadDimension[H: DomainValueLike](domain: Domain1D[H])(using
-    Head[D] =:= Domain1D[H],
-    Tail[D] =:= NonEmptyTail[D],
-    Domain1D[H] *: Tuple.Tail[D] =:= D,
-    DomainLike[NonEmptyTail[D]],
-    DomainLike[Versioned[NonEmptyTail[D]]]
-  ): DimensionalVersionedBase[V, NonEmptyTail[D]]
+    Domain.IsAtHead[D, H],
+    Domain.HasAtLeastTwoDimensions[D],
+    Domain.IsReconstructibleFromHead[D, H],
+    DomainLike[Domain.NonEmptyTail[D]],
+    DomainLike[Versioned[Domain.NonEmptyTail[D]]]
+  ): DimensionalVersionedBase[V, Domain.NonEmptyTail[D]]
 
   /**
     * Project as data in n-1 dimensions based on a lookup in the specified dimension -- version information is
@@ -808,12 +806,12 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     *   a lower-dimensional (n-1) projection
     */
   def getByDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
-    dimensionIndex: Int,
+    dimensionIndex: Int & Singleton,
     domain: Domain1D[H]
   )(using
-    Elem[D, dimensionIndex.type] =:= Domain1D[H],
-    Concat[Take[D, dimensionIndex.type], Domain1D[H] *: Drop[D, S[dimensionIndex.type]]] =:= D,
-    Concat[Take[D, dimensionIndex.type], Drop[D, S[dimensionIndex.type]]] =:= R,
+    Domain.IsAtIndex[D, dimensionIndex.type, H],
+    Domain.IsReconstructible[D, dimensionIndex.type, H],
+    Domain.IsDroppedInResult[D, dimensionIndex.type, R],
     DomainLike[Versioned[R]]
   ): DimensionalVersionedBase[V, R]
 

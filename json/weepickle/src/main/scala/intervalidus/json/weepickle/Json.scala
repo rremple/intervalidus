@@ -5,8 +5,6 @@ import com.rallyhealth.weepickle.v1.WeePickle.{From, FromTo, To}
 import intervalidus.*
 import intervalidus.DimensionalVersionedBase.{VersionDomainValue, VersionMetadata, Versioned}
 
-import scala.language.implicitConversions
-
 object Json:
   private val asValue: FromTo[Value] = summon
   private val asValueObj: FromTo[Obj] = summon
@@ -32,7 +30,7 @@ object Json:
         case Str("Bottom")                    => Domain1D.Bottom
         case Obj(p) if p.isDefinedAt("point") => Domain1D.Point(p("point").as[T])
         case Obj(p) if p.isDefinedAt("open")  => Domain1D.OpenPoint(p("open").as[T])
-        case unexpected => throw new Exception(s"Expected Str (Top/Bottom) or Obj (point/open) but got $unexpected")
+        case unexpected => throw Exception(s"Expected Str (Top/Bottom) or Obj (point/open) but got $unexpected")
       }
     )
 

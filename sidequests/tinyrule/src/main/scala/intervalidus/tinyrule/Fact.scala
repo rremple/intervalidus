@@ -93,16 +93,16 @@ case class Fact(id: String, attributes: Set[Attribute[?]]):
     def setAsSet(name: String, values: Set[Any]): Set[Any] =
       values // no checks needed
     def setAsOption(name: String, values: Set[Any]): Option[Any] =
-      if values.size > 1 then throw new Exception(s"Multiple attributes for $name")
+      if values.size > 1 then throw Exception(s"Multiple attributes for $name")
       else values.headOption
     def setAsSingleValue(name: String, values: Set[Any]): Any =
-      setAsOption(name, values).getOrElse(throw new Exception(s"No attribute for $name"))
+      setAsOption(name, values).getOrElse(throw Exception(s"No attribute for $name"))
 
     inline erasedValue[T] match
       case _: EmptyTuple        => Nil
       case _: (Set[?] *: ts)    => setAsSet :: attributeValuesToElementValues[ts]
       case _: (Option[?] *: ts) => setAsOption :: attributeValuesToElementValues[ts]
-      case _: (_ *: ts)         => setAsSingleValue :: attributeValuesToElementValues[ts]
+      case _: (? *: ts)         => setAsSingleValue :: attributeValuesToElementValues[ts]
 
   /**
     * Convert this fact to a case class where the case class element names align with the fact attribute names. If there
@@ -138,7 +138,7 @@ case class Fact(id: String, attributes: Set[Attribute[?]]):
         val attributeValues = attributeValuesByName.getOrElse(label, Set.empty)
         val elementValue = fromAttributeValues.head.apply(label, attributeValues)
         elementValue *: elementsFromAttributes(labelsTail, fromAttributeValues.tail)
-      case other => throw new Exception(s"Unexpected case: $other")
+      case other => throw Exception(s"Unexpected case: $other")
 
     val productElemLabels = constValueTuple[mirror.MirroredElemLabels]
     val productElemValuesFromAttributeValues = attributeValuesToElementValues[mirror.MirroredElemTypes]

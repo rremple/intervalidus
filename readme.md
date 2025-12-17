@@ -434,7 +434,8 @@ Discrete and continuous domain values have different notions of adjacency.
 
 - Two elements of a domain over a set of continuous values are adjacent only if the two elements have the same value and
   one is open and the other is closed. For example, in a domain over continuous doubles, `domain(1.0)` is adjacent to
-  `open(1.0)` because there are no domain elements between them. The general notions of `leftAdjacent` (i.e., before)
+  `open(1.0)` because they share the same value `1.0` where one is closed and the other is open. The general notions of
+  `leftAdjacent` (i.e., before)
   and `rightAdjacent` (i.e., after) yield the same result for a point: open if closed, and closed if open.
 
 A discrete value is a [type class](https://docs.scala-lang.org/scala3/book/ca-type-classes.html),
@@ -624,7 +625,7 @@ structures internally for managing state, two of which are custom (in the `colle
   retrieval by interval. Box search trees manage "boxed" data in multidimensional double space. Unlike classic
   spacial search trees (used in collision detection and the like), these data structures manage "boxes" rather than
   individual points. Boxes are split and stored in all applicable subtrees (hyperoctants) of the data structure as 
-  subtrees are split. Intervalildus uses the ordered hashes defined on domain components of intervals to approximate all
+  subtrees are split. Intervalildus uses the ordered hashes of interval boundaries to approximate all
   domain intervals as boxes in double space, and then manages valid data associated with these boxes in the box
   search tree. This not only results in dramatically faster retrieval (e.g., `getAt` and `getIntersecting`), since many
   mutation operations use intersection retrieval in their own logic, they are made dramatically faster as well. Only the

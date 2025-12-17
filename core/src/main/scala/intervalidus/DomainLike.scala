@@ -2,7 +2,6 @@ package intervalidus
 
 import intervalidus.collection.{Coordinate, CoordinateFixed}
 
-import scala.Tuple.{Append, Concat, Drop, Elem, Take}
 import scala.compiletime.ops.int.S
 
 /**
@@ -134,7 +133,7 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
     /**
       * Appends that domain to this one.
       */
-    infix def x[X: DomainValueLike](that: Domain1D[X]): Append[D, Domain1D[X]] = domain :* that
+    infix def x[X: DomainValueLike](that: Domain1D[X]): Domain.Appended[D, X] = domain :* that
 
     /**
       * Tests if this belongs to an interval. See [[https://en.wikipedia.org/wiki/Element_(mathematics)]].
@@ -179,7 +178,7 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
     infix def withHead[X: DomainValueLike](that: Domain1D[X]): Domain1D[X] *: D = that *: domain
 
     // to equate type-level integer successor with the incremented value of an integer
-    private def s(arg: Int): S[arg.type] = (arg + 1).asInstanceOf[S[arg.type]]
+    private def s(arg: Int & Singleton): S[arg.type] = (arg + 1).asInstanceOf[S[arg.type]]
 
     /**
       * Extract a lower-dimensional domain by dropping a dimension.
@@ -192,8 +191,8 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
       * @return
       *   a new lower-dimensional domain
       */
-    def dropDimension[R <: NonEmptyTuple: DomainLike](dimensionIndex: Int)(using
-      Concat[Take[D, dimensionIndex.type], Drop[D, S[dimensionIndex.type]]] =:= R
+    def dropDimension[R <: NonEmptyTuple: DomainLike](dimensionIndex: Int & Singleton)(using
+      Domain.IsDroppedInResult[D, dimensionIndex.type, R]
     ): R = domain.take(dimensionIndex) ++ domain.drop(s(dimensionIndex))
 
     /**
@@ -213,10 +212,10 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
       *   a new higher-dimensional domain
       */
     def insertDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
-      dimensionIndex: Int,
+      dimensionIndex: Int & Singleton,
       domain1D: Domain1D[H]
     )(using
-      Concat[Take[D, dimensionIndex.type], Domain1D[H] *: Drop[D, dimensionIndex.type]] =:= R
+      Domain.IsInsertedInResult[D, dimensionIndex.type, H, R]
     ): R = domain.take(dimensionIndex) ++ (domain1D *: domain.drop(dimensionIndex))
 
     /**
@@ -235,11 +234,11 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
       *   a new domain of the same dimension with the update applied
       */
     def updateDimension[H: DomainValueLike](
-      dimensionIndex: Int,
+      dimensionIndex: Int & Singleton,
       updated: Domain1D[H]
     )(using
-      Elem[D, dimensionIndex.type] =:= Domain1D[H],
-      Concat[Take[D, dimensionIndex.type], Domain1D[H] *: Drop[D, S[dimensionIndex.type]]] =:= D
+      Domain.IsAtIndex[D, dimensionIndex.type, H],
+      Domain.IsReconstructible[D, dimensionIndex.type, H]
     ): D = domain.take(dimensionIndex) ++ (updated *: domain.drop(s(dimensionIndex)))
 
     /*
@@ -413,4 +412,4 @@ object DomainLike:
   given domainOrdering[D <: NonEmptyTuple](using domainLike: DomainLike[D]): Ordering[D] with
     override def compare(x: D, y: D): Int = domainLike.compareDomains(x, y)
 
-  given [D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D]): DomainLike[D] = DomainLike[D]
+  given [D <: NonEmptyTuple: DomainLikeTupleOps]: DomainLike[D] = DomainLike[D]

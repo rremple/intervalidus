@@ -77,11 +77,11 @@ object BenchBruteForce extends BenchBase(baselineFeature = None, featuredFeature
         val startOffset = if rand.nextBoolean() then 0 else rand.nextInt(size)
         val endOffset = if rand.nextBoolean() then 0 else rand.nextInt(size - startOffset)
         Interval1D.interval(start + startOffset, end + endOffset)
-      case whoops => throw new Exception(s"why not a point? $whoops")
+      case whoops => throw Exception(s"why not a point? $whoops")
 
 //  private def removeIntervals1D(dataIntervals: Vector[Interval.In1D[Int]]): Vector[Interval.In1D[Int]] =
 //    dataIntervals.map: i =>
-//      Interval.in1D(randSubinterval(i.headInterval1D))
+//      randSubinterval(i.headInterval1D.tupled)
 
   private def removeIntervals2D(
     dataIntervals: Vector[Interval.In2D[Int, Int]]

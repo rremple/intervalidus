@@ -31,7 +31,7 @@ trait FilteredFoldingVisitorTestBehavior[W[_], R[_]](using
   R[List[OfficeOpen]],
   R[String]
 ) extends FilteredFoldingTestData:
-  this: AnyFunSuite with Matchers =>
+  this: AnyFunSuite & Matchers =>
 
   protected def filteredFoldingVisitor[A: R, B](filterPath: FilterPath, zero: B)(op: (B, A) => B): R[B]
 

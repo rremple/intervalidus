@@ -57,7 +57,7 @@ case class ValidData[V, D <: NonEmptyTuple](
   def withValueKey: (V, ValidData[V, D]) = value -> this
 
   override def apply(domainIndex: D): V =
-    if isDefinedAt(domainIndex) then value else throw new Exception(s"Not defined at $domainIndex")
+    if isDefinedAt(domainIndex) then value else throw Exception(s"Not defined at $domainIndex")
 
   override def isDefinedAt(domainIndex: D): Boolean = domainIndex ∈ interval
 
@@ -79,9 +79,6 @@ object ValidData:
   /**
     * Valid data are ordered using interval start ordering
     */
-  given [
-    V,
-    D <: NonEmptyTuple: DomainLike
-  ](using intervalOrder: Ordering[Interval[D]]): Ordering[ValidData[V, D]] with
+  given [V, D <: NonEmptyTuple](using intervalOrder: Ordering[Interval[D]]): Ordering[ValidData[V, D]] with
     override def compare(x: ValidData[V, D], y: ValidData[V, D]): Int =
       intervalOrder.compare(x.interval, y.interval)

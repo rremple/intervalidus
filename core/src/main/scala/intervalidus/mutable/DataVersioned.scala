@@ -3,12 +3,8 @@ package intervalidus.mutable
 import intervalidus.*
 import intervalidus.DimensionalVersionedBase.*
 import intervalidus.DiscreteValue.IntDiscreteValue
-import intervalidus.Domain.NonEmptyTail
 
-import scala.Tuple.{Concat, Drop, Elem, Head, Tail, Take}
 import scala.collection.mutable
-import scala.compiletime.ops.int.S
-import scala.language.implicitConversions
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 /** $objectDesc */
@@ -40,7 +36,7 @@ object DataVersioned extends DimensionalVersionedBaseObject:
     initialVersion: VersionDomainValue = 0,
     initialComment: String = "init"
   )(using Experimental, DomainLike[Versioned[D]], CurrentDateTime): DataVersioned[V, D] = DataVersioned[V, D](
-    initialData.map(d => (d.interval withHead Interval1D.intervalFrom(initialVersion)) -> d.value),
+    initialData.map(d => (d.interval withHead Interval1D.intervalFrom(Domain1D.domain(initialVersion))) -> d.value),
     initialVersion,
     mutable.Map(initialVersion -> (summon[CurrentDateTime].now(), initialComment))
   )
@@ -124,12 +120,12 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     )
 
   override def getByHeadDimension[H: DomainValueLike](domain: Domain1D[H])(using
-    Head[D] =:= Domain1D[H],
-    Tail[D] =:= NonEmptyTail[D],
-    Domain1D[H] *: Tuple.Tail[D] =:= D,
-    DomainLike[NonEmptyTail[D]],
-    DomainLike[Versioned[NonEmptyTail[D]]]
-  ): DataVersioned[V, NonEmptyTail[D]] =
+    Domain.IsAtHead[D, H],
+    Domain.HasAtLeastTwoDimensions[D],
+    Domain.IsReconstructibleFromHead[D, H],
+    DomainLike[Domain.NonEmptyTail[D]],
+    DomainLike[Versioned[Domain.NonEmptyTail[D]]]
+  ): DataVersioned[V, Domain.NonEmptyTail[D]] =
     val result = DataVersioned(
       getByHeadDimensionData(domain),
       initialVersion,
@@ -140,12 +136,12 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     result
 
   override def getByDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
-    dimensionIndex: VersionDomainValue,
+    dimensionIndex: Int & Singleton,
     domain: Domain1D[H]
   )(using
-    Elem[D, dimensionIndex.type] =:= Domain1D[H],
-    Concat[Take[D, dimensionIndex.type], Domain1D[H] *: Drop[D, S[dimensionIndex.type]]] =:= D,
-    Concat[Take[D, dimensionIndex.type], Drop[D, S[dimensionIndex.type]]] =:= R,
+    Domain.IsAtIndex[D, dimensionIndex.type, H],
+    Domain.IsReconstructible[D, dimensionIndex.type, H],
+    Domain.IsDroppedInResult[D, dimensionIndex.type, R],
     DomainLike[Versioned[R]]
   ): DataVersioned[V, R] =
     val result = DataVersioned(
@@ -411,7 +407,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     */
   def collapseVersionHistory(using versionSelection: VersionSelection): Unit = synchronized:
     filter(versionInterval(_) contains versionSelection.boundary)
-    map(d => withVersionUpdate(d, _ => Interval1D.intervalFrom(initialVersion)))
+    map(d => withVersionUpdate(d, _ => Interval1D.intervalFrom(Domain1D.domain(initialVersion))))
     compressAll()
     setCurrentVersion(initialVersion)
 
@@ -426,12 +422,12 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   def approve(data: ValidData[V, D]): Boolean = synchronized:
     val allUnapproved = underlying
       .getIntersecting(underlyingIntervalWithVersion(data.interval, VersionSelection.Unapproved.intervalFrom))
-      .filter(versionInterval(_).start equiv unapprovedStartVersion) // only unapproved
+      .filter(versionInterval(_).start equiv unapprovedStartVersionDomain) // only unapproved
     allUnapproved.headOption match
       case Some(d) if publicValidData(d) == data =>
         set(data)(using VersionSelection.Current)
         true
-      case other =>
+      case _ =>
         false
 
   /**
@@ -443,12 +439,12 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   def approveAll(interval: Interval[D]): Unit = synchronized:
     underlying
       .getIntersecting(underlyingIntervalWithVersion(interval, VersionSelection.Unapproved.intervalFrom))
-      .filter(versionInterval(_).start equiv unapprovedStartVersion) // only unapproved
+      .filter(versionInterval(_).start equiv unapprovedStartVersionDomain) // only unapproved
       .map(publicValidData)
       .foreach(approve)
     underlying
       .getIntersecting(underlyingIntervalWithVersion(interval, VersionSelection.Current.intervalFrom))
-      .filter(versionInterval(_).end equiv unapprovedStartVersion - 1) // only related to unapproved removes
+      .filter(versionInterval(_).end equiv approvedEndVersionDomain) // only related to unapproved removes
       .flatMap(publicValidData(_).interval ∩ interval)
       .foreach(remove(_)(using VersionSelection.Current))
 

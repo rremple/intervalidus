@@ -9,7 +9,7 @@ class CurrentInstantTest extends AnyFunSuite:
   test("Default"):
     val nowBase = Instant.now()
     val nowSim = summon[CurrentInstant].now()
-    assert(nowBase == nowSim || (nowBase isBefore nowSim))
+    assert(nowBase == nowSim || nowBase.isBefore(nowSim))
 
   test("Non-default"):
     val simDate = LocalDateTime.of(2025, 11, 18, 12, 15).toInstant(ZoneOffset.UTC)

@@ -1,7 +1,8 @@
 package intervalidus
 
+import intervalidus.Domain1D.{Top, Point, domain}
+
 import java.time.{Duration, Instant}
-import scala.language.implicitConversions
 
 object VariableBase:
   type Instant1D = Domain.In1D[Instant]
@@ -76,24 +77,24 @@ trait VariableBase[T] extends (Instant1D => T):
   private val fixedNanoBump = 10
 
   // gives a unique instant with respect to the last update
-  protected def withUniqueTime[U](using time: CurrentInstant)(f: Instant => U): U =
+  protected def withUniqueTime[U](using time: CurrentInstant)(f: Domain1D[Instant] => U): U =
     val now = time.now()
     lastChange match
       // conflict -- rare, but could happen when calling in rapid succession or when using CurrentInstant.simulated
-      case Some(prior) if prior equals now =>
+      case Some(prior) if prior.equals(now) =>
         Thread.sleep(0, fixedNanoBump)
-        f(now.plusNanos(fixedNanoBump))
+        f(domain(now.plusNanos(fixedNanoBump)))
       // conflict, out of order -- super-rare, but could happen when using CurrentInstant.simulated
-      case Some(prior) if prior isAfter now =>
+      case Some(prior) if prior.isAfter(now) =>
         val fullNanoBump = Duration.between(now, prior).toNanos + fixedNanoBump
         val milliBump = fullNanoBump / 1_000_000
         val nanoBump = fullNanoBump % 1_000_000
         Thread.sleep(milliBump, nanoBump.toInt)
-        f(now.plusNanos(fullNanoBump))
+        f(domain(now.plusNanos(fullNanoBump)))
       // no conflict or no prior change -- normal
-      case _ => f(now)
+      case _ => f(domain(now))
 
-  private def priorTo(d: Domain1D[Instant]): Domain1D[Instant] = d.leftAdjacent
+  private def priorTo(d: Instant): Instant1D = domain(d).leftAdjacent.tupled
 
   // returns the prior update data as if the last change did not happen
   protected def unsetPriorData: Option[ValidData[T, Instant1D]] = for
@@ -113,15 +114,15 @@ trait VariableBase[T] extends (Instant1D => T):
     * @return
     *   Some instant if the value was changed since it was initially set, None if it was never changed.
     */
-  def lastChange: Option[Instant] = underlyingData.getDataAt(Domain1D.Top) match
-    case Some(ValidData(_, Interval(Domain1D.Point(time) *: EmptyTuple, _))) => Some(time)
-    case _                                                                   => None // hasn't changed yet
+  def lastChange: Option[Instant] = underlyingData.getDataAt(Top.tupled) match
+    case Some(ValidData(_, Interval(Point(time) *: EmptyTuple, _))) => Some(time)
+    case _                                                          => None // hasn't changed yet
 
   /**
     * @return
     *   the most recent value.
     */
-  def get: T = underlyingData(Domain1D.Top)
+  def get: T = underlyingData(Top.tupled)
 
   /**
     * Get the prior value.
@@ -139,4 +140,4 @@ trait VariableBase[T] extends (Instant1D => T):
     * @return
     *   a value from the past.
     */
-  def getAt(past: Instant): T = underlyingData(past)
+  def getAt(past: Instant): T = underlyingData(domain(past).tupled)

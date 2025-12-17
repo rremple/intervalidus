@@ -43,7 +43,7 @@ object SoftwareProductFeatureManagement:
     def apply(double: Double): Release =
       val major = double.toInt
       val minor = ((double - major) * 10).toInt
-      new Release(major, minor)
+      Release(major, minor)
 
     def apply(string: String): Release = string.split('.').toList match
       case major :: Nil                   => Release(major.toInt, 0)

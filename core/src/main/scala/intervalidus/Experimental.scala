@@ -113,7 +113,7 @@ object Experimental:
       nonExperimentalResult: => T,
       experimentalResult: => T
     )(
-      onFailure: (T, T) => T = (_: T, _: T) => throw new Exception("Experiment failed")
+      onFailure: (T, T) => T = (_: T, _: T) => throw Exception("Experiment failed")
     ): T =
       if enabledExperimental(feature)
       then

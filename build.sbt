@@ -1,4 +1,4 @@
-ThisBuild / scalaVersion := "3.3.6"
+ThisBuild / scalaVersion := "3.3.7"
 
 ThisBuild / organization := "rremple" // necessary for the sbt-ghpages and sbt-github-packages
 ThisBuild / githubOwner := "rremple"
@@ -9,7 +9,7 @@ ThisBuild / publishTo := Some(
 publishMavenStyle := true
 
 def commonSettings = Seq(
-  scalacOptions ++= Seq("-feature", "-deprecation"), // , "-Wunused:all"),
+  scalacOptions ++= Seq("-feature", "-deprecation"), // , "-Wunused:all", "-source", "future"),
   githubTokenSource := TokenSource.GitConfig("github.token") || TokenSource.Environment("PUBLISH_TO_PACKAGES"),
   coverageFailOnMinimum := true,
   coverageMinimumStmtTotal := 99,
@@ -86,7 +86,7 @@ lazy val `intervalidus-upickle` = (project in file("json/upickle"))
   .settings(commonPublishSettings)
   .settings(
     name := "intervalidus-upickle",
-    libraryDependencies += "com.lihaoyi" %% "upickle" % "4.3.2"
+    libraryDependencies += "com.lihaoyi" %% "upickle" % "4.4.1"
   )
 
 lazy val `intervalidus-tinyrule` = (project in file("sidequests/tinyrule"))
@@ -107,11 +107,10 @@ lazy val `intervalidus-example-mongodb` = (project in file("example-mongodb"))
   .settings(
     commonNoPublishSettings,
     libraryDependencies ++= Seq(
-      "org.mongodb" % "bson" % "5.6.1",
-      "org.mongodb" % "mongodb-driver-sync" % "5.6.1",
-      "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.43.0" % Test,
-      "com.dimafeng" %% "testcontainers-scala-mongodb" % "0.43.0" % Test,
-      "org.apache.commons" % "commons-compress" % "1.28.0", // bump 1.24.0 for CVE-2024-26308 and -25710
+      "org.mongodb" % "bson" % "5.6.2",
+      "org.mongodb" % "mongodb-driver-sync" % "5.6.2",
+      "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.44.0" % Test,
+      "com.dimafeng" %% "testcontainers-scala-mongodb" % "0.44.0" % Test,
       "org.slf4j" % "slf4j-nop" % "2.0.17" % Test
     )
   )

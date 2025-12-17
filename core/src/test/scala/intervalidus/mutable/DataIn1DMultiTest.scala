@@ -32,7 +32,7 @@ class DataIn1DMultiTest
       DataMulti[String, Dim[Int]]
     ](
       DataMulti.from(_),
-      Interval.in1D
+      _.tupled
     )
   )
 
@@ -42,7 +42,7 @@ class DataIn1DMultiTest
       DataMulti[String, Dim[Int]]
     ](
       DataMulti.from(_),
-      Interval.in1D,
+      _.tupled,
       d => d.interval.to(d.interval.end.rightAdjacent) -> d.value.map(_ + "!"),
       d => DataMulti.from[String, Dim[Int]](d.value.map(d.interval -> _))
     )

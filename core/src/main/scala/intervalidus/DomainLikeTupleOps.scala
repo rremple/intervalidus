@@ -1,7 +1,5 @@
 package intervalidus
 
-import scala.language.implicitConversions
-
 /**
   * Internal type class for operating on domains and related structures of arbitrary dimension.
   *
@@ -112,10 +110,7 @@ object DomainLikeTupleOps:
     private inline def headInterval(interval: Interval[OneDimDomain[DV]]): Interval1D[DV] =
       Interval1D(interval.start.head, interval.end.head)
 
-    private inline def from1d(interval: Interval1D[DV]): Interval[OneDimDomain[DV]] =
-      Interval(interval.start, interval.end)
-
-    inline override def unbounded(d: Domain1D[Nothing]): OneDimDomain[DV] = Domain.in1D(d)
+    inline override def unbounded(d: Domain1D[Nothing]): OneDimDomain[DV] = d.tupled
 
     inline override def arity: Int = 1
 
@@ -132,13 +127,13 @@ object DomainLikeTupleOps:
       Vector(domainTuple.head.orderedHashUnfixed)
 
     inline override def leftAdjacentFromDomain(domainTuple: OneDimDomain[DV]): OneDimDomain[DV] =
-      Domain.in1D(domainTuple.head.leftAdjacent)
+      domainTuple.head.leftAdjacent.tupled
 
     inline override def rightAdjacentFromDomain(domainTuple: OneDimDomain[DV]): OneDimDomain[DV] =
-      Domain.in1D(domainTuple.head.rightAdjacent)
+      domainTuple.head.rightAdjacent.tupled
 
     inline override def closeIfOpenFromDomain(domainTuple: OneDimDomain[DV]): OneDimDomain[DV] =
-      Domain.in1D(domainTuple.head.closeIfOpen)
+      domainTuple.head.closeIfOpen.tupled
 
     inline override def toStringsFromDomain(domainTuple: OneDimDomain[DV]): List[String] =
       List((domainTuple.head: Domain1D[DV] /*bug?*/ ).toString)
@@ -146,7 +141,7 @@ object DomainLikeTupleOps:
     inline override def pointsFromDomains(
       startDomainTuple: OneDimDomain[DV],
       endDomainTuple: OneDimDomain[DV]
-    ): Iterable[OneDimDomain[DV]] = startDomainTuple.head.pointsTo(endDomainTuple.head).map(Domain.in1D)
+    ): Iterable[OneDimDomain[DV]] = startDomainTuple.head.pointsTo(endDomainTuple.head).map(_.tupled)
 
     inline override def afterStartFromDomains(
       thisDomainTuple: OneDimDomain[DV],
@@ -169,16 +164,16 @@ object DomainLikeTupleOps:
     ): Boolean = thisDomainTuple.head beforeOrAtEnd thatDomainTuple.head
 
     inline override def maxStartFromDomains(tuple1: OneDimDomain[DV], tuple2: OneDimDomain[DV]): OneDimDomain[DV] =
-      Domain.in1D(tuple1.head maxStart tuple2.head)
+      (tuple1.head maxStart tuple2.head).tupled
 
     inline override def minEndFromDomains(tuple1: OneDimDomain[DV], tuple2: OneDimDomain[DV]): OneDimDomain[DV] =
-      Domain.in1D(tuple1.head minEnd tuple2.head)
+      (tuple1.head minEnd tuple2.head).tupled
 
     inline override def minStartFromDomains(tuple1: OneDimDomain[DV], tuple2: OneDimDomain[DV]): OneDimDomain[DV] =
-      Domain.in1D(tuple1.head minStart tuple2.head)
+      (tuple1.head minStart tuple2.head).tupled
 
     inline override def maxEndFromDomains(tuple1: OneDimDomain[DV], tuple2: OneDimDomain[DV]): OneDimDomain[DV] =
-      Domain.in1D(tuple1.head maxEnd tuple2.head)
+      (tuple1.head maxEnd tuple2.head).tupled
 
     inline override def isClosedOrUnboundedFromDomain(domainTuple: OneDimDomain[DV]): Boolean =
       domainTuple.head.isClosedOrUnbounded
@@ -213,22 +208,22 @@ object DomainLikeTupleOps:
       thisInterval: Interval[OneDimDomain[DV]],
       thatInterval: Interval[OneDimDomain[DV]]
     ): Iterable[Interval[OneDimDomain[DV]]] =
-      (headInterval(thisInterval) separateUsing headInterval(thatInterval)).map(from1d)
+      (headInterval(thisInterval) separateUsing headInterval(thatInterval)).map(_.tupled)
 
     inline override def gapWithFromIntervals(
       thisInterval: Interval[OneDimDomain[DV]],
       thatInterval: Interval[OneDimDomain[DV]]
     ): Option[Interval[OneDimDomain[DV]]] =
-      (headInterval(thisInterval) gapWith headInterval(thatInterval)).map(from1d)
+      (headInterval(thisInterval) gapWith headInterval(thatInterval)).map(_.tupled)
 
     inline override def uniqueIntervalsFromInterval(
       intervals: Iterable[Interval[OneDimDomain[DV]]]
     ): Iterable[Interval[OneDimDomain[DV]]] =
-      Interval1D.uniqueIntervals(intervals.map(headInterval)).map(from1d)
+      Interval1D.uniqueIntervals(intervals.map(headInterval)).map(_.tupled)
 
     inline override def rightAdjacentKeysFromInterval(
       interval: Interval[OneDimDomain[DV]]
-    ): List[(OneDimDomain[DV], Int)] = List((interval.end.head.rightAdjacent, 1), (interval.start, 0))
+    ): List[(OneDimDomain[DV], Int)] = List((interval.end.head.rightAdjacent.tupled, 1), (interval.start, 0))
 
     inline override def toStringsFromInterval(
       interval: Interval[OneDimDomain[DV]]

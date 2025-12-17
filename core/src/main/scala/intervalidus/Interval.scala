@@ -1,13 +1,9 @@
 package intervalidus
 
-import intervalidus.Domain.NonEmptyTail
 import intervalidus.collection.Box
 
-import scala.Tuple.{Append, Concat, Drop, Elem, Head, Tail, Take}
 import scala.annotation.tailrec
 import scala.collection.immutable.TreeMap
-import scala.compiletime.ops.int.S
-import scala.language.implicitConversions
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 /**
@@ -165,8 +161,8 @@ case class Interval[D <: NonEmptyTuple](
     *   a new higher-dimensional interval with that interval appended.
     */
   infix def x[X: DomainValueLike](that: Interval1D[X])(using
-    DomainLike[Append[D, Domain1D[X]]]
-  ): Interval[Append[D, Domain1D[X]]] =
+    DomainLike[Domain.Appended[D, X]]
+  ): Interval[Domain.Appended[D, X]] =
     Interval(start x that.start, end x that.end)
 
   /**
@@ -202,8 +198,8 @@ case class Interval[D <: NonEmptyTuple](
     * @return
     *   the one-dimensional interval.
     */
-  def apply[H: DomainValueLike](dimensionIndex: Int)(using
-    Elem[D, dimensionIndex.type] =:= Domain1D[H]
+  def apply[H: DomainValueLike](dimensionIndex: Int & Singleton)(using
+    Domain.IsAtIndex[D, dimensionIndex.type, H]
   ): Interval1D[H] =
     Interval1D(start(dimensionIndex), end(dimensionIndex))
 
@@ -217,7 +213,7 @@ case class Interval[D <: NonEmptyTuple](
     *   the one-dimensional head interval.
     */
   def headInterval1D[H: DomainValueLike](using
-    Head[D] =:= Domain1D[H]
+    Domain.IsAtHead[D, H]
   ): Interval1D[H] =
     Interval1D(start.head, end.head)
 
@@ -232,8 +228,8 @@ case class Interval[D <: NonEmptyTuple](
     * @return
     *   a new lower-dimensional interval
     */
-  def dropDimension[R <: NonEmptyTuple: DomainLike](dimensionIndex: Int)(using
-    Concat[Take[D, dimensionIndex.type], Drop[D, S[dimensionIndex.type]]] =:= R
+  def dropDimension[R <: NonEmptyTuple: DomainLike](dimensionIndex: Int & Singleton)(using
+    Domain.IsDroppedInResult[D, dimensionIndex.type, R]
   ): Interval[R] = Interval(
     start.dropDimension(dimensionIndex),
     end.dropDimension(dimensionIndex)
@@ -256,10 +252,10 @@ case class Interval[D <: NonEmptyTuple](
     *   a new higher-dimensional interval
     */
   def insertDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
-    dimensionIndex: Int,
+    dimensionIndex: Int & Singleton,
     interval1D: Interval1D[H]
   )(using
-    Concat[Take[D, dimensionIndex.type], Domain1D[H] *: Drop[D, dimensionIndex.type]] =:= R
+    Domain.IsInsertedInResult[D, dimensionIndex.type, H, R]
   ): Interval[R] = Interval(
     start.insertDimension(dimensionIndex, interval1D.start),
     end.insertDimension(dimensionIndex, interval1D.end)
@@ -281,11 +277,11 @@ case class Interval[D <: NonEmptyTuple](
     *   a new interval of the same dimension with the update applied
     */
   def withDimensionUpdate[H: DomainValueLike](
-    dimensionIndex: Int,
+    dimensionIndex: Int & Singleton,
     update: Interval1D[H] => Interval1D[H]
   )(using
-    Elem[D, dimensionIndex.type] =:= Domain1D[H],
-    Concat[Take[D, dimensionIndex.type], Domain1D[H] *: Drop[D, S[dimensionIndex.type]]] =:= D
+    Domain.IsAtIndex[D, dimensionIndex.type, H],
+    Domain.IsReconstructible[D, dimensionIndex.type, H]
   ): Interval[D] =
     val updated = update(apply(dimensionIndex))
     Interval(start.updateDimension(dimensionIndex, updated.start), end.updateDimension(dimensionIndex, updated.end))
@@ -300,9 +296,9 @@ case class Interval[D <: NonEmptyTuple](
     *   the tail interval of n-1 dimensions.
     */
   def tailInterval(using
-    Tail[D] =:= NonEmptyTail[D],
-    DomainLike[NonEmptyTail[D]]
-  ): Interval[NonEmptyTail[D]] = Interval(start.tail, end.tail)
+    Domain.HasAtLeastTwoDimensions[D],
+    DomainLike[Domain.NonEmptyTail[D]]
+  ): Interval[Domain.NonEmptyTail[D]] = Interval(start.tail, end.tail)
 
   /**
     * Returns a new interval with an updated head interval and the other dimensions unchanged.
@@ -316,8 +312,8 @@ case class Interval[D <: NonEmptyTuple](
     *   function to apply to this head interval, used in the head dimension of the returned interval.
     */
   def withHeadUpdate[H: DomainValueLike](update: Interval1D[H] => Interval1D[H])(using
-    Head[D] =:= Domain1D[H],
-    Domain1D[H] *: Tail[D] =:= D
+    Domain.IsAtHead[D, H],
+    Domain.IsReconstructibleFromHead[D, H]
   ): Interval[D] =
     val updatedHead = update(headInterval1D)
     Interval(updatedHead.start *: start.tail, updatedHead.end *: end.tail)
@@ -379,11 +375,11 @@ object Interval:
         * }}}
         */
       def unapply[D <: NonEmptyTuple, H](i: Interval[D])(using
-        Head[D] =:= Domain1D[H],
-        Tail[D] =:= NonEmptyTail[D],
-        DomainLike[NonEmptyTail[D]],
+        Domain.IsAtHead[D, H],
+        Domain.HasAtLeastTwoDimensions[D],
+        DomainLike[Domain.NonEmptyTail[D]],
         DomainValueLike[H]
-      ): (Interval1D[H], Interval[NonEmptyTail[D]]) =
+      ): (Interval1D[H], Interval[Domain.NonEmptyTail[D]]) =
         (Interval1D(i.start.head, i.end.head), Interval(i.start.tail, i.end.tail))
 
       /**
@@ -427,8 +423,8 @@ object Interval:
   def in1D[T1: DomainValueLike](
     horizontal: Interval1D[T1]
   ): Interval.In1D[T1] = Interval(
-    horizontal.start,
-    horizontal.end
+    horizontal.start.tupled,
+    horizontal.end.tupled
   )
   def in2D[T1: DomainValueLike, T2: DomainValueLike](
     horizontal: Interval1D[T1],
@@ -593,9 +589,9 @@ object Interval:
     * @return
     *   a new (possibly smaller) collection of intervals covering the same domain as the input.
     */
-  def compress[D <: NonEmptyTuple](
+  def compress[D <: NonEmptyTuple: DomainLike](
     intervals: Iterable[Interval[D]]
-  )(using domainLike: DomainLike[D]): Iterable[Interval[D]] = compressGeneric(
+  ): Iterable[Interval[D]] = compressGeneric(
     initialState = TreeMap.from(intervals.map(i => i.start -> i)), // intervals by start
     result = _.values,
     dataIterable = _.values,
@@ -683,9 +679,9 @@ object Interval:
     * @return
     *   a new collection of intervals representing disjoint intervals covering the span of the input.
     */
-  def complement[T <: NonEmptyTuple](
+  def complement[T <: NonEmptyTuple: DomainLike](
     intervals: Iterable[Interval[T]]
-  )(using domainLike: DomainLike[T]): Iterable[Interval[T]] =
+  ): Iterable[Interval[T]] =
     immutable.Data(intervals.map(_ -> false)).fill(unbounded -> true).filter(_.value).allIntervals
 
   /**

@@ -119,7 +119,7 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
 
     def randDomainInInterval1d(i: Interval.In1D[Int]): Domain1D[Int] = i.headInterval1D[Int] match
       case Interval1D(Domain1D.Point(start), Domain1D.Point(end)) => start + rand.nextInt(end - start + 1)
-      case unexpected => throw new Exception(s"unexpected result: $unexpected")
+      case unexpected                                             => throw Exception(s"unexpected result: $unexpected")
 
     def randHit(): Domain1D[Int] = randDomainInInterval1d(hits(rand.nextInt(hitsSize)))
 
@@ -280,7 +280,7 @@ object BenchSearchTree extends BenchBase(baselineFeature = Some("noSearchTree"),
 
     def randDomainInInterval1d(i: Interval.In1D[Int]): Domain1D[Int] = i.headInterval1D[Int] match
       case Interval1D(Domain1D.Point(start), Domain1D.Point(end)) => start + rand.nextInt(end - start + 1)
-      case unexpected => throw new Exception(s"unexpected result: $unexpected")
+      case unexpected                                             => throw Exception(s"unexpected result: $unexpected")
 
     def randHit(): Domain1D[Int] = randDomainInInterval1d(hits(rand.nextInt(hitsSize)))
 

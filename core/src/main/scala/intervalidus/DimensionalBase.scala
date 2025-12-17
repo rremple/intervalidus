@@ -1,13 +1,11 @@
 package intervalidus
 
-import intervalidus.Domain.NonEmptyTail
 import intervalidus.DomainLike.given
 import intervalidus.collection.{Boundary, Box, BoxedPayload, Capacity}
 import intervalidus.collection.mutable.{BoxTree, MultiMapSorted}
 
-import scala.Tuple.{Concat, Drop, Elem, Head, Take, Tail}
+import java.util.NoSuchElementException
 import scala.collection.mutable
-import scala.compiletime.ops.int.S
 
 /**
   * Common definitions used in all dimensional data.
@@ -557,7 +555,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
   /**
     * Internal method to get all data as data in n-1 dimensions based on a lookup in the head dimension.
     *
-    * (Equivalent to `getByDimensionData[H, NonEmptyTail[D]](0, domain)`, though the type checking is simpler.)
+    * (Equivalent to `getByDimensionData[H, Domain.NonEmptyTail[D]](0, domain)`, though the type checking is simpler.)
     *
     * @tparam H
     *   the domain value type of the 1D domain used for filtering. There are type safety checks that ensure
@@ -571,11 +569,11 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   a collection of valid data representing the lower-dimensional (n-1) projection
     */
   protected def getByHeadDimensionData[H: DomainValueLike](domain: Domain1D[H])(using
-    Head[D] =:= Domain1D[H],
-    Tail[D] =:= NonEmptyTail[D],
-    Domain1D[H] *: Tail[D] =:= D,
-    DomainLike[NonEmptyTail[D]]
-  ): Iterable[ValidData[V, NonEmptyTail[D]]] =
+    Domain.IsAtHead[D, H],
+    Domain.HasAtLeastTwoDimensions[D],
+    Domain.IsReconstructibleFromHead[D, H],
+    DomainLike[Domain.NonEmptyTail[D]]
+  ): Iterable[ValidData[V, Domain.NonEmptyTail[D]]] =
     val filteredData = domain match
       case Domain1D.Top | Domain1D.Bottom =>
         getAll.filter(_.interval.headInterval1D contains domain)
@@ -605,12 +603,12 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   a collection of valid data representing the lower-dimensional (n-1) projection
     */
   protected def getByDimensionData[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
-    dimensionIndex: Int,
+    dimensionIndex: Int & Singleton,
     domain: Domain1D[H]
   )(using
-    Elem[D, dimensionIndex.type] =:= Domain1D[H],
-    Concat[Take[D, dimensionIndex.type], Domain1D[H] *: Drop[D, S[dimensionIndex.type]]] =:= D,
-    Concat[Take[D, dimensionIndex.type], Drop[D, S[dimensionIndex.type]]] =:= R
+    Domain.IsAtIndex[D, dimensionIndex.type, H],
+    Domain.IsReconstructible[D, dimensionIndex.type, H],
+    Domain.IsDroppedInResult[D, dimensionIndex.type, R]
   ): Iterable[ValidData[V, R]] =
     val filteredData = domain match
       case Domain1D.Top | Domain1D.Bottom =>
@@ -705,8 +703,8 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     */
   def get: V = getAll.headOption match
     case Some(d: ValidData[V, D]) if d.interval.isUnbounded => d.value
-    case Some(_)                                            => throw new NoSuchElementException("bounded get")
-    case None                                               => throw new NoSuchElementException("empty get")
+    case Some(_)                                            => throw NoSuchElementException("bounded get")
+    case None                                               => throw NoSuchElementException("empty get")
 
   /**
     * Returns Some value if a single, unbounded valid value exists, otherwise returns None.
@@ -903,7 +901,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
   /**
     * Project as data in n-1 dimensions based on a lookup in the head dimension.
     *
-    * (Equivalent to `getByDimension[H, NonEmptyTail[D]](0, domain)`, though the type checking is simpler)
+    * (Equivalent to `getByDimension[H, Domain.NonEmptyTail[D]](0, domain)`, though the type checking is simpler)
     *
     * @tparam H
     *   the domain value type of the 1D domain used for filtering. There are type safety checks that ensure
@@ -917,11 +915,11 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   a lower-dimensional (n-1) projection
     */
   def getByHeadDimension[H: DomainValueLike](domain: Domain1D[H])(using
-    Head[D] =:= Domain1D[H],
-    Tail[D] =:= NonEmptyTail[D],
-    Domain1D[H] *: Tail[D] =:= D,
-    DomainLike[NonEmptyTail[D]]
-  ): DimensionalBase[V, NonEmptyTail[D]]
+    Domain.IsAtHead[D, H],
+    Domain.HasAtLeastTwoDimensions[D],
+    Domain.IsReconstructibleFromHead[D, H],
+    DomainLike[Domain.NonEmptyTail[D]]
+  ): DimensionalBase[V, Domain.NonEmptyTail[D]]
 
   /**
     * Project as data in n-1 dimensions based on a lookup in the specified dimension.
@@ -943,12 +941,12 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   a lower-dimensional (n-1) projection
     */
   def getByDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
-    dimensionIndex: Int,
+    dimensionIndex: Int & Singleton,
     domain: Domain1D[H]
   )(using
-    Elem[D, dimensionIndex.type] =:= Domain1D[H],
-    Concat[Take[D, dimensionIndex.type], Domain1D[H] *: Drop[D, S[dimensionIndex.type]]] =:= D,
-    Concat[Take[D, dimensionIndex.type], Drop[D, S[dimensionIndex.type]]] =:= R
+    Domain.IsAtIndex[D, dimensionIndex.type, H],
+    Domain.IsReconstructible[D, dimensionIndex.type, H],
+    Domain.IsDroppedInResult[D, dimensionIndex.type, R]
   ): DimensionalBase[V, R]
 
   /**
