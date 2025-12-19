@@ -85,6 +85,24 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       assert(Interval(origin, origin) equiv Interval(origin, origin))
       assert(!(Interval(Domain.in2D[Int, Int](-1, -1), origin) equiv Interval(origin, origin)))
 
+      //  Incorrect domain value type: Domain.IsAtIndex fails
+      """val _ = origin.updateDimension(1, LocalDate.now())""" shouldNot typeCheck
+
+      //  Incorrect domain value type: Domain.IsAtHead fails
+      """val _: Interval1D[LocalDate] = intervalAt(origin).headInterval1D""" shouldNot typeCheck
+
+      // Incorrect result type: Domain.IsDroppedInResult fails
+      """val _: Domain.In1D[LocalDate] = origin.dropDimension(1)""" shouldNot typeCheck
+
+      // Bad index: Domain.HasIndex fails
+      """val _: Domain.In1D[Int] = origin.dropDimension(-1)""" shouldNot typeCheck
+
+      // Incorrect result type: Domain.IsInsertedInResult fails
+      """val _: Dim3Domain = origin.insertDimension(1, LocalDate.now())""" shouldNot typeCheck
+
+      // Bad index: Domain.HasIndex fails
+      """val _: Dim3Domain = origin.insertDimension(10, 1)""" shouldNot typeCheck
+
       assertThrows[IllegalArgumentException]:
         val _ = Interval[Dim2Domain](dv.top, dv.bottom) // end before start
 
@@ -429,9 +447,8 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       assert(!(interval4d(2, 4, 1, 2, 5, 6) isRightAdjacentTo interval4d(1, 3, 1, 2, 5, 6)))
       assert(!(interval4d(3, 4, 1, 2, 5, 6) isRightAdjacentTo interval4d(1, 3, 1, 2, 5, 6)))
       assert(
-        interval4dFrom(3, 3, 3) isRightAdjacentTo (intervalToBefore(3) x intervalFrom(3) x intervalFrom(3) x unbounded[
-          Int
-        ])
+        interval4dFrom(3, 3, 3) isRightAdjacentTo
+          (intervalToBefore(3) x intervalFrom(3) x intervalFrom(3) x unbounded[Int])
       )
       assert(!(interval4dTo(3, 3, 3) isRightAdjacentTo interval4dFrom(after(3), after(3), after(3))))
 
@@ -451,9 +468,8 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       assert(!(interval4d(1, 2, 2, 4, 5, 6) isRightAdjacentTo interval4d(1, 2, 1, 3, 5, 6)))
       assert(!(interval4d(1, 2, 3, 4, 5, 6) isRightAdjacentTo interval4d(1, 2, 1, 3, 5, 6)))
       assert(
-        interval4dFrom(3, 3, 3) isRightAdjacentTo (intervalFrom(3) x intervalToBefore(3) x intervalFrom(3) x unbounded[
-          Int
-        ])
+        interval4dFrom(3, 3, 3) isRightAdjacentTo
+          (intervalFrom(3) x intervalToBefore(3) x intervalFrom(3) x unbounded[Int])
       )
       assert(!(interval4dTo(3, 3, 3) isRightAdjacentTo interval4dFrom(2, 2, 2)))
 
@@ -502,9 +518,8 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       assert(!(interval4d(3, 4, 3, 4, 5, 6) isRightAdjacentTo interval4d(3, 4, 3, 4, after(6), 8)))
       assert(!(interval4d(3, 4, 1, 3, 5, 6) isRightAdjacentTo interval4d(3, 4, 3, 4, 3, before(5))))
       assert(
-        interval4dFrom(2, 2, 2) isRightAdjacentTo (intervalFrom(2) x intervalFrom(2) x intervalToBefore(2) x unbounded[
-          Int
-        ])
+        interval4dFrom(2, 2, 2) isRightAdjacentTo
+          (intervalFrom(2) x intervalFrom(2) x intervalToBefore(2) x unbounded[Int])
       )
       assert(!(interval4dFrom(2, 2, 2) isRightAdjacentTo interval4dTo(3, 3, 3)))
 

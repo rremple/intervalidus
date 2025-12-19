@@ -177,6 +177,7 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] protected (
     dimensionIndex: Int & Singleton,
     domain: Domain1D[H]
   )(using
+    Domain.HasIndex[D, dimensionIndex.type],
     Domain.IsAtIndex[D, dimensionIndex.type, H],
     Domain.IsReconstructible[D, dimensionIndex.type, H],
     Domain.IsDroppedInResult[D, dimensionIndex.type, R]

@@ -192,6 +192,7 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
       *   a new lower-dimensional domain
       */
     def dropDimension[R <: NonEmptyTuple: DomainLike](dimensionIndex: Int & Singleton)(using
+      Domain.HasIndex[D, dimensionIndex.type],
       Domain.IsDroppedInResult[D, dimensionIndex.type, R]
     ): R = domain.take(dimensionIndex) ++ domain.drop(s(dimensionIndex))
 
@@ -215,6 +216,7 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
       dimensionIndex: Int & Singleton,
       domain1D: Domain1D[H]
     )(using
+      Domain.HasIndex[R, dimensionIndex.type],
       Domain.IsInsertedInResult[D, dimensionIndex.type, H, R]
     ): R = domain.take(dimensionIndex) ++ (domain1D *: domain.drop(dimensionIndex))
 
@@ -237,6 +239,7 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
       dimensionIndex: Int & Singleton,
       updated: Domain1D[H]
     )(using
+      Domain.HasIndex[D, dimensionIndex.type],
       Domain.IsAtIndex[D, dimensionIndex.type, H],
       Domain.IsReconstructible[D, dimensionIndex.type, H]
     ): D = domain.take(dimensionIndex) ++ (updated *: domain.drop(s(dimensionIndex)))

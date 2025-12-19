@@ -199,6 +199,7 @@ case class Interval[D <: NonEmptyTuple](
     *   the one-dimensional interval.
     */
   def apply[H: DomainValueLike](dimensionIndex: Int & Singleton)(using
+    Domain.HasIndex[D, dimensionIndex.type],
     Domain.IsAtIndex[D, dimensionIndex.type, H]
   ): Interval1D[H] =
     Interval1D(start(dimensionIndex), end(dimensionIndex))
@@ -229,6 +230,7 @@ case class Interval[D <: NonEmptyTuple](
     *   a new lower-dimensional interval
     */
   def dropDimension[R <: NonEmptyTuple: DomainLike](dimensionIndex: Int & Singleton)(using
+    Domain.HasIndex[D, dimensionIndex.type],
     Domain.IsDroppedInResult[D, dimensionIndex.type, R]
   ): Interval[R] = Interval(
     start.dropDimension(dimensionIndex),
@@ -255,6 +257,7 @@ case class Interval[D <: NonEmptyTuple](
     dimensionIndex: Int & Singleton,
     interval1D: Interval1D[H]
   )(using
+    Domain.HasIndex[R, dimensionIndex.type],
     Domain.IsInsertedInResult[D, dimensionIndex.type, H, R]
   ): Interval[R] = Interval(
     start.insertDimension(dimensionIndex, interval1D.start),
@@ -280,6 +283,7 @@ case class Interval[D <: NonEmptyTuple](
     dimensionIndex: Int & Singleton,
     update: Interval1D[H] => Interval1D[H]
   )(using
+    Domain.HasIndex[D, dimensionIndex.type],
     Domain.IsAtIndex[D, dimensionIndex.type, H],
     Domain.IsReconstructible[D, dimensionIndex.type, H]
   ): Interval[D] =
