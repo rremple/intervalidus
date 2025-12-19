@@ -705,7 +705,7 @@ node6 -> node1;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="DataVersioned.html#getByDimension-49b" t="n" class="documentableName ">getByDimension</a>[<span t="k"></span><span data-unresolved-link="" t="t">H</span> : <a href="../DomainValueLike.html" t="t">DomainValueLike</a>, <span t="k"></span><span data-unresolved-link="" t="t">R</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">NonEmptyTuple</span> : <a href="../DomainLike.html" t="t">DomainLike</a>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">dimensionIndex</span>: <span data-unresolved-link="" t="t">Int</span><span t="k"> &amp; </span><span data-unresolved-link="" t="t">Singleton</span>, <span t="k"></span><span data-unresolved-link="" t="n">domain</span>: <a href="../Domain1D.html" t="t">Domain1D</a>[<span t="t">H</span>])(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">evidence$1</span>: <a href="../DomainValueLike.html" t="t">DomainValueLike</a>[<span data-unresolved-link="" t="t">H</span>], <span t="k"></span><span data-unresolved-link="" t="n">evidence$2</span>: <a href="../DomainLike.html" t="t">DomainLike</a>[<span data-unresolved-link="" t="t">R</span>], <span t="k"></span><a href="../Domain$.html#HasIndex-0" t="t">HasIndex</a>[<span t="t">D</span>, <span t="t">dimensionIndex</span>.<span t="k">type</span>], <span t="k"></span><a href="../Domain$.html#IsAtIndex-0" t="t">IsAtIndex</a>[<span t="t">D</span>, <span t="t">dimensionIndex</span>.<span t="k">type</span>, <span t="t">H</span>], <span t="k"></span><a href="../Domain$.html#IsReconstructible-0" t="t">IsReconstructible</a>[<span t="t">D</span>, <span t="t">dimensionIndex</span>.<span t="k">type</span>, <span t="t">H</span>], <span t="k"></span><a href="../Domain$.html#IsDroppedInResult-0" t="t">IsDroppedInResult</a>[<span t="t">D</span>, <span t="t">dimensionIndex</span>.<span t="k">type</span>, <span t="t">R</span>], <span t="k"></span><a href="../DomainLike.html" t="t">DomainLike</a>[<a href="../DimensionalVersionedBase$.html#Versioned-0" t="t">Versioned</a>[<span t="t">R</span>]]): <a href="DataVersioned.html" t="t">DataVersioned</a>[<span t="t">V</span>, <span data-unresolved-link="" t="t">R</span>]
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="DataVersioned.html#getByDimension-49b" t="n" class="documentableName ">getByDimension</a>[<span t="k"></span><span data-unresolved-link="" t="t">H</span> : <a href="../DomainValueLike.html" t="t">DomainValueLike</a>, <span t="k"></span><span data-unresolved-link="" t="t">R</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">NonEmptyTuple</span> : <a href="../DomainLike.html" t="t">DomainLike</a>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">dimensionIndex</span>: <a href="../Domain$.html#DimensionIndex-0" t="t">DimensionIndex</a>, <span t="k"></span><span data-unresolved-link="" t="n">domain</span>: <a href="../Domain1D.html" t="t">Domain1D</a>[<span t="t">H</span>])(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">evidence$1</span>: <a href="../DomainValueLike.html" t="t">DomainValueLike</a>[<span data-unresolved-link="" t="t">H</span>], <span t="k"></span><span data-unresolved-link="" t="n">evidence$2</span>: <a href="../DomainLike.html" t="t">DomainLike</a>[<span data-unresolved-link="" t="t">R</span>], <span t="k"></span><a href="../Domain$.html#HasIndex-0" t="t">HasIndex</a>[<span t="t">D</span>, <span t="t">dimensionIndex</span>.<span t="k">type</span>], <span t="k"></span><a href="../Domain$.html#IsAtIndex-0" t="t">IsAtIndex</a>[<span t="t">D</span>, <span t="t">dimensionIndex</span>.<span t="k">type</span>, <span t="t">H</span>], <span t="k"></span><a href="../Domain$.html#IsReconstructible-0" t="t">IsReconstructible</a>[<span t="t">D</span>, <span t="t">dimensionIndex</span>.<span t="k">type</span>, <span t="t">H</span>], <span t="k"></span><a href="../Domain$.html#IsDroppedInResult-0" t="t">IsDroppedInResult</a>[<span t="t">D</span>, <span t="t">dimensionIndex</span>.<span t="k">type</span>, <span t="t">R</span>], <span t="k"></span><a href="../DomainLike.html" t="t">DomainLike</a>[<a href="../DimensionalVersionedBase$.html#Versioned-0" t="t">Versioned</a>[<span t="t">R</span>]]): <a href="DataVersioned.html" t="t">DataVersioned</a>[<span t="t">V</span>, <span data-unresolved-link="" t="t">R</span>]
            </div>
           </div>
          </div>
@@ -866,7 +866,19 @@ node6 -> node1;
               <p>Increments the current version. Data are mutated in place.</p>
              </div>
              <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small"></dl>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Throws
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <div>
+                 <span data-unresolved-link="">Exception</span>
+                 <p>if we run out of versions</p>
+                </div>
+               </div>
+              </dd>
+             </dl>
             </div>
            </div>
           </div>
@@ -1273,7 +1285,19 @@ node6 -> node1;
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small"></dl>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Throws
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <div>
+                 <span data-unresolved-link="">Exception</span>
+                 <p>if the version is too large</p>
+                </div>
+               </div>
+              </dd>
+             </dl>
             </div>
            </div>
           </div>
