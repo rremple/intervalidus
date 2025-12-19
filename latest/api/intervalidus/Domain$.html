@@ -145,11 +145,11 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Witnesses that a multidimensional domain type has a non-empty tail, i.e., it has two or more dimensions.</p>
+             <p>Witnesses that a multidimensional domain has a non-empty tail, i.e., it has at least two dimensions.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Witnesses that a multidimensional domain type has a non-empty tail, i.e., it has two or more dimensions.</p>
+              <p>Witnesses that a multidimensional domain has a non-empty tail, i.e., it has at least two dimensions.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -158,6 +158,49 @@ node3 -> node2;
               </dt>
               <dd class="body-medium">
                <p>a multidimensional domain</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="HasIndex-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">type </span></span><a href="Domain$.html#HasIndex-0" t="n" class="documentableName ">HasIndex</a>[<span t="k"></span><span data-unresolved-link="" t="t">D</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">NonEmptyTuple</span>, <span t="k"></span><span data-unresolved-link="" t="t">I</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">Int</span><span t="k"> &amp; </span><span data-unresolved-link="" t="t">Singleton</span>] = ((<span data-unresolved-link="" t="t">I</span> <span data-unresolved-link="" t="t">&gt;=</span> 0) <span data-unresolved-link="" t="t">&amp;&amp;</span> (<span data-unresolved-link="" t="t">I</span> <span data-unresolved-link="" t="t">&lt;</span> <span data-unresolved-link="" t="t">Size</span>[<span data-unresolved-link="" t="t">D</span>])) <span data-unresolved-link="" t="t">=:=</span> true
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Witnesses that a multidimensional domain has the specified dimension.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Witnesses that a multidimensional domain has the specified dimension.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               D
+              </dt>
+              <dd class="body-medium">
+               <p>a multidimensional domain</p>
+              </dd>
+              <dt class="body-small">
+               I
+              </dt>
+              <dd class="body-medium">
+               <p>index of a one-dimensional domain</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -218,11 +261,11 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Witnesses that a multidimensional domain type contains a specific one-dimensional domain of the specified domain value type at the head.</p>
+             <p>Witnesses that a multidimensional domain contains a specific one-dimensional domain of the specified domain value type at the head.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Witnesses that a multidimensional domain type contains a specific one-dimensional domain of the specified domain value type at the head.</p>
+              <p>Witnesses that a multidimensional domain contains a specific one-dimensional domain of the specified domain value type at the head.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -230,7 +273,7 @@ node3 -> node2;
                D
               </dt>
               <dd class="body-medium">
-               <p>the original multidimensional domain</p>
+               <p>a multidimensional domain</p>
               </dd>
               <dt class="body-small">
                H
@@ -261,11 +304,11 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Witnesses that a multidimensional domain type contains a specific one-dimensional domain of the specified domain value type at the specified index.</p>
+             <p>Witnesses that a multidimensional domain contains a specific one-dimensional domain of the specified domain value type at the specified index.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Witnesses that a multidimensional domain type contains a specific one-dimensional domain of the specified domain value type at the specified index.</p>
+              <p>Witnesses that a multidimensional domain contains a specific one-dimensional domain of the specified domain value type at the specified index.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -273,7 +316,7 @@ node3 -> node2;
                D
               </dt>
               <dd class="body-medium">
-               <p>the original multidimensional domain</p>
+               <p>a multidimensional domain</p>
               </dd>
               <dt class="body-small">
                H
@@ -285,7 +328,7 @@ node3 -> node2;
                I
               </dt>
               <dd class="body-medium">
-               <p>index of a one-dimensional domain</p>
+               <p>index of the one-dimensional domain</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -310,11 +353,11 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Witnesses that the specified result can be constructed by concatenating the elements before the deletion point and the elements after the deletion point.</p>
+             <p>Witnesses that the specified result can be constructed by concatenating the elements before and after the dropped one-dimensional domain.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Witnesses that the specified result can be constructed by concatenating the elements before the deletion point and the elements after the deletion point.</p>
+              <p>Witnesses that the specified result can be constructed by concatenating the elements before and after the dropped one-dimensional domain.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -322,19 +365,19 @@ node3 -> node2;
                D
               </dt>
               <dd class="body-medium">
-               <p>the original multidimensional domain</p>
+               <p>a multidimensional domain</p>
               </dd>
               <dt class="body-small">
                I
               </dt>
               <dd class="body-medium">
-               <p>index of the one-dimensional domain will be deleted</p>
+               <p>index of the one-dimensional domain that will be dropped</p>
               </dd>
               <dt class="body-small">
                R
               </dt>
               <dd class="body-medium">
-               <p>the multidimensional domain result after deletion</p>
+               <p>the multidimensional domain result after dropping the indexed one-dimensional domain</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -359,11 +402,11 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Witnesses that the specified result can be constructed by concatenating the elements before the insertion point, the provided one-dimensional domain of the specified domain value type, and the elements after the insertion point.</p>
+             <p>Witnesses that the specified result can be constructed by concatenating the elements before the insertion point, the provided one-dimensional domain, and the elements after the insertion point.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Witnesses that the specified result can be constructed by concatenating the elements before the insertion point, the provided one-dimensional domain of the specified domain value type, and the elements after the insertion point.</p>
+              <p>Witnesses that the specified result can be constructed by concatenating the elements before the insertion point, the provided one-dimensional domain, and the elements after the insertion point.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -371,7 +414,7 @@ node3 -> node2;
                D
               </dt>
               <dd class="body-medium">
-               <p>the original multidimensional domain</p>
+               <p>a multidimensional domain</p>
               </dd>
               <dt class="body-small">
                H
@@ -389,7 +432,7 @@ node3 -> node2;
                R
               </dt>
               <dd class="body-medium">
-               <p>the multidimensional domain result after insertion</p>
+               <p>the multidimensional domain result after the one-dimensional domain is inserted</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -414,11 +457,11 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Witnesses that a multidimensional domain type can be reconstructed by concatenating the elements before the indexed one-dimensional domain, the indexed one-dimensional domain itself of the specified domain value type, and the elements after the indexed one-dimensional domain.</p>
+             <p>Witnesses that a multidimensional domain can be reconstructed by concatenating the elements before the indexed one-dimensional domain, the indexed one-dimensional domain itself, and the elements after the indexed one-dimensional domain.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Witnesses that a multidimensional domain type can be reconstructed by concatenating the elements before the indexed one-dimensional domain, the indexed one-dimensional domain itself of the specified domain value type, and the elements after the indexed one-dimensional domain.</p>
+              <p>Witnesses that a multidimensional domain can be reconstructed by concatenating the elements before the indexed one-dimensional domain, the indexed one-dimensional domain itself, and the elements after the indexed one-dimensional domain.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -426,7 +469,7 @@ node3 -> node2;
                D
               </dt>
               <dd class="body-medium">
-               <p>the original multidimensional domain</p>
+               <p>a multidimensional domain</p>
               </dd>
               <dt class="body-small">
                H
@@ -438,7 +481,7 @@ node3 -> node2;
                I
               </dt>
               <dd class="body-medium">
-               <p>index of a one-dimensional domain</p>
+               <p>index of the one-dimensional domain</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -463,11 +506,11 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Witnesses that a multidimensional domain type can be reconstructed by concatenating the head one-dimensional domain of the specified domain value type and the multidimensional tail.</p>
+             <p>Witnesses that a multidimensional domain can be reconstructed by concatenating the head one-dimensional domain with the multidimensional tail.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Witnesses that a multidimensional domain type can be reconstructed by concatenating the head one-dimensional domain of the specified domain value type and the multidimensional tail.</p>
+              <p>Witnesses that a multidimensional domain can be reconstructed by concatenating the head one-dimensional domain with the multidimensional tail.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
@@ -475,7 +518,7 @@ node3 -> node2;
                D
               </dt>
               <dd class="body-medium">
-               <p>the original multidimensional domain</p>
+               <p>a multidimensional domain</p>
               </dd>
               <dt class="body-small">
                H
@@ -506,11 +549,11 @@ node3 -> node2;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>NonEmptyTail[D] is only valid when a multidimensional domain type has a non-empty tail, i.e., it has two or more dimensions.</p>
+             <p>NonEmptyTail[D] is only valid when a multidimensional domain has a non-empty tail, i.e., it has at least two dimensions.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>NonEmptyTail[D] is only valid when a multidimensional domain type has a non-empty tail, i.e., it has two or more dimensions.</p>
+              <p>NonEmptyTail[D] is only valid when a multidimensional domain has a non-empty tail, i.e., it has at least two dimensions.</p>
              </div>
              <h2 class="h200">Type parameters</h2>
              <dl class="attributes attributes-small">
