@@ -5,6 +5,7 @@ import intervalidus.ContinuousValue.given
 import intervalidus.DomainLike.given
 import intervalidus.Domain.In1D as Dim
 import org.scalatest.compatible.Assertion
+import org.scalatest.exceptions.TestFailedException
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
@@ -53,13 +54,13 @@ class DataIn1DContinuousTest extends AnyFunSuite with Matchers with DataIn1DBase
     updateFixture.update(removeOrUpdateInterval -> updateValue)
     try assertResult(removeExpected)(removeFixture.getAll.toList)
     catch
-      case ex: Exception =>
+      case ex: TestFailedException =>
         println("Test failed (in remove), here's the actual remove data:")
         println(removeFixture.getAll.map(_.toCodeLikeString).mkString(",\n"))
         throw ex
     try assertResult(updateExpected)(updateFixture.getAll.toList)
     catch
-      case ex: Exception =>
+      case ex: TestFailedException =>
         println("Test failed (in update), here's the actual update data:")
         println(updateFixture.getAll.map(_.toCodeLikeString).mkString(",\n"))
         throw ex

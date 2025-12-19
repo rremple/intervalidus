@@ -198,7 +198,7 @@ case class Interval[D <: NonEmptyTuple](
     * @return
     *   the one-dimensional interval.
     */
-  def apply[H: DomainValueLike](dimensionIndex: Int & Singleton)(using
+  def apply[H: DomainValueLike](dimensionIndex: Domain.DimensionIndex)(using
     Domain.HasIndex[D, dimensionIndex.type],
     Domain.IsAtIndex[D, dimensionIndex.type, H]
   ): Interval1D[H] =
@@ -229,7 +229,7 @@ case class Interval[D <: NonEmptyTuple](
     * @return
     *   a new lower-dimensional interval
     */
-  def dropDimension[R <: NonEmptyTuple: DomainLike](dimensionIndex: Int & Singleton)(using
+  def dropDimension[R <: NonEmptyTuple: DomainLike](dimensionIndex: Domain.DimensionIndex)(using
     Domain.HasIndex[D, dimensionIndex.type],
     Domain.IsDroppedInResult[D, dimensionIndex.type, R]
   ): Interval[R] = Interval(
@@ -254,7 +254,7 @@ case class Interval[D <: NonEmptyTuple](
     *   a new higher-dimensional interval
     */
   def insertDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
-    dimensionIndex: Int & Singleton,
+    dimensionIndex: Domain.DimensionIndex,
     interval1D: Interval1D[H]
   )(using
     Domain.HasIndex[R, dimensionIndex.type],
@@ -280,7 +280,7 @@ case class Interval[D <: NonEmptyTuple](
     *   a new interval of the same dimension with the update applied
     */
   def withDimensionUpdate[H: DomainValueLike](
-    dimensionIndex: Int & Singleton,
+    dimensionIndex: Domain.DimensionIndex,
     update: Interval1D[H] => Interval1D[H]
   )(using
     Domain.HasIndex[D, dimensionIndex.type],

@@ -332,6 +332,8 @@ object Domain1D:
   /**
     * Construct a domain point (open) based on a domain value.
     *
+    * @throws IllegalArgumentException
+    *   if applied to a discrete value
     * @param t
     *   the domain value
     * @tparam T

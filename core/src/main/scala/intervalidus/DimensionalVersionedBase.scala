@@ -440,7 +440,7 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
 
   // special handling of versioned data because the public dimension n is in dimension n + 1.
   protected def getByDimensionData[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
-    dimensionIndex: Int & Singleton,
+    dimensionIndex: Domain.DimensionIndex,
     domain: Domain1D[H]
   )(using
     Domain.HasIndex[D, dimensionIndex.type],
@@ -807,7 +807,7 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     *   a lower-dimensional (n-1) projection
     */
   def getByDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
-    dimensionIndex: Int & Singleton,
+    dimensionIndex: Domain.DimensionIndex,
     domain: Domain1D[H]
   )(using
     Domain.HasIndex[D, dimensionIndex.type],

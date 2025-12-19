@@ -135,7 +135,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     ).compressAll()
 
   override def getByDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
-    dimensionIndex: Int & Singleton,
+    dimensionIndex: Domain.DimensionIndex,
     domain: Domain1D[H]
   )(using
     Domain.HasIndex[D, dimensionIndex.type],
@@ -462,7 +462,8 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
 
   /**
     * $setCurrentVersionDesc
-    *
+    * @throws Exception
+    *   if the version is too large
     * @param version
     *   $setCurrentVersionParamVersion
     * @return
@@ -480,6 +481,8 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
 
   /**
     * $incrementCurrentVersionDesc
+    * @throws Exception
+    *   if we run out of versions
     * @return
     *   a new structure with the current version incremented.
     */

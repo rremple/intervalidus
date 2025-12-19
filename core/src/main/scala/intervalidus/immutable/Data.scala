@@ -105,7 +105,7 @@ class Data[V, D <: NonEmptyTuple: DomainLike] protected (
     Data(getByHeadDimensionData(domain)).compressAll()
 
   override def getByDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
-    dimensionIndex: Int & Singleton,
+    dimensionIndex: Domain.DimensionIndex,
     domain: Domain1D[H]
   )(using
     Domain.HasIndex[D, dimensionIndex.type],

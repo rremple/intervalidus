@@ -2,8 +2,6 @@ package intervalidus
 
 import intervalidus.collection.{Coordinate, CoordinateFixed}
 
-import scala.compiletime.ops.int.S
-
 /**
   * Type class with operations on a domain with multiple discrete and/or continuous dimensions.
   *
@@ -177,9 +175,6 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
       */
     infix def withHead[X: DomainValueLike](that: Domain1D[X]): Domain1D[X] *: D = that *: domain
 
-    // to equate type-level integer successor with the incremented value of an integer
-    private def s(arg: Int & Singleton): S[arg.type] = (arg + 1).asInstanceOf[S[arg.type]]
-
     /**
       * Extract a lower-dimensional domain by dropping a dimension.
       *
@@ -191,10 +186,10 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
       * @return
       *   a new lower-dimensional domain
       */
-    def dropDimension[R <: NonEmptyTuple: DomainLike](dimensionIndex: Int & Singleton)(using
+    def dropDimension[R <: NonEmptyTuple: DomainLike](dimensionIndex: Domain.DimensionIndex)(using
       Domain.HasIndex[D, dimensionIndex.type],
       Domain.IsDroppedInResult[D, dimensionIndex.type, R]
-    ): R = domain.take(dimensionIndex) ++ domain.drop(s(dimensionIndex))
+    ): R = domain.take(dimensionIndex) ++ domain.drop(dimensionIndex).drop(1)
 
     /**
       * Create a higher-dimensional domain by inserting a dimension.
@@ -213,7 +208,7 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
       *   a new higher-dimensional domain
       */
     def insertDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
-      dimensionIndex: Int & Singleton,
+      dimensionIndex: Domain.DimensionIndex,
       domain1D: Domain1D[H]
     )(using
       Domain.HasIndex[R, dimensionIndex.type],
@@ -236,13 +231,13 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
       *   a new domain of the same dimension with the update applied
       */
     def updateDimension[H: DomainValueLike](
-      dimensionIndex: Int & Singleton,
+      dimensionIndex: Domain.DimensionIndex,
       updated: Domain1D[H]
     )(using
       Domain.HasIndex[D, dimensionIndex.type],
       Domain.IsAtIndex[D, dimensionIndex.type, H],
       Domain.IsReconstructible[D, dimensionIndex.type, H]
-    ): D = domain.take(dimensionIndex) ++ (updated *: domain.drop(s(dimensionIndex)))
+    ): D = domain.take(dimensionIndex) ++ (updated *: domain.drop(dimensionIndex).drop(1))
 
     /*
      * Equivalent symbolic method names

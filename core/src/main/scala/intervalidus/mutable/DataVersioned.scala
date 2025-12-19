@@ -136,7 +136,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     result
 
   override def getByDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
-    dimensionIndex: Int & Singleton,
+    dimensionIndex: Domain.DimensionIndex,
     domain: Domain1D[H]
   )(using
     Domain.HasIndex[D, dimensionIndex.type],
@@ -364,7 +364,8 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
 
   /**
     * $setCurrentVersionDesc $mutableAction
-    *
+    * @throws Exception
+    *   if the version is too large
     * @param version
     *   $setCurrentVersionParamVersion
     */
@@ -379,6 +380,8 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
 
   /**
     * $incrementCurrentVersionDesc $mutableAction
+    * @throws Exception
+    *   if we run out of versions
     */
   def incrementCurrentVersion(comment: String = "incremented")(using dateTime: CurrentDateTime): Unit = synchronized:
     if currentVersion + 1 == unapprovedStartVersion then throw Exception("wow, ran out of versions!")

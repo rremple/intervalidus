@@ -3,9 +3,18 @@ package intervalidus
 import scala.Tuple.{Append, Concat, Drop, Elem, Head, Size, Tail, Take}
 import scala.annotation.implicitNotFound
 import scala.compiletime.ops.boolean.&&
-import scala.compiletime.ops.int.{<, <=, >=, S}
+import scala.compiletime.ops.int.{<, >=}
 
 object Domain:
+  /**
+    * A numeric reference to a specific dimension. Dimensions are indexed starting at 0. For example, a
+    * three-dimensional domain would have dimensions indexed by 0, 1, and 2.
+    *
+    * @note
+    *   Dimension indexes are integer singletons, i.e. literal values that must be known at compile time.
+    */
+  type DimensionIndex = Int & Singleton
+
   /**
     * NonEmptyTail[D] is only valid when a multidimensional domain has a non-empty tail, i.e., it has at least two
     * dimensions.
@@ -32,7 +41,8 @@ object Domain:
     *   a multidimensional domain
     */
   @implicitNotFound("Cannot prove that ${D} has at least two dimensions.")
-  type HasAtLeastTwoDimensions[D <: NonEmptyTuple] = Tail[D] =:= NonEmptyTail[D]
+  type HasAtLeastTwoDimensions[D <: NonEmptyTuple] =
+    Tail[D] =:= NonEmptyTail[D]
 
   /**
     * Witnesses that a multidimensional domain has the specified dimension.
@@ -43,7 +53,7 @@ object Domain:
     *   index of a one-dimensional domain
     */
   @implicitNotFound("Cannot prove that ${D} has a dimension indexed by ${I}.")
-  type HasIndex[D <: NonEmptyTuple, I <: Int & Singleton] = (I >= 0 && I < Size[D]) =:= true
+  type HasIndex[D <: NonEmptyTuple, I <: DimensionIndex] = (I >= 0 && I < Size[D]) =:= true
 
   /**
     * Witnesses that a multidimensional domain can be reconstructed by concatenating the elements before the indexed
@@ -58,8 +68,8 @@ object Domain:
     *   indexed domain value type
     */
   @implicitNotFound("Cannot prove that ${D} is reconstructable using Domain1D[${H}] at index ${I}.")
-  type IsReconstructible[D <: NonEmptyTuple, I <: Int & Singleton, H] =
-    Concat[Take[D, I], Domain1D[H] *: Drop[D, S[I]]] =:= D
+  type IsReconstructible[D <: NonEmptyTuple, I <: DimensionIndex, H] =
+    Concat[Take[D, I], Domain1D[H] *: Drop[Drop[D, I], 1]] =:= D
 
   /**
     * Witnesses that a multidimensional domain can be reconstructed by concatenating the head one-dimensional domain
@@ -88,7 +98,7 @@ object Domain:
     *   the multidimensional domain result after the one-dimensional domain is inserted
     */
   @implicitNotFound("Cannot prove that ${D} with Domain1D[${H}] inserted at index ${I} results in ${R}.")
-  type IsInsertedInResult[D <: NonEmptyTuple, I <: Int & Singleton, H, R <: NonEmptyTuple] =
+  type IsInsertedInResult[D <: NonEmptyTuple, I <: DimensionIndex, H, R <: NonEmptyTuple] =
     Concat[Take[D, I], Domain1D[H] *: Drop[D, I]] =:= R
 
   /**
@@ -103,8 +113,8 @@ object Domain:
     *   the multidimensional domain result after dropping the indexed one-dimensional domain
     */
   @implicitNotFound("Cannot prove that ${D} with domain dropped at index ${I} results in ${R}.")
-  type IsDroppedInResult[D <: NonEmptyTuple, I <: Int & Singleton, R <: NonEmptyTuple] =
-    Concat[Take[D, I], Drop[D, S[I]]] =:= R
+  type IsDroppedInResult[D <: NonEmptyTuple, I <: DimensionIndex, R <: NonEmptyTuple] =
+    Concat[Take[D, I], Drop[Drop[D, I], 1]] =:= R
 
   /**
     * Witnesses that a multidimensional domain contains a specific one-dimensional domain of the specified domain value
@@ -118,7 +128,7 @@ object Domain:
     *   indexed domain value type
     */
   @implicitNotFound("Cannot prove that ${D} has Domain1D[${H}] at index ${I}.")
-  type IsAtIndex[D <: NonEmptyTuple, I <: Int & Singleton, H] =
+  type IsAtIndex[D <: NonEmptyTuple, I <: DimensionIndex, H] =
     Elem[D, I] =:= Domain1D[H]
 
   /**

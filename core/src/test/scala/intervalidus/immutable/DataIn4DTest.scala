@@ -5,6 +5,7 @@ import intervalidus.DiscreteValue.given
 import intervalidus.DomainLike.given
 import intervalidus.Domain.In4D as Dim
 import org.scalatest.compatible.Assertion
+import org.scalatest.exceptions.TestFailedException
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
@@ -84,13 +85,13 @@ class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors 
     val updateFixture = fixture.update(removeOrUpdateInterval -> updateValue) // if needed: .recompressAll()
     try assertResult(removeExpected)(removeFixture.getAll.toList)
     catch
-      case ex: Exception =>
+      case ex: TestFailedException =>
         println("Test failed (in remove), here's the actual remove data:")
         println(removeFixture.getAll.map(_.toCodeLikeString).mkString(",\n"))
         throw ex
     try assertResult(updateExpected)(updateFixture.getAll.toList)
     catch
-      case ex: Exception =>
+      case ex: TestFailedException =>
         println("Test failed (in update), here's the actual update data:")
         println(updateFixture.getAll.map(_.toCodeLikeString).mkString(",\n"))
         throw ex

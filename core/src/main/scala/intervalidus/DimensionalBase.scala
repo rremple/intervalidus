@@ -603,7 +603,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   a collection of valid data representing the lower-dimensional (n-1) projection
     */
   protected def getByDimensionData[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
-    dimensionIndex: Int & Singleton,
+    dimensionIndex: Domain.DimensionIndex,
     domain: Domain1D[H]
   )(using
     Domain.HasIndex[D, dimensionIndex.type],
@@ -942,7 +942,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   a lower-dimensional (n-1) projection
     */
   def getByDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
-    dimensionIndex: Int & Singleton,
+    dimensionIndex: Domain.DimensionIndex,
     domain: Domain1D[H]
   )(using
     Domain.HasIndex[D, dimensionIndex.type],
