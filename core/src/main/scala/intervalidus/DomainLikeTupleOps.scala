@@ -71,7 +71,7 @@ trait DomainLikeTupleOps[D <: NonEmptyTuple]:
   // (equivalent, adjacent, total)
   def equivalencyAndAdjacencyFromIntervals(beforeInterval: Interval[D], afterInterval: Interval[D]): (Int, Int, Int)
 
-  def excludingFromIntervals(thisInterval: Interval[D], thatInterval: Interval[D]): NonEmptyTuple
+  def excludingFromIntervals(thisInterval: Interval[D], thatInterval: Interval[D]): Interval.Remainder[D]
 
   def separateUsingFromIntervals(thisInterval: Interval[D], thatInterval: Interval[D]): Iterable[Interval[D]]
 
@@ -201,7 +201,7 @@ object DomainLikeTupleOps:
     inline override def excludingFromIntervals(
       thisInterval: Interval[OneDimDomain[DV]],
       thatInterval: Interval[OneDimDomain[DV]]
-    ): NonEmptyTuple =
+    ): Interval.Remainder[OneDimDomain[DV]] =
       (headInterval(thisInterval) \ headInterval(thatInterval)) *: EmptyTuple
 
     inline override def separateUsingFromIntervals(
@@ -392,7 +392,7 @@ object DomainLikeTupleOps:
     inline override def excludingFromIntervals(
       thisInterval: Interval[MultiDimDomain[DV, DomainTail]],
       thatInterval: Interval[MultiDimDomain[DV, DomainTail]]
-    ): NonEmptyTuple = (headInterval(thisInterval) \ headInterval(thatInterval)) *:
+    ): Interval.Remainder[MultiDimDomain[DV, DomainTail]] = (headInterval(thisInterval) \ headInterval(thatInterval)) *:
       applyToTail.excludingFromIntervals(tailInterval(thisInterval), tailInterval(thatInterval))
 
     def separateUsingFromIntervals(

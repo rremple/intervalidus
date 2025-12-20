@@ -27,7 +27,7 @@ case class Interval[D <: NonEmptyTuple](
   start: D,
   end: D
 )(using domainLike: DomainLike[D])
-  extends IntervalBase[D, D, NonEmptyTuple, Interval[D]]:
+  extends IntervalBase[D, D, Interval.Remainder[D], Interval[D]]:
 
   /**
     * Either the start is before end (by both start and end ordering), or, when equal, both bounds must be closed (i.e.,
@@ -106,7 +106,7 @@ case class Interval[D <: NonEmptyTuple](
     * @return
     *   A tuple of each dimension-specific `Remainder` after excluding that.
     */
-  override infix def excluding(that: Interval[D]): NonEmptyTuple =
+  override infix def excluding(that: Interval[D]): Interval.Remainder[D] =
     domainLike.intervalExcluding(this, that)
 
   /**
@@ -363,6 +363,11 @@ case class Interval[D <: NonEmptyTuple](
   */
 object Interval:
   import DomainLike.given
+
+  // used in return type of excluding
+  type Remainder[D <: Tuple] <: Tuple = D match
+    case EmptyTuple          => EmptyTuple
+    case Domain1D[t] *: tail => Interval1D.Remainder[Interval1D[t]] *: Remainder[tail]
 
   object Patterns:
 

@@ -315,7 +315,7 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
   /**
     * Internal method. @return a tuple of remainders in each dimension.
     */
-  def intervalExcluding(thisInterval: Interval[D], thatInterval: Interval[D]): NonEmptyTuple =
+  def intervalExcluding(thisInterval: Interval[D], thatInterval: Interval[D]): Interval.Remainder[D] =
     applyToDomain.excludingFromIntervals(thisInterval, thatInterval)
 
   /**
