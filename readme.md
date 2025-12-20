@@ -80,12 +80,13 @@ We could have just as easily used the immutable variant of `Data`, and the outpu
 the above output:
 
 ```scala 3
+import java.time.LocalDate
 import java.time.LocalDate.of as date
 import intervalidus.DiscreteValue.given
 import intervalidus.Interval1D.*
 import intervalidus.immutable.Data
 
-val plan1d = Data
+val plan1d: Data.In1D[String, LocalDate] = Data
   .of(intervalFrom(date(2024, 1, 1)) -> "Basic")
   .set(intervalFrom(date(2024, 4, 1)) -> "Premium")
   .remove(intervalFromAfter(date(2024, 6, 30)))
@@ -118,12 +119,13 @@ For that, you could use the same Intervalidus `Data` to represent the above as a
 this:
 
 ```scala 3
+import java.time.LocalDate
 import java.time.LocalDate.of as date
 import intervalidus.DiscreteValue.given
 import intervalidus.Interval1D.*
 import intervalidus.immutable.Data
 
-val plan2d = Data
+val plan2d: Data.In2D[String, LocalDate, LocalDate] = Data
   .of((intervalFrom(date(2024, 1, 1)) x intervalFrom(date(2023, 12, 25))) -> "Basic")
   .set((intervalFrom(date(2024, 4, 1)) x intervalFrom(date(2024, 3, 15))) -> "Premium")
   .remove(intervalFromAfter(date(2024, 6, 30)) x intervalFrom(date(2024, 6, 28)))
@@ -185,7 +187,7 @@ On 2024-07-15, no forecasted tier on 2024-08-01
 Or to see all the effective-dated information on these known dates, we can extract one-dimensional structures
 (effective dates form dimension index 0, and known dates form dimension index 1).
 ```scala 3
-def plan2dOn(knownDate: LocalDate): Data[String, Domain.In1D[LocalDate]] =
+def plan2dOn(knownDate: LocalDate): Data.In1D[String, LocalDate] =
   plan2d.getByDimension(dimensionIndex = 1, knownDate)
 knownDates.foreach: knownDate =>
   println(s"On $knownDate:\n${plan2dOn(knownDate).toString}")

@@ -5,8 +5,6 @@ import intervalidus.Domain1D.{Top, Point, domain}
 import java.time.{Duration, Instant}
 
 object VariableBase:
-  type Instant1D = Domain.In1D[Instant]
-
   /**
     * Type class for instants as discrete values by nanosecond (weird, but works in this context)
     */
@@ -33,7 +31,7 @@ object VariableBase:
     override def predecessorOf(x: Instant): Option[Instant] =
       if x.equals(minValue) then None else Some(x.minusNanos(1))
 
-import VariableBase.{Instant1D, given}
+import VariableBase.given
 
 trait VariableObjectBase:
   /**
@@ -54,7 +52,7 @@ trait VariableObjectBase:
     * @return
     *   a new variable
     */
-  def fromHistory[T](history: Iterable[ValidData[T, Instant1D]]): VariableBase[T]
+  def fromHistory[T](history: Iterable[ValidData.In1D[T, Instant]]): VariableBase[T]
 
 /**
   * A value that varies in time.
@@ -62,16 +60,16 @@ trait VariableObjectBase:
   * @tparam T
   *   the value type
   */
-trait VariableBase[T] extends (Instant1D => T):
+trait VariableBase[T] extends (Domain.In1D[Instant] => T):
 
   // could be mutable or immutable
-  protected def underlyingData: DimensionalBase[T, Instant1D]
+  protected def underlyingData: DimensionalBase.In1D[T, Instant]
 
   // from Object - print latest
   override def toString: String = get.toString
 
   // from Function - delegate to underlyingData
-  override def apply(key: Instant1D): T = underlyingData(key)
+  override def apply(key: Domain.In1D[Instant]): T = underlyingData(key)
 
   // on conflict, add 10 ns (0.00001 ms) to make the instant unique (ouch!)
   private val fixedNanoBump = 10
@@ -94,10 +92,10 @@ trait VariableBase[T] extends (Instant1D => T):
       // no conflict or no prior change -- normal
       case _ => f(domain(now))
 
-  private def priorTo(d: Instant): Instant1D = domain(d).leftAdjacent.tupled
+  private def priorTo(d: Instant): Domain.In1D[Instant] = domain(d).leftAdjacent.tupled
 
   // returns the prior update data as if the last change did not happen
-  protected def unsetPriorData: Option[ValidData[T, Instant1D]] = for
+  protected def unsetPriorData: Option[ValidData.In1D[T, Instant]] = for
     current <- lastChange
     data <- underlyingData.getDataAt(priorTo(current))
   yield data.interval.toTop -> data.value
@@ -106,7 +104,7 @@ trait VariableBase[T] extends (Instant1D => T):
     * @return
     *   all historical values as an intervalidus immutable data structure.
     */
-  def history: immutable.Data[T, Instant1D]
+  def history: immutable.Data.In1D[T, Instant]
 
   /**
     * Get the last change instant.

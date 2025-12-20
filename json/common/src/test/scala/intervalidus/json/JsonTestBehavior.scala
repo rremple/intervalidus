@@ -257,12 +257,12 @@ trait JsonTestBehavior[W[_], R[_]](using
           """{"value":"Hello","interval":{"start":["Bottom"],"end":[{"point":"2025-11-19T12:15:00Z"}]}}""" +
           """,{"value":"Goodbye","interval":{"start":[{"point":"2025-11-19T12:15:00.000000001Z"}],"end":["Top"]}}""" +
           "]"
-      isomorphicData[immutable.Variable[String], ValidData[String, VariableBase.Instant1D]](
+      isomorphicData[immutable.Variable[String], ValidData.In1D[String, Instant]](
         immutable.Variable.fromHistory(data),
         json,
         _.history.getAll
       )
-      isomorphicData[mutable.Variable[String], ValidData[String, VariableBase.Instant1D]](
+      isomorphicData[mutable.Variable[String], ValidData.In1D[String, Instant]](
         mutable.Variable.fromHistory(data),
         json,
         _.history.getAll

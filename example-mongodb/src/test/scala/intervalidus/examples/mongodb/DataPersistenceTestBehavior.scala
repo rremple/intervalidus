@@ -16,8 +16,8 @@ import scala.language.implicitConversions
 
 case class Word(english: String, italian: String)
 
-type WordIn1D = Data[Word, In1D[Int]]
-type ValidWord = ValidData[Word, In1D[Int]]
+type WordIn1D = Data.In1D[Word, Int]
+type ValidWord = ValidData.In1D[Word, Int]
 
 case class LevelWord(level: Int, word: WordIn1D)
 

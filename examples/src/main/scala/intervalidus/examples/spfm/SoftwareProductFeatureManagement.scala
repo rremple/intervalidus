@@ -152,7 +152,7 @@ object SoftwareProductFeatureManagement:
       ]
     ]()
 
-    def currentFeatureReleasePlan(using CurrentDateTime): DataMulti[Feat, Domain.In2D[LocalDate, Release]] =
+    def currentFeatureReleasePlan(using CurrentDateTime): DataMulti.In2D[Feat, LocalDate, Release] =
       featureReleasePlan.getByHeadDimension(now)
 
     // Samples
@@ -227,7 +227,7 @@ object SoftwareProductFeatureManagement:
 
     def currentRegionalDeploymentPlan(using
       CurrentDateTime
-    ): DataMulti[Region, Domain.In3D[LocalDate, Environment, Release]] =
+    ): DataMulti.In3D[Region, LocalDate, Environment, Release] =
       regionalDeploymentPlan.getByHeadDimension(now)
 
     // Samples
@@ -305,13 +305,13 @@ object SoftwareProductFeatureManagement:
       ]
     ]()
 
-    def proposeRelease(featureRelease: ValidData[Feat, Domain.In2D[Environment, Release]]): Unit =
+    def proposeRelease(featureRelease: ValidData.In2D[Feat, Environment, Release]): Unit =
       releasePlan.set(featureRelease)(using Unapproved)
 
-    def approveRelease(featureRelease: ValidData[Feat, Domain.In2D[Environment, Release]]): Boolean =
+    def approveRelease(featureRelease: ValidData.In2D[Feat, Environment, Release]): Boolean =
       releasePlan.approve(featureRelease)
 
-    def releasePlanFor(environment: Environment): DataVersioned[Feat, Domain.In1D[Release]] =
+    def releasePlanFor(environment: Environment): DataVersioned.In1D[Feat, Release] =
       releasePlan.getByHeadDimension(environment)
 
     val developA = (availableIn(Development) x inRelease(2.0)) -> Feat("A")
@@ -433,7 +433,7 @@ object SoftwareProductFeatureManagement:
     println(s"\nFeature B release environments/regions: ${releasePlan.intervals(Feat("B"))}")
 
     println("Release 2.0 regional deployments:")
-    val regionsByEnvironment: DataMulti[Region, Domain.In1D[Environment]] =
+    val regionsByEnvironment: DataMulti.In1D[Region, Environment] =
       currentRegionalDeploymentPlan
         .getByHeadDimension(today) // effective today
         .getByDimension(1, Release(2.0)) // for v2.0
@@ -457,7 +457,7 @@ object SoftwareProductFeatureManagement:
       case None => println(s"never released")
       case Some((effectiveDate, release)) =>
         println(s"initially released on $effectiveDate in $release - regional deployment history:")
-        val subsetData: DataMulti[Region, Domain.In2D[LocalDate, Environment]] =
+        val subsetData: DataMulti.In2D[Region, LocalDate, Environment] =
           currentRegionalDeploymentPlan.getByDimension(2, release) // for this release
         subsetData
           .getIntersecting(effectiveOn(effectiveDate) x anyEnvironment) // effective in our timeline

@@ -2,7 +2,9 @@ package intervalidus.mutable
 
 import intervalidus.*
 import intervalidus.Interval1D.{intervalFrom, unbounded}
-import intervalidus.VariableBase.{Instant1D, given}
+import intervalidus.VariableBase.given
+
+import java.time.Instant
 
 /**
   * A value that varies in time.
@@ -10,7 +12,7 @@ import intervalidus.VariableBase.{Instant1D, given}
 object Variable extends VariableObjectBase:
   override def apply[T](initialValue: T): Variable[T] = new Variable(Data.of(initialValue))
 
-  override def fromHistory[T](history: Iterable[ValidData[T, Instant1D]]): Variable[T] = new Variable(Data(history))
+  override def fromHistory[T](history: Iterable[ValidData.In1D[T, Instant]]): Variable[T] = new Variable(Data(history))
 
 /**
   * A value that varies in time.
@@ -18,9 +20,9 @@ object Variable extends VariableObjectBase:
   * @tparam T
   *   the value type
   */
-class Variable[T] private (override protected val underlyingData: Data[T, Instant1D]) extends VariableBase[T]:
+class Variable[T] private (override protected val underlyingData: Data.In1D[T, Instant]) extends VariableBase[T]:
 
-  override def history: immutable.Data[T, Instant1D] = underlyingData.toImmutable
+  override def history: immutable.Data.In1D[T, Instant] = underlyingData.toImmutable
 
   /**
     * Set the value, starting now.

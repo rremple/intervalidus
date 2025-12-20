@@ -5,6 +5,8 @@ import com.rallyhealth.weepickle.v1.WeePickle.{From, FromTo, To}
 import intervalidus.*
 import intervalidus.DimensionalVersionedBase.{VersionDomainValue, VersionMetadata, Versioned}
 
+import java.time.Instant
+
 object Json:
   private val asValue: FromTo[Value] = summon
   private val asValueObj: FromTo[Obj] = summon
@@ -97,11 +99,11 @@ object Json:
     */
 
   given given_FromTo_immutable_Variable[V](using
-    FromTo[ValidData[V, VariableBase.Instant1D]]
+    FromTo[ValidData.In1D[V, Instant]]
   ): FromTo[immutable.Variable[V]] =
     asValueArr.bimap[immutable.Variable[V]](
       dimensional => Arr.from(dimensional.history.getAll.map(writeJs)),
-      arr => immutable.Variable.fromHistory(arr.value.map(_.as[ValidData[V, VariableBase.Instant1D]]))
+      arr => immutable.Variable.fromHistory(arr.value.map(_.as[ValidData.In1D[V, Instant]]))
     )
 
   given given_FromTo_immutable_Data[V, D <: NonEmptyTuple: DomainLike](using
@@ -147,11 +149,11 @@ object Json:
     */
 
   given given_FromTo_mutable_Variable[V](using
-    FromTo[ValidData[V, VariableBase.Instant1D]]
+    FromTo[ValidData.In1D[V, Instant]]
   ): FromTo[mutable.Variable[V]] =
     asValueArr.bimap[mutable.Variable[V]](
       dimensional => Arr.from(dimensional.history.getAll.map(writeJs)),
-      arr => mutable.Variable.fromHistory(arr.value.map(_.as[ValidData[V, VariableBase.Instant1D]]))
+      arr => mutable.Variable.fromHistory(arr.value.map(_.as[ValidData.In1D[V, Instant]]))
     )
 
   given given_FromTo_mutable_Data[V, D <: NonEmptyTuple: DomainLike](using

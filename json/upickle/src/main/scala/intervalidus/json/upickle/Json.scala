@@ -105,11 +105,11 @@ object Json:
     */
 
   given given_ReadWriter_immutable_Variable[V](using
-    ReadWriter[ValidData[V, VariableBase.Instant1D]]
+    ReadWriter[ValidData.In1D[V, Instant]]
   ): ReadWriter[immutable.Variable[V]] =
     asValueArr.bimap[immutable.Variable[V]](
       dimensional => Arr.from(dimensional.history.getAll.map(writeJs)),
-      arr => immutable.Variable.fromHistory(arr.value.map(_.as[ValidData[V, VariableBase.Instant1D]]))
+      arr => immutable.Variable.fromHistory(arr.value.map(_.as[ValidData.In1D[V, Instant]]))
     )
 
   given given_ReadWriter_immutable_Data[V, D <: NonEmptyTuple: DomainLike](using
@@ -155,11 +155,11 @@ object Json:
     */
 
   given given_ReadWriter_mutable_Variable[V](using
-    ReadWriter[ValidData[V, VariableBase.Instant1D]]
+    ReadWriter[ValidData.In1D[V, Instant]]
   ): ReadWriter[mutable.Variable[V]] =
     asValueArr.bimap[mutable.Variable[V]](
       dimensional => Arr.from(dimensional.history.getAll.map(writeJs)),
-      arr => mutable.Variable.fromHistory(arr.value.map(_.as[ValidData[V, VariableBase.Instant1D]]))
+      arr => mutable.Variable.fromHistory(arr.value.map(_.as[ValidData.In1D[V, Instant]]))
     )
 
   given given_ReadWriter_mutable_Data[V, D <: NonEmptyTuple: DomainLike](using
