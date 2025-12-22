@@ -184,18 +184,23 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     )
 
     extension (d: Data[String, Dim[LocalDate, Int]])
-      def flipEverything: Data[String, Dim[Int, LocalDate]] =
+      def flipEverything1: Data[String, Dim[Int, LocalDate]] =
         val flippedValidData = d.getAll.map:
           case (horizontal x_: vertical) ->: v => (vertical x horizontal) -> v.reverse
         Data(flippedValidData)
 
+      def flipEverything2: Data[String, Dim[Int, LocalDate]] =
+        d.mapValues(_.reverse).mapIntervals(_.swapDimensions(0, 1))
+
     val fixture1 = Data(allData)
     fixture1.copy shouldBe fixture1
 
-    fixture1.flipEverything.getAll.toList shouldBe List(
+    fixture1.flipEverything1.getAll.toList shouldBe List(
       (intervalTo(4) x unbounded[LocalDate]) -> "yeH",
       (intervalFrom(16) x unbounded[LocalDate]) -> "dlroW"
     )
+
+    fixture1.flipEverything2 shouldBe fixture1.flipEverything1
 
     val fixture2a = fixture1.map(d =>
       d.copy(

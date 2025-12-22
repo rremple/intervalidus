@@ -216,6 +216,27 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
     ): R = domain.take(dimensionIndex) ++ (domain1D *: domain.drop(dimensionIndex))
 
     /**
+      * Swap the one-dimensional domains at the indexed dimensions.
+      *
+      * @param dimensionIndex1
+      *   the lesser index of the one-dimensional domain to swap
+      * @param dimensionIndex2
+      *   the greater index of the one-dimensional domain to swap
+      * @tparam R
+      *   the multidimensional domain result after the one-dimensional domains are swapped
+      */
+    def swapDimensions[R <: NonEmptyTuple: DomainLike](
+      dimensionIndex1: Domain.DimensionIndex,
+      dimensionIndex2: Domain.DimensionIndex
+    )(using
+      Domain.HasSwappableIndexes[D, dimensionIndex1.type, dimensionIndex2.type],
+      Domain.IsSwappedInResult[D, dimensionIndex1.type, dimensionIndex2.type, R]
+    ): R = domain.take(dimensionIndex1) ++ (
+      (domain(dimensionIndex2) *: domain.take(dimensionIndex2).drop(dimensionIndex1).drop(1)) ++
+        (domain(dimensionIndex1) *: domain.drop(dimensionIndex2).drop(1))
+    )
+
+    /**
       * Update the domain at a particular dimension.
       *
       * @param dimensionIndex

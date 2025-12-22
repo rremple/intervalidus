@@ -56,6 +56,22 @@ object Domain:
   type HasIndex[D <: NonEmptyTuple, I <: DimensionIndex] = (I >= 0 && I < Size[D]) =:= true
 
   /**
+    * Witnesses that a multidimensional domain has the specified dimensions that can be swapped.
+    * @note
+    *   the first dimension must be strictly less than the second one.
+    *
+    * @tparam D
+    *   a multidimensional domain
+    * @tparam I1
+    *   the lesser index of a one-dimensional domain
+    * @tparam I1
+    *   the greater index of a one-dimensional domain
+    */
+  @implicitNotFound("Cannot prove that ${D} has swappable dimensions indexed by ${I1} < ${I2}.")
+  type HasSwappableIndexes[D <: NonEmptyTuple, I1 <: DimensionIndex, I2 <: DimensionIndex] =
+    HasIndex[D, I1] & HasIndex[D, I2] & I1 < I2 =:= true
+
+  /**
     * Witnesses that a multidimensional domain can be reconstructed by concatenating the elements before the indexed
     * one-dimensional domain, the indexed one-dimensional domain itself, and the elements after the indexed
     * one-dimensional domain.
@@ -100,6 +116,29 @@ object Domain:
   @implicitNotFound("Cannot prove that ${D} with Domain1D[${H}] inserted at index ${I} results in ${R}.")
   type IsInsertedInResult[D <: NonEmptyTuple, I <: DimensionIndex, H, R <: NonEmptyTuple] =
     Concat[Take[D, I], Domain1D[H] *: Drop[D, I]] =:= R
+
+  /**
+    * Witnesses that the specified result can be constructed by swapping the one-dimensional domains at the indexed
+    * dimensions.
+    *
+    * @tparam D
+    *   a multidimensional domain
+    * @tparam I1
+    *   the lesser index of a one-dimensional domain
+    * @tparam I1
+    *   the greater index of a one-dimensional domain
+    * @tparam R
+    *   the multidimensional domain result after the one-dimensional domains are swapped
+    */
+  @implicitNotFound("Cannot prove that ${D} with dimensions indexed by ${I1} < ${I2} swapped results in ${R}.")
+  type IsSwappedInResult[D <: NonEmptyTuple, I1 <: DimensionIndex, I2 <: DimensionIndex, R <: NonEmptyTuple] =
+    Concat[
+      Take[D, I1], // The prefix before the first index.
+      Concat[
+        Elem[D, I2] *: Drop[Drop[Take[D, I2], I1], 1], // The second element moved up, followed by the middle segment.
+        Elem[D, I1] *: Drop[Drop[D, I2], 1] // The first element moved down, followed by the remaining suffix.
+      ]
+    ] =:= R
 
   /**
     * Witnesses that the specified result can be constructed by concatenating the elements before and after the dropped

@@ -265,6 +265,27 @@ case class Interval[D <: NonEmptyTuple](
   )
 
   /**
+    * Swap the one-dimensional intervals at the indexed dimensions.
+    *
+    * @param dimensionIndex1
+    *   the lesser index of the one-dimensional interval to swap
+    * @param dimensionIndex2
+    *   the greater index of the one-dimensional interval to swap
+    * @tparam R
+    *   the multidimensional domain result after the one-dimensional intervals are swapped
+    */
+  def swapDimensions[R <: NonEmptyTuple: DomainLike](
+    dimensionIndex1: Domain.DimensionIndex,
+    dimensionIndex2: Domain.DimensionIndex
+  )(using
+    Domain.HasSwappableIndexes[D, dimensionIndex1.type, dimensionIndex2.type],
+    Domain.IsSwappedInResult[D, dimensionIndex1.type, dimensionIndex2.type, R]
+  ): Interval[R] = Interval(
+    start.swapDimensions[R](dimensionIndex1, dimensionIndex2),
+    end.swapDimensions[R](dimensionIndex1, dimensionIndex2)
+  )
+
+  /**
     * Update the interval at a particular dimension.
     *
     * @param dimensionIndex

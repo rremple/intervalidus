@@ -15,6 +15,7 @@ import scala.language.implicitConversions
 class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors with ImmutableBaseBehaviors:
 
   import Interval1D.*
+  import Interval.Patterns.*
 
   // shared
   testsFor(stringLookupTests("Immutable", Data(_), Data.of(_)))
@@ -219,8 +220,26 @@ class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors 
       (unboundedDate x unboundedDate x intervalFrom(16) x unbounded[Int]) -> "World"
     )
 
+    extension (d: Data[String, Dim[LocalDate, LocalDate, Int, Int]])
+      def flipEverything1: Data[String, Dim[Int, LocalDate, LocalDate, Int]] =
+        val flippedValidData = d.getAll.map:
+          case (horizontal x_: vertical x_: depth x_: forth) ->: v =>
+            (depth x vertical x horizontal x forth) -> v.reverse
+          case unexpected => fail(s"$unexpected did not match pattern") // should never happen
+        Data(flippedValidData)
+
+      def flipEverything2: Data[String, Dim[Int, LocalDate, LocalDate, Int]] =
+        d.mapValues(_.reverse).mapIntervals(_.swapDimensions(0, 2))
+
     val fixture1 = Data(allData)
     fixture1.copy shouldBe fixture1
+
+    fixture1.flipEverything1.getAll.toList shouldBe List(
+      (intervalTo(4) x unboundedDate x unboundedDate x unbounded[Int]) -> "yeH",
+      (intervalFrom(16) x unboundedDate x unboundedDate x unbounded[Int]) -> "dlroW"
+    )
+
+    fixture1.flipEverything2 shouldBe fixture1.flipEverything1
 
     val fixture2 = fixture1.map(d =>
       d.copy(
