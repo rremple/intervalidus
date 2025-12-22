@@ -249,6 +249,60 @@ node3 -> node2;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="HasSwappableIndexes-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">type </span></span><a href="Domain$.html#HasSwappableIndexes-0" t="n" class="documentableName ">HasSwappableIndexes</a>[<span t="k"></span><span data-unresolved-link="" t="t">D</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">NonEmptyTuple</span>, <span t="k"></span><span data-unresolved-link="" t="t">I1</span><span t="k"> &lt;: </span><a href="Domain$.html#DimensionIndex-0" t="t">DimensionIndex</a>, <span t="k"></span><span data-unresolved-link="" t="t">I2</span><span t="k"> &lt;: </span><a href="Domain$.html#DimensionIndex-0" t="t">DimensionIndex</a>] = <a href="Domain$.html#HasIndex-0" t="t">HasIndex</a>[<span data-unresolved-link="" t="t">D</span>, <span data-unresolved-link="" t="t">I1</span>]<span t="k"> &amp; </span><a href="Domain$.html#HasIndex-0" t="t">HasIndex</a>[<span data-unresolved-link="" t="t">D</span>, <span data-unresolved-link="" t="t">I2</span>]<span t="k"> &amp; </span>((<span data-unresolved-link="" t="t">I1</span> <span data-unresolved-link="" t="t">&lt;</span> <span data-unresolved-link="" t="t">I2</span>) <span data-unresolved-link="" t="t">=:=</span> true)
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Witnesses that a multidimensional domain has the specified dimensions that can be swapped.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Witnesses that a multidimensional domain has the specified dimensions that can be swapped.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               D
+              </dt>
+              <dd class="body-medium">
+               <p>a multidimensional domain</p>
+              </dd>
+              <dt class="body-small">
+               I1
+              </dt>
+              <dd class="body-medium">
+               <p>the greater index of a one-dimensional domain</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Note
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <div>
+                 <p>the first dimension must be strictly less than the second one.</p>
+                </div>
+               </div>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="In1D-0">
          <div class="documentableElement-expander">
           <div class="header monospace mono-medium">
@@ -564,6 +618,55 @@ node3 -> node2;
               </dt>
               <dd class="body-medium">
                <p>head domain value type</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small"></dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="IsSwappedInResult-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">type </span></span><a href="Domain$.html#IsSwappedInResult-0" t="n" class="documentableName ">IsSwappedInResult</a>[<span t="k"></span><span data-unresolved-link="" t="t">D</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">NonEmptyTuple</span>, <span t="k"></span><span data-unresolved-link="" t="t">I1</span><span t="k"> &lt;: </span><a href="Domain$.html#DimensionIndex-0" t="t">DimensionIndex</a>, <span t="k"></span><span data-unresolved-link="" t="t">I2</span><span t="k"> &lt;: </span><a href="Domain$.html#DimensionIndex-0" t="t">DimensionIndex</a>, <span t="k"></span><span data-unresolved-link="" t="t">R</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">NonEmptyTuple</span>] = <span data-unresolved-link="" t="t">Concat</span>[<span data-unresolved-link="" t="t">Take</span>[<span data-unresolved-link="" t="t">D</span>, <span data-unresolved-link="" t="t">I1</span>], <span data-unresolved-link="" t="t">Concat</span>[<span data-unresolved-link="" t="t">Elem</span>[<span data-unresolved-link="" t="t">D</span>, <span data-unresolved-link="" t="t">I2</span>] <span data-unresolved-link="" t="t">*:</span> <span data-unresolved-link="" t="t">Drop</span>[<span data-unresolved-link="" t="t">Drop</span>[<span data-unresolved-link="" t="t">Take</span>[<span data-unresolved-link="" t="t">D</span>, <span data-unresolved-link="" t="t">I2</span>], <span data-unresolved-link="" t="t">I1</span>], 1], <span data-unresolved-link="" t="t">Elem</span>[<span data-unresolved-link="" t="t">D</span>, <span data-unresolved-link="" t="t">I1</span>] <span data-unresolved-link="" t="t">*:</span> <span data-unresolved-link="" t="t">Drop</span>[<span data-unresolved-link="" t="t">Drop</span>[<span data-unresolved-link="" t="t">D</span>, <span data-unresolved-link="" t="t">I2</span>], 1]]] <span data-unresolved-link="" t="t">=:=</span> <span data-unresolved-link="" t="t">R</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Witnesses that the specified result can be constructed by swapping the one-dimensional domains at the indexed dimensions.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Witnesses that the specified result can be constructed by swapping the one-dimensional domains at the indexed dimensions.</p>
+             </div>
+             <h2 class="h200">Type parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               D
+              </dt>
+              <dd class="body-medium">
+               <p>a multidimensional domain</p>
+              </dd>
+              <dt class="body-small">
+               I1
+              </dt>
+              <dd class="body-medium">
+               <p>the greater index of a one-dimensional domain</p>
+              </dd>
+              <dt class="body-small">
+               R
+              </dt>
+              <dd class="body-medium">
+               <p>the multidimensional domain result after the one-dimensional domains are swapped</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
