@@ -5,6 +5,7 @@ import intervalidus.mutable.Data as MutableData
 
 import java.time.LocalDateTime
 import scala.collection.mutable
+import scala.math.Ordering.Implicits.infixOrderingOps
 
 /**
   * Common definitions used in all versioned dimensional data (with a hidden version dimension).
@@ -164,16 +165,6 @@ trait DimensionalVersionedBaseObject:
     DomainLike[Versioned[D]],
     CurrentDateTime
   ): mutable.Builder[ValidData[V, D], DimensionalVersionedBase[V, D]]
-
-class DimensionalDataVersionedBuilder[V, D <: NonEmptyTuple: DomainLike, Self <: DimensionalVersionedBase[V, D]](
-  build: List[ValidData[V, D]] => Self
-) extends mutable.ReusableBuilder[ValidData[V, D], Self]:
-  protected val validDataBuilder: mutable.Builder[ValidData[V, D], List[ValidData[V, D]]] = List.newBuilder
-  override def clear(): Unit = validDataBuilder.clear()
-  override def result(): Self = build(validDataBuilder.result())
-  override def addOne(elem: ValidData[V, D]): this.type =
-    validDataBuilder.addOne(elem)
-    this
 
 /**
   * Interface is similar to [[DimensionalBase]], but it operates on an underlying [[intervalidus.mutable.Data]] using an
@@ -423,9 +414,9 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
 
   // special handling of versioned data because the public head is in dimension two.
   protected def getByHeadDimensionData[H: DomainValueLike](domain: Domain1D[H])(using
+    Domain.IsAtLeastTwoDimensional[D],
     Domain.IsAtHead[D, H],
-    Domain.HasAtLeastTwoDimensions[D],
-    Domain.IsReconstructibleFromHead[D, H],
+    Domain.IsUpdatableAtHead[D, H],
     DomainLike[Domain.NonEmptyTail[D]],
     DomainLike[Versioned[Domain.NonEmptyTail[D]]]
   ): Iterable[ValidData[V, Versioned[Domain.NonEmptyTail[D]]]] =
@@ -445,7 +436,7 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
   )(using
     Domain.HasIndex[D, dimensionIndex.type],
     Domain.IsAtIndex[D, dimensionIndex.type, H],
-    Domain.IsReconstructible[D, dimensionIndex.type, H],
+    Domain.IsUpdatableAtIndex[D, dimensionIndex.type, H],
     Domain.IsDroppedInResult[D, dimensionIndex.type, R],
     DomainLike[Versioned[R]]
   ): Iterable[ValidData[V, Versioned[R]]] =
@@ -718,6 +709,20 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
   protected def resetTo(selection: VersionSelection): DimensionalVersionedBase[V, D]
 
   /**
+    * Used internally (by [[resetToVersion]]) to extend intervals ending on or after the selection boundary.
+    * @param keep
+    *   version selection for kept data
+    * @param d
+    *   valid data to map
+    * @return
+    *   valid data with an updated version interval end based on the version selection
+    */
+  protected def extendInterval(keep: VersionSelection)(d: ValidData[V, Versioned[D]]): ValidData[V, Versioned[D]] =
+    if versionInterval(d).end >= keep.boundary
+    then withVersionUpdate(d, _.toTop)
+    else d
+
+  /**
     * Creates a copy.
     *
     * @return
@@ -779,9 +784,9 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     *   a lower-dimensional (n-1) projection
     */
   def getByHeadDimension[H: DomainValueLike](domain: Domain1D[H])(using
+    Domain.IsAtLeastTwoDimensional[D],
     Domain.IsAtHead[D, H],
-    Domain.HasAtLeastTwoDimensions[D],
-    Domain.IsReconstructibleFromHead[D, H],
+    Domain.IsUpdatableAtHead[D, H],
     DomainLike[Domain.NonEmptyTail[D]],
     DomainLike[Versioned[Domain.NonEmptyTail[D]]]
   ): DimensionalVersionedBase[V, Domain.NonEmptyTail[D]]
@@ -812,7 +817,7 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
   )(using
     Domain.HasIndex[D, dimensionIndex.type],
     Domain.IsAtIndex[D, dimensionIndex.type, H],
-    Domain.IsReconstructible[D, dimensionIndex.type, H],
+    Domain.IsUpdatableAtIndex[D, dimensionIndex.type, H],
     Domain.IsDroppedInResult[D, dimensionIndex.type, R],
     DomainLike[Versioned[R]]
   ): DimensionalVersionedBase[V, R]

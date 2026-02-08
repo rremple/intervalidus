@@ -87,18 +87,6 @@ trait DimensionalBaseObject:
     Experimental
   ): mutable.Builder[ValidData[V, D], DimensionalBase[V, D]]
 
-class DimensionalDataBuilder[V, D <: NonEmptyTuple: DomainLike, Self <: DimensionalBase[V, D]](
-  build: List[ValidData[V, D]] => Self
-)(using
-  Experimental
-) extends mutable.ReusableBuilder[ValidData[V, D], Self]:
-  protected val validDataBuilder: mutable.Builder[ValidData[V, D], List[ValidData[V, D]]] = List.newBuilder
-  override def clear(): Unit = validDataBuilder.clear()
-  override def result(): Self = build(validDataBuilder.result())
-  override def addOne(elem: ValidData[V, D]): this.type =
-    validDataBuilder.addOne(elem)
-    this
-
 /**
   * @define dataValueType
   *   the type of the value managed as data.
@@ -487,6 +475,14 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     dataByValue.keySet.foreach(compressInPlace)
 
   /**
+    * Internal method to set in place.
+    */
+  protected def setInPlace(data: ValidData[V, D]): Unit = synchronized:
+    updateOrRemove(data.interval, _ => None)
+    addValidData(data)
+    compressInPlace(data.value)
+
+  /**
     * Applies a diff action to this structure.
     *
     * @param diffAction
@@ -569,9 +565,9 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   a collection of valid data representing the lower-dimensional (n-1) projection
     */
   protected def getByHeadDimensionData[H: DomainValueLike](domain: Domain1D[H])(using
+    Domain.IsAtLeastTwoDimensional[D],
     Domain.IsAtHead[D, H],
-    Domain.HasAtLeastTwoDimensions[D],
-    Domain.IsReconstructibleFromHead[D, H],
+    Domain.IsUpdatableAtHead[D, H],
     DomainLike[Domain.NonEmptyTail[D]]
   ): Iterable[ValidData[V, Domain.NonEmptyTail[D]]] =
     val filteredData = domain match
@@ -608,7 +604,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
   )(using
     Domain.HasIndex[D, dimensionIndex.type],
     Domain.IsAtIndex[D, dimensionIndex.type, H],
-    Domain.IsReconstructible[D, dimensionIndex.type, H],
+    Domain.IsUpdatableAtIndex[D, dimensionIndex.type, H],
     Domain.IsDroppedInResult[D, dimensionIndex.type, R]
   ): Iterable[ValidData[V, R]] =
     val filteredData = domain match
@@ -916,9 +912,9 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   a lower-dimensional (n-1) projection
     */
   def getByHeadDimension[H: DomainValueLike](domain: Domain1D[H])(using
+    Domain.IsAtLeastTwoDimensional[D],
     Domain.IsAtHead[D, H],
-    Domain.HasAtLeastTwoDimensions[D],
-    Domain.IsReconstructibleFromHead[D, H],
+    Domain.IsUpdatableAtHead[D, H],
     DomainLike[Domain.NonEmptyTail[D]]
   ): DimensionalBase[V, Domain.NonEmptyTail[D]]
 
@@ -947,7 +943,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
   )(using
     Domain.HasIndex[D, dimensionIndex.type],
     Domain.IsAtIndex[D, dimensionIndex.type, H],
-    Domain.IsReconstructible[D, dimensionIndex.type, H],
+    Domain.IsUpdatableAtIndex[D, dimensionIndex.type, H],
     Domain.IsDroppedInResult[D, dimensionIndex.type, R]
   ): DimensionalBase[V, R]
 

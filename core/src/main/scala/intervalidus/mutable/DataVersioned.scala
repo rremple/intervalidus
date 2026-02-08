@@ -49,7 +49,7 @@ object DataVersioned extends DimensionalVersionedBaseObject:
     DomainLike[Versioned[D]],
     CurrentDateTime
   ): mutable.Builder[ValidData[V, D], DataVersioned[V, D]] =
-    DimensionalDataVersionedBuilder[V, D, DataVersioned[V, D]](from(_, initialVersion, initialComment))
+    ValidData.Builds[V, D, DataVersioned[V, D]](from(_, initialVersion, initialComment))
 
 /**
   * Mutable versioned dimensional data in any dimension.
@@ -120,9 +120,9 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     )
 
   override def getByHeadDimension[H: DomainValueLike](domain: Domain1D[H])(using
+    Domain.IsAtLeastTwoDimensional[D],
     Domain.IsAtHead[D, H],
-    Domain.HasAtLeastTwoDimensions[D],
-    Domain.IsReconstructibleFromHead[D, H],
+    Domain.IsUpdatableAtHead[D, H],
     DomainLike[Domain.NonEmptyTail[D]],
     DomainLike[Versioned[Domain.NonEmptyTail[D]]]
   ): DataVersioned[V, Domain.NonEmptyTail[D]] =
@@ -141,7 +141,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   )(using
     Domain.HasIndex[D, dimensionIndex.type],
     Domain.IsAtIndex[D, dimensionIndex.type, H],
-    Domain.IsReconstructible[D, dimensionIndex.type, H],
+    Domain.IsUpdatableAtIndex[D, dimensionIndex.type, H],
     Domain.IsDroppedInResult[D, dimensionIndex.type, R],
     DomainLike[Versioned[R]]
   ): DataVersioned[V, R] =
@@ -398,10 +398,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   def resetToVersion(version: VersionDomainValue): Unit = synchronized:
     val keep = VersionSelection(version)
     filter(versionInterval(_) intersects keep.intervalTo)
-    map: d =>
-      if versionInterval(d).end >= keep.boundary
-      then withVersionUpdate(d, _.toTop)
-      else d
+    map(extendInterval(keep))
     setCurrentVersion(version)
     versionTimestamps.filterInPlace((key, _) => key <= version)
     compressAll()

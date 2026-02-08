@@ -269,13 +269,6 @@ sealed trait Domain1D[+D]:
   * Companion for the one-dimensional domain used in defining and operating on intervals.
   */
 object Domain1D:
-  private def codeFor[T](value: T): String = value match
-    case d: LocalDate => s"LocalDate.of(${d.getYear},${d.getMonthValue},${d.getDayOfMonth})"
-    case d: LocalDateTime =>
-      s"LocalDate.of(${d.getYear},${d.getMonthValue},${d.getDayOfMonth})" +
-        s".atTime(${d.getHour},${d.getMinute},${d.getSecond},${d.getNano})"
-    case _ => value.toString
-
   /**
     * Larger than the largest data point (like +∞)
     */
@@ -300,7 +293,7 @@ object Domain1D:
     override def leftBrace: String = "["
     override def rightBrace: String = "]"
 
-    override def toCodeLikeString: String = s"Point(${codeFor(value)})"
+    override def toCodeLikeString: String = s"Point(${codeLikeValue(value)})"
     override def toString: String = value.toString
 
   /**
@@ -314,8 +307,25 @@ object Domain1D:
     override def isClosedOrUnbounded: Boolean = false
     override def closeIfOpen: Domain1D[P] = Point(value)
 
-    override def toCodeLikeString: String = s"OpenPoint(${codeFor(value)})"
+    override def toCodeLikeString: String = s"OpenPoint(${codeLikeValue(value)})"
     override def toString: String = value.toString
+
+  /**
+    * Code-like strings for some value, with special handling for dates and date-times.
+    *
+    * @param value
+    *   any value
+    * @tparam T
+    *   type of the value
+    * @return
+    *   a code-like string constructing the value
+    */
+  def codeLikeValue[T](value: T): String = value match
+    case d: LocalDate => s"LocalDate.of(${d.getYear},${d.getMonthValue},${d.getDayOfMonth})"
+    case d: LocalDateTime =>
+      s"LocalDate.of(${d.getYear},${d.getMonthValue},${d.getDayOfMonth})" +
+        s".atTime(${d.getHour},${d.getMinute},${d.getSecond},${d.getNano})"
+    case _ => value.toString
 
   /**
     * Construct a domain point (closed) based on a domain value.
@@ -420,4 +430,4 @@ object Domain1D:
     * is available in a context requiring something that is [[DomainLike]]. So this converts strait from a domain value
     * `T` directly to a domain, i.e., `T => Domain.In1D[T]`
     */
-  given [T: DomainValueLike]: Conversion[T, Domain.In1D[T]] = t => domain(t).tupled
+  given [T: DomainValueLike]: Conversion[T, Domain.In1D[T]] = domain(_).tupled

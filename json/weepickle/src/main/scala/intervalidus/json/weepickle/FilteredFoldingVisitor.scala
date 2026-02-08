@@ -21,6 +21,7 @@ class FilteredFoldingVisitor[A, B] private (
 )(op: (B, A) => B)
   extends NoOpVisitor[B](zero):
 
+  /** @inheritdoc */
   override def visitObject(length: Int): ObjVisitor[Any, B] =
     new ObjVisitor[Any, B] with FilterPath:
       private var key: Option[String] = None
@@ -46,6 +47,7 @@ class FilteredFoldingVisitor[A, B] private (
         otherwise = NoOpVisitor(objResult)
       )
 
+  /** @inheritdoc */
   override def visitArray(length: Int): ArrVisitor[Any, B] =
     new ArrVisitor[Any, B] with FilterPath:
       // must anticipate current element because subVisitor gets called before visitValue

@@ -125,3 +125,18 @@ object ContinuousValue:
     override def compare(lhs: E, rhs: E): Int = values.indexOf(lhs).compareTo(values.indexOf(rhs))
 
     override def orderedHashOf(x: E): Double = values.indexOf(x).toDouble
+
+  /**
+    * Auto-derives a ContinuousValue type class from an enum type, for example:
+    * {{{
+    *   enum Color derives ContinuousValue:
+    *     case Red, Yellow, Green, Cyan, Blue, Magenta
+    * }}}
+    *
+    * @tparam E
+    *   the enum type
+    * @return
+    *   a continuous value type class based on the enum values
+    */
+  inline def derived[E <: scala.reflect.Enum]: ContinuousValue[E] =
+    fromSeq(EnumMacro.enumValues[E].toIndexedSeq)

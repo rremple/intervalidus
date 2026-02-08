@@ -39,9 +39,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     *   $mapValuesParamF
     */
   def mapValues(f: V => V): Unit =
-    getAll
-      .map(d => d.copy(value = f(d.value)))
-      .foreach(updateValidData)
+    map(d => d.copy(value = f(d.value)))
 
   /**
     * $mapIntervalsDesc $mutableAction
@@ -50,7 +48,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     *   $mapIntervalsParamF
     */
   def mapIntervals(f: Interval[D] => Interval[D]): Unit = synchronized:
-    replaceValidData(getAll.map(d => d.copy(interval = f(d.interval))))
+    map(d => d.copy(interval = f(d.interval)))
 
   /**
     * Applies a function to all the elements of this structure and updates valid values from the elements of the
@@ -78,9 +76,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     *   $setParamData
     */
   def set(data: ValidData[V, D]): Unit = synchronized:
-    remove(data.interval)
-    addValidData(data)
-    compress(data.value)
+    setInPlace(data)
 
   /**
     * $setManyDesc $mutableAction @note $setManyNote
@@ -128,7 +124,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     */
   def replace(oldData: ValidData[V, D], newData: ValidData[V, D]): Unit =
     removeValidData(oldData)
-    set(newData)
+    setInPlace(newData)
 
   /**
     * $replaceByKeyDesc $mutableAction

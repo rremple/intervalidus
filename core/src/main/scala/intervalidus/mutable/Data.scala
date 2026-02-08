@@ -31,7 +31,7 @@ object Data extends DimensionalBaseObject with DimensionalBaseConstructorParams:
 
   override def newBuilder[V, D <: NonEmptyTuple: DomainLike](using
     Experimental
-  ): mutable.Builder[ValidData[V, D], Data[V, D]] = DimensionalDataBuilder[V, D, Data[V, D]](apply(_))
+  ): mutable.Builder[ValidData[V, D], Data[V, D]] = ValidData.Builds[V, D, Data[V, D]](apply(_))
 
 /**
   * Mutable dimensional data.
@@ -65,9 +65,9 @@ class Data[V, D <: NonEmptyTuple: DomainLike] protected (
     Data(zipAllData(that, thisDefault, thatDefault))
 
   override def getByHeadDimension[H: DomainValueLike](domain: Domain1D[H])(using
+    Domain.IsAtLeastTwoDimensional[D],
     Domain.IsAtHead[D, H],
-    Domain.HasAtLeastTwoDimensions[D],
-    Domain.IsReconstructibleFromHead[D, H],
+    Domain.IsUpdatableAtHead[D, H],
     DomainLike[Domain.NonEmptyTail[D]]
   ): Data[V, Domain.NonEmptyTail[D]] =
     val result = Data(getByHeadDimensionData(domain))
@@ -80,7 +80,7 @@ class Data[V, D <: NonEmptyTuple: DomainLike] protected (
   )(using
     Domain.HasIndex[D, dimensionIndex.type],
     Domain.IsAtIndex[D, dimensionIndex.type, H],
-    Domain.IsReconstructible[D, dimensionIndex.type, H],
+    Domain.IsUpdatableAtIndex[D, dimensionIndex.type, H],
     Domain.IsDroppedInResult[D, dimensionIndex.type, R]
   ): Data[V, R] =
     val result = Data(getByDimensionData(dimensionIndex, domain))

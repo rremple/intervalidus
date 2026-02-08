@@ -107,18 +107,6 @@ trait DimensionalMultiBaseObject extends DimensionalBaseConstructorParams:
     Experimental
   ): mutable.Builder[ValidData[V, D], DimensionalMultiBase[V, D]]
 
-class DimensionalDataMultiBuilder[V, D <: NonEmptyTuple: DomainLike, Self <: DimensionalMultiBase[V, D]](
-  build: List[ValidData[V, D]] => Self
-)(using
-  Experimental
-) extends mutable.ReusableBuilder[ValidData[V, D], Self]:
-  protected val validDataBuilder: mutable.Builder[ValidData[V, D], List[ValidData[V, D]]] = List.newBuilder
-  override def clear(): Unit = validDataBuilder.clear()
-  override def result(): Self = build(validDataBuilder.result())
-  override def addOne(elem: ValidData[V, D]): this.type =
-    validDataBuilder.addOne(elem)
-    this
-
 /**
   * Data that may have multiple values (managed as sets of values) in different intervals.
   *

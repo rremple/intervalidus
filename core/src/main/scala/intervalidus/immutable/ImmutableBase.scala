@@ -125,10 +125,8 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     * @return
     *   $immutableReturn
     */
-  def set(data: ValidData[V, D]): Self = copyAndModify: result =>
-    result.updateOrRemove(data.interval, _ => None)
-    result.addValidData(data)
-    result.compressInPlace(data.value)
+  def set(data: ValidData[V, D]): Self =
+    copyAndModify(_.setInPlace(data))
 
   /**
     * $setManyDesc @note $setManyNote
@@ -139,9 +137,9 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     *   $immutableReturn
     */
   def setMany(data: Iterable[ValidData[V, D]]): Self = copyAndModify: result =>
-    data.foreach: data =>
-      result.updateOrRemove(data.interval, _ => None)
-      result.addValidData(data)
+    data.foreach: d =>
+      result.updateOrRemove(d.interval, _ => None)
+      result.addValidData(d)
     result.values.foreach(result.compressInPlace)
 
   /**
@@ -183,9 +181,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     */
   def replace(oldData: ValidData[V, D], newData: ValidData[V, D]): Self = copyAndModify: result =>
     result.removeValidData(oldData)
-    result.updateOrRemove(newData.interval, _ => None)
-    result.addValidData(newData)
-    result.compressInPlace(newData.value)
+    result.setInPlace(newData)
 
   /**
     * $replaceByKeyDesc
@@ -282,7 +278,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     * @return
     *   $immutableReturn
     */
-  def syncWith(that: Self): Self =
+  def syncWith(that: DimensionalBase[V, D]): Self =
     applyDiffActions(that.diffActionsFrom(this))
 
   /**
@@ -307,7 +303,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     *   $immutableReturn
     */
   def merge(
-    that: Self,
+    that: DimensionalBase[V, D],
     mergeValues: (V, V) => V = (thisDataValue, _) => thisDataValue
   ): Self = copyAndModify(_.mergeInPlace(that.getAll, mergeValues))
 

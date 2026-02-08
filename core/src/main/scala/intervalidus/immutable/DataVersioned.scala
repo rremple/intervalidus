@@ -49,7 +49,7 @@ object DataVersioned extends DimensionalVersionedBaseObject:
     DomainLike[Versioned[D]],
     CurrentDateTime
   ): mutable.Builder[ValidData[V, D], DataVersioned[V, D]] =
-    DimensionalDataVersionedBuilder[V, D, DataVersioned[V, D]](from(_, initialVersion, initialComment))
+    ValidData.Builds[V, D, DataVersioned[V, D]](from(_, initialVersion, initialComment))
 
 /**
   * Immutable versioned dimensional data in any dimension.
@@ -121,9 +121,9 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     )
 
   override def getByHeadDimension[H: DomainValueLike](domain: Domain1D[H])(using
+    Domain.IsAtLeastTwoDimensional[D],
     Domain.IsAtHead[D, H],
-    Domain.HasAtLeastTwoDimensions[D],
-    Domain.IsReconstructibleFromHead[D, H],
+    Domain.IsUpdatableAtHead[D, H],
     DomainLike[Domain.NonEmptyTail[D]],
     DomainLike[Versioned[Domain.NonEmptyTail[D]]]
   ): DataVersioned[V, Domain.NonEmptyTail[D]] =
@@ -140,7 +140,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   )(using
     Domain.HasIndex[D, dimensionIndex.type],
     Domain.IsAtIndex[D, dimensionIndex.type, H],
-    Domain.IsReconstructible[D, dimensionIndex.type, H],
+    Domain.IsUpdatableAtIndex[D, dimensionIndex.type, H],
     Domain.IsDroppedInResult[D, dimensionIndex.type, R],
     DomainLike[Versioned[R]]
   ): DataVersioned[V, R] =
@@ -506,12 +506,9 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     DataVersioned(
       underlying.getAll
         .filter(versionInterval(_) intersects keep.intervalTo)
-        .map: d =>
-          if versionInterval(d).end >= keep.boundary
-          then withVersionUpdate(d, _.toTop)
-          else d,
+        .map(extendInterval(keep)),
       initialVersion,
-      mutable.Map.from(versionTimestamps.iterator.filter(_._1 <= version)),
+      mutable.Map.from(versionTimestamps.view.filterKeys(_ <= version)),
       Some(version)
     ).compressAll()
 

@@ -5,7 +5,7 @@ import intervalidus.collection.{Coordinate, CoordinateFixed}
 /**
   * Type class with operations on a domain with multiple discrete and/or continuous dimensions.
   *
-  * An n-dimensional domain is represented by a tuple of `Domain1D[T`<sup>i</sup>`]` values (where i varies from 1 to
+  * An n-dimensional domain is represented by a tuple of `Domain1D[T`<sup>i</sup>`]` values (where 'i' varies from 1 to
   * n), and each `T`<sup>i</sup> is a (potentially different) domain value type that is `DomainValueLike`.
   *
   * An n-dimensional domain is used in defining the boundaries of an n-dimensional interval. Generally, you will not
@@ -257,7 +257,7 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
     )(using
       Domain.HasIndex[D, dimensionIndex.type],
       Domain.IsAtIndex[D, dimensionIndex.type, H],
-      Domain.IsReconstructible[D, dimensionIndex.type, H]
+      Domain.IsUpdatableAtIndex[D, dimensionIndex.type, H]
     ): D = domain.take(dimensionIndex) ++ (updated *: domain.drop(dimensionIndex).drop(1))
 
     /*

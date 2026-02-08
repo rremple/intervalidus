@@ -306,7 +306,7 @@ case class Interval[D <: NonEmptyTuple](
   )(using
     Domain.HasIndex[D, dimensionIndex.type],
     Domain.IsAtIndex[D, dimensionIndex.type, H],
-    Domain.IsReconstructible[D, dimensionIndex.type, H]
+    Domain.IsUpdatableAtIndex[D, dimensionIndex.type, H]
   ): Interval[D] =
     val updated = update(apply(dimensionIndex))
     Interval(start.updateDimension(dimensionIndex, updated.start), end.updateDimension(dimensionIndex, updated.end))
@@ -321,7 +321,7 @@ case class Interval[D <: NonEmptyTuple](
     *   the tail interval of n-1 dimensions.
     */
   def tailInterval(using
-    Domain.HasAtLeastTwoDimensions[D],
+    Domain.IsAtLeastTwoDimensional[D],
     DomainLike[Domain.NonEmptyTail[D]]
   ): Interval[Domain.NonEmptyTail[D]] = Interval(start.tail, end.tail)
 
@@ -338,7 +338,7 @@ case class Interval[D <: NonEmptyTuple](
     */
   def withHeadUpdate[H: DomainValueLike](update: Interval1D[H] => Interval1D[H])(using
     Domain.IsAtHead[D, H],
-    Domain.IsReconstructibleFromHead[D, H]
+    Domain.IsUpdatableAtHead[D, H]
   ): Interval[D] =
     val updatedHead = update(headInterval1D)
     Interval(updatedHead.start *: start.tail, updatedHead.end *: end.tail)
@@ -405,8 +405,8 @@ object Interval:
         * }}}
         */
       def unapply[D <: NonEmptyTuple, H](i: Interval[D])(using
+        Domain.IsAtLeastTwoDimensional[D],
         Domain.IsAtHead[D, H],
-        Domain.HasAtLeastTwoDimensions[D],
         DomainLike[Domain.NonEmptyTail[D]],
         DomainValueLike[H]
       ): (Interval1D[H], Interval[Domain.NonEmptyTail[D]]) =

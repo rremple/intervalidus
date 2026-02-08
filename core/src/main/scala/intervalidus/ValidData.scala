@@ -2,6 +2,8 @@ package intervalidus
 
 import intervalidus.collection.BoxedPayload
 
+import scala.collection.mutable
+
 /**
   * A value that is valid in an interval of arbitrary dimensions. Conceptually, this defines a partial function where
   * all domain elements that are part of the interval map to the value.
@@ -75,6 +77,32 @@ object ValidData:
   type In2D[V, R1, R2] = ValidData[V, Domain.In2D[R1, R2]]
   type In3D[V, R1, R2, R3] = ValidData[V, Domain.In3D[R1, R2, R3]]
   type In4D[V, R1, R2, R3, R4] = ValidData[V, Domain.In4D[R1, R2, R3, R4]]
+
+  /**
+    * Builds a structure using a collection of valid data as the source.
+    *
+    * @param build
+    *   generates the result from a collection of valid data
+    * @tparam V
+    *   the type of the value managed as data (the codomain).
+    * @tparam D
+    *   the domain type -- [[DomainLike]] non-empty tuples.
+    * @tparam To
+    *   the type of collection that it produced.
+    */
+  class Builds[V, D <: NonEmptyTuple: DomainLike, +To](
+    build: Iterable[ValidData[V, D]] => To
+  )(using Experimental)
+    extends mutable.ReusableBuilder[ValidData[V, D], To]:
+    private val validDataBuilder: mutable.Builder[ValidData[V, D], Iterable[ValidData[V, D]]] = Iterable.newBuilder
+
+    override def clear(): Unit = validDataBuilder.clear()
+
+    override def addOne(elem: ValidData[V, D]): this.type =
+      validDataBuilder.addOne(elem)
+      this
+
+    override def result(): To = build(validDataBuilder.result())
 
   /**
     * Valid data are ordered using interval start ordering

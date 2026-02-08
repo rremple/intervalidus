@@ -85,6 +85,9 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       assert(Interval(origin, origin) equiv Interval(origin, origin))
       assert(!(Interval(Domain.in2D[Int, Int](-1, -1), origin) equiv Interval(origin, origin)))
 
+      //  Cannot prove that the domain has a index at an arbitrary, non-singleton Int
+      """def notInline(arbitrary: Int) = origin.updateDimension(arbitrary, 0)""" shouldNot typeCheck
+
       //  Incorrect domain value type: Domain.IsAtIndex fails
       """val _ = origin.updateDimension(1, LocalDate.now())""" shouldNot typeCheck
 

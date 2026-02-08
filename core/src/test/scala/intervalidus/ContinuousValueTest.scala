@@ -9,6 +9,11 @@ import java.time.{Instant, LocalDate, LocalDateTime, ZoneOffset}
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 class ContinuousValueTest extends AnyFunSuite:
+  test("Auto-derive Continuous Value"):
+    enum Color derives ContinuousValue:
+      case Red, Yellow, Green, Cyan, Blue, Magenta
+
+    assertResult(0)(Color.Red.orderedHashValue)
 
   test("Ops on Ints"):
     import intervalidus.ContinuousValue.IntContinuousValue

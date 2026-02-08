@@ -31,7 +31,7 @@ object Data extends DimensionalBaseObject with DimensionalBaseConstructorParams:
 
   override def newBuilder[V, D <: NonEmptyTuple: DomainLike](using
     Experimental
-  ): mutable.Builder[ValidData[V, D], Data[V, D]] = DimensionalDataBuilder[V, D, Data[V, D]](apply(_))
+  ): mutable.Builder[ValidData[V, D], Data[V, D]] = ValidData.Builds[V, D, Data[V, D]](apply(_))
 
 /**
   * Immutable dimensional data.
@@ -69,15 +69,13 @@ class Data[V, D <: NonEmptyTuple: DomainLike] protected (
 
   override def mapValues[B](
     f: V => B
-  ): Data[B, D] = Data(
-    getAll.map(d => d.copy(value = f(d.value)))
-  ).compressAll()
+  ): Data[B, D] =
+    map(d => d.copy(value = f(d.value)))
 
   override def mapIntervals[S <: NonEmptyTuple: DomainLike](
     f: Interval[D] => Interval[S]
-  ): Data[V, S] = Data(
-    getAll.map(d => d.copy(interval = f(d.interval)))
-  ).compressAll()
+  ): Data[V, S] =
+    map(d => d.copy(interval = f(d.interval)))
 
   override def flatMap[B, S <: NonEmptyTuple: DomainLike](
     f: ValidData[V, D] => DimensionalBase[B, S]
@@ -97,9 +95,9 @@ class Data[V, D <: NonEmptyTuple: DomainLike] protected (
     Data(zipAllData(that, thisDefault, thatDefault))
 
   override def getByHeadDimension[H: DomainValueLike](domain: Domain1D[H])(using
+    Domain.IsAtLeastTwoDimensional[D],
     Domain.IsAtHead[D, H],
-    Domain.HasAtLeastTwoDimensions[D],
-    Domain.IsReconstructibleFromHead[D, H],
+    Domain.IsUpdatableAtHead[D, H],
     DomainLike[Domain.NonEmptyTail[D]]
   ): Data[V, Domain.NonEmptyTail[D]] =
     Data(getByHeadDimensionData(domain)).compressAll()
@@ -110,7 +108,7 @@ class Data[V, D <: NonEmptyTuple: DomainLike] protected (
   )(using
     Domain.HasIndex[D, dimensionIndex.type],
     Domain.IsAtIndex[D, dimensionIndex.type, H],
-    Domain.IsReconstructible[D, dimensionIndex.type, H],
+    Domain.IsUpdatableAtIndex[D, dimensionIndex.type, H],
     Domain.IsDroppedInResult[D, dimensionIndex.type, R]
   ): Data[V, R] =
     Data(getByDimensionData(dimensionIndex, domain)).compressAll()

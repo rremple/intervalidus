@@ -41,7 +41,7 @@ object DataMulti extends DimensionalMultiBaseObject:
 
   override def newBuilder[V, D <: NonEmptyTuple: DomainLike](using
     Experimental
-  ): mutable.Builder[ValidData[V, D], DataMulti[V, D]] = DimensionalDataMultiBuilder[V, D, DataMulti[V, D]](from(_))
+  ): mutable.Builder[ValidData[V, D], DataMulti[V, D]] = ValidData.Builds[V, D, DataMulti[V, D]](from(_))
 
 /**
   * Mutable, multivalued dimensional data.
@@ -125,9 +125,9 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] protected (
     Data(zipAllData(that, thisDefault, thatDefault))
 
   override def getByHeadDimension[H: DomainValueLike](domain: Domain1D[H])(using
+    Domain.IsAtLeastTwoDimensional[D],
     Domain.IsAtHead[D, H],
-    Domain.HasAtLeastTwoDimensions[D],
-    Domain.IsReconstructibleFromHead[D, H],
+    Domain.IsUpdatableAtHead[D, H],
     DomainLike[Domain.NonEmptyTail[D]]
   ): DataMulti[V, Domain.NonEmptyTail[D]] =
     val result = DataMulti(getByHeadDimensionData(domain))
@@ -140,7 +140,7 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] protected (
   )(using
     Domain.HasIndex[D, dimensionIndex.type],
     Domain.IsAtIndex[D, dimensionIndex.type, H],
-    Domain.IsReconstructible[D, dimensionIndex.type, H],
+    Domain.IsUpdatableAtIndex[D, dimensionIndex.type, H],
     Domain.IsDroppedInResult[D, dimensionIndex.type, R]
   ): DataMulti[V, R] =
     val result = DataMulti(getByDimensionData(dimensionIndex, domain))

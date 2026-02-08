@@ -3,7 +3,6 @@ package intervalidus
 import intervalidus.Domain1D.*
 import intervalidus.Interval1D.{intervalFrom, intervalTo}
 
-import java.time.{LocalDate, LocalDateTime}
 import scala.annotation.nowarn
 import scala.math.Ordering.Implicits.infixOrderingOps
 
@@ -112,28 +111,21 @@ case class Interval1D[T](
   override def toString: String = s"${start.leftBrace}$start${domainValue.bracePunctuation}$end${end.rightBrace}"
 
   override def toCodeLikeString: String =
-    def valueCode(value: T): String = value match
-      case d: LocalDate => s"LocalDate.of(${d.getYear},${d.getMonthValue},${d.getDayOfMonth})"
-      case d: LocalDateTime =>
-        s"LocalDate.of(${d.getYear},${d.getMonthValue},${d.getDayOfMonth})" +
-          s".atTime(${d.getHour},${d.getMinute},${d.getSecond},${d.getNano})"
-      case _ => value.toString
-
     def boundCode(bound: Domain1D[T]): String = (bound: @nowarn("msg=match may not be exhaustive")) match
-      case OpenPoint(s) => s"open(${valueCode(s)})"
-      case Point(s)     => s"${valueCode(s)}"
+      case OpenPoint(s) => s"open(${Domain1D.codeLikeValue(s)})"
+      case Point(s)     => s"${Domain1D.codeLikeValue(s)}"
 
     (start, end) match
       case (Bottom, Top) => "unbounded"
       case (Bottom, endPoint) =>
         endPoint match
-          case OpenPoint(s) => s"intervalToBefore(${valueCode(s)})"
+          case OpenPoint(s) => s"intervalToBefore(${Domain1D.codeLikeValue(s)})"
           case _            => s"intervalTo(${boundCode(endPoint)})"
       case (startPoint, Top) =>
         startPoint match
-          case OpenPoint(s) => s"intervalFromAfter(${valueCode(s)})"
+          case OpenPoint(s) => s"intervalFromAfter(${Domain1D.codeLikeValue(s)})"
           case _            => s"intervalFrom(${boundCode(startPoint)})"
-      case (Point(s), Point(e)) if s == e => s"intervalAt(${valueCode(s)})"
+      case (Point(s), Point(e)) if s == e => s"intervalAt(${Domain1D.codeLikeValue(s)})"
       case (sb, eb)                       => s"interval(${boundCode(sb)}, ${boundCode(eb)})"
 
   /*

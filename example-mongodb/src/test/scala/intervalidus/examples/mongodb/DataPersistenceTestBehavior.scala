@@ -1,11 +1,11 @@
 package intervalidus.examples.mongodb
 
 import com.mongodb.client.model.{IndexOptions, Indexes}
-import intervalidus.{Domain, ValidData}
 import intervalidus.DiffAction.{Create, Delete, Update}
 import intervalidus.DiscreteValue.given
-import intervalidus.Domain.In1D
+import intervalidus.Domain.{In1D, in1D}
 import intervalidus.Interval1D.{interval, intervalFrom, intervalTo}
+import intervalidus.ValidData
 import intervalidus.immutable.Data
 import org.bson.{BsonDocument, BsonInt32, BsonValue}
 import org.scalatest.funsuite.AnyFunSuite
@@ -90,8 +90,8 @@ trait DataPersistenceTestBehavior[W[_], R[_]](using
         val modifications = modifiedLocally.diffActionsFrom(definedLocally)
         modifications shouldBe List(
           Update(intervalTo(0) -> Word("Hey", "Ciao")),
-          Delete(Domain.in1D(5)),
-          Delete(Domain.in1D(16)),
+          Delete(in1D(5)),
+          Delete(in1D(16)),
           Create(intervalFrom(20) -> Word("World", "Mondo"))
         )
 

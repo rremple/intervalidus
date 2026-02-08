@@ -40,8 +40,8 @@ object Domain:
     * @tparam D
     *   a multidimensional domain
     */
-  @implicitNotFound("Cannot prove that ${D} has at least two dimensions.")
-  type HasAtLeastTwoDimensions[D <: NonEmptyTuple] =
+  @implicitNotFound("Cannot prove that ${D} is at least two-dimensional.")
+  type IsAtLeastTwoDimensional[D <: NonEmptyTuple] =
     Tail[D] =:= NonEmptyTail[D]
 
   /**
@@ -72,32 +72,32 @@ object Domain:
     HasIndex[D, I1] & HasIndex[D, I2] & I1 < I2 =:= true
 
   /**
-    * Witnesses that a multidimensional domain can be reconstructed by concatenating the elements before the indexed
+    * Witnesses that a multidimensional domain can be updated by concatenating the elements before the indexed
     * one-dimensional domain, the indexed one-dimensional domain itself, and the elements after the indexed
     * one-dimensional domain.
     *
     * @tparam D
     *   a multidimensional domain
     * @tparam I
-    *   index of the one-dimensional domain
+    *   index of the updated one-dimensional domain
     * @tparam H
     *   indexed domain value type
     */
-  @implicitNotFound("Cannot prove that ${D} is reconstructable using Domain1D[${H}] at index ${I}.")
-  type IsReconstructible[D <: NonEmptyTuple, I <: DimensionIndex, H] =
+  @implicitNotFound("Cannot prove that ${D} is updatable using Domain1D[${H}] at index ${I}.")
+  type IsUpdatableAtIndex[D <: NonEmptyTuple, I <: DimensionIndex, H] =
     Concat[Take[D, I], Domain1D[H] *: Drop[Drop[D, I], 1]] =:= D
 
   /**
-    * Witnesses that a multidimensional domain can be reconstructed by concatenating the head one-dimensional domain
-    * with the multidimensional tail.
+    * Witnesses that a multidimensional domain can be updated by concatenating the head one-dimensional domain with the
+    * multidimensional tail.
     *
     * @tparam D
     *   a multidimensional domain
     * @tparam H
     *   head domain value type
     */
-  @implicitNotFound("Cannot prove that ${D} is reconstructable using head Domain1D[${H}].")
-  type IsReconstructibleFromHead[D <: NonEmptyTuple, H] =
+  @implicitNotFound("Cannot prove that ${D} is updatable using Domain1D[${H}] at head.")
+  type IsUpdatableAtHead[D <: NonEmptyTuple, H] =
     Domain1D[H] *: Tail[D] =:= D
 
   /**
@@ -130,7 +130,7 @@ object Domain:
     * @tparam R
     *   the multidimensional domain result after the one-dimensional domains are swapped
     */
-  @implicitNotFound("Cannot prove that ${D} with dimensions indexed by ${I1} < ${I2} swapped results in ${R}.")
+  @implicitNotFound("Cannot prove that ${D} with swapped dimensions indexed by ${I1} < ${I2} results in ${R}.")
   type IsSwappedInResult[D <: NonEmptyTuple, I1 <: DimensionIndex, I2 <: DimensionIndex, R <: NonEmptyTuple] =
     Concat[
       Take[D, I1], // The prefix before the first index.
@@ -179,7 +179,7 @@ object Domain:
     * @tparam H
     *   head domain value type
     */
-  @implicitNotFound("Cannot prove that head of ${D} is Domain1D[${H}].")
+  @implicitNotFound("Cannot prove that the head of ${D} is Domain1D[${H}].")
   type IsAtHead[D <: NonEmptyTuple, H] =
     Head[D] =:= Domain1D[H]
 
