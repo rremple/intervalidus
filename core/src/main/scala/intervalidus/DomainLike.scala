@@ -334,27 +334,34 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
     adjacency == 1 && equivalency == total - 1
 
   /**
-    * Internal method. @return a tuple of remainders in each dimension.
+    * Internal method.
+    * @return
+    *   a tuple of remainders in each dimension.
     */
   def intervalExcluding(thisInterval: Interval[D], thatInterval: Interval[D]): Interval.Remainder[D] =
     applyToDomain.excludingFromIntervals(thisInterval, thatInterval)
 
   /**
-    * Internal method. @return a collection of disjoint intervals covering thisInterval separated by the boundaries of
-    * thatInterval.
+    * Internal method.
+    * @return
+    *   a collection of disjoint intervals covering thisInterval separated by the boundaries of thatInterval.
     */
   def intervalSeparateUsing(thisInterval: Interval[D], thatInterval: Interval[D]): Iterable[Interval[D]] =
     applyToDomain.separateUsingFromIntervals(thisInterval, thatInterval)
 
   /**
-    * Internal method. @return gap between thisInterval and thatInterval, if one exists.
+    * Internal method.
+    * @return
+    *   gap between thisInterval and thatInterval, if one exists.
     */
   def intervalGapWith(thisInterval: Interval[D], thatInterval: Interval[D]): Option[Interval[D]] =
     applyToDomain.gapWithFromIntervals(thisInterval, thatInterval)
 
   /**
-    * Internal method. @return all intervals, including all overlaps and gaps between intervals, as intervals. Inputs
-    * may be overlapping. The result is disjoint and covers the span of the input intervals.
+    * Internal method.
+    * @return
+    *   all intervals, including all overlaps and gaps between intervals, as intervals. Inputs may be overlapping. The
+    *   result is disjoint and covers the span of the input intervals.
     */
   def intervalUniqueIntervals(intervals: Iterable[Interval[D]]): Iterable[Interval[D]] =
     applyToDomain.uniqueIntervalsFromInterval(intervals)
@@ -371,7 +378,9 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
         case (domain, swaps) if swaps == 1 => domain
 
   /**
-    * Internal method. @return a code-like string for this interval, with or without parens.
+    * Internal method.
+    * @return
+    *   a code-like string for this interval, with or without parens.
     */
   def intervalToCodeLikeString(interval: Interval[D], withParens: Boolean): String =
     applyToDomain.toCodeLikeStringsFromInterval(interval) match
@@ -380,7 +389,9 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
       case multiple               => multiple.mkString(" x ")
 
   /**
-    * Internal method. @return a mathematical representation of this interval.
+    * Internal method.
+    * @return
+    *   a mathematical representation of this interval.
     */
   def intervalToString(interval: Interval[D]): String =
     applyToDomain.toStringsFromInterval(interval) match
