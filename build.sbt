@@ -48,7 +48,6 @@ lazy val root = (project in file("."))
 
 lazy val core = project
   .enablePlugins(GhpagesPlugin, SiteScaladocPlugin)
-  .disablePlugins(MimaPlugin, TastyMiMaPlugin) // for now (pre 1.0)
   .dependsOn(collection)
   .settings(commonPublishSettings)
   .settings(
@@ -57,14 +56,12 @@ lazy val core = project
   )
 
 lazy val collection = project
-  .disablePlugins(MimaPlugin, TastyMiMaPlugin) // for now (pre 1.0)
   .settings(commonPublishSettings)
   .settings(
     name := "intervalidus-collection"
   )
 
 lazy val `intervalidus-pickle` = (project in file("json/common"))
-  .disablePlugins(MimaPlugin, TastyMiMaPlugin) // for now (pre 1.0)
   .dependsOn(core)
   .settings(commonPublishSettings)
   .settings(
@@ -72,7 +69,6 @@ lazy val `intervalidus-pickle` = (project in file("json/common"))
   )
 
 lazy val `intervalidus-weepickle` = (project in file("json/weepickle"))
-  .disablePlugins(MimaPlugin, TastyMiMaPlugin) // for now (pre 1.0)
   .dependsOn(core, `intervalidus-pickle` % "compile->compile;test->test")
   .settings(commonPublishSettings)
   .settings(
@@ -81,7 +77,6 @@ lazy val `intervalidus-weepickle` = (project in file("json/weepickle"))
   )
 
 lazy val `intervalidus-upickle` = (project in file("json/upickle"))
-  .disablePlugins(MimaPlugin, TastyMiMaPlugin) // for now (pre 1.0)
   .dependsOn(core, `intervalidus-pickle` % "compile->compile;test->test")
   .settings(commonPublishSettings)
   .settings(
@@ -90,7 +85,6 @@ lazy val `intervalidus-upickle` = (project in file("json/upickle"))
   )
 
 lazy val `intervalidus-tinyrule` = (project in file("sidequests/tinyrule"))
-  .disablePlugins(MimaPlugin, TastyMiMaPlugin) // for now (pre 1.0)
   .settings(commonPublishSettings)
   .settings(
     name := "intervalidus-tinyrule"
