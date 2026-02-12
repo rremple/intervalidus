@@ -6,6 +6,12 @@ ThisBuild / githubRepository := "intervalidus"
 ThisBuild / publishTo := Some(
   "GitHub Packages" at s"https://maven.pkg.github.com/${githubOwner.value}/${githubRepository.value}"
 )
+
+ThisBuild / versionScheme := Some("early-semver")
+ThisBuild / versionPolicyIntention := Compatibility.BinaryCompatible // None // as a stopgap
+// Ignore dynamic version suffixes for internal sub-project dependencies
+ThisBuild / versionPolicyIgnoredInternalDependencyVersions := Some("^\\d+\\.\\d+\\.\\d+\\+\\d+".r)
+
 publishMavenStyle := true
 
 def commonSettings = Seq(
@@ -17,9 +23,12 @@ def commonSettings = Seq(
   libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.19" % Test
 )
 def commonPublishSettings = commonSettings ++ Seq(
-  versionScheme := Some("early-semver"),
-  mimaPreviousArtifacts := previousStableVersion.value.map(organization.value %% moduleName.value % _).toSet,
-  tastyMiMaPreviousArtifacts := mimaPreviousArtifacts.value
+  tastyMiMaPreviousArtifacts := mimaPreviousArtifacts.value,
+  tastyMiMaReportIssues := {
+    if (versionPolicyIntention.value == Compatibility.None) // e.g., major release
+      streams.value.log.info(s"TASTy compatibility check skipped for ${name.value}.")
+    else tastyMiMaReportIssues.value
+  }
 )
 def commonNoPublishSettings = commonSettings ++ Seq(
   publish / skip := true,
@@ -43,6 +52,7 @@ lazy val root = (project in file("."))
   .settings(
     name := "intervalidus-root",
     githubTokenSource := TokenSource.GitConfig("github.token") || TokenSource.Environment("PUBLISH_TO_PACKAGES"),
+    versionPolicyCheck / aggregate := true,
     publish / skip := true
   )
 
