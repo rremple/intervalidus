@@ -1,0 +1,21 @@
+name: Launch Scala Steward
+on:
+  schedule:
+    # Runs every Sunday at midnight
+    - cron: '0 0 * * 0'
+  workflow_dispatch: # Allows manual triggering
+jobs:
+  scala-steward:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Launch Scala Steward
+        uses: scala-steward-org/scala-steward-action@v2
+        with:
+          github-token: ${{ secrets.PUBLISH_TO_PACKAGES }}
+          author-email: "rremple@users.noreply.github.com"
+          author-name: "Scala Steward (rremple)"
+        env:
+          PUBLISH_TO_PACKAGES: ${{ secrets.PUBLISH_TO_PACKAGES }}
