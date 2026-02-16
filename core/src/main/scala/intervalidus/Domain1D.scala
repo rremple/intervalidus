@@ -16,10 +16,8 @@ import scala.math.Ordering.Implicits.infixOrderingOps
   *   - When domain values are discrete, the left and right adjacent domains of a point are the respective predecessors
   *     and successors of the domain value. This also gives us a way to accommodate having predecessors/successors on
   *     the boundaries, i.e., `domain(maxValue).rightAdjacent == Top` and `domain(minValue).leftAdjacent == Bottom`.
-  *
   *   - When domain values are continuous, the left and right adjacent domains are always the same: open if the point is
   *     closed and closed if the point is open.
-  *
   *   - In both discrete and continuous domains, `Top` and `Bottom` are considered self-adjacent.
   *
   * @tparam D

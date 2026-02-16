@@ -114,7 +114,11 @@ trait DimensionalBaseConstructorParams:
     */
   protected def constructorParams[V, D <: NonEmptyTuple](
     initialData: Iterable[ValidData[V, D]]
-  )(using domainValue: DomainLike[D])(using Experimental): (
+  )(using
+    domainValue: DomainLike[D]
+  )(using
+    Experimental
+  ): (
     mutable.TreeMap[D, ValidData[V, D]],
     MultiMapSorted[V, ValidData[V, D]],
     BoxTree[ValidData[V, D]]

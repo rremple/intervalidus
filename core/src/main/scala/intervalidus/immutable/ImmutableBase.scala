@@ -155,8 +155,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     else
       Some(copyAndModify: result =>
         result.addValidData(data)
-        compressInPlace(data.value)
-      )
+        compressInPlace(data.value))
 
   /**
     * $updateDesc
