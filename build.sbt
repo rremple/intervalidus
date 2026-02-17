@@ -1,11 +1,9 @@
 ThisBuild / scalaVersion := "3.3.7"
 
 ThisBuild / organization := "rremple" // necessary for the sbt-ghpages and sbt-github-packages
-ThisBuild / githubOwner := "rremple"
+ThisBuild / githubOwner := (ThisBuild / organization).value
 ThisBuild / githubRepository := "intervalidus"
-ThisBuild / publishTo := Some(
-  "GitHub Packages" at s"https://maven.pkg.github.com/${githubOwner.value}/${githubRepository.value}"
-)
+ThisBuild / publishTo := githubPublishTo.value // based on githubOwner and githubRepository
 
 ThisBuild / versionScheme := Some("early-semver")
 ThisBuild / versionPolicyIntention := Compatibility.BinaryCompatible // None // as a stopgap

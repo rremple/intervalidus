@@ -37,4 +37,5 @@ jobs:
       run: sbt coverage test doc coverageReport coverageOff
       # Uploads information to the GitHub dependency graph, unblocking Dependabot alerts for the repository
     - name: Upload dependency graph
-      uses: scalacenter/sbt-dependency-submission@v3
+      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+      uses: scalacenter/sbt-dependency-submission@v2
