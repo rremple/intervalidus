@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -20,6 +23,5 @@ jobs:
       with:
         jvm: 17
         apps: sbt
-    - name: Publish
-      run: sbt publish
-
+    - name: Publish Package and Site
+      run: sbt publish unidoc makeSite ghpagesPushSite
