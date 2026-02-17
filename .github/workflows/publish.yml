@@ -24,6 +24,10 @@ jobs:
         jvm: 17
         apps: sbt
     - name: Publish Site
-      run: sbt unidoc makeSite ghpagesPushSite
+      # The bot needs its identity set to make the 'gh-pages' commit
+      run: |
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git config --global user.name "github-actions[bot]"
+        sbt unidoc makeSite ghpagesPushSite
     - name: Publish Package
       run: sbt publish
