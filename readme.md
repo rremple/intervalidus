@@ -49,8 +49,7 @@ over time. (Here we use +∞ to represent no planned termination, or what is som
 
 Intervalidus provides composable multidimensional data structures, both mutable and
 immutable, to address storage and management of data like this. For more information, see the
-[full API documentation](https://rremple.github.io/intervalidus/latest/api/intervalidus)
-
+[full API documentation](https://rremple.github.io/intervalidus/api)
 ### Usage:
 
 You could use Intervalidus `Data` to represent the above as a one-dimensional structure that treats dates as 
@@ -385,7 +384,7 @@ all values:     Set(5.2, 5.1, 5.0)
 ---
 
 The same methods are available in both mutable/immutable variants (though parameter and
-return types vary). See the [full API documentation](https://rremple.github.io/intervalidus/latest/api/intervalidus) for details on
+return types vary). See the [full API documentation](https://rremple.github.io/intervalidus/api) for details on
 these methods.
 
 These query methods provide various data, difference, and Boolean results:
