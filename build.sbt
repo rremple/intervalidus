@@ -59,10 +59,10 @@ lazy val root = (project in file("."))
     // Publish unified API to the GitHub Pages site: unidoc; makeSite; ghpagesPushSite
     git.remoteRepo := "git@github.com:rremple/intervalidus.git",
     SiteScaladoc / siteSubdirName := "api",
-    ScalaUnidoc / unidoc / scalacOptions ++= Seq("-project", "Intervalidus API"),
-    ScalaUnidoc / packageDoc / scalacOptions ++= Seq("-doc-title", "Intervalidus API"),
-    ScalaUnidoc / packageDoc / scalacOptions ++= Seq("-doc-version", version.value),
     addMappingsToSiteDir(ScalaUnidoc / packageDoc / mappings, SiteScaladoc / siteSubdirName),
+    ScalaUnidoc / unidoc / scalacOptions ++= Seq("-project", "Intervalidus API"),
+    ScalaUnidoc / unidoc / scalacOptions ++= Seq("-doc-title", "Intervalidus API"),
+    ScalaUnidoc / unidoc / scalacOptions ++= Seq("-doc-version", version.value),
     ScalaUnidoc / unidoc / unidocProjectFilter := inAnyProject -- inProjects(
       `intervalidus-examples`,
       `intervalidus-example-mongodb`,

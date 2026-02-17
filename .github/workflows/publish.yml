@@ -23,5 +23,9 @@ jobs:
       with:
         jvm: 17
         apps: sbt
-    - name: Publish Package and Site
-      run: sbt publish unidoc makeSite ghpagesPushSite
+    - name: Publish Package
+      run: sbt publish
+    - name: Publish Site
+      run: sbt unidoc makeSite ghpagesPushSite
+      env:
+        PUBLISH_TO_PACKAGES: ${{ secrets.PUBLISH_TO_PACKAGES }}
