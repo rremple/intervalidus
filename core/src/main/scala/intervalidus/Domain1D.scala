@@ -16,10 +16,8 @@ import scala.math.Ordering.Implicits.infixOrderingOps
   *   - When domain values are discrete, the left and right adjacent domains of a point are the respective predecessors
   *     and successors of the domain value. This also gives us a way to accommodate having predecessors/successors on
   *     the boundaries, i.e., `domain(maxValue).rightAdjacent == Top` and `domain(minValue).leftAdjacent == Bottom`.
-  *
   *   - When domain values are continuous, the left and right adjacent domains are always the same: open if the point is
   *     closed and closed if the point is open.
-  *
   *   - In both discrete and continuous domains, `Top` and `Bottom` are considered self-adjacent.
   *
   * @tparam D
@@ -63,7 +61,7 @@ sealed trait Domain1D[+D]:
   def pointsTo[T >: D](
     end: Domain1D[T]
   )(using domainValue: DomainValueLike[T]): Iterable[Domain1D[T]] = domainValue match
-    case _: ContinuousValue[T] => Iterable.empty // undefined for continuous
+    case _: ContinuousValue[T]      => Iterable.empty // undefined for continuous
     case discrete: DiscreteValue[T] =>
       def nearest(d: Domain1D[T]): Domain1D[T] = d match
         case Bottom => Point(discrete.minValue)
@@ -73,7 +71,7 @@ sealed trait Domain1D[+D]:
       val nearestStart: Option[Domain1D[T]] = Some(nearest(this))
       val nearestEnd = nearest(end)
       Iterable.unfold(nearestStart):
-        case None => None
+        case None                     => None
         case Some(prevRemainingStart) =>
           val nextStart =
             if prevRemainingStart equiv nearestEnd then None
@@ -110,7 +108,7 @@ sealed trait Domain1D[+D]:
     *   right complement of this
     */
   def rightAdjacent[T >: D](using domainValue: DomainValueLike[T]): Domain1D[T] = domainValue match
-    case _: ContinuousValue[T] => leftAdjacent // left and right are the same for continuous
+    case _: ContinuousValue[T]      => leftAdjacent // left and right are the same for continuous
     case discrete: DiscreteValue[T] =>
       this match
         case Point(value) => discrete.successorOf(value).map(Point(_)).getOrElse(Top)
@@ -321,7 +319,7 @@ object Domain1D:
     *   a code-like string constructing the value
     */
   def codeLikeValue[T](value: T): String = value match
-    case d: LocalDate => s"LocalDate.of(${d.getYear},${d.getMonthValue},${d.getDayOfMonth})"
+    case d: LocalDate     => s"LocalDate.of(${d.getYear},${d.getMonthValue},${d.getDayOfMonth})"
     case d: LocalDateTime =>
       s"LocalDate.of(${d.getYear},${d.getMonthValue},${d.getDayOfMonth})" +
         s".atTime(${d.getHour},${d.getMinute},${d.getSecond},${d.getNano})"
@@ -375,7 +373,7 @@ object Domain1D:
     case (_, Bottom)                  => 1
     case (OpenPoint(x), OpenPoint(y)) => domainValue.compare(x, y)
     case (Point(x), Point(y))         => domainValue.compare(x, y)
-    case (Point(x), OpenPoint(y)) =>
+    case (Point(x), OpenPoint(y))     =>
       val domainCompare = domainValue.compare(x, y)
       if domainCompare == 0 then if asStart then -1 else 1
       else domainCompare

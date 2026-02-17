@@ -40,7 +40,7 @@ object BsonTransformer:
       case bool: BsonBoolean  => if bool.getValue then to.visitTrue() else to.visitFalse()
       case string: BsonString => to.visitString(string.getValue)
       case id: BsonObjectId   => to.visitString(id.getValue.toHexString)
-      case theUnexpected =>
+      case theUnexpected      =>
         throw Exception(s"BsonTransformer: didn't expect $theUnexpected (${theUnexpected.getBsonType})")
 
     // To

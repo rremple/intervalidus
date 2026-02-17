@@ -454,7 +454,7 @@ object SoftwareProductFeatureManagement:
 
     print(s"\nFeature A/B combination was ")
     comboReleased match
-      case None => println(s"never released")
+      case None                           => println(s"never released")
       case Some((effectiveDate, release)) =>
         println(s"initially released on $effectiveDate in $release - regional deployment history:")
         val subsetData: DataMulti.In2D[Region, LocalDate, Environment] =

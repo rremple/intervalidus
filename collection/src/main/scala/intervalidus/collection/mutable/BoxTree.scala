@@ -145,7 +145,7 @@ class BoxTreeBranch[A](initialBoundary: Boundary, val depth: Int, val nodeCapaci
     val boxSplits = subtreeBoundaries.count(_.box.intersects(d.box)) > 1
     val updatedSubtrees = subtrees.map: subtree =>
       d.box.intersection(subtree.boundary.box) match
-        case None => subtree
+        case None         => subtree
         case Some(newBox) =>
           val dataToAdd =
             if !boxSplits then d

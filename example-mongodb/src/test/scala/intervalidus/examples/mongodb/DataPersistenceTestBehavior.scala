@@ -50,6 +50,9 @@ trait DataPersistenceTestBehavior[W[_], R[_]](using
 
   extension [T: W](value: T) def as[S: R]: S = transform(value)
 
+  inline def testInContainer(testName: String)(runTest: Containers => Any): Unit =
+    test(testName)(withContainers(runTest))
+
   def commonBehaviors(prefix: String): Unit =
     val initialData = List(
       intervalTo(4) -> Word("Hey", "Ciao"),
@@ -57,14 +60,15 @@ trait DataPersistenceTestBehavior[W[_], R[_]](using
       intervalFrom(16) -> Word("World", "Mondo")
     )
 
-    test(s"$prefix: MongoDB container should be able to represent evolving intervalidus data"):
-      withContainers: container =>
+    testInContainer(s"$prefix: MongoDB container should be able to represent evolving intervalidus data"):
+      container =>
         val client = container.client
         val collection = client.collection(prefix)
         val intervalStartPath = "interval.start"
         collection.createIndex(Indexes.ascending(intervalStartPath), IndexOptions().name("PK").unique(true))
 
-        def byKey(intervalStart: In1D[Int]): BsonDocument = BsonDocument(intervalStartPath, intervalStart.as[BsonValue])
+        def byKey(intervalStart: In1D[Int]): BsonDocument =
+          BsonDocument(intervalStartPath, intervalStart.as[BsonValue])
 
         def retrieve(): WordIn1D = collection.find().asScala.as[WordIn1D]
 
@@ -108,8 +112,8 @@ trait DataPersistenceTestBehavior[W[_], R[_]](using
         // collection.drop()
         // client.close()
 
-    test(s"$prefix: MongoDB container should be able to represent intervalidus data as elements"):
-      withContainers: container =>
+    testInContainer(s"$prefix: MongoDB container should be able to represent intervalidus data as elements"):
+      container =>
         val client = container.client
         val collection = client.collection(s"$prefix-level")
         val levelPath = "level"

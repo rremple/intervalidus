@@ -355,8 +355,8 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
       (versionTimestamps.keySet ++ those.keySet)
         .map(k => (k, versionTimestamps.get(k), those.get(k)))
         .collect:
-          case (k, Some(left), None)  => k -> left
-          case (k, None, Some(right)) => k -> right
+          case (k, Some(left), None)                                                         => k -> left
+          case (k, None, Some(right))                                                        => k -> right
           case (k, Some((leftTimestamp, leftComment)), Some((rightTimestamp, rightComment))) =>
             val laterTimestamp = if leftTimestamp.isAfter(rightTimestamp) then leftTimestamp else rightTimestamp
             val combinedComment = if leftComment == rightComment then leftComment else s"$leftComment & $rightComment"

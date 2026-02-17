@@ -84,7 +84,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   // ---------- Implement methods from DimensionalVersionedBase ----------
 
   override protected def resetTo(selection: VersionSelection): DataVersioned[V, D] = selection match
-    case VersionSelection.Unapproved => this
+    case VersionSelection.Unapproved                                               => this
     case notUnapproved @ (VersionSelection.Current | VersionSelection.Specific(_)) =>
       val resetCopy = copy
       notUnapproved match

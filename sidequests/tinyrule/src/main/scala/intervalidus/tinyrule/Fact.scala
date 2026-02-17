@@ -133,7 +133,7 @@ case class Fact(id: String, attributes: Set[Attribute[?]]):
       labels: T,
       fromAttributeValues: List[(String, Set[Any]) => Any]
     ): Tuple = labels match
-      case EmptyTuple => EmptyTuple
+      case EmptyTuple                    => EmptyTuple
       case (label: String) *: labelsTail =>
         val attributeValues = attributeValuesByName.getOrElse(label, Set.empty)
         val elementValue = fromAttributeValues.head.apply(label, attributeValues)
@@ -159,7 +159,7 @@ object Fact:
   private inline def attributesFromOneElement[T](elementName: String, elementValue: T): Iterable[Attribute[?]] =
     summonFrom:
       case given AttributeValueLike[T] => Seq(Attribute(elementName, elementValue))
-      case _ =>
+      case _                           =>
         inline elementValue match
           case a: Option[?] => a.toSeq.flatMap(attributesFromOneElement(elementName, _))
           case a: Set[?]    => a.toSeq.flatMap(attributesFromOneElement(elementName, _))
@@ -241,7 +241,7 @@ object Fact:
     val thoseFactsById = those.map(_.withId).toMap
     (theseFactsById.keySet ++ thoseFactsById.keySet).map: id =>
       theseFactsById.get(id) match
-        case None => thoseFactsById(id)
+        case None           => thoseFactsById(id)
         case Some(thisFact) =>
           thoseFactsById.get(id) match
             case None           => thisFact

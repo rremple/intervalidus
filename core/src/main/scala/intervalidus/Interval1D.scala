@@ -116,7 +116,7 @@ case class Interval1D[T](
       case Point(s)     => s"${Domain1D.codeLikeValue(s)}"
 
     (start, end) match
-      case (Bottom, Top) => "unbounded"
+      case (Bottom, Top)      => "unbounded"
       case (Bottom, endPoint) =>
         endPoint match
           case OpenPoint(s) => s"intervalToBefore(${Domain1D.codeLikeValue(s)})"

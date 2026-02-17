@@ -153,10 +153,10 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
   def setIfNoConflict(data: ValidData[V, D]): Option[Self] =
     if intersects(data.interval) then None
     else
-      Some(copyAndModify: result =>
+      val updated = copyAndModify: result =>
         result.addValidData(data)
-        compressInPlace(data.value)
-      )
+        result.compressInPlace(data.value)
+      Some(updated)
 
   /**
     * $updateDesc
@@ -289,8 +289,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     * @return
     *   $immutableReturn
     */
-  def fill(data: ValidData[V, D]): Self = copyAndModify: result =>
-    result.fillInPlace(data)
+  def fill(data: ValidData[V, D]): Self = copyAndModify(_.fillInPlace(data))
 
   /**
     * $mergeDesc
