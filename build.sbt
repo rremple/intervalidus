@@ -57,9 +57,15 @@ lazy val root = (project in file("."))
     versionPolicyCheck / aggregate := true,
     publish / skip := true,
     // Publish unified API to the GitHub Pages site: unidoc; makeSite; ghpagesPushSite
-    //git.remoteRepo := "git@github.com:rremple/intervalidus.git",
-    git.remoteRepo :=
-      s"https://${githubTokenSource.value}@github.com/${githubOwner.value}/${githubRepository.value}.git",
+    git.remoteRepo := {
+      val domainPath = s"github.com/${githubOwner.value}/${githubRepository.value}.git"
+      sys.env.get("PUBLISH_TO_PACKAGES") match {
+        case Some(token) => // CI path: Inject token for headless auth
+          s"https://$token@$domainPath"
+        case None => // Local path: Standard URL using Git Credential Manager
+          s"https://$domainPath"
+      }
+    },
     SiteScaladoc / siteSubdirName := "api",
     addMappingsToSiteDir(ScalaUnidoc / packageDoc / mappings, SiteScaladoc / siteSubdirName),
     ScalaUnidoc / unidoc / scalacOptions ++= Seq("-project", "Intervalidus API"),
