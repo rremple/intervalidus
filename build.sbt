@@ -57,7 +57,9 @@ lazy val root = (project in file("."))
     versionPolicyCheck / aggregate := true,
     publish / skip := true,
     // Publish unified API to the GitHub Pages site: unidoc; makeSite; ghpagesPushSite
-    git.remoteRepo := "git@github.com:rremple/intervalidus.git",
+    //git.remoteRepo := "git@github.com:rremple/intervalidus.git",
+    git.remoteRepo :=
+      s"https://${githubTokenSource.value}@github.com/${githubOwner.value}/${githubRepository.value}.git",
     SiteScaladoc / siteSubdirName := "api",
     addMappingsToSiteDir(ScalaUnidoc / packageDoc / mappings, SiteScaladoc / siteSubdirName),
     ScalaUnidoc / unidoc / scalacOptions ++= Seq("-project", "Intervalidus API"),

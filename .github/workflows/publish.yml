@@ -4,7 +4,6 @@ on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch: # Allows manual triggering
 
 permissions:
   contents: write
@@ -24,9 +23,7 @@ jobs:
       with:
         jvm: 17
         apps: sbt
-    - name: Publish Package
-      run: sbt publish
     - name: Publish Site
       run: sbt unidoc makeSite ghpagesPushSite
-      env:
-        PUBLISH_TO_PACKAGES: ${{ secrets.PUBLISH_TO_PACKAGES }}
+    - name: Publish Package
+      run: sbt publish
