@@ -1,5 +1,11 @@
 # Intervalidus
 
+[![Scala CI](https://github.com/rremple/intervalidus/actions/workflows/scala.yml/badge.svg)](https://github.com/rremple/intervalidus/actions/workflows/scala.yml)
+[![Release](https://img.shields.io/github/v/release/rremple/intervalidus)](https://github.com/rremple/intervalidus/releases)
+[![Scala 3](https://img.shields.io/badge/scala-3-blue)](https://www.scala-lang.org)
+[![Binary Compatibility](https://img.shields.io/badge/bincompat-mima-blue)](https://github.com/scalacenter/tasty-mima)
+[![Scala Steward](https://img.shields.io/badge/Scala_Steward-helping-blue.svg)](https://scala-steward.org)
+
 ## In what intervals are your data valid?
 
 A Scala library with zero dependencies for representing data as valid only in discrete or continuous intervals, in one,
