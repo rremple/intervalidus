@@ -2,7 +2,7 @@ package intervalidus
 
 /**
   * Create/update/delete actions (like CQRS mutation commands). Used when extrapolating or applying event source-style
-  * information.
+  * information on dimensional data.
   * @note
   *   intervalidus does not have event-sourced data structures, and the history of mutations is not maintained.
   *
@@ -22,6 +22,9 @@ enum DiffAction[+V, +D <: NonEmptyTuple](using DomainLike[D]):
     case Update(validData) => s"DiffAction.Update(${validData.toCodeLikeString})"
     case Delete(key)       => s"DiffAction.Delete(${key.toCodeLikeString})"
 
+/**
+  * Common definitions for the create/update/delete actions on dimensional data.
+  */
 object DiffAction:
   type In1D[V, R1] = DiffAction[V, Domain.In1D[R1]]
   type In2D[V, R1, R2] = DiffAction[V, Domain.In2D[R1, R2]]

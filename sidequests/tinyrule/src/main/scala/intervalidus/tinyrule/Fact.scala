@@ -5,6 +5,9 @@ import scala.compiletime.{constValueTuple, erasedValue, summonFrom}
 
 import scala.deriving.Mirror
 
+/**
+  * How fact attributes should be merged.
+  */
 enum FactMergeStyle:
   case KeepingAll, WhenAbsent, AsReplacement
 
@@ -144,6 +147,9 @@ case class Fact(id: String, attributes: Set[Attribute[?]]):
     val productElemValuesFromAttributeValues = attributeValuesToElementValues[mirror.MirroredElemTypes]
     mirror.fromProduct(elementsFromAttributes(productElemLabels, productElemValuesFromAttributeValues))
 
+/**
+  * Common definitions for facts.
+  */
 object Fact:
   /**
     * Generates attributes that represent the source element.

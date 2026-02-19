@@ -9,23 +9,47 @@ sealed trait Rule:
   def apply(f: Fact): Boolean
   infix def and(that: Rule): AndRule = AndRule(this, that)
   infix def or(that: Rule): OrRule = OrRule(this, that)
+
+/**
+  * Common definitions for rules.
+  */
 object Rule:
   def not(that: Rule): NotRule = NotRule(that)
   def always: Rule = WildcardRule
 
+/**
+  * Rule conjunction.
+  */
 case class AndRule(rules: List[Rule]) extends Rule:
   override def apply(that: Fact): Boolean = rules.forall(_.apply(that))
+
+/**
+  * Common definitions for conjunctions.
+  */
 object AndRule:
   def apply(rules: Rule*): AndRule = AndRule(rules.toList)
 
+/**
+  * Rule disjunction.
+  */
 case class OrRule(rules: List[Rule]) extends Rule:
   override def apply(that: Fact): Boolean = rules.exists(_.apply(that))
+
+/**
+  * Common definitions for disjunctions.
+  */
 object OrRule:
   def apply(rules: Rule*): OrRule = OrRule(rules.toList)
 
+/**
+  * Rule negation.
+  */
 case class NotRule(rule: Rule) extends Rule:
   override def apply(that: Fact): Boolean = !rule.apply(that)
 
+/**
+  * Rule that is always true.
+  */
 case object WildcardRule extends Rule:
   override def apply(f: Fact): Boolean = true
 

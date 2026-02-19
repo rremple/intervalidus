@@ -67,6 +67,9 @@ case class Capacity(minPoint: CoordinateFixed, maxPoint: CoordinateFixed):
 
   override def toString: String = s"[${minPoint.asString}..${maxPoint.asString}]"
 
+/**
+  * Common definitions for capacities, which are like boxes, but with fixed coordinates.
+  */
 object Capacity:
   /**
     * Default initial tree boundary capacity size in each dimension. Default is 1.0. It can be overridden by setting the

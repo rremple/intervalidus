@@ -88,6 +88,8 @@ trait DimensionalBaseObject:
   ): mutable.Builder[ValidData[V, D], DimensionalBase[V, D]]
 
 /**
+  * Parameters for constructing data in multidimensional intervals.
+  *
   * @define dataValueType
   *   the type of the value managed as data.
   * @define intervalDomainType
@@ -133,7 +135,7 @@ trait DimensionalBaseConstructorParams:
     )
 
 /**
-  * Base for all dimensional data, both mutable and immutable, of arbitrary dimensions.
+  * Base for all dimensional data, both mutable and immutable, of multiple dimensions.
   *
   * @tparam V
   *   the type of the value managed as data.

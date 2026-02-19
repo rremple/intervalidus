@@ -69,6 +69,9 @@ trait FilterPath:
 
 case class SimpleFilterPath(path: List[PathComponent]) extends FilterPath
 
+/**
+  * Common definitions for paths to subdocuments over which we want to fold.
+  */
 object FilterPath:
   /**
     * Parse a JSON Pointer/Path-like string as a FilterPath. Throws if the string does not conform.

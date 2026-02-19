@@ -100,6 +100,9 @@ case class Box(minPoint: Coordinate, maxPoint: Coordinate):
 
   override def toString: String = s"[${minPoint.asString}..${maxPoint.asString}]"
 
+/**
+  * Common definitions for boxes in multidimensional double space.
+  */
 object Box:
   /**
     * Construct a box that is unbound in all dimensions.

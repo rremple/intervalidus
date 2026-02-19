@@ -67,6 +67,9 @@ case class Boundary private (box: Box, capacity: Capacity):
 
   override def toString: String = s"Boundary: box $box, capacity $capacity"
 
+/**
+  * Common definitions for boundaries in multidimensional double space.
+  */
 object Boundary:
 
   /**

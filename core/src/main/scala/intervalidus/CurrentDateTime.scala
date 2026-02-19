@@ -8,6 +8,9 @@ import java.time.LocalDateTime
 trait CurrentDateTime:
   def now(): LocalDateTime
 
+/**
+  * For getting the actual (default) or a simulated current datetime.
+  */
 object CurrentDateTime:
   /**
     * Default behavior, using the actual clock.

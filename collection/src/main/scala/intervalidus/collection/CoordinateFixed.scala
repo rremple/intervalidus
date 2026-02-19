@@ -5,6 +5,9 @@ package intervalidus.collection
   */
 opaque type CoordinateFixed = Vector[Double]
 
+/**
+  * Common definitions for points in multidimensional double space.
+  */
 object CoordinateFixed:
   private type MinMaxCoordinates = (CoordinateFixed, CoordinateFixed)
 

@@ -159,7 +159,7 @@ case class Interval1D[T](
     case dvl: DiscreteValue[T]   => s"| $start ${dvl.bracePunctuation} $end "
 
 /**
-  * Companion for the one-dimensional interval used in defining and operating on valid data.
+  * Common definitions for the one-dimensional intervals.
   *
   * @define domainValueType
   *   domain value type of these intervals

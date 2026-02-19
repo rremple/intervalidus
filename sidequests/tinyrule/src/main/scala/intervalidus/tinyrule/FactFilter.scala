@@ -14,6 +14,9 @@ sealed trait FactFilter:
   infix def orWhenAbsent(that: FactFilter): OrFilter = OrFilter(List(this, that), FactMergeStyle.WhenAbsent)
   infix def orAsReplacement(that: FactFilter): OrFilter = OrFilter(List(this, that), FactMergeStyle.AsReplacement)
 
+/**
+  * Common definitions for fact filters.
+  */
 object FactFilter:
   extension (r: Rule)
     def filter: SelectFilter = SelectFilter(r)

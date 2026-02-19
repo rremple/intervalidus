@@ -116,11 +116,11 @@ trait DimensionalMultiBaseObject extends DimensionalBaseConstructorParams:
   *   $intervalDomainType
   *
   * @define classDesc
-  *   Data may have multiple values valid in different intervals of arbitrary dimensions, conceptually similar to a
-  *   multimap. When queried, values are returned as a set. In addition to the standard methods that operate on these
-  *   sets of values. there are methods that operate on individual set members. For example, `addOne` and `removeOne`
-  *   allow mutation of individual values across intervals, and `mergeOne` combines two structures (a merge where
-  *   overlaps are concatenated).
+  *   Data may have multiple values valid in different multidimensional intervals, conceptually similar to a multimap.
+  *   When queried, values are returned as a set. In addition to the standard methods that operate on these sets of
+  *   values. there are methods that operate on individual set members. For example, `addOne` and `removeOne` allow
+  *   mutation of individual values across intervals, and `mergeOne` combines two structures (a merge where overlaps are
+  *   concatenated).
   * @define mergeOneDesc
   *   Concatenates all valid data in this and that structure into a new one.
   * @define mergeOneParamThat

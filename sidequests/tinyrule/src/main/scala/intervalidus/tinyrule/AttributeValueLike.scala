@@ -11,6 +11,9 @@ import java.time.LocalDate
 trait AttributeValueLike[T]:
   def matches(matchType: MatchType, thisAttribute: Attribute[T], thatAttribute: Attribute[?]): Boolean
 
+/**
+  * Common definitions for attribute type classes.
+  */
 object AttributeValueLike:
   import MatchType.*
 

@@ -5,8 +5,8 @@ import intervalidus.collection.BoxedPayload
 import scala.collection.mutable
 
 /**
-  * A value that is valid in an interval of arbitrary dimensions. Conceptually, this defines a partial function where
-  * all domain elements that are part of the interval map to the value.
+  * A value that is valid in some multidimensional interval. Conceptually, this defines a partial function where all
+  * domain elements that are contained in the interval map to the value.
   *
   * @tparam V
   *   the type of the value managed as data (the codomain).
@@ -71,6 +71,9 @@ case class ValidData[V, D <: NonEmptyTuple](
   // first dimension start string, first dimension end string, value + remaining dimension string
   def preprocessForGrid: (String, String, String) = domainLike.validDataPreprocessForGrid(this)
 
+/**
+  * Common definitions for values that are valid in multidimensional intervals.
+  */
 object ValidData:
 
   type In1D[V, R1] = ValidData[V, Domain.In1D[R1]]

@@ -36,6 +36,9 @@ enum PathComponent:
         case (Some(f), Some(u)) if u == f + 1 => s"[$f]" // single index constraint
         case _                                => s"[${from.getOrElse("0")}:${until.getOrElse("")}]" // slice constraint
 
+/**
+  * Common definitions for path constraints as components.
+  */
 object PathComponent:
   /**
     * Parse a JSON Pointer/Path-like string as a PathComponent. Throws if the string does not conform. See

@@ -68,6 +68,9 @@ class FilteredFoldingVisitor[A, B] private (
         otherwise = NoOpFixedReader(arrResult)
       )
 
+/**
+  * Common definitions for filtered, folding visitors.
+  */
 object FilteredFoldingVisitor extends FilteredFoldingVisitorObjectLike[Reader]:
   override def apply[A, B](filterPath: FilterPath, zero: B)(op: (B, A) => B)(using readerA: Reader[A]): Reader[B] =
     Reader.Delegate(new FilteredFoldingVisitor(filterPath, readerA, zero, FilterPath.RootPath)(op))

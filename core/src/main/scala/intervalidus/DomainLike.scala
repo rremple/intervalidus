@@ -438,6 +438,9 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
   def validDataPreprocessForGrid[V](validData: ValidData[V, D]): (String, String, String) =
     applyToDomain.preprocessForGridFromValidData(validData)
 
+/**
+  * Common definitions for multidimensional domain type classes.
+  */
 object DomainLike:
   given domainOrdering[D <: NonEmptyTuple](using domainLike: DomainLike[D]): Ordering[D] with
     override def compare(x: D, y: D): Int = domainLike.compareDomains(x, y)

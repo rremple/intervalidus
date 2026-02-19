@@ -377,7 +377,7 @@ case class Interval[D <: NonEmptyTuple](
     end == that.end
 
 /**
-  * Companion for the multidimensional interval used in defining and operating on valid data.
+  * Common definitions for the multidimensional intervals.
   *
   * @define intervalDomainType
   *   the domain type -- a non-empty tuple that is DomainLike.

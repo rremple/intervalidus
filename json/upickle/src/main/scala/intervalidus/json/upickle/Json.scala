@@ -7,6 +7,9 @@ import intervalidus.DimensionalVersionedBase.{VersionDomainValue, VersionMetadat
 
 import java.time.{Instant, LocalDateTime}
 
+/**
+  * Common definitions for encoding and decoding Intervalidus structures as JSON.
+  */
 object Json:
   private val asValue: ReadWriter[Value] = summon
   private val asValueObj: ReadWriter[Obj] = summon

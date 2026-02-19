@@ -4,6 +4,9 @@ import intervalidus.Domain1D.{Top, Point, domain}
 
 import java.time.{Duration, Instant}
 
+/**
+  * Common definitions for values that vary in time.
+  */
 object VariableBase:
   /**
     * Type class for instants as discrete values by nanosecond (weird, but works in this context)
@@ -33,6 +36,9 @@ object VariableBase:
 
 import VariableBase.given
 
+/**
+  * Base for companions of values that vary in time.
+  */
 trait VariableObjectBase:
   /**
     * @param initialValue

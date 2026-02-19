@@ -1,7 +1,7 @@
 package intervalidus
 
 /**
-  * Internal type class for operating on domains and related structures of arbitrary dimension.
+  * Internal type class for operating on multidimensional domains and related structures.
   *
   * An n-dimensional domain is represented by a tuple of `Domain1D[T`<sup>i</sup>`]` values (where i varies from 1 to
   * n), and each `T`<sup>i</sup> is a (potentially different) domain value type that is `DomainValueLike`.

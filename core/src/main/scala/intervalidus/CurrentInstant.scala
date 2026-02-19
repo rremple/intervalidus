@@ -8,6 +8,9 @@ import java.time.Instant
 trait CurrentInstant:
   def now(): Instant
 
+/**
+  * For getting the actual (default) or a simulated current instant.
+  */
 object CurrentInstant:
   /**
     * Default behavior, using the actual clock.

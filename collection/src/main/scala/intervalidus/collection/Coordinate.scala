@@ -7,6 +7,9 @@ import scala.annotation.tailrec
   */
 opaque type Coordinate = Vector[Option[Double]]
 
+/**
+  * Common definitions for points/unbound limits in multidimensional double space.
+  */
 object Coordinate:
   private type MinMaxCoordinates = (Coordinate, Coordinate)
 

@@ -5,6 +5,9 @@ import scala.annotation.implicitNotFound
 import scala.compiletime.ops.boolean.&&
 import scala.compiletime.ops.int.{<, >=}
 
+/**
+  * Common definitions for multidimensional domains.
+  */
 object Domain:
   /**
     * A numeric reference to a specific dimension. Dimensions are indexed starting at 0. For example, a

@@ -264,7 +264,7 @@ sealed trait Domain1D[+D]:
   infix def ~>[T >: D: DomainValueLike](that: Domain1D[T]): Boolean = this isLeftAdjacentTo that
 
 /**
-  * Companion for the one-dimensional domain used in defining and operating on intervals.
+  * Common definitions for the one-dimensional domains.
   */
 object Domain1D:
   /**

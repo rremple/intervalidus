@@ -1,7 +1,7 @@
 /**
   * Intervalidus is a Scala library with zero dependencies for representing data as valid only in discrete or continuous
-  * intervals of arbitrary dimensions (tests cover up to four-dimensional data). It answers the question "In what
-  * intervals are your data valid?"
+  * multidimensional intervals (tests cover up to four-dimensional data). It answers the question "In what intervals are
+  * your data valid?"
   *
   * This top-level package includes Intervalidus's main traits, classes, and other members:
   *   - Type classes for common discrete and continuous domain values.
