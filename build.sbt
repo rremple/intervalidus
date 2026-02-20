@@ -71,6 +71,10 @@ lazy val root = (project in file("."))
     ScalaUnidoc / unidoc / scalacOptions ++= Seq("-project", "Intervalidus API"),
     ScalaUnidoc / unidoc / scalacOptions ++= Seq("-doc-title", "Intervalidus API"),
     ScalaUnidoc / unidoc / scalacOptions ++= Seq("-doc-version", version.value),
+    ScalaUnidoc / unidoc / scalacOptions ++= Seq(
+      s"-source-links:github://${githubOwner.value}/${githubRepository.value}",
+      "-revision", dynverGitDescribeOutput.value.map(_.ref.value).getOrElse("master")
+    ),
     ScalaUnidoc / unidoc / unidocProjectFilter := inAnyProject -- inProjects(
       `intervalidus-examples`,
       `intervalidus-example-mongodb`,
