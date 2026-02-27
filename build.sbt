@@ -73,7 +73,8 @@ lazy val root = (project in file("."))
     ScalaUnidoc / unidoc / scalacOptions ++= Seq("-doc-version", version.value),
     ScalaUnidoc / unidoc / scalacOptions ++= Seq(
       s"-source-links:github://${githubOwner.value}/${githubRepository.value}",
-      "-revision", dynverGitDescribeOutput.value.map(_.ref.value).getOrElse("master")
+      "-revision",
+      dynverGitDescribeOutput.value.map(_.ref.value).getOrElse("master")
     ),
     ScalaUnidoc / unidoc / unidocProjectFilter := inAnyProject -- inProjects(
       `intervalidus-examples`,
@@ -115,7 +116,7 @@ lazy val `intervalidus-examples` = (project in file("examples"))
   .dependsOn(core, `intervalidus-tinyrule`)
   .settings(commonNoPublishSettings("intervalidus-examples"))
 
-val mongodbVersion = "5.6.3"
+val mongodbVersion = "5.6.4"
 val testcontainersVersion = "0.44.1"
 
 lazy val `intervalidus-example-mongodb` = (project in file("example-mongodb"))
