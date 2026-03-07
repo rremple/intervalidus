@@ -44,6 +44,7 @@ trait ImmutableBaseBehaviors:
         dataFrom1D(intervalFrom(16), "World")
       )
       fixture1.getAll.toList shouldBe expectedData1
+      fixture1 ≡ immutableFrom(expectedData1) shouldBe true
 
       val fixture2a: Data[String, D] = fixture1.set(dataFrom1D(interval(20, 25), "!")) // split
       val expectedData2 = List(
@@ -176,6 +177,7 @@ trait ImmutableBaseBehaviors:
         dataFrom1D(intervalFrom(8), "Hello")
       )
       fixture1.getAll.toList shouldBe expectedData1
+      fixture1 ≡ immutableFrom(expectedData1) shouldBe true
 
       val fixture2 = fixture1
         .remove(intervalFrom1D(interval(3, 5)))
@@ -248,6 +250,7 @@ trait ImmutableBaseBehaviors:
         dataFrom1D(intervalFrom(7), "Hello")
       )
       fixture1.getAll.toList shouldBe expectedData1
+      fixture1 ≡ immutableFrom(expectedData1) shouldBe true
       fixture1.domain.toList shouldBe List(Interval.unbounded[D])
       assert(fixture1.domainComplement.isEmpty)
 

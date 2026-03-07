@@ -632,6 +632,46 @@ object Interval:
   )
 
   /**
+    * Recompresses a collection of intervals by breaking them into atomic intervals first, then joining all adjacent
+    * intervals. This resolves issues related to equivalent or suboptimal compressions of intervals with more than one
+    * dimension. Decompression considers the boundaries of both the intervals and the other intervals.
+    *
+    * @param intervals
+    *   a collection of intervals.
+    * @param otherIntervals
+    *   other intervals to be considered when decompressing the space. This is useful in testing equivalence of two
+    *   collections where their starting intervals differ enough that they result in a different enough decompression
+    *   that it results in different recompressions.
+    * @tparam D
+    *   $intervalDomainType
+    * @return
+    *   a new (possibly smaller, possibly smaller even than the result of compress) collection of intervals covering the
+    *   same domain as the input.
+    */
+  def recompress[D <: NonEmptyTuple: DomainLike](
+    intervals: Iterable[Interval[D]],
+    otherIntervals: Iterable[Interval[D]]
+  ): Iterable[Interval[D]] =
+    immutable.Data(intervals.map(_ -> true)).recompressAll(otherIntervals).allIntervals
+
+  /**
+    * Recompresses a collection of intervals by breaking them into atomic intervals first, then joining all adjacent
+    * intervals. This resolves issues related to equivalent or suboptimal compressions of intervals with more than one
+    * dimension.
+    *
+    * @param intervals
+    *   a collection of intervals.
+    * @tparam D
+    *   $intervalDomainType
+    * @return
+    *   a new (possibly smaller, possibly smaller even than the result of compress) collection of intervals covering the
+    *   same domain as the input.
+    */
+  def recompress[D <: NonEmptyTuple: DomainLike](
+    intervals: Iterable[Interval[D]]
+  ): Iterable[Interval[D]] = recompress(intervals, Iterable.empty)
+
+  /**
     * Checks if the collection of intervals is compressible. That is, are there any intervals that are adjacent to their
     * neighbors. If true, calling [[compress]] on the collection results in a smaller collection covering the same
     * domain.

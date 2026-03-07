@@ -278,10 +278,22 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   /**
     * $recompressAllDesc $noVersionSelection
     *
+    * @param otherIntervals
+    *   $recompressAllParamOtherIntervals
     * @return
     *   $immutableReturn
     */
-  def recompressAll(): DataVersioned[V, D] = copyAndModify(_.underlying.recompressAll())
+  def recompressAll(otherIntervals: Iterable[Interval[Versioned[D]]]): DataVersioned[V, D] =
+    copyAndModify(_.underlying.recompressAll(otherIntervals))
+
+  // for binary compatibility
+  /**
+    * $recompressAllDesc $noVersionSelection
+    *
+    * @return
+    *   $immutableReturn
+    */
+  def recompressAll(): DataVersioned[V, D] = recompressAll(Iterable.empty)
 
   /**
     * $applyDiffActionsDesc $noVersionSelection

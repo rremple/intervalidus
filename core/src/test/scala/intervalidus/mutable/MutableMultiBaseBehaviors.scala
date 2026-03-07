@@ -140,6 +140,8 @@ trait MutableMultiBaseBehaviors:
         withHorizontal(intervalFrom(16), Set("World!"))
       )
       fixture.getAll.toList shouldBe expectedData2
+      val expectedDataFlattened = expectedData2.flatMap(d => d.value.map(d.interval -> _))
+      fixture ≡ multiFrom(expectedDataFlattened) shouldBe true
 
       fixture.mapValues(_.map(_ + "!!"))
       val expectedData3 = List(

@@ -185,11 +185,20 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     *
     * $mutableAction
     *
-    * @return
-    *   a new, updated structure.
+    * @param otherIntervals
+    *   $recompressAllParamOtherIntervals
     */
-  def recompressAll(): Unit =
-    recompressInPlace()
+  def recompressAll(otherIntervals: Iterable[Interval[D]]): Unit = recompressInPlace(otherIntervals)
+
+  // for binary compatibility
+  /**
+    * $recompressAllDesc1
+    *
+    * $recompressAllDesc2
+    *
+    * $mutableAction
+    */
+  def recompressAll(): Unit = recompressInPlace()
 
   /**
     * $applyDiffActionsDesc $mutableAction

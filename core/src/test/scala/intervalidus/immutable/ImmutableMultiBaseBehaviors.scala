@@ -142,6 +142,8 @@ trait ImmutableMultiBaseBehaviors:
       f2a.getAll.toList shouldBe expectedData2
       val f2b = DataMulti.from(f1.mapIntervals(i => i.to(i.end.rightAdjacent)).mapValues(_.map(_ + "!")))
       f2b.getAll.toList shouldBe expectedData2
+      val expectedDataFlattened = expectedData2.flatMap(d => d.value.map(d.interval -> _))
+      f2b ≡ multiFrom(expectedDataFlattened) shouldBe true
 
       val f3 = DataMulti.from(f2a.mapValues(_.map(_ + "!!")))
       val expectedData3 = List(

@@ -62,6 +62,26 @@ object ContinuousValue:
     override val minValue: LocalDateTime = LocalDateTime.MIN
 
   /**
+    * Type class for local date-times as continuous values.
+    */
+  given InstantContinuousValue: ContinuousValue[Instant] with
+    override def compare(lhs: Instant, rhs: Instant): Int = lhs.compareTo(rhs)
+
+    // hashing uses millis, so this prevents long overflow when hashing
+    // all instants above and below these values will collide respectively
+    private val minMilliInstant = Instant.ofEpochMilli(Long.MinValue)
+    private val maxMilliInstant = Instant.ofEpochMilli(Long.MaxValue)
+
+    override def orderedHashOf(x: Instant): Double = x match
+      case i if i.isBefore(minMilliInstant) => Long.MinValue.toDouble
+      case i if i.isAfter(maxMilliInstant)  => Long.MaxValue.toDouble
+      case i                                => i.toEpochMilli.toDouble
+
+    override val maxValue: Instant = Instant.MAX
+
+    override val minValue: Instant = Instant.MIN
+
+  /**
     * Type class for integers as continuous values (even though they are discrete).
     */
   given IntContinuousValue: ContinuousValue[Int] with

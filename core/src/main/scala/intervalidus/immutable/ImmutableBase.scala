@@ -254,6 +254,19 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     *
     * $recompressAllDesc2
     *
+    * @param otherIntervals
+    *   $recompressAllParamOtherIntervals
+    * @return
+    *   $immutableReturn
+    */
+  def recompressAll(otherIntervals: Iterable[Interval[D]]): Self = copyAndModify(_.recompressInPlace(otherIntervals))
+
+  // for binary compatibility
+  /**
+    * $recompressAllDesc1
+    *
+    * $recompressAllDesc2
+    *
     * @return
     *   $immutableReturn
     */

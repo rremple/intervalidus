@@ -368,3 +368,65 @@ class ContinuousValueTest extends AnyFunSuite:
         "Point(LocalDate.of(2024,6,3).atTime(1,2,3,4)) x " +
         "Point(LocalDate.of(2024,6,4).atTime(1,2,3,4))"
     )((Point(date0) x Point(date3) x Point(date4)).toCodeLikeString)
+
+  test("Ops on Instants"):
+    import ContinuousValue.InstantContinuousValue
+
+    val date0 = LocalDate.of(2024, 5, 31).atTime(1, 2, 3, 4).toInstant(ZoneOffset.UTC)
+    val date3 = LocalDate.of(2024, 6, 3).atTime(1, 2, 3, 4).toInstant(ZoneOffset.UTC)
+    val date4 = LocalDate.of(2024, 6, 4).atTime(1, 2, 3, 4).toInstant(ZoneOffset.UTC)
+    assert(date3 equiv date3)
+    assert(date3 <= date3)
+    assert(date3 >= date3)
+    assert(date0 < date4)
+    assert(date4 > date0)
+
+  test("Ops on Instant Domain"):
+    import ContinuousValue.InstantContinuousValue
+    import ContinuousValue.InstantContinuousValue.{maxValue, minValue}
+    import Domain1D.*
+
+    def top: Domain1D[Instant] = Top
+
+    def bottom: Domain1D[Instant] = Bottom
+
+    val date0 = LocalDate.of(2024, 5, 31).atTime(1, 2, 3, 4).toInstant(ZoneOffset.UTC)
+    val date3 = LocalDate.of(2024, 6, 3).atTime(1, 2, 3, 4).toInstant(ZoneOffset.UTC)
+    val date4 = LocalDate.of(2024, 6, 4).atTime(1, 2, 3, 4).toInstant(ZoneOffset.UTC)
+    assert(domain(date3) equiv domain(date3))
+    assert(domain(date3) <= domain(date3))
+    assert(domain(date3) >= domain(date3))
+    assert(domain(date0) < domain(date4))
+    assert(domain(date4) > domain(date0))
+    assert(bottom < domain(date4))
+    assert(domain(date4) < top)
+    assert(open(date3) equiv open(date3))
+    assert(open(date3) <= open(date3))
+    assert(open(date3) >= open(date3))
+    assert(open(date0) < open(date4))
+    assert(open(date4) > open(date0))
+    assert(bottom < open(date4))
+    assert(open(date4) < top)
+    assert(bottom < top)
+    assert(bottom <= top)
+    assert(!(bottom > top))
+    assert(!(bottom equiv top))
+
+    assert(domain(date3).orderedHashFixed == domain(date3).orderedHashFixed)
+    assert(domain(date0).orderedHashFixed <= domain(date4).orderedHashFixed)
+    assert(domain(date4).orderedHashFixed >= domain(date0).orderedHashFixed)
+    assert(bottom.orderedHashFixed <= domain(date4).orderedHashFixed)
+    assert(domain(date4).orderedHashFixed <= top.orderedHashFixed)
+    assert(bottom.orderedHashFixed <= top.orderedHashFixed)
+    val belowUniqueHash = Instant.ofEpochMilli(Long.MinValue)
+    val aboveUniqueHash = Instant.ofEpochMilli(Long.MaxValue)
+    assert(domain(belowUniqueHash).orderedHashFixed == bottom.orderedHashFixed)
+    assert(domain(aboveUniqueHash).orderedHashFixed == top.orderedHashFixed)
+
+    assert(domain(maxValue).rightAdjacent equiv open(maxValue))
+    assert(domain(minValue).leftAdjacent equiv open(minValue))
+    assertResult(
+      "Point(LocalDate.of(2024,5,31).atTime(1,2,3,4).toInstant(ZoneOffset.UTC)) x " +
+        "Point(LocalDate.of(2024,6,3).atTime(1,2,3,4).toInstant(ZoneOffset.UTC)) x " +
+        "Point(LocalDate.of(2024,6,4).atTime(1,2,3,4).toInstant(ZoneOffset.UTC))"
+    )((Point(date0) x Point(date3) x Point(date4)).toCodeLikeString)

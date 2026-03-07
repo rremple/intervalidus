@@ -700,7 +700,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       complement(expected2) shouldBe Nil
 
     test(s"$prefix: Int interval 2D collection operations"):
-      import Interval.{isCompressible, uniqueIntervals, compress, complement}
+      import Interval.{isCompressible, uniqueIntervals, compress, recompress, complement}
 
       val intervalsUnsorted1 = List(
         intervalFrom(1).toBefore(11),
@@ -747,6 +747,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
         Interval1D.unbounded[Int] x intervalFrom(30),
         intervalFromAfter(0) x interval(3, 7)
       )
+      recompress(intervals2) should contain theSameElementsAs intervals3
 
       complement(intervals3).toList shouldBe List(
         intervalTo(0) x intervalFromAfter(5).toBefore(10),
@@ -767,7 +768,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       )
 
     test(s"$prefix: Int interval 3D collection operations"):
-      import Interval.{isCompressible, uniqueIntervals, compress, complement}
+      import Interval.{isCompressible, uniqueIntervals, compress, recompress, complement}
 
       val intervalsUnsorted1 = List(
         intervalFrom(1).toBefore(11),
@@ -823,6 +824,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
         Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x intervalFrom(30),
         Interval1D.unbounded[Int] x intervalFromAfter(0) x interval(3, 7)
       )
+      recompress(intervals2) should contain theSameElementsAs intervals3
 
       complement(intervals3).toList shouldBe List(
         Interval1D.unbounded[Int] x intervalTo(0) x intervalFromAfter(5).toBefore(10),
@@ -847,7 +849,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       )
 
     test(s"$prefix: Int interval 4D collection operations"):
-      import Interval.{isCompressible, uniqueIntervals, compress, complement}
+      import Interval.{isCompressible, uniqueIntervals, compress, recompress, complement}
 
       val intervalsUnsorted1 = List(
         intervalFrom(1).toBefore(11),
@@ -927,6 +929,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
         Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x intervalFrom(30) x Interval1D.unbounded[Int],
         Interval1D.unbounded[Int] x intervalFromAfter(0) x interval(3, 7) x Interval1D.unbounded[Int]
       )
+      recompress(intervals2) should contain theSameElementsAs intervals3
 
       complement(intervals3).toList shouldBe List(
         Interval1D.unbounded[Int] x intervalTo(0) x intervalFromAfter(5).toBefore(10) x Interval1D.unbounded[Int],

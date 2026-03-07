@@ -217,6 +217,10 @@ trait DimensionalBaseConstructorParams:
   *   would be the following "atomic" intervals: {[1..2], [1..2]} + {[3..5], [1..2]} + {[1..2], [3..4]}. Next, it
   *   recompresses the data, which results in a unique physical representation. It may be useful when comparing two
   *   structures to see if they are logically equivalent even if, physically, they differ in how they are compressed.
+  * @define recompressAllParamOtherIntervals
+  *   other intervals to be considered when decompressing the space. This is useful in testing equivalence of two
+  *   structures where their starting intervals differ enough that they result in a different enough decompression that
+  *   it results in different recompressions.
   * @define applyDiffActionsDesc
   *   Applies a sequence of diff actions to this structure.
   * @define applyDiffActionsParamDiffActions
@@ -262,6 +266,43 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     case that: DimensionalBase[V, D] @unchecked =>
       size == that.size && getAll.zip(that.getAll).forall(_ == _)
     case _ => false
+
+  def decompressedData(otherIntervals: Iterable[Interval[D]]): Iterable[ValidData[V, D]] =
+    for
+      atomicInterval <- Interval.uniqueIntervals(allIntervals ++ otherIntervals)
+      intersecting <- getIntersecting(atomicInterval) // always returns either one or zero results
+    yield intersecting.copy(interval = atomicInterval)
+
+  private infix def equivalentWithMutualDecompression(that: DimensionalBase[V, D]): Boolean =
+    val thisData = decompressedData(that.allIntervals)
+    val thatData = that.decompressedData(allIntervals)
+    thisData.size == thatData.size && thisData.zip(thatData).forall(_ == _)
+
+  /**
+    * Indicates whether some other dimensional structure is "logically equivalent to" this one. That is, either this and
+    * that are equal, or they are equal after being decompressed using the same base intervals (the same decompression
+    * used in recompressAll).
+    * @param that
+    *   dimensional structure to compare
+    * @return
+    *   true if this and that are logically equivalent
+    */
+  infix def isEquivalentTo(that: DimensionalBase[V, D]): Boolean =
+    equals(that) || equivalentWithMutualDecompression(that)
+
+  /**
+    * Same as [[isEquivalentTo()]]
+    *
+    * Indicates whether some other object is "logically equivalent to" this one. That is, either this and that are
+    * equal, or they are equal after being decompressed using the same base intervals (the same decompression used in
+    * recompressAll).
+    *
+    * @param that
+    *   dimensional structure to compare
+    * @return
+    *   true if this and that are logically equivalent
+    */
+  infix def ≡(that: DimensionalBase[V, D]): Boolean = isEquivalentTo(that)
 
   // Utility methods for managing state, not part of API
 
@@ -413,7 +454,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     Interval
       .uniqueIntervals(getIntersecting(data.interval).map(_.interval) ++ Seq(data.interval))
       .foreach: i =>
-        if data.interval.intersects(i) && !this.intersects(i) then addValidData(i -> data.value)
+        if i ⊆ data.interval && !intersects(i) then addValidData(i -> data.value)
     compressInPlace(data.value)
 
   /**
@@ -468,17 +509,21 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     * the following "atomic" intervals: {[1..2], [1..2]} + {[3..5], [1..2]} + {[1..2], [3..4]}. Then it recompresses the
     * data, which results in a unique physical representation. This may be useful when comparing two structures to see
     * if they are logically equivalent even if, physically, they differ in how they are compressed.
+    *
+    * @param otherIntervals
+    *   other intervals to be considered when decompressing the space. This is useful in testing equivalence of two
+    *   structures where their starting intervals differ enough that they result in a different enough decompression
+    *   that it results in different recompressions. E.g., one might compare immutable.Data 'a' and 'b' using
+    *   'a.recompressAll(b.allIntervals) shouldBe b.recompressAll(a.allIntervals)'.
     */
-  protected def recompressInPlace(): Unit = synchronized:
-    // decompress
-    val atomicData = for
-      atomicInterval <- Interval.uniqueIntervals(allIntervals)
-      intersecting <- getIntersecting(atomicInterval) // always returns either one or zero results
-    yield intersecting.copy(interval = atomicInterval)
-    replaceValidData(atomicData)
+  protected def recompressInPlace(otherIntervals: Iterable[Interval[D]]): Unit = synchronized:
+    replaceValidData(decompressedData(otherIntervals))
 
     // recompress
     dataByValue.keySet.foreach(compressInPlace)
+
+  // for binary compatibility
+  protected def recompressInPlace(): Unit = recompressInPlace(Iterable.empty)
 
   /**
     * Internal method to set in place.

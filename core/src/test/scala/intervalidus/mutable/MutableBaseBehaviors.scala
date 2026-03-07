@@ -46,6 +46,7 @@ trait MutableBaseBehaviors:
         dataFrom1D(intervalFromAfter(15), "World")
       )
       fixture.getAll.toList shouldBe expectedData1
+      fixture ≡ mutableFrom(expectedData1) shouldBe true
 
       fixture.set(dataFrom1D(interval(20, 25), "!")) // split
       val expectedData2 = List(
@@ -205,6 +206,7 @@ trait MutableBaseBehaviors:
         dataFrom1D(intervalFromAfter(7), "Hello")
       )
       fixture.getAll.toList shouldBe expectedData1
+      fixture ≡ mutableFrom(expectedData1) shouldBe true
 
       fixture
         .remove(intervalFrom1D(interval(3, 5)))

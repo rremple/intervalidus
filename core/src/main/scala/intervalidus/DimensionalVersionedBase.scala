@@ -278,6 +278,10 @@ trait DimensionalVersionedBaseObject:
   * @define recompressAllDesc
   *   Compress out adjacent intervals with the same value for all values after decompressing everything, resulting in a
   *   unique physical representation.
+  * @define recompressAllParamOtherIntervals
+  *   other intervals to be considered when decompressing the space. This is useful in testing equivalence of two
+  *   structures where their starting intervals differ enough that they result in a different enough decompression that
+  *   it results in different recompressions.
   * @define applyDiffActionsDesc
   *   Applies a sequence of diff actions to this structure.
   * @define applyDiffActionsParamDiffActions

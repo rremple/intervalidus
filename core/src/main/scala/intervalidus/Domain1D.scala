@@ -1,6 +1,6 @@
 package intervalidus
 
-import java.time.{LocalDate, LocalDateTime}
+import java.time.{Instant, LocalDate, LocalDateTime, ZoneOffset}
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 /**
@@ -323,6 +323,10 @@ object Domain1D:
     case d: LocalDateTime =>
       s"LocalDate.of(${d.getYear},${d.getMonthValue},${d.getDayOfMonth})" +
         s".atTime(${d.getHour},${d.getMinute},${d.getSecond},${d.getNano})"
+    case i: Instant =>
+      val d = LocalDateTime.ofInstant(i, ZoneOffset.UTC)
+      s"LocalDate.of(${d.getYear},${d.getMonthValue},${d.getDayOfMonth})" +
+        s".atTime(${d.getHour},${d.getMinute},${d.getSecond},${d.getNano}).toInstant(ZoneOffset.UTC)"
     case _ => value.toString
 
   /**

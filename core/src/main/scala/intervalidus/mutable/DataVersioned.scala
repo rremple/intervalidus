@@ -259,8 +259,18 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
 
   /**
     * $recompressAllDesc $mutableAction $noVersionSelection
+    *
+    * @param otherIntervals
+    *   $recompressAllParamOtherIntervals
     */
-  def recompressAll(): Unit = underlying.recompressAll()
+  def recompressAll(otherIntervals: Iterable[Interval[Versioned[D]]]): Unit =
+    underlying.recompressAll(otherIntervals)
+
+  // for binary compatibility
+  /**
+    * $recompressAllDesc $mutableAction $noVersionSelection
+    */
+  def recompressAll(): Unit = recompressAll(Iterable.empty)
 
   /**
     * $applyDiffActionsDesc $mutableAction $noVersionSelection
