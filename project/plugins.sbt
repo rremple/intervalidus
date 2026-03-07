@@ -1,5 +1,5 @@
 addDependencyTreePlugin
-addSbtPlugin("org.jetbrains.scala" % "sbt-ide-settings" % "1.1.3")
+addSbtPlugin("org.jetbrains.scala" % "sbt-ide-settings" % "1.1.4")
 
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "2.4.4")
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.6")
