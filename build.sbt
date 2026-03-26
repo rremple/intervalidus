@@ -21,7 +21,7 @@ def commonSettings(projectName: String): Seq[Def.Setting[_]] = Seq(
   coverageFailOnMinimum := true,
   coverageMinimumStmtTotal := 99,
   coverageMinimumBranchTotal := 99,
-  libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.19" % Test
+  libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.20" % Test
 )
 def commonPublishSettings(projectName: String): Seq[Def.Setting[_]] = commonSettings(projectName) ++ Seq(
   tastyMiMaPreviousArtifacts := mimaPreviousArtifacts.value,
