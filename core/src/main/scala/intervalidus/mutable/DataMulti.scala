@@ -16,7 +16,7 @@ object DataMulti extends DimensionalMultiBaseObject:
 
   override def of[V, D <: NonEmptyTuple: DomainLike](
     data: ValidData[V, D]
-  )(using Experimental): DataMulti[V, D] = DataMulti(Iterable(data.interval -> Set(data.value)))
+  )(using Experimental): DataMulti[V, D] = DataMulti(Iterable.single(data.interval -> Set(data.value)))
 
   override def of[V, D <: NonEmptyTuple: DomainLike](
     value: V
@@ -83,7 +83,7 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] protected (
     * @param data
     *   $addOneParamData
     */
-  def addOne(data: ValidData[V, D]): Unit =
+  def addOne(data: ValidData[V, D]): Unit = synchronized:
     addOneInPlace(data)
 
   /**
@@ -92,7 +92,7 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] protected (
     * @param data
     *   $removeOneParamData
     */
-  def removeOne(data: ValidData[V, D]): Unit =
+  def removeOne(data: ValidData[V, D]): Unit = synchronized:
     removeOneInPlace(data)
 
   /**
@@ -101,8 +101,8 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] protected (
     * @param allData
     *   $addOneManyParamAllData
     */
-  def addOneMany(allData: Iterable[ValidData[V, D]]): Unit =
-    allData.foreach(addOneInPlace)
+  def addOneMany(allData: Iterable[ValidData[V, D]]): Unit = synchronized:
+    addManyInPlace(allData)
 
   /**
     * $removeOneManyDesc [[removeOne]]. $mutableAction
@@ -110,8 +110,8 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] protected (
     * @param allData
     *   $removeOneManyParamAllData
     */
-  def removeOneMany(allData: Iterable[ValidData[V, D]]): Unit =
-    allData.foreach(removeOneInPlace)
+  def removeOneMany(allData: Iterable[ValidData[V, D]]): Unit = synchronized:
+    removeManyInPlace(allData)
 
   // ---------- Implement methods from DimensionalBase that create new instances ----------
 

@@ -131,6 +131,22 @@ trait ImmutableBaseBehaviors:
       val fixture8 = fixture7.removeValue("Filled")
       fixture8.getAll.toList shouldBe expectedData6
 
+      val fixture9 = fixture7 ∩ intervalFrom1D(interval(2, 18))
+      fixture9 shouldBe immutableFrom(
+        List(
+          dataFrom1D(interval(2, 4), "Hey"),
+          dataFrom1D(interval(5, 15), "Filled"),
+          dataFrom1D(interval(16, 18), "World")
+        )
+      )
+      fixture9 △ fixture6 shouldBe immutableFrom(
+        List(
+          dataFrom1D(intervalAt(1), "Hey"),
+          dataFrom1D(interval(5, 15), "Filled"),
+          dataFrom1D(intervalAt(19), "World")
+        )
+      )
+
       val data1 = Data(Seq(intervalFrom(1).to(3) -> "A", intervalFrom(5) -> "B"))
       val data2 = Data(Seq(intervalFrom(2).to(4) -> "C", intervalFrom(6) -> "D"))
       // Default merge operation will "prioritize left"

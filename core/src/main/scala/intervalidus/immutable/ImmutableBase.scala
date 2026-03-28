@@ -24,6 +24,25 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
   // ---------- To be implemented by inheritor ----------
 
   override def copy: Self // refine the result type for `copyAndModify`
+  /**
+    * $intersectionDesc
+    *
+    * @param interval
+    *   $intersectionParamInterval
+    * @return
+    *   a new shape that is the intersection of this and the interval (i.e., this is "clipped" within the interval).
+    */
+  infix def intersection(interval: Interval[D]): Self
+
+  /**
+    * $symmetricDifferenceDesc
+    *
+    * @param that
+    *   $symmetricDifferenceParamThat
+    * @return
+    *   a new shape with the elements in this and that, but not in both.
+    */
+  infix def symmetricDifference(that: DimensionalBase[V, D]): Self
 
   /**
     * $mapDesc Both the valid data value and interval types can be changed in the mapping.
@@ -137,10 +156,11 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     *   $immutableReturn
     */
   def setMany(data: Iterable[ValidData[V, D]]): Self = copyAndModify: result =>
-    data.foreach: d =>
-      result.updateOrRemove(d.interval, _ => None)
+    val affected = data.flatMap: d =>
+      val updatedValues = result.updateOrRemoveNoCompress(d.interval, _ => None)
       result.addValidData(d)
-    result.values.foreach(result.compressInPlace)
+      updatedValues ++ Iterable.single(d.value)
+    affected.iterator.distinct.foreach(result.compressInPlace)
 
   /**
     * $setIfNoConflictDesc
@@ -216,7 +236,19 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     *   $immutableReturn
     */
   def removeMany(intervals: Iterable[Interval[D]]): Self = copyAndModify: result =>
-    intervals.foreach(result.updateOrRemove(_, _ => None))
+    val updatedValues = intervals.flatMap: interval =>
+      result.updateOrRemoveNoCompress(interval, _ => None)
+    updatedValues.iterator.distinct.foreach(compressInPlace)
+
+  /**
+    * $differenceDesc
+    *
+    * @param that
+    *   $differenceParamThat
+    * @return
+    *   a new shape that is the difference of this and that.
+    */
+  infix def difference(that: DimensionalBase[V, D]): Self = removeMany(that.allIntervals)
 
   /**
     * $removeValueDesc
@@ -227,7 +259,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     *   $immutableReturn
     */
   def removeValue(value: V): Self = copyAndModify: result =>
-    intervals(value).foreach(result.updateOrRemove(_, _ => None))
+    intervals(value).foreach(result.updateOrRemoveNoCompress(_, _ => None)) // no compression needed
 
   /**
     * $compressDesc
@@ -322,6 +354,30 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
   // equivalent symbolic method names
 
   /**
+    * Same as [[intersection]]
+    *
+    * $intersectionDesc
+    *
+    * @param interval
+    *   $intersectionParamInterval
+    * @return
+    *   a new shape that is the intersection of this and the interval (i.e., this is "clipped" within the interval).
+    */
+  def ∩(interval: Interval[D]): Self = intersection(interval)
+
+  /**
+    * Same as [[symmetricDifference]].
+    *
+    * $symmetricDifferenceDesc
+    *
+    * @param that
+    *   $symmetricDifferenceParamThat
+    * @return
+    *   a new shape with the elements in this and that, but not in both.
+    */
+  infix def △(that: DimensionalBase[V, D]): Self = symmetricDifference(that)
+
+  /**
     * Same as [[set]]
     *
     * $setDesc
@@ -368,3 +424,15 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     *   $immutableReturn
     */
   infix def --(intervals: Iterable[Interval[D]]): Self = removeMany(intervals)
+
+  /**
+    * Same as [[difference]].
+    *
+    * $differenceDesc
+    *
+    * @param that
+    *   $differenceParamThat
+    * @return
+    *   a new shape that is the difference of this and that.
+    */
+  infix def \(that: DimensionalBase[V, D]): Self = difference(that)

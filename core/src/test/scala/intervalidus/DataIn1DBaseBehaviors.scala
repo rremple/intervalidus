@@ -108,6 +108,27 @@ trait DataIn1DBaseBehaviors:
     )
     fixture4.getAll.toList shouldBe expected4
 
+    val fullOuterJoin = dataIn1DFrom(allData3a).zipAllDataGeneric(
+      that = dataIn1DFrom(allData3b),
+      whenBothMissing = Some("--"), // For coverage
+      whenOnlyThis = Some(_),
+      whenOnlyThat = Some(_),
+      whenBothPresent = (a, b) => Some(s"$a+$b")
+    )
+    fullOuterJoin.toList shouldBe List(
+      intervalToBefore(-4) -> "--",
+      interval(-4, -2) -> "Goodbye",
+      intervalFromAfter(-2).toBefore(0) -> "--",
+      intervalFrom(0).toBefore(6) -> "Hello",
+      interval(6, 9) -> "Hello+Cruel",
+      intervalFromAfter(9).toBefore(12) -> "Cruel",
+      interval(12, 14) -> "World+Cruel",
+      intervalFromAfter(14).toBefore(16) -> "World",
+      interval(16, 20) -> "World+World",
+      intervalFromAfter(20).to(24) -> "World",
+      intervalFromAfter(24) -> "--"
+    )
+
   // https://www.fidelity.com/learning-center/personal-finance/tax-brackets
   def taxBrackets(using DomainValueLike[Int]): Seq[ValidData.In1D[Double, Int]] = List( // value is tax rate (a double)
     interval(1, 23200) -> 0.1,

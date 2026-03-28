@@ -143,6 +143,16 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
       */
     infix def belongsTo(interval: Interval[D]): Boolean = interval contains domain
 
+    /**
+      * Tests if this belongs to an interval shape. See [[https://en.wikipedia.org/wiki/Element_(mathematics)]].
+      *
+      * @param intervalShape
+      *   shape to test.
+      * @return
+      *   true if this belongs to the specified shape, false otherwise.
+      */
+    infix def belongsTo(intervalShape: IntervalShape[D]): Boolean = intervalShape contains domain
+
     /*
      * Specific to multidimensional domains.
      */
@@ -275,6 +285,18 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
       *   true if this belongs to the specified interval, false otherwise.
       */
     def ∈(interval: Interval[D]): Boolean = domain belongsTo interval
+
+    /**
+      * Same as [[belongsTo]]
+      *
+      * Tests if this belongs to an interval shape. See [[https://en.wikipedia.org/wiki/Element_(mathematics)]].
+      *
+      * @param intervalShape
+      *   shape to test.
+      * @return
+      *   true if this belongs to the specified interval, false otherwise.
+      */
+    def ∈(intervalShape: IntervalShape[D]): Boolean = domain belongsTo intervalShape
 
   /*
    * Type-level domain capabilities

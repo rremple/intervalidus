@@ -189,8 +189,8 @@ trait DataIn3DBaseBehaviors:
 
       // remove left, above, front
       assertRemoveOrUpdateResult(
-        (interval(-9, 9) x interval(-9, -1) x interval(-9, 9)) -> "World", // left and right, below, back and front
-        (interval(-9, 9) x interval(0, 9) x interval(-9, -1)) -> "World", // left and right, above, back
+        (interval(-9, 9) x interval(-9, -1) x interval(0, 9)) -> "World", // left and right, below, front
+        (interval(-9, 9) x interval(-9, 9) x interval(-9, -1)) -> "World", // left and right, below and above, back
         (interval(1, 9) x interval(0, 9) x interval(0, 9)) -> "World" // right, above, front
       )(
         intervalTo(0) x intervalFrom(0) x intervalFrom(0)
@@ -225,8 +225,8 @@ trait DataIn3DBaseBehaviors:
 
       // remove right, above, front
       assertRemoveOrUpdateResult(
-        (interval(-9, 9) x interval(-9, -1) x interval(-9, 9)) -> "World",
-        (interval(-9, 9) x interval(0, 9) x interval(-9, -1)) -> "World",
+        (interval(-9, 9) x interval(-9, 9) x interval(-9, -1)) -> "World",
+        (interval(-9, 9) x interval(-9, -1) x interval(0, 9)) -> "World",
         (interval(-9, -1) x interval(0, 9) x interval(0, 9)) -> "World"
       )(
         intervalFrom(0) x intervalFrom(0) x intervalFrom(0)
@@ -234,8 +234,8 @@ trait DataIn3DBaseBehaviors:
 
     test(s"$prefix: All remove/update by interval - (3) core = split + split + split (1 case)"):
       assertRemoveOrUpdateResult(
-        (interval(-9, 9) x interval(-9, -5) x interval(-9, 9)) -> "World", // left/mid/right, below, back/mid/front
-        (interval(-9, 9) x interval(-4, 9) x interval(-9, -5)) -> "World", // left/mid/right, mid/above, back
+        (interval(-9, 9) x interval(-9, 9) x interval(-9, -5)) -> "World", // left/mid/right, below/mid/above, back
+        (interval(-9, 9) x interval(-9, -5) x interval(-4, 9)) -> "World", // left/mid/right, below, mid/front
         (interval(-9, -5) x interval(-4, 9) x interval(-4, 4)) -> "World", // left, mid/above, mid
         (interval(-9, 9) x interval(-4, 9) x interval(5, 9)) -> "World", // left/mid/right, mid/above, front
         (interval(-4, 9) x interval(5, 9) x interval(-4, 4)) -> "World", // mid/right, above, mid
@@ -606,8 +606,8 @@ trait DataIn3DBaseBehaviors:
 
       // divot in left face
       assertRemoveOrUpdateResult(
-        (interval(-9, 9) x interval(-9, -5) x interval(-9, 9)) -> "World",
-        (interval(-9, 9) x interval(-4, 9) x interval(-9, -5)) -> "World",
+        (interval(-9, 9) x interval(-9, 9) x interval(-9, -5)) -> "World",
+        (interval(-9, 9) x interval(-9, -5) x interval(-4, 9)) -> "World",
         (interval(-9, 9) x interval(-4, 9) x interval(5, 9)) -> "World",
         (interval(-9, 9) x interval(5, 9) x interval(-4, 4)) -> "World",
         (interval(-3, 9) x interval(-4, 4) x interval(-4, 4)) -> "World"
@@ -618,8 +618,8 @@ trait DataIn3DBaseBehaviors:
       // divot in right face
 
       assertRemoveOrUpdateResult(
-        (interval(-9, 9) x interval(-9, -5) x interval(-9, 9)) -> "World",
-        (interval(-9, 9) x interval(-4, 9) x interval(-9, -5)) -> "World",
+        (interval(-9, 9) x interval(-9, 9) x interval(-9, -5)) -> "World",
+        (interval(-9, 9) x interval(-9, -5) x interval(-4, 9)) -> "World",
         (interval(-9, 3) x interval(-4, 9) x interval(-4, 4)) -> "World",
         (interval(-9, 9) x interval(-4, 9) x interval(5, 9)) -> "World",
         (interval(4, 9) x interval(5, 9) x interval(-4, 4)) -> "World"
@@ -642,8 +642,8 @@ trait DataIn3DBaseBehaviors:
 
       // divot in top face
       assertRemoveOrUpdateResult(
-        (interval(-9, 9) x interval(-9, 3) x interval(-9, 9)) -> "World",
-        (interval(-9, 9) x interval(4, 9) x interval(-9, -5)) -> "World",
+        (interval(-9, 9) x interval(-9, 9) x interval(-9, -5)) -> "World",
+        (interval(-9, 9) x interval(-9, 3) x interval(-4, 9)) -> "World",
         (interval(-9, -5) x interval(4, 9) x interval(-4, 9)) -> "World",
         (interval(-4, 9) x interval(4, 9) x interval(5, 9)) -> "World",
         (interval(5, 9) x interval(4, 9) x interval(-4, 4)) -> "World"
@@ -666,8 +666,8 @@ trait DataIn3DBaseBehaviors:
 
       // divot in front face
       assertRemoveOrUpdateResult(
-        (interval(-9, 9) x interval(-9, -5) x interval(-9, 9)) -> "World",
-        (interval(-9, 9) x interval(-4, 9) x interval(-9, 3)) -> "World",
+        (interval(-9, 9) x interval(-9, 9) x interval(-9, 3)) -> "World",
+        (interval(-9, 9) x interval(-9, -5) x interval(4, 9)) -> "World",
         (interval(-9, -5) x interval(-4, 9) x interval(4, 9)) -> "World",
         (interval(-4, 9) x interval(5, 9) x interval(4, 9)) -> "World",
         (interval(5, 9) x interval(-4, 4) x interval(4, 9)) -> "World"

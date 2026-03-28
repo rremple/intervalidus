@@ -4,11 +4,14 @@ import intervalidus.collection.Box
 
 import scala.annotation.tailrec
 import scala.collection.immutable.TreeMap
+import scala.collection.mutable
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 /**
   * An interval in multiple dimensions over a contiguous domain D. See
   * [[https://en.wikipedia.org/wiki/Interval_(mathematics)]] for more information.
+  *
+  * This class is verified against the Laws of Set Theory. See the `laws` project in the source for the full test suite.
   *
   * @param start
   *   the "infimum", i.e., the left boundary of the interval (where "left" is used in a general sense: could be left
@@ -139,6 +142,30 @@ case class Interval[D <: NonEmptyTuple](
   override infix def contains(domain: D): Boolean =
     domain.isClosedOrUnbounded && // strictly speaking, open points are not "contained" in anything
       (domain afterOrAtStart start) && (domain beforeOrAtEnd end)
+
+  /**
+    * Tests if this interval is contained completely in an interval shape (i.e., can be thought of as an element of some
+    * set of intervals covering the shape). See [[https://en.wikipedia.org/wiki/Element_(mathematics)]].
+    *
+    * @param intervalShape
+    *   shape to test.
+    * @return
+    *   true if this is completely contained in the specified interval shape, false otherwise.
+    */
+  def belongsTo(intervalShape: IntervalShape[D]): Boolean = intervalShape.contains(this)
+
+  /**
+    * Same as [[belongsTo]]
+    *
+    * Tests if this interval is contained completely in an interval shape (i.e., can be thought of as an element of some
+    * set of intervals covering the shape). See [[https://en.wikipedia.org/wiki/Element_(mathematics)]].
+    *
+    * @param intervalShape
+    *   shape to test.
+    * @return
+    *   true if this is completely contained in the specified interval shape, false otherwise.
+    */
+  def ∈(intervalShape: IntervalShape[D]): Boolean = belongsTo(intervalShape)
 
   // Use mathematical interval notation -- default.
   override def toString: String = domainLike.intervalToString(this)
@@ -556,7 +583,7 @@ object Interval:
     * @param result
     *   extracts the result from the final state
     * @param dataIterable
-    *   based on current state, extracts the data iterable
+    *   based on current state, extracts the data iterable - should be ordered
     * @param interval
     *   extracts the interval from the data
     * @param valueMatch
@@ -583,26 +610,47 @@ object Interval:
     interval: Data => Interval[D],
     valueMatch: (Data, Data) => Boolean,
     lookup: (State, D) => Option[Data],
-    compressAdjacent: (Data, Data, State) => State
+    compressAdjacent: (Data, Data, State) => (Data, State)
   )(using domainLike: DomainLike[D]): Result =
-    /*
-     * Each mutation gives rise to other compression possibilities. And applying a compression action can invalidate
-     * the remainder of the actions (e.g., three-in-a-row). In all dimensions greater than one, there is no safe order
-     * to fold over ordered intervals to avoid these issues. Instead, we evaluate every entry with every other entry,
-     *  get the first compression action, apply it, and recurse until there aren't anymore actions to apply.
-     */
+    /**
+      * Each mutation gives rise to other compression possibilities. And applying a compression action can invalidate
+      * the remainder of the actions (e.g., three-in-a-row). Moreover, data on the left can have multiple compression
+      * candidates on the right. In all dimensions greater than one, there is no safe order to fold over ordered
+      * intervals to avoid these issues. Instead, we track every compression applied in a given pass, and only take
+      * subsequent actions if the target interval is still adjacent. Once all safe compression actions are applied, we
+      * recurse until there aren't any more candidates. This is far faster than starting a new pass with each
+      * compression action.
+      */
     @tailrec
     def compressRecursively(state: State): Result =
-      val compressionActions: Iterator[State => State] = for
+      val candidates: Iterator[(Data, Data)] = for
         leftData <- dataIterable(state).iterator
         rightAdjacentKey <- domainLike.intervalRightAdjacentKeys(interval(leftData))
         rightData <- lookup(state, rightAdjacentKey)
         if valueMatch(leftData, rightData) && (interval(leftData) ~> interval(rightData))
-      yield compressAdjacent(leftData, rightData, _)
+      yield (leftData, rightData)
 
-      compressionActions.nextOption() match
-        case None         => result(state) // done
-        case Some(update) => compressRecursively(update(state))
+      if !candidates.hasNext then result(state) // no candidates, done
+      else // something to do, so we do as much as we can and then recurse
+        val compressedAs = mutable.HashMap[Data, Data]()
+        @tailrec
+        def findLatest(d: Data): Data = compressedAs.get(d) match
+          case Some(next) => findLatest(next) // path-chasing for chains of compression
+          case _          => d
+
+        val updatedState = (candidates foldLeft state):
+          case (priorState, (leftCandidate, rightCandidate)) =>
+            val leftData = findLatest(leftCandidate)
+            val rightData = findLatest(rightCandidate)
+            if interval(leftData) ~> interval(rightData)
+            then
+              val (newData, newState) = compressAdjacent(leftData, rightData, priorState)
+              compressedAs.put(leftData, newData)
+              compressedAs.put(rightData, newData)
+              newState
+            else priorState
+
+        compressRecursively(updatedState)
 
     compressRecursively(initialState)
 
@@ -628,7 +676,9 @@ object Interval:
     interval = identity, // data are just intervals
     valueMatch = (_, _) => true, // no value to match
     lookup = _.get(_),
-    compressAdjacent = (r, s, treeMap) => treeMap.removed(s.start).updated(r.start, r ∪ s)
+    compressAdjacent = (r, s, treeMap) =>
+      val newInterval = r ∪ s
+      (newInterval, treeMap.removed(s.start).updated(r.start, newInterval))
   )
 
   /**

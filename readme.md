@@ -8,7 +8,8 @@
 
 ## In what intervals are your data valid?
 
-A Scala library with zero dependencies for representing data as valid only in discrete or continuous intervals, in one,
+A Scala library with zero dependencies for representing data (the "what") as valid only in
+discrete or continuous intervals (the "where"), in one,
 two, three, or more (!) dimensions. This seems to come up a lot in application design both in terms of effective dating
 and versioning data.
 
@@ -58,6 +59,7 @@ immutable, to address storage and management of data like this. For more informa
 [full API documentation](https://rremple.github.io/intervalidus/api/intervalidus)
 ### Usage:
 
+#### Data:
 You could use Intervalidus `Data` to represent the above as a one-dimensional structure that treats dates as 
 discrete values like this:
 
@@ -280,6 +282,30 @@ There is a sample billing application provided that demonstrates how both of the
 support time-oriented logic, like billing, directly, including prospective calculation and retrospective
 adjustments/refunds.
 
+Another example might be representing [piecewise functions](https://en.wikipedia.org/wiki/Piecewise_function) coherently
+by using a function type as the value where different function pieces are valid in different domain intervals. The reLU
+([rectified linear unit](https://en.wikipedia.org/wiki/Rectifier_(neural_networks))) function is a simple piecewise
+function which, given some `x`, returns `x` when `x` is greater than zero and zero otherwise. This can be expressed
+directly using intervalidus to manage the function pieces as follows:
+
+```scala 3
+import intervalidus.ContinuousValue.given
+import intervalidus.Interval1D.*
+import intervalidus.immutable.Data
+
+val reLU = new (Double => Double):
+  private val pieceAt = Data[Double => Double, Domain.In1D[Double]]()
+    .set(intervalFrom(0.0) -> identity)
+    .set(intervalToBefore(0.0) -> (_ => 0.0))
+  override def apply(d: Double): Double = pieceAt(d).apply(d)
+
+println(s"reLU at -1 = ${reLU(-1)}") // reLU at -1 = 0
+println(s"reLU at  0 = ${reLU( 0)}") // reLU at  0 = 0
+println(s"reLU at  1 = ${reLU( 1)}") // reLU at  1 = 1
+```
+
+#### DataMulti:
+
 Sometimes one wants to treat multiple values as valid in the same interval. For example, a product team may add/remove
 features in each numbered release of a product. `DataMulti` could be used to model what features belong in what
 releases, this time using intervals based on integers rather than dates.
@@ -334,29 +360,156 @@ The feature combinations in all release intervals:
 For the same reasons explained earlier, one might want to use `DataMulti` with two dimensions instead of one to model
 what features belong in what releases (integer-based release dimension) as well as when the product management decisions
 were made to include/exclude features in each release (temporal-based knowledge dimension). These ideas are explored
-further in the `SoftwareProductFeatureManagement` example.
+further in the `SoftwareProductFeatureManagement` example. Like `Data`, there are both mutable and immutable forms of
+`DataMulti`.
 
-Another example might be representing [piecewise functions](https://en.wikipedia.org/wiki/Piecewise_function) coherently
-by using a function type as the value where different function pieces are valid in different domain intervals. The reLU
-([rectified linear unit](https://en.wikipedia.org/wiki/Rectifier_(neural_networks))) function is a simple piecewise
-function which, given some `x`, returns `x` when `x` is greater than zero and zero otherwise. This can be expressed
-directly using intervalidus to manage the function pieces as follows:
+#### DataMonoid:
+
+`DataMonoid` extends the `Data` concept for values that form a `Monoid` (possessing both an identity element and a
+binary combination operation). This enables powerful set-theoretic operations -- like union, intersection, and 
+complement -- where overlapping values are automatically fused.
+
+For example, a `DataMonoid` can model a "heat map" where the identity is zero degrees and the operation is addition. A
+union of two heat maps results in a new map containing the footprint of both, with temperatures summed in the
+overlapping regions. The complement represents the "void" outside the defined shape, filled with the identity (zero).
+
+`DataMonoid` behaves like a first-class geometric entity, providing a complete Boolean algebra in multidimensional
+domains. It supports all the spatial queries of a regular `Data` structure, plus powerful algebraic operators from set
+theory:
+
+| Operator | Usage | Name                 | Description                                                             |
+|----------|-------|----------------------|-------------------------------------------------------------------------|
+| ∅        | ∅     | Empty                | An empty shape without any valid values.                                |
+| ξ        | ξ     | Universe             | An unbounded shape having the monoid `identity` value valid throughout. |
+| c        | a.c   | Complement           | The "inverse" of the shape having the monoid `identity` value.          |
+| ∪        | a ∪ b | Union                | Merges shapes, applying the monoid `combine` op to the intersection.    |
+| ∩        | a ∩ b | Intersection         | The overlapping shape with the monoid `combine` op applied.             |
+| △        | a △ b | Symmetric Difference | Valid values in A or B, but not both (from `Data`).                     |
+| \        | a \ b | Difference           | Valid values in A for which nothing is valid in B (from `Data`).        |
+| ≡        | a ≡ b | Equivalence          | Proves two shapes are logically identical (from `Data`).                |
+
+(Note: If you only need to model shapes without any associated values, see `IntervalShape` below for an optimized,
+pure-geometric alternative.)
+
+#### IntervalShape:
+
+`IntervalShape` sits somewhere between the capability of `Interval` and that of `Data` where it describes "shapes" 
+defined in terms of interval components without any associated value (the "where" without the "what"). In other words,
+`IntervalShape` treats space as a first-class citizen. Behind the scenes, it uses an underlying `Data` structure with a
+`Unit` value type, providing optimized set-theoretic operations, (e.g., the `union` method of `IntervalShape` can be as
+much as five times faster than the same method on `DataMonoid`).
+
+By way of analogy, think of the game "Minecraft":
+
+- `Interval` represents a single hyper-rectangle. It would be used to define a particular block in space -- its size and
+  position only.
+- `Data` manages multiple intervals, and maps each to a valid value. This is perfect for defining a whole multi-block
+  structure (like a house), with each block having its own size, position, and value. The value would encode the nature
+  of the block, i.e., is it made of stone, wood, etc.
+- `IntervalShape` also manages multiple intervals, but without any associated values. It would be best for just defining
+  the shape of a structure, but not the nature of the blocks themselves. Basically it is `Data` without any related
+  values.
+
+Similar to `DataMonoid`, `IntervalShape` behaves like a first-class geometric entity, providing a complete Boolean
+algebra in multidimensional domains. Unlike `DataMonoid`, it does not support all the queries of a regular `Data`
+structure (e.g., there is no value to `get`). Instead it supports more of the spatial queries of a regular `Interval`,
+which are applicable to multi-interval shapes, plus the algebraic operators from set theory which are simplified,
+because there is no monoidal value to consider:
+
+| Operator | Usage | Name                 | Description                                       |
+|----------|-------|----------------------|---------------------------------------------------|
+| ∅        | ∅     | Empty                | The empty shape.                                  |
+| ξ        | ξ     | Universe             | The unbounded shape covering the full domain.     |
+| c        | a.c   | Complement           | The "inverse" of the shape (all space not in A).  |
+| ∪        | a ∪ b | Union                | Combines two shapes into one.                     |
+| ∩        | a ∩ b | Intersection         | Finds the overlapping shape.                      |
+| \        | a \ b | Difference           | A shape with intervals from A that are not in B.  |
+| △        | a △ b | Symmetric Difference | A shape with intervals from A or B, but not both. |
+| ≡        | a ≡ b | Equivalence          | Proves two shapes are logically identical.        |
+
+For example, imagine you are managing a 4D building schedule where the dimensions are the day of the week, the time,
+the floor, and the room number. The following shows how restricted zones and regular maintenance windows can be
+managed efficiently as collections of intervals -- 4D "shapes" -- and how these shapes can be combined and queried to
+detect a conflict with a scheduled meeting.
 
 ```scala 3
-import intervalidus.ContinuousValue.given
-import intervalidus.Interval1D.*
-import intervalidus.immutable.Data
+import Interval1D.{intervalAt, intervalFrom, unbounded}
+import IntervalShape.*
+import DiscreteValue.given
 
-val reLU = new (Double => Double):
-  private val pieceAt = Data[Double => Double, Domain.In1D[Double]]()
-    .set(intervalFrom(0.0) -> identity)
-    .set(intervalToBefore(0.0) -> (_ => 0.0))
-  override def apply(d: Double): Double = pieceAt(d).apply(d)
+enum Weekday derives DiscreteValue:
+case Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday
+import Weekday.*
 
-println(s"reLU at -1 = ${reLU(-1)}") // reLU at -1 = 0
-println(s"reLU at  0 = ${reLU( 0)}") // reLU at  0 = 0
-println(s"reLU at  1 = ${reLU( 1)}") // reLU at  1 = 1
+val weekdays = intervalFrom(Monday).to(Friday)
+val weekends = intervalFrom(Saturday).to(Sunday)
+val everyday = intervalFrom(Monday).to(Sunday)
+
+val restrictedZones = Seq(
+  everyday x // restricted the same everyday
+    intervalFrom(900).to(1700) x // working hours are 9 a.m. to 5 p.m.
+    intervalAt(5) x // only floor 5
+    intervalFrom(100).to(200) // rooms 100-200
+).toShape
+
+// 2. Define maintenance windows
+val maintenanceWindows = Seq(
+  weekdays x // weekday maintenance in during the day
+    intervalFrom(1200).to(1300) x // noon to 1 p.m.
+    unbounded[Int] x // all floors
+    unbounded[Int], // all rooms
+    
+  weekends x // weekend maintenance is at night
+    intervalFrom(2200).to(2300) x // 10 to 11 p.m.
+    intervalFrom(2).to(9) x // floors 2-9
+    intervalFrom(1).to(500) // rooms 1-500
+).toShape
+
+// 3. Create a complex "No-Go Zone" shape using algebra
+val noGoZone = restrictedZones ∪ maintenanceWindows
+
+// 4. Query the shape for a specific meeting from 12:30 - 1:30 p.m. on the 5th floor in room 150
+val myMeeting = intervalAt(Monday) x intervalFrom(1230).to(1330) x intervalAt(5) x intervalAt(150)
+
+if noGoZone intersects myMeeting then println("Conflict detected!") // and indeed there is one!
+
+// What else other rooms/times on the 5th floor are available that day?
+val mondayOnFive: IntervalShape[Domain.In2D[Int, Int]] = noGoZone.getByHeadDimension(Monday).getByDimension(1, 5)
+val availability = mondayOnFive.toData("unavailable").fill(Interval.unbounded -> "available")
+println(availability)
 ```
+
+By slicing the 4D schedule for just Monday on the 5th floor, we can visualize the availability across room numbers and
+time. Note how the 'Restricted' and 'Maintenance' shapes have been transformed into all the 'unavailable' slots, while
+the rest of the universe is automatically filled with 'available' slots:
+
+```text
+| -∞ .. 899              | 900 .. 1199            | 1200 .. 1300           | 1301 .. 1700           | 1701 .. +∞             |
+| available (-∞..99]                              |
+| available [100..+∞)    |
+                         | unavailable [100..200] |
+                         | available [201..+∞)    |
+                                                  | unavailable (-∞..+∞)   |
+                                                                           | available (-∞..99]                              |
+                                                                           | unavailable [100..200] |
+                                                                           | available [201..+∞)                             |
+                                                                                                    | available [100..200]   |
+```
+
+#### DataVersioned:
+
+`DataVersioned`, mimics the `Data` API but uses an underlying `Data` structure of a higher dimension (i.e., with an
+additional integer head dimension) to create a versioned data structure. The "current" version is tracked as internal
+state and methods accept version selection as a
+[context parameter](https://docs.scala-lang.org/scala3/book/ca-context-parameters.html), with "current" as the default
+version selection applied. Also, a notion of approval is supported by specifying a specific future version for anything
+unapproved, and a timestamped history of versions is maintained. Like `DataMulti`, it is also used in the
+the `SoftwareProductFeatureManagement` example for tracking release planning and approvals, managing the
+"planned" versus "actual" or "approved" versus "unapproved" state of features. Like `Data`, there are both mutable and
+immutable forms of
+`DataVersioned`.
+
+#### Variable:
 
 Another application is a simple variable, i.e., having a value that varies in time. The twist here is that an underlying
 `Data`structure maintains all historical values assigned with nanosecond resolution. Both mutable and immutable forms of
@@ -387,7 +540,7 @@ starting value: 5.0
 all values:     Set(5.2, 5.1, 5.0)
 ```
 
----
+## Using and Extending
 
 The same methods are available in both mutable/immutable variants (though parameter and
 return types vary). See the [full API documentation](https://rremple.github.io/intervalidus/api/intervalidus) for details on
@@ -396,7 +549,7 @@ these methods.
 These query methods provide various data, difference, and Boolean results:
 
 - `get` / `getOption` / `getAt` / `getDataAt` / `getAll` / `getIntersecting`
-- `intersects`
+- `intersects` / `isSubsetOf` (`⊆`) / `isEquivalentTo` (`≡`)
 - `foldLeft`
 - `isEmpty` / `size`
 - `domain` / `domainComplement`
@@ -414,12 +567,12 @@ These mutation methods return a new structure when using immutable and `Unit` wh
 - `remove` (`-`) / `removeMany` (`--`) / `removeValue`
 - `replace` / `replaceByKey` / `update` / `merge`
 - `set` (`+`) / `setMany` (`++`) / `setIfNoConflict` / `fill`
+- `intersection` (`∩`) / `difference` (`\`) / `symmetricDifference` (`△`)
 - `compress` / `compressAll` / `recompressAll`
 - `filter`
 - `map` / `mapValues` / `mapIntervals` / `collect` / `flatMap` (the immutable variant allows altering type parameters)
 - `applyDiffActions` / `syncWith`
 
-## Using and Extending
 
 There is nothing remarkable about `LocalDate` and the other types used in the examples above. These are examples of
 something called "domain values" over which a
@@ -659,6 +812,19 @@ Note that box search trees are tunable via environment variables.
 
 Apart from `collection`, there are a few other subprojects that are worth mentioning:
 
+- The `laws` subproject contains property-based ScalaCheck tests. Every release of Intervalidus is verified against
+  hundreds of properties covering one to four dimensions in both continuous and discrete domains. `IntervalShape`
+  is particularly well tested by applying the laws of set theory (e.g., Associative, Commutative, Distributive, De 
+  Morgan, Absorption) to randomly-generated multidimensional shapes. By using unicode operators, the properties are
+  very recognizable as mathematical properties. E.g., the Distributive law properties look like this, where `≡≡` asserts
+  the resulting shapes are equivalent (`≡`), even if represented physically by different collections of intervals:
+  ```scala 3
+  forAll(intervalMultiGen, intervalMultiGen, intervalMultiGen): (a, b, c) =>
+    (a ∪ (b ∩ c)) ≡≡ ((a ∪ b) ∩ (a ∪ c))
+    (a ∩ (b ∪ c)) ≡≡ ((a ∩ b) ∪ (a ∩ c))
+    (a ∩ (b △ c)) ≡≡ ((a ∩ b) △ (a ∩ c))
+  ```
+ 
 - As described earlier, in the `intervalidus-examples` subproject there is a sample billing application that shows how
   Intervalidus structures can be used to support time-oriented logic like billing directly.
 

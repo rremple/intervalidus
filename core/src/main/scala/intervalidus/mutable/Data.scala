@@ -17,7 +17,7 @@ object Data extends DimensionalBaseObject with DimensionalBaseConstructorParams:
 
   override def of[V, D <: NonEmptyTuple: DomainLike](
     data: ValidData[V, D]
-  )(using Experimental): Data[V, D] = Data(Iterable(data))
+  )(using Experimental): Data[V, D] = Data(Iterable.single(data))
 
   override def of[V, D <: NonEmptyTuple: DomainLike](
     value: V

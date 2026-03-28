@@ -30,7 +30,9 @@ class ContinuousIntervalTest extends AnyFunSuite with Matchers with IntervalComm
     assert(!(intervalTo(5) contains open(3)))
     intervalFromAfter(LocalDate.of(2025, 1, 10).atTime(1, 2, 3, 4)).toCodeLikeString shouldBe
       "intervalFromAfter(LocalDate.of(2025,1,10).atTime(1,2,3,4))"
-    intervalFromAfter(0).toBefore(1).toCodeLikeString shouldBe "interval(open(0), open(1))"
+    intervalFromAfter(0).toBefore(1).toCodeLikeString shouldBe "intervalFromAfter(0).toBefore(1)"
+    intervalFrom(0).toBefore(1).toCodeLikeString shouldBe "intervalFrom(0).toBefore(1)"
+    intervalFromAfter(0).to(1).toCodeLikeString shouldBe "intervalFromAfter(0).to(1)"
     intervalAt(open(LocalDate.of(2025, 1, 10))).toCodeLikeString shouldBe "intervalAt(LocalDate.of(2025,1,10))"
 
     val originClosed = Domain.in2D[Int, Int](0, 0)

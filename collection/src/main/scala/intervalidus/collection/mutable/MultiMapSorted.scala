@@ -73,7 +73,11 @@ class MultiMapSorted[K, V: Ordering] private (dict: mutable.Map[K, SortedSet[V]]
     * @param elems
     *   key-value pairs to associate.
     */
-  def addAll(elems: Iterable[(K, V)]): Unit = elems.foreach(addOne)
+  def addAll(elems: Iterable[(K, V)]): Unit =
+    elems
+      .groupMap(_._1)(_._2)
+      .foreach: (key, values) =>
+        dict.update(key, dict(key) ++ values)
 
   /**
     * Clear all associations.

@@ -17,7 +17,7 @@ object Data extends DimensionalBaseObject with DimensionalBaseConstructorParams:
 
   override def of[V, D <: NonEmptyTuple: DomainLike](
     data: ValidData[V, D]
-  )(using Experimental): Data[V, D] = Data(Iterable(data))
+  )(using Experimental): Data[V, D] = Data(Iterable.single(data))
 
   override def of[V, D <: NonEmptyTuple: DomainLike](
     value: V
@@ -54,6 +54,11 @@ class Data[V, D <: NonEmptyTuple: DomainLike] protected (
   )
 
   // ---------- Implement methods from ImmutableBase that create new instances ----------
+  override infix def intersection(interval: Interval[D]): Data[V, D] =
+    Data(intersectionData(interval))
+
+  override infix def symmetricDifference(that: DimensionalBase[V, D]): Data[V, D] =
+    Data(symmetricDifferenceData(that))
 
   override def map[B, S <: NonEmptyTuple: DomainLike](
     f: ValidData[V, D] => ValidData[B, S]

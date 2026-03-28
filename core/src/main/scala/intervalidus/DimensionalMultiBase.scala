@@ -146,6 +146,13 @@ trait DimensionalMultiBaseObject extends DimensionalBaseConstructorParams:
   */
 trait DimensionalMultiBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends DimensionalBase[Set[V], D]:
 
+  private def addToValueSet(value: V)(existingValues: Set[V]): Option[Set[V]] =
+    Some(existingValues + value)
+
+  private def removeFromValueSet(value: V)(existingValues: Set[V]): Option[Set[V]] =
+    val newValues = existingValues - value
+    if newValues.isEmpty then None else Some(newValues)
+
   /**
     * Internal mutator to update all the valid value sets in the interval to include the new value, and to fill any
     * remaining portions of the interval without any valid values to just have the new value as valid.
@@ -156,8 +163,26 @@ trait DimensionalMultiBase[V, D <: NonEmptyTuple: DomainLike](using Experimental
     *   type of value to be merged (subtype of [[V]])
     */
   protected def addOneInPlace[B <: V](data: ValidData[B, D]): Unit =
-    updateOrRemove(data.interval, existingValues => Some(existingValues + data.value))
-    fillInPlace(data.interval -> Set(data.value))
+    val updatedValues = updateOrRemoveNoCompress(data.interval, addToValueSet(data.value))
+    fillInPlaceNoCompress(data.interval -> Set(data.value))
+    (updatedValues.iterator ++ Iterator.single(Set(data.value))).distinct.foreach(compressInPlace)
+
+  /**
+    * Internal mutator to update all the valid value sets in the specified intervals to include the specified values,
+    * and to fill any remaining portions of the intervals without any valid values to just have the specified values as
+    * valid.
+    *
+    * @param allData
+    *   new values that should be valid in the specified intervals (along with any other existing values)
+    * @tparam B
+    *   type of value to be merged (subtype of [[V]])
+    */
+  protected def addManyInPlace[B <: V](allData: Iterable[ValidData[B, D]]): Unit =
+    val affected = allData.flatMap: data =>
+      val updatedValues = updateOrRemoveNoCompress(data.interval, addToValueSet(data.value))
+      fillInPlaceNoCompress(data.interval -> Set(data.value))
+      updatedValues ++ Iterable.single(Set(data.value: V))
+    affected.iterator.distinct.foreach(compressInPlace)
 
   /**
     * Internal mutator to update all the valid value sets in the interval to exclude the new value, and for any interval
@@ -169,12 +194,21 @@ trait DimensionalMultiBase[V, D <: NonEmptyTuple: DomainLike](using Experimental
     *   type of value to be merged (subtype of [[V]])
     */
   protected def removeOneInPlace[B <: V](data: ValidData[B, D]): Unit =
-    updateOrRemove(
-      data.interval,
-      existingValues =>
-        val newValues = existingValues - data.value
-        if newValues.isEmpty then None else Some(newValues)
-    )
+    updateOrRemove(data.interval, removeFromValueSet(data.value))
+
+  /**
+    * Internal mutator to update all the valid value sets in the specified intervals to not include the specified
+    * values, and for any intervals that only contains the specified value, remove the intervals completely.
+    *
+    * @param allData
+    *   the values to make no longer valid in the specified intervals
+    * @tparam B
+    *   type of value to be merged (subtype of [[V]])
+    */
+  protected def removeManyInPlace[B <: V](allData: Iterable[ValidData[B, D]]): Unit =
+    val affected = allData.flatMap: data =>
+      updateOrRemoveNoCompress(data.interval, removeFromValueSet(data.value))
+    affected.iterator.distinct.foreach(compressInPlace)
 
   /**
     * Returns the distinct individual values that are valid in some interval.

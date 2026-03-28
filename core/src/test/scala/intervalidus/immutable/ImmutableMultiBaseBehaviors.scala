@@ -200,3 +200,18 @@ trait ImmutableMultiBaseBehaviors:
 
       val f7sync = fixture5.syncWith(fixture7)
       f7sync shouldBe fixture7
+
+      val fixture8 = fixture6 ∩ intervalFrom1D(interval(2, 18))
+      fixture8 shouldBe multiFrom(
+        List(
+          intervalFrom1D(interval(2, 4)) -> "Hey",
+          intervalFrom1D(interval(5, 15)) -> "to",
+          intervalFrom1D(interval(16, 18)) -> "World"
+        )
+      )
+      fixture8 △ fixture6 shouldBe multiFrom(
+        List(
+          intervalFrom1D(intervalTo(1)) -> "Hey",
+          intervalFrom1D(intervalFrom(19)) -> "World"
+        )
+      )

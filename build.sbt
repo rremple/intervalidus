@@ -1,4 +1,8 @@
+import com.typesafe.tools.mima.core.{IncompatibleSignatureProblem, ProblemFilters, ReversedMissingMethodProblem}
 import sbt.Def
+import tastymima.intf.{ProblemKind, ProblemMatcher}
+
+import scala.jdk.CollectionConverters.seqAsJavaListConverter
 
 ThisBuild / scalaVersion := "3.3.7"
 
@@ -48,7 +52,7 @@ lazy val root = (project in file("."))
     `intervalidus-tinyrule`,
     `intervalidus-examples`,
     `intervalidus-example-mongodb`,
-    `bench`
+    bench
   )
   .enablePlugins(ScalaUnidocPlugin, SiteScaladocPlugin, GhpagesPlugin)
   .settings(
@@ -79,13 +83,29 @@ lazy val root = (project in file("."))
     ScalaUnidoc / unidoc / unidocProjectFilter := inAnyProject -- inProjects(
       `intervalidus-examples`,
       `intervalidus-example-mongodb`,
-      `bench`
+      laws,
+      bench
     )
   )
 
 lazy val core = project
   .dependsOn(collection)
   .settings(commonPublishSettings("intervalidus"))
+  // Small sins of v1.1.0 -- remove in v2.0.0
+  .settings(
+    mimaBinaryIssueFilters ++= Seq(
+      ProblemFilters.exclude[IncompatibleSignatureProblem]("intervalidus.Interval.compressGeneric"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("intervalidus.immutable.ImmutableBase.intersection"),
+      ProblemFilters.exclude[ReversedMissingMethodProblem]("intervalidus.immutable.ImmutableBase.symmetricDifference")
+    ),
+    tastyMiMaConfig := tastyMiMaConfig.value.withMoreProblemFilters(
+      Seq(
+        ProblemMatcher.make(ProblemKind.IncompatibleTypeChange, "intervalidus.Interval.compressGeneric"),
+        ProblemMatcher.make(ProblemKind.NewAbstractMember, "intervalidus.immutable.ImmutableBase.symmetricDifference"),
+        ProblemMatcher.make(ProblemKind.NewAbstractMember, "intervalidus.immutable.ImmutableBase.intersection")
+      ).asJava
+    )
+  )
 
 lazy val collection = project
   .settings(commonPublishSettings("intervalidus-collection"))
@@ -131,6 +151,16 @@ lazy val `intervalidus-example-mongodb` = (project in file("example-mongodb"))
       "com.dimafeng" %% "testcontainers-scala-mongodb" % testcontainersVersion % Test,
       "org.slf4j" % "slf4j-nop" % "2.0.17" % Test
     )
+  )
+
+lazy val laws = project
+  .disablePlugins(MimaPlugin, TastyMiMaPlugin)
+  .dependsOn(core)
+  .settings(commonNoPublishSettings("laws"))
+  .settings(
+    Test / parallelExecution := true,
+    Test / fork := true,
+    libraryDependencies += "org.scalatestplus" %% "scalacheck-1-18" % "3.2.19.0" % Test
   )
 
 lazy val bench = project

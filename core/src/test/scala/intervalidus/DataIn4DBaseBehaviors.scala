@@ -211,15 +211,12 @@ trait DataIn4DBaseBehaviors:
 
       // remove left, above, front
       assertRemoveOrUpdateResult(
-        (interval(-9, 9) x interval(-9, -1) x interval(-9, 9) x interval(
-          -9,
-          9
-        )) -> "World", // left and right, below, back and front
-        (interval(-9, 9) x interval(0, 9) x interval(-9, -1) x interval(
-          -9,
-          9
-        )) -> "World", // left and right, above, back
-        (interval(1, 9) x interval(0, 9) x interval(0, 9) x interval(-9, 9)) -> "World" // right, above, front
+        // left and right, above and below, back
+        (interval(-9, 9) x interval(-9, 9) x interval(-9, -1) x interval(-9, 9)) -> "World",
+        // left and right, below, front
+        (interval(-9, 9) x interval(-9, -1) x interval(0, 9) x interval(-9, 9)) -> "World",
+        // right, above, front
+        (interval(1, 9) x interval(0, 9) x interval(0, 9) x interval(-9, 9)) -> "World"
       )(
         intervalTo(0) x intervalFrom(0) x intervalFrom(0) x interval(-9, 9)
       )
@@ -271,8 +268,8 @@ trait DataIn4DBaseBehaviors:
 
       // remove right, above, front
       assertRemoveOrUpdateResult(
-        (interval(-9, 9) x interval(-9, -1) x interval(-9, 9) x interval(-9, 9)) -> "World",
-        (interval(-9, 9) x interval(0, 9) x interval(-9, -1) x interval(-9, 9)) -> "World",
+        (interval(-9, 9) x interval(-9, 9) x interval(-9, -1) x interval(-9, 9)) -> "World",
+        (interval(-9, 9) x interval(-9, -1) x interval(0, 9) x interval(-9, 9)) -> "World",
         (interval(-9, -1) x interval(0, 9) x interval(0, 9) x interval(-9, 9)) -> "World"
       )(
         intervalFrom(0) x intervalFrom(0) x intervalFrom(0) x interval(-9, 9)
@@ -280,21 +277,18 @@ trait DataIn4DBaseBehaviors:
 
     test(s"$prefix: All remove/update by interval - (3) core = split + split + split (1 case)"):
       assertRemoveOrUpdateResult(
-        (interval(-9, 9) x interval(-9, -5) x interval(-9, 9) x interval(
-          -9,
-          9
-        )) -> "World", // left/mid/right, below, back/mid/front
-        (interval(-9, 9) x interval(-4, 9) x interval(-9, -5) x interval(
-          -9,
-          9
-        )) -> "World", // left/mid/right, mid/above, back
-        (interval(-9, -5) x interval(-4, 9) x interval(-4, 4) x interval(-9, 9)) -> "World", // left, mid/above, mid
-        (interval(-9, 9) x interval(-4, 9) x interval(5, 9) x interval(
-          -9,
-          9
-        )) -> "World", // left/mid/right, mid/above, front
-        (interval(-4, 9) x interval(5, 9) x interval(-4, 4) x interval(-9, 9)) -> "World", // mid/right, above, mid
-        (interval(5, 9) x interval(-4, 4) x interval(-4, 4) x interval(-9, 9)) -> "World" // right, mid, mid
+        // left/mid/right, below/mid/above, back
+        (interval(-9, 9) x interval(-9, 9) x interval(-9, -5) x interval(-9, 9)) -> "World",
+        // left/mid/right, below, mid/front
+        (interval(-9, 9) x interval(-9, -5) x interval(-4, 9) x interval(-9, 9)) -> "World",
+        // left, mid/above, mid
+        (interval(-9, -5) x interval(-4, 9) x interval(-4, 4) x interval(-9, 9)) -> "World",
+        // left/mid/right, mid/above, front
+        (interval(-9, 9) x interval(-4, 9) x interval(5, 9) x interval(-9, 9)) -> "World",
+        // mid/right, above, mid
+        (interval(-4, 9) x interval(5, 9) x interval(-4, 4) x interval(-9, 9)) -> "World",
+        // right, mid, mid
+        (interval(5, 9) x interval(-4, 4) x interval(-4, 4) x interval(-9, 9)) -> "World"
       )(
         interval(-4, 4) x interval(-4, 4) x interval(-4, 4) x interval(-9, 9)
       )
@@ -661,8 +655,8 @@ trait DataIn4DBaseBehaviors:
 
       // divot in left face
       assertRemoveOrUpdateResult(
-        (interval(-9, 9) x interval(-9, -5) x interval(-9, 9) x interval(-9, 9)) -> "World",
-        (interval(-9, 9) x interval(-4, 9) x interval(-9, -5) x interval(-9, 9)) -> "World",
+        (interval(-9, 9) x interval(-9, 9) x interval(-9, -5) x interval(-9, 9)) -> "World",
+        (interval(-9, 9) x interval(-9, -5) x interval(-4, 9) x interval(-9, 9)) -> "World",
         (interval(-9, 9) x interval(-4, 9) x interval(5, 9) x interval(-9, 9)) -> "World",
         (interval(-9, 9) x interval(5, 9) x interval(-4, 4) x interval(-9, 9)) -> "World",
         (interval(-3, 9) x interval(-4, 4) x interval(-4, 4) x interval(-9, 9)) -> "World"
@@ -673,8 +667,8 @@ trait DataIn4DBaseBehaviors:
       // divot in right face
 
       assertRemoveOrUpdateResult(
-        (interval(-9, 9) x interval(-9, -5) x interval(-9, 9) x interval(-9, 9)) -> "World",
-        (interval(-9, 9) x interval(-4, 9) x interval(-9, -5) x interval(-9, 9)) -> "World",
+        (interval(-9, 9) x interval(-9, 9) x interval(-9, -5) x interval(-9, 9)) -> "World",
+        (interval(-9, 9) x interval(-9, -5) x interval(-4, 9) x interval(-9, 9)) -> "World",
         (interval(-9, 3) x interval(-4, 9) x interval(-4, 4) x interval(-9, 9)) -> "World",
         (interval(-9, 9) x interval(-4, 9) x interval(5, 9) x interval(-9, 9)) -> "World",
         (interval(4, 9) x interval(5, 9) x interval(-4, 4) x interval(-9, 9)) -> "World"
@@ -697,8 +691,8 @@ trait DataIn4DBaseBehaviors:
 
       // divot in top face
       assertRemoveOrUpdateResult(
-        (interval(-9, 9) x interval(-9, 3) x interval(-9, 9) x interval(-9, 9)) -> "World",
-        (interval(-9, 9) x interval(4, 9) x interval(-9, -5) x interval(-9, 9)) -> "World",
+        (interval(-9, 9) x interval(-9, 9) x interval(-9, -5) x interval(-9, 9)) -> "World",
+        (interval(-9, 9) x interval(-9, 3) x interval(-4, 9) x interval(-9, 9)) -> "World",
         (interval(-9, -5) x interval(4, 9) x interval(-4, 9) x interval(-9, 9)) -> "World",
         (interval(-4, 9) x interval(4, 9) x interval(5, 9) x interval(-9, 9)) -> "World",
         (interval(5, 9) x interval(4, 9) x interval(-4, 4) x interval(-9, 9)) -> "World"
@@ -721,8 +715,8 @@ trait DataIn4DBaseBehaviors:
 
       // divot in front face
       assertRemoveOrUpdateResult(
-        (interval(-9, 9) x interval(-9, -5) x interval(-9, 9) x interval(-9, 9)) -> "World",
-        (interval(-9, 9) x interval(-4, 9) x interval(-9, 3) x interval(-9, 9)) -> "World",
+        (interval(-9, 9) x interval(-9, 9) x interval(-9, 3) x interval(-9, 9)) -> "World",
+        (interval(-9, 9) x interval(-9, -5) x interval(4, 9) x interval(-9, 9)) -> "World",
         (interval(-9, -5) x interval(-4, 9) x interval(4, 9) x interval(-9, 9)) -> "World",
         (interval(-4, 9) x interval(5, 9) x interval(4, 9) x interval(-9, 9)) -> "World",
         (interval(5, 9) x interval(-4, 4) x interval(4, 9) x interval(-9, 9)) -> "World"

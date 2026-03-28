@@ -53,4 +53,4 @@ object BoxedPayload:
     // partition so we only take the performance hit on data with split boxes
     val (split, unsplit) = data.partition(_.parentBox.isDefined)
     val correctedWithDuplicates = split.flatMap(_.asParent)
-    unsplit ++ correctedWithDuplicates.toSet
+    unsplit ++ correctedWithDuplicates.iterator.distinct

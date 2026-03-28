@@ -16,7 +16,7 @@ object DataMulti extends DimensionalMultiBaseObject:
 
   override def of[V, D <: NonEmptyTuple: DomainLike](
     data: ValidData[V, D]
-  )(using Experimental): DataMulti[V, D] = DataMulti(Iterable(data.interval -> Set(data.value)))
+  )(using Experimental): DataMulti[V, D] = DataMulti(Iterable.single(data.interval -> Set(data.value)))
 
   override def of[V, D <: NonEmptyTuple: DomainLike](
     value: V
@@ -107,8 +107,8 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] protected (
     * @return
     *   $immutableReturn
     */
-  def addOneMany(allData: Iterable[ValidData[V, D]]): DataMulti[V, D] = copyAndModify: result =>
-    allData.foreach(result.addOneInPlace)
+  def addOneMany(allData: Iterable[ValidData[V, D]]): DataMulti[V, D] =
+    copyAndModify(_.addManyInPlace(allData))
 
   /**
     * $removeOneManyDesc [[removeOne]].
@@ -118,11 +118,17 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] protected (
     * @return
     *   $immutableReturn
     */
-  def removeOneMany(allData: Iterable[ValidData[V, D]]): DataMulti[V, D] = copyAndModify: result =>
-    allData.foreach(result.removeOneInPlace)
+  def removeOneMany(allData: Iterable[ValidData[V, D]]): DataMulti[V, D] =
+    copyAndModify(_.removeManyInPlace(allData))
 
   // ---------- Implement methods from ImmutableBase that create new instances ----------
-  //   (these return Data rather than DataMulti because B isn't necessarily a Set type)
+  //   (some of these return Data rather than DataMulti because B isn't necessarily a Set type)
+
+  override infix def intersection(interval: Interval[D]): DataMulti[V, D] =
+    DataMulti(intersectionData(interval))
+
+  override infix def symmetricDifference(that: DimensionalBase[Set[V], D]): DataMulti[V, D] =
+    DataMulti(symmetricDifferenceData(that))
 
   override def map[B, S <: NonEmptyTuple: DomainLike](
     f: ValidData[Set[V], D] => ValidData[B, S]

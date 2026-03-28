@@ -150,6 +150,15 @@ trait DimensionalBaseConstructorParams:
   *   a new, updated structure.
   * @define mutableAction
   *   Data are mutated in place.
+  * @define intersectionDesc
+  *   The intersection of this and a single interval. See [[https://en.wikipedia.org/wiki/Intersection_(set_theory)]].
+  * @define intersectionParamInterval
+  *   a single interval with which to intersect.
+  * @define symmetricDifferenceDesc
+  *   The "exclusive or" of this and that. That is, the portions of the that which are not in the domain of this and the
+  *   portions of this which are not in the domain of that. See [[https://en.wikipedia.org/wiki/Symmetric_difference]].
+  * @define symmetricDifferenceParamThat
+  *   shape to combine.
   * @define mapDesc
   *   Applies a function to all valid data.
   * @define mapParamF
@@ -199,6 +208,11 @@ trait DimensionalBaseConstructorParams:
   *   intervals adjusted (e.g., shortened, shifted, split) accordingly.
   * @define removeManyParamIntervals
   *   the intervals where any valid values are removed.
+  * @define differenceDesc
+  *   The elements in this which are not in the domain of that. The values of that are ignored. See
+  *   [[https://en.wikipedia.org/wiki/Complement_(set_theory)#Relative_complement]].
+  * @define differenceParamThat
+  *   shape to remove.
   * @define removeValueDesc
   *   Remove the value in all the intervals where it is valid.
   * @define removeValueParamValue
@@ -291,7 +305,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     equals(that) || equivalentWithMutualDecompression(that)
 
   /**
-    * Same as [[isEquivalentTo()]]
+    * Same as [[isEquivalentTo]]
     *
     * Indicates whether some other object is "logically equivalent to" this one. That is, either this and that are
     * equal, or they are equal after being decompressed using the same base intervals (the same decompression used in
@@ -401,8 +415,25 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     * @param updateValue
     *   maps a current value to some updated value, or None if the value should be removed.
     */
-  protected def updateOrRemove(targetInterval: Interval[D], updateValue: V => Option[V]): Unit = synchronized:
-    val intersectingValues = getIntersecting(targetInterval).flatMap: overlap =>
+  protected def updateOrRemove(targetInterval: Interval[D], updateValue: V => Option[V]): Unit =
+    updateOrRemoveNoCompress(targetInterval, updateValue).iterator.distinct.foreach(compressInPlace)
+
+  /**
+    * Same as [[updateOrRemove]], but returning the affected values rather than compressing. For operations that make
+    * multiple updateOrRemove calls, it is more efficient compressing at the end, especially when dealing with
+    * structures that have many intervals for the same value. (The maximum impact of this fact, and the main motivation
+    * for making compression deferred, is IntervalShape, where all values in the underlying Data are the same, i.e.,
+    * unit.)
+    *
+    * @param targetInterval
+    *   the interval where any valid values are updated or removed.
+    * @param updateValue
+    *   maps a current value to some updated value, or None if the value should be removed.
+    * @return
+    *   all potentially affected values (before and after update), may include duplicates
+    */
+  protected def updateOrRemoveNoCompress(targetInterval: Interval[D], updateValue: V => Option[V]): Iterable[V] =
+    getIntersecting(targetInterval).flatMap: overlap =>
       val updatedValueOption = updateValue(overlap.value)
       (overlap.interval ∩ targetInterval).foreach: intersection => // there will always be one
         // Creates an atomic deconstruction of the intervals covering the overlap without the intersection
@@ -437,10 +468,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
           addValidData(intersection -> newValue)
 
       // intersecting and updated value results for compression later
-      Seq(overlap.value) ++ updatedValueOption
-
-    // compress all potentially affected values
-    intersectingValues.toSet.foreach(compressInPlace)
+      Iterable.single(overlap.value) ++ updatedValueOption
 
   /**
     * Internal method, to fill in place.
@@ -450,11 +478,14 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     * @param data
     *   specifies the interval in which the value should be filled
     */
-  protected def fillInPlace(data: ValidData[V, D]): Unit = synchronized:
+  protected def fillInPlaceNoCompress(data: ValidData[V, D]): Unit =
     Interval
       .uniqueIntervals(getIntersecting(data.interval).map(_.interval) ++ Seq(data.interval))
       .foreach: i =>
         if i ⊆ data.interval && !intersects(i) then addValidData(i -> data.value)
+
+  protected def fillInPlace(data: ValidData[V, D]): Unit =
+    fillInPlaceNoCompress(data)
     compressInPlace(data.value)
 
   /**
@@ -472,9 +503,13 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
   protected def mergeInPlace(
     that: Iterable[ValidData[V, D]],
     mergeValues: (V, V) => V
-  ): Unit = that.foreach: thatData =>
-    updateOrRemove(thatData.interval, thisDataValue => Some(mergeValues(thisDataValue, thatData.value)))
-    fillInPlace(thatData)
+  ): Unit =
+    val affected = that.flatMap: thatData =>
+      val updatedValues =
+        updateOrRemoveNoCompress(thatData.interval, thisDataValue => Some(mergeValues(thisDataValue, thatData.value)))
+      fillInPlaceNoCompress(thatData)
+      updatedValues ++ Iterable.single(thatData.value)
+    affected.iterator.distinct.foreach(compressInPlace)
 
   /**
     * Internal method, to compress in place.
@@ -496,7 +531,8 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     lookup = (_, start) => dataByStartAsc.get(start),
     compressAdjacent = (r, s, _) =>
       removeValidData(s)
-      updateValidData(r.interval ∪ s.interval -> value)
+      val newData = r.interval ∪ s.interval -> value
+      (newData, updateValidData(newData))
   )
 
   /**
@@ -516,7 +552,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   that it results in different recompressions. E.g., one might compare immutable.Data 'a' and 'b' using
     *   'a.recompressAll(b.allIntervals) shouldBe b.recompressAll(a.allIntervals)'.
     */
-  protected def recompressInPlace(otherIntervals: Iterable[Interval[D]]): Unit = synchronized:
+  protected def recompressInPlace(otherIntervals: Iterable[Interval[D]]): Unit =
     replaceValidData(decompressedData(otherIntervals))
 
     // recompress
@@ -528,10 +564,10 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
   /**
     * Internal method to set in place.
     */
-  protected def setInPlace(data: ValidData[V, D]): Unit = synchronized:
-    updateOrRemove(data.interval, _ => None)
+  protected def setInPlace(data: ValidData[V, D]): Unit =
+    val updatedValues = updateOrRemoveNoCompress(data.interval, _ => None)
     addValidData(data)
-    compressInPlace(data.value)
+    (updatedValues.iterator ++ Iterator.single(data.value)).distinct.foreach(compressInPlace)
 
   /**
     * Applies a diff action to this structure.
@@ -539,13 +575,28 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     * @param diffAction
     *   action to be applied.
     */
-  protected def applyDiffActionInPlace(diffAction: DiffAction[V, D]): Unit = synchronized:
+  protected def applyDiffActionInPlace(diffAction: DiffAction[V, D]): Unit =
     diffAction match
       case DiffAction.Create(data: ValidData[V, D]) => addValidData(data)
       case DiffAction.Update(data: ValidData[V, D]) => updateValidData(data)
       case DiffAction.Delete(key)                   => removeValidDataByKey(key)
     // Not sure why, but returning explicit Unit here resolves runtime type check warning above
     ()
+
+  /**
+    * Data for the intersection of this and a single interval. See
+    * [[https://en.wikipedia.org/wiki/Intersection_(set_theory)]].
+    *
+    * @param interval
+    *   a single interval to intersect.
+    * @return
+    *   data representing the intersection of this and that.
+    */
+  protected def intersectionData(interval: Interval[D]): Iterable[ValidData[V, D]] =
+    for
+      d <- getIntersecting(interval)
+      i <- d.interval ∩ interval
+    yield d.copy(interval = i)
 
   /**
     * Internal method, to zip with the data of another dimensional structure with the same domain type. The result
@@ -559,11 +610,29 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   a collection of valid data representing this structure's data zipped with that structure's data.
     */
   protected def zipData[B](that: DimensionalBase[B, D]): Iterable[ValidData[(V, B), D]] =
+    zipData(that, (_, _))
+
+  /**
+    * Internal method, to zip with the data of another dimensional structure with the same domain type. The result
+    * domain will be the intersection of this domain and that domain.
+    *
+    * @param that
+    *   dimensional structure to zip with -- must have the same domain type
+    * @param f
+    *   combines the values of this and that into the value result type
+    * @tparam B
+    *   the value type of that
+    * @tparam R
+    *   the value result type
+    * @return
+    *   a collection of valid data representing this structure's data zipped with that structure's data.
+    */
+  protected def zipData[B, R](that: DimensionalBase[B, D], f: (V, B) => R): Iterable[ValidData[R, D]] =
     for
-      subInterval <- Interval.uniqueIntervals(allIntervals ++ that.allIntervals)
-      thisValue <- getIntersecting(subInterval).headOption.map(_.value)
-      thatValue <- that.getIntersecting(subInterval).headOption.map(_.value)
-    yield subInterval -> (thisValue, thatValue)
+      a <- getAll
+      b <- that.getIntersecting(a.interval)
+      intersection <- a.interval ∩ b.interval
+    yield intersection -> f(a.value, b.value)
 
   /**
     * Internal method, to zip with the data of another dimensional structure with the same domain type and apply
@@ -588,15 +657,75 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     thisDefault: V,
     thatDefault: B
   ): Iterable[ValidData[(V, B), D]] =
+    zipAllDataGeneric(
+      that,
+      whenBothMissing = None,
+      whenOnlyThis = v => Some((v, thatDefault)),
+      whenOnlyThat = b => Some((thisDefault, b)),
+      whenBothPresent = (v, b) => Some((v, b))
+    )
+
+  /**
+    * Data for the "exclusive or" of this and that. That is, the portions of the shapes that are in this or that, but
+    * not in both. See [[https://en.wikipedia.org/wiki/Symmetric_difference]].
+    *
+    * @param that
+    *   shape to combine.
+    * @return
+    *   data representing the symmetric difference of this and that.
+    */
+  protected def symmetricDifferenceData(that: DimensionalBase[V, D]): Iterable[ValidData[V, D]] =
+    zipAllDataGeneric(
+      that,
+      whenBothMissing = None,
+      whenOnlyThis = Some(_),
+      whenOnlyThat = Some(_),
+      whenBothPresent = (_, _) => None
+    )
+
+  /**
+    * Zip with the data of another dimensional structure with the same domain type and select data based on the function
+    * parameters. The full domain is considered when whenBothMissing is some value, otherwise only the domain covered by
+    * this and that is considered. (This is primarily an internal method supporting zipAll and symmetricDifference, but
+    * made public so it can be tested directly
+    *
+    * @param that
+    *   dimensional structure to zip with -- must have the same domain type
+    * @param whenBothMissing
+    *   Optionally, what to return when neither this nor that is defined in the interval.
+    * @param whenOnlyThis
+    *   Optionally, what to return when this is defined in the interval, but that is not (a function on the value in
+    *   this).
+    * @param whenOnlyThat
+    *   Optionally, what to return when that is defined in the interval, but this is not (a function on the value in
+    *   that).
+    * @param whenBothPresent
+    *   Optionally, what to return when both this and that are defined (a function on the values in this and that).
+    * @tparam B
+    *   the value type of that
+    * @tparam R
+    *   the value type the returned iterable
+    * @return
+    *   a collection of valid data representing this structure's data zipped generically with that structure's data, and
+    *   all elements of the domain outside both.
+    */
+  def zipAllDataGeneric[B, R](
+    that: DimensionalBase[B, D],
+    whenBothMissing: Option[R],
+    whenOnlyThis: V => Option[R],
+    whenOnlyThat: B => Option[R],
+    whenBothPresent: (V, B) => Option[R]
+  ): Iterable[ValidData[R, D]] =
+    val intervalsConsidered = allIntervals ++ that.allIntervals ++ whenBothMissing.map(_ => Interval.unbounded[D])
     for
-      subInterval <- Interval.uniqueIntervals(allIntervals ++ that.allIntervals)
+      subInterval <- Interval.uniqueIntervals(intervalsConsidered)
       thisValueOption = getIntersecting(subInterval).headOption.map(_.value)
       thatValueOption = that.getIntersecting(subInterval).headOption.map(_.value)
       valuePair <- (thisValueOption, thatValueOption) match
-        case (None, None)                       => None
-        case (Some(thisValue), Some(thatValue)) => Some((thisValue, thatValue))
-        case (Some(thisValue), None)            => Some((thisValue, thatDefault))
-        case (None, Some(thatValue))            => Some((thisDefault, thatValue))
+        case (None, None)                       => whenBothMissing
+        case (Some(thisValue), None)            => whenOnlyThis(thisValue)
+        case (None, Some(thatValue))            => whenOnlyThat(thatValue)
+        case (Some(thisValue), Some(thatValue)) => whenBothPresent(thisValue, thatValue)
     yield subInterval -> valuePair
 
   /**
@@ -818,6 +947,34 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     dataInSearchTree.get(interval.asBox).exists(_.payload.interval intersects interval)
 
   /**
+    * Is this a subset (proper or improper) of that? See [[https://en.wikipedia.org/wiki/Subset]]. This is the
+    * Topological Subset without considering values.
+    *
+    * @param that
+    *   shape to test
+    * @return
+    *   true if this is a subset of that.
+    */
+  infix def isSubsetOf(that: DimensionalBase[V, D]): Boolean =
+    Interval
+      .uniqueIntervals(allIntervals ++ that.allIntervals)
+      .forall: subInterval =>
+        !intersects(subInterval) || that.intersects(subInterval)
+
+  /**
+    * Same as [[isSubsetOf]]
+    *
+    * Is this a subset (proper or improper) of that? See [[https://en.wikipedia.org/wiki/Subset]]. This is the
+    * Topological Subset without considering values.
+    *
+    * @param that
+    *   shape to test
+    * @return
+    *   true if this is a subset of that.
+    */
+  infix def ⊆(that: DimensionalBase[V, D]): Boolean = isSubsetOf(that)
+
+  /**
     * Returns all the intervals (compressed) in which there are valid values. See
     * [[https://en.wikipedia.org/wiki/Domain_of_a_function]].
     */
@@ -831,7 +988,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     * [[https://en.wikipedia.org/wiki/Complement_(set_theory)]].
     */
   def domainComplement: Iterable[Interval[D]] = Interval.compress(
-    Interval.uniqueIntervals(allIntervals ++ Iterable(Interval.unbounded[D])).filter(!intersects(_))
+    Interval.uniqueIntervals(allIntervals ++ Iterable.single(Interval.unbounded[D])).filter(!intersects(_))
   )
 
   /**

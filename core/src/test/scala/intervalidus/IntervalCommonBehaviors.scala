@@ -841,9 +841,9 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
         intervalFromAfter(0) x Interval1D.unbounded[Int] x interval(10, 20)
       )
       complement(intervals3.drop(1)).toList shouldBe List(
-        Interval1D.unbounded[Int] x intervalTo(0) x intervalToBefore(10),
+        Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x intervalToBefore(3),
+        Interval1D.unbounded[Int] x intervalTo(0) x intervalFrom(3).toBefore(10),
         Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x intervalFromAfter(20).toBefore(30),
-        Interval1D.unbounded[Int] x intervalFromAfter(0) x intervalToBefore(3),
         Interval1D.unbounded[Int] x intervalFromAfter(0) x intervalFromAfter(7).toBefore(10),
         intervalFromAfter(0) x Interval1D.unbounded[Int] x interval(10, 20)
       )
@@ -950,10 +950,10 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
         intervalFromAfter(0) x Interval1D.unbounded[Int] x interval(10, 20) x Interval1D.unbounded[Int]
       )
       complement(intervals3.drop(1)).toList shouldBe List(
-        Interval1D.unbounded[Int] x intervalTo(0) x intervalToBefore(10) x Interval1D.unbounded[Int],
+        Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x intervalToBefore(3) x Interval1D.unbounded[Int],
+        Interval1D.unbounded[Int] x intervalTo(0) x intervalFrom(3).toBefore(10) x Interval1D.unbounded[Int],
         Interval1D.unbounded[Int] x Interval1D.unbounded[Int] x intervalFromAfter(20).toBefore(30) x Interval1D
           .unbounded[Int],
-        Interval1D.unbounded[Int] x intervalFromAfter(0) x intervalToBefore(3) x Interval1D.unbounded[Int],
         Interval1D.unbounded[Int] x intervalFromAfter(0) x intervalFromAfter(7).toBefore(10) x Interval1D
           .unbounded[Int],
         intervalFromAfter(0) x Interval1D.unbounded[Int] x interval(10, 20) x Interval1D.unbounded[Int]

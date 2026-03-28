@@ -19,7 +19,7 @@ object DataVersioned extends DimensionalVersionedBaseObject:
     initialVersion: VersionDomainValue,
     initialComment: String
   )(using Experimental, DomainLike[Versioned[D]], CurrentDateTime): DataVersioned[V, D] = from(
-    Iterable(data),
+    Iterable.single(data),
     initialVersion,
     initialComment
   )

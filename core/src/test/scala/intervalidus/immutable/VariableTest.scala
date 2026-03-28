@@ -38,7 +38,10 @@ class VariableTest extends AnyFunSuite with Matchers:
     fixture2.getAt(slightlyBefore(time2)) shouldBe "World"
     fixture2.getAt(slightlyBefore(time1)) shouldBe "Hello"
     fixture2.getPrior shouldBe Some("World")
-    fixture2.history.values should contain theSameElementsAs Seq("Hello", "World", "Hello World!")
+    val historicalValues = Seq("Hello", "World", "Hello World!")
+    val history = fixture2.history
+    history.values should contain theSameElementsAs historicalValues
+    Variable.fromHistory(history.getAll).history.values should contain theSameElementsAs historicalValues
 
     val fixture3 = fixture2.unset() match
       case Some(newFixture) => newFixture

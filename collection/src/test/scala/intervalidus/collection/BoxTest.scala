@@ -6,6 +6,8 @@ import org.scalatest.matchers.should.Matchers
 
 class BoxTest extends AnyFunSuite with Matchers:
 
+  private val radius = Capacity.defaultBoundaryCapacitySize / 2
+
   test("Box and other runtime checks"):
     val coordinate1D = Coordinate(Some(1.0))
     val coordinateFixed1D = CoordinateFixed(1.0)
@@ -27,6 +29,9 @@ class BoxTest extends AnyFunSuite with Matchers:
       val _ = Boundary(Capacity(coordinateFixed1D, coordinateFixed1D)).withBox(Box(coordinate2D, coordinate2D))
 
   test("Box (1D) methods"):
+    CoordinateFixed.bound(1, radius).asString shouldBe s"$radius"
+    Capacity.aroundOrigin(1).toString shouldBe s"[${-radius}..$radius]"
+
     def coordinateFixed(c: Double): CoordinateFixed = CoordinateFixed(c)
     def coordinate(c: Double): Coordinate = Coordinate(Some(c))
     def coordinateUnbound: Coordinate = Coordinate(None)
@@ -74,6 +79,9 @@ class BoxTest extends AnyFunSuite with Matchers:
     boxedPayload.withParentBox(Some(box(0, 200))).toString shouldBe "[0.0..100.0] -> Hello (from [0.0..200.0])"
 
   test("Box (2D) methods"):
+    CoordinateFixed.bound(2, radius).asString shouldBe s"($radius,$radius)"
+    Capacity.aroundOrigin(2).toString shouldBe s"[(${-radius},${-radius})..($radius,$radius)]"
+
     def coordinateFixed(c1: Double, c2: Double): CoordinateFixed =
       CoordinateFixed(c1, c2)
     def coordinate(c1: Double, c2: Double): Coordinate =
@@ -115,6 +123,9 @@ class BoxTest extends AnyFunSuite with Matchers:
       "[(0.0,0.0)..(100.0,100.0)] -> Hello (from [(0.0,0.0)..(200.0,200.0)])"
 
   test("Box (3D) methods"):
+    CoordinateFixed.bound(3, radius).asString shouldBe s"($radius,$radius,$radius)"
+    Capacity.aroundOrigin(3).toString shouldBe s"[(${-radius},${-radius},${-radius})..($radius,$radius,$radius)]"
+
     def coordinateFixed(c1: Double, c2: Double, c3: Double): CoordinateFixed =
       CoordinateFixed(c1, c2, c3)
     def coordinate(c1: Double, c2: Double, c3: Double): Coordinate =

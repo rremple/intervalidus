@@ -81,8 +81,10 @@ class MultiMapSorted[K, V: Ordering] private (dict: Map[K, SortedSet[V]]) extend
     *   a new multimap that includes the new associations
     */
   def addAll(elems: Iterable[(K, V)]): MultiMapSorted[K, V] = new MultiMapSorted(
-    elems.foldLeft(dict): (updatedMap, elem) =>
-      updatedMap.updated(elem._1, updatedMap(elem._1) + elem._2)
+    elems
+      .groupMap(_._1)(_._2)
+      .foldLeft(dict): (updatedDict, kvs) =>
+        updatedDict.updated(kvs._1, updatedDict(kvs._1) ++ kvs._2)
   )
 
   /**

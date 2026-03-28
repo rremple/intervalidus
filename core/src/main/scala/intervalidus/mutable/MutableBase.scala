@@ -15,6 +15,23 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
   // ---------- Implement methods not in DimensionalBase that have mutable signatures ----------
 
   /**
+    * $intersectionDesc $mutableAction
+    * @param interval
+    *   $intersectionParamInterval
+    */
+  infix def intersection(interval: Interval[D]): Unit = synchronized:
+    replaceValidData(intersectionData(interval))
+
+  /**
+    * $symmetricDifferenceDesc $mutableAction
+    *
+    * @param that
+    *   $symmetricDifferenceParamThat
+    */
+  infix def symmetricDifference(that: DimensionalBase[V, D]): Unit = synchronized:
+    replaceValidData(symmetricDifferenceData(that))
+
+  /**
     * $mapDesc $mutableAction
     *
     * @param f
@@ -85,10 +102,11 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     *   $setManyParamData
     */
   def setMany(data: Iterable[ValidData[V, D]]): Unit = synchronized:
-    data.foreach: d =>
-      updateOrRemove(d.interval, _ => None)
+    val affected = data.flatMap: d =>
+      val updatedValues = updateOrRemoveNoCompress(d.interval, _ => None)
       addValidData(d)
-    values.foreach(compressInPlace)
+      updatedValues ++ Iterable.single(d.value)
+    affected.iterator.distinct.foreach(compressInPlace)
 
   /**
     * $setIfNoConflictDesc $mutableAction
@@ -111,7 +129,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     * @param data
     *   $updateParamData
     */
-  def update(data: ValidData[V, D]): Unit =
+  def update(data: ValidData[V, D]): Unit = synchronized:
     updateOrRemove(data.interval, _ => Some(data.value))
 
   /**
@@ -122,7 +140,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     * @param newData
     *   $replaceParamNewData
     */
-  def replace(oldData: ValidData[V, D], newData: ValidData[V, D]): Unit =
+  def replace(oldData: ValidData[V, D], newData: ValidData[V, D]): Unit = synchronized:
     removeValidData(oldData)
     setInPlace(newData)
 
@@ -143,7 +161,8 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     * @param interval
     *   $removeParamInterval
     */
-  def remove(interval: Interval[D]): Unit = updateOrRemove(interval, _ => None)
+  def remove(interval: Interval[D]): Unit = synchronized:
+    updateOrRemove(interval, _ => None)
 
   /**
     * $removeManyDesc $mutableAction
@@ -151,8 +170,18 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     * @param intervals
     *   $removeManyParamIntervals
     */
-  def removeMany(intervals: Iterable[Interval[D]]): Unit =
-    intervals.foreach(updateOrRemove(_, _ => None))
+  def removeMany(intervals: Iterable[Interval[D]]): Unit = synchronized:
+    val updatedValues = intervals.flatMap: interval =>
+      updateOrRemoveNoCompress(interval, _ => None)
+    updatedValues.iterator.distinct.foreach(compressInPlace)
+
+  /**
+    * $differenceDesc $mutableAction
+    *
+    * @param that
+    *   $differenceParamThat
+    */
+  infix def difference(that: DimensionalBase[V, D]): Unit = removeMany(that.allIntervals)
 
   /**
     * $removeValueDesc $mutableAction
@@ -160,8 +189,8 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     * @param value
     *   $removeValueParamValue
     */
-  def removeValue(value: V): Unit =
-    intervals(value).foreach(updateOrRemove(_, _ => None))
+  def removeValue(value: V): Unit = synchronized:
+    intervals(value).foreach(updateOrRemoveNoCompress(_, _ => None)) // no compression needed
 
   /**
     * $compressDesc $mutableAction
@@ -188,7 +217,8 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     * @param otherIntervals
     *   $recompressAllParamOtherIntervals
     */
-  def recompressAll(otherIntervals: Iterable[Interval[D]]): Unit = recompressInPlace(otherIntervals)
+  def recompressAll(otherIntervals: Iterable[Interval[D]]): Unit = synchronized:
+    recompressInPlace(otherIntervals)
 
   // for binary compatibility
   /**
@@ -198,7 +228,8 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     *
     * $mutableAction
     */
-  def recompressAll(): Unit = recompressInPlace()
+  def recompressAll(): Unit = synchronized:
+    recompressInPlace()
 
   /**
     * $applyDiffActionsDesc $mutableAction
@@ -238,9 +269,30 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
   def merge(
     that: DimensionalBase[V, D],
     mergeValues: (V, V) => V = (thisDataValue, _) => thisDataValue
-  ): Unit = mergeInPlace(that.getAll, mergeValues)
+  ): Unit = synchronized:
+    mergeInPlace(that.getAll, mergeValues)
 
   // equivalent symbolic method names
+
+  /**
+    * Same as [[intersection]].
+    *
+    * $intersectionDesc $mutableAction
+    *
+    * @param interval
+    *   $intersectionParamInterval
+    */
+  infix def ∩(interval: Interval[D]): Unit = intersection(interval)
+
+  /**
+    * Same as [[symmetricDifference]].
+    *
+    * $symmetricDifferenceDesc
+    *
+    * @param that
+    *   $symmetricDifferenceParamThat
+    */
+  infix def △(that: DimensionalBase[V, D]): Unit = symmetricDifference(that)
 
   /**
     * Same as [[set]]
@@ -281,3 +333,13 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     *   $removeManyParamIntervals
     */
   infix def --(intervals: Iterable[Interval[D]]): Unit = removeMany(intervals)
+
+  /**
+    * Same as [[difference]].
+    *
+    * $differenceDesc $mutableAction
+    *
+    * @param that
+    *   $differenceParamThat
+    */
+  infix def \(that: DimensionalBase[V, D]): Unit = difference(that)

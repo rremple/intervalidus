@@ -4,6 +4,7 @@ import intervalidus.Domain1D.*
 import intervalidus.Interval1D.{intervalFrom, intervalTo}
 
 import scala.annotation.nowarn
+import scala.collection.mutable
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 /**
@@ -111,22 +112,19 @@ case class Interval1D[T](
   override def toString: String = s"${start.leftBrace}$start${domainValue.bracePunctuation}$end${end.rightBrace}"
 
   override def toCodeLikeString: String =
-    def boundCode(bound: Domain1D[T]): String = (bound: @nowarn("msg=match may not be exhaustive")) match
-      case OpenPoint(s) => s"open(${Domain1D.codeLikeValue(s)})"
-      case Point(s)     => s"${Domain1D.codeLikeValue(s)}"
-
-    (start, end) match
-      case (Bottom, Top)      => "unbounded"
-      case (Bottom, endPoint) =>
-        endPoint match
-          case OpenPoint(s) => s"intervalToBefore(${Domain1D.codeLikeValue(s)})"
-          case _            => s"intervalTo(${boundCode(endPoint)})"
-      case (startPoint, Top) =>
-        startPoint match
-          case OpenPoint(s) => s"intervalFromAfter(${Domain1D.codeLikeValue(s)})"
-          case _            => s"intervalFrom(${boundCode(startPoint)})"
-      case (Point(s), Point(e)) if s == e => s"intervalAt(${Domain1D.codeLikeValue(s)})"
-      case (sb, eb)                       => s"interval(${boundCode(sb)}, ${boundCode(eb)})"
+    import Domain1D.codeLikeValue
+    // Exhaustivity would require matching the seven invalid cases related to (Top, _) and (_, Bottom)
+    ((start, end): @nowarn("msg=match may not be exhaustive")) match
+      case (Bottom, Top)                  => "unbounded"
+      case (Bottom, Point(e))             => s"intervalTo(${codeLikeValue(e)})"
+      case (Bottom, OpenPoint(e))         => s"intervalToBefore(${codeLikeValue(e)})"
+      case (Point(s), Top)                => s"intervalFrom(${codeLikeValue(s)})"
+      case (Point(s), Point(e)) if s == e => s"intervalAt(${codeLikeValue(s)})"
+      case (Point(s), Point(e))           => s"interval(${codeLikeValue(s)}, ${codeLikeValue(e)})"
+      case (Point(s), OpenPoint(e))       => s"intervalFrom(${codeLikeValue(s)}).toBefore(${codeLikeValue(e)})"
+      case (OpenPoint(s), Top)            => s"intervalFromAfter(${codeLikeValue(s)})"
+      case (OpenPoint(s), Point(e))       => s"intervalFromAfter(${codeLikeValue(s)}).to(${codeLikeValue(e)})"
+      case (OpenPoint(s), OpenPoint(e))   => s"intervalFromAfter(${codeLikeValue(s)}).toBefore(${codeLikeValue(e)})"
 
   /*
    * Behaviors/definitions specific to a fixed one-dimensional interval
@@ -334,13 +332,24 @@ object Interval1D:
   def uniqueIntervals[T: DomainValueLike](intervals: Iterable[Interval1D[T]]): Iterable[Interval1D[T]] =
     if intervals.isEmpty then intervals
     else
-      val starts = (intervals.map(_.start) ++ intervals.map(_.end.rightAdjacent)).toSeq.sorted.distinct.dropRight(1)
-      val ends = (intervals.map(_.end) ++ intervals.map(_.start.leftAdjacent)).toSeq
-        .sorted(using Domain1D.endOrdering)
-        .distinct
-        .drop(1)
-      // assert(starts.size == ends.size)
-      starts.zip(ends).map(apply)
+      // using a tree set is faster than some other sequence that has to be sorted later
+      val starts = mutable.TreeSet.newBuilder[Domain1D[T]]
+      val ends = mutable.TreeSet.newBuilder[Domain1D[T]](using Domain1D.endOrdering)
+      val resultBuilder = Iterable.newBuilder[Interval1D[T]]
+
+      intervals.foreach: i =>
+        starts += i.start
+        starts += i.end.rightAdjacent
+        ends += i.end
+        ends += i.start.leftAdjacent
+
+      starts
+        .result()
+        .iterator
+        .zip(ends.result().iterator.drop(1))
+        .foreach: (s, e) =>
+          resultBuilder += Interval1D(s, e)
+      resultBuilder.result()
 
   /**
     * Given a collection of intervals, finds the complement intervals (i.e., the gaps). See

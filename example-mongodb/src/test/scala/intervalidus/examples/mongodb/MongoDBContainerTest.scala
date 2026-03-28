@@ -12,7 +12,7 @@ class MongoDBContainerTest extends AnyFlatSpec with Matchers with MongoDBContain
 
   given Conversion[String, BsonString] = BsonString(_)
 
-  "MongoDB container" should "be able to insert and retrieve documents" inContainer:
+  ("MongoDB container" should "be able to insert and retrieve documents").inContainer:
     container =>
       val client = container.client
       val collection = client.collection("users")
