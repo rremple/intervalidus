@@ -25,7 +25,7 @@ def commonSettings(projectName: String): Seq[Def.Setting[_]] = Seq(
   coverageFailOnMinimum := true,
   coverageMinimumStmtTotal := 99,
   coverageMinimumBranchTotal := 99,
-  libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.19" % Test
+  libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.20" % Test
 )
 def commonPublishSettings(projectName: String): Seq[Def.Setting[_]] = commonSettings(projectName) ++ Seq(
   tastyMiMaPreviousArtifacts := mimaPreviousArtifacts.value,
@@ -160,7 +160,7 @@ lazy val laws = project
   .settings(
     Test / parallelExecution := true,
     Test / fork := true,
-    libraryDependencies += "org.scalatestplus" %% "scalacheck-1-18" % "3.2.19.0" % Test
+    libraryDependencies += "org.scalatestplus" %% "scalacheck-1-19" % "3.2.20.0" % Test
   )
 
 lazy val bench = project
