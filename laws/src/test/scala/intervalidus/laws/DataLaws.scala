@@ -123,7 +123,7 @@ class DataLaws extends AnyPropSpec with ScalaCheckPropertyChecks with ParallelTe
     new DataPropertyTest:
       override def apply[D <: NonEmptyTuple: DomainLike](dataGen: Gen[immutable.Data[String, D]]): Assertion =
         forAll(dataGen): a =>
-          a.getAll.foldLeft(a)(_.fill (_)) shouldBe a.recompressAll()
+          a.getAll.foldLeft(a)(_.fill(_)) shouldBe a.recompressAll()
 
   /**
     * This validates that the results of querying the core dataInSearchTree structure (i.e., the underlying box search
