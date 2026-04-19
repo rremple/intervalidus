@@ -99,7 +99,7 @@ lazy val `intervalidus-weepickle` = (project in file("json/weepickle"))
   .dependsOn(core, `intervalidus-pickle` % "compile->compile;test->test")
   .settings(commonPublishSettings("intervalidus-weepickle"))
   .settings(
-    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.18.6", // for GHSA-72hv-8253-57qq
+    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.21.2", // for GHSA-72hv-8253-57qq
     libraryDependencies += "com.rallyhealth" %% "weepickle-v1" % "1.9.1"
   )
 
