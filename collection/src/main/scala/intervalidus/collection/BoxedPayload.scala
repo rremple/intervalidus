@@ -38,7 +38,7 @@ case class BoxedPayload[A](box: Box, payload: A, parentBox: Option[Box] = None):
   */
 object BoxedPayload:
   /**
-    * Removed duplicates where boxes are split.
+    * Removes duplicates where boxes are split (from/to an Iterable).
     *
     * @param data
     *   boxed data that may include duplicates because of box splits
@@ -52,5 +52,23 @@ object BoxedPayload:
   ): Iterable[BoxedPayload[A]] =
     // partition so we only take the performance hit on data with split boxes
     val (split, unsplit) = data.partition(_.parentBox.isDefined)
+    val correctedWithDuplicates = split.flatMap(_.asParent)
+    unsplit ++ correctedWithDuplicates.iterator.distinct
+
+  /**
+    * Removes duplicates where boxes are split (from/to an IterableOnce).
+    *
+    * @param data
+    *   boxed data that may include duplicates because of box splits
+    * @tparam A
+    *   payload type
+    * @return
+    *   boxed data with duplicates removed
+    */
+  def deduplicateIterableOnce[A](
+    data: IterableOnce[BoxedPayload[A]]
+  ): IterableOnce[BoxedPayload[A]] =
+    // partition so we only take the performance/memory hit on data with split boxes
+    val (split, unsplit) = data.iterator.partition(_.parentBox.isDefined)
     val correctedWithDuplicates = split.flatMap(_.asParent)
     unsplit ++ correctedWithDuplicates.iterator.distinct

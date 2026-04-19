@@ -2,7 +2,6 @@ package intervalidus
 
 import intervalidus.DiscreteValue.given
 import intervalidus.DomainLike.given
-import intervalidus.Domain.In4D as Dim
 import org.scalatest.compatible.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
@@ -18,19 +17,22 @@ trait DataIn4DBaseBehaviors:
 
   import Interval1D.*
 
+  type IntDim = Domain.In4D[Int, Int, Int, Int]
+  type MixedDim = Domain.In4D[LocalDate, LocalDate, Int, Int]
+
   protected val dayZero: LocalDate = LocalDate.of(2024, 7, 15)
 
   protected def day(offsetDays: Int): LocalDate = dayZero.plusDays(offsetDays)
 
   protected val unboundedDate = unbounded[LocalDate]
 
-  def stringLookupTests[S <: DimensionalBase[String, Dim[LocalDate, LocalDate, Int, Int]]](
+  def stringLookupTests[S <: DimensionalBase[String, MixedDim]](
     prefix: String,
-    dataIn4DFrom: Experimental ?=> Iterable[ValidData[String, Dim[LocalDate, LocalDate, Int, Int]]] => S,
-    dataIn4DOf: Experimental ?=> String => S
-  )(using Experimental): Unit = test(s"$prefix: Looking up data in intervals"):
+    dataIn4DFrom: CoreConfig[MixedDim] ?=> Iterable[ValidData[String, MixedDim]] => S,
+    dataIn4DOf: CoreConfig[MixedDim] ?=> String => S
+  )(using config: CoreConfig[MixedDim]): Unit = test(s"$prefix: Looking up data in intervals"):
     {
-      given Experimental = Experimental("requireDisjoint")
+      given CoreConfig[MixedDim] = config.withExperimental(Experimental("requireDisjoint"))
 
       assertThrows[IllegalArgumentException]:
         // not valid as it overlaps in the second dimension on [10, +∞)
@@ -48,12 +50,12 @@ trait DataIn4DBaseBehaviors:
     assert((empty: Any) != ("<nothing is valid>": Any))
     assert(empty.getAll.isEmpty)
     assert(empty.domain.isEmpty)
-    empty.domainComplement.toList shouldBe List(Interval.unbounded[Dim[LocalDate, LocalDate, Int, Int]])
+    empty.domainComplement.toList shouldBe List(Interval.unbounded[MixedDim])
 
     val single = dataIn4DOf("Hello world")
     single.get shouldBe "Hello world"
     single.getOption shouldBe Some("Hello world")
-    single.domain.toList shouldBe List(Interval.unbounded[Dim[LocalDate, LocalDate, Int, Int]])
+    single.domain.toList shouldBe List(Interval.unbounded[MixedDim])
     assert(single.domainComplement.isEmpty)
 
     val bounded = (intervalFrom(0) x intervalTo(0) x intervalTo(0) x intervalTo(0)) -> "Hello world"
@@ -143,13 +145,13 @@ trait DataIn4DBaseBehaviors:
    * (10) bite = split + single + none (6 symmetric cases)
    */
   protected def assertRemoveOrUpdateResult(
-    removeExpectedUnsorted: ValidData[String, Dim[Int, Int, Int, Int]]*
+    removeExpectedUnsorted: ValidData[String, IntDim]*
   )(
-    removeOrUpdateInterval: Interval[Dim[Int, Int, Int, Int]],
+    removeOrUpdateInterval: Interval[IntDim],
     updateValue: String = "update"
-  )(using Experimental): Assertion
+  )(using CoreConfig[IntDim]): Assertion
 
-  def removeOrUpdateTests(prefix: String)(using Experimental): Unit =
+  def removeOrUpdateTests(prefix: String)(using CoreConfig[IntDim]): Unit =
     test(s"$prefix: All remove/update by interval - (1) simple = none + none + none (1 case)"):
       // the same
       assertRemoveOrUpdateResult()(

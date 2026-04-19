@@ -1,13 +1,12 @@
 package intervalidus
 
 import intervalidus.DomainLike.given
-import intervalidus.Domain.In3D as Dim
 import intervalidus.DimensionalVersionedBase.Versioned
 import intervalidus.Interval.Patterns.*
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
-import java.time.LocalDate
+import java.time.{Instant, LocalDate, LocalDateTime, ZoneId}
 import scala.annotation.nowarn
 import scala.language.implicitConversions
 
@@ -20,9 +19,16 @@ trait DataIn3DVersionedBaseBehaviors:
   import DiscreteValue.IntDiscreteValue
   import Interval1D.*
 
+  type IntDim = Domain.In3D[Int, Int, Int]
+  type MixedDim = Domain.In3D[LocalDate, LocalDate, Int]
+
   val dayZero: LocalDate = LocalDate.of(2024, 6, 30)
 
   def day(offsetDays: Int): LocalDate = dayZero.plusDays(offsetDays)
+
+  extension (t: LocalDateTime)
+    def instant: Instant = t.atZone(ZoneId.of("America/Los_Angeles")).toInstant
+    def asCurrent: CurrentInstant = CurrentInstant.simulated(t.instant)
 
   def horizontal[H: DomainValueLike, V: DomainValueLike, D: DomainValueLike](
     interval: Interval[Versioned[Domain.In3D[H, V, D]]]
@@ -31,19 +37,19 @@ trait DataIn3DVersionedBaseBehaviors:
 
   protected def testDataIn4D[T](
     current: Domain1D[Int],
-    values: List[ValidData[T, Dim[Int, Int, Int]]]
-  )(using DomainValueLike[Int]): List[ValidData[T, Versioned[Dim[Int, Int, Int]]]] =
+    values: List[ValidData[T, IntDim]]
+  )(using DomainValueLike[Int]): List[ValidData[T, Versioned[IntDim]]] =
     values.map(d => (d.interval withHead intervalFrom(current)) -> d.value)
 
-  def stringLookupTests[S <: DimensionalVersionedBase[String, Dim[Int, Int, Int]]](
+  def stringLookupTests[S <: DimensionalVersionedBase[String, IntDim]](
     prefix: String,
-    dataIn3DVersionedFrom3D: Experimental ?=> Iterable[ValidData[String, Dim[Int, Int, Int]]] => S,
-    dataIn3DVersionedFrom4D: Experimental ?=> Iterable[ValidData[String, Versioned[Dim[Int, Int, Int]]]] => S,
-    dataIn3DVersionedOf: Experimental ?=> String => S
-  )(using Experimental, DomainValueLike[Int]): Unit =
+    dataIn3DVersionedFrom3D: CoreConfig[Versioned[IntDim]] ?=> Iterable[ValidData[String, IntDim]] => S,
+    dataIn3DVersionedFrom4D: CoreConfig[Versioned[IntDim]] ?=> Iterable[ValidData[String, Versioned[IntDim]]] => S,
+    dataIn3DVersionedOf: CoreConfig[Versioned[IntDim]] ?=> String => S
+  )(using config: CoreConfig[Versioned[IntDim]])(using DomainValueLike[Int]): Unit =
     test(s"$prefix: General setup"):
       {
-        given Experimental = Experimental("requireDisjoint")
+        given CoreConfig[Versioned[IntDim]] = config.withExperimental(Experimental("requireDisjoint"))
 
         assertThrows[IllegalArgumentException]:
           // not valid as it overlaps on [10, +∞)
@@ -52,7 +58,7 @@ trait DataIn3DVersionedBaseBehaviors:
               0,
               List(
                 (interval(0, 10) x interval(0, 10) x unbounded[Int]) -> "Hello",
-                Interval.unbounded[Dim[Int, Int, Int]] -> "World"
+                Interval.unbounded[IntDim] -> "World"
               )
             )
           )
@@ -66,7 +72,7 @@ trait DataIn3DVersionedBaseBehaviors:
       val single = dataIn3DVersionedOf("Hello world")
       single.get shouldBe "Hello world"
       single.getOption shouldBe Some("Hello world")
-      single.domain.toList shouldBe List(Interval.unbounded[Dim[Int, Int, Int]])
+      single.domain.toList shouldBe List(Interval.unbounded[IntDim])
       assert(single.domainComplement.isEmpty)
 
       val fixture1: S =

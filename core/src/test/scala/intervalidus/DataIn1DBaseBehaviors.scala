@@ -16,14 +16,18 @@ trait DataIn1DBaseBehaviors:
   import Domain1D.Point
   import Interval1D.*
 
-  def stringLookupTests[S <: DimensionalBase.In1D[String, Int]](
+  type IntDim = Domain.In1D[Int]
+
+  def stringLookupTests[S <: DimensionalBase[String, IntDim]](
     prefix: String,
-    dataIn1DFrom: Experimental ?=> Iterable[ValidData.In1D[String, Int]] => S,
-    dataIn1DOf: Experimental ?=> String => S
-  )(using Experimental, DomainValueLike[Int]): Unit = test(s"$prefix: Looking up data in intervals"):
+    dataIn1DFrom: CoreConfig[IntDim] ?=> Iterable[ValidData[String, IntDim]] => S,
+    dataIn1DOf: CoreConfig[IntDim] ?=> String => S
+  )(using
+    config: CoreConfig[IntDim]
+  )(using DomainValueLike[Int]): Unit = test(s"$prefix: Looking up data in intervals"):
     val domainValue = summon[DomainValueLike[Int]]
     {
-      given Experimental = Experimental("requireDisjoint")
+      given CoreConfig[IntDim] = config.withExperimental(Experimental("requireDisjoint"))
 
       assertThrows[IllegalArgumentException]:
         // not valid as it overlaps on [10, +∞)
@@ -36,15 +40,17 @@ trait DataIn1DBaseBehaviors:
     assert((empty: Any) != ("<nothing is valid>": Any))
     assert(empty.getAll.isEmpty)
     assert(empty.domain.isEmpty)
-    empty.domainComplement.toList shouldBe List(Interval.unbounded[Domain.In1D[Int]])
+    empty.domainComplement.toList shouldBe List(Interval.unbounded[IntDim])
 
     dataIn1DOf("Hello").zip(dataIn1DOf("world")).get shouldBe ("Hello", "world")
 
     val single = dataIn1DOf("Hello world")
     single.get shouldBe "Hello world"
     single.getOption shouldBe Some("Hello world")
-    single.domain.toList shouldBe List(Interval.unbounded[Domain.In1D[Int]])
+    single.domain.toList shouldBe List(Interval.unbounded[IntDim])
     assert(single.domainComplement.isEmpty)
+    single shouldBe dataIn1DOf("Hello world")
+    single.hashCode() shouldBe dataIn1DOf("Hello world").hashCode()
 
     val bracePunctuation = domainValue.bracePunctuation
     val boundedInt = intervalFrom(0) -> 1
@@ -140,7 +146,7 @@ trait DataIn1DBaseBehaviors:
     intervalFrom(731201) -> 0.37
   )
 
-  def doubleUseCaseTests[S <: DimensionalBase.In1D[Double, Int]](
+  def doubleUseCaseTests[S <: DimensionalBase[Double, IntDim]](
     prefix: String,
     dataIn1DFrom: Iterable[ValidData.In1D[Double, Int]] => S
   )(using DomainValueLike[Int]): Unit = test(s"$prefix: Practical use case: tax brackets"):
@@ -174,9 +180,9 @@ trait DataIn1DBaseBehaviors:
   )(
     removeOrUpdateInterval: Interval1D[Int],
     updateValue: String = "update"
-  )(using Experimental, DomainValueLike[Int]): Assertion
+  )(using CoreConfig[IntDim], DomainValueLike[Int]): Assertion
 
-  def removeOrUpdateTests(prefix: String)(using Experimental, DomainValueLike[Int]): Unit =
+  def removeOrUpdateTests(prefix: String)(using CoreConfig[IntDim], DomainValueLike[Int]): Unit =
     test(s"$prefix: All remove/update by interval - (1) simple"):
       // same size
       assertRemoveOrUpdateResult(

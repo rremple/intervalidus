@@ -133,7 +133,7 @@ class FactTest extends AnyFunSuite with Matchers:
         | - greeting -> hello world,
         | - formal -> false
         |""".stripMargin.replaceAll("\r", "")
-    val fact2 = Fact("fact2", ("greeting" is "Hola Mundo"), ("updated" is today))
+    val fact2 = Fact("fact2", "greeting" is "Hola Mundo", "updated" is today)
     fact1.merge(fact2).attributes shouldBe Set(
       "greeting" is "hello world",
       "greeting" is "Hola Mundo",

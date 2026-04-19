@@ -205,7 +205,7 @@ sealed trait Domain1D[+D]:
     * to box search trees in double space. We avoid representing unbounded data with fixed double value that have very
     * large magnitudes, which are proven to be a performance issue.
     */
-  def orderedHashUnfixed: Option[Double] = None // default for Top and Bottom, overridden in Point and OpenPoint
+  def orderedHashUnfixed: Double = Double.NaN // default for Top and Bottom, overridden in Point and OpenPoint
 
   /**
     * Left brace for interval notation. Square when closed, and paren otherwise.
@@ -286,7 +286,7 @@ object Domain1D:
     */
   case class Point[P: DomainValueLike](value: P) extends Domain1D[P]:
     // override defaults
-    override def orderedHashUnfixed: Option[Double] = Some(value.orderedHashValue)
+    override def orderedHashUnfixed: Double = value.orderedHashValue
     override def isUnbounded: Boolean = false
     override def leftBrace: String = "["
     override def rightBrace: String = "]"
@@ -300,7 +300,7 @@ object Domain1D:
     */
   case class OpenPoint[P: DomainValueLike](value: P) extends Domain1D[P]:
     // override defaults
-    override def orderedHashUnfixed: Option[Double] = Some(value.orderedHashValue)
+    override def orderedHashUnfixed: Double = value.orderedHashValue
     override def isUnbounded: Boolean = false
     override def isClosedOrUnbounded: Boolean = false
     override def closeIfOpen: Domain1D[P] = Point(value)

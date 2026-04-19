@@ -187,7 +187,9 @@ object Interval1D:
   /**
     * Used internally when formatting a group of intervals for the Data.toString grid.
     */
-  def preprocessForGrid[T: DomainValueLike](intervals: Iterable[Interval1D[T]]): Iterable[(String, String, String)] =
+  def preprocessForGrid[T: DomainValueLike](
+    intervals: IterableOnce[Interval1D[T]]
+  ): Iterable[(String, String, String)] =
     uniqueIntervals(intervals).map: interval =>
       val headStartString = interval.start.toString
       val headEndString = interval.end.toString
@@ -294,8 +296,8 @@ object Interval1D:
   def isCompressible[T: DomainValueLike](intervals: Iterable[Interval1D[T]]): Boolean =
     if intervals.isEmpty then false
     else
-      intervals
-        .zip(intervals.drop(1))
+      intervals.iterator
+        .zip(intervals.iterator.drop(1))
         .exists((left, right) => (left ~> right) || (left intersects right))
 
   /**
@@ -312,8 +314,8 @@ object Interval1D:
     *   true if the collection is disjoint, false otherwise.
     */
   def isDisjoint[T: DomainValueLike](intervals: Iterable[Interval1D[T]]): Boolean =
-    intervals.isEmpty || intervals
-      .zip(intervals.drop(1))
+    intervals.isEmpty || intervals.iterator
+      .zip(intervals.iterator.drop(1))
       .forall((left, right) => !(left intersects right))
 
   /**
@@ -329,15 +331,16 @@ object Interval1D:
     * @return
     *   a new collection of intervals representing disjoint intervals covering the span of the input.
     */
-  def uniqueIntervals[T: DomainValueLike](intervals: Iterable[Interval1D[T]]): Iterable[Interval1D[T]] =
-    if intervals.isEmpty then intervals
+  def uniqueIntervals[T: DomainValueLike](intervals: IterableOnce[Interval1D[T]]): Iterable[Interval1D[T]] =
+    val intervalsIterator = intervals.iterator
+    if intervalsIterator.isEmpty then Iterable.empty
     else
       // using a tree set is faster than some other sequence that has to be sorted later
       val starts = mutable.TreeSet.newBuilder[Domain1D[T]]
       val ends = mutable.TreeSet.newBuilder[Domain1D[T]](using Domain1D.endOrdering)
       val resultBuilder = Iterable.newBuilder[Interval1D[T]]
 
-      intervals.foreach: i =>
+      intervalsIterator.foreach: i =>
         starts += i.start
         starts += i.end.rightAdjacent
         ends += i.end

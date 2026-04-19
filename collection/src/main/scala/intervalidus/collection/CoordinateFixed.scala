@@ -1,9 +1,12 @@
 package intervalidus.collection
 
+import java.util
+
 /**
-  * Represents a point in multidimensional double space. All elements are fixed -- no unbounded.
+  * Represents a point in multidimensional double space. All elements are fixed -- no unbounded (NaN). Although the
+  * underlying type is mutable, CoordinateFixed itself is treated as immutable.
   */
-opaque type CoordinateFixed = Vector[Double]
+opaque type CoordinateFixed = Array[Double]
 
 /**
   * Common definitions for points in multidimensional double space.
@@ -11,9 +14,24 @@ opaque type CoordinateFixed = Vector[Double]
 object CoordinateFixed:
   private type MinMaxCoordinates = (CoordinateFixed, CoordinateFixed)
 
-  def apply(coordinates: Double*): CoordinateFixed = coordinates.toVector
+  // Slower, only used in tests
+  def apply(coordinates: Double*): CoordinateFixed =
+    require(coordinates.forall(!_.isNaN), s"$coordinates must not include NaN")
+    coordinates.toArray
 
-  def apply(coordinates: Vector[Double]): CoordinateFixed = coordinates
+  // Faster, no checks
+  def apply(coordinates: Array[Double]): CoordinateFixed = coordinates
+
+  /**
+    * Because the underlying type is Array, the default `equals` implementations deals with object equality rather than
+    * logical equality. Since we use fixed coordinates as case class attributes, we have to be careful to redefine
+    * `equals` there to use this method that checks for logical array equality.
+    */
+  def equals(lhs: CoordinateFixed, rhs: CoordinateFixed): Boolean =
+    util.Arrays.equals(lhs, rhs)
+
+  def hashCode(coordinate: CoordinateFixed): Int =
+    util.Arrays.hashCode(coordinate)
 
   /**
     * Construct a coordinate that is bound to a specific value in all dimensions.
@@ -25,50 +43,96 @@ object CoordinateFixed:
     * @return
     *   a new fixed coordinate
     */
-  def bound(arity: Int, value: Double): CoordinateFixed = Vector.fill(arity)(value)
+  def bound(arity: Int, value: Double): CoordinateFixed = Array.fill(arity)(value)
 
   /**
-    * Evaluate each corresponding dimension of the two arguments and only return true if the function applied to each
-    * pair returns true.
+    * Does a capacity (described by min/max fixed coordinates) fully contain another capacity (also described by min/max
+    * fixed coordinates)?
     *
-    * @param minMax1
-    *   the first min and max coordinate pair to evaluate
-    * @param minMax2
-    *   the second min and max coordinate pair to evaluate
-    * @param f
-    *   function applied to each corresponding dimension of the two min/max coordinate pairs
+    * @param thisMinPoint
+    *   capacity min coordinates
+    * @param thisMaxPoint
+    *   capacity max coordinates
+    * @param otherMinPoint
+    *   other capacity min coordinates
+    * @param otherMaxPoint
+    *   other capacity max coordinates
     * @return
-    *   true if f applied to each corresponding dimension of the coordinate pairs is true, false otherwise
+    *   true or false
     */
-  def minMaxForall(minMax1: MinMaxCoordinates, minMax2: MinMaxCoordinates)(
-    f: (Double, Double, Double, Double) => Boolean
-  ): Boolean = (minMax1, minMax2) match
-    case ((min1, max1), (min2, max2)) =>
-      min1.indices.forall: i =>
-        f(min1(i), max1(i), min2(i), max2(i))
+  def contains(
+    thisMinPoint: CoordinateFixed,
+    thisMaxPoint: CoordinateFixed,
+    otherMinPoint: CoordinateFixed,
+    otherMaxPoint: CoordinateFixed
+  ): Boolean = thisMinPoint.indices.forall: i =>
+    otherMinPoint(i) >= thisMinPoint(i) && otherMaxPoint(i) <= thisMaxPoint(i)
 
   extension (coordinates: CoordinateFixed)
-    private def combineWith(other: CoordinateFixed)(
-      f: (Double, Double) => Double
-    ): CoordinateFixed = coordinates.indices.toVector.map: i =>
-      f(coordinates(i), other(i))
-
     /** Number of dimensions */
-    def arity: Int = coordinates.size
+    def arity: Int = coordinates.length
 
     /**
-      * Returns the coordinate value in the specified dimension. This breaks encapsulation, but it is necessary for
-      * [[Coordinate]] when fixing to a boundary.
+      * @note
+      *   This is the double-dispatch method that should not be called directly. Start with the method of the same name
+      *   in Coordinate.
       *
-      * @param dimension
-      *   dimension of the coordinate value to return
+      * Any coordinates that are unbounded are fixed to these coordinates. Useful when rescaling a boundary capacity
+      * based on a box not strictly contained within it.
+      *
+      * @param unfixed
+      *   an array of unfixed coordinates
+      * @return
+      *   coordinates with unbound elements fixed to these coordinates
       */
-    def apply(dimension: Int): Double = coordinates(dimension)
+    def fixUnbounded(unfixed: Array[Double]): CoordinateFixed =
+      val result = unfixed.clone() // defaults preserved when unfixed are bound (not isNaN)
+      result.indices.foreach: i =>
+        if result(i).isNaN then result(i) = coordinates(i)
+      CoordinateFixed(result)
+
+    /**
+      * @note
+      *   This is the double-dispatch method that should not be called directly. Start with the method of the same name
+      *   in Coordinate.
+      *
+      * Any coordinates that are unbounded or greater than these coordinates are fixed to these coordinates.
+      *
+      * @param unfixed
+      *   an array of unfixed coordinates
+      * @return
+      *   coordinates with unbound or larger elements fixed to these coordinates
+      */
+    def fixMin(unfixed: Array[Double]): CoordinateFixed =
+      val result = unfixed.clone() // defaults preserved when unfixed are bound (not isNaN) and <= these coordinates
+      result.indices.foreach: i =>
+        if unfixed(i).isNaN || unfixed(i) > coordinates(i)
+        then result(i) = coordinates(i)
+      CoordinateFixed(result)
+
+    /**
+      * @note
+      *   This is the double-dispatch method that should not be called directly. Start with the method of the same name
+      *   in Coordinate.
+      *
+      * Any coordinates that are unbounded or less than these coordinates are fixed to these coordinates.
+      *
+      * @param unfixed
+      *   an array of unfixed coordinates
+      * @return
+      *   coordinates with unbound or smaller elements fixed to these coordinates
+      */
+    def fixMax(unfixed: Array[Double]): CoordinateFixed =
+      val result = unfixed.clone() // defaults preserved when unfixed are bound (not isNaN) and >= these coordinates
+      result.indices.foreach: i =>
+        if unfixed(i).isNaN || unfixed(i) < coordinates(i)
+        then result(i) = coordinates(i)
+      CoordinateFixed(result)
 
     /**
       * Return this fixed coordinate as an unfixed coordinate.
       */
-    def unfix: Coordinate = Coordinate(coordinates.map(Some(_)))
+    def unfix: Coordinate = Coordinate(coordinates)
 
     /**
       * Returns midpoint between this and other.
@@ -78,7 +142,11 @@ object CoordinateFixed:
       * @return
       *   midpoint
       */
-    infix def mid(other: CoordinateFixed): CoordinateFixed = combineWith(other)(_ / 2.0 + _ / 2.0)
+    infix def mid(other: CoordinateFixed): CoordinateFixed =
+      val result = new Array[Double](arity)
+      coordinates.indices.foreach: i =>
+        result(i) = coordinates(i) / 2.0 + other(i) / 2.0
+      result
 
     /**
       * Using this as a boundary point (such as a new minimum or new maximum), returns the coordinate that is scaled the
@@ -92,12 +160,15 @@ object CoordinateFixed:
       * @param magnitude
       *   the scale factor (as a power of two) used for rescaling (positive will scale out, negative will scale in)
       */
-    def scaledFrom(midPoint: CoordinateFixed, magnitude: Double): CoordinateFixed = combineWith(midPoint): (x, xMid) =>
-      (x - xMid) * math.pow(2.0, magnitude) + xMid
+    def scaledFrom(midPoint: CoordinateFixed, magnitude: Double): CoordinateFixed =
+      val result = new Array[Double](arity)
+      coordinates.indices.foreach: i =>
+        result(i) = (coordinates(i) - midPoint(i)) * math.pow(2.0, magnitude) + midPoint(i)
+      result
 
     /**
       * Can't override `toString` through an extension method, so we give it a slightly different name. Only used by
-      * Capacity.toString
+      * Capacity.toString / require.
       */
     def asString: String =
       if arity == 1 then coordinates(0).toString else coordinates.mkString("(", ",", ")")

@@ -3,7 +3,6 @@ package intervalidus.immutable
 import intervalidus.*
 import intervalidus.DiscreteValue.given
 import intervalidus.DomainLike.given
-import intervalidus.Domain.In2D as Dim
 import org.scalatest.compatible.Assertion
 import org.scalatest.exceptions.TestFailedException
 import org.scalatest.funsuite.AnyFunSuite
@@ -20,30 +19,30 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
   // shared
   testsFor(stringLookupTests("Immutable", Data(_), Data.of(_)))
 
-  def usingBuilder(data: Iterable[ValidData[String, Dim[LocalDate, Int]]]): Data[String, Dim[LocalDate, Int]] =
-    data.foldLeft(Data.newBuilder[String, Dim[LocalDate, Int]])(_.addOne(_)).result()
+  def usingBuilder(data: Iterable[ValidData[String, MixedDim]]): Data[String, MixedDim] =
+    data.foldLeft(Data.newBuilder[String, MixedDim])(_.addOne(_)).result()
 
-  def usingSetMany(data: Iterable[ValidData[String, Dim[LocalDate, Int]]]): Data[String, Dim[LocalDate, Int]] =
-    Data[String, Dim[LocalDate, Int]]() ++ data
+  def usingSetMany(data: Iterable[ValidData[String, MixedDim]]): Data[String, MixedDim] =
+    Data.empty[String, MixedDim] ++ data
 
-  def asVertical(interval1D: Interval1D[Int]): Interval[Dim[LocalDate, Int]] =
+  def asVertical(interval1D: Interval1D[Int]): Interval[MixedDim] =
     unbounded[LocalDate] x interval1D
 
   testsFor(
-    immutableBaseTests[Dim[LocalDate, Int], Data[String, Dim[LocalDate, Int]]](
+    immutableBaseTests[MixedDim, Data[String, MixedDim]](
       Data(_),
       asVertical
     )
   )
   testsFor(
-    immutableBaseTests[Dim[LocalDate, Int], Data[String, Dim[LocalDate, Int]]](
+    immutableBaseTests[MixedDim, Data[String, MixedDim]](
       usingBuilder,
       asVertical,
       "Immutable (builder)"
     )
   )
   testsFor(
-    immutableBaseTests[Dim[LocalDate, Int], Data[String, Dim[LocalDate, Int]]](
+    immutableBaseTests[MixedDim, Data[String, MixedDim]](
       usingSetMany,
       asVertical,
       "Immutable (setMany)"
@@ -51,24 +50,24 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
   )
 
   testsFor(
-    immutableCompressionTests[Dim[LocalDate, Int], Data[String, Dim[LocalDate, Int]]](
+    immutableCompressionTests[MixedDim, Data[String, MixedDim]](
       Data(_),
       asVertical
     )
   )
   testsFor(
-    immutableCompressionTests[Dim[LocalDate, Int], Data[String, Dim[LocalDate, Int]]](
+    immutableCompressionTests[MixedDim, Data[String, MixedDim]](
       usingBuilder,
       asVertical,
       "Immutable (builder)"
     )
   )
   override def assertRemoveOrUpdateResult(
-    removeExpectedUnsorted: ValidData[String, Dim[LocalDate, Int]]*
+    removeExpectedUnsorted: ValidData[String, MixedDim]*
   )(
-    removeOrUpdateInterval: Interval[Dim[LocalDate, Int]],
+    removeOrUpdateInterval: Interval[MixedDim],
     updateValue: String = "update"
-  )(using Experimental): Assertion =
+  )(using CoreConfig[MixedDim]): Assertion =
     val rectangle = interval(day(-14), day(14)) x interval(4, 7)
     val fixture = Data.of(rectangle -> "World")
     val expectedUpdateInterval = removeOrUpdateInterval ∩ rectangle match
@@ -94,11 +93,11 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
 
   testsFor(removeOrUpdateTests("Immutable"))
 
-  def vertical2D[T: DiscreteValue](interval2: Interval1D[T]): Interval[Dim[LocalDate, T]] =
+  def vertical2D[T: DiscreteValue](interval2: Interval1D[T]): Interval.In2D[LocalDate, T] =
     unbounded[LocalDate] x interval2
 
   test("Immutable: Constructors and getting data by index"):
-    val empty: Data[String, Dim[Int, Int]] = Data()
+    val empty: Data[String, IntDim] = Data()
     assert(empty.getAll.isEmpty)
     assert(empty.domain.isEmpty)
 
@@ -183,13 +182,13 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
       (unbounded[LocalDate] x intervalFrom(16)) -> "World"
     )
 
-    extension (d: Data[String, Dim[LocalDate, Int]])
-      def flipEverything1: Data[String, Dim[Int, LocalDate]] =
+    extension (d: Data[String, MixedDim])
+      def flipEverything1: Data.In2D[String, Int, LocalDate] =
         val flippedValidData = d.getAll.map:
           case (horizontal x_: vertical) ->: v => (vertical x horizontal) -> v.reverse
         Data(flippedValidData)
 
-      def flipEverything2: Data[String, Dim[Int, LocalDate]] =
+      def flipEverything2: Data.In2D[String, Int, LocalDate] =
         d.mapValues(_.reverse).mapIntervals(_.swapDimensions(0, 1))
 
     val fixture1 = Data(allData)
@@ -226,7 +225,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     fixture3.getAll.toList shouldBe expectedData3
 
     val fixture4 =
-      fixture3.flatMap(d => Data.of[String, Dim[LocalDate, Int]](d.value).map(x => d.interval -> x.value))
+      fixture3.flatMap(d => Data.of[String, MixedDim](d.value).map(x => d.interval -> x.value))
     val expectedData4 = List(
       (unbounded[LocalDate] x intervalTo(5)) -> "Hey!!!",
       (unbounded[LocalDate] x intervalFrom(16)) -> "World!!!"
@@ -235,9 +234,9 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     assertThrows[NoSuchElementException]:
       fixture4.get
 
-    val fixture5a = fixture4.filter(_.value == "Hey!!!").flatMap(d => Data.of[String, Dim[LocalDate, Int]](d.value))
+    val fixture5a = fixture4.filter(_.value == "Hey!!!").flatMap(d => Data.of[String, MixedDim](d.value))
     val fixture5b = fixture4.collect:
-      case d if d.value == "Hey!!!" => Interval.unbounded[Dim[LocalDate, Int]] -> d.value
+      case d if d.value == "Hey!!!" => Interval.unbounded[MixedDim] -> d.value
     val expectedData5 = List((unbounded[LocalDate] x unbounded[Int]) -> "Hey!!!")
     fixture5a.getAll.toList shouldBe expectedData5
     fixture5b.getAll.toList shouldBe expectedData5
@@ -275,12 +274,12 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
       intervalToBefore(day(0)) x interval(2, 9)
     )
     Interval.compress(fixture4.domain ++ fixture4.domainComplement).toList shouldBe List(
-      Interval.unbounded[Dim[LocalDate, Int]]
+      Interval.unbounded[MixedDim]
     )
 
   test("Immutable: Simple toString"):
     val fixturePadData = Data
-      .of[String, Dim[LocalDate, Int]]("H")
+      .of[String, MixedDim]("H")
       .set((intervalFrom(day(0)) x unbounded[Int]) -> "W")
     // println(fixturePadData.toString)
     fixturePadData.toString shouldBe
@@ -294,7 +293,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     concat.result() shouldBe "H->(-∞..2024-07-14] W->[2024-07-15..+∞) "
 
     val fixturePadLabel = Data
-      .of[String, Dim[LocalDate, Int]]("Helloooooooooo")
+      .of[String, MixedDim]("Helloooooooooo")
       .set((intervalFrom(day(0)) x unbounded[Int]) -> "Wooooooorld")
     // println(fixturePadLabel.toString)
     fixturePadLabel.toString shouldBe

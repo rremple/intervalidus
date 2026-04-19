@@ -189,7 +189,7 @@ object FactsIn1D:
 
   def main(args: Array[String]): Unit =
     val initialProgress = Map[String, PatientProgress]().withDefault: id =>
-      PatientProgress(id, Data(), Data(), Data(), Data(), Data(), Data())
+      PatientProgress(id, Data.empty, Data.empty, Data.empty, Data.empty, Data.empty, Data.empty)
 
     // run through many days of turning records into results into progress
     val patientProgressById = (0 until 20).foldLeft(initialProgress)(updateProgress(LocalDate.now()))

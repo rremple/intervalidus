@@ -4,7 +4,7 @@ import intervalidus.*
 
 // Generates domains of any dimension, specialized for Ints (hopefully much faster this way)
 object DomainGenerator:
-  val intRange: Range.Inclusive = -1000 to 1000
+  val intRange: Range.Inclusive = -1_000_000 to 1_000_000
 
   private def gen1D(using RandomNumbers, DomainValueLike[Int]): Gen[Domain1D[Int]] = summon[DomainValueLike[Int]] match
     case _: DiscreteValue[?] =>

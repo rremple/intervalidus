@@ -6,9 +6,9 @@ import org.scalatest.matchers.should.Matchers
 
 class BoxOctreeTest extends AnyFunSuite with Matchers:
   def capacityCoordinate(coordinates: Double*): CoordinateFixed =
-    CoordinateFixed(coordinates.toVector)
+    CoordinateFixed(coordinates*)
   def coordinate(coordinates: Double*): Coordinate =
-    Coordinate(coordinates.toVector.map(Some(_)))
+    Coordinate(coordinates.map(Some(_))*)
 
   test("Immutable: BoxTree (3D -- Octree) methods"):
     // Create a octree with a small capacity per node and insert some boxes
@@ -61,7 +61,10 @@ class BoxOctreeTest extends AnyFunSuite with Matchers:
 
     // Trees always start as a branch and immutable leaves never get copied, so forcing that to happen here just for
     // coverage -- won't happen in real life!
-    val leaf = BoxTreeLeaf[String](boundary, depth = 0, nodeCapacity = 1, depthLimit = 1)
+    val leaf = BoxTreeLeaf[String](
+      boundary,
+      depth = 0
+    )(using CollectionConfig.default.copy(nodeCapacity = 1, depthLimit = 1))
       .addOne(Box(coordinate(3, 3, 1), coordinate(5, 5, 2)) -> "one")
     val leafCopy = leaf.copy
     leaf.toIterable should contain theSameElementsAs List(Box(coordinate(3, 3, 1), coordinate(5, 5, 2)) -> "one")
@@ -72,7 +75,7 @@ class BoxOctreeTest extends AnyFunSuite with Matchers:
     tree.get(Box(coordinate(40, 40, 40), coordinate(50, 50, 50))) shouldBe List.empty
 
     val treeSplit = BoxTree
-      .from(boundary, BoxedPayload.deduplicate(tree.toIterable), 4)
+      .from(boundary, BoxedPayload.deduplicate(tree.toIterable))(using CollectionConfig.default.withNodeCapacity(4))
       .addOne(Box(coordinate(3, 5, 1), coordinate(7, 7, 2)) -> "five") // splits right upper front
       .addOne(Box(coordinate(5, 4, 1), coordinate(7, 5, 2)) -> "six")
     treeSplit.get(Box(coordinate(3, 5, 1), coordinate(7, 7, 2))) should contain theSameElementsAs

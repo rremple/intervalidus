@@ -24,10 +24,10 @@ trait ImmutableBaseBehaviors:
     D <: NonEmptyTuple: DomainLike,
     S <: Data[String, D]
   ](
-    immutableFrom: Experimental ?=> Iterable[ValidData[String, D]] => S,
+    immutableFrom: CoreConfig[D] ?=> Iterable[ValidData[String, D]] => S,
     intervalFrom1D: Interval1D[Int] => Interval[D],
     prefix: String = "Immutable"
-  )(using Experimental, DomainValueLike[Int]): Unit =
+  )(using CoreConfig[D], DomainValueLike[Int]): Unit =
     def dataFrom1D(interval1D: Interval1D[Int], v: String): ValidData[String, D] =
       intervalFrom1D(interval1D) -> v
     test(s"$prefix: Adding and removing data in intervals"):
@@ -239,10 +239,10 @@ trait ImmutableBaseBehaviors:
     D <: NonEmptyTuple: DomainLike,
     S <: Data[String, D]
   ](
-    immutableFrom: Experimental ?=> Iterable[ValidData[String, D]] => S,
+    immutableFrom: CoreConfig[D] ?=> Iterable[ValidData[String, D]] => S,
     intervalFrom1D: Interval1D[Int] => Interval[D],
     prefix: String = "Immutable"
-  )(using Experimental, DomainValueLike[Int]): Unit =
+  )(using CoreConfig[D], DomainValueLike[Int]): Unit =
     def dataFrom1D(interval1D: Interval1D[Int], v: String): ValidData[String, D] =
       intervalFrom1D(interval1D) -> v
     test(s"$prefix: Compressing data in intervals"):

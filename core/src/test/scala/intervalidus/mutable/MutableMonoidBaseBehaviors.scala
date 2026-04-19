@@ -23,11 +23,11 @@ trait MutableMonoidBaseBehaviors(using DomainValueLike[Int]):
     infix def ≡≡(rhs: DataMonoid[V, D]): Assertion = assert(lhs ≡ rhs, s"\nExpected: $lhs\nActual: $rhs\n")
     infix def !≡(rhs: DataMonoid[V, D]): Assertion = assert(!(lhs ≡ rhs))
 
-  val origin: Dim = Domain.in2D[Int, Int](0, 0)
-  val quadrantOneSample: Dim = Domain.in2D[Int, Int](5, 5)
-  val quadrantTwoSample: Dim = Domain.in2D[Int, Int](-5, 5)
-  val quadrantThreeSample: Dim = Domain.in2D[Int, Int](-5, -5)
-  val quadrantFourSample: Dim = Domain.in2D[Int, Int](5, -5)
+  val origin: Dim = Domain.in2D(0, 0)
+  val quadrantOneSample: Dim = Domain.in2D(5, 5)
+  val quadrantTwoSample: Dim = Domain.in2D(-5, 5)
+  val quadrantThreeSample: Dim = Domain.in2D(-5, -5)
+  val quadrantFourSample: Dim = Domain.in2D(5, -5)
 
   val quadrantSamples: List[(Dim, Int)] = List(
     quadrantOneSample -> 1,
@@ -148,6 +148,8 @@ trait MutableMonoidBaseBehaviors(using DomainValueLike[Int]):
       val empty = DataMonoid.newBuilder[Double, Dim].result()
       empty.isEmpty shouldBe true
       empty ≡≡ ∅
+      empty shouldBe DataMonoid[Double, Dim]()
+      empty.hashCode() shouldBe ∅[Double, Dim].hashCode()
       empty.toString shouldBe "<nothing is valid>"
 
       val buildUniverse = DataMonoid.newBuilder[Double, Dim]

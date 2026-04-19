@@ -6,9 +6,9 @@ import org.scalatest.matchers.should.Matchers
 
 class BoxQuadtreeTest extends AnyFunSuite with Matchers:
   def capacityCoordinate(coordinates: Double*): CoordinateFixed =
-    CoordinateFixed(coordinates.toVector)
+    CoordinateFixed(coordinates*)
   def coordinate(coordinates: Double*): Coordinate =
-    Coordinate(coordinates.toVector.map(Some(_)))
+    Coordinate(coordinates.map(Some(_))*)
 
   test("Immutable: BoxTree (2D -- Quadtree) methods"):
     // Create a quadtree with a small capacity per node and insert some boxes
@@ -58,7 +58,10 @@ class BoxQuadtreeTest extends AnyFunSuite with Matchers:
 
     // Trees always start as a branch and immutable leaves never get copied, so forcing that to happen here just for
     // coverage -- won't happen in real life!
-    val leaf = BoxTreeLeaf[String](boundary, depth = 0, nodeCapacity = 1, depthLimit = 1)
+    val leaf = BoxTreeLeaf[String](
+      boundary,
+      depth = 0
+    )(using CollectionConfig.default.copy(nodeCapacity = 1, depthLimit = 1))
       .addOne(Box(coordinate(3, 3), coordinate(5, 5)) -> "one")
     val leafCopy = leaf.copy
     leaf.toIterable should contain theSameElementsAs List(Box(coordinate(3, 3), coordinate(5, 5)) -> "one")
@@ -69,7 +72,7 @@ class BoxQuadtreeTest extends AnyFunSuite with Matchers:
     tree.get(Box(coordinate(40, 40), coordinate(50, 50))) shouldBe List.empty
 
     val treeSplit = BoxTree
-      .from(boundary, BoxedPayload.deduplicate(tree.toIterable), 4)
+      .from(boundary, BoxedPayload.deduplicate(tree.toIterable))(using CollectionConfig.default.withNodeCapacity(4))
       .addOne(Box(coordinate(3, 5), coordinate(7, 7)) -> "five") // splits right upper
       .addOne(Box(coordinate(5, 4), coordinate(7, 5)) -> "six")
     treeSplit.get(Box(coordinate(3, 5), coordinate(7, 7))) should contain theSameElementsAs

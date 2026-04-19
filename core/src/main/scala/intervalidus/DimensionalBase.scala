@@ -8,16 +8,10 @@ import java.util.NoSuchElementException
 import scala.collection.mutable
 
 /**
-  * Common definitions used in all dimensional data.
-  */
-object DimensionalBase:
-  type In1D[V, R1] = DimensionalBase[V, Domain.In1D[R1]]
-  type In2D[V, R1, R2] = DimensionalBase[V, Domain.In2D[R1, R2]]
-  type In3D[V, R1, R2, R3] = DimensionalBase[V, Domain.In3D[R1, R2, R3]]
-  type In4D[V, R1, R2, R3, R4] = DimensionalBase[V, Domain.In4D[R1, R2, R3, R4]]
-
-/**
   * Constructs data in multidimensional intervals.
+  *
+  * @tparam Constructed
+  *   Constructed type.
   *
   * @define objectDesc
   *   Constructs data in multidimensional intervals.
@@ -25,11 +19,52 @@ object DimensionalBase:
   *   the type of the value managed as data.
   * @define intervalDomainType
   *   the domain type -- a non-empty tuple that is DomainLike.
+  * @define configParam
+  *   context parameter for configuration -- uses defaults if not given explicitly
   */
-trait DimensionalBaseObject:
+trait DimensionalBaseObject[Constructed[_, _ <: NonEmptyTuple] <: DimensionalBase[?, ?]]:
+
+  // ---------- Abstract ----------
+
+  /**
+    * Constructor for multiple initial values that are valid in the various intervals.
+    *
+    * @param initialData
+    *   a collection of values valid within intervals -- intervals must be disjoint.
+    * @param config
+    *   $configParam
+    * @tparam V
+    *   $dataValueType
+    * @tparam D
+    *   $intervalDomainType
+    * @return
+    *   a new structure with zero or more valid values.
+    */
+  def apply[V, D <: NonEmptyTuple: DomainLike](
+    initialData: Iterable[ValidData[V, D]]
+  )(using config: CoreConfig[D]): Constructed[V, D]
+
+  // ---------- Concrete ----------
+
+  /**
+    * Constructor where no values are valid.
+    *
+    * @param config
+    *   $configParam
+    * @tparam V
+    *   $dataValueType
+    * @tparam D
+    *   $intervalDomainType
+    * @return
+    *   a new structure with no valid values.
+    */
+  def empty[V, D <: NonEmptyTuple: DomainLike](using config: CoreConfig[D]): Constructed[V, D] = apply(Iterable.empty)
+
   /**
     * Shorthand constructor for a single initial value that is valid in a specific interval.
     *
+    * @param config
+    *   $configParam
     * @tparam V
     *   $dataValueType
     * @tparam D
@@ -37,15 +72,17 @@ trait DimensionalBaseObject:
     * @param data
     *   value valid within an interval.
     * @return
-    *   [[DimensionalBase]] structure with a single valid value.
+    *   a new structure with a single valid value.
     */
   def of[V, D <: NonEmptyTuple: DomainLike](
     data: ValidData[V, D]
-  )(using Experimental): DimensionalBase[V, D]
+  )(using config: CoreConfig[D]): Constructed[V, D] = apply(Iterable.single(data))
 
   /**
     * Shorthand constructor for a single initial value that is valid in the full interval domain.
     *
+    * @param config
+    *   $configParam
     * @tparam V
     *   $dataValueType
     * @tparam D
@@ -53,39 +90,25 @@ trait DimensionalBaseObject:
     * @param value
     *   value that is valid in the full domain (`Interval.unbounded[D]`).
     * @return
-    *   [[DimensionalBase]] structure with a single valid value.
+    *   a new structure with a single valid value.
     */
   def of[V, D <: NonEmptyTuple: DomainLike](
     value: V
-  )(using Experimental): DimensionalBase[V, D]
-
-  /**
-    * Constructor for multiple (or no) initial values that are valid in the various intervals.
-    *
-    * @param initialData
-    *   a collection of values valid within intervals -- intervals must be disjoint.
-    * @tparam V
-    *   $dataValueType
-    * @tparam D
-    *   $intervalDomainType
-    * @return
-    *   [[DimensionalBase]] structure with zero or more valid values.
-    */
-  def apply[V, D <: NonEmptyTuple: DomainLike](
-    initialData: Iterable[ValidData[V, D]]
-  )(using Experimental): DimensionalBase[V, D]
+  )(using config: CoreConfig[D]): Constructed[V, D] = of(Interval.unbounded[D] -> value)
 
   /**
     * Get a Builder based on an intermediate buffer of valid data.
     *
+    * @param config
+    *   $configParam
     * @tparam V
     *   $dataValueType
     * @tparam D
     *   $intervalDomainType
     */
   def newBuilder[V, D <: NonEmptyTuple: DomainLike](using
-    Experimental
-  ): mutable.Builder[ValidData[V, D], DimensionalBase[V, D]]
+    config: CoreConfig[D]
+  ): mutable.Builder[ValidData[V, D], Constructed[V, D]] = ValidData.Builds[V, D, Constructed[V, D]](apply(_))
 
 /**
   * Parameters for constructing data in multidimensional intervals.
@@ -94,40 +117,47 @@ trait DimensionalBaseObject:
   *   the type of the value managed as data.
   * @define intervalDomainType
   *   the domain type -- a non-empty tuple that is DomainLike.
+  * @define configParam
+  *   context parameter for configuration -- uses defaults if not given explicitly
   */
 trait DimensionalBaseConstructorParams:
   /**
-    * Given a collection of valid data, returns data used to populate the `dataByStartAsc`, `dataByValue`, and
-    * `dataInSearchTree` internal data structures.
+    * Given a collection of valid data, returns data used to populate the `dataByStart`, `dataByValue`, and
+    * `dataInBoxTree` internal data structures. Applies the spacial capacity hint from the config if there is one.
     * @note
-    *   A tight boundary around the origin with a capacity large enough to contain the initial data is used. Benchmarks
-    *   have shown that a tightly-defined capacity has better insert performance even if it has to be resized at some
-    *   point.
+    *   If there is no spatial capacity hint, a tight boundary around the origin with a capacity large enough to contain
+    *   the initial data is used. Benchmarks have shown that a tightly-defined capacity has better insert performance
+    *   even if it has to be resized at some point. But having a reasonable capacity hint can improve on this.
     *
     * @param initialData
     *   a collection of values valid within intervals -- intervals must be disjoint.
+    * @param config
+    *   $configParam
     * @tparam V
     *   $dataValueType
     * @tparam D
     *   $intervalDomainType
     * @return
     *   tuple of `TreeMap` data, `MultiMapSorted` data, and `BoxTree` data used when constructing something that is a
-    *   `DimensionalBase` and has overridden `dataByStartAsc`, `dataByValue`, and `dataInSearchTree` in the constructor.
+    *   `DimensionalBase` and has overridden `dataByStart`, `dataByValue`, and `dataInBoxTree` in the constructor.
     */
   protected def constructorParams[V, D <: NonEmptyTuple](
     initialData: Iterable[ValidData[V, D]]
   )(using
-    domainValue: DomainLike[D]
-  )(using
-    Experimental
+    domainValue: DomainLike[D],
+    config: CoreConfig[D]
   ): (
     mutable.TreeMap[D, ValidData[V, D]],
     MultiMapSorted[V, ValidData[V, D]],
     BoxTree[ValidData[V, D]]
   ) =
     val initialPayloads = initialData.map(_.asBoxedPayload)
-    val initialCapacity = initialPayloads.foldLeft(Capacity.aroundOrigin(domainValue.arity)): (capacity, payload) =>
-      capacity.growAround(payload.box)
+    val initialCapacity = config.capacityHint match
+      case Some(hint) =>
+        hint.asBox.fixUnbounded(Capacity.aroundOrigin(domainValue.arity))
+      case None =>
+        initialPayloads.foldLeft(Capacity.aroundOrigin(domainValue.arity)): (capacity, payload) =>
+          capacity.growAround(payload.box)
     (
       mutable.TreeMap.from(initialData.map(_.withStartKey)),
       MultiMapSorted.from(initialData.map(_.withValueKey)),
@@ -142,6 +172,8 @@ trait DimensionalBaseConstructorParams:
   * @tparam D
   *   the domain type -- a non-empty tuple that is DomainLike.
   *
+  * @define configParam
+  *   context parameter for configuration -- uses defaults if not given explicitly
   * @define dataValueType
   *   the type of the value managed as data.
   * @define intervalDomainType
@@ -273,15 +305,20 @@ trait DimensionalBaseConstructorParams:
   */
 trait DimensionalBase[V, D <: NonEmptyTuple](using
   domainLike: DomainLike[D]
-)(using Experimental)
-  extends PartialFunction[D, V]:
+) extends PartialFunction[D, V]:
+
+  /**
+    * $configParam
+    */
+  given config: CoreConfig[D]
 
   override def equals(obj: Any): Boolean = obj match
-    case that: DimensionalBase[V, D] @unchecked =>
-      size == that.size && getAll.zip(that.getAll).forall(_ == _)
-    case _ => false
+    case that: DimensionalBase[?, ?] => size == that.size && getAll.iterator.zip(that.getAll.iterator).forall(_ == _)
+    case _                           => false
 
-  def decompressedData(otherIntervals: Iterable[Interval[D]]): Iterable[ValidData[V, D]] =
+  override def hashCode(): Int = size.hashCode() * 31 + dataByStart.headOption.hashCode()
+
+  def decompressedData(otherIntervals: IterableOnce[Interval[D]]): Iterable[ValidData[V, D]] =
     for
       atomicInterval <- Interval.uniqueIntervals(allIntervals ++ otherIntervals)
       intersecting <- getIntersecting(atomicInterval) // always returns either one or zero results
@@ -290,7 +327,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
   private infix def equivalentWithMutualDecompression(that: DimensionalBase[V, D]): Boolean =
     val thisData = decompressedData(that.allIntervals)
     val thatData = that.decompressedData(allIntervals)
-    thisData.size == thatData.size && thisData.zip(thatData).forall(_ == _)
+    thisData.size == thatData.size && thisData.iterator.zip(thatData.iterator).forall(_ == _)
 
   /**
     * Indicates whether some other dimensional structure is "logically equivalent to" this one. That is, either this and
@@ -327,10 +364,10 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   valid data to add.
     */
   protected def addValidData(data: ValidData[V, D]): Unit =
-    // assert(!dataByStartAsc.isDefinedAt(data.interval.start))
-    dataByStartAsc.addOne(data.withStartKey)
+    // assert(!dataByStart.isDefinedAt(data.interval.start))
+    dataByStart.addOne(data.withStartKey)
     dataByValue.addOne(data.withValueKey)
-    dataInSearchTree.addOne(data.asBoxedPayload)
+    dataInBoxTree.addOne(data.asBoxedPayload)
 
   /**
     * Internal mutator to update valid data, where a value with v.interval.start already exists.
@@ -339,13 +376,13 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   valid data to update.
     */
   protected def updateValidData(data: ValidData[V, D]): Unit =
-    // assert(dataByStartAsc.isDefinedAt(data.interval.start))
-    val oldData = dataByStartAsc(data.interval.start)
+    // assert(dataByStart.isDefinedAt(data.interval.start))
+    val oldData = dataByStart(data.interval.start)
     dataByValue.subtractOne(oldData.withValueKey)
     dataByValue.addOne(data.withValueKey)
-    dataByStartAsc.update(data.interval.start, data)
-    dataInSearchTree.remove(oldData.asBoxedPayload)
-    dataInSearchTree.addOne(data.asBoxedPayload)
+    dataByStart.update(data.interval.start, data)
+    dataInBoxTree.remove(oldData.asBoxedPayload)
+    dataInBoxTree.addOne(data.asBoxedPayload)
 
   /**
     * Internal mutator to remove valid data, where a known value already exists.
@@ -355,8 +392,8 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     */
   protected def removeValidData(oldData: ValidData[V, D]): Unit =
     dataByValue.subtractOne(oldData.withValueKey)
-    dataByStartAsc.remove(oldData.interval.start)
-    dataInSearchTree.remove(oldData.asBoxedPayload)
+    dataByStart.remove(oldData.interval.start)
+    dataInBoxTree.remove(oldData.asBoxedPayload)
 
   /**
     * Internal mutator to remove valid data, where a value with a known key already exists.
@@ -365,7 +402,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   key (interval start) for valid data to remove.
     */
   protected def removeValidDataByKey(key: D): Unit =
-    removeValidData(dataByStartAsc(key))
+    removeValidData(dataByStart(key))
 
   /**
     * Internal mutator to replace all valid data.
@@ -373,12 +410,12 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   new valid data replacing the old valid data
     */
   protected def replaceValidData(data: Iterable[ValidData[V, D]]): Unit =
-    dataByStartAsc.clear()
-    dataByStartAsc.addAll(data.map(_.withStartKey))
+    dataByStart.clear()
+    dataByStart.addAll(data.map(_.withStartKey))
     dataByValue.clear()
     dataByValue.addAll(data.map(_.withValueKey))
-    dataInSearchTree.clear()
-    dataInSearchTree.addAll(data.map(_.asBoxedPayload))
+    dataInBoxTree.clear()
+    dataInBoxTree.addAll(data.map(_.asBoxedPayload))
 
   /**
     * Internal method, to update or remove in place.
@@ -528,7 +565,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     dataIterable = _ => dataByValue.get(value),
     interval = _.interval,
     valueMatch = _.value == _.value,
-    lookup = (_, start) => dataByStartAsc.get(start),
+    lookup = (_, start) => dataByStart.get(start),
     compressAdjacent = (r, s, _) =>
       removeValidData(s)
       val newData = r.interval ∪ s.interval -> value
@@ -552,14 +589,11 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   that it results in different recompressions. E.g., one might compare immutable.Data 'a' and 'b' using
     *   'a.recompressAll(b.allIntervals) shouldBe b.recompressAll(a.allIntervals)'.
     */
-  protected def recompressInPlace(otherIntervals: Iterable[Interval[D]]): Unit =
+  protected def recompressInPlace(otherIntervals: IterableOnce[Interval[D]]): Unit =
     replaceValidData(decompressedData(otherIntervals))
 
     // recompress
     dataByValue.keySet.foreach(compressInPlace)
-
-  // for binary compatibility
-  protected def recompressInPlace(): Unit = recompressInPlace(Iterable.empty)
 
   /**
     * Internal method to set in place.
@@ -604,20 +638,6 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *
     * @param that
     *   dimensional structure to zip with -- must have the same domain type
-    * @tparam B
-    *   the value type of that
-    * @return
-    *   a collection of valid data representing this structure's data zipped with that structure's data.
-    */
-  protected def zipData[B](that: DimensionalBase[B, D]): Iterable[ValidData[(V, B), D]] =
-    zipData(that, (_, _))
-
-  /**
-    * Internal method, to zip with the data of another dimensional structure with the same domain type. The result
-    * domain will be the intersection of this domain and that domain.
-    *
-    * @param that
-    *   dimensional structure to zip with -- must have the same domain type
     * @param f
     *   combines the values of this and that into the value result type
     * @tparam B
@@ -652,17 +672,18 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     * @return
     *   a collection of valid data representing this structure's data zipped with that structure's data and defaults.
     */
-  protected def zipAllData[B](
+  protected def zipAllData[B, R](
     that: DimensionalBase[B, D],
     thisDefault: V,
-    thatDefault: B
-  ): Iterable[ValidData[(V, B), D]] =
+    thatDefault: B,
+    f: (V, B) => R
+  ): Iterable[ValidData[R, D]] =
     zipAllDataGeneric(
       that,
       whenBothMissing = None,
-      whenOnlyThis = v => Some((v, thatDefault)),
-      whenOnlyThat = b => Some((thisDefault, b)),
-      whenBothPresent = (v, b) => Some((v, b))
+      whenOnlyThis = v => Some(f(v, thatDefault)),
+      whenOnlyThat = b => Some(f(thisDefault, b)),
+      whenBothPresent = (v, b) => Some(f(v, b))
     )
 
   /**
@@ -687,7 +708,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     * Zip with the data of another dimensional structure with the same domain type and select data based on the function
     * parameters. The full domain is considered when whenBothMissing is some value, otherwise only the domain covered by
     * this and that is considered. (This is primarily an internal method supporting zipAll and symmetricDifference, but
-    * made public so it can be tested directly
+    * made public so it can be tested directly.)
     *
     * @param that
     *   dimensional structure to zip with -- must have the same domain type
@@ -864,12 +885,12 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     * @return
     *   true if there are no valid data, false otherwise.
     */
-  def isEmpty: Boolean = dataByStartAsc.isEmpty
+  def isEmpty: Boolean = dataByStart.isEmpty
 
   /**
     * The number of valid data entries.
     */
-  def size: Int = dataByStartAsc.size
+  def size: Int = dataByStart.size
 
   /**
     * Returns the value if a single, unbounded valid value exists, otherwise throws an exception.
@@ -891,7 +912,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
   /**
     * Returns all valid data in interval start order
     */
-  def getAll: Iterable[ValidData[V, D]] = dataByStartAsc.values
+  def getAll: Iterable[ValidData[V, D]] = dataByStart.values
 
   /**
     * Returns valid data at the specified domain element. That is, where the specified domain element is a member of
@@ -904,7 +925,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   Some value and corresponding interval if valid at the specified domain element, otherwise None.
     */
   def getDataAt(domainIndex: D): Option[ValidData[V, D]] =
-    dataInSearchTree
+    dataInBoxTree
       .get(Box.at(domainIndex.asCoordinateUnfixed))
       .collectFirst:
         case d if domainIndex ∈ d.payload.interval => d.payload
@@ -930,7 +951,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   all data that are valid on some or all of the interval (some intersection).
     */
   def getIntersecting(interval: Interval[D]): Iterable[ValidData[V, D]] =
-    dataInSearchTree
+    dataInBoxTree
       .getAndDeduplicate(interval.asBox)
       .collect:
         case BoxedPayload(_, payload, _) if payload.interval intersects interval => payload
@@ -944,7 +965,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   true if there are values that are valid somewhere on the interval.
     */
   infix def intersects(interval: Interval[D]): Boolean =
-    dataInSearchTree.get(interval.asBox).exists(_.payload.interval intersects interval)
+    dataInBoxTree.get(interval.asBox).exists(_.payload.interval intersects interval)
 
   /**
     * Is this a subset (proper or improper) of that? See [[https://en.wikipedia.org/wiki/Subset]]. This is the
@@ -1033,8 +1054,8 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   a sequence of diff actions that would synchronize it with this.
     */
   def diffActionsFrom(old: DimensionalBase[V, D]): Iterable[DiffAction[V, D]] =
-    (dataByStartAsc.keySet ++ old.dataByStartAsc.keys).toSeq.flatMap: key =>
-      (old.dataByStartAsc.get(key), dataByStartAsc.get(key)) match
+    (dataByStart.keySet ++ old.dataByStart.keys).toSeq.flatMap: key =>
+      (old.dataByStart.get(key), dataByStart.get(key)) match
         case (Some(oldData), Some(newData)) if oldData != newData => Some(DiffAction.Update(newData))
         case (None, Some(newData))                                => Some(DiffAction.Create(newData))
         case (Some(oldData), None)                                => Some(DiffAction.Delete(oldData.interval.start))
@@ -1046,7 +1067,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     * Internal data structure where all the interval-bounded data are stored, always expected to be disjoint. TreeMap
     * maintains interval key order.
     */
-  protected def dataByStartAsc: scala.collection.mutable.TreeMap[D, ValidData[V, D]]
+  protected def dataByStart: scala.collection.mutable.TreeMap[D, ValidData[V, D]]
 
   /**
     * An internal shadow data structure where all the interval-bounded data are also stored, but using the value itself
@@ -1060,7 +1081,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     * -- a hyperoctree (i.e., a B-tree, quadtree, octree, etc., depending on the dimension) that supports quick
     * retrieval by interval.
     */
-  protected def dataInSearchTree: BoxTree[ValidData[V, D]]
+  protected def dataInBoxTree: BoxTree[ValidData[V, D]]
 
   /**
     * Creates a copy.
@@ -1116,6 +1137,8 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *     domain tail.
     * @param domain
     *   the head dimension domain element
+    * @param altConfig
+    *   $configParam
     * @return
     *   a lower-dimensional (n-1) projection
     */
@@ -1124,7 +1147,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     Domain.IsAtHead[D, H],
     Domain.IsUpdatableAtHead[D, H],
     DomainLike[Domain.NonEmptyTail[D]]
-  ): DimensionalBase[V, Domain.NonEmptyTail[D]]
+  )(using altConfig: CoreConfig[Domain.NonEmptyTail[D]]): DimensionalBase[V, Domain.NonEmptyTail[D]]
 
   /**
     * Project as data in n-1 dimensions based on a lookup in the specified dimension.
@@ -1134,6 +1157,8 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   literal. (The head dimension is dimension 0.)
     * @param domain
     *   the domain element used for filtering
+    * @param altConfig
+    *   $configParam
     * @tparam H
     *   the domain value type of the domain used for filtering. There are type safety checks that ensure
     *   - the 1D domain at the specified dimension index has the specified domain value type
@@ -1153,7 +1178,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     Domain.IsAtIndex[D, dimensionIndex.type, H],
     Domain.IsUpdatableAtIndex[D, dimensionIndex.type, H],
     Domain.IsDroppedInResult[D, dimensionIndex.type, R]
-  ): DimensionalBase[V, R]
+  )(using altConfig: CoreConfig[R]): DimensionalBase[V, R]
 
   /**
     * Returns this as a mutable structure.

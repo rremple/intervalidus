@@ -668,9 +668,9 @@ object Interval:
     *   a new (possibly smaller) collection of intervals covering the same domain as the input.
     */
   def compress[D <: NonEmptyTuple: DomainLike](
-    intervals: Iterable[Interval[D]]
+    intervals: IterableOnce[Interval[D]]
   ): Iterable[Interval[D]] = compressGeneric(
-    initialState = TreeMap.from(intervals.map(i => i.start -> i)), // intervals by start
+    initialState = TreeMap.from(intervals.iterator.map(i => i.start -> i)), // intervals by start
     result = _.values,
     dataIterable = _.values,
     interval = identity, // data are just intervals
@@ -700,8 +700,8 @@ object Interval:
     */
   def recompress[D <: NonEmptyTuple: DomainLike](
     intervals: Iterable[Interval[D]],
-    otherIntervals: Iterable[Interval[D]]
-  ): Iterable[Interval[D]] =
+    otherIntervals: IterableOnce[Interval[D]]
+  )(using config: CoreConfig[D]): Iterable[Interval[D]] =
     immutable.Data(intervals.map(_ -> true)).recompressAll(otherIntervals).allIntervals
 
   /**
@@ -719,7 +719,7 @@ object Interval:
     */
   def recompress[D <: NonEmptyTuple: DomainLike](
     intervals: Iterable[Interval[D]]
-  ): Iterable[Interval[D]] = recompress(intervals, Iterable.empty)
+  )(using config: CoreConfig[D]): Iterable[Interval[D]] = recompress(intervals, Iterable.empty)
 
   /**
     * Checks if the collection of intervals is compressible. That is, are there any intervals that are adjacent to their
@@ -735,8 +735,10 @@ object Interval:
     * @return
     *   true if the collection is compressible, false otherwise.
     */
-  def isCompressible[D <: NonEmptyTuple](intervals: Iterable[Interval[D]])(using domainLike: DomainLike[D]): Boolean =
-    val treeMap = TreeMap.from(intervals.map(i => i.start -> i))
+  def isCompressible[D <: NonEmptyTuple](
+    intervals: IterableOnce[Interval[D]]
+  )(using domainLike: DomainLike[D]): Boolean =
+    val treeMap = TreeMap.from(intervals.iterator.map(i => i.start -> i))
     val adjacent = for
       leftData <- treeMap.values.iterator
       rightAdjacentKey <- domainLike.intervalRightAdjacentKeys(leftData)
@@ -794,14 +796,14 @@ object Interval:
     *
     * @param intervals
     *   a collection of intervals -- must be disjoint and ordered by start.
-    * @tparam T
+    * @tparam D
     *   $intervalDomainType
     * @return
     *   a new collection of intervals representing disjoint intervals covering the span of the input.
     */
-  def complement[T <: NonEmptyTuple: DomainLike](
-    intervals: Iterable[Interval[T]]
-  ): Iterable[Interval[T]] =
+  def complement[D <: NonEmptyTuple: DomainLike](
+    intervals: Iterable[Interval[D]]
+  )(using config: CoreConfig[D]): Iterable[Interval[D]] =
     immutable.Data(intervals.map(_ -> false)).fill(unbounded -> true).filter(_.value).allIntervals
 
   /**

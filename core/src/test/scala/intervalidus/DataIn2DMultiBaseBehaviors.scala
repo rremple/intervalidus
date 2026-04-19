@@ -2,7 +2,6 @@ package intervalidus
 
 import intervalidus.DiscreteValue.given
 import intervalidus.DomainLike.given
-import intervalidus.Domain.In2D as Dim
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
@@ -16,17 +15,19 @@ trait DataIn2DMultiBaseBehaviors:
 
   import Interval1D.*
 
-  def withHorizontal[T: DiscreteValue](i: Interval1D[T]): Interval[Dim[T, T]] = Interval.in2D[T, T](i, unbounded)
+  type IntDim = Domain.In2D[Int, Int]
 
-  def withHorizontal[T: DiscreteValue](d: Domain1D[T]): Dim[T, T] = d x Domain1D.Bottom
+  def withHorizontal[T: DiscreteValue](i: Interval1D[T]): Interval.In2D[T, T] = Interval.in2D[T, T](i, unbounded)
 
-  def basicAndZipTests[S <: DimensionalMultiBase[String, Dim[Int, Int]]](
+  def withHorizontal[T: DiscreteValue](d: Domain1D[T]): Domain.In2D[T, T] = d x Domain1D.Bottom
+
+  def basicAndZipTests[S <: DimensionalMultiBase[String, IntDim]](
     prefix: String,
-    multiFrom: Experimental ?=> Iterable[ValidData[String, Dim[Int, Int]]] => S,
-    multiFrom2D: Experimental ?=> DimensionalBase[Set[String], Dim[Int, Int]] => S,
-    multiOf: Experimental ?=> String => S,
-    multiApply: Experimental ?=> Iterable[ValidData[Set[String], Dim[Int, Int]]] => S
-  )(using Experimental): Unit =
+    multiFrom: CoreConfig[IntDim] ?=> Iterable[ValidData[String, IntDim]] => S,
+    multiFrom2D: CoreConfig[IntDim] ?=> DimensionalBase[Set[String], IntDim] => S,
+    multiOf: CoreConfig[IntDim] ?=> String => S,
+    multiApply: CoreConfig[IntDim] ?=> Iterable[ValidData[Set[String], IntDim]] => S
+  )(using CoreConfig[IntDim]): Unit =
     test(s"$prefix: Basics"):
       val allData = List(
         withHorizontal(interval(0, 9)) -> Set("Hello"),
@@ -38,7 +39,7 @@ trait DataIn2DMultiBaseBehaviors:
       val fixture2 = multiApply(allData).toImmutable.toMutable.copy
       fixture2.getAll.toList shouldBe allData
 
-      val fixture3 = multiFrom2D(immutable.Data.of[Set[String], Dim[Int, Int]](Set("Hello", "world")))
+      val fixture3 = multiFrom2D(immutable.Data.of[Set[String], IntDim](Set("Hello", "world")))
       fixture3.get shouldBe Set("Hello", "world")
 
       val f0: S = multiFrom(

@@ -2,7 +2,6 @@ package intervalidus
 
 import intervalidus.DiscreteValue.given
 import intervalidus.DomainLike.given
-import intervalidus.Domain.In1D as Dim
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
@@ -17,16 +16,18 @@ trait DataIn1DMultiBaseBehaviors:
   import Interval1D.*
   import Domain1D.Point
 
-  def basicAndZipTests[S <: DimensionalMultiBase[String, Dim[Int]]](
+  type IntDim = Domain.In1D[Int]
+
+  def basicAndZipTests[S <: DimensionalMultiBase[String, IntDim]](
     prefix: String,
-    multiFrom: Experimental ?=> Iterable[ValidData[String, Dim[Int]]] => S,
-    multiFrom1D: Experimental ?=> DimensionalBase[Set[String], Dim[Int]] => S,
-    multiOf: Experimental ?=> String => S,
-    multiApply: Experimental ?=> Iterable[ValidData[Set[String], Dim[Int]]] => S
-  )(using Experimental): Unit =
+    multiFrom: CoreConfig[IntDim] ?=> Iterable[ValidData[String, IntDim]] => S,
+    multiFrom1D: CoreConfig[IntDim] ?=> DimensionalBase[Set[String], IntDim] => S,
+    multiOf: CoreConfig[IntDim] ?=> String => S,
+    multiApply: CoreConfig[IntDim] ?=> Iterable[ValidData[Set[String], IntDim]] => S
+  )(using config: CoreConfig[IntDim]): Unit =
     test(s"$prefix: Basics"):
       {
-        given Experimental = Experimental("requireDisjoint")
+        given CoreConfig[Domain.In1D[Int]] = config.withExperimental(Experimental("requireDisjoint"))
 
         assertThrows[IllegalArgumentException]:
           // not valid as it overlaps on [10, +∞)
@@ -40,8 +41,10 @@ trait DataIn1DMultiBaseBehaviors:
       fixture1.getAll.toList shouldBe allData
       val fixture2 = multiApply(allData).toImmutable.toMutable.copy
       fixture2.getAll.toList shouldBe allData
+      fixture1 shouldBe fixture2
+      fixture1.hashCode() shouldBe fixture2.hashCode()
 
-      val fixture3 = multiFrom1D(immutable.Data.of[Set[String], Dim[Int]](Set("Hello", "world")))
+      val fixture3 = multiFrom1D(immutable.Data.of[Set[String], IntDim](Set("Hello", "world")))
       fixture3.get shouldBe Set("Hello", "world")
 
       val f0: S = multiFrom(

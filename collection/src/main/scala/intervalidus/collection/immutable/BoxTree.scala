@@ -5,19 +5,12 @@ import intervalidus.collection.*
 /**
   * Constructors and types for immutable box search trees of arbitrary dimensions.
   */
-object BoxTree extends BoxTreeObjectLike:
-  def apply[A](
-    boundary: Boundary,
-    nodeCapacity: Int = defaultNodeCapacity,
-    depthLimit: Int = defaultDepthLimit
-  ): BoxTree[A] = BoxTreeBranch[A](boundary, 0, nodeCapacity, depthLimit)
+object BoxTree:
+  def apply[A](boundary: Boundary)(using config: CollectionConfig): BoxTree[A] =
+    BoxTreeBranch[A](boundary, 0)
 
-  def from[A](
-    boundary: Boundary,
-    ds: IterableOnce[BoxedPayload[A]],
-    nodeCapacity: Int = defaultNodeCapacity,
-    depthLimit: Int = defaultDepthLimit
-  ): BoxTree[A] = apply(boundary, nodeCapacity, depthLimit).addAll(ds)
+  def from[A](boundary: Boundary, ds: IterableOnce[BoxedPayload[A]])(using config: CollectionConfig): BoxTree[A] =
+    apply(boundary).addAll(ds)
 
 /**
   * Immutable box search tree in arbitrary dimensions. Mutation operations return a new tree with updates applied.
@@ -74,25 +67,24 @@ sealed trait BoxTree[A] extends BoxTreeLike[A, BoxTree[A]]:
 class BoxTreeLeaf[A] private (
   val boundary: Boundary,
   val depth: Int,
-  val nodeCapacity: Int,
-  val depthLimit: Int,
   private val data: List[BoxedPayload[A]] // state
-) extends BoxTree[A]:
+)(using val config: CollectionConfig)
+  extends BoxTree[A]:
 
   // manage state as new instances
-  def this(boundary: Boundary, depth: Int, nodeCapacity: Int, depthLimit: Int) =
-    this(boundary, depth, nodeCapacity, depthLimit, List.empty)
+  def this(boundary: Boundary, depth: Int)(using config: CollectionConfig) =
+    this(boundary, depth, List.empty)
 
   // create new instances with the same boundary, depth, capacity, and depthLimit
   private def newLeaf(data: List[BoxedPayload[A]]): BoxTreeLeaf[A] =
-    BoxTreeLeaf(boundary, depth, nodeCapacity, depthLimit, data)
+    BoxTreeLeaf(boundary, depth, data)
 
   private def newBranch: BoxTreeBranch[A] =
-    BoxTreeBranch(boundary, depth, nodeCapacity, depthLimit)
+    BoxTreeBranch(boundary, depth)
 
   override def copy: BoxTree[A] = newLeaf(data)
 
-  private def hasCapacity: Boolean = data.length < nodeCapacity || depth == depthLimit
+  private def hasCapacity: Boolean = data.length < config.nodeCapacity || depth == config.depthLimit
 
   override def addOne(d: BoxedPayload[A]): BoxTree[A] =
     // If there is room, we add the boxed payload here. Otherwise, we create a branch (which creates new leaves)
@@ -107,6 +99,8 @@ class BoxTreeLeaf[A] private (
 
   override def toIterable: Iterable[BoxedPayload[A]] = data
 
+  override def toIterableOnce: IterableOnce[BoxedPayload[A]] = data
+
   override def clear: BoxTree[A] = newLeaf(List.empty)
 
 /**
@@ -115,25 +109,22 @@ class BoxTreeLeaf[A] private (
 class BoxTreeBranch[A] private (
   val boundary: Boundary,
   val depth: Int,
-  val nodeCapacity: Int,
-  val depthLimit: Int,
   private val subtrees: Vector[BoxTree[A]] // state
-) extends BoxTree[A]:
+)(using val config: CollectionConfig)
+  extends BoxTree[A]:
 
   // manage state as new instances
-  def this(boundary: Boundary, depth: Int, nodeCapacity: Int, depthLimit: Int) = this(
+  def this(boundary: Boundary, depth: Int)(using config: CollectionConfig) = this(
     boundary,
     depth,
-    nodeCapacity,
-    depthLimit,
-    boundary.binarySplit.map(BoxTreeLeaf[A](_, depth + 1, nodeCapacity, depthLimit))
+    boundary.binarySplit.map(BoxTreeLeaf[A](_, depth + 1))
   )
 
   // manage subtree state
   private val subtreeBoundaries: Vector[Boundary] = subtrees.map(_.boundary)
 
   private def newBranch(subtrees: Vector[BoxTree[A]]): BoxTreeBranch[A] =
-    BoxTreeBranch(boundary, depth, nodeCapacity, depthLimit, subtrees)
+    BoxTreeBranch(boundary, depth, subtrees)
 
   override def copy: BoxTree[A] = newBranch(subtrees)
 
@@ -143,8 +134,8 @@ class BoxTreeBranch[A] private (
     if depth == 0 && !(boundary contains d.box)
     then // out of bounds, so first we grow the boundary and repartition everything
       // println(s"resizing based on ${d.box} not fitting in capacity ${boundary.capacity}")
-      BoxTreeBranch[A](boundary.growAround(d.box), depth, nodeCapacity, depthLimit)
-        .addAll(BoxedPayload.deduplicate(toIterable))
+      BoxTreeBranch[A](boundary.growAround(d.box), depth)
+        .addAll(BoxedPayload.deduplicateIterableOnce(toIterableOnce))
         .addOne(d)
     else
       val boxSplits = subtreeBoundaries.count(_.box intersects d.box) > 1
@@ -166,11 +157,11 @@ class BoxTreeBranch[A] private (
     newBranch(updatedSubtrees)
 
   override def get(range: Box): Iterable[BoxedPayload[A]] =
-    if boundary.box.intersects(range)
-    then subtrees.flatMap(subtree => range.intersection(subtree.boundary.box).flatMap(subtree.get))
-    else Vector.empty
+    subtrees.flatMap(subtree => range.intersection(subtree.boundary.box).flatMap(subtree.get))
 
   override def toIterable: Iterable[BoxedPayload[A]] = subtrees.flatMap(_.toIterable)
+
+  override def toIterableOnce: IterableOnce[BoxedPayload[A]] = subtrees.iterator.flatMap(_.toIterableOnce)
 
   override def clear: BoxTree[A] = // recursively clear, leaving the structure in place
     newBranch(subtrees.map(_.clear))

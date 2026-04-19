@@ -43,7 +43,10 @@ class BoxBtreeTest extends AnyFunSuite with Matchers:
 
     // Trees always start as a branch and immutable leaves never get copied, so forcing that to happen here just for
     // coverage -- won't happen in real life!
-    val leaf = BoxTreeLeaf[String](boundary, depth = 0, nodeCapacity = 1, depthLimit = 1)
+    val leaf = BoxTreeLeaf[String](
+      boundary,
+      depth = 0
+    )(using CollectionConfig.default.withNodeCapacity(1).withDepthLimit(1))
       .addOne(box(3, 5) -> "one")
     val leafCopy = leaf.copy
     leaf.toIterable should contain theSameElementsAs List(box(3, 5) -> "one")
@@ -53,7 +56,7 @@ class BoxBtreeTest extends AnyFunSuite with Matchers:
     tree.get(box(40, 50)) shouldBe List.empty
 
     val treeSplit = BoxTree
-      .from(boundary, BoxedPayload.deduplicate(tree.toIterable), 4)
+      .from(boundary, BoxedPayload.deduplicate(tree.toIterable))(using CollectionConfig.default.withNodeCapacity(4))
       .addOne(box(5, 7) -> "five") // splits right
       .addOne(box(7, 8) -> "six")
     treeSplit.get(box(3, 5)) should contain theSameElementsAs

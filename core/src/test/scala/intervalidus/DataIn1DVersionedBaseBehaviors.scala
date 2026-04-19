@@ -3,12 +3,11 @@ package intervalidus
 import intervalidus.DiscreteValue.IntDiscreteValue
 import intervalidus.Interval1D.*
 import intervalidus.DomainLike.given
-import intervalidus.Domain.In1D as Dim
 import intervalidus.DimensionalVersionedBase.Versioned
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
-import java.time.LocalDate
+import java.time.{Instant, LocalDate, LocalDateTime, ZoneId}
 import scala.language.implicitConversions
 
 /*
@@ -17,30 +16,37 @@ import scala.language.implicitConversions
 trait DataIn1DVersionedBaseBehaviors:
   this: AnyFunSuite & Matchers =>
 
+  type IntDim = Domain.In1D[Int]
+  type MixedDim = Domain.In1D[LocalDate]
+
   val dayZero: LocalDate = LocalDate.of(2024, 6, 30)
 
   def day(offsetDays: Int): LocalDate = dayZero.plusDays(offsetDays)
 
-  def validString(s: String, validTime: Interval[Dim[LocalDate]]): ValidData[String, Dim[LocalDate]] =
+  extension (t: LocalDateTime)
+    def instant: Instant = t.atZone(ZoneId.of("America/Los_Angeles")).toInstant
+    def asCurrent: CurrentInstant = CurrentInstant.simulated(t.instant)
+
+  def validString(s: String, validTime: Interval.In1D[LocalDate]): ValidData.In1D[String, LocalDate] =
     validTime -> s
 
   def horizontal[H: DomainValueLike](interval: Interval[Versioned[Domain.In1D[H]]]): Interval1D[H] = interval(1)
 
   protected def testDataIn2D[T](
     current: Domain1D[Int],
-    values: List[ValidData[T, Dim[Int]]]
-  ): List[ValidData[T, Versioned[Dim[Int]]]] =
+    values: List[ValidData[T, IntDim]]
+  ): List[ValidData[T, Versioned[IntDim]]] =
     values.map(d => (d.interval withHead intervalFrom(current)) -> d.value)
 
-  def stringLookupTests[S <: DimensionalVersionedBase[String, Dim[Int]]](
+  def stringLookupTests[S <: DimensionalVersionedBase[String, IntDim]](
     prefix: String,
-    dataIn1DVersionedFrom1D: Experimental ?=> Iterable[ValidData[String, Dim[Int]]] => S,
-    dataIn1DVersionedFrom2D: Experimental ?=> Iterable[ValidData[String, Versioned[Dim[Int]]]] => S,
-    dataIn1DVersionedOf: Experimental ?=> String => S
-  )(using Experimental): Unit =
+    dataIn1DVersionedFrom1D: CoreConfig[Versioned[IntDim]] ?=> Iterable[ValidData[String, IntDim]] => S,
+    dataIn1DVersionedFrom2D: CoreConfig[Versioned[IntDim]] ?=> Iterable[ValidData[String, Versioned[IntDim]]] => S,
+    dataIn1DVersionedOf: CoreConfig[Versioned[IntDim]] ?=> String => S
+  )(using config: CoreConfig[Versioned[IntDim]]): Unit =
     test(s"$prefix: General setup"):
       {
-        given Experimental = Experimental("requireDisjoint")
+        given CoreConfig[Versioned[IntDim]] = config.withExperimental(Experimental("requireDisjoint"))
 
         assertThrows[IllegalArgumentException]:
           // not valid as it overlaps on [10, +∞)
@@ -52,12 +58,16 @@ trait DataIn1DVersionedBaseBehaviors:
       assert(empty.getAll.isEmpty)
       assert(empty.domain.isEmpty)
       assert((empty: Any) != ("<nothing is valid>": Any))
+      empty.size shouldBe 0
 
       val single = dataIn1DVersionedOf("Hello world")
       single.get shouldBe "Hello world"
       single.getOption shouldBe Some("Hello world")
-      single.domain.toList shouldBe List(Interval.unbounded[Dim[Int]])
+      single.domain.toList shouldBe List(Interval.unbounded[IntDim])
       assert(single.domainComplement.isEmpty)
+      single shouldBe dataIn1DVersionedOf("Hello world")
+      single.hashCode() shouldBe dataIn1DVersionedOf("Hello world").hashCode()
+      single.size shouldBe 1
 
       val fixture1: S = dataIn1DVersionedFrom1D(List(intervalFrom(0) -> "Hello world"))
       fixture1.getOption shouldBe None

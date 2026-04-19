@@ -6,9 +6,9 @@ import org.scalatest.matchers.should.Matchers
 
 class BoxQuadtreeTest extends AnyFunSuite with Matchers:
   def capacityCoordinate(coordinates: Double*): CoordinateFixed =
-    CoordinateFixed(coordinates.toVector)
+    CoordinateFixed(coordinates*)
   def coordinate(coordinates: Double*): Coordinate =
-    Coordinate(coordinates.toVector.map(Some(_)))
+    Coordinate(coordinates.map(Some(_))*)
 
   test("Mutable: BoxTree (2D -- Quadtree) methods"):
     // Create a quadtree with a small capacity per node and insert some boxes
@@ -60,7 +60,10 @@ class BoxQuadtreeTest extends AnyFunSuite with Matchers:
       List(Box(coordinate(3, 3), coordinate(5, 5)) -> "one")
     tree.get(Box(coordinate(40, 40), coordinate(50, 50))) shouldBe List.empty
 
-    val treeSplit = BoxTree.from(boundary, BoxedPayload.deduplicate(tree.toIterable), 4)
+    val treeSplit = BoxTree.from(
+      boundary,
+      BoxedPayload.deduplicate(tree.toIterable)
+    )(using CollectionConfig.default.withNodeCapacity(4))
     treeSplit.addOne(Box(coordinate(3, 5), coordinate(7, 7)) -> "five") // splits right upper
     treeSplit.addOne(Box(coordinate(5, 4), coordinate(7, 5)) -> "six")
     treeSplit.get(Box(coordinate(3, 5), coordinate(7, 7))) should contain theSameElementsAs

@@ -191,7 +191,7 @@ object Fact:
     */
   private inline def attributesFromElements[T <: Tuple](
     elementNames: List[String],
-    elementValues: List[Any],
+    elementValues: List[Any], // TODO: see if we can use T here in a future version of Scala
     accumulatedAttributes: Set[Attribute[?]] = Set.empty
   ): Set[Attribute[?]] =
     inline erasedValue[T] match
@@ -223,7 +223,7 @@ object Fact:
       s"${p.productPrefix}-${UUID.randomUUID()}",
       attributesFromElements[mirror.MirroredElemTypes](
         p.productElementNames.toList,
-        p.productIterator.toList // untyped, where types are recovered recursively from MirroredElemTypes
+        p.productIterator.toList // TODO see if we can pass Tuple.fromProductTyped(p) in a future version of Scala
       )
     )
 

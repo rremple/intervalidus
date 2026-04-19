@@ -1,7 +1,5 @@
 package intervalidus.collection
 
-import scala.util.Properties
-
 /**
   * Collection that manages boxed data structures in multidimensional double space. This tree holds boxes rather than
   * individual points. The tree is a hyperoctree (i.e., a B-tree, quadtree, octree, etc., depending on the dimension).
@@ -29,6 +27,11 @@ import scala.util.Properties
 trait BoxTreeLike[A, Self <: BoxTreeLike[A, Self]]:
 
   /**
+    * Configuration for this box tree, including its node capacity and depth limit.
+    */
+  given config: CollectionConfig
+
+  /**
     * Make a copy of this tree.
     * @return
     *   A new tree with the same elements.
@@ -41,27 +44,9 @@ trait BoxTreeLike[A, Self <: BoxTreeLike[A, Self]]:
   def boundary: Boundary
 
   /**
-    * The target number of elements a leaf can manage until it is split into a branch. The number of elements can exceed
-    * this target if the tree reaches the depth limit.
-    */
-  def nodeCapacity: Int
-
-  /**
     * The depth of this leaf/branch.
     */
   def depth: Int
-
-  /**
-    * Leaves are split into branches when they reach the node capacity **unless** that would add a leaf to a depth that
-    * would exceed this depth limit.
-    *
-    * @note
-    *   Having a depth limit is not just an optimization, it is important functionally because of the potential of
-    *   ordered hash collisions used as the box coordinates. Say that there are many source discrete values that hash to
-    *   the same double value. If the number of these colliding items reaches the node capacity of a leaf, without a
-    *   depth limit, there would be an infinite regression of branch creations until OOM.
-    */
-  def depthLimit: Int
 
   /**
     * Queries the tree for boxes intersecting a certain range. Because boxes can be split across multiple subtrees, the
@@ -85,33 +70,17 @@ trait BoxTreeLike[A, Self <: BoxTreeLike[A, Self]]:
     BoxedPayload.deduplicate(get(range))
 
   /**
+    * Returns an iterable once (e.g., an Iterator) of all data. Useful for root-level reorgs to reduce memory pressure.
+    *
+    * @return
+    *   all the data.
+    */
+  def toIterableOnce: IterableOnce[BoxedPayload[A]]
+
+  /**
     * A utility method to show data (for testing purposes). Because boxes can be split, the data returned can have
     * duplicates
     * @return
     *   all the data.
     */
   def toIterable: Iterable[BoxedPayload[A]]
-
-/**
-  * Attributes common to all box search tree companions, settable as environment variables.
-  */
-trait BoxTreeObjectLike:
-  // based on benchmarks of 2D "set" on initial 10K random boxes (up to 1K on each side) in [-500K..500K]^2 space
-  /**
-    * Default capacity of leaf nodes. Default is 256, which was found to be optimal in benchmarks. It can be overridden
-    * by setting the environment variable `INTERVALIDUS_TREE_NODE_CAPACITY`.
-    */
-  val defaultNodeCapacity: Int = Properties
-    .envOrElse("INTERVALIDUS_TREE_NODE_CAPACITY", "256")
-    .toInt
-  // println(s"using search tree node capacity = defaultNodeCapacity")
-
-  /**
-    * Default depth limit of trees. Default is 32, which was found to be optimal in "set" benchmarks (though it was
-    * observed that any value > 17 is good). It can be overridden by setting the environment variable
-    * `INTERVALIDUS_TREE_DEPTH_LIMIT`.
-    */
-  val defaultDepthLimit: Int = Properties
-    .envOrElse("INTERVALIDUS_TREE_DEPTH_LIMIT", "32")
-    .toInt
-// println(s"using search tree depth limit = $defaultDepthLimit")

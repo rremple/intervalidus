@@ -84,8 +84,8 @@ class DiscreteValueTest extends AnyFunSuite:
     assertResult("Point(3) x Bottom")((domain(3) x Bottom).toCodeLikeString)
     assertResult("Point(3) x Bottom x Top")((domain(3) x Bottom x Top).toCodeLikeString)
 
-    assertResult(Coordinate(Some(3), None))((domain(3) x Bottom).asCoordinateUnfixed)
-    assertResult(CoordinateFixed(3, Int.MinValue))((domain(3) x Bottom).asCoordinateFixed)
+    assert(Coordinate.equals(Coordinate(Some(3), None), (domain(3) x Bottom).asCoordinateUnfixed))
+    assert(CoordinateFixed.equals(CoordinateFixed(3, Int.MinValue), (domain(3) x Bottom).asCoordinateFixed))
 
   test("Ops on Enum and Enum Domain"):
     // Can't be empty

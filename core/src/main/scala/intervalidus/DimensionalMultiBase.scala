@@ -13,77 +13,21 @@ object DimensionalMultiBase:
 
 /**
   * Constructs multivalued data in multidimensional intervals.
+  * @tparam Constructed
+  *   Constructed type.
   */
-trait DimensionalMultiBaseObject extends DimensionalBaseConstructorParams:
-  /**
-    * Shorthand constructor for a single initial value that is valid in a particular interval.
-    *
-    * @tparam V
-    *   $dataValueType
-    * @tparam D
-    *   $intervalDomainType
-    * @param data
-    *   value valid within an interval.
-    * @return
-    *   [[DimensionalMultiBase]] structure with a single valid value.
-    */
-  def of[V, D <: NonEmptyTuple: DomainLike](
-    data: ValidData[V, D]
-  )(using Experimental): DimensionalMultiBase[V, D]
+trait DimensionalMultiBaseObject[Constructed[_, _ <: NonEmptyTuple] <: DimensionalMultiBase[?, ?]]
+  extends DimensionalBaseConstructorParams:
+
+  // ---------- Abstract ----------
 
   /**
-    * Shorthand constructor for a single initial value that is valid in the full interval domain.
-    *
-    * @tparam V
-    *   $dataValueType
-    * @tparam D
-    *   $intervalDomainType
-    * @param value
-    *   value that is valid in the full domain (`Interval.unbounded[D]`).
-    * @return
-    *   [[DimensionalMultiBase]] structure with a single valid value.
-    */
-  def of[V, D <: NonEmptyTuple: DomainLike](
-    value: V
-  )(using Experimental): DimensionalMultiBase[V, D]
-
-  /**
-    * Constructor for multiple (or no) initial values that are valid in the various intervals.
-    *
-    * @param initialData
-    *   a collection of values valid within intervals -- intervals must be disjoint.
-    * @tparam V
-    *   $dataValueType
-    * @tparam D
-    *   $intervalDomainType
-    * @return
-    *   [[DimensionalMultiBase]] structure with zero or more valid values.
-    */
-  def from[V, D <: NonEmptyTuple: DomainLike](
-    initialData: Iterable[ValidData[V, D]]
-  )(using Experimental): DimensionalMultiBase[V, D]
-
-  /**
-    * Creates a muti-value structure from a non-multi structure managing sets of values.
-    *
-    * @param that
-    *   dimensional data of value sets valid within intervals -- intervals must be disjoint.
-    * @tparam V
-    *   $dataValueType
-    * @tparam D
-    *   $intervalDomainType
-    * @return
-    *   [[DimensionalMultiBase]] structure with the same valid values as that data structure.
-    */
-  def from[V, D <: NonEmptyTuple: DomainLike](
-    that: DimensionalBase[Set[V], D]
-  )(using Experimental): DimensionalMultiBase[V, D]
-
-  /**
-    * Constructor for multiple (or no) initial value sets that are valid in the various intervals.
+    * Constructor for multiple initial value sets that are valid in the various intervals.
     *
     * @param initialData
     *   a collection of valid data sets within intervals -- intervals must be disjoint.
+    * @param config
+    *   $configParam
     * @tparam V
     *   $dataValueType
     * @tparam D
@@ -93,19 +37,109 @@ trait DimensionalMultiBaseObject extends DimensionalBaseConstructorParams:
     */
   def apply[V, D <: NonEmptyTuple: DomainLike](
     initialData: Iterable[ValidData[Set[V], D]]
-  )(using Experimental): DimensionalMultiBase[V, D]
+  )(using config: CoreConfig[D]): Constructed[V, D]
+
+  /**
+    * Constructor for multiple (or no) initial values that are valid in the various intervals.
+    *
+    * @param initialData
+    *   a collection of values valid within intervals -- intervals must be disjoint.
+    * @param config
+    *   $configParam
+    * @tparam V
+    *   $dataValueType
+    * @tparam D
+    *   $intervalDomainType
+    * @return
+    *   [[DimensionalMultiBase]] structure with zero or more valid values.
+    */
+  def from[V, D <: NonEmptyTuple: DomainLike](
+    initialData: Iterable[ValidData[V, D]]
+  )(using config: CoreConfig[D]): Constructed[V, D]
+
+  // ---------- Concrete ----------
+
+  /**
+    * Constructor where no values are valid.
+    *
+    * @param config
+    *   $configParam
+    * @tparam V
+    *   $dataValueType
+    * @tparam D
+    *   $intervalDomainType
+    * @return
+    *   [[DimensionalMultiBase]] structure with no valid values.
+    */
+  def empty[V, D <: NonEmptyTuple: DomainLike](using config: CoreConfig[D]): Constructed[V, D] = apply(Iterable.empty)
+
+  /**
+    * Shorthand constructor for a single initial value that is valid in a particular interval.
+    *
+    * @param data
+    *   value valid within an interval.
+    * @param config
+    *   $configParam
+    * @tparam V
+    *   $dataValueType
+    * @tparam D
+    *   $intervalDomainType
+    * @return
+    *   [[DimensionalMultiBase]] structure with a single valid value.
+    */
+  def of[V, D <: NonEmptyTuple: DomainLike](
+    data: ValidData[V, D]
+  )(using config: CoreConfig[D]): Constructed[V, D] = apply(Iterable.single(data.interval -> Set(data.value)))
+
+  /**
+    * Shorthand constructor for a single initial value that is valid in the full interval domain.
+    *
+    * @param value
+    *   value that is valid in the full domain (`Interval.unbounded[D]`).
+    * @param config
+    *   $configParam
+    * @tparam V
+    *   $dataValueType
+    * @tparam D
+    *   $intervalDomainType
+    * @return
+    *   [[DimensionalMultiBase]] structure with a single valid value.
+    */
+  def of[V, D <: NonEmptyTuple: DomainLike](
+    value: V
+  )(using config: CoreConfig[D]): Constructed[V, D] = of(Interval.unbounded[D] -> value)
+
+  /**
+    * Creates a muti-value structure from a non-multi structure managing sets of values.
+    *
+    * @param that
+    *   dimensional data of value sets valid within intervals -- intervals must be disjoint.
+    * @param config
+    *   $configParam
+    * @tparam V
+    *   $dataValueType
+    * @tparam D
+    *   $intervalDomainType
+    * @return
+    *   [[DimensionalMultiBase]] structure with the same valid values as that data structure.
+    */
+  def from[V, D <: NonEmptyTuple: DomainLike](
+    that: DimensionalBase[Set[V], D]
+  )(using config: CoreConfig[D]): Constructed[V, D] = apply(that.getAll)
 
   /**
     * Get a Builder based on an intermediate buffer of valid data.
     *
+    * @param config
+    *   $configParam
     * @tparam V
     *   $dataValueType
     * @tparam D
     *   $intervalDomainType
     */
   def newBuilder[V, D <: NonEmptyTuple: DomainLike](using
-    Experimental
-  ): mutable.Builder[ValidData[V, D], DimensionalMultiBase[V, D]]
+    config: CoreConfig[D]
+  ): mutable.Builder[ValidData[V, D], Constructed[V, D]] = ValidData.Builds[V, D, Constructed[V, D]](from(_))
 
 /**
   * Data that may have multiple values (managed as sets of values) in different intervals.
@@ -144,7 +178,7 @@ trait DimensionalMultiBaseObject extends DimensionalBaseConstructorParams:
   * @define removeOneManyParamAllData
   *   the data to remove
   */
-trait DimensionalMultiBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends DimensionalBase[Set[V], D]:
+trait DimensionalMultiBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[Set[V], D]:
 
   private def addToValueSet(value: V)(existingValues: Set[V]): Option[Set[V]] =
     Some(existingValues + value)
@@ -177,12 +211,14 @@ trait DimensionalMultiBase[V, D <: NonEmptyTuple: DomainLike](using Experimental
     * @tparam B
     *   type of value to be merged (subtype of [[V]])
     */
-  protected def addManyInPlace[B <: V](allData: Iterable[ValidData[B, D]]): Unit =
-    val affected = allData.flatMap: data =>
+  protected def addManyInPlace[B <: V](allData: IterableOnce[ValidData[B, D]]): Unit =
+    val affected = Set.newBuilder[Set[V]]
+    allData.iterator.foreach: data =>
       val updatedValues = updateOrRemoveNoCompress(data.interval, addToValueSet(data.value))
       fillInPlaceNoCompress(data.interval -> Set(data.value))
-      updatedValues ++ Iterable.single(Set(data.value: V))
-    affected.iterator.distinct.foreach(compressInPlace)
+      affected.addAll(updatedValues)
+      affected.addOne(Set(data.value))
+    affected.result().foreach(compressInPlace)
 
   /**
     * Internal mutator to update all the valid value sets in the interval to exclude the new value, and for any interval
@@ -205,10 +241,12 @@ trait DimensionalMultiBase[V, D <: NonEmptyTuple: DomainLike](using Experimental
     * @tparam B
     *   type of value to be merged (subtype of [[V]])
     */
-  protected def removeManyInPlace[B <: V](allData: Iterable[ValidData[B, D]]): Unit =
-    val affected = allData.flatMap: data =>
-      updateOrRemoveNoCompress(data.interval, removeFromValueSet(data.value))
-    affected.iterator.distinct.foreach(compressInPlace)
+  protected def removeManyInPlace[B <: V](allData: IterableOnce[ValidData[B, D]]): Unit =
+    val affected = Set.newBuilder[Set[V]]
+    allData.iterator.foreach: data =>
+      val updatedValues = updateOrRemoveNoCompress(data.interval, removeFromValueSet(data.value))
+      affected.addAll(updatedValues)
+    affected.result().foreach(compressInPlace)
 
   /**
     * Returns the distinct individual values that are valid in some interval.

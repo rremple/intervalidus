@@ -261,8 +261,8 @@ object BenchBoxTree extends BenchBase(baselineFeature = None, featuredFeature = 
   override val (fullRangeMin, fullRangeMax) = (-rangeNum, rangeNum)
 
   def boxAt(dims: Int, start: Option[Double], end: Option[Double]) = Box(
-    Coordinate(Vector.fill(dims)(start)),
-    Coordinate(Vector.fill(dims)(end))
+    Coordinate(Vector.fill(dims)(start)*),
+    Coordinate(Vector.fill(dims)(end)*)
   )
 
   def testBoxedPayloads[D <: NonEmptyTuple: DomainLike](
@@ -289,8 +289,8 @@ object BenchBoxTree extends BenchBase(baselineFeature = None, featuredFeature = 
   lazy val testBoxedPayloadsIn3d1k = testBoxedPayloads(3, buildMutable3d(validDataIn3d(1_000, cap)))
 
   def fullRange(dims: Int) = Capacity(
-    CoordinateFixed(Vector.fill(dims)(fullRangeMin.toDouble)),
-    CoordinateFixed(Vector.fill(dims)(fullRangeMax.toDouble))
+    CoordinateFixed(Array.fill(dims)(fullRangeMin.toDouble)),
+    CoordinateFixed(Array.fill(dims)(fullRangeMax.toDouble))
   )
 
   @State(Scope.Benchmark)

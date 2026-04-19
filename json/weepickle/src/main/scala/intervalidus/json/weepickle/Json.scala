@@ -4,8 +4,7 @@ import com.rallyhealth.weejson.v1.{Arr, Obj, Str, Value}
 import com.rallyhealth.weepickle.v1.WeePickle.{From, FromTo, To}
 import intervalidus.*
 import intervalidus.DimensionalVersionedBase.{VersionDomainValue, VersionMetadata, Versioned}
-
-import java.time.Instant
+import intervalidus.VariableBase.Time
 
 /**
   * Common definitions for encoding and decoding Intervalidus structures as JSON.
@@ -57,6 +56,18 @@ object Json:
     )
 
   /**
+    * Interval shapes encoded as arrays
+    */
+  given [D <: NonEmptyTuple: DomainLike](using
+    FromTo[Interval[D]],
+    CoreConfig[D]
+  ): FromTo[IntervalShape[D]] =
+    asValueArr.bimap[IntervalShape[D]](
+      dimensional => Arr.from(dimensional.allIntervals.map(writeJs)),
+      arr => IntervalShape.withoutChecks[D](arr.value.map(_.as[Interval[D]]))
+    )
+
+  /**
     * Valid data encoded as objects
     */
   given [V, D <: NonEmptyTuple: DomainLike](using FromTo[V], FromTo[D]): FromTo[ValidData[V, D]] =
@@ -102,15 +113,17 @@ object Json:
     */
 
   given given_FromTo_immutable_Variable[V](using
-    FromTo[ValidData.In1D[V, Instant]]
+    FromTo[ValidData[V, Time]],
+    CoreConfig[Time]
   ): FromTo[immutable.Variable[V]] =
     asValueArr.bimap[immutable.Variable[V]](
       dimensional => Arr.from(dimensional.history.getAll.map(writeJs)),
-      arr => immutable.Variable.fromHistory(arr.value.map(_.as[ValidData.In1D[V, Instant]]))
+      arr => immutable.Variable.fromHistory(arr.value.map(_.as[ValidData[V, Time]]))
     )
 
   given given_FromTo_immutable_Data[V, D <: NonEmptyTuple: DomainLike](using
-    FromTo[ValidData[V, D]]
+    FromTo[ValidData[V, D]],
+    CoreConfig[D]
   ): FromTo[immutable.Data[V, D]] =
     asValueArr.bimap[immutable.Data[V, D]](
       dimensional => Arr.from(dimensional.getAll.map(writeJs)),
@@ -119,7 +132,8 @@ object Json:
 
   given given_FromTo_immutable_DataVersioned[V, D <: NonEmptyTuple: DomainLike](using
     DomainLike[Versioned[D]],
-    FromTo[ValidData[V, Versioned[D]]]
+    FromTo[ValidData[V, Versioned[D]]],
+    CoreConfig[Versioned[D]]
   ): FromTo[immutable.DataVersioned[V, D]] =
     asValueObj.bimap[immutable.DataVersioned[V, D]](
       data =>
@@ -130,7 +144,7 @@ object Json:
           "data" -> writeJs(data.getVersionedData.getAll)
         ),
       obj =>
-        immutable.DataVersioned[V, D](
+        new immutable.DataVersioned[V, D](
           obj("data").as[Iterable[ValidData[V, Versioned[D]]]],
           obj("initialVersion").as[VersionDomainValue],
           scala.collection.mutable.Map.from(obj("versionTimestamps").as[Seq[(VersionDomainValue, VersionMetadata)]]),
@@ -139,11 +153,21 @@ object Json:
     )
 
   given given_FromTo_immutable_DataMulti[V, D <: NonEmptyTuple: DomainLike](using
-    FromTo[ValidData[Set[V], D]]
+    FromTo[ValidData[Set[V], D]],
+    CoreConfig[D]
   ): FromTo[immutable.DataMulti[V, D]] =
     asValueArr.bimap[immutable.DataMulti[V, D]](
       dimensional => Arr.from(dimensional.getAll.map(writeJs)),
       arr => immutable.DataMulti[V, D](arr.value.map(_.as[ValidData[Set[V], D]]))
+    )
+
+  given given_FromTo_immutable_DataMonoid[V: Monoid, D <: NonEmptyTuple: DomainLike](using
+    FromTo[ValidData[V, D]],
+    CoreConfig[D]
+  ): FromTo[immutable.DataMonoid[V, D]] =
+    asValueArr.bimap[immutable.DataMonoid[V, D]](
+      dimensional => Arr.from(dimensional.getAll.map(writeJs)),
+      arr => immutable.DataMonoid[V, D](arr.value.map(_.as[ValidData[V, D]]))
     )
 
   /**
@@ -152,15 +176,17 @@ object Json:
     */
 
   given given_FromTo_mutable_Variable[V](using
-    FromTo[ValidData.In1D[V, Instant]]
+    FromTo[ValidData[V, Time]],
+    CoreConfig[Time]
   ): FromTo[mutable.Variable[V]] =
     asValueArr.bimap[mutable.Variable[V]](
       dimensional => Arr.from(dimensional.history.getAll.map(writeJs)),
-      arr => mutable.Variable.fromHistory(arr.value.map(_.as[ValidData.In1D[V, Instant]]))
+      arr => mutable.Variable.fromHistory(arr.value.map(_.as[ValidData[V, Time]]))
     )
 
   given given_FromTo_mutable_Data[V, D <: NonEmptyTuple: DomainLike](using
-    FromTo[ValidData[V, D]]
+    FromTo[ValidData[V, D]],
+    CoreConfig[D]
   ): FromTo[mutable.Data[V, D]] =
     asValueArr.bimap[mutable.Data[V, D]](
       dimensional => Arr.from(dimensional.getAll.map(writeJs)),
@@ -169,7 +195,8 @@ object Json:
 
   given given_FromTo_mutable_DataVersioned[V, D <: NonEmptyTuple: DomainLike](using
     DomainLike[Versioned[D]],
-    FromTo[ValidData[V, Versioned[D]]]
+    FromTo[ValidData[V, Versioned[D]]],
+    CoreConfig[Versioned[D]]
   ): FromTo[mutable.DataVersioned[V, D]] =
     asValueObj.bimap[mutable.DataVersioned[V, D]](
       data =>
@@ -180,7 +207,7 @@ object Json:
           "data" -> writeJs(data.getVersionedData.getAll)
         ),
       obj =>
-        mutable.DataVersioned[V, D](
+        new mutable.DataVersioned[V, D](
           obj("data").as[Iterable[ValidData[V, Versioned[D]]]],
           obj("initialVersion").as[VersionDomainValue],
           scala.collection.mutable.Map.from(obj("versionTimestamps").as[Seq[(VersionDomainValue, VersionMetadata)]]),
@@ -189,9 +216,19 @@ object Json:
     )
 
   given given_FromTo_mutable_DataMulti[V, D <: NonEmptyTuple: DomainLike](using
-    FromTo[ValidData[Set[V], D]]
+    FromTo[ValidData[Set[V], D]],
+    CoreConfig[D]
   ): FromTo[mutable.DataMulti[V, D]] =
     asValueArr.bimap[mutable.DataMulti[V, D]](
       dimensional => Arr.from(dimensional.getAll.map(writeJs)),
       arr => mutable.DataMulti[V, D](arr.value.map(_.as[ValidData[Set[V], D]]))
+    )
+
+  given given_FromTo_mutable_DataMonoid[V: Monoid, D <: NonEmptyTuple: DomainLike](using
+    FromTo[ValidData[V, D]],
+    CoreConfig[D]
+  ): FromTo[mutable.DataMonoid[V, D]] =
+    asValueArr.bimap[mutable.DataMonoid[V, D]](
+      dimensional => Arr.from(dimensional.getAll.map(writeJs)),
+      arr => mutable.DataMonoid[V, D](arr.value.map(_.as[ValidData[V, D]]))
     )

@@ -22,9 +22,9 @@ class BoxBtreeTest extends AnyFunSuite with Matchers:
     tree.toIterable.groupMap(_.parentBox)(d => d.copy(parentBox = None)) should contain theSameElementsAs
       List(
         None -> Vector( // no split
-          box(7, 8) -> "four", // right
+          box(3, 5) -> "one", // right
           box(6, 7) -> "three", // right
-          box(3, 5) -> "one" // right
+          box(7, 8) -> "four" // right
         ),
         Some(box(-1, 3)) -> Vector( // split
           box(-1, 0) -> "two", // left bit
@@ -44,7 +44,10 @@ class BoxBtreeTest extends AnyFunSuite with Matchers:
     tree.get(box(4, 5)) should contain theSameElementsAs List(box(3, 5) -> "one")
     tree.get(box(40, 50)) shouldBe List.empty
 
-    val treeSplit = BoxTree.from(boundary, BoxedPayload.deduplicate(tree.toIterable), 4)
+    val treeSplit = BoxTree.from(
+      boundary,
+      BoxedPayload.deduplicate(tree.toIterable)
+    )(using CollectionConfig.default.withNodeCapacity(4))
     treeSplit.addOne(box(5, 7) -> "five") // splits right
     treeSplit.addOne(box(7, 8) -> "six")
     treeSplit.get(box(3, 5)) should contain theSameElementsAs

@@ -3,7 +3,6 @@ package intervalidus.mutable
 import intervalidus.*
 import intervalidus.ContinuousValue.given
 import intervalidus.DomainLike.given
-import intervalidus.Domain.In1D as Dim
 import org.scalatest.compatible.Assertion
 import org.scalatest.exceptions.TestFailedException
 import org.scalatest.funsuite.AnyFunSuite
@@ -20,7 +19,7 @@ class DataIn1DContinuousTest extends AnyFunSuite with Matchers with DataIn1DBase
   testsFor(stringLookupTests("Mutable", Data(_), Data.of(_)))
 
   testsFor(
-    mutableBaseTests[Dim[Int], Data[String, Dim[Int]]](
+    mutableBaseTests[IntDim, Data[String, IntDim]](
       Data(_),
       identity,
       d =>
@@ -36,11 +35,11 @@ class DataIn1DContinuousTest extends AnyFunSuite with Matchers with DataIn1DBase
   testsFor(removeOrUpdateTests("Mutable"))
 
   override def assertRemoveOrUpdateResult(
-    removeExpectedUnsorted: ValidData[String, Dim[Int]]*
+    removeExpectedUnsorted: ValidData[String, IntDim]*
   )(
     removeOrUpdateInterval: Interval1D[Int],
     updateValue: String = "update"
-  )(using Experimental, DomainValueLike[Int]): Assertion =
+  )(using CoreConfig[IntDim], DomainValueLike[Int]): Assertion =
     val fixtureInterval = interval(-7, 7)
     val removeFixture = Data.of(fixtureInterval -> "World")
     val updateFixture = removeFixture.copy
@@ -66,9 +65,10 @@ class DataIn1DContinuousTest extends AnyFunSuite with Matchers with DataIn1DBase
         throw ex
 
   test("Mutable: Constructors"):
-    val empty: Data[String, Dim[Int]] = Data()
+    val empty: Data[String, IntDim] = Data()(using config = CoreConfig.default.withCapacityHint(interval(0, 9)))
     assert(empty.getAll.isEmpty)
     assert(empty.domain.isEmpty)
+    empty.config.capacityHint shouldBe Some(interval(0, 9).tupled)
 
   test("Mutable: String representations and diff actions"):
     val allData = List(interval(0, 9) -> "Hello", intervalFrom(10) -> "World")

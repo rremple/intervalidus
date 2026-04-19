@@ -1,6 +1,7 @@
 package intervalidus.collection
 
 import intervalidus.collection.*
+import org.scalatest.compatible.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
@@ -18,6 +19,9 @@ class BoxTest extends AnyFunSuite with Matchers:
     assertResult(2)(coordinate2D.arity)
     assertResult(1)(coordinateFixed1D.arity)
     assertResult(2)(coordinateFixed2D.arity)
+
+    assertThrows[IllegalArgumentException]:
+      val _ = CoordinateFixed(Double.NaN, Double.NaN)
 
     assertThrows[IllegalArgumentException]:
       val _ = Box(coordinate1D, coordinate2D)
@@ -135,37 +139,46 @@ class BoxTest extends AnyFunSuite with Matchers:
     def box(start: Double, end: Double): Box =
       Box(coordinate(start, start, start), coordinate(end, end, end))
 
-    assertResult(coordinateFixed(50, 60, 50))(
+    def assertCoordinateResult(expected: Coordinate)(actual: Coordinate): Assertion =
+      assert(Coordinate.equals(expected, actual), s"Expected ${expected.asString}, but got ${actual.asString}")
+      Coordinate.hashCode(actual) shouldBe Coordinate.hashCode(expected)
+
+    def assertCoordinateFixedResult(expected: CoordinateFixed)(actual: CoordinateFixed): Assertion =
+      assert(CoordinateFixed.equals(expected, actual), s"Expected ${expected.asString}, but got ${actual.asString}")
+      CoordinateFixed.hashCode(actual) shouldBe CoordinateFixed.hashCode(expected)
+
+    assertCoordinateFixedResult(coordinateFixed(50, 60, 50))(
       Coordinate(Some(40), Some(60), None).fixMax(coordinateFixed(50, 50, 50))
     )
-    assertResult(coordinateFixed(40, 50, 50))(
+    assertCoordinateFixedResult(coordinateFixed(40, 50, 50))(
       Coordinate(Some(40), Some(60), None).fixMin(coordinateFixed(50, 50, 50))
     )
-    assertResult(coordinateFixed(40, 60, 50))(
+    assertCoordinateFixedResult(coordinateFixed(40, 60, 50))(
       Coordinate(Some(40), Some(60), None).fixUnbounded(coordinateFixed(50, 50, 50))
     )
-    assertResult(Coordinate(Some(40), Some(50), None, None, None))(
+    assertCoordinateResult(Coordinate(Some(40), Some(50), None, None, None))(
       Coordinate(Some(40), Some(60), None, Some(40), None).projectBeforeStart(
         Coordinate(Some(50), Some(50), Some(40), None, None)
       )
     )
-    assertResult(Coordinate(Some(40), Some(50), Some(40), Some(40), None))(
+    assertCoordinateResult(Coordinate(Some(40), Some(50), Some(40), Some(40), None))(
       Coordinate(Some(40), Some(60), None, Some(40), None).projectBeforeEnd(
         Coordinate(Some(50), Some(50), Some(40), None, None)
       )
     )
-    assertResult(Coordinate(Some(50), Some(60), Some(40), Some(40), None))(
+    assertCoordinateResult(Coordinate(Some(50), Some(60), Some(40), Some(40), None))(
       Coordinate(Some(40), Some(60), None, Some(40), None).projectAfterStart(
         Coordinate(Some(50), Some(50), Some(40), None, None)
       )
     )
-    assertResult(Coordinate(Some(50), Some(60), None, None, None))(
+    assertCoordinateResult(Coordinate(Some(50), Some(60), None, None, None))(
       Coordinate(Some(40), Some(60), None, Some(40), None).projectAfterEnd(
         Coordinate(Some(50), Some(50), Some(40), None, None)
       )
     )
 
     val boundary = Boundary(capacity(40, 60)).withBox(box(0, 100))
+    capacity(40, 60).hashCode() shouldBe boundary.capacity.hashCode()
     boundary.capacity.midPoint shouldBe coordinateFixed(50, 50, 50)
     assert(boundary.box contains box(50, 60))
     assert(boundary.capacity contains box(50, 60))

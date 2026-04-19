@@ -3,7 +3,6 @@ package intervalidus.immutable
 import intervalidus.*
 import intervalidus.DiscreteValue.given
 import intervalidus.DomainLike.given
-import intervalidus.Domain.In3D as Dim
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
@@ -17,21 +16,21 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
 
   // increment current version with each data element
   def newDataIn3DVersioned(
-    allData: Iterable[ValidData[String, Dim[Int, Int, Int]]]
-  )(using CurrentDateTime): DataVersioned[String, Dim[Int, Int, Int]] =
-    allData.foldLeft(DataVersioned[String, Dim[Int, Int, Int]]()): (dataIn3DVersioned, validData) =>
+    allData: Iterable[ValidData[String, IntDim]]
+  )(using CurrentInstant): DataVersioned[String, IntDim] =
+    allData.foldLeft(DataVersioned.empty[String, IntDim]): (dataIn3DVersioned, validData) =>
       dataIn3DVersioned
         .set(validData)
         .incrementCurrentVersion()
 
-  def usingBuilder(data: Iterable[ValidData[String, Dim[Int, Int, Int]]]): DataVersioned[String, Dim[Int, Int, Int]] =
-    val builder = DataVersioned.newBuilder[String, Dim[Int, Int, Int]]()
+  def usingBuilder(data: Iterable[ValidData[String, IntDim]]): DataVersioned[String, IntDim] =
+    val builder = DataVersioned.newBuilder[String, IntDim]()
     builder.addOne(Interval.unbounded -> "Junk")
     builder.clear()
     data.foldLeft(builder)(_.addOne(_)).result()
 
-  def usingSetMany(data: Iterable[ValidData[String, Dim[Int, Int, Int]]]): DataVersioned[String, Dim[Int, Int, Int]] =
-    DataVersioned[String, Dim[Int, Int, Int]]() ++ data
+  def usingSetMany(data: Iterable[ValidData[String, IntDim]]): DataVersioned[String, IntDim] =
+    DataVersioned.empty[String, IntDim] ++ data
 
   // shared
   testsFor(stringLookupTests("Immutable", newDataIn3DVersioned, DataVersioned(_), DataVersioned.of(_)))
@@ -40,8 +39,8 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
 
   test("Immutable: Adding and removing data in intervals"):
     val dayZero = LocalDateTime.of(2025, 8, 1, 8, 0)
-    val empty: DataVersioned[String, Dim[Int, Int, Int]] =
-      mutable.DataVersioned[String, Dim[Int, Int, Int]]().toMutable.toImmutable
+    val empty: DataVersioned[String, IntDim] =
+      mutable.DataVersioned.empty[String, IntDim].toMutable.toImmutable
 
     assertThrows[Exception]: // version too large
       empty.setCurrentVersion(Int.MaxValue)
@@ -54,7 +53,7 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
       (interval(0, 9) x intervalFrom(0) x unbounded[Int]) -> "Hello",
       (intervalFrom(10) x intervalTo(0) x unbounded[Int]) -> "World"
     )
-    val fixture0 = newDataIn3DVersioned(allData)(using CurrentDateTime.simulated(LocalDateTime.of(2025, 8, 1, 8, 0)))
+    val fixture0 = newDataIn3DVersioned(allData)(using LocalDateTime.of(2025, 8, 1, 8, 0).asCurrent)
     fixture0.getByHeadDimension(0).getByHeadDimension(0).getAt(0) shouldBe Some("Hello")
     fixture0
       .getByDimension[Int, Domain.In2D[Int, Int]](2, 0)
@@ -63,7 +62,7 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
 
     val fixture1 = fixture0
       .set((interval(5, 15) x unbounded[Int] x unbounded[Int]) -> "to")
-      .incrementCurrentVersion()(using CurrentDateTime.simulated(LocalDateTime.of(2025, 8, 2, 8, 0)))
+      .incrementCurrentVersion()(using LocalDateTime.of(2025, 8, 2, 8, 0).asCurrent)
     val expectedData1 = List(
       (interval(0, 4) x intervalFrom(0) x unbounded[Int]) -> "Hello",
       (interval(5, 15) x unbounded[Int] x unbounded[Int]) -> "to",
@@ -73,7 +72,7 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
 
     val fixture2 = fixture1
       .set((interval(20, 25) x unbounded[Int] x unbounded[Int]) -> "!") // split
-      .incrementCurrentVersion()(using CurrentDateTime.simulated(LocalDateTime.of(2025, 8, 2, 9, 0)))
+      .incrementCurrentVersion()(using LocalDateTime.of(2025, 8, 2, 9, 0).asCurrent)
       .recompressAll() // not needed, but addresses coverage gap
     val expectedData2 = List(
       (interval(0, 4) x intervalFrom(0) x unbounded[Int]) -> "Hello",
@@ -85,11 +84,11 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
     fixture2.getAll.toList shouldBe expectedData2
 
     fixture2.getVersionTimestamps.toList should contain theSameElementsAs List(
-      0 -> (dayZero, "init"),
-      1 -> (dayZero, "incremented"),
-      2 -> (dayZero, "incremented"),
-      3 -> (dayZero.plusDays(1), "incremented"),
-      4 -> (dayZero.plusDays(1).plusHours(1), "incremented")
+      0 -> (dayZero.instant, "init"),
+      1 -> (dayZero.instant, "incremented"),
+      2 -> (dayZero.instant, "incremented"),
+      3 -> (dayZero.plusDays(1).instant, "incremented"),
+      4 -> (dayZero.plusDays(1).plusHours(1).instant, "incremented")
     )
     // println(fixture2.toString)
     // format: off
@@ -155,7 +154,7 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
     val expectedData6 = List((intervalTo(0) x unbounded[Int] x unbounded[Int]) -> "Hey")
     fixture6.getAll.toList shouldBe expectedData6
 
-    val fixture7 = fixture6.fill(Interval.unbounded[Dim[Int, Int, Int]] -> "Filled")
+    val fixture7 = fixture6.fill(Interval.unbounded[IntDim] -> "Filled")
     val expectedFilled = List(
       (intervalTo(0) x unbounded[Int] x unbounded[Int]) -> "Hey",
       (intervalFrom(1) x unbounded[Int] x unbounded[Int]) -> "Filled"
@@ -259,7 +258,7 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
     fixture3.getAll.toList shouldBe expectedData3
 
     val fixture4 = fixture3
-      .flatMap(d => DataVersioned.of[String, Dim[Int, Int, Int]](d.value).map(x => d.interval -> x.value))
+      .flatMap(d => DataVersioned.of[String, IntDim](d.value).map(x => d.interval -> x.value))
     val expectedData4 = expectedData3
     fixture4.getAll.toList shouldBe expectedData4
     assertThrows[NoSuchElementException]:
@@ -272,7 +271,7 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
     assertThrows[NoSuchElementException]:
       fixture5.get
 
-    val fixture6 = fixture5.flatMap(d => DataVersioned.of[String, Dim[Int, Int, Int]](d.value))
+    val fixture6 = fixture5.flatMap(d => DataVersioned.of[String, IntDim](d.value))
     val expectedData6 = List((unbounded[Int] x unbounded[Int] x unbounded[Int]) -> "Hey!!!")
     fixture6.getAll.toList shouldBe expectedData6
     fixture6.get shouldBe "Hey!!!"
@@ -304,8 +303,8 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
     fixture1.getSelectedDataMutable.getAll.toList shouldBe expectedData1
 
   test("Immutable: Updating data in intervals"):
-    val one: DataVersioned[String, Dim[Int, Int, Int]] = DataVersioned
-      .of[String, Dim[Int, Int, Int]]("value")
+    val one: DataVersioned[String, IntDim] = DataVersioned
+      .of[String, IntDim]("value")
       .incrementCurrentVersion()
 
     val oneSplit = one.remove(intervalAt(0) x unbounded[Int] x unbounded[Int]) // split
@@ -437,14 +436,14 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
   test("Immutable: Approvals"):
     // increment current version with each data element
     def timeboundVersionedString(
-      allData: Iterable[ValidData[String, Dim[LocalDate, LocalDate, Int]]]
-    ): DataVersioned[String, Dim[LocalDate, LocalDate, Int]] =
-      allData.foldLeft(DataVersioned[String, Dim[LocalDate, LocalDate, Int]]()): (data, validData) =>
+      allData: Iterable[ValidData[String, MixedDim]]
+    ): DataVersioned[String, MixedDim] =
+      allData.foldLeft(DataVersioned.empty[String, MixedDim]): (data, validData) =>
         data
           .set(validData)
           .incrementCurrentVersion()
 
-    val fixture0: DataVersioned[String, Dim[LocalDate, LocalDate, Int]] = DataVersioned()
+    val fixture0: DataVersioned[String, MixedDim] = DataVersioned.empty
     assert(fixture0.getAll.isEmpty)
 
     val allData = List(

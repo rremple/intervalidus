@@ -1,7 +1,5 @@
 package intervalidus.collection
 
-import scala.util.Properties
-
 /**
   * Like a box, but with fixed coordinates. Used for calculating the midPoint for splitting and scaling boundaries.
   *
@@ -11,13 +9,26 @@ import scala.util.Properties
   *   Fixed coordinates of the maximum corner (right/upper/front/etc., depending on dimension)
   */
 case class Capacity(minPoint: CoordinateFixed, maxPoint: CoordinateFixed):
-  require(minPoint.arity == maxPoint.arity, s"minPoint $minPoint and maxPoint $maxPoint must have the same arity")
+  require(
+    minPoint.arity == maxPoint.arity,
+    s"minPoint ${minPoint.asString} and maxPoint ${maxPoint.asString} must have the same arity"
+  )
+
+  /**
+    * Because the underlying type of CoordinateFixed is Array (semi-opaque), the default `equals` implementations deals
+    * with object equality rather than logical equality, so we have to redefine `equals` here to checks for logical
+    * equality.
+    */
+  override def equals(obj: Any): Boolean = obj match
+    case that: Capacity =>
+      CoordinateFixed.equals(minPoint, that.minPoint) && CoordinateFixed.equals(maxPoint, that.maxPoint)
+    case _ => false
+
+  override def hashCode(): Int =
+    CoordinateFixed.hashCode(minPoint) * 31 + CoordinateFixed.hashCode(maxPoint)
 
   /** Number of dimensions */
   def arity: Int = minPoint.arity
-
-  /** Min and max points */
-  def corners: (CoordinateFixed, CoordinateFixed) = (minPoint, maxPoint)
 
   /**
     * The center of the capacity -- the point halfway between the min point and max point.
@@ -32,9 +43,8 @@ case class Capacity(minPoint: CoordinateFixed, maxPoint: CoordinateFixed):
     * @return
     *   true or false
     */
-  def contains(other: Capacity): Boolean = CoordinateFixed.minMaxForall(this.corners, other.corners):
-    case (thisMin, thisMax, otherMin, otherMax) =>
-      otherMin >= thisMin && otherMax <= thisMax
+  def contains(other: Capacity): Boolean =
+    CoordinateFixed.contains(this.minPoint, this.maxPoint, other.minPoint, other.maxPoint)
 
   /**
     * Does this capacity fully contain the other box (when its unbound elements are fixed to this capacity)?
@@ -72,16 +82,12 @@ case class Capacity(minPoint: CoordinateFixed, maxPoint: CoordinateFixed):
   */
 object Capacity:
   /**
-    * Default initial tree boundary capacity size in each dimension. Default is 1.0. It can be overridden by setting the
-    * environment variable `INTERVALIDUS_TREE_BOUNDARY_CAPACITY_SIZE`.
+    * Default initial tree boundary capacity size in each dimension.
     */
-  val defaultBoundaryCapacitySize: Double = Properties
-    .envOrElse("INTERVALIDUS_TREE_BOUNDARY_CAPACITY_SIZE", "1.0")
-    .toDouble
-  //   println(s"using initial tree boundary capacity size = defaultBoundaryCapacitySize")
+  val defaultBoundaryCapacitySize: Double = 1.0
 
   /**
-    * Returns a tight capacity around the origin based on [[defaultBoundaryCapacitySize]].
+    * Returns a tight capacity around the origin.
     * @param arity
     *   number of dimensions
     */

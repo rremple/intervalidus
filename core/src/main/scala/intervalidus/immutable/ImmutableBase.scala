@@ -12,9 +12,7 @@ import intervalidus.*
   * @tparam Self
   *   F-bounded self-type.
   */
-trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, D, Self]](using
-  Experimental
-) extends DimensionalBase[V, D]:
+trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, D, Self]] extends DimensionalBase[V, D]:
 
   protected def copyAndModify(f: Self => Unit): Self =
     val result = copy
@@ -24,31 +22,14 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
   // ---------- To be implemented by inheritor ----------
 
   override def copy: Self // refine the result type for `copyAndModify`
-  /**
-    * $intersectionDesc
-    *
-    * @param interval
-    *   $intersectionParamInterval
-    * @return
-    *   a new shape that is the intersection of this and the interval (i.e., this is "clipped" within the interval).
-    */
-  infix def intersection(interval: Interval[D]): Self
-
-  /**
-    * $symmetricDifferenceDesc
-    *
-    * @param that
-    *   $symmetricDifferenceParamThat
-    * @return
-    *   a new shape with the elements in this and that, but not in both.
-    */
-  infix def symmetricDifference(that: DimensionalBase[V, D]): Self
 
   /**
     * $mapDesc Both the valid data value and interval types can be changed in the mapping.
     *
     * @param f
     *   $mapParamF
+    * @param altConfig
+    *   $configParam
     * @tparam B
     *   the valid data value type of the returned structure.
     * @tparam S
@@ -58,13 +39,15 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     */
   def map[B, S <: NonEmptyTuple: DomainLike](
     f: ValidData[V, D] => ValidData[B, S]
-  ): DimensionalBase[B, S]
+  )(using altConfig: CoreConfig[S]): DimensionalBase[B, S]
 
   /**
     * $collectDesc Both the valid data value and interval types can be changed in the mapping.
     *
     * @param pf
     *   $collectParamPf
+    * @param altConfig
+    *   $configParam
     * @tparam B
     *   the valid data value type of the returned structure.
     * @tparam S
@@ -75,7 +58,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     */
   def collect[B, S <: NonEmptyTuple: DomainLike](
     pf: PartialFunction[ValidData[V, D], ValidData[B, S]]
-  ): DimensionalBase[B, S]
+  )(using altConfig: CoreConfig[S]): DimensionalBase[B, S]
 
   /**
     * $mapValuesDesc Only the valid data value type can be changed in the mapping.
@@ -87,15 +70,15 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     * @return
     *   a new structure resulting from applying the provided function f to each element of this structure.
     */
-  def mapValues[B](
-    f: V => B
-  ): DimensionalBase[B, D]
+  def mapValues[B](f: V => B): DimensionalBase[B, D]
 
   /**
     * $mapIntervalsDesc The interval type can be changed in the mapping.
     *
     * @param f
     *   $mapIntervalsParamF
+    * @param altConfig
+    *   $configParam
     * @tparam S
     *   the valid data interval domain type of the returned structure.
     * @return
@@ -103,7 +86,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     */
   def mapIntervals[S <: NonEmptyTuple: DomainLike](
     f: Interval[D] => Interval[S]
-  ): DimensionalBase[V, S]
+  )(using altConfig: CoreConfig[S]): DimensionalBase[V, S]
 
   /**
     * Builds a new structure by applying a function to all the elements of this collection and concatenating the
@@ -111,6 +94,8 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     *
     * @param f
     *   $flatMapParamF
+    * @param altConfig
+    *   $configParam
     * @tparam B
     *   the valid data value type of the returned structure.
     * @tparam S
@@ -121,7 +106,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     */
   def flatMap[B, S <: NonEmptyTuple: DomainLike](
     f: ValidData[V, D] => DimensionalBase[B, S]
-  ): DimensionalBase[B, S]
+  )(using altConfig: CoreConfig[S]): DimensionalBase[B, S]
 
   // ---------- Implement methods not in DimensionalBase that have immutable signatures ----------
 
@@ -135,6 +120,28 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     */
   def filter(p: ValidData[V, D] => Boolean): Self = copyAndModify: result =>
     getAll.filterNot(p).foreach(result.removeValidData)
+
+  /**
+    * $intersectionDesc
+    *
+    * @param interval
+    *   $intersectionParamInterval
+    * @return
+    *   a new shape that is the intersection of this and the interval (i.e., this is "clipped" within the interval).
+    */
+  infix def intersection(interval: Interval[D]): Self = copyAndModify: result =>
+    result.replaceValidData(intersectionData(interval))
+
+  /**
+    * $symmetricDifferenceDesc
+    *
+    * @param that
+    *   $symmetricDifferenceParamThat
+    * @return
+    *   a new shape with the elements in this and that, but not in both.
+    */
+  infix def symmetricDifference(that: DimensionalBase[V, D]): Self = copyAndModify: result =>
+    result.replaceValidData(symmetricDifferenceData(that))
 
   /**
     * $setDesc
@@ -155,12 +162,14 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     * @return
     *   $immutableReturn
     */
-  def setMany(data: Iterable[ValidData[V, D]]): Self = copyAndModify: result =>
-    val affected = data.flatMap: d =>
+  def setMany(data: IterableOnce[ValidData[V, D]]): Self = copyAndModify: result =>
+    val affected = Set.newBuilder[V]
+    data.iterator.foreach: d =>
       val updatedValues = result.updateOrRemoveNoCompress(d.interval, _ => None)
       result.addValidData(d)
-      updatedValues ++ Iterable.single(d.value)
-    affected.iterator.distinct.foreach(result.compressInPlace)
+      affected.addAll(updatedValues)
+      affected.addOne(d.value)
+    affected.result().foreach(result.compressInPlace)
 
   /**
     * $setIfNoConflictDesc
@@ -214,7 +223,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     *   $immutableReturn
     */
   def replaceByKey(key: D, newData: ValidData[V, D]): Self =
-    replace(dataByStartAsc(key), newData)
+    replace(dataByStart(key), newData)
 
   /**
     * $removeDesc
@@ -235,10 +244,11 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     * @return
     *   $immutableReturn
     */
-  def removeMany(intervals: Iterable[Interval[D]]): Self = copyAndModify: result =>
-    val updatedValues = intervals.flatMap: interval =>
-      result.updateOrRemoveNoCompress(interval, _ => None)
-    updatedValues.iterator.distinct.foreach(compressInPlace)
+  def removeMany(intervals: IterableOnce[Interval[D]]): Self = copyAndModify: result =>
+    val updatedValues = Set.newBuilder[V]
+    intervals.iterator.foreach: interval =>
+      updatedValues.addAll(result.updateOrRemoveNoCompress(interval, _ => None))
+    updatedValues.result().foreach(compressInPlace)
 
   /**
     * $differenceDesc
@@ -291,18 +301,8 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     * @return
     *   $immutableReturn
     */
-  def recompressAll(otherIntervals: Iterable[Interval[D]]): Self = copyAndModify(_.recompressInPlace(otherIntervals))
-
-  // for binary compatibility
-  /**
-    * $recompressAllDesc1
-    *
-    * $recompressAllDesc2
-    *
-    * @return
-    *   $immutableReturn
-    */
-  def recompressAll(): Self = copyAndModify(_.recompressInPlace())
+  def recompressAll(otherIntervals: IterableOnce[Interval[D]] = Iterable.empty): Self =
+    copyAndModify(_.recompressInPlace(otherIntervals))
 
   /**
     * $applyDiffActionsDesc
@@ -312,8 +312,8 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     * @return
     *   $immutableReturn
     */
-  def applyDiffActions(diffActions: Iterable[DiffAction[V, D]]): Self = copyAndModify: result =>
-    diffActions.foreach(result.applyDiffActionInPlace)
+  def applyDiffActions(diffActions: IterableOnce[DiffAction[V, D]]): Self = copyAndModify: result =>
+    diffActions.iterator.foreach(result.applyDiffActionInPlace)
 
   /**
     * $syncWithDesc
@@ -399,7 +399,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     * @return
     *   $immutableReturn
     */
-  infix def ++(data: Iterable[ValidData[V, D]]): Self = setMany(data)
+  infix def ++(data: IterableOnce[ValidData[V, D]]): Self = setMany(data)
 
   /**
     * Same as [[remove]]
@@ -423,7 +423,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     * @return
     *   $immutableReturn
     */
-  infix def --(intervals: Iterable[Interval[D]]): Self = removeMany(intervals)
+  infix def --(intervals: IterableOnce[Interval[D]]): Self = removeMany(intervals)
 
   /**
     * Same as [[difference]].

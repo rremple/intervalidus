@@ -3,7 +3,6 @@ package intervalidus.mutable
 import intervalidus.*
 import intervalidus.DiscreteValue.given
 import intervalidus.DomainLike.given
-import intervalidus.Domain.In3D as Dim
 import org.scalatest.compatible.Assertion
 import org.scalatest.exceptions.TestFailedException
 import org.scalatest.funsuite.AnyFunSuite
@@ -20,35 +19,35 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
   testsFor(stringLookupTests("Mutable", Data(_), Data.of(_)))
 
   def usingBuilder(
-    data: Iterable[ValidData[String, Dim[LocalDate, LocalDate, Int]]]
-  ): Data[String, Dim[LocalDate, LocalDate, Int]] =
-    data.foldLeft(Data.newBuilder[String, Dim[LocalDate, LocalDate, Int]])(_.addOne(_)).result()
+    data: Iterable[ValidData[String, MixedDim]]
+  ): Data[String, MixedDim] =
+    data.foldLeft(Data.newBuilder[String, MixedDim])(_.addOne(_)).result()
 
   def usingSetMany(
-    data: Iterable[ValidData[String, Dim[LocalDate, LocalDate, Int]]]
-  ): Data[String, Dim[LocalDate, LocalDate, Int]] =
-    val newStructure = Data[String, Dim[LocalDate, LocalDate, Int]]()
+    data: Iterable[ValidData[String, MixedDim]]
+  ): Data[String, MixedDim] =
+    val newStructure = Data.empty[String, MixedDim]
     newStructure ++ data
     newStructure
 
-  def asDepth(interval1D: Interval1D[Int]): Interval[Dim[LocalDate, LocalDate, Int]] =
+  def asDepth(interval1D: Interval1D[Int]): Interval[MixedDim] =
     unbounded[LocalDate] x unbounded[LocalDate] x interval1D
 
-  def mapf(d: ValidData[String, Dim[LocalDate, LocalDate, Int]]): ValidData[String, Dim[LocalDate, LocalDate, Int]] =
+  def mapf(d: ValidData[String, MixedDim]): ValidData[String, MixedDim] =
     d.copy(
       value = d.value + "!",
       interval = d.interval.to(d.interval.end.leftAdjacent)
     )
 
   testsFor(
-    mutableBaseTests[Dim[LocalDate, LocalDate, Int], Data[String, Dim[LocalDate, LocalDate, Int]]](
+    mutableBaseTests[MixedDim, Data[String, MixedDim]](
       Data(_),
       asDepth,
       mapf
     )
   )
   testsFor(
-    mutableBaseTests[Dim[LocalDate, LocalDate, Int], Data[String, Dim[LocalDate, LocalDate, Int]]](
+    mutableBaseTests[MixedDim, Data[String, MixedDim]](
       usingBuilder,
       asDepth,
       mapf,
@@ -56,7 +55,7 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
     )
   )
   testsFor(
-    mutableBaseTests[Dim[LocalDate, LocalDate, Int], Data[String, Dim[LocalDate, LocalDate, Int]]](
+    mutableBaseTests[MixedDim, Data[String, MixedDim]](
       usingSetMany,
       asDepth,
       mapf,
@@ -65,13 +64,13 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
   )
 
   testsFor(
-    mutableCompressionTests[Dim[LocalDate, LocalDate, Int], Data[String, Dim[LocalDate, LocalDate, Int]]](
+    mutableCompressionTests[MixedDim, Data[String, MixedDim]](
       Data(_),
       asDepth
     )
   )
   testsFor(
-    mutableCompressionTests[Dim[LocalDate, LocalDate, Int], Data[String, Dim[LocalDate, LocalDate, Int]]](
+    mutableCompressionTests[MixedDim, Data[String, MixedDim]](
       usingBuilder,
       asDepth,
       "Immutable (builder)"
@@ -79,11 +78,11 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
   )
 
   override def assertRemoveOrUpdateResult(
-    removeExpectedUnsorted: ValidData[String, Dim[Int, Int, Int]]*
+    removeExpectedUnsorted: ValidData[String, IntDim]*
   )(
-    removeOrUpdateInterval: Interval[Dim[Int, Int, Int]],
+    removeOrUpdateInterval: Interval[IntDim],
     updateValue: String = "update"
-  )(using Experimental): Assertion =
+  )(using CoreConfig[IntDim]): Assertion =
     val cube = interval(-9, 9) x interval(-9, 9) x interval(-9, 9)
     val removeFixture = Data.of(cube -> "World")
     val updateFixture = Data.of(cube -> "World")
@@ -114,10 +113,10 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
 
   def vertical3D[T2: DomainValueLike](
     interval3: Interval1D[T2]
-  ): Interval[Dim[LocalDate, LocalDate, T2]] = unbounded[LocalDate] x unbounded[LocalDate] x interval3
+  ): Interval.In3D[LocalDate, LocalDate, T2] = unbounded[LocalDate] x unbounded[LocalDate] x interval3
 
   test("Mutable: Constructors and getting data by index"):
-    val empty: Data[String, Dim[Int, Int, Int]] = Data()
+    val empty: Data[String, IntDim] = Data()
     assert(empty.getAll.isEmpty)
     assert(empty.domain.isEmpty)
 
@@ -136,7 +135,7 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
 
   test("Mutable: Simple toString"):
     val fixturePadData = Data
-      .of[String, Dim[Int, Int, Int]]("H")
+      .of[String, IntDim]("H")
     fixturePadData.set((intervalFrom(1) x intervalTo(0) x interval(1, 9)) -> "W")
     // if needed: fixturePadData.recompressAll()
     // println(fixturePadData.toString)
@@ -154,7 +153,7 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
     concat.result() shouldBe "H->{-∞, -∞, -∞} H->{-∞, -∞, 1} H->{-∞, -∞, 10} W->{1, -∞, 1} H->{1, 1, 1} "
 
     val fixturePadLabel = Data
-      .of[String, Dim[Int, Int, Int]]("Helloooooooooo")
+      .of[String, IntDim]("Helloooooooooo")
     fixturePadLabel.set((intervalFrom(1) x unbounded[Int] x unbounded[Int]) -> "Wooooooorld")
     // println(fixturePadLabel.toString)
     fixturePadLabel.toString shouldBe
@@ -262,5 +261,5 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
       intervalToBefore(day(0)) x unboundedDate x interval(2, 9)
     )
     Interval.compress(fixture.domain ++ fixture.domainComplement).toList shouldBe List(
-      Interval.unbounded[Dim[LocalDate, LocalDate, Int]]
+      Interval.unbounded[MixedDim]
     )

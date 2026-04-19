@@ -74,7 +74,7 @@ object Visualize3D:
         case Success(_) => ()
 
   def apply[V, R1: DomainValueLike, R2: DomainValueLike, R3: DomainValueLike](
-    dataIn3D: DimensionalBase.In3D[V, R1, R2, R3],
+    dataIn3D: DimensionalBase[V, Domain.In3D[R1, R2, R3]],
     delay: Long = 0,
     title: String = "Visualize 3D data"
   ): Unit =

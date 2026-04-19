@@ -3,7 +3,7 @@ package intervalidus
 import intervalidus.DiscreteValue.IntDiscreteValue
 import intervalidus.mutable.Data as MutableData
 
-import java.time.LocalDateTime
+import java.time.Instant
 import scala.collection.mutable
 import scala.math.Ordering.Implicits.infixOrderingOps
 
@@ -35,7 +35,7 @@ object DimensionalVersionedBase:
   /**
     * Metadata tracked per version: datetime and comment
     */
-  type VersionMetadata = (LocalDateTime, String)
+  type VersionMetadata = (Instant, String)
 
   // Special version at which we place (or delete) unapproved stuff (fixed)
   val unapprovedStartVersion: VersionDomainValue = IntDiscreteValue.maxValue
@@ -75,6 +75,9 @@ import DimensionalVersionedBase.*
 /**
   * Constructs data in multidimensional intervals that are also versioned (hidden extra dimension).
   *
+  * @tparam Constructed
+  *   Constructed type.
+  *
   * @define objectDesc
   *   Constructs data in multidimensional intervals that are also versioned (hidden extra dimension).
   * @define dataValueType
@@ -83,88 +86,188 @@ import DimensionalVersionedBase.*
   *   the domain type -- a non-empty tuple that is DomainLike.
   * @define paramInitialVersion
   *   the version to start with, typically zero
+  * @define paramInitialComment
+  *   the comment to start with, typically "init""
+  * @define configParam
+  *   context parameter for configuration -- uses defaults if not given explicitly
   */
-trait DimensionalVersionedBaseObject:
+trait DimensionalVersionedBaseObject[Constructed[_, _ <: NonEmptyTuple] <: DimensionalVersionedBase[?, ?]]:
+
+  // ---------- Abstract ----------
+
   /**
-    * Shorthand constructor for a single initial value that is valid in a specific interval starting at the initial
-    * version.
+    * Shorthand constructor for a collection of initial valid values starting at the initial version.
     *
+    * @param initialData
+    *   a collection of values valid within intervals -- intervals must be disjoint.
+    * @param initialVersion
+    *   $paramInitialVersion
+    * @param initialComment
+    *   $paramInitialComment
+    * @param config
+    *   $configParam
     * @tparam V
     *   $dataValueType
     * @tparam D
     *   $intervalDomainType
+    * @return
+    *   a new structure with the provided initial values
+    */
+  def apply[V, D <: NonEmptyTuple: DomainLike](
+    initialData: Iterable[ValidData[V, Versioned[D]]],
+    initialVersion: VersionDomainValue,
+    initialComment: String
+  )(using
+    config: CoreConfig[Versioned[D]]
+  )(using
+    DomainLike[Versioned[D]],
+    CurrentInstant
+  ): Constructed[V, D]
+
+  // ---------- Concrete ----------
+
+  /**
+    * Shorthand constructor for an empty structure with the default initial version.
+    *
+    * @param config
+    *   $configParam
+    * @tparam V
+    *   $dataValueType
+    * @tparam D
+    *   $intervalDomainType
+    * @return
+    *   a new empty structure
+    */
+  def empty[V, D <: NonEmptyTuple: DomainLike](using
+    config: CoreConfig[Versioned[D]],
+    initialVersion: VersionDomainValue = 0,
+    initialComment: String = "init"
+  )(using
+    DomainLike[Versioned[D]],
+    CurrentInstant
+  ): Constructed[V, D] = apply(Iterable.empty, initialVersion, initialComment)
+
+  /**
+    * Shorthand constructor for a single initial value that is valid in a specific interval starting at the initial
+    * version.
+    *
     * @param data
     *   value valid within an interval.
     * @param initialVersion
     *   $paramInitialVersion
+    * @param initialComment
+    *   $paramInitialComment
+    * @param config
+    *   $configParam
+    * @tparam V
+    *   $dataValueType
+    * @tparam D
+    *   $intervalDomainType
     * @return
-    *   [[DimensionalVersionedBase]] structure with a single valid value.
+    *   a new structure with a single valid value.
     */
   def of[V, D <: NonEmptyTuple: DomainLike](
     data: ValidData[V, D],
     initialVersion: VersionDomainValue,
     initialComment: String
-  )(using Experimental, DomainLike[Versioned[D]], CurrentDateTime): DimensionalVersionedBase[V, D]
+  )(using
+    config: CoreConfig[Versioned[D]]
+  )(using
+    DomainLike[Versioned[D]],
+    CurrentInstant
+  ): Constructed[V, D] = from(
+    Iterable.single(data),
+    initialVersion,
+    initialComment
+  )
 
   /**
     * Shorthand constructor for a single initial value that is valid in the full interval starting at the initial
     * version.
     *
-    * @tparam V
-    *   $dataValueType
-    * @tparam D
-    *   $intervalDomainType
     * @param value
     *   value that is valid in the full domain (`Interval.unbounded[D]`).
     * @param initialVersion
     *   $paramInitialVersion
-    * @return
-    *   [[DimensionalVersionedBase]] structure with a single valid value.
-    */
-  def of[V, D <: NonEmptyTuple: DomainLike](
-    value: V,
-    initialVersion: VersionDomainValue,
-    initialComment: String
-  )(using Experimental, DomainLike[Versioned[D]], CurrentDateTime): DimensionalVersionedBase[V, D]
-
-  /**
-    * Shorthand constructor for a collection of initial valid values starting at the initial version.
-    *
+    * @param initialComment
+    *   $paramInitialComment
+    * @param config
+    *   $configParam
     * @tparam V
     *   $dataValueType
     * @tparam D
     *   $intervalDomainType
+    * @return
+    *   a new structure with a single valid value.
+    */
+  def of[V, D <: NonEmptyTuple: DomainLike](
+    value: V,
+    initialVersion: VersionDomainValue = 0,
+    initialComment: String = "init"
+  )(using
+    config: CoreConfig[Versioned[D]]
+  )(using
+    DomainLike[Versioned[D]],
+    CurrentInstant
+  ): Constructed[V, D] = of(Interval.unbounded[D] -> value, initialVersion, initialComment)
+
+  /**
+    * Shorthand constructor for a collection of initial valid values starting at the initial version.
+    *
     * @param initialData
     *   a collection of values valid within intervals -- intervals must be disjoint.
     * @param initialVersion
     *   $paramInitialVersion
+    * @param initialComment
+    *   $paramInitialComment
+    * @param config
+    *   $configParam
+    * @tparam V
+    *   $dataValueType
+    * @tparam D
+    *   $intervalDomainType
     * @return
-    *   [[DimensionalVersionedBase]] structure with the provided initial values
+    *   a new structure with the provided initial values
     */
   def from[V, D <: NonEmptyTuple: DomainLike](
     initialData: Iterable[ValidData[V, D]],
-    initialVersion: VersionDomainValue,
-    initialComment: String
-  )(using Experimental, DomainLike[Versioned[D]], CurrentDateTime): DimensionalVersionedBase[V, D]
+    initialVersion: VersionDomainValue = 0,
+    initialComment: String = "init"
+  )(using
+    config: CoreConfig[Versioned[D]]
+  )(using
+    DomainLike[Versioned[D]],
+    CurrentInstant
+  ): Constructed[V, D] = apply(
+    initialData.map(d => (d.interval withHead Interval1D.intervalFrom(Domain1D.domain(initialVersion))) -> d.value),
+    initialVersion,
+    initialComment
+  )
 
   /**
     * Get a Builder based on an intermediate buffer of valid data.
     *
     * @param initialVersion
     *   $paramInitialVersion
+    * @param initialComment
+    *   $paramInitialComment
+    * @param config
+    *   $configParam
     * @tparam V
     *   $dataValueType
     * @tparam D
     *   $intervalDomainType
     */
   def newBuilder[V, D <: NonEmptyTuple: DomainLike](
-    initialVersion: VersionDomainValue,
-    initialComment: String
+    initialVersion: VersionDomainValue = 0,
+    initialComment: String = "init"
   )(using
-    Experimental,
+    config: CoreConfig[Versioned[D]]
+  )(using
     DomainLike[Versioned[D]],
-    CurrentDateTime
-  ): mutable.Builder[ValidData[V, D], DimensionalVersionedBase[V, D]]
+    CurrentInstant
+  ): mutable.Builder[ValidData[V, D], Constructed[V, D]] =
+    ValidData.Builds[V, D, Constructed[V, D]](from(_, initialVersion, initialComment))
 
 /**
   * Interface is similar to [[DimensionalBase]], but it operates on an underlying [[intervalidus.mutable.Data]] using an
@@ -331,16 +434,17 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
   initialVersion: VersionDomainValue,
   versionTimestamps: mutable.Map[VersionDomainValue, VersionMetadata],
   withCurrentVersion: Option[VersionDomainValue]
-)(using
-  Experimental,
-  DomainLike[Versioned[D]]
-) extends PartialFunction[Versioned[D], V]:
+)(using DomainLike[Versioned[D]], CurrentInstant)
+  extends PartialFunction[Versioned[D], V]:
+
+  given config: CoreConfig[Versioned[D]]
 
   // considers versions, but does not consider version metadata history in equality check
   override def equals(obj: Any): Boolean = obj match
-    case that: DimensionalVersionedBase[V, D] @unchecked =>
-      size == that.size && underlying.getAll.zip(that.underlying.getAll).forall(_ == _)
-    case _ => false
+    case that: DimensionalVersionedBase[?, ?] => underlying == that.underlying
+    case _                                    => false
+
+  override def hashCode(): Int = underlying.hashCode()
 
   // Utility methods for managing "versioned" state, not part of API
 
@@ -351,21 +455,34 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     withCurrentVersion.getOrElse(initialVersion)
 
   // prefer the later timestamp of both this and that
+  private def mergedVersionTimestampData(
+    that: DimensionalVersionedBase[?, ?]
+  ): Iterable[(VersionDomainValue, (Instant, String))] =
+    val those = that.getVersionTimestamps
+    (versionTimestamps.keySet ++ those.keySet)
+      .map(k => (k, versionTimestamps.get(k), those.get(k)))
+      .collect:
+        case (k, Some(left), None)                                                         => k -> left
+        case (k, None, Some(right))                                                        => k -> right
+        case (k, Some((leftTimestamp, leftComment)), Some((rightTimestamp, rightComment))) =>
+          val laterTimestamp = if leftTimestamp.isAfter(rightTimestamp) then leftTimestamp else rightTimestamp
+          val combinedComment = if leftComment == rightComment then leftComment else s"$leftComment & $rightComment"
+          k -> (laterTimestamp, combinedComment)
+
   protected def mergeVersionTimestamps(
     that: DimensionalVersionedBase[?, ?]
-  ): mutable.Map[VersionDomainValue, VersionMetadata] =
-    val those = that.getVersionTimestamps
-    mutable.Map.from(
-      (versionTimestamps.keySet ++ those.keySet)
-        .map(k => (k, versionTimestamps.get(k), those.get(k)))
-        .collect:
-          case (k, Some(left), None)                                                         => k -> left
-          case (k, None, Some(right))                                                        => k -> right
-          case (k, Some((leftTimestamp, leftComment)), Some((rightTimestamp, rightComment))) =>
-            val laterTimestamp = if leftTimestamp.isAfter(rightTimestamp) then leftTimestamp else rightTimestamp
-            val combinedComment = if leftComment == rightComment then leftComment else s"$leftComment & $rightComment"
-            k -> (laterTimestamp, combinedComment)
-    )
+  ): mutable.Map[VersionDomainValue, (Instant, String)] =
+    mutable.Map.from(mergedVersionTimestampData(that))
+
+  protected def mergeVersionTimestampsInPlace(
+    that: DimensionalVersionedBase[?, ?]
+  ): Unit =
+    val newVersionTimestamps = mergedVersionTimestampData(that)
+    versionTimestamps.clear()
+    versionTimestamps.addAll(newVersionTimestamps)
+
+  protected def addVersionTimestampInPlace(comment: String)(using dateTime: CurrentInstant): Unit =
+    versionTimestamps.addOne(currentVersion -> (dateTime.now(), comment))
 
   def getVersionTimestamps: Map[VersionDomainValue, VersionMetadata] =
     versionTimestamps.toMap
@@ -422,7 +539,8 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     Domain.IsAtHead[D, H],
     Domain.IsUpdatableAtHead[D, H],
     DomainLike[Domain.NonEmptyTail[D]],
-    DomainLike[Versioned[Domain.NonEmptyTail[D]]]
+    DomainLike[Versioned[Domain.NonEmptyTail[D]]],
+    CoreConfig[Versioned[Domain.NonEmptyTail[D]]]
   ): Iterable[ValidData[V, Versioned[Domain.NonEmptyTail[D]]]] =
     val filteredUnderlyingData = domain match
       case Domain1D.Top | Domain1D.Bottom =>
@@ -442,7 +560,8 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     Domain.IsAtIndex[D, dimensionIndex.type, H],
     Domain.IsUpdatableAtIndex[D, dimensionIndex.type, H],
     Domain.IsDroppedInResult[D, dimensionIndex.type, R],
-    DomainLike[Versioned[R]]
+    DomainLike[Versioned[R]],
+    CoreConfig[Versioned[R]]
   ): Iterable[ValidData[V, Versioned[R]]] =
     val filteredUnderlyingData = domain match
       case Domain1D.Top | Domain1D.Bottom =>
@@ -793,7 +912,7 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     Domain.IsUpdatableAtHead[D, H],
     DomainLike[Domain.NonEmptyTail[D]],
     DomainLike[Versioned[Domain.NonEmptyTail[D]]]
-  ): DimensionalVersionedBase[V, Domain.NonEmptyTail[D]]
+  )(using altConfig: CoreConfig[Versioned[Domain.NonEmptyTail[D]]]): DimensionalVersionedBase[V, Domain.NonEmptyTail[D]]
 
   /**
     * Project as data in n-1 dimensions based on a lookup in the specified dimension -- version information is
@@ -824,7 +943,7 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     Domain.IsUpdatableAtIndex[D, dimensionIndex.type, H],
     Domain.IsDroppedInResult[D, dimensionIndex.type, R],
     DomainLike[Versioned[R]]
-  ): DimensionalVersionedBase[V, R]
+  )(using altConfig: CoreConfig[Versioned[R]]): DimensionalVersionedBase[V, R]
 
   /**
     * Returns this as a mutable structure.

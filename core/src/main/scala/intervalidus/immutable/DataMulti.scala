@@ -8,38 +8,21 @@ import scala.collection.mutable
 /**
   * Constructs multi-data in multidimensional intervals.
   */
-object DataMulti extends DimensionalMultiBaseObject:
+object DataMulti extends DimensionalMultiBaseObject[DataMulti]:
   type In1D[V, R1] = DataMulti[V, Domain.In1D[R1]]
   type In2D[V, R1, R2] = DataMulti[V, Domain.In2D[R1, R2]]
   type In3D[V, R1, R2, R3] = DataMulti[V, Domain.In3D[R1, R2, R3]]
   type In4D[V, R1, R2, R3, R4] = DataMulti[V, Domain.In4D[R1, R2, R3, R4]]
 
-  override def of[V, D <: NonEmptyTuple: DomainLike](
-    data: ValidData[V, D]
-  )(using Experimental): DataMulti[V, D] = DataMulti(Iterable.single(data.interval -> Set(data.value)))
-
-  override def of[V, D <: NonEmptyTuple: DomainLike](
-    value: V
-  )(using Experimental): DataMulti[V, D] = of(Interval.unbounded[D] -> value)
-
-  override def from[V, D <: NonEmptyTuple: DomainLike](
-    initialData: Iterable[ValidData[V, D]]
-  )(using Experimental): DataMulti[V, D] =
-    DataMulti[V, D]().addOneMany(initialData)
-
-  override def from[V, D <: NonEmptyTuple: DomainLike](
-    that: DimensionalBase[Set[V], D]
-  )(using Experimental): DataMulti[V, D] = apply(that.getAll)
-
   override def apply[V, D <: NonEmptyTuple: DomainLike](
     initialData: Iterable[ValidData[Set[V], D]] = Iterable.empty[ValidData[Set[V], D]]
-  )(using Experimental): DataMulti[V, D] =
+  )(using config: CoreConfig[D]): DataMulti[V, D] =
     val (byStartAsc, byValue, inSearchTree) = constructorParams(initialData)
     new DataMulti(byStartAsc, byValue, inSearchTree)
 
-  override def newBuilder[V, D <: NonEmptyTuple: DomainLike](using
-    Experimental
-  ): mutable.Builder[ValidData[V, D], DataMulti[V, D]] = ValidData.Builds[V, D, DataMulti[V, D]](from(_))
+  override def from[V, D <: NonEmptyTuple: DomainLike](
+    initialData: Iterable[ValidData[V, D]]
+  )(using config: CoreConfig[D]): DataMulti[V, D] = empty[V, D].addOneMany(initialData)
 
 /**
   * Immutable, multivalued dimensional data.
@@ -51,15 +34,15 @@ object DataMulti extends DimensionalMultiBaseObject:
   * @tparam D
   *   $intervalDomainType
   */
-class DataMulti[V, D <: NonEmptyTuple: DomainLike] protected (
-  override val dataByStartAsc: mutable.TreeMap[D, ValidData[Set[V], D]],
+class DataMulti[V, D <: NonEmptyTuple: DomainLike] private (
+  override val dataByStart: mutable.TreeMap[D, ValidData[Set[V], D]],
   override val dataByValue: MultiMapSorted[Set[V], ValidData[Set[V], D]],
-  override val dataInSearchTree: BoxTree[ValidData[Set[V], D]]
-)(using experimental: Experimental)
+  override val dataInBoxTree: BoxTree[ValidData[Set[V], D]]
+)(using val config: CoreConfig[D])
   extends ImmutableBase[Set[V], D, DataMulti[V, D]]
   with DimensionalMultiBase[V, D]:
 
-  experimental.control("requireDisjoint")(
+  config.experimental.control("requireDisjoint")(
     nonExperimentalResult = (),
     experimentalResult = require(Interval.isDisjoint(getAll.map(_.interval)), "data must be disjoint")
   )
@@ -107,7 +90,7 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] protected (
     * @return
     *   $immutableReturn
     */
-  def addOneMany(allData: Iterable[ValidData[V, D]]): DataMulti[V, D] =
+  def addOneMany(allData: IterableOnce[ValidData[V, D]]): DataMulti[V, D] =
     copyAndModify(_.addManyInPlace(allData))
 
   /**
@@ -118,29 +101,29 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] protected (
     * @return
     *   $immutableReturn
     */
-  def removeOneMany(allData: Iterable[ValidData[V, D]]): DataMulti[V, D] =
+  def removeOneMany(allData: IterableOnce[ValidData[V, D]]): DataMulti[V, D] =
     copyAndModify(_.removeManyInPlace(allData))
 
   // ---------- Implement methods from ImmutableBase that create new instances ----------
-  //   (some of these return Data rather than DataMulti because B isn't necessarily a Set type)
-
-  override infix def intersection(interval: Interval[D]): DataMulti[V, D] =
-    DataMulti(intersectionData(interval))
-
-  override infix def symmetricDifference(that: DimensionalBase[Set[V], D]): DataMulti[V, D] =
-    DataMulti(symmetricDifferenceData(that))
+  // ----  (some return Data rather than DataMulti because the resultant value type isn't necessarily a Set type) ----
 
   override def map[B, S <: NonEmptyTuple: DomainLike](
     f: ValidData[Set[V], D] => ValidData[B, S]
-  ): Data[B, S] = Data(
+  )(using altConfig: CoreConfig[S]): Data[B, S] = Data(
     getAll.map(f)
-  ).compressAll()
+  )(using config = altConfig).compressAll()
+
+  override def flatMap[B, S <: NonEmptyTuple: DomainLike](
+    f: ValidData[Set[V], D] => DimensionalBase[B, S]
+  )(using altConfig: CoreConfig[S]): Data[B, S] = Data(
+    getAll.flatMap(f(_).getAll)
+  )(using config = altConfig).compressAll()
 
   override def collect[B, S <: NonEmptyTuple: DomainLike](
     pf: PartialFunction[ValidData[Set[V], D], ValidData[B, S]]
-  ): Data[B, S] = Data(
+  )(using altConfig: CoreConfig[S]): Data[B, S] = Data(
     getAll.collect(pf)
-  ).compressAll()
+  )(using config = altConfig).compressAll()
 
   override def mapValues[B](
     f: Set[V] => B
@@ -149,34 +132,29 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] protected (
 
   override def mapIntervals[S <: NonEmptyTuple: DomainLike](
     f: Interval[D] => Interval[S]
-  ): DataMulti[V, S] = DataMulti(
+  )(using altConfig: CoreConfig[S]): DataMulti[V, S] = DataMulti(
     getAll.map(d => d.copy(interval = f(d.interval)))
-  ).compressAll()
-
-  override def flatMap[B, S <: NonEmptyTuple: DomainLike](
-    f: ValidData[Set[V], D] => DimensionalBase[B, S]
-  ): Data[B, S] = Data(
-    getAll.flatMap(f(_).getAll)
-  ).compressAll()
+  )(using config = altConfig).compressAll()
 
   // ---------- Implement methods from DimensionalBase that create new instances ----------
+  // ----  (some return Data rather than DataMulti because the resultant value type isn't necessarily a Set type) ----
 
   override def copy: DataMulti[V, D] =
-    new DataMulti(dataByStartAsc.clone(), dataByValue.clone(), dataInSearchTree.copy)
+    new DataMulti(dataByStart.clone(), dataByValue.clone(), dataInBoxTree.copy)
 
   override def zip[B](that: DimensionalBase[B, D]): Data[(Set[V], B), D] =
-    Data(zipData(that))
+    Data(zipData(that, (_, _)))
 
   override def zipAll[B](that: DimensionalBase[B, D], thisDefault: Set[V], thatDefault: B): Data[(Set[V], B), D] =
-    Data(zipAllData(that, thisDefault, thatDefault))
+    Data(zipAllData(that, thisDefault, thatDefault, (_, _)))
 
   override def getByHeadDimension[H: DomainValueLike](domain: Domain1D[H])(using
     Domain.IsAtLeastTwoDimensional[D],
     Domain.IsAtHead[D, H],
     Domain.IsUpdatableAtHead[D, H],
     DomainLike[Domain.NonEmptyTail[D]]
-  ): DataMulti[V, Domain.NonEmptyTail[D]] =
-    DataMulti(getByHeadDimensionData(domain)).compressAll()
+  )(using altConfig: CoreConfig[Domain.NonEmptyTail[D]]): DataMulti[V, Domain.NonEmptyTail[D]] =
+    DataMulti(getByHeadDimensionData(domain))(using config = altConfig).compressAll()
 
   override def getByDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
     dimensionIndex: Domain.DimensionIndex,
@@ -186,8 +164,8 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] protected (
     Domain.IsAtIndex[D, dimensionIndex.type, H],
     Domain.IsUpdatableAtIndex[D, dimensionIndex.type, H],
     Domain.IsDroppedInResult[D, dimensionIndex.type, R]
-  ): DataMulti[V, R] =
-    DataMulti(getByDimensionData(dimensionIndex, domain)).compressAll()
+  )(using altConfig: CoreConfig[R]): DataMulti[V, R] =
+    DataMulti(getByDimensionData(dimensionIndex, domain))(using config = altConfig).compressAll()
 
   override def toMutable: intervalidus.mutable.DataMulti[V, D] =
     intervalidus.mutable.DataMulti(getAll)

@@ -10,7 +10,7 @@ import intervalidus.*
   * @tparam D
   *   $intervalDomainType
   */
-trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends DimensionalBase[V, D]:
+trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, D]:
 
   // ---------- Implement methods not in DimensionalBase that have mutable signatures ----------
 
@@ -101,12 +101,14 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     * @param data
     *   $setManyParamData
     */
-  def setMany(data: Iterable[ValidData[V, D]]): Unit = synchronized:
-    val affected = data.flatMap: d =>
+  def setMany(data: IterableOnce[ValidData[V, D]]): Unit = synchronized:
+    val affected = Set.newBuilder[V]
+    data.iterator.foreach: d =>
       val updatedValues = updateOrRemoveNoCompress(d.interval, _ => None)
       addValidData(d)
-      updatedValues ++ Iterable.single(d.value)
-    affected.iterator.distinct.foreach(compressInPlace)
+      affected.addAll(updatedValues)
+      affected.addOne(d.value)
+    affected.result().foreach(compressInPlace)
 
   /**
     * $setIfNoConflictDesc $mutableAction
@@ -153,7 +155,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     *   $replaceByKeyParamNewData
     */
   def replaceByKey(key: D, newData: ValidData[V, D]): Unit =
-    replace(dataByStartAsc(key), newData)
+    replace(dataByStart(key), newData)
 
   /**
     * $removeDesc $mutableAction
@@ -170,10 +172,11 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     * @param intervals
     *   $removeManyParamIntervals
     */
-  def removeMany(intervals: Iterable[Interval[D]]): Unit = synchronized:
-    val updatedValues = intervals.flatMap: interval =>
-      updateOrRemoveNoCompress(interval, _ => None)
-    updatedValues.iterator.distinct.foreach(compressInPlace)
+  def removeMany(intervals: IterableOnce[Interval[D]]): Unit = synchronized:
+    val updatedValues = Set.newBuilder[V]
+    intervals.iterator.foreach: interval =>
+      updatedValues.addAll(updateOrRemoveNoCompress(interval, _ => None))
+    updatedValues.result().foreach(compressInPlace)
 
   /**
     * $differenceDesc $mutableAction
@@ -217,19 +220,8 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     * @param otherIntervals
     *   $recompressAllParamOtherIntervals
     */
-  def recompressAll(otherIntervals: Iterable[Interval[D]]): Unit = synchronized:
+  def recompressAll(otherIntervals: IterableOnce[Interval[D]] = Iterable.empty): Unit = synchronized:
     recompressInPlace(otherIntervals)
-
-  // for binary compatibility
-  /**
-    * $recompressAllDesc1
-    *
-    * $recompressAllDesc2
-    *
-    * $mutableAction
-    */
-  def recompressAll(): Unit = synchronized:
-    recompressInPlace()
 
   /**
     * $applyDiffActionsDesc $mutableAction
@@ -237,8 +229,8 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     * @param diffActions
     *   $applyDiffActionsParamDiffActions
     */
-  def applyDiffActions(diffActions: Iterable[DiffAction[V, D]]): Unit = synchronized:
-    diffActions.foreach(applyDiffActionInPlace)
+  def applyDiffActions(diffActions: IterableOnce[DiffAction[V, D]]): Unit = synchronized:
+    diffActions.iterator.foreach(applyDiffActionInPlace)
 
   /**
     * $syncWithDesc $mutableAction
@@ -312,7 +304,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     * @param data
     *   $setManyParamData
     */
-  infix def ++(data: Iterable[ValidData[V, D]]): Unit = setMany(data)
+  infix def ++(data: IterableOnce[ValidData[V, D]]): Unit = setMany(data)
 
   /**
     * Same as [[remove]]
@@ -332,7 +324,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike](using Experimental) extends
     * @param intervals
     *   $removeManyParamIntervals
     */
-  infix def --(intervals: Iterable[Interval[D]]): Unit = removeMany(intervals)
+  infix def --(intervals: IterableOnce[Interval[D]]): Unit = removeMany(intervals)
 
   /**
     * Same as [[difference]].

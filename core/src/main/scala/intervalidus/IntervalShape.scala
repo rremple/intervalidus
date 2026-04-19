@@ -23,7 +23,8 @@ object IntervalShape:
     * @tparam D
     *   $intervalDomainType
     */
-  def empty[D <: NonEmptyTuple: DomainLike]: IntervalShape[D] = new IntervalShape[D](Data())
+  def empty[D <: NonEmptyTuple: DomainLike](using config: CoreConfig[D]): IntervalShape[D] =
+    new IntervalShape[D](Data.empty)
 
   /**
     * Same as [[empty]]
@@ -33,7 +34,7 @@ object IntervalShape:
     * @tparam D
     *   $intervalDomainType
     */
-  def ∅[D <: NonEmptyTuple: DomainLike]: IntervalShape[D] = empty
+  def ∅[D <: NonEmptyTuple: DomainLike](using config: CoreConfig[D]): IntervalShape[D] = empty
 
   /**
     * The universal set.
@@ -41,7 +42,8 @@ object IntervalShape:
     * @tparam D
     *   $intervalDomainType
     */
-  def universe[D <: NonEmptyTuple: DomainLike]: IntervalShape[D] = of(Interval.unbounded[D])
+  def universe[D <: NonEmptyTuple: DomainLike](using config: CoreConfig[D]): IntervalShape[D] =
+    of(Interval.unbounded[D])
 
   /**
     * Same as [[universe]]
@@ -51,7 +53,7 @@ object IntervalShape:
     * @tparam D
     *   $intervalDomainType
     */
-  def ξ[D <: NonEmptyTuple: DomainLike]: IntervalShape[D] = universe
+  def ξ[D <: NonEmptyTuple: DomainLike](using config: CoreConfig[D]): IntervalShape[D] = universe
 
   /**
     * Constructor for a one initial interval.
@@ -65,7 +67,7 @@ object IntervalShape:
     */
   def of[D <: NonEmptyTuple: DomainLike](
     initialInterval: Interval[D]
-  )(using Experimental): IntervalShape[D] = withoutChecks(Iterable.single(initialInterval))
+  )(using config: CoreConfig[D]): IntervalShape[D] = withoutChecks(Iterable.single(initialInterval))
 
   /**
     * Constructor for multiple (or no) initial intervals.
@@ -79,7 +81,7 @@ object IntervalShape:
     */
   def apply[D <: NonEmptyTuple: DomainLike](
     initialIntervals: Iterable[Interval[D]]
-  )(using Experimental): IntervalShape[D] =
+  )(using config: CoreConfig[D]): IntervalShape[D] =
     require(Interval.isDisjoint(initialIntervals), s"IntervalShape based on $initialIntervals is invalid: not disjoint")
     new IntervalShape(Data(initialIntervals.map(valid)).recompressAll())
 
@@ -93,7 +95,9 @@ object IntervalShape:
     * @return
     *   [[IntervalShape]] shape with initial intervals present.
     */
-  def withoutChecks[D <: NonEmptyTuple: DomainLike](initialIntervals: Iterable[Interval[D]]): IntervalShape[D] =
+  def withoutChecks[D <: NonEmptyTuple: DomainLike](
+    initialIntervals: Iterable[Interval[D]]
+  )(using config: CoreConfig[D]): IntervalShape[D] =
     new IntervalShape(Data(initialIntervals.map(valid)))
 
   /**
@@ -102,26 +106,28 @@ object IntervalShape:
     * @tparam D
     *   $intervalDomainType
     */
-  def newBuilder[D <: NonEmptyTuple: DomainLike](using Experimental): mutable.Builder[Interval[D], IntervalShape[D]] =
-    new mutable.Builder:
-      private val iterableBuilder: mutable.Builder[Interval[D], Iterable[Interval[D]]] = Iterable.newBuilder
+  def newBuilder[D <: NonEmptyTuple: DomainLike](using
+    config: CoreConfig[D]
+  ): mutable.Builder[Interval[D], IntervalShape[D]] = new mutable.Builder:
+    private val iterableBuilder: mutable.Builder[Interval[D], Iterable[Interval[D]]] = Iterable.newBuilder
 
-      override def clear(): Unit = iterableBuilder.clear()
+    override def clear(): Unit = iterableBuilder.clear()
 
-      override def addOne(elem: Interval[D]): this.type =
-        iterableBuilder.addOne(elem)
-        this
+    override def addOne(elem: Interval[D]): this.type =
+      iterableBuilder.addOne(elem)
+      this
 
-      override def result(): IntervalShape[D] = iterableBuilder.result().toShape
+    override def result(): IntervalShape[D] = iterableBuilder.result().toShape
 
   private def valid[D <: NonEmptyTuple: DomainLike](interval: Interval[D]): ValidData[Unit, D] = interval -> ()
 
   /**
     * So a single interval can be used when the general notion of a multi-interval shape is needed.
     */
-  given [D <: NonEmptyTuple: DomainLike]: Conversion[Interval[D], IntervalShape[D]] = of(_)
+  given [D <: NonEmptyTuple: DomainLike](using config: CoreConfig[D]): Conversion[Interval[D], IntervalShape[D]] = of(_)
 
-  extension [D <: NonEmptyTuple: DomainLike](is: Iterable[Interval[D]]) def toShape: IntervalShape[D] = apply(is)
+  extension [D <: NonEmptyTuple: DomainLike](is: Iterable[Interval[D]])
+    def toShape(using config: CoreConfig[D]): IntervalShape[D] = apply(is)
 
 /**
   * A mutidimensional shape over some domain, represented by a collection of disjoint interval components. While an
@@ -197,7 +203,7 @@ object IntervalShape:
   */
 class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
   val underlying: Data[Unit, D]
-)(using Experimental):
+)(using config: CoreConfig[D]):
 
   import IntervalShape.{valid, ξ, ∅}
 
@@ -210,8 +216,8 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
   // ---- Evaluates equality/equivalence, inspects/queries/extracts shape data, and represents shapes as strings. ----
 
   override def equals(obj: Any): Boolean = obj match
-    case that: IntervalShape[D] @unchecked => underlying.equals(that.underlying)
-    case _                                 => false
+    case that: IntervalShape[?] => underlying.equals(that.underlying)
+    case _                      => false
 
   /**
     * Is that shape "logically equivalent to" this one? That is, either this and that are equal, or they are equal after
@@ -504,8 +510,8 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
     * @return
     *   a new shape with the intervals added.
     */
-  infix def addMany(intervals: Iterable[Interval[D]]): IntervalShape[D] =
-    withUnderlying(_.setMany(intervals.map(valid)))
+  infix def addMany(intervals: IterableOnce[Interval[D]]): IntervalShape[D] =
+    withUnderlying(_.setMany(intervals.iterator.map(valid)))
 
   /**
     * Same as [[addMany]].
@@ -517,7 +523,7 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
     * @return
     *   a new shape with the intervals added.
     */
-  infix def ++(intervals: Iterable[Interval[D]]): IntervalShape[D] = addMany(intervals)
+  infix def ++(intervals: IterableOnce[Interval[D]]): IntervalShape[D] = addMany(intervals)
 
   /**
     * Adds a single interval if it does not intersect with any existing interval components of this.
@@ -560,7 +566,7 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
     * @return
     *   a new shape with the intervals removed.
     */
-  infix def removeMany(intervals: Iterable[Interval[D]]): IntervalShape[D] = withUnderlying(_.removeMany(intervals))
+  infix def removeMany(intervals: IterableOnce[Interval[D]]): IntervalShape[D] = withUnderlying(_.removeMany(intervals))
 
   /**
     * Same as [[removeMany]].
@@ -572,7 +578,7 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
     * @return
     *   a new shape with the intervals removed.
     */
-  infix def --(intervals: Iterable[Interval[D]]): IntervalShape[D] = removeMany(intervals)
+  infix def --(intervals: IterableOnce[Interval[D]]): IntervalShape[D] = removeMany(intervals)
 
   // ---------- High-order API methods: Monadic and Other High-Order ----------
   // ---- High-order functions, including monadic functions, for processing shapes. ----
@@ -587,8 +593,9 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
     * @return
     *   a new shape resulting from applying the provided function to each interval component of this shape.
     */
-  def map[S <: NonEmptyTuple: DomainLike](f: Interval[D] => Interval[S]): IntervalShape[S] =
-    IntervalShape(allIntervals.map(f))
+  def map[S <: NonEmptyTuple: DomainLike](
+    f: Interval[D] => Interval[S]
+  )(using altConfig: CoreConfig[S]): IntervalShape[S] = IntervalShape(allIntervals.map(f))(using config = altConfig)
 
   /**
     * Builds a new shape by applying a function to all the interval components of this shape and concatenating the
@@ -601,8 +608,10 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
     * @return
     *   a new shape resulting from concatenating the results of function f applied to each interval component.
     */
-  def flatMap[S <: NonEmptyTuple: DomainLike](f: Interval[D] => IntervalShape[S]): IntervalShape[S] =
-    IntervalShape(allIntervals.flatMap(f(_).allIntervals))
+  def flatMap[S <: NonEmptyTuple: DomainLike](
+    f: Interval[D] => IntervalShape[S]
+  )(using altConfig: CoreConfig[S]): IntervalShape[S] =
+    IntervalShape(allIntervals.flatMap(f(_).allIntervals))(using config = altConfig)
 
   /**
     * Builds a new shape with all the interval components of this shape that satisfy a predicate.
@@ -626,8 +635,10 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
     * @return
     *   a new shape resulting from applying the provided function to each interval component of this shape.
     */
-  def collect[S <: NonEmptyTuple: DomainLike](pf: PartialFunction[Interval[D], Interval[S]]): IntervalShape[S] =
-    IntervalShape(allIntervals.collect(pf))
+  def collect[S <: NonEmptyTuple: DomainLike](
+    pf: PartialFunction[Interval[D], Interval[S]]
+  )(using altConfig: CoreConfig[S]): IntervalShape[S] =
+    IntervalShape(allIntervals.collect(pf))(using config = altConfig)
 
   /**
     * Applies a binary operator to a start value and all interval components, going left to right.
@@ -668,7 +679,8 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
     Domain.IsAtHead[D, H],
     Domain.IsUpdatableAtHead[D, H],
     DomainLike[Domain.NonEmptyTail[D]]
-  ): IntervalShape[Domain.NonEmptyTail[D]] = new IntervalShape(underlying.getByHeadDimension(domain))
+  )(using altConfig: CoreConfig[Domain.NonEmptyTail[D]]): IntervalShape[Domain.NonEmptyTail[D]] =
+    new IntervalShape(underlying.getByHeadDimension(domain))(using config = altConfig)
 
   /**
     * Project as a shape in n-1 dimensions based on a lookup in the specified dimension.
@@ -697,7 +709,8 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
     Domain.IsAtIndex[D, dimensionIndex.type, H],
     Domain.IsUpdatableAtIndex[D, dimensionIndex.type, H],
     Domain.IsDroppedInResult[D, dimensionIndex.type, R]
-  ): IntervalShape[R] = new IntervalShape(underlying.getByDimension(dimensionIndex, domain))
+  )(using altConfig: CoreConfig[R]): IntervalShape[R] =
+    new IntervalShape(underlying.getByDimension(dimensionIndex, domain))(using config = altConfig)
 
   /**
     * Unlike in 1D, there is no unique compression of interval components in higher dimensions. For example, discrete
@@ -824,7 +837,7 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
     *   an immutable data structure where the mapped value is valid in the shape. Interval components not mapped will
     *   not be included.
     */
-  def collectWithValue[V](alignTo: Iterable[Interval[D]])(
+  def collectWithValue[V](alignTo: IterableOnce[Interval[D]])(
     mapping: PartialFunction[Interval[D], V]
   ): immutable.Data[V, D] = immutable.Data[V, D](
     underlying

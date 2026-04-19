@@ -3,7 +3,6 @@ package intervalidus.mutable
 import intervalidus.*
 import intervalidus.DiscreteValue.given
 import intervalidus.DomainLike.given
-import intervalidus.Domain.In1D as Dim
 import org.scalatest.compatible.Assertion
 import org.scalatest.exceptions.TestFailedException
 import org.scalatest.funsuite.AnyFunSuite
@@ -19,40 +18,40 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
   // shared
   testsFor(stringLookupTests("Mutable", Data(_), Data.of(_)))
 
-  def usingBuilder(data: Iterable[ValidData[String, Dim[Int]]]): Data[String, Dim[Int]] =
-    val builder = Data.newBuilder[String, Dim[Int]]
+  def usingBuilder(data: Iterable[ValidData[String, IntDim]]): Data[String, IntDim] =
+    val builder = Data.newBuilder[String, IntDim]
     builder.addOne(Interval.unbounded -> "Junk")
     builder.clear()
     data.foldLeft(builder)(_.addOne(_)).result()
 
-  def usingSetMany(data: Iterable[ValidData[String, Dim[Int]]]): Data[String, Dim[Int]] =
-    val newStructure = Data[String, Dim[Int]]()
+  def usingSetMany(data: Iterable[ValidData[String, IntDim]]): Data[String, IntDim] =
+    val newStructure = Data.empty[String, IntDim]
     newStructure ++ data
     newStructure
 
-  def mapf(d: ValidData[String, Dim[Int]]): ValidData[String, Dim[Int]] =
+  def mapf(d: ValidData[String, IntDim]): ValidData[String, IntDim] =
     d.copy(
       value = d.value + "!",
       interval = d.interval.to(d.interval.end.leftAdjacent)
     )
 
-  testsFor(mutableBaseTests[Dim[Int], Data[String, Dim[Int]]](Data(_), identity, mapf))
-  testsFor(mutableBaseTests[Dim[Int], Data[String, Dim[Int]]](usingBuilder, identity, mapf, "Immutable (builder)"))
-  testsFor(mutableBaseTests[Dim[Int], Data[String, Dim[Int]]](usingSetMany, identity, mapf, "Immutable (setMany)"))
+  testsFor(mutableBaseTests[IntDim, Data[String, IntDim]](Data(_), identity, mapf))
+  testsFor(mutableBaseTests[IntDim, Data[String, IntDim]](usingBuilder, identity, mapf, "Immutable (builder)"))
+  testsFor(mutableBaseTests[IntDim, Data[String, IntDim]](usingSetMany, identity, mapf, "Immutable (setMany)"))
 
-  testsFor(mutableCompressionTests[Dim[Int], Data[String, Dim[Int]]](Data(_), identity))
-  testsFor(mutableCompressionTests[Dim[Int], Data[String, Dim[Int]]](usingBuilder, identity, "Immutable (builder)"))
+  testsFor(mutableCompressionTests[IntDim, Data[String, IntDim]](Data(_), identity))
+  testsFor(mutableCompressionTests[IntDim, Data[String, IntDim]](usingBuilder, identity, "Immutable (builder)"))
 
   testsFor(doubleUseCaseTests("Mutable", Data(_)))
 
   testsFor(removeOrUpdateTests("Mutable"))
 
   override def assertRemoveOrUpdateResult(
-    removeExpectedUnsorted: ValidData[String, Dim[Int]]*
+    removeExpectedUnsorted: ValidData[String, IntDim]*
   )(
     removeOrUpdateInterval: Interval1D[Int],
     updateValue: String = "update"
-  )(using Experimental, DomainValueLike[Int]): Assertion =
+  )(using CoreConfig[IntDim], DomainValueLike[Int]): Assertion =
     val fixtureInterval = interval(-7, 7)
     val removeFixture = Data.of(fixtureInterval -> "World")
     val updateFixture = removeFixture.copy
@@ -78,7 +77,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
         throw ex
 
   test("Mutable: Constructors"):
-    val empty: Data[String, Dim[Int]] = Data()
+    val empty: Data[String, IntDim] = Data()
     assert(empty.getAll.isEmpty)
     assert(empty.domain.isEmpty)
 

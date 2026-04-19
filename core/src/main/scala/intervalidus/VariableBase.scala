@@ -8,6 +8,8 @@ import java.time.{Duration, Instant}
   * Common definitions for values that vary in time.
   */
 object VariableBase:
+  type Time = Domain.In1D[Instant]
+
   /**
     * Type class for instants as discrete values by nanosecond (weird, but works in this context)
     */
@@ -34,12 +36,13 @@ object VariableBase:
     override def predecessorOf(x: Instant): Option[Instant] =
       if x.equals(minValue) then None else Some(x.minusNanos(1))
 
-import VariableBase.given
+import VariableBase.{Time, given}
 
 /**
   * Base for companions of values that vary in time.
   */
-trait VariableObjectBase:
+trait VariableObjectBase[Self[_] <: VariableBase[?]]:
+
   /**
     * @param initialValue
     *   initial value of this variable
@@ -48,7 +51,9 @@ trait VariableObjectBase:
     * @return
     *   a new variable
     */
-  def apply[T](initialValue: T): VariableBase[T]
+  def apply[T](
+    initialValue: T
+  )(using config: CoreConfig[Time]): Self[T]
 
   /**
     * @param history
@@ -58,7 +63,9 @@ trait VariableObjectBase:
     * @return
     *   a new variable
     */
-  def fromHistory[T](history: Iterable[ValidData.In1D[T, Instant]]): VariableBase[T]
+  def fromHistory[T](
+    history: Iterable[ValidData[T, Time]]
+  )(using config: CoreConfig[Time]): Self[T]
 
 /**
   * A value that varies in time.
@@ -66,16 +73,23 @@ trait VariableObjectBase:
   * @tparam T
   *   the value type
   */
-trait VariableBase[T] extends (Domain.In1D[Instant] => T):
+trait VariableBase[T] extends (Time => T):
+  given config: CoreConfig[Time]
 
   // could be mutable or immutable
-  protected def underlyingData: DimensionalBase.In1D[T, Instant]
+  protected def underlyingData: DimensionalBase[T, Time]
+
+  override def equals(obj: Any): Boolean = obj match
+    case that: VariableBase[?] => underlyingData.equals(that.underlyingData)
+    case _                     => false
+
+  override def hashCode(): Int = underlyingData.hashCode()
 
   // from Object - print latest
   override def toString: String = get.toString
 
   // from Function - delegate to underlyingData
-  override def apply(key: Domain.In1D[Instant]): T = underlyingData(key)
+  override def apply(key: Time): T = underlyingData(key)
 
   // on conflict, add 10 ns (0.00001 ms) to make the instant unique (ouch!)
   private val fixedNanoBump = 10
@@ -98,10 +112,10 @@ trait VariableBase[T] extends (Domain.In1D[Instant] => T):
       // no conflict or no prior change -- normal
       case _ => f(domain(now))
 
-  private def priorTo(d: Instant): Domain.In1D[Instant] = domain(d).leftAdjacent.tupled
+  private def priorTo(d: Instant): Time = domain(d).leftAdjacent.tupled
 
   // returns the prior update data as if the last change did not happen
-  protected def unsetPriorData: Option[ValidData.In1D[T, Instant]] = for
+  protected def unsetPriorData: Option[ValidData[T, Time]] = for
     current <- lastChange
     data <- underlyingData.getDataAt(priorTo(current))
   yield data.interval.toTop -> data.value
@@ -110,7 +124,7 @@ trait VariableBase[T] extends (Domain.In1D[Instant] => T):
     * @return
     *   all historical values as an intervalidus immutable data structure.
     */
-  def history: immutable.Data.In1D[T, Instant]
+  def history: immutable.Data[T, Time]
 
   /**
     * Get the last change instant.

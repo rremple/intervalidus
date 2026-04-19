@@ -5,90 +5,126 @@ package intervalidus
   *
   * @define dataValueType
   *   the type of the value managed as data -- must be a Monoid (can be combined and has an identity).
+  * @tparam Constructed
+  *   Constructed type.
   */
-trait DimensionalMonoidBaseObject extends DimensionalBaseConstructorParams:
+trait DimensionalMonoidBaseObject[Constructed[_, _ <: NonEmptyTuple] <: DimensionalMonoidBase[?, ?]]
+  extends DimensionalBaseConstructorParams:
+
+  // ---------- Abstract ----------
 
   /**
-    * The empty set.
+    * Constructor for multiple initial monoid values that are valid in the various intervals.
     *
+    * @param initialData
+    *   a collection of valid monoid values within intervals -- intervals must be disjoint.
+    * @param config
+    *   $configParam
+    * @tparam V
+    *   $dataValueType
+    * @tparam D
+    *   $intervalDomainType
+    * @return
+    *   a new structure with zero or more valid values.
+    */
+  def apply[V: Monoid, D <: NonEmptyTuple: DomainLike](
+    initialData: Iterable[ValidData[V, D]]
+  )(using config: CoreConfig[D]): Constructed[V, D]
+
+  // ---------- Concrete ----------
+
+  /**
+    * Constructor where no values are valid. The empty set.
+    *
+    * @param config
+    *   $configParam
     * @tparam D
     *   $intervalDomainType
     */
-  def empty[V: Monoid, D <: NonEmptyTuple: DomainLike]: DimensionalMonoidBase[V, D]
+  def empty[V: Monoid, D <: NonEmptyTuple: DomainLike](using config: CoreConfig[D]): Constructed[V, D] =
+    apply(Iterable.empty)
 
   /**
     * Same as [[empty]]
+    *
+    * Constructor where no values are valid. The empty set.
+    *
+    * @param config
+    *   $configParam
     */
-  def ∅[V: Monoid, D <: NonEmptyTuple: DomainLike]: DimensionalMonoidBase[V, D]
+  def ∅[V: Monoid, D <: NonEmptyTuple: DomainLike](using config: CoreConfig[D]): Constructed[V, D] = empty
 
   /**
     * The universal set.
     *
+    * @param config
+    *   $configParam
     * @tparam D
     *   $intervalDomainType
     */
-  def universe[V, D <: NonEmptyTuple: DomainLike](using m: Monoid[V]): DimensionalMonoidBase[V, D]
+  def universe[V, D <: NonEmptyTuple: DomainLike](using
+    config: CoreConfig[D],
+    monoid: Monoid[V]
+  ): Constructed[V, D] = of(monoid.identity)
 
   /**
     * Same as [[universe]]
+    *
+    * The universal set.
+    * @param config
+    *   $configParam
     */
-  def ξ[V: Monoid, D <: NonEmptyTuple: DomainLike]: DimensionalMonoidBase[V, D]
+  def ξ[V: Monoid, D <: NonEmptyTuple: DomainLike](using config: CoreConfig[D]): Constructed[V, D] = universe
 
   /**
     * Shorthand constructor for a single initial monoid value that is valid in the full interval domain.
     *
     * @param value
     *   monoid value that is valid in the full domain (`Interval.unbounded[D]`).
+    * @param config
+    *   $configParam
     * @tparam V
     *   $dataValueType
     * @tparam D
     *   $intervalDomainType
     * @return
-    *   [[DimensionalMonoidBase]] structure with a single valid value.
+    *   a new structure with a single valid value.
     */
-  def of[V: Monoid, D <: NonEmptyTuple: DomainLike](value: V): DimensionalMonoidBase[V, D]
+  def of[V: Monoid, D <: NonEmptyTuple: DomainLike](value: V)(using config: CoreConfig[D]): Constructed[V, D] =
+    of(Interval.unbounded[D] -> value)
 
   /**
     * Shorthand constructor for a single initial monoid value that is valid in a particular interval.
     *
-    * @tparam V
-    *   $dataValueType
-    * @tparam D
-    *   $intervalDomainType
     * @param data
     *   value valid within an interval.
-    * @return
-    *   [[DimensionalMonoidBase]] structure with a single valid value.
-    */
-  def of[V: Monoid, D <: NonEmptyTuple: DomainLike](data: ValidData[V, D]): DimensionalMonoidBase[V, D]
-
-  /**
-    * Constructor for multiple (or no) initial monoid values that are valid in the various intervals.
-    *
-    * @param initialData
-    *   a collection of valid monoid values within intervals -- intervals must be disjoint.
+    * @param config
+    *   $configParam
     * @tparam V
     *   $dataValueType
     * @tparam D
     *   $intervalDomainType
     * @return
-    *   [[DimensionalMonoidBase]] structure with zero or more valid values.
+    *   a new structure with a single valid value.
     */
-  def apply[V: Monoid, D <: NonEmptyTuple: DomainLike](initialData: Iterable[ValidData[V, D]])(using
-    Experimental
-  ): DimensionalMonoidBase[V, D]
+  def of[V: Monoid, D <: NonEmptyTuple: DomainLike](
+    data: ValidData[V, D]
+  )(using config: CoreConfig[D]): Constructed[V, D] = apply(Iterable.single(data))
 
   /**
     * Get a Builder based on an intermediate buffer of valid data.
     *
+    * @param config
+    *   $configParam
     * @tparam V
     *   $dataValueType
     * @tparam D
     *   $intervalDomainType
     */
   def newBuilder[V: Monoid, D <: NonEmptyTuple: DomainLike](using
-    Experimental
-  ): scala.collection.mutable.Builder[ValidData[V, D], DimensionalMonoidBase[V, D]]
+    config: CoreConfig[D]
+  ): scala.collection.mutable.Builder[ValidData[V, D], Constructed[V, D]] =
+    ValidData.Builds[V, D, Constructed[V, D]](apply(_))
 
 /**
   * Base for all dimensional data, both mutable and immutable, where values can be combined as monoids.
@@ -112,9 +148,7 @@ trait DimensionalMonoidBaseObject extends DimensionalBaseConstructorParams:
   *   domain of this. All intervals in the complement take the monoid identity value, equivalent to ξ \ this. See
   *   [[https://en.wikipedia.org/wiki/Complement_(set_theory)]].
   */
-trait DimensionalMonoidBase[V: Monoid, D <: NonEmptyTuple: DomainLike](using
-  Experimental
-) extends DimensionalBase[V, D]:
+trait DimensionalMonoidBase[V: Monoid, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, D]:
 
   // These overrides aren't strictly necessary, but they prevent this trait from getting optimized away
   // and losing the scaladoc definitions for subclasses.

@@ -3,7 +3,6 @@ package intervalidus.immutable
 import intervalidus.*
 import intervalidus.DiscreteValue.given
 import intervalidus.DomainLike.given
-import intervalidus.Domain.In4D as Dim
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
@@ -16,9 +15,9 @@ class DataIn4DMultiTest
   with ImmutableMultiBaseBehaviors:
 
   def usingBuilder(
-    data: Iterable[ValidData[String, Dim[Int, Int, Int, Int]]]
-  ): DataMulti[String, Dim[Int, Int, Int, Int]] =
-    val builder = DataMulti.newBuilder[String, Dim[Int, Int, Int, Int]]
+    data: Iterable[ValidData[String, IntDim]]
+  ): DataMulti[String, IntDim] =
+    val builder = DataMulti.newBuilder[String, IntDim]
     builder.addOne(Interval.unbounded -> "Junk")
     builder.clear()
     data.foldLeft(builder)(_.addOne(_)).result()
@@ -27,14 +26,14 @@ class DataIn4DMultiTest
   testsFor(basicAndZipTests("Immutable (builder)", usingBuilder, DataMulti.from(_), DataMulti.of(_), DataMulti(_)))
 
   testsFor(
-    addAndRemoveTests[Dim[Int, Int, Int, Int], DataMulti[String, Dim[Int, Int, Int, Int]]](
+    addAndRemoveTests[IntDim, DataMulti[String, IntDim]](
       DataMulti.from(_),
       withHorizontal
     )
   )
 
   testsFor(
-    mapAndFlatmapTests[Dim[Int, Int, Int, Int], DataMulti[String, Dim[Int, Int, Int, Int]]](
+    mapAndFlatmapTests[IntDim, DataMulti[String, IntDim]](
       DataMulti.from(_),
       withHorizontal,
       d => d.interval.to(d.interval.end.rightAdjacent) -> d.value.map(_ + "!"),
@@ -43,7 +42,7 @@ class DataIn4DMultiTest
   )
 
   testsFor(
-    applyingDiffActionTests[Dim[Int, Int, Int, Int], DataMulti[String, Dim[Int, Int, Int, Int]]](
+    applyingDiffActionTests[IntDim, DataMulti[String, IntDim]](
       DataMulti.from(_),
       DataMulti.of(_),
       withHorizontal

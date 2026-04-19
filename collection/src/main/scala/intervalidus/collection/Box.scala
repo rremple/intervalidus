@@ -10,10 +10,27 @@ package intervalidus.collection
   *   Coordinate of the maximum corner (right/upper/front/etc., depending on dimension)
   */
 case class Box(minPoint: Coordinate, maxPoint: Coordinate):
-  require(minPoint.arity == maxPoint.arity, s"minPoint $minPoint and maxPoint $maxPoint must have the same arity")
+  require(
+    minPoint.arity == maxPoint.arity,
+    s"minPoint ${minPoint.asString} and maxPoint ${maxPoint.asString} must have the same arity"
+  )
 
-  /** Min and max points */
-  private def corners: (Coordinate, Coordinate) = (minPoint, maxPoint)
+  /*
+   * Because the underlying type of Coordinate is Array (opaque), the default `equals` and `hashCode` implementations
+   * deal with object equality rather than logical value equality, so we have to redefine them here to checks equality
+   * correctly (including NaN == NaN).
+   */
+
+  // cached to make equals faster when this != that
+  private val cachedHashCode: Int = Coordinate.hashCode(minPoint) * 31 + Coordinate.hashCode(maxPoint)
+
+  override def hashCode(): Int = cachedHashCode
+
+  override def equals(obj: Any): Boolean = obj match
+    case that: Box =>
+      hashCode == that.hashCode &&
+      Coordinate.equals(minPoint, that.minPoint) && Coordinate.equals(maxPoint, that.maxPoint)
+    case _ => false
 
   /** Number of dimensions */
   def arity: Int = minPoint.arity
@@ -30,18 +47,7 @@ case class Box(minPoint: Coordinate, maxPoint: Coordinate):
     * @return
     *   true or false
     */
-  infix def contains(other: Box): Boolean = Coordinate.minMaxForall(this.corners, other.corners):
-    (thisMin, thisMax, otherMin, otherMax) =>
-      def otherMinGeqThisMin = (otherMin, thisMin) match
-        case (_, None)                => true
-        case (None, _)                => false
-        case (Some(oMin), Some(tMin)) => oMin >= tMin
-      def otherMaxLeqThisMax = (otherMax, thisMax) match
-        case (_, None)                => true
-        case (None, _)                => false
-        case (Some(oMax), Some(tMax)) => oMax <= tMax
-      // otherMin >= thisMin && otherMax <= thisMax
-      otherMinGeqThisMin && otherMaxLeqThisMax
+  infix def contains(other: Box): Boolean = Coordinate.contains(minPoint, maxPoint, other.minPoint, other.maxPoint)
 
   /**
     * Does this box intersect the other box? (Touching or overlapping.)
@@ -53,16 +59,7 @@ case class Box(minPoint: Coordinate, maxPoint: Coordinate):
     * @return
     *   true or false
     */
-  infix def intersects(other: Box): Boolean = Coordinate.minMaxForall(this.corners, other.corners):
-    (thisMin, thisMax, otherMin, otherMax) =>
-      def otherMinLeqThisMax = (otherMin, thisMax) match
-        case (None, _) | (_, None)    => true
-        case (Some(oMin), Some(tMax)) => oMin <= tMax
-      def otherMaxGeqThisMin = (otherMax, thisMin) match
-        case (None, _) | (_, None)    => true
-        case (Some(oMax), Some(tMin)) => oMax >= tMin
-      // otherMin <= thisMax && otherMax >= thisMin
-      otherMinLeqThisMax && otherMaxGeqThisMin
+  infix def intersects(other: Box): Boolean = Coordinate.intersects(minPoint, maxPoint, other.minPoint, other.maxPoint)
 
   /**
     * The intersection of this and the other box.

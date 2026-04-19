@@ -17,8 +17,11 @@ class VariableTest extends AnyFunSuite with Matchers:
     def slightlyBefore(d: Instant): Instant = d.minusNanos(5)
 
     val fixture0 = Variable("Hello")
+    val fixture0Copy = Variable.fromHistory(fixture0.history.getAll)
+    fixture0 shouldBe fixture0Copy
     assert(fixture0.lastChange.isEmpty)
     fixture0.get shouldBe "Hello"
+    assert((fixture0: Any) != ("Hello": Any))
     fixture0.toString shouldBe "Hello"
     fixture0(time1) shouldBe "Hello"
     fixture0(time2) shouldBe "Hello"
@@ -26,6 +29,7 @@ class VariableTest extends AnyFunSuite with Matchers:
 
     given CurrentInstant = CurrentInstant.simulated(time1)
     val fixture1 = fixture0.set("World")
+    fixture1.hashCode() shouldBe fixture0.set("World").hashCode()
     fixture1.lastChange shouldBe Some(time1)
     fixture1.get shouldBe "World"
     fixture1.getAt(slightlyBefore(time1)) shouldBe "Hello"

@@ -780,9 +780,9 @@ structures internally for managing state, two of which are custom (in the `colle
   immutable variant is also provided. Note that the sample billing application uses this multimap directly for managing
   customer transactions.
 
-- A "box search tree", which is a hyperoctree (i.e., a B-tree, quadtree, octree, etc., depending on the dimension) that
-  supports quick
-  retrieval by interval. Box search trees manage "boxed" data in multidimensional double space. Unlike classic
+- A "box search tree", which is a specialized, high-performance hyperoctree (i.e., a B-tree, quadtree, octree, etc.,
+  depending on the dimension) optimized for multidimensional intervals rather than simple points. Box search trees
+  manage "boxed" data in multidimensional double space, supporting quick retrieval of data by interval. Unlike classic
   spacial search trees (used in collision detection and the like), these data structures manage "boxes" rather than
   individual points. Boxes are split and stored in all applicable subtrees (hyperoctants) of the data structure as 
   subtrees are split. Intervalildus uses the ordered hashes of interval boundaries to approximate all
@@ -790,6 +790,23 @@ structures internally for managing state, two of which are custom (in the `colle
   search tree. This not only results in dramatically faster retrieval (e.g., `getAt` and `getIntersecting`), since many
   mutation operations use intersection retrieval in their own logic, they are made dramatically faster as well. Only the
   mutable variant is used internally, but an immutable variant is also provided.
+  Other important features include:
+  - **A Primitive-Based Engine**: To achieve maximum throughput, the core spatial logic uses a data-oriented design.
+    Coordinates are represented as primitive double arrays with `NaN` sentinels for unbounded dimensions. This allows
+    the JVM to perform high-dimensional spatial calculus at the hardware level, bypassing the overhead of object boxing
+    and pointer chasing (validated in benchmarks up to five dimensions).
+  - **Structural Sharing and Lazy Isolation**: To combat the "Curse of Dimensionality," Intervalidus employs structural
+    data sharing using a sophisticated copy-on-write strategy at both the branch and leaf levels. This allows for nearly
+    instant tree duplication where memory inflation is isolated to the specific spatial paths where mutations actually
+    occur.
+  - **Shatter Absorption**: The tree is tuned to handle the high "entropy spikes" common in multidimensional algebra. By
+    using a default 1024-node leaf capacity, the engine balances surgical lookup precision with the ability to "absorb"
+    the thousands of fragments generated during complex, high-dimensional unions and intersections. In special cases,
+    other values for leaf capacity may perform better, so this default capacity can be adjusted by environment variable
+    or system property. (The same is true for maximum tree depth.)
+  - **Recursive Efficiency**: Leveraging Scala 3’s inline metaprogramming and closure-free while loops, the engine
+    achieves sub-second performance even for higher-dimensional unions. For example, benchmarks of five-dimensional
+    unions showed an ~8.5x improvement over previous object-heavy implementations.
 
 Although the custom multimap and box search tree data structures were built for internal use, they may be useful outside
 the Intervalidus context. As described above, there are both immutable and mutable variants of each data structure, as

@@ -3,7 +3,6 @@ package intervalidus.mutable
 import intervalidus.*
 import intervalidus.DiscreteValue.given
 import intervalidus.DomainLike.given
-import intervalidus.Domain.In2D as Dim
 import org.scalatest.compatible.Assertion
 import org.scalatest.exceptions.TestFailedException
 import org.scalatest.funsuite.AnyFunSuite
@@ -20,26 +19,26 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
   // shared
   testsFor(stringLookupTests("Mutable", Data(_), Data.of(_)))
 
-  def usingBuilder(data: Iterable[ValidData[String, Dim[LocalDate, Int]]]): Data[String, Dim[LocalDate, Int]] =
-    data.foldLeft(Data.newBuilder[String, Dim[LocalDate, Int]])(_.addOne(_)).result()
+  def usingBuilder(data: Iterable[ValidData[String, MixedDim]]): Data[String, MixedDim] =
+    data.foldLeft(Data.newBuilder[String, MixedDim])(_.addOne(_)).result()
 
-  def usingSetMany(data: Iterable[ValidData[String, Dim[LocalDate, Int]]]): Data[String, Dim[LocalDate, Int]] =
-    val newStructure = Data[String, Dim[LocalDate, Int]]()
+  def usingSetMany(data: Iterable[ValidData[String, MixedDim]]): Data[String, MixedDim] =
+    val newStructure = Data.empty[String, MixedDim]
     newStructure ++ data
     newStructure
 
-  def asVertical(interval1D: Interval1D[Int]): Interval[Dim[LocalDate, Int]] =
+  def asVertical(interval1D: Interval1D[Int]): Interval[MixedDim] =
     unbounded[LocalDate] x interval1D
 
-  def mapf(d: ValidData[String, Dim[LocalDate, Int]]): ValidData[String, Dim[LocalDate, Int]] =
+  def mapf(d: ValidData[String, MixedDim]): ValidData[String, MixedDim] =
     d.copy(
       value = d.value + "!",
       interval = d.interval.to(d.interval.end.leftAdjacent)
     )
 
-  testsFor(mutableBaseTests[Dim[LocalDate, Int], Data[String, Dim[LocalDate, Int]]](Data(_), asVertical, mapf))
+  testsFor(mutableBaseTests[MixedDim, Data[String, MixedDim]](Data(_), asVertical, mapf))
   testsFor(
-    mutableBaseTests[Dim[LocalDate, Int], Data[String, Dim[LocalDate, Int]]](
+    mutableBaseTests[MixedDim, Data[String, MixedDim]](
       usingBuilder,
       asVertical,
       mapf,
@@ -47,7 +46,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     )
   )
   testsFor(
-    mutableBaseTests[Dim[LocalDate, Int], Data[String, Dim[LocalDate, Int]]](
+    mutableBaseTests[MixedDim, Data[String, MixedDim]](
       usingSetMany,
       asVertical,
       mapf,
@@ -55,9 +54,9 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     )
   )
 
-  testsFor(mutableCompressionTests[Dim[LocalDate, Int], Data[String, Dim[LocalDate, Int]]](Data(_), asVertical))
+  testsFor(mutableCompressionTests[MixedDim, Data[String, MixedDim]](Data(_), asVertical))
   testsFor(
-    mutableCompressionTests[Dim[LocalDate, Int], Data[String, Dim[LocalDate, Int]]](
+    mutableCompressionTests[MixedDim, Data[String, MixedDim]](
       usingBuilder,
       asVertical,
       "Immutable (builder)"
@@ -65,11 +64,11 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
   )
 
   override def assertRemoveOrUpdateResult(
-    removeExpectedUnsorted: ValidData[String, Dim[LocalDate, Int]]*
+    removeExpectedUnsorted: ValidData[String, MixedDim]*
   )(
-    removeOrUpdateInterval: Interval[Dim[LocalDate, Int]],
+    removeOrUpdateInterval: Interval[MixedDim],
     updateValue: String = "update"
-  )(using Experimental): Assertion =
+  )(using CoreConfig[MixedDim]): Assertion =
     val rectangle = interval(day(-14), day(14)) x interval(4, 7)
     val removeFixture = Data.of(rectangle -> "World")
     val updateFixture = Data.of(rectangle -> "World")
@@ -98,11 +97,11 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
 
   testsFor(removeOrUpdateTests("Mutable"))
 
-  def vertical2D[T: DiscreteValue](interval2: Interval1D[T]): Interval[Dim[LocalDate, T]] =
+  def vertical2D[T: DiscreteValue](interval2: Interval1D[T]): Interval.In2D[LocalDate, T] =
     unbounded[LocalDate] x interval2
 
   test("Mutable: Constructors and getting data by index"):
-    val empty: Data[String, Dim[Int, Int]] = Data()
+    val empty: Data.In2D[String, Int, Int] = Data()
     assert(empty.getAll.isEmpty)
     assert(empty.domain.isEmpty)
 
@@ -188,8 +187,8 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
       (unbounded[LocalDate] x intervalFrom(16)) -> "World"
     )
 
-    extension (d: Data[String, Dim[LocalDate, Int]])
-      def flipEverything: Data[String, Dim[Int, LocalDate]] =
+    extension (d: Data[String, MixedDim])
+      def flipEverything: Data[String, Domain.In2D[Int, LocalDate]] =
         val flippedValidData = d.getAll.map:
           case (horizontal x_: vertical) ->: v => (vertical x horizontal) -> v.reverse
         Data(flippedValidData)
@@ -250,11 +249,11 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
       intervalToBefore(day(0)) x interval(2, 9)
     )
     Interval.compress(fixture.domain ++ fixture.domainComplement).toList shouldBe List(
-      Interval.unbounded[Dim[LocalDate, Int]]
+      Interval.unbounded[MixedDim]
     )
 
   test("Mutable: Simple toString"):
-    val fixturePadData = Data.of[String, Dim[LocalDate, Int]]("H")
+    val fixturePadData = Data.of[String, MixedDim]("H")
     fixturePadData.set((intervalFrom(day(0)) x unbounded[Int]) -> "W")
     // println(fixturePadData.toString)
     fixturePadData.toString shouldBe
@@ -267,7 +266,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
       a.append(d.value).append("->").append(d.interval.headInterval1D[LocalDate].toString).append(" ")
     concat.result() shouldBe "H->(-∞..2024-07-14] W->[2024-07-15..+∞) "
 
-    val fixturePadLabel = Data.of[String, Dim[LocalDate, Int]]("Helloooooooooo")
+    val fixturePadLabel = Data.of[String, MixedDim]("Helloooooooooo")
     fixturePadLabel.set((intervalFrom(day(0)) x unbounded[Int]) -> "Wooooooorld")
     // println(fixturePadLabel.toString)
     fixturePadLabel.toString shouldBe

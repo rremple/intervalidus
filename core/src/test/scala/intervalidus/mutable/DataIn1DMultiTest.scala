@@ -3,7 +3,6 @@ package intervalidus.mutable
 import intervalidus.*
 import intervalidus.DiscreteValue.given
 import intervalidus.DomainLike.given
-import intervalidus.Domain.In1D as Dim
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
@@ -17,8 +16,8 @@ class DataIn1DMultiTest
 
   import Interval1D.*
 
-  def usingBuilder(data: Iterable[ValidData[String, Dim[Int]]]): DataMulti[String, Dim[Int]] =
-    val builder = DataMulti.newBuilder[String, Dim[Int]]
+  def usingBuilder(data: Iterable[ValidData[String, IntDim]]): DataMulti[String, IntDim] =
+    val builder = DataMulti.newBuilder[String, IntDim]
     builder.addOne(Interval.unbounded -> "Junk")
     builder.clear()
     data.foldLeft(builder)(_.addOne(_)).result()
@@ -26,25 +25,14 @@ class DataIn1DMultiTest
   testsFor(basicAndZipTests("Mutable", DataMulti.from(_), DataMulti.from(_), DataMulti.of(_), DataMulti(_)))
   testsFor(basicAndZipTests("Mutable (builder)", usingBuilder, DataMulti.from(_), DataMulti.of(_), DataMulti(_)))
 
-  testsFor(
-    addAndRemoveTests[
-      Dim[Int],
-      DataMulti[String, Dim[Int]]
-    ](
-      DataMulti.from(_),
-      _.tupled
-    )
-  )
+  testsFor(addAndRemoveTests[IntDim, DataMulti[String, IntDim]](DataMulti.from(_), _.tupled))
 
   testsFor(
-    mapAndFlatmapTests[
-      Dim[Int],
-      DataMulti[String, Dim[Int]]
-    ](
+    mapAndFlatmapTests[IntDim, DataMulti[String, IntDim]](
       DataMulti.from(_),
       _.tupled,
       d => d.interval.to(d.interval.end.rightAdjacent) -> d.value.map(_ + "!"),
-      d => DataMulti.from[String, Dim[Int]](d.value.map(d.interval -> _))
+      d => DataMulti.from[String, IntDim](d.value.map(d.interval -> _))
     )
   )
 
@@ -76,3 +64,12 @@ class DataIn1DMultiTest
     val f7sync = fixture5.copy
     f7sync.syncWith(fixture7)
     f7sync shouldBe fixture7
+
+  test("Immutable: equals and hashCode"):
+    val empty1 = DataMulti[String, IntDim]()
+    val empty2 = DataMulti.empty[String, IntDim]
+    val nonEmpty = DataMulti.of[String, IntDim]("Hello")
+    empty1 shouldBe empty2
+    assert(empty1 != nonEmpty)
+    empty1.hashCode() shouldBe empty2.hashCode()
+    assert(empty1.hashCode() != nonEmpty.hashCode())

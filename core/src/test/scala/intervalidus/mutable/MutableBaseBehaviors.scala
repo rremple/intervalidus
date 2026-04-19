@@ -24,11 +24,11 @@ trait MutableBaseBehaviors:
     D <: NonEmptyTuple: DomainLike,
     S <: Data[String, D]
   ](
-    mutableFrom: Experimental ?=> Iterable[ValidData[String, D]] => S,
+    mutableFrom: CoreConfig[D] ?=> Iterable[ValidData[String, D]] => S,
     intervalFrom1D: Interval1D[Int] => Interval[D],
     mapF: ValidData[String, D] => ValidData[String, D],
     prefix: String = "Mutable"
-  )(using Experimental, DomainValueLike[Int]): Unit =
+  )(using CoreConfig[D], DomainValueLike[Int]): Unit =
     def dataFrom1D(interval1D: Interval1D[Int], v: String): ValidData[String, D] =
       intervalFrom1D(interval1D) -> v
 
@@ -250,10 +250,10 @@ trait MutableBaseBehaviors:
     D <: NonEmptyTuple: DomainLike,
     S <: Data[String, D]
   ](
-    mutableFrom: Experimental ?=> Iterable[ValidData[String, D]] => S,
+    mutableFrom: CoreConfig[D] ?=> Iterable[ValidData[String, D]] => S,
     intervalFrom1D: Interval1D[Int] => Interval[D],
     prefix: String = "Mutable"
-  )(using Experimental, DomainValueLike[Int]): Unit =
+  )(using CoreConfig[D], DomainValueLike[Int]): Unit =
     def dataFrom1D(interval1D: Interval1D[Int], v: String): ValidData[String, D] =
       intervalFrom1D(interval1D) -> v
 

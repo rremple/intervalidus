@@ -143,14 +143,14 @@ object SoftwareProductFeatureManagement:
       * with a given interval. This means you could query "What features were in Release 4?" and "[What were the release
       * events for a feature set] `Set(Feat(A), Feat(C))`.
       */
-    val featureReleasePlan = DataMulti[
+    val featureReleasePlan = DataMulti.empty[
       Feat, // a release can include multiple features
       Domain.In3D[
         LocalDateTime, // when the release plan included (or maybe pulled) the feature
         LocalDate, // effective period when the feature was actually included (pro- or retrospective of the plan)
         Release // Product releases in this plan/effective period
       ]
-    ]()
+    ]
 
     def currentFeatureReleasePlan(using CurrentDateTime): DataMulti.In2D[Feat, LocalDate, Release] =
       featureReleasePlan.getByHeadDimension(now)
@@ -215,7 +215,7 @@ object SoftwareProductFeatureManagement:
 
     // Extend the feature release plan with information about region-specific deployments.
     // (A deployment can be roughly thought of as a release to a specific environment)
-    val regionalDeploymentPlan = DataMulti[
+    val regionalDeploymentPlan = DataMulti.empty[
       Region, // a deployment can be to multiple regions
       Domain.In4D[
         LocalDateTime, // when the release plan included (or maybe pulled) the region/environment
@@ -223,7 +223,7 @@ object SoftwareProductFeatureManagement:
         Environment, // Deployment environments in this plan/effective period
         Release // Product releases in this plan/effective period
       ]
-    ]()
+    ]
 
     def currentRegionalDeploymentPlan(using
       CurrentDateTime
@@ -297,13 +297,13 @@ object SoftwareProductFeatureManagement:
       * ◦ This would allow users to ask, "What features are planned for our next major release (unapproved data)?"
       * versus "What features are currently live in production (approved/current version data)?".
       */
-    val releasePlan = DataVersioned[
+    val releasePlan = DataVersioned.empty[
       Feat, // what features are approved (or pending approval) for deployment in what releases/environments
       Domain.In2D[
         Environment, // Deployment environments
         Release // Product releases
       ]
-    ]()
+    ]
 
     def proposeRelease(featureRelease: ValidData.In2D[Feat, Environment, Release]): Unit =
       releasePlan.set(featureRelease)(using Unapproved)

@@ -1,11 +1,13 @@
 package intervalidus.collection
 
+import java.util
 import scala.annotation.tailrec
 
 /**
-  * Represents a point or unbound limit in multidimensional double space. Unbounded limits are represented using None.
+  * Represents a point or unbound limit in multidimensional double space. Unbounded limits are represented using NaN.
+  * Although the underlying type is mutable, Coordinate itself is treated as immutable.
   */
-opaque type Coordinate = Vector[Option[Double]]
+opaque type Coordinate = Array[Double]
 
 /**
   * Common definitions for points/unbound limits in multidimensional double space.
@@ -13,9 +15,23 @@ opaque type Coordinate = Vector[Option[Double]]
 object Coordinate:
   private type MinMaxCoordinates = (Coordinate, Coordinate)
 
-  def apply(coordinates: Option[Double]*): Coordinate = coordinates.toVector
+  // Slower, only used in tests
+  def apply(coordinates: Option[Double]*): Coordinate =
+    coordinates.map(_.getOrElse(Double.NaN)).toArray
 
-  def apply(coordinates: Vector[Option[Double]]): Coordinate = coordinates
+  // Faster, no maps
+  def apply(coordinates: Array[Double]): Coordinate = coordinates
+
+  /**
+    * Because the underlying type is Array, the default `equals` implementations deals with object equality rather than
+    * logical equality. Since we use coordinates as case class attributes, we have to be careful to redefine `equals`
+    * there to use this method that checks for logical array equality.
+    */
+  def equals(lhs: Coordinate, rhs: Coordinate): Boolean =
+    util.Arrays.equals(lhs, rhs)
+
+  def hashCode(coordinate: Coordinate): Int =
+    util.Arrays.hashCode(coordinate)
 
   /**
     * Construct a coordinate that is unbound in all dimensions.
@@ -25,41 +41,83 @@ object Coordinate:
     * @return
     *   a new coordinate
     */
-  def unbound(arity: Int): Coordinate = Vector.fill(arity)(None)
+  def unbound(arity: Int): Coordinate = Array.fill(arity)(Double.NaN)
 
   /**
-    * Evaluate each corresponding dimension of the two arguments and only return true if the function applied to each
-    * pair returns true.
+    * Does a box (described by min/max coordinates) fully contain another box (also described by min/max coordinates)?
     *
-    * @param minMax1
-    *   the first min and max coordinate pair to evaluate
-    * @param minMax2
-    *   the second min and max coordinate pair to evaluate
-    * @param f
-    *   function applied to each corresponding dimension of the two min/max coordinate pairs
+    * @param thisMinPoint
+    *   box min coordinates
+    * @param thisMaxPoint
+    *   box max coordinates
+    * @param otherMinPoint
+    *   other box min coordinates
+    * @param otherMaxPoint
+    *   other box max coordinates
     * @return
-    *   true if f applied to each corresponding dimension of the coordinate pairs is true, false otherwise
+    *   true or false
     */
-  def minMaxForall(minMax1: MinMaxCoordinates, minMax2: MinMaxCoordinates)(
-    f: (Option[Double], Option[Double], Option[Double], Option[Double]) => Boolean
-  ): Boolean = (minMax1, minMax2) match
-    case ((min1, max1), (min2, max2)) =>
-      min1.indices.forall: i =>
-        f(min1(i), max1(i), min2(i), max2(i))
+  def contains(
+    thisMinPoint: Coordinate,
+    thisMaxPoint: Coordinate,
+    otherMinPoint: Coordinate,
+    otherMaxPoint: Coordinate
+  ): Boolean =
+    var i = 0
+    var result = true
+    while result && i < thisMinPoint.length do // equivalent to "thisMinPoint.indices.forall: i =>"
+      val thisMin = thisMinPoint(i)
+      def thisMax = thisMaxPoint(i)
+      def otherMin = otherMinPoint(i)
+      def otherMax = otherMaxPoint(i)
+      val otherMinGeqThisMin = thisMin.isNaN || otherMin >= thisMin
+      def otherMaxLeqThisMax = thisMax.isNaN || otherMax <= thisMax
+      // otherMin >= thisMin && otherMax <= thisMax
+      result = otherMinGeqThisMin && otherMaxLeqThisMax
+      i = i + 1
+    result
+
+  /**
+    * Does a box (described by min/max coordinates) intersect another box (also described by min/max coordinates)?
+    * (Touching or overlapping.)
+    *
+    * @note
+    *   Even a single point in common is considered an intersection, e.g., two boxes touching.
+    *
+    * @param thisMinPoint
+    *   box min coordinates
+    * @param thisMaxPoint
+    *   box max coordinates
+    * @param otherMinPoint
+    *   other box min coordinates
+    * @param otherMaxPoint
+    *   other box max coordinates
+    * @return
+    *   true or false
+    */
+  def intersects(
+    thisMinPoint: Coordinate,
+    thisMaxPoint: Coordinate,
+    otherMinPoint: Coordinate,
+    otherMaxPoint: Coordinate
+  ): Boolean =
+    var i = 0
+    var result = true
+    while result && i < thisMinPoint.length do // equivalent to "thisMinPoint.indices.forall: i =>"
+      def thisMin = thisMinPoint(i)
+      def thisMax = thisMaxPoint(i)
+      val otherMin = otherMinPoint(i)
+      def otherMax = otherMaxPoint(i)
+      val otherMinLeqThisMax = otherMin.isNaN || thisMax.isNaN || otherMin <= thisMax
+      def otherMaxGeqThisMin = otherMax.isNaN || thisMin.isNaN || otherMax >= thisMin
+      // otherMin <= thisMax && otherMax >= thisMin
+      result = otherMinLeqThisMax && otherMaxGeqThisMin
+      i = i + 1
+    result
 
   extension (coordinates: Coordinate)
-    private def combineWith(other: Coordinate)(
-      f: (Option[Double], Option[Double]) => Option[Double]
-    ): Coordinate = coordinates.indices.toVector.map: i =>
-      f(coordinates(i), other(i))
-
     /** Number of dimensions */
-    def arity: Int = coordinates.size
-
-    private def fixWith(boundary: CoordinateFixed, f: (Double, Double) => Double): CoordinateFixed = CoordinateFixed(
-      coordinates.indices.toVector.map: i =>
-        f(coordinates(i).getOrElse(boundary(i)), boundary(i))
-    )
+    def arity: Int = coordinates.length
 
     /**
       * Fix these coordinates based on some fixed boundary coordinates. Any coordinates that are unbounded are fixed to
@@ -69,7 +127,7 @@ object Coordinate:
       * @return
       *   these coordinates with unbound elements fixed to the boundary
       */
-    def fixUnbounded(boundary: CoordinateFixed): CoordinateFixed = fixWith(boundary, (keepLeft, _) => keepLeft)
+    def fixUnbounded(boundary: CoordinateFixed): CoordinateFixed = boundary.fixUnbounded(coordinates)
 
     /**
       * Fix these coordinates based on some fixed boundary coordinates. Any coordinates that are unbounded or greater
@@ -79,7 +137,7 @@ object Coordinate:
       * @return
       *   these coordinates with unbound or larger elements fixed to the boundary
       */
-    def fixMin(boundary: CoordinateFixed): CoordinateFixed = fixWith(boundary, _ min _)
+    def fixMin(boundary: CoordinateFixed): CoordinateFixed = boundary.fixMin(coordinates)
 
     /**
       * Fix these coordinates based on some fixed boundary coordinates. Any coordinates that are unbounded or less than
@@ -89,7 +147,7 @@ object Coordinate:
       * @return
       *   these coordinates with unbound or smaller elements fixed to the boundary
       */
-    def fixMax(boundary: CoordinateFixed): CoordinateFixed = fixWith(boundary, _ max _)
+    def fixMax(boundary: CoordinateFixed): CoordinateFixed = boundary.fixMax(coordinates)
 
     /**
       * Treating the other coordinate as the opposite corner of a box, return a vector of coordinate pairs that
@@ -105,15 +163,15 @@ object Coordinate:
     def binarySplit(midPoint: Coordinate, other: Coordinate): Vector[MinMaxCoordinates] =
       @tailrec
       def helper(
-        minMidMax: Vector[(Option[Double], Option[Double], Option[Double])],
+        minMidMax: Vector[(Double, Double, Double)],
         protoBoxes: Vector[MinMaxCoordinates] = Vector.empty
       ): Vector[MinMaxCoordinates] = minMidMax.headOption match
         case Some((min, mid, max)) =>
-          def growProtoBox(b: MinMaxCoordinates, appendMin: Option[Double], appendMax: Option[Double]) = b match
+          def growProtoBox(b: MinMaxCoordinates, appendMin: Double, appendMax: Double) = b match
             case (protoMin, protoMax) => (protoMin.appended(appendMin), protoMax.appended(appendMax))
 
           val newProtoBoxes =
-            if protoBoxes.isEmpty then Vector((Vector(min), Vector(mid)), (Vector(mid), Vector(max)))
+            if protoBoxes.isEmpty then Vector((Array(min), Array(mid)), (Array(mid), Array(max)))
             else protoBoxes.map(growProtoBox(_, min, mid)) ++ protoBoxes.map(growProtoBox(_, mid, max))
           helper(minMidMax.tail, newProtoBoxes)
 
@@ -134,9 +192,11 @@ object Coordinate:
       * @return
       *   a new coordinate point with minimum coordinates.
       */
-    def projectBeforeStart(other: Coordinate): Coordinate = combineWith(other):
-      case (Some(t), Some(o)) => Some(t min o)
-      case _                  => None
+    def projectBeforeStart(other: Coordinate): Coordinate =
+      val result = coordinates.clone() // defaults preserved when these coordinates are unbound (isNaN)
+      result.indices.foreach: i =>
+        if !result(i).isNaN then result(i) = result(i) min other(i)
+      result
 
     /**
       * Returns the point where each dimension is the min of this and the other point. Treats unbounded coordinates as
@@ -148,11 +208,15 @@ object Coordinate:
       * @return
       *   a new coordinate point with minimum coordinates.
       */
-    def projectBeforeEnd(other: Coordinate): Coordinate = combineWith(other):
-      case (None, None)       => None
-      case (Some(t), Some(o)) => Some(t min o)
-      case (someT, None)      => someT
-      case (None, someO)      => someO
+    def projectBeforeEnd(other: Coordinate): Coordinate =
+      val result = coordinates.clone() // defaults preserved when other coordinates are unbound (isNaN)
+      result.indices.foreach: i =>
+        if !other(i).isNaN then
+          result(i) =
+            if result(i).isNaN
+            then other(i)
+            else result(i) min other(i)
+      result
 
     /**
       * Returns the point where each dimension is the max of this and the other point. Treats unbounded coordinates as
@@ -164,9 +228,11 @@ object Coordinate:
       * @return
       *   a new coordinate point with maximum coordinates.
       */
-    def projectAfterEnd(other: Coordinate): Coordinate = combineWith(other):
-      case (Some(t), Some(o)) => Some(t max o)
-      case _                  => None
+    def projectAfterEnd(other: Coordinate): Coordinate =
+      val result = coordinates.clone() // defaults preserved when these coordinates are unbound (isNaN)
+      result.indices.foreach: i =>
+        if !result(i).isNaN then result(i) = result(i) max other(i)
+      result
 
     /**
       * Returns the point where each dimension is the max of this and the other point. Treats unbounded coordinates as
@@ -178,16 +244,20 @@ object Coordinate:
       * @return
       *   a new coordinate point with maximum coordinates.
       */
-    def projectAfterStart(other: Coordinate): Coordinate = combineWith(other):
-      case (None, None)       => None
-      case (Some(t), Some(o)) => Some(t max o)
-      case (someT, None)      => someT
-      case (None, someO)      => someO
+    def projectAfterStart(other: Coordinate): Coordinate =
+      val result = coordinates.clone() // defaults preserved when other coordinates are unbound (isNaN)
+      result.indices.foreach: i =>
+        if !other(i).isNaN then
+          result(i) =
+            if result(i).isNaN
+            then other(i)
+            else result(i) max other(i)
+      result
 
     /**
       * Can't override `toString` through an extension method, so we give it a slightly different name. Only used by
-      * Box.toString
+      * Box.toString / require.
       */
     def asString: String =
-      val strings = coordinates.map(_.map(_.toString).getOrElse("<unbounded>"))
+      val strings = coordinates.map(c => if c.isNaN then "<unbounded>" else c.toString)
       if arity == 1 then strings(0) else strings.mkString("(", ",", ")")

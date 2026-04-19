@@ -19,9 +19,9 @@ trait MutableMultiBaseBehaviors:
     D <: NonEmptyTuple: DomainLike,
     S <: DataMulti[String, D]
   ](
-    multiFrom: Experimental ?=> Iterable[ValidData[String, D]] => S,
+    multiFrom: CoreConfig[D] ?=> Iterable[ValidData[String, D]] => S,
     intervalFrom1D: Interval1D[Int] => Interval[D]
-  )(using Experimental): Unit =
+  )(using CoreConfig[D]): Unit =
     def withHorizontalOne(interval: Interval1D[Int], value: String): ValidData[String, D] =
       intervalFrom1D(interval) -> value
     def withHorizontal(interval: Interval1D[Int], value: Set[String]): ValidData[Set[String], D] =
@@ -118,11 +118,11 @@ trait MutableMultiBaseBehaviors:
     D <: NonEmptyTuple: DomainLike,
     S <: DataMulti[String, D]
   ](
-    multiFrom: Experimental ?=> Iterable[ValidData[String, D]] => S,
+    multiFrom: CoreConfig[D] ?=> Iterable[ValidData[String, D]] => S,
     intervalFrom1D: Interval1D[Int] => Interval[D],
     mapF: ValidData[Set[String], D] => ValidData[Set[String], D],
     flatMapF: ValidData[Set[String], D] => S
-  )(using Experimental): Unit =
+  )(using CoreConfig[D]): Unit =
     def withHorizontalOne(interval: Interval1D[Int], value: String): ValidData[String, D] =
       intervalFrom1D(interval) -> value
     def withHorizontal(interval: Interval1D[Int], value: Set[String]): ValidData[Set[String], D] =
@@ -161,10 +161,10 @@ trait MutableMultiBaseBehaviors:
     D <: NonEmptyTuple: DomainLike,
     S <: DataMulti[String, D]
   ](
-    multiFrom: Experimental ?=> Iterable[ValidData[String, D]] => S,
-    multiOf: Experimental ?=> ValidData[String, D] => S,
+    multiFrom: CoreConfig[D] ?=> Iterable[ValidData[String, D]] => S,
+    multiOf: CoreConfig[D] ?=> ValidData[String, D] => S,
     intervalFrom1D: Interval1D[Int] => Interval[D]
-  )(using Experimental): Unit =
+  )(using CoreConfig[D]): Unit =
     test("Mutable: Applying diff actions"):
       val fixture5 = multiFrom(
         List(

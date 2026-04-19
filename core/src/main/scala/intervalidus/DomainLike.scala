@@ -2,6 +2,8 @@ package intervalidus
 
 import intervalidus.collection.{Coordinate, CoordinateFixed}
 
+import scala.collection.mutable
+
 /**
   * Type class with operations on a domain with multiple discrete and/or continuous dimensions.
   *
@@ -163,7 +165,10 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
       * @return
       *   a new coordinate for box tree boundary capacities
       */
-    def asCoordinateFixed: CoordinateFixed = CoordinateFixed(applyToDomain.fixedOrderedHashesFromDomain(domain))
+    def asCoordinateFixed: CoordinateFixed =
+      val builder = mutable.ArrayBuilder.ofDouble()
+      builder.sizeHint(applyToDomain.arity)
+      CoordinateFixed(applyToDomain.fixedOrderedHashesFromDomain(domain, builder).result())
 
     /**
       * Approximate this domain as a (potentially unfixed) coordinate in double space based on the domain ordered hash.
@@ -171,7 +176,10 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
       * @return
       *   a new coordinate for boxes managed in box search trees
       */
-    def asCoordinateUnfixed: Coordinate = Coordinate(applyToDomain.unfixedOrderedHashesFromDomain(domain))
+    def asCoordinateUnfixed: Coordinate =
+      val builder = mutable.ArrayBuilder.ofDouble()
+      builder.sizeHint(applyToDomain.arity)
+      Coordinate(applyToDomain.unfixedOrderedHashesFromDomain(domain, builder).result())
 
     /**
       * Can't override `toString` through an extension method, so we give it a slightly different name.
@@ -349,11 +357,11 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
     *   true if the before interval is "left" adjacent to the after interval
     */
   infix def intervalIsLeftAdjacentTo(beforeInterval: Interval[D], afterInterval: Interval[D]): Boolean =
-    val (equivalency, adjacency, total) = applyToDomain.equivalencyAndAdjacencyFromIntervals(
+    val (partialResult, equivalency, adjacency, total) = applyToDomain.equivalencyAndAdjacencyFromIntervals(
       beforeInterval,
       afterInterval
     )
-    adjacency == 1 && equivalency == total - 1
+    partialResult && adjacency == 1 && equivalency == total - 1
 
   /**
     * Internal method.
@@ -394,10 +402,7 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
     *   a list of keys for the only possible intervals that could be adjacent to this interval.
     */
   def intervalRightAdjacentKeys(interval: Interval[D]): List[D] =
-    applyToDomain
-      .rightAdjacentKeysFromInterval(interval)
-      .collect:
-        case (domain, swaps) if swaps == 1 => domain
+    applyToDomain.rightAdjacentKeysFromInterval(interval)
 
   /**
     * Internal method.
@@ -437,7 +442,7 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
     *   1. first dimension end string
     *   1. interval grid-formatted string
     */
-  def intervalPreprocessForGrid(intervals: Iterable[Interval[D]]): Iterable[(String, String, String)] =
+  def intervalPreprocessForGrid(intervals: IterableOnce[Interval[D]]): Iterable[(String, String, String)] =
     applyToDomain.preprocessForGridFromIntervals(intervals)
 
   /*

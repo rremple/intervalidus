@@ -3,7 +3,6 @@ package intervalidus.immutable
 import intervalidus.*
 import intervalidus.DiscreteValue.given
 import intervalidus.DomainLike.given
-import intervalidus.Domain.In1D as Dim
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
@@ -17,21 +16,21 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
 
   // increment current version with each data element
   def newDataIn1DVersioned(
-    allData: Iterable[ValidData[String, Dim[Int]]]
-  )(using CurrentDateTime): DataVersioned[String, Dim[Int]] =
-    allData.foldLeft(DataVersioned[String, Dim[Int]]()): (dataIn1DVersioned, validData) =>
+    allData: Iterable[ValidData[String, IntDim]]
+  )(using CurrentInstant): DataVersioned[String, IntDim] =
+    allData.foldLeft(DataVersioned.empty[String, IntDim]): (dataIn1DVersioned, validData) =>
       dataIn1DVersioned
         .set(validData)
         .incrementCurrentVersion()
 
-  def usingBuilder(data: Iterable[ValidData[String, Dim[Int]]]): DataVersioned[String, Dim[Int]] =
-    val builder = DataVersioned.newBuilder[String, Dim[Int]](0)
+  def usingBuilder(data: Iterable[ValidData[String, IntDim]]): DataVersioned[String, IntDim] =
+    val builder = DataVersioned.newBuilder[String, IntDim](0)
     builder.addOne(Interval.unbounded -> "Junk")
     builder.clear()
     data.foldLeft(builder)(_.addOne(_)).result()
 
-  def usingSetMany(data: Iterable[ValidData[String, Dim[Int]]]): DataVersioned[String, Dim[Int]] =
-    DataVersioned[String, Dim[Int]]() ++ data
+  def usingSetMany(data: Iterable[ValidData[String, IntDim]]): DataVersioned[String, IntDim] =
+    DataVersioned.empty[String, IntDim] ++ data
 
   // shared
   testsFor(stringLookupTests("Immutable", newDataIn1DVersioned, DataVersioned(_), DataVersioned.of(_)))
@@ -40,9 +39,10 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
 
   test("Immutable: Adding and removing data in intervals"):
     val dayZero = LocalDateTime.of(2025, 8, 1, 8, 0)
-    given CurrentDateTime = CurrentDateTime.simulated(dayZero)
+    given CurrentInstant = dayZero.asCurrent
 
-    val empty: DataVersioned[String, Dim[Int]] = mutable.DataVersioned[String, Dim[Int]]().toMutable.toImmutable
+    val empty: DataVersioned[String, IntDim] = mutable.DataVersioned.empty[String, IntDim].toMutable.toImmutable
+    empty shouldBe new DataVersioned[String, IntDim]()
 
     assertThrows[Exception]: // version too large
       empty.setCurrentVersion(Int.MaxValue)
@@ -52,20 +52,20 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
       emptyAtMaxVersion.incrementCurrentVersion()
 
     val allData = List(interval(0, 9) -> "Hello", intervalFrom(10) -> "World")
-    val fixture0 = newDataIn1DVersioned(allData)(using CurrentDateTime.simulated(dayZero))
+    val fixture0 = newDataIn1DVersioned(allData)(using dayZero.asCurrent)
 
     // Appropriately fails in one dimension because Tuple.Tail[Domain.In1D[Int]] is empty.
     """fixture0.getByHeadDimension(0)""" shouldNot typeCheck
 
     val fixture1 = fixture0
       .set(interval(5, 15) -> "to")
-      .incrementCurrentVersion()(using CurrentDateTime.simulated(dayZero.plusDays(1)))
+      .incrementCurrentVersion()(using dayZero.plusDays(1).asCurrent)
     val expectedData1 = List(interval(0, 4) -> "Hello", interval(5, 15) -> "to", intervalFrom(16) -> "World")
     fixture1.getAll.toList shouldBe expectedData1
 
     val fixture2 = fixture1
       .set(interval(20, 25) -> "!") // split
-      .incrementCurrentVersion()(using CurrentDateTime.simulated(dayZero.plusDays(1).plusHours(1)))
+      .incrementCurrentVersion()(using dayZero.plusDays(1).plusHours(1).asCurrent)
       .recompressAll() // not needed, but addresses coverage gap
     val expectedData2 = List(
       interval(0, 4) -> "Hello",
@@ -77,11 +77,11 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     fixture2.getAll.toList shouldBe expectedData2
 
     fixture2.getVersionTimestamps should contain theSameElementsAs Map(
-      0 -> (dayZero, "init"),
-      1 -> (dayZero, "incremented"),
-      2 -> (dayZero, "incremented"),
-      3 -> (dayZero.plusDays(1), "incremented"),
-      4 -> (dayZero.plusDays(1).plusHours(1), "incremented")
+      0 -> (dayZero.instant, "init"),
+      1 -> (dayZero.instant, "incremented"),
+      2 -> (dayZero.instant, "incremented"),
+      3 -> (dayZero.plusDays(1).instant, "incremented"),
+      4 -> (dayZero.plusDays(1).plusHours(1).instant, "incremented")
     )
     // println(fixture2.toString)
     fixture2.toString shouldBe
@@ -142,23 +142,23 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
 
     val dataL = DataVersioned
       .of(intervalFrom(1).to(3) -> "A", 1, "L init v1") // version 1 at day zero
-      .incrementCurrentVersion("L to v2")(using CurrentDateTime.simulated(dayZero.plusDays(3))) // version 2 at day 3
+      .incrementCurrentVersion("L to v2")(using dayZero.plusDays(3).asCurrent) // version 2 at day 3
       .set(intervalFrom(5) -> "B")
-      .incrementCurrentVersion("L to v3")(using CurrentDateTime.simulated(dayZero.plusDays(4))) // version 3 at day 4
+      .incrementCurrentVersion("L to v3")(using dayZero.plusDays(4).asCurrent) // version 3 at day 4
     dataL.getVersionTimestamps should contain theSameElementsAs Map(
-      1 -> (dayZero, "L init v1"),
-      2 -> (dayZero.plusDays(3), "L to v2"),
-      3 -> (dayZero.plusDays(4), "L to v3")
+      1 -> (dayZero.instant, "L init v1"),
+      2 -> (dayZero.plusDays(3).instant, "L to v2"),
+      3 -> (dayZero.plusDays(4).instant, "L to v3")
     )
     val dataR = DataVersioned
       .of(intervalFrom(2).to(4) -> "C", 0, "R init v0") // version 0 at day zero
-      .incrementCurrentVersion("R to v1")(using CurrentDateTime.simulated(dayZero.plusDays(1))) // version 1 at day 1
+      .incrementCurrentVersion("R to v1")(using dayZero.plusDays(1).asCurrent) // version 1 at day 1
       .set(intervalFrom(6) -> "D")
-      .incrementCurrentVersion("R to v2")(using CurrentDateTime.simulated(dayZero.plusDays(2))) // version 2 at day 2
+      .incrementCurrentVersion("R to v2")(using dayZero.plusDays(2).asCurrent) // version 2 at day 2
     dataR.getVersionTimestamps should contain theSameElementsAs Map(
-      0 -> (dayZero, "R init v0"),
-      1 -> (dayZero.plusDays(1), "R to v1"),
-      2 -> (dayZero.plusDays(2), "R to v2")
+      0 -> (dayZero.instant, "R init v0"),
+      1 -> (dayZero.plusDays(1).instant, "R to v1"),
+      2 -> (dayZero.plusDays(2).instant, "R to v2")
     )
 
     // Default merge operation will "prioritize left"
@@ -169,11 +169,11 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
       intervalFrom(5) -> "B"
     )
     defaultMerge.getVersionTimestamps should contain theSameElementsAs Map(
-      //                                                    *  L (left)   R (right)
-      0 -> (dayZero, "R init v0"), //                       *  0 day 0              => (None, Some(R))
-      1 -> (dayZero.plusDays(1), "L init v1 & R to v1"), // *  1 day 0    1 day 1   => (Some(L), Some(R)), L < R
-      2 -> (dayZero.plusDays(3), "L to v2 & R to v2"), //   *  2 day 3    2 day 2   => (Some(L), Some(R)), L > R
-      3 -> (dayZero.plusDays(4), "L to v3") //              *  3 day 4              => (Some(L), None)
+      //                                                            *  L (left)   R (right)
+      0 -> (dayZero.instant, "R init v0"), //                       *  0 day 0              => (None, Some(R))
+      1 -> (dayZero.plusDays(1).instant, "L init v1 & R to v1"), // *  1 day 0    1 day 1   => (Some(L), Some(R)), L < R
+      2 -> (dayZero.plusDays(3).instant, "L to v2 & R to v2"), //   *  2 day 3    2 day 2   => (Some(L), Some(R)), L > R
+      3 -> (dayZero.plusDays(4).instant, "L to v3") //              *  3 day 4              => (Some(L), None)
     )
 
     // Custom merge operation will combine overlapping elements
@@ -266,8 +266,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     val expectedData3 = List(intervalTo(5) -> "Hey!!!", intervalFrom(16) -> "World!!!")
     fixture3.getAll.toList shouldBe expectedData3
 
-    val fixture4 = fixture3
-      .flatMap(d => DataVersioned.of[String, Dim[Int]](d.value).map(x => d.interval -> x.value))
+    val fixture4 = fixture3.flatMap(d => DataVersioned.of[String, IntDim](d.value).map(x => d.interval -> x.value))
     val expectedData4 = List(intervalTo(5) -> "Hey!!!", intervalFrom(16) -> "World!!!")
     fixture4.getAll.toList shouldBe expectedData4
     assertThrows[NoSuchElementException]:
@@ -280,7 +279,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     assertThrows[NoSuchElementException]:
       fixture5.get
 
-    val fixture6 = fixture5.flatMap(d => DataVersioned.of[String, Dim[Int]](d.value))
+    val fixture6 = fixture5.flatMap(d => DataVersioned.of[String, IntDim](d.value))
     val expectedData6 = List(unbounded[Int] -> "Hey!!!")
     fixture6.getAll.toList shouldBe expectedData6
     fixture6.get shouldBe "Hey!!!"
@@ -323,8 +322,8 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     fixture2.getVersionedData.getAll.toList shouldBe expectedData2
 
   test("Immutable: Updating data in intervals"):
-    val one: DataVersioned[String, Dim[Int]] = DataVersioned
-      .of[String, Dim[Int]]("value")
+    val one: DataVersioned[String, IntDim] = DataVersioned
+      .of[String, IntDim]("value")
       .incrementCurrentVersion()
 
     val oneSplit = one.remove(intervalAt(0)) // split
@@ -431,15 +430,13 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
 
   test("Immutable: Approvals"):
     // increment current version with each data element
-    def timeboundVersionedString(
-      allData: Iterable[ValidData[String, Dim[LocalDate]]]
-    ): DataVersioned[String, Dim[LocalDate]] =
-      allData.foldLeft(DataVersioned[String, Dim[LocalDate]]()): (data, validData) =>
+    def timeboundVersionedString(allData: Iterable[ValidData[String, MixedDim]]): DataVersioned[String, MixedDim] =
+      allData.foldLeft(DataVersioned.empty[String, MixedDim]): (data, validData) =>
         data
           .set(validData)
           .incrementCurrentVersion()
 
-    val fixture0: DataVersioned[String, Dim[LocalDate]] = DataVersioned()
+    val fixture0: DataVersioned[String, MixedDim] = DataVersioned.empty
     assert(fixture0.getAll.isEmpty)
 
     val allData = List(

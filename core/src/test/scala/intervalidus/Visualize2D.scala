@@ -30,7 +30,7 @@ object Visualize2D:
     frame.setVisible(true)
 
   def apply[V, R1: DomainValueLike, R2: DomainValueLike](
-    dataIn2D: DimensionalBase.In2D[V, R1, R2],
+    dataIn2D: DimensionalBase[V, Domain.In2D[R1, R2]],
     millis: Long = 0,
     title: String = "Visualize 2D data"
   ): Unit =

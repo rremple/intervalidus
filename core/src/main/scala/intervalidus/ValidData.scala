@@ -95,7 +95,7 @@ object ValidData:
     */
   class Builds[V, D <: NonEmptyTuple: DomainLike, +To](
     build: Iterable[ValidData[V, D]] => To
-  )(using Experimental)
+  )(using config: CoreConfig[D])
     extends mutable.ReusableBuilder[ValidData[V, D], To]:
     private val validDataBuilder: mutable.Builder[ValidData[V, D], Iterable[ValidData[V, D]]] = Iterable.newBuilder
 

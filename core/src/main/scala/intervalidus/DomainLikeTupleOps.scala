@@ -1,5 +1,7 @@
 package intervalidus
 
+import scala.collection.mutable
+
 /**
   * Internal type class for operating on multidimensional domains and related structures.
   *
@@ -25,9 +27,15 @@ trait DomainLikeTupleOps[D <: NonEmptyTuple]:
 
   def toCodeLikeStringsFromDomain(domainTuple: D): List[String]
 
-  def fixedOrderedHashesFromDomain(domainTuple: D): Vector[Double]
+  def fixedOrderedHashesFromDomain(
+    domainTuple: D,
+    builder: mutable.ArrayBuilder[Double]
+  ): mutable.ArrayBuilder[Double]
 
-  def unfixedOrderedHashesFromDomain(domainTuple: D): Vector[Option[Double]]
+  def unfixedOrderedHashesFromDomain(
+    domainTuple: D,
+    builder: mutable.ArrayBuilder[Double]
+  ): mutable.ArrayBuilder[Double] // could be NaN
 
   def leftAdjacentFromDomain(domainTuple: D): D
 
@@ -69,7 +77,10 @@ trait DomainLikeTupleOps[D <: NonEmptyTuple]:
    */
 
   // (equivalent, adjacent, total)
-  def equivalencyAndAdjacencyFromIntervals(beforeInterval: Interval[D], afterInterval: Interval[D]): (Int, Int, Int)
+  def equivalencyAndAdjacencyFromIntervals(
+    beforeInterval: Interval[D],
+    afterInterval: Interval[D]
+  ): (Boolean, Int, Int, Int)
 
   def excludingFromIntervals(thisInterval: Interval[D], thatInterval: Interval[D]): Interval.Remainder[D]
 
@@ -79,14 +90,14 @@ trait DomainLikeTupleOps[D <: NonEmptyTuple]:
 
   def uniqueIntervalsFromInterval(intervals: Iterable[Interval[D]]): Iterable[Interval[D]]
 
-  def rightAdjacentKeysFromInterval(interval: Interval[D]): List[(D, Int)]
+  def rightAdjacentKeysFromInterval(interval: Interval[D]): List[D]
 
   def toStringsFromInterval(interval: Interval[D]): List[String]
 
   def toCodeLikeStringsFromInterval(interval: Interval[D]): List[String]
 
   // first dimension start string, first dimension end string, interval grid-formatted string
-  def preprocessForGridFromIntervals(intervals: Iterable[Interval[D]]): Iterable[(String, String, String)]
+  def preprocessForGridFromIntervals(intervals: IterableOnce[Interval[D]]): Iterable[(String, String, String)]
 
   /*
    * Valid data-like capabilities
@@ -120,11 +131,17 @@ object DomainLikeTupleOps:
     inline override def toCodeLikeStringsFromDomain(domainTuple: OneDimDomain[DV]): List[String] =
       List(domainTuple.head.toCodeLikeString)
 
-    inline override def fixedOrderedHashesFromDomain(domainTuple: OneDimDomain[DV]): Vector[Double] =
-      Vector(domainTuple.head.orderedHashFixed)
+    inline override def fixedOrderedHashesFromDomain(
+      domainTuple: OneDimDomain[DV],
+      builder: mutable.ArrayBuilder[Double]
+    ): mutable.ArrayBuilder[Double] =
+      builder.addOne(domainTuple.head.orderedHashFixed)
 
-    inline override def unfixedOrderedHashesFromDomain(domainTuple: OneDimDomain[DV]): Vector[Option[Double]] =
-      Vector(domainTuple.head.orderedHashUnfixed)
+    inline override def unfixedOrderedHashesFromDomain(
+      domainTuple: OneDimDomain[DV],
+      builder: mutable.ArrayBuilder[Double]
+    ): mutable.ArrayBuilder[Double] =
+      builder.addOne(domainTuple.head.orderedHashUnfixed)
 
     inline override def leftAdjacentFromDomain(domainTuple: OneDimDomain[DV]): OneDimDomain[DV] =
       domainTuple.head.leftAdjacent.tupled
@@ -136,7 +153,7 @@ object DomainLikeTupleOps:
       domainTuple.head.closeIfOpen.tupled
 
     inline override def toStringsFromDomain(domainTuple: OneDimDomain[DV]): List[String] =
-      List((domainTuple.head: Domain1D[DV] /*bug?*/ ).toString)
+      List(domainTuple.head.toString)
 
     inline override def pointsFromDomains(
       startDomainTuple: OneDimDomain[DV],
@@ -193,10 +210,13 @@ object DomainLikeTupleOps:
     inline override def equivalencyAndAdjacencyFromIntervals(
       beforeDomainTuple: Interval[OneDimDomain[DV]],
       afterDomainTuple: Interval[OneDimDomain[DV]]
-    ): (Int, Int, Int) =
+    ): (Boolean, Int, Int, Int) =
       val beforeHead = headInterval(beforeDomainTuple)
       val afterHead = headInterval(afterDomainTuple)
-      (if beforeHead equiv afterHead then 1 else 0, if beforeHead ~> afterHead then 1 else 0, 1)
+      val equivalent = if beforeHead equiv afterHead then 1 else 0
+      val adjacent = if beforeHead ~> afterHead then 1 else 0
+      // ultimately, adjacency == 1 && equivalency == total - 1, but in the head, a weaker equality still holds:
+      (equivalent + adjacent == 1, equivalent, adjacent, 1)
 
     inline override def excludingFromIntervals(
       thisInterval: Interval[OneDimDomain[DV]],
@@ -219,11 +239,11 @@ object DomainLikeTupleOps:
     inline override def uniqueIntervalsFromInterval(
       intervals: Iterable[Interval[OneDimDomain[DV]]]
     ): Iterable[Interval[OneDimDomain[DV]]] =
-      Interval1D.uniqueIntervals(intervals.map(headInterval)).map(_.tupled)
+      Interval1D.uniqueIntervals(intervals.iterator.map(headInterval)).map(_.tupled)
 
     inline override def rightAdjacentKeysFromInterval(
       interval: Interval[OneDimDomain[DV]]
-    ): List[(OneDimDomain[DV], Int)] = List((interval.end.head.rightAdjacent.tupled, 1), (interval.start, 0))
+    ): List[OneDimDomain[DV]] = List(interval.end.head.rightAdjacent.tupled)
 
     inline override def toStringsFromInterval(
       interval: Interval[OneDimDomain[DV]]
@@ -234,9 +254,9 @@ object DomainLikeTupleOps:
     ): List[String] = List(headInterval(interval).toCodeLikeString)
 
     inline override def preprocessForGridFromIntervals(
-      intervals: Iterable[Interval[OneDimDomain[DV]]]
+      intervals: IterableOnce[Interval[OneDimDomain[DV]]]
     ): Iterable[(String, String, String)] =
-      Interval1D.preprocessForGrid(intervals.map(headInterval))
+      Interval1D.preprocessForGrid(intervals.iterator.map(headInterval))
 
     /*
      * Valid data-like capabilities
@@ -272,13 +292,21 @@ object DomainLikeTupleOps:
     inline override def toCodeLikeStringsFromDomain(domainTuple: MultiDimDomain[DV, DomainTail]): List[String] =
       domainTuple.head.toCodeLikeString :: applyToTail.toCodeLikeStringsFromDomain(domainTuple.tail)
 
-    inline override def fixedOrderedHashesFromDomain(domainTuple: MultiDimDomain[DV, DomainTail]): Vector[Double] =
-      domainTuple.head.orderedHashFixed +: applyToTail.fixedOrderedHashesFromDomain(domainTuple.tail)
+    inline override def fixedOrderedHashesFromDomain(
+      domainTuple: MultiDimDomain[DV, DomainTail],
+      builder: mutable.ArrayBuilder[Double]
+    ): mutable.ArrayBuilder[Double] = applyToTail.fixedOrderedHashesFromDomain(
+      domainTuple.tail,
+      builder.addOne(domainTuple.head.orderedHashFixed)
+    )
 
     inline override def unfixedOrderedHashesFromDomain(
-      domainTuple: MultiDimDomain[DV, DomainTail]
-    ): Vector[Option[Double]] = domainTuple.head.orderedHashUnfixed +:
-      applyToTail.unfixedOrderedHashesFromDomain(domainTuple.tail)
+      domainTuple: MultiDimDomain[DV, DomainTail],
+      builder: mutable.ArrayBuilder[Double]
+    ): mutable.ArrayBuilder[Double] = applyToTail.unfixedOrderedHashesFromDomain(
+      domainTuple.tail,
+      builder.addOne(domainTuple.head.orderedHashUnfixed)
+    )
 
     inline override def leftAdjacentFromDomain(
       domainTuple: MultiDimDomain[DV, DomainTail]
@@ -297,7 +325,7 @@ object DomainLikeTupleOps:
 
     inline override def toStringsFromDomain(
       domainTuple: MultiDimDomain[DV, DomainTail]
-    ): List[String] = (domainTuple.head: Domain1D[DV] /*bug?*/ ).toString ::
+    ): List[String] = domainTuple.head.toString ::
       applyToTail.toStringsFromDomain(domainTuple.tail)
 
     inline override def pointsFromDomains(
@@ -377,17 +405,22 @@ object DomainLikeTupleOps:
     inline override def equivalencyAndAdjacencyFromIntervals(
       beforeDomainTuple: Interval[MultiDimDomain[DV, DomainTail]],
       afterDomainTuple: Interval[MultiDimDomain[DV, DomainTail]]
-    ): (Int, Int, Int) =
-      val beforeHead = headInterval(beforeDomainTuple)
-      val afterHead = headInterval(afterDomainTuple)
-      val equivalent = beforeHead equiv afterHead
-      val adjacent = beforeHead ~> afterHead
-      val (tailEquivalency, tailAdjacency, tailTotal) =
+    ): (Boolean, Int, Int, Int) =
+      val (tailPartialResult, tailEquivalency, tailAdjacency, tailTotal) =
         applyToTail.equivalencyAndAdjacencyFromIntervals(
           tailInterval(beforeDomainTuple),
           tailInterval(afterDomainTuple)
         )
-      (tailEquivalency + (if equivalent then 1 else 0), tailAdjacency + (if adjacent then 1 else 0), tailTotal + 1)
+      if !tailPartialResult // adjacency test fails early returning partial results - prevents unnecessary calculations
+      then (tailPartialResult, tailEquivalency, tailAdjacency, tailTotal)
+      else
+        val beforeHead = headInterval(beforeDomainTuple)
+        val afterHead = headInterval(afterDomainTuple)
+        val equivalent = tailEquivalency + (if beforeHead equiv afterHead then 1 else 0)
+        val adjacent = tailAdjacency + (if beforeHead ~> afterHead then 1 else 0)
+        val total = tailTotal + 1
+        // ultimately, adjacency == 1 && equivalency == total - 1, but in the tail, these weaker inequalities hold:
+        (equivalent + adjacent == total && adjacent <= 1 && equivalent >= total - 1, equivalent, adjacent, total)
 
     inline override def excludingFromIntervals(
       thisInterval: Interval[MultiDimDomain[DV, DomainTail]],
@@ -416,19 +449,19 @@ object DomainLikeTupleOps:
     def uniqueIntervalsFromInterval(
       intervals: Iterable[Interval[MultiDimDomain[DV, DomainTail]]]
     ): Iterable[Interval[MultiDimDomain[DV, DomainTail]]] =
+      // I know this buffering is odd, but it is fast (avoids overhead of flatMap)!
+      val b = Iterable.newBuilder[Interval[MultiDimDomain[DV, DomainTail]]]
       for
         headInterval1D <- Interval1D.uniqueIntervals(intervals.map(headInterval))
         tailInterval <- applyToTail.uniqueIntervalsFromInterval(intervals.map(tailInterval))
-      yield tailInterval withHead headInterval1D
+      do b.addOne(tailInterval withHead headInterval1D)
+      b.result()
 
     inline override def rightAdjacentKeysFromInterval(
       interval: Interval[MultiDimDomain[DV, DomainTail]]
-    ): List[(MultiDimDomain[DV, DomainTail], Int)] =
-      for
-        (head, headSwaps) <- List((interval.end.head.rightAdjacent, 1), (interval.start.head, 0))
-        (tail, tailSwaps) <- applyToTail.rightAdjacentKeysFromInterval(tailInterval(interval))
-        if headSwaps + tailSwaps <= 1
-      yield (head *: tail, headSwaps + tailSwaps)
+    ): List[MultiDimDomain[DV, DomainTail]] =
+      (interval.end.head.rightAdjacent *: interval.start.tail) ::
+        applyToTail.rightAdjacentKeysFromInterval(tailInterval(interval)).map(interval.start.head *: _)
 
     inline override def toStringsFromInterval(
       interval: Interval[MultiDimDomain[DV, DomainTail]]
@@ -442,9 +475,9 @@ object DomainLikeTupleOps:
 
     // not recursive
     inline override def preprocessForGridFromIntervals(
-      intervals: Iterable[Interval[MultiDimDomain[DV, DomainTail]]]
+      intervals: IterableOnce[Interval[MultiDimDomain[DV, DomainTail]]]
     ): Iterable[(String, String, String)] =
-      Interval1D.preprocessForGrid(intervals.map(headInterval))
+      Interval1D.preprocessForGrid(intervals.iterator.map(headInterval))
 
     /*
      * Valid data-like capabilities

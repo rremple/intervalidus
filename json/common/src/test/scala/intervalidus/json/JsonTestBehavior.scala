@@ -9,7 +9,7 @@ import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
-import java.time.{Instant, LocalDateTime, ZoneOffset}
+import java.time.{Instant, LocalDateTime, ZoneId, ZoneOffset}
 import scala.language.implicitConversions
 
 /**
@@ -28,6 +28,9 @@ trait JsonTestBehavior[W[_], R[_]](using
   W[Interval.In1D[Int]],
   W[Interval.In2D[Int, Int]],
   W[Interval.In3D[Int, Int, Int]],
+  W[IntervalShape.In1D[Int]],
+  W[IntervalShape.In2D[Int, Int]],
+  W[IntervalShape.In3D[Int, Int, Int]],
   W[ValidData.In1D[String, Int]],
   W[ValidData.In2D[String, Int, Int]],
   W[ValidData.In3D[String, Int, Int, Int]],
@@ -46,6 +49,8 @@ trait JsonTestBehavior[W[_], R[_]](using
   W[immutable.DataVersioned.In1D[String, Int]],
   W[mutable.DataMulti.In1D[String, Int]],
   W[immutable.DataMulti.In1D[String, Int]],
+  W[mutable.DataMonoid.In1D[Double, Int]],
+  W[immutable.DataMonoid.In1D[Double, Int]],
   R[Domain1D[Int]],
   R[Domain.In1D[Int]],
   R[Domain.In2D[Int, Int]],
@@ -53,6 +58,9 @@ trait JsonTestBehavior[W[_], R[_]](using
   R[Interval.In1D[Int]],
   R[Interval.In2D[Int, Int]],
   R[Interval.In3D[Int, Int, Int]],
+  R[IntervalShape.In1D[Int]],
+  R[IntervalShape.In2D[Int, Int]],
+  R[IntervalShape.In3D[Int, Int, Int]],
   R[ValidData.In1D[String, Int]],
   R[ValidData.In2D[String, Int, Int]],
   R[ValidData.In3D[String, Int, Int, Int]],
@@ -70,7 +78,9 @@ trait JsonTestBehavior[W[_], R[_]](using
   R[mutable.DataVersioned.In1D[String, Int]],
   R[immutable.DataVersioned.In1D[String, Int]],
   R[mutable.DataMulti.In1D[String, Int]],
-  R[immutable.DataMulti.In1D[String, Int]]
+  R[immutable.DataMulti.In1D[String, Int]],
+  R[mutable.DataMonoid.In1D[Double, Int]],
+  R[immutable.DataMonoid.In1D[Double, Int]]
 ):
   this: AnyFunSuite & Matchers =>
 
@@ -121,29 +131,45 @@ trait JsonTestBehavior[W[_], R[_]](using
       // must be an object
       assertThrows[Exception](quote("Top").as[Domain.In3D[Int, Int, Int]])
 
-    test(s"$prefix: Intervals encoded as objects - 1D"):
-      isomorphic(intervalFrom(0): Interval.In1D[Int], """{"start":[{"point":0}],"end":["Top"]}""")
-      isomorphic(intervalTo(0): Interval.In1D[Int], """{"start":["Bottom"],"end":[{"point":0}]}""")
+    test(s"$prefix: Intervals encoded as objects and IntervalShapes encoded as arrays - 1D"):
+      val interval1: Interval.In1D[Int] = intervalTo(0)
+      val interval2: Interval.In1D[Int] = intervalFrom(0)
+      val shape = IntervalShape.withoutChecks(Seq(interval1, interval2))
 
-    test(s"$prefix: Intervals encoded as objects - 2D"):
-      isomorphic(
-        intervalFrom(0) x intervalTo(0),
-        """{"start":[{"point":0},"Bottom"],"end":["Top",{"point":0}]}"""
-      )
-      isomorphic(
-        intervalTo(0) x intervalFrom(0),
-        """{"start":["Bottom",{"point":0}],"end":[{"point":0},"Top"]}"""
-      )
+      val interval1Json = """{"start":["Bottom"],"end":[{"point":0}]}"""
+      val interval2Json = """{"start":[{"point":0}],"end":["Top"]}"""
+      val shapeJson = s"""[$interval1Json,$interval2Json]"""
 
-    test(s"$prefix: Intervals encoded as objects - 3D"):
-      isomorphic(
-        intervalFrom(0) x intervalTo(0) x unbounded[Int],
-        """{"start":[{"point":0},"Bottom","Bottom"],"end":["Top",{"point":0},"Top"]}"""
-      )
-      isomorphic(
-        intervalFrom(0) x unbounded[Int] x intervalTo(0),
-        """{"start":[{"point":0},"Bottom","Bottom"],"end":["Top","Top",{"point":0}]}"""
-      )
+      isomorphic(interval1, interval1Json)
+      isomorphic(interval2, interval2Json)
+      isomorphic(shape, shapeJson)
+
+    test(s"$prefix: Intervals encoded as objects and IntervalShapes encoded as arrays - 2D"):
+      val interval1 = intervalTo(0) x intervalFrom(0)
+      val interval2 = intervalFrom(0) x intervalTo(0)
+      val shape = IntervalShape.withoutChecks(Seq(interval1, interval2))
+
+      val interval1Json = """{"start":["Bottom",{"point":0}],"end":[{"point":0},"Top"]}"""
+      val interval2Json = """{"start":[{"point":0},"Bottom"],"end":["Top",{"point":0}]}"""
+      val shapeJson = s"""[$interval1Json,$interval2Json]"""
+
+      isomorphic(interval1, interval1Json)
+      isomorphic(interval2, interval2Json)
+      isomorphic(shape, shapeJson)
+
+    test(s"$prefix: Intervals encoded as objects and IntervalShapes encoded as arrays - 3D"):
+      val interval1 = intervalTo(0) x intervalFrom(0) x intervalTo(0)
+      val interval2 = intervalFrom(0) x intervalTo(0) x unbounded[Int]
+      val shape = IntervalShape.withoutChecks(Seq(interval1, interval2))
+
+      val interval1Json = """{"start":["Bottom",{"point":0},"Bottom"],"end":[{"point":0},"Top",{"point":0}]}"""
+      val interval2Json = """{"start":[{"point":0},"Bottom","Bottom"],"end":["Top",{"point":0},"Top"]}"""
+
+      val shapeJson = s"""[$interval1Json,$interval2Json]"""
+
+      isomorphic(interval1, interval1Json)
+      isomorphic(interval2, interval2Json)
+      isomorphic(shape, shapeJson)
 
     test(s"$prefix: Valid data encoded as objects - 1D"):
       isomorphic(
@@ -340,23 +366,25 @@ trait JsonTestBehavior[W[_], R[_]](using
       )
 
     test(s"$prefix: Dimensional versioned data encoded as objects - 1D (underlying 2D)"):
+      extension (t: LocalDateTime) def instant: Instant = t.atZone(ZoneId.of("America/Los_Angeles")).toInstant
+
       val initTime = LocalDateTime.of(2025, 11, 19, 12, 15)
       val incrementTime = initTime.plusMinutes(1)
-      given CurrentDateTime = CurrentDateTime.simulated(initTime)
+      given CurrentInstant = CurrentInstant.simulated(initTime.instant)
 
       val immutableDataVersioned = immutable.DataVersioned
         .of(intervalFrom(0) -> "Hello", 0, "custom init")
-        .incrementCurrentVersion("to one")(using CurrentDateTime.simulated(incrementTime))
+        .incrementCurrentVersion("to one")(using CurrentInstant.simulated(incrementTime.instant))
         .set(intervalToBefore(0) -> "Goodbye")
 
       val mutableDataVersioned = mutable.DataVersioned
         .of(intervalFrom(0) -> "Hello", 0, "custom init")
-      mutableDataVersioned.incrementCurrentVersion("to one")(using CurrentDateTime.simulated(incrementTime))
+      mutableDataVersioned.incrementCurrentVersion("to one")(using CurrentInstant.simulated(incrementTime.instant))
       mutableDataVersioned.set(intervalToBefore(0) -> "Goodbye")
 
       val json =
         """{"initialVersion":0,"currentVersion":1""" +
-          ""","versionTimestamps":[[0,["2025-11-19T12:15","custom init"]],[1,["2025-11-19T12:16","to one"]]]""" +
+          ""","versionTimestamps":[[0,["2025-11-19T20:15:00Z","custom init"]],[1,["2025-11-19T20:16:00Z","to one"]]]""" +
           ""","data":[""" +
           """{"value":"Hello","interval":{"start":[{"point":0},{"point":0}],"end":["Top","Top"]}},""" +
           """{"value":"Goodbye","interval":{"start":[{"point":1},"Bottom"],"end":["Top",{"point":-1}]}}""" +
@@ -405,6 +433,30 @@ trait JsonTestBehavior[W[_], R[_]](using
       )
       isomorphicData[mutable.DataMulti.In1D[String, Int], ValidData.In1D[Set[String], Int]](
         mutable.DataMulti.from(data),
+        json,
+        _.getAll
+      )
+
+    test(s"$prefix: Dimensional monoid data encoded as arrays - 1D"):
+      val data = Seq(
+        intervalFrom(1) -> 0.1134,
+        intervalTo(0) -> 6.009643
+      )
+      val json =
+        """[{"value":6.009643""" +
+          ""","interval":{"start":["Bottom"],"end":[{"point":0}]""" +
+          "}}" +
+          """,{"value":0.1134""" +
+          ""","interval":{"start":[{"point":1}],"end":["Top"]""" +
+          "}}]"
+
+      isomorphicData[immutable.DataMonoid.In1D[Double, Int], ValidData.In1D[Double, Int]](
+        immutable.DataMonoid(data),
+        json,
+        _.getAll
+      )
+      isomorphicData[mutable.DataMonoid.In1D[Double, Int], ValidData.In1D[Double, Int]](
+        mutable.DataMonoid(data),
         json,
         _.getAll
       )
