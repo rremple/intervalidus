@@ -19,6 +19,8 @@ object Variable extends VariableObjectBase[Variable]:
 /**
   * A value that varies in time.
   *
+  * @param config
+  *   $configParam
   * @tparam T
   *   the value type
   */

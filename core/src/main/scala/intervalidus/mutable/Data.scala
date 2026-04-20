@@ -24,6 +24,8 @@ object Data extends DimensionalBaseObject[Data] with DimensionalBaseConstructorP
 /**
   * Mutable dimensional data.
   *
+  * @param config
+  *   $configParam
   * @tparam V
   *   $dataValueType
   * @tparam D

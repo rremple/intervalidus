@@ -32,6 +32,8 @@ object DataMulti extends DimensionalMultiBaseObject[DataMulti]:
   *
   * $classDesc
   *
+  * @param config
+  *   $configParam
   * @tparam V
   *   $dataValueType
   * @tparam D

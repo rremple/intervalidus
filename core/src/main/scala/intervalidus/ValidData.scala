@@ -86,6 +86,8 @@ object ValidData:
     *
     * @param build
     *   generates the result from a collection of valid data
+    * @param config
+    *   context parameter for configuration -- uses defaults if not given explicitly
     * @tparam V
     *   the type of the value managed as data (the codomain).
     * @tparam D

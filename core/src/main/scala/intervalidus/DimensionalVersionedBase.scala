@@ -288,6 +288,8 @@ trait DimensionalVersionedBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimen
   * @tparam D
   *   the domain type -- a non-empty tuple that is DomainLike.
   *
+  * @define configParam
+  *   context parameter for configuration -- uses defaults if not given explicitly
   * @define classDescUseCase
   *   One use case would be versioned data that are valid in two dimensions of time, so the underlying data actually
   *   vary in terms of version and two dimensions of time (three dimensions).
@@ -437,6 +439,9 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
 )(using DomainLike[Versioned[D]], CurrentInstant)
   extends PartialFunction[Versioned[D], V]:
 
+  /**
+    * $configParam
+    */
   given config: CoreConfig[Versioned[D]]
 
   // considers versions, but does not consider version metadata history in equality check

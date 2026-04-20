@@ -40,12 +40,16 @@ import VariableBase.{Time, given}
 
 /**
   * Base for companions of values that vary in time.
+  * @define configParam
+  *   context parameter for configuration -- uses defaults if not given explicitly
   */
 trait VariableObjectBase[Self[_] <: VariableBase[?]]:
 
   /**
     * @param initialValue
     *   initial value of this variable
+    * @param config
+    *   $configParam
     * @tparam T
     *   the value type
     * @return
@@ -58,6 +62,8 @@ trait VariableObjectBase[Self[_] <: VariableBase[?]]:
   /**
     * @param history
     *   historical values of this variable
+    * @param config
+    *   $configParam
     * @tparam T
     *   the value type
     * @return
@@ -72,8 +78,13 @@ trait VariableObjectBase[Self[_] <: VariableBase[?]]:
   *
   * @tparam T
   *   the value type
+  * @define configParam
+  *   context parameter for configuration -- uses defaults if not given explicitly
   */
 trait VariableBase[T] extends (Time => T):
+  /**
+    * $configParam
+    */
   given config: CoreConfig[Time]
 
   // could be mutable or immutable

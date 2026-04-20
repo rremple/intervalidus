@@ -10,6 +10,8 @@ import scala.language.implicitConversions
   *
   * @define intervalDomainType
   *   the domain type -- a non-empty tuple that is DomainLike.
+  * @define configParam
+  *   context parameter for configuration -- uses defaults if not given explicitly
   */
 object IntervalShape:
   type In1D[R1] = IntervalShape[Domain.In1D[R1]]
@@ -20,6 +22,8 @@ object IntervalShape:
   /**
     * The empty set.
     *
+    * @param config
+    *   $configParam
     * @tparam D
     *   $intervalDomainType
     */
@@ -39,6 +43,8 @@ object IntervalShape:
   /**
     * The universal set.
     *
+    * @param config
+    *   $configParam
     * @tparam D
     *   $intervalDomainType
     */
@@ -50,6 +56,8 @@ object IntervalShape:
     *
     * The universal set.
     *
+    * @param config
+    *   $configParam
     * @tparam D
     *   $intervalDomainType
     */
@@ -60,6 +68,8 @@ object IntervalShape:
     *
     * @param initialInterval
     *   a single interval.
+    * @param config
+    *   $configParam
     * @tparam D
     *   $intervalDomainType
     * @return
@@ -74,6 +84,8 @@ object IntervalShape:
     *
     * @param initialIntervals
     *   collection of intervals -- intervals must be disjoint.
+    * @param config
+    *   $configParam
     * @tparam D
     *   $intervalDomainType
     * @return
@@ -90,6 +102,8 @@ object IntervalShape:
     *
     * @param initialIntervals
     *   collection of intervals -- intervals must be disjoint.
+    * @param config
+    *   $configParam
     * @tparam D
     *   $intervalDomainType
     * @return
@@ -103,6 +117,8 @@ object IntervalShape:
   /**
     * Get a Builder based on an intermediate buffer of intervals.
     *
+    * @param config
+    *   $configParam
     * @tparam D
     *   $intervalDomainType
     */
@@ -123,10 +139,17 @@ object IntervalShape:
 
   /**
     * So a single interval can be used when the general notion of a multi-interval shape is needed.
+    * @param config
+    *   $configParam
     */
   given [D <: NonEmptyTuple: DomainLike](using config: CoreConfig[D]): Conversion[Interval[D], IntervalShape[D]] = of(_)
 
   extension [D <: NonEmptyTuple: DomainLike](is: Iterable[Interval[D]])
+    /**
+      * Convert a collection of intervals into an interval-based shape.
+      * @param config
+      *   $configParam
+      */
     def toShape(using config: CoreConfig[D]): IntervalShape[D] = apply(is)
 
 /**
@@ -198,6 +221,8 @@ object IntervalShape:
   *      - `a ⊆ ξ`
   *      - `∅ ⊆ a`
   *
+  * @param config
+  *   context parameter for configuration -- uses defaults if not given explicitly
   * @tparam D
   *   the domain type -- a non-empty tuple that is DomainLike.
   */

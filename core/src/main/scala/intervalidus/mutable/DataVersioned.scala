@@ -37,6 +37,8 @@ object DataVersioned extends DimensionalVersionedBaseObject[DataVersioned]:
   * @note
   *   $classNote
   *
+  * @param config
+  *   $configParam
   * @tparam V
   *   $dataValueType
   * @tparam D

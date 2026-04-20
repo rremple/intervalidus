@@ -23,6 +23,8 @@ object DataMonoid extends DimensionalMonoidBaseObject[DataMonoid]:
 /**
   * Immutable dimensional data where values can be combined as monoids.
   *
+  * @param config
+  *   $configParam
   * @tparam V
   *   $dataValueType
   * @tparam D
