@@ -1,6 +1,6 @@
 package intervalidus.collection
 
 /**
-  * Intervalidus's custom mutable data structures -- used internally.
+  * Intervalidus's custom mutable data structures -- [[BoxTree]] used internally.
   */
 package object mutable

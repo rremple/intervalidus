@@ -1,9 +1,10 @@
 package intervalidus.mutable
 
 import intervalidus.*
-import intervalidus.collection.mutable.{BoxTree, MultiMapSorted}
+import intervalidus.collection.immutable.MultiMapSorted
+import intervalidus.collection.mutable.BoxTree
 
-import scala.collection.mutable
+import scala.collection.immutable.TreeMap
 
 /**
   * Constructs multi-data in multidimensional intervals.
@@ -40,12 +41,15 @@ object DataMulti extends DimensionalMultiBaseObject[DataMulti]:
   *   $intervalDomainType
   */
 class DataMulti[V, D <: NonEmptyTuple: DomainLike] private (
-  override val dataByStart: mutable.TreeMap[D, ValidData[Set[V], D]],
-  override val dataByValue: MultiMapSorted[Set[V], ValidData[Set[V], D]],
+  dataByStartInitial: TreeMap[D, ValidData[Set[V], D]],
+  dataByValueInitial: MultiMapSorted[Set[V], ValidData[Set[V], D]],
   override val dataInBoxTree: BoxTree[ValidData[Set[V], D]]
 )(using val config: CoreConfig[D])
   extends MutableBase[Set[V], D]
   with DimensionalMultiBase[V, D]:
+
+  override protected var dataByStart: TreeMap[D, ValidData[Set[V], D]] = dataByStartInitial
+  override protected var dataByValue: MultiMapSorted[Set[V], ValidData[Set[V], D]] = dataByValueInitial
 
   config.experimental.control("requireDisjoint")(
     nonExperimentalResult = (),
@@ -103,7 +107,7 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] private (
   // ----  (some return Data rather than DataMulti because the resultant value type isn't necessarily a Set type) ----
 
   override def copy: DataMulti[V, D] =
-    new DataMulti(dataByStart.clone(), dataByValue.clone(), dataInBoxTree.copy)
+    new DataMulti(dataByStart, dataByValue, dataInBoxTree.copy)
 
   override def zip[B](that: DimensionalBase[B, D]): Data[(Set[V], B), D] =
     Data(zipData(that, (_, _)))

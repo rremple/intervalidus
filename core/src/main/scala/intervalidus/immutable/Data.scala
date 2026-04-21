@@ -1,9 +1,10 @@
 package intervalidus.immutable
 
 import intervalidus.*
-import intervalidus.collection.mutable.{BoxTree, MultiMapSorted}
+import intervalidus.collection.immutable.MultiMapSorted
+import intervalidus.collection.mutable.BoxTree
 
-import scala.collection.mutable
+import scala.collection.immutable.TreeMap
 
 /**
   * $objectDesc
@@ -32,11 +33,14 @@ object Data extends DimensionalBaseObject[Data] with DimensionalBaseConstructorP
   *   $intervalDomainType
   */
 class Data[V, D <: NonEmptyTuple: DomainLike] private (
-  override val dataByStart: mutable.TreeMap[D, ValidData[V, D]],
-  override val dataByValue: MultiMapSorted[V, ValidData[V, D]],
+  dataByStartInitial: TreeMap[D, ValidData[V, D]],
+  dataByValueInitial: MultiMapSorted[V, ValidData[V, D]],
   override val dataInBoxTree: BoxTree[ValidData[V, D]]
 )(using val config: CoreConfig[D])
   extends ImmutableBase[V, D, Data[V, D]]:
+
+  override protected var dataByStart: TreeMap[D, ValidData[V, D]] = dataByStartInitial
+  override protected var dataByValue: MultiMapSorted[V, ValidData[V, D]] = dataByValueInitial
 
   config.experimental.control("requireDisjoint")(
     nonExperimentalResult = (),
@@ -76,7 +80,7 @@ class Data[V, D <: NonEmptyTuple: DomainLike] private (
   // ---------- Implement methods from DimensionalBase that create new instances ----------
 
   override def copy: Data[V, D] =
-    new Data(dataByStart.clone(), dataByValue.clone(), dataInBoxTree.copy)
+    new Data(dataByStart, dataByValue, dataInBoxTree.copy)
 
   override def zip[B](that: DimensionalBase[B, D]): Data[(V, B), D] =
     Data(zipData(that, (_, _)))

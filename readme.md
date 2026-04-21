@@ -765,19 +765,20 @@ implementation in the higher, inheriting trait/class:
 
 ## Internals and extras
 
-Both the mutable and immutable variants of `Data`, `DataMulti`, and `DataVersioned` use three mutable data
-structures internally for managing state, two of which are custom (in the `collection` subproject):
+Both the mutable and immutable variants of `Data`, `DataMulti`, and `DataVersioned` use three data structures internally
+for managing state, two of which are custom (in the `collection` subproject):
 
-- A mutable standard library `TreeMap`, ordered by the start of each interval. This allows for fast in-order retrieval
-  in methods like `getAll`, and is essential for deterministic results in methods like `foldLeft` that use `getAll`.
+- An immutable standard library `TreeMap`, ordered by the start of each interval. This allows for fast in-order
+  retrieval in methods like `getAll`, and is essential for deterministic results in methods like `foldLeft` that use
+  `getAll`.
 
-- A mutable multimap that associates each value with all the intervals in which that value is valid, ordered by the
+- An immutable multimap that associates each value with all the intervals in which that value is valid, ordered by the
   start of each interval. This speeds up operations like `compress`, which improves performance for all mutation
   operations that use `compress`. Intervalidus uses its own compact implementation of a `MultiMapSorted` (based on
   standard library `Map` and `SortedSet`) which is somewhat similar to `SortedMultiDict` in `scala-collection-contrib`,
   but returns the _values_ in order, not the _keys_. Having values in order is essential for deterministic results from
-  `compress` and all mutation operations relying on `compress`. Only the mutable variant is used internally, but an
-  immutable variant is also provided. Note that the sample billing application uses this multimap directly for managing
+  `compress` and all mutation operations relying on `compress`. Only the immutable variant is used internally, but a
+  mutable variant is also provided. Note that the sample billing application uses this multimap directly for managing
   customer transactions.
 
 - A "box search tree", which is a specialized, high-performance hyperoctree (i.e., a B-tree, quadtree, octree, etc.,
@@ -819,13 +820,22 @@ objects:
 
 ![box tree trait stack diagram](/doc/intervalidus-trait-stack-box-tree.svg)
 
-Note that box search trees are tunable via environment variables.
+Note that box search trees are tunable via the `CollectionConfig` context parameter (referenced from the `CoreConfig`
+context parameter) as well as environment variables.
 
-- The default capacity of leaf nodes is 256, which was found to be optimal in micro-benchmarks. This can be overridden
-  by setting the environment variable `INTERVALIDUS_TREE_NODE_CAPACITY`.
+- The default capacity of leaf nodes is 1024, which was found to be optimal in micro-benchmarks. This can be overridden
+  by setting the `nodeCapacity` value in the the `CollectionConfig` context parameter or by setting the environment
+  variable or system property `INTERVALIDUS_TREE_NODE_CAPACITY`.
 
-- The default depth limit of trees is 32, which was found to be optimal in micro-benchmarks. This can be overridden by
-  setting the environment variable `INTERVALIDUS_TREE_DEPTH_LIMIT`.
+- The default depth limit of trees is 32, which was found to be optimal in micro-benchmarks. This can be overridden
+  by setting the `depthLimit` value in the the `CollectionConfig` context parameter or by setting the environment
+  variable or system property `INTERVALIDUS_TREE_DEPTH_LIMIT`.
+
+- The way core intervalidus structures use box search trees assumes, as a starting point, a tight boundary around the
+  origin with a spatial capacity large enough to contain the initial data. This generally has good performance, and
+  grows automatically as needed, but if a more reasonable estimate for spacial capacity is known at the time the
+  structure is created, it can improve performance. One can provide a spatial capacity hint by setting the
+  `capacityHint` value in the `CoreConfig` context parameter.
 
 Apart from `collection`, there are a few other subprojects that are worth mentioning:
 
@@ -868,8 +878,9 @@ Apart from `collection`, there are a few other subprojects that are worth mentio
   can be managed in a database. It uses MongoDB (via Testcontainers) to store, retrieve, and update data.
 
 Lastly, there is a context parameter component used to enable/disable experimental features (a.k.a., feature flagging)
-called `Experimental`. The default implementation given disables all experimental features. But one can enable something
-experimental simply by giving an alternative implementation of `Experimental` when the structure is constructed.
+called `Experimental` (referenced from `CoreConfig`). The default implementation given disables all experimental
+features. But one can enable something experimental simply by giving an alternative implementation of `Experimental`
+when the structure is constructed.
 
 E.g., consider the requirement for intervals to be disjoint (i.e., non-overlapping) in all valid data. All mutation
 operations (e.g. `set`) maintain this invariant automatically, but one could still construct a structure incorrectly
@@ -886,6 +897,7 @@ import intervalidus.immutable.Data
 import java.time.LocalDate.of as date
 
 given Experimental = Experimental("requireDisjoint")
+// or given CoreConfig = CoreConfig.default.withExperimental(Experimental("requireDisjoint"))
 
 val plan1d = Data(
   Seq(

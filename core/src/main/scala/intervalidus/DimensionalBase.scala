@@ -2,9 +2,11 @@ package intervalidus
 
 import intervalidus.DomainLike.given
 import intervalidus.collection.{Boundary, Box, BoxedPayload, Capacity}
-import intervalidus.collection.mutable.{BoxTree, MultiMapSorted}
+import intervalidus.collection.immutable.MultiMapSorted
+import intervalidus.collection.mutable.BoxTree
 
 import java.util.NoSuchElementException
+import scala.collection.immutable.TreeMap
 import scala.collection.mutable
 
 /**
@@ -147,7 +149,7 @@ trait DimensionalBaseConstructorParams:
     domainValue: DomainLike[D],
     config: CoreConfig[D]
   ): (
-    mutable.TreeMap[D, ValidData[V, D]],
+    TreeMap[D, ValidData[V, D]],
     MultiMapSorted[V, ValidData[V, D]],
     BoxTree[ValidData[V, D]]
   ) =
@@ -159,7 +161,7 @@ trait DimensionalBaseConstructorParams:
         initialPayloads.foldLeft(Capacity.aroundOrigin(domainValue.arity)): (capacity, payload) =>
           capacity.growAround(payload.box)
     (
-      mutable.TreeMap.from(initialData.map(_.withStartKey)),
+      TreeMap.from(initialData.map(_.withStartKey)),
       MultiMapSorted.from(initialData.map(_.withValueKey)),
       BoxTree.from(Boundary(initialCapacity), initialPayloads)
     )
@@ -365,8 +367,8 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     */
   protected def addValidData(data: ValidData[V, D]): Unit =
     // assert(!dataByStart.isDefinedAt(data.interval.start))
-    dataByStart.addOne(data.withStartKey)
-    dataByValue.addOne(data.withValueKey)
+    dataByStart = dataByStart.updated(data.interval.start, data)
+    dataByValue = dataByValue.addOne(data.withValueKey)
     dataInBoxTree.addOne(data.asBoxedPayload)
 
   /**
@@ -378,9 +380,8 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
   protected def updateValidData(data: ValidData[V, D]): Unit =
     // assert(dataByStart.isDefinedAt(data.interval.start))
     val oldData = dataByStart(data.interval.start)
-    dataByValue.subtractOne(oldData.withValueKey)
-    dataByValue.addOne(data.withValueKey)
-    dataByStart.update(data.interval.start, data)
+    dataByValue = dataByValue.subtractOne(oldData.withValueKey).addOne(data.withValueKey)
+    dataByStart = dataByStart.updated(data.interval.start, data)
     dataInBoxTree.remove(oldData.asBoxedPayload)
     dataInBoxTree.addOne(data.asBoxedPayload)
 
@@ -391,8 +392,8 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   valid data to remove.
     */
   protected def removeValidData(oldData: ValidData[V, D]): Unit =
-    dataByValue.subtractOne(oldData.withValueKey)
-    dataByStart.remove(oldData.interval.start)
+    dataByValue = dataByValue.subtractOne(oldData.withValueKey)
+    dataByStart = dataByStart.removed(oldData.interval.start)
     dataInBoxTree.remove(oldData.asBoxedPayload)
 
   /**
@@ -410,10 +411,8 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   new valid data replacing the old valid data
     */
   protected def replaceValidData(data: Iterable[ValidData[V, D]]): Unit =
-    dataByStart.clear()
-    dataByStart.addAll(data.map(_.withStartKey))
-    dataByValue.clear()
-    dataByValue.addAll(data.map(_.withValueKey))
+    dataByStart = TreeMap.from(data.map(_.withStartKey))
+    dataByValue = MultiMapSorted.from(data.map(_.withValueKey))
     dataInBoxTree.clear()
     dataInBoxTree.addAll(data.map(_.asBoxedPayload))
 
@@ -1067,14 +1066,16 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     * Internal data structure where all the interval-bounded data are stored, always expected to be disjoint. TreeMap
     * maintains interval key order.
     */
-  protected def dataByStart: scala.collection.mutable.TreeMap[D, ValidData[V, D]]
+  protected def dataByStart: scala.collection.immutable.TreeMap[D, ValidData[V, D]]
+  protected def dataByStart_=(v: scala.collection.immutable.TreeMap[D, ValidData[V, D]]): Unit
 
   /**
     * An internal shadow data structure where all the interval-bounded data are also stored, but using the value itself
     * as the key (for faster compression, which is done by value). The ValidData[V, D] are stored in a sorted set, so
     * they are retrieved in key order, making compression operations repeatable.
     */
-  protected def dataByValue: MultiMapSorted[V, ValidData[V, D]]
+  protected def dataByValue: collection.immutable.MultiMapSorted[V, ValidData[V, D]]
+  protected def dataByValue_=(v: collection.immutable.MultiMapSorted[V, ValidData[V, D]]): Unit
 
   /**
     * An internal shadow data structure where all the interval-bounded data are also stored, but in a "box search tree"

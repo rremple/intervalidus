@@ -1,9 +1,10 @@
 package intervalidus.immutable
 
 import intervalidus.*
-import intervalidus.collection.mutable.{BoxTree, MultiMapSorted}
+import intervalidus.collection.immutable.MultiMapSorted
+import intervalidus.collection.mutable.BoxTree
 
-import scala.collection.mutable
+import scala.collection.immutable.TreeMap
 
 /**
   * Constructs monoid data in multidimensional intervals.
@@ -31,12 +32,15 @@ object DataMonoid extends DimensionalMonoidBaseObject[DataMonoid]:
   *   $intervalDomainType
   */
 class DataMonoid[V, D <: NonEmptyTuple: DomainLike] private (
-  override val dataByStart: mutable.TreeMap[D, ValidData[V, D]],
-  override val dataByValue: MultiMapSorted[V, ValidData[V, D]],
+  dataByStartInitial: TreeMap[D, ValidData[V, D]],
+  dataByValueInitial: MultiMapSorted[V, ValidData[V, D]],
   override val dataInBoxTree: BoxTree[ValidData[V, D]]
 )(using val config: CoreConfig[D], monoid: Monoid[V])
   extends ImmutableBase[V, D, DataMonoid[V, D]]
   with DimensionalMonoidBase[V, D]:
+
+  override protected var dataByStart: TreeMap[D, ValidData[V, D]] = dataByStartInitial
+  override protected var dataByValue: MultiMapSorted[V, ValidData[V, D]] = dataByValueInitial
 
   // ---------- Algebra API methods: Set Algebra ----------
   // ---- Standard set-theoretic operations for multidimensional shapes. ----
@@ -140,7 +144,7 @@ class DataMonoid[V, D <: NonEmptyTuple: DomainLike] private (
   // ----  (some return Data rather than DataMonoid because the resultant value type isn't necessarily a Monoid) ----
 
   override def copy: DataMonoid[V, D] =
-    new DataMonoid(dataByStart.clone(), dataByValue.clone(), dataInBoxTree.copy)
+    new DataMonoid(dataByStart, dataByValue, dataInBoxTree.copy)
 
   override def zip[B](that: DimensionalBase[B, D]): Data[(V, B), D] =
     Data(zipData(that, (_, _)))
