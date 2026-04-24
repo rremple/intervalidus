@@ -1,6 +1,7 @@
 package intervalidus.mutable
 
 import intervalidus.*
+import intervalidus.DimensionalBase.UpdateTransaction
 
 /**
   * Mutable dimensional data.
@@ -12,6 +13,17 @@ import intervalidus.*
   */
 trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, D]:
 
+  // We still need synchronized here to "serialize" transactions. Otherwise, two threads could concurrently start
+  // transactions, and the commit of one would overwrite the commit of the other.
+  /**
+    * Wraps a function body in a new update transaction, committing the resulting changes and returning the result.
+    */
+  protected def transactionalUpdate[T](body: UpdateTransaction[V, D] ?=> T): T = synchronized:
+    given UpdateTransaction[V, D] = UpdateTransaction.start(state)
+    val result = body
+    commit()
+    result
+
   // ---------- Implement methods not in DimensionalBase that have mutable signatures ----------
 
   /**
@@ -19,7 +31,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     * @param interval
     *   $intersectionParamInterval
     */
-  infix def intersection(interval: Interval[D]): Unit = synchronized:
+  infix def intersection(interval: Interval[D]): Unit = transactionalUpdate:
     replaceValidData(intersectionData(interval))
 
   /**
@@ -28,8 +40,9 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     * @param that
     *   $symmetricDifferenceParamThat
     */
-  infix def symmetricDifference(that: DimensionalBase[V, D]): Unit = synchronized:
-    replaceValidData(symmetricDifferenceData(that))
+  infix def symmetricDifference(that: DimensionalBase[V, D]): Unit = transactionalUpdate:
+    transactionalReadOnly(that): thatTx =>
+      replaceValidData(symmetricDifferenceData(that, thatTx))
 
   /**
     * $mapDesc $mutableAction
@@ -37,8 +50,11 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     * @param f
     *   $mapParamF
     */
-  def map(f: ValidData[V, D] => ValidData[V, D]): Unit = synchronized:
-    replaceValidData(getAll.map(f))
+  def map(f: ValidData[V, D] => ValidData[V, D]): Unit = transactionalUpdate:
+    mapInternal(f)
+
+  private def mapInternal(f: ValidData[V, D] => ValidData[V, D])(using UpdateTransaction[V, D]): Unit =
+    replaceValidData(getAllInternal.map(f))
 
   /**
     * $collectDesc $mutableAction
@@ -46,8 +62,8 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     * @param pf
     *   $collectParamPf
     */
-  def collect(pf: PartialFunction[ValidData[V, D], ValidData[V, D]]): Unit = synchronized:
-    replaceValidData(getAll.collect(pf))
+  def collect(pf: PartialFunction[ValidData[V, D], ValidData[V, D]]): Unit = transactionalUpdate:
+    replaceValidData(getAllInternal.collect(pf))
 
   /**
     * $mapValuesDesc $mutableAction
@@ -55,8 +71,8 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     * @param f
     *   $mapValuesParamF
     */
-  def mapValues(f: V => V): Unit =
-    map(d => d.copy(value = f(d.value)))
+  def mapValues(f: V => V): Unit = transactionalUpdate:
+    mapInternal(d => d.copy(value = f(d.value)))
 
   /**
     * $mapIntervalsDesc $mutableAction
@@ -64,8 +80,8 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     * @param f
     *   $mapIntervalsParamF
     */
-  def mapIntervals(f: Interval[D] => Interval[D]): Unit = synchronized:
-    map(d => d.copy(interval = f(d.interval)))
+  def mapIntervals(f: Interval[D] => Interval[D]): Unit = transactionalUpdate:
+    mapInternal(d => d.copy(interval = f(d.interval)))
 
   /**
     * Applies a function to all the elements of this structure and updates valid values from the elements of the
@@ -74,8 +90,8 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     * @param f
     *   $flatMapParamF
     */
-  def flatMap(f: ValidData[V, D] => DimensionalBase[V, D]): Unit = synchronized:
-    replaceValidData(getAll.flatMap(f(_).getAll))
+  def flatMap(f: ValidData[V, D] => DimensionalBase[V, D]): Unit = transactionalUpdate:
+    replaceValidData(getAllInternal.flatMap(f(_).getAll))
 
   /**
     * Updates structure to only include elements which satisfy a predicate. $mutableAction
@@ -83,8 +99,8 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     * @param p
     *   $filterParamP
     */
-  def filter(p: ValidData[V, D] => Boolean): Unit = synchronized:
-    replaceValidData(getAll.filter(p))
+  def filter(p: ValidData[V, D] => Boolean): Unit = transactionalUpdate:
+    replaceValidData(getAllInternal.filter(p))
 
   /**
     * $setDesc $mutableAction
@@ -92,7 +108,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     * @param data
     *   $setParamData
     */
-  def set(data: ValidData[V, D]): Unit = synchronized:
+  def set(data: ValidData[V, D]): Unit = transactionalUpdate:
     setInPlace(data)
 
   /**
@@ -101,7 +117,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     * @param data
     *   $setManyParamData
     */
-  def setMany(data: IterableOnce[ValidData[V, D]]): Unit = synchronized:
+  def setMany(data: IterableOnce[ValidData[V, D]]): Unit = transactionalUpdate:
     val affected = Set.newBuilder[V]
     data.iterator.foreach: d =>
       val updatedValues = updateOrRemoveNoCompress(d.interval, _ => None)
@@ -118,8 +134,8 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     * @return
     *   true if there were no conflicts and new data was set, false otherwise.
     */
-  def setIfNoConflict(data: ValidData[V, D]): Boolean = synchronized:
-    if getIntersecting(data.interval).isEmpty then
+  def setIfNoConflict(data: ValidData[V, D]): Boolean = transactionalUpdate:
+    if getIntersectingInternal(data.interval).isEmpty then
       addValidData(data)
       compress(data.value)
       true
@@ -131,7 +147,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     * @param data
     *   $updateParamData
     */
-  def update(data: ValidData[V, D]): Unit = synchronized:
+  def update(data: ValidData[V, D]): Unit = transactionalUpdate:
     updateOrRemove(data.interval, _ => Some(data.value))
 
   /**
@@ -142,7 +158,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     * @param newData
     *   $replaceParamNewData
     */
-  def replace(oldData: ValidData[V, D], newData: ValidData[V, D]): Unit = synchronized:
+  def replace(oldData: ValidData[V, D], newData: ValidData[V, D]): Unit = transactionalUpdate:
     removeValidData(oldData)
     setInPlace(newData)
 
@@ -154,8 +170,9 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     * @param newData
     *   $replaceByKeyParamNewData
     */
-  def replaceByKey(key: D, newData: ValidData[V, D]): Unit =
-    replace(dataByStart(key), newData)
+  def replaceByKey(key: D, newData: ValidData[V, D]): Unit = transactionalUpdate:
+    removeValidDataByKey(key)
+    setInPlace(newData)
 
   /**
     * $removeDesc $mutableAction
@@ -163,7 +180,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     * @param interval
     *   $removeParamInterval
     */
-  def remove(interval: Interval[D]): Unit = synchronized:
+  def remove(interval: Interval[D]): Unit = transactionalUpdate:
     updateOrRemove(interval, _ => None)
 
   /**
@@ -172,7 +189,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     * @param intervals
     *   $removeManyParamIntervals
     */
-  def removeMany(intervals: IterableOnce[Interval[D]]): Unit = synchronized:
+  def removeMany(intervals: IterableOnce[Interval[D]]): Unit = transactionalUpdate:
     val updatedValues = Set.newBuilder[V]
     intervals.iterator.foreach: interval =>
       updatedValues.addAll(updateOrRemoveNoCompress(interval, _ => None))
@@ -184,7 +201,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     * @param that
     *   $differenceParamThat
     */
-  infix def difference(that: DimensionalBase[V, D]): Unit = removeMany(that.allIntervals)
+  infix def difference(that: DimensionalBase[V, D]): Unit = removeMany(that.allIntervals) // uses external API of that
 
   /**
     * $removeValueDesc $mutableAction
@@ -192,8 +209,8 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     * @param value
     *   $removeValueParamValue
     */
-  def removeValue(value: V): Unit = synchronized:
-    intervals(value).foreach(updateOrRemoveNoCompress(_, _ => None)) // no compression needed
+  def removeValue(value: V): Unit = transactionalUpdate:
+    intervalsInternal(value).foreach(updateOrRemoveNoCompress(_, _ => None)) // no compression needed
 
   /**
     * $compressDesc $mutableAction
@@ -201,14 +218,14 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     * @param value
     *   $compressParamValue
     */
-  def compress(value: V): Unit = synchronized:
+  def compress(value: V): Unit = transactionalUpdate:
     compressInPlace(value)
 
   /**
     * $compressAllDesc $mutableAction
     */
-  def compressAll(): Unit = synchronized:
-    dataByValue.keySet.foreach(compress)
+  def compressAll(): Unit = transactionalUpdate:
+    valuesInternal.foreach(compressInPlace)
 
   /**
     * $recompressAllDesc1
@@ -220,7 +237,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     * @param otherIntervals
     *   $recompressAllParamOtherIntervals
     */
-  def recompressAll(otherIntervals: IterableOnce[Interval[D]] = Iterable.empty): Unit = synchronized:
+  def recompressAll(otherIntervals: IterableOnce[Interval[D]] = Iterable.empty): Unit = transactionalUpdate:
     recompressInPlace(otherIntervals)
 
   /**
@@ -229,7 +246,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     * @param diffActions
     *   $applyDiffActionsParamDiffActions
     */
-  def applyDiffActions(diffActions: IterableOnce[DiffAction[V, D]]): Unit = synchronized:
+  def applyDiffActions(diffActions: IterableOnce[DiffAction[V, D]]): Unit = transactionalUpdate:
     diffActions.iterator.foreach(applyDiffActionInPlace)
 
   /**
@@ -239,7 +256,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     *   $syncWithParamThat
     */
   def syncWith(that: DimensionalBase[V, D]): Unit =
-    applyDiffActions(that.diffActionsFrom(this))
+    applyDiffActions(that.diffActionsFrom(this)) // uses external API of that
 
   /**
     * $fillDesc $mutableAction
@@ -247,7 +264,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     * @param data
     *   $fillParamData
     */
-  def fill(data: ValidData[V, D]): Unit = synchronized:
+  def fill(data: ValidData[V, D]): Unit = transactionalUpdate:
     fillInPlace(data)
 
   /**
@@ -261,8 +278,8 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
   def merge(
     that: DimensionalBase[V, D],
     mergeValues: (V, V) => V = (thisDataValue, _) => thisDataValue
-  ): Unit = synchronized:
-    mergeInPlace(that.getAll, mergeValues)
+  ): Unit = transactionalUpdate:
+    mergeInPlace(that.getAll, mergeValues) // uses external API of that
 
   // equivalent symbolic method names
 

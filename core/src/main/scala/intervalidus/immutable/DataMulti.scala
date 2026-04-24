@@ -1,10 +1,7 @@
 package intervalidus.immutable
 
 import intervalidus.*
-import intervalidus.collection.immutable.MultiMapSorted
-import intervalidus.collection.mutable.BoxTree
-
-import scala.collection.immutable.TreeMap
+import intervalidus.DimensionalBase.{Transaction, State}
 
 /**
   * Constructs multi-data in multidimensional intervals.
@@ -18,8 +15,7 @@ object DataMulti extends DimensionalMultiBaseObject[DataMulti]:
   override def apply[V, D <: NonEmptyTuple: DomainLike](
     initialData: Iterable[ValidData[Set[V], D]] = Iterable.empty[ValidData[Set[V], D]]
   )(using config: CoreConfig[D]): DataMulti[V, D] =
-    val (byStartAsc, byValue, inSearchTree) = constructorParams(initialData)
-    new DataMulti(byStartAsc, byValue, inSearchTree)
+    new DataMulti(State.from(initialData))
 
   override def from[V, D <: NonEmptyTuple: DomainLike](
     initialData: Iterable[ValidData[V, D]]
@@ -38,19 +34,17 @@ object DataMulti extends DimensionalMultiBaseObject[DataMulti]:
   *   $intervalDomainType
   */
 class DataMulti[V, D <: NonEmptyTuple: DomainLike] private (
-  dataByStartInitial: TreeMap[D, ValidData[Set[V], D]],
-  dataByValueInitial: MultiMapSorted[Set[V], ValidData[Set[V], D]],
-  override val dataInBoxTree: BoxTree[ValidData[Set[V], D]]
+  initialState: State[Set[V], D]
 )(using val config: CoreConfig[D])
   extends ImmutableBase[Set[V], D, DataMulti[V, D]]
   with DimensionalMultiBase[V, D]:
 
-  override protected var dataByStart: TreeMap[D, ValidData[Set[V], D]] = dataByStartInitial
-  override protected var dataByValue: MultiMapSorted[Set[V], ValidData[Set[V], D]] = dataByValueInitial
+  @volatile override protected var state: State[Set[V], D] = initialState
 
   config.experimental.control("requireDisjoint")(
     nonExperimentalResult = (),
-    experimentalResult = require(Interval.isDisjoint(getAll.map(_.interval)), "data must be disjoint")
+    experimentalResult = transactionalRead:
+      require(Interval.isDisjoint(getAllInternal.map(_.interval)), "data must be disjoint")
   )
 
   // ---------- Specific multivalue methods that have immutable signatures ----------
@@ -115,51 +109,64 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] private (
 
   override def map[B, S <: NonEmptyTuple: DomainLike](
     f: ValidData[Set[V], D] => ValidData[B, S]
-  )(using altConfig: CoreConfig[S]): Data[B, S] = Data(
-    getAll.map(f)
-  )(using config = altConfig).compressAll()
+  )(using altConfig: CoreConfig[S]): Data[B, S] = transactionalRead:
+    mapInternal((f))
+
+  protected def mapInternal[B, S <: NonEmptyTuple: DomainLike](
+    f: ValidData[Set[V], D] => ValidData[B, S]
+  )(using altConfig: CoreConfig[S])(using Transaction[Set[V], D]): Data[B, S] =
+    Data(
+      getAllInternal.map(f)
+    )(using config = altConfig).compressAll()
 
   override def flatMap[B, S <: NonEmptyTuple: DomainLike](
     f: ValidData[Set[V], D] => DimensionalBase[B, S]
-  )(using altConfig: CoreConfig[S]): Data[B, S] = Data(
-    getAll.flatMap(f(_).getAll)
-  )(using config = altConfig).compressAll()
+  )(using altConfig: CoreConfig[S]): Data[B, S] = transactionalRead:
+    Data(
+      getAllInternal.flatMap(f(_).getAll)
+    )(using config = altConfig).compressAll()
 
   override def collect[B, S <: NonEmptyTuple: DomainLike](
     pf: PartialFunction[ValidData[Set[V], D], ValidData[B, S]]
-  )(using altConfig: CoreConfig[S]): Data[B, S] = Data(
-    getAll.collect(pf)
-  )(using config = altConfig).compressAll()
+  )(using altConfig: CoreConfig[S]): Data[B, S] = transactionalRead:
+    Data(
+      getAllInternal.collect(pf)
+    )(using config = altConfig).compressAll()
 
   override def mapValues[B](
     f: Set[V] => B
-  ): Data[B, D] =
-    map(d => d.copy(value = f(d.value)))
+  ): Data[B, D] = transactionalRead:
+    mapInternal(d => d.copy(value = f(d.value)))
 
   override def mapIntervals[S <: NonEmptyTuple: DomainLike](
     f: Interval[D] => Interval[S]
-  )(using altConfig: CoreConfig[S]): DataMulti[V, S] = DataMulti(
-    getAll.map(d => d.copy(interval = f(d.interval)))
-  )(using config = altConfig).compressAll()
+  )(using altConfig: CoreConfig[S]): DataMulti[V, S] = transactionalRead:
+    DataMulti(
+      getAllInternal.map(d => d.copy(interval = f(d.interval)))
+    )(using config = altConfig).compressAll()
 
   // ---------- Implement methods from DimensionalBase that create new instances ----------
   // ----  (some return Data rather than DataMulti because the resultant value type isn't necessarily a Set type) ----
 
   override def copy: DataMulti[V, D] =
-    new DataMulti(dataByStart, dataByValue, dataInBoxTree.copy)
+    new DataMulti(state.copy)
 
-  override def zip[B](that: DimensionalBase[B, D]): Data[(Set[V], B), D] =
-    Data(zipData(that, (_, _)))
+  override def zip[B](that: DimensionalBase[B, D]): Data[(Set[V], B), D] = transactionalReadWith(that): thatTx =>
+    Data(zipData(that, thatTx, (_, _)))
 
-  override def zipAll[B](that: DimensionalBase[B, D], thisDefault: Set[V], thatDefault: B): Data[(Set[V], B), D] =
-    Data(zipAllData(that, thisDefault, thatDefault, (_, _)))
+  override def zipAll[B](
+    that: DimensionalBase[B, D],
+    thisDefault: Set[V],
+    thatDefault: B
+  ): Data[(Set[V], B), D] = transactionalReadWith(that): thatTx =>
+    Data(zipAllData(that, thatTx, thisDefault, thatDefault, (_, _)))
 
   override def getByHeadDimension[H: DomainValueLike](domain: Domain1D[H])(using
     Domain.IsAtLeastTwoDimensional[D],
     Domain.IsAtHead[D, H],
     Domain.IsUpdatableAtHead[D, H],
     DomainLike[Domain.NonEmptyTail[D]]
-  )(using altConfig: CoreConfig[Domain.NonEmptyTail[D]]): DataMulti[V, Domain.NonEmptyTail[D]] =
+  )(using altConfig: CoreConfig[Domain.NonEmptyTail[D]]): DataMulti[V, Domain.NonEmptyTail[D]] = transactionalRead:
     DataMulti(getByHeadDimensionData(domain))(using config = altConfig).compressAll()
 
   override def getByDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
@@ -170,11 +177,11 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] private (
     Domain.IsAtIndex[D, dimensionIndex.type, H],
     Domain.IsUpdatableAtIndex[D, dimensionIndex.type, H],
     Domain.IsDroppedInResult[D, dimensionIndex.type, R]
-  )(using altConfig: CoreConfig[R]): DataMulti[V, R] =
+  )(using altConfig: CoreConfig[R]): DataMulti[V, R] = transactionalRead:
     DataMulti(getByDimensionData(dimensionIndex, domain))(using config = altConfig).compressAll()
 
-  override def toMutable: intervalidus.mutable.DataMulti[V, D] =
-    intervalidus.mutable.DataMulti(getAll)
+  override def toMutable: intervalidus.mutable.DataMulti[V, D] = transactionalRead:
+    intervalidus.mutable.DataMulti(getAllInternal)
 
   override def toImmutable: intervalidus.immutable.DataMulti[V, D] =
     this

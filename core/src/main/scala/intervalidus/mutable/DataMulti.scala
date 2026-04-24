@@ -1,10 +1,7 @@
 package intervalidus.mutable
 
 import intervalidus.*
-import intervalidus.collection.immutable.MultiMapSorted
-import intervalidus.collection.mutable.BoxTree
-
-import scala.collection.immutable.TreeMap
+import intervalidus.DimensionalBase.State
 
 /**
   * Constructs multi-data in multidimensional intervals.
@@ -18,8 +15,7 @@ object DataMulti extends DimensionalMultiBaseObject[DataMulti]:
   override def apply[V, D <: NonEmptyTuple: DomainLike](
     initialData: Iterable[ValidData[Set[V], D]] = Iterable.empty[ValidData[Set[V], D]]
   )(using config: CoreConfig[D]): DataMulti[V, D] =
-    val (byStartAsc, byValue, inSearchTree) = constructorParams(initialData)
-    new DataMulti(byStartAsc, byValue, inSearchTree)
+    new DataMulti(State.from(initialData))
 
   override def from[V, D <: NonEmptyTuple: DomainLike](
     initialData: Iterable[ValidData[V, D]]
@@ -41,19 +37,17 @@ object DataMulti extends DimensionalMultiBaseObject[DataMulti]:
   *   $intervalDomainType
   */
 class DataMulti[V, D <: NonEmptyTuple: DomainLike] private (
-  dataByStartInitial: TreeMap[D, ValidData[Set[V], D]],
-  dataByValueInitial: MultiMapSorted[Set[V], ValidData[Set[V], D]],
-  override val dataInBoxTree: BoxTree[ValidData[Set[V], D]]
+  initialState: State[Set[V], D]
 )(using val config: CoreConfig[D])
   extends MutableBase[Set[V], D]
   with DimensionalMultiBase[V, D]:
 
-  override protected var dataByStart: TreeMap[D, ValidData[Set[V], D]] = dataByStartInitial
-  override protected var dataByValue: MultiMapSorted[Set[V], ValidData[Set[V], D]] = dataByValueInitial
+  @volatile override protected var state: State[Set[V], D] = initialState
 
   config.experimental.control("requireDisjoint")(
     nonExperimentalResult = (),
-    experimentalResult = require(Interval.isDisjoint(getAll.map(_.interval)), "data must be disjoint")
+    experimentalResult = transactionalRead:
+      require(Interval.isDisjoint(getAllInternal.map(_.interval)), "data must be disjoint")
   )
 
   // ---------- Specific multivalue methods that have mutable signatures ----------
@@ -73,7 +67,7 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] private (
     * @param data
     *   $addOneParamData
     */
-  def addOne(data: ValidData[V, D]): Unit = synchronized:
+  def addOne(data: ValidData[V, D]): Unit = transactionalUpdate:
     addOneInPlace(data)
 
   /**
@@ -82,7 +76,7 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] private (
     * @param data
     *   $removeOneParamData
     */
-  def removeOne(data: ValidData[V, D]): Unit = synchronized:
+  def removeOne(data: ValidData[V, D]): Unit = transactionalUpdate:
     removeOneInPlace(data)
 
   /**
@@ -91,7 +85,7 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] private (
     * @param allData
     *   $addOneManyParamAllData
     */
-  def addOneMany(allData: IterableOnce[ValidData[V, D]]): Unit = synchronized:
+  def addOneMany(allData: IterableOnce[ValidData[V, D]]): Unit = transactionalUpdate:
     addManyInPlace(allData)
 
   /**
@@ -100,27 +94,31 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] private (
     * @param allData
     *   $removeOneManyParamAllData
     */
-  def removeOneMany(allData: IterableOnce[ValidData[V, D]]): Unit = synchronized:
+  def removeOneMany(allData: IterableOnce[ValidData[V, D]]): Unit = transactionalUpdate:
     removeManyInPlace(allData)
 
   // ---------- Implement methods from DimensionalBase that create new instances ----------
   // ----  (some return Data rather than DataMulti because the resultant value type isn't necessarily a Set type) ----
 
   override def copy: DataMulti[V, D] =
-    new DataMulti(dataByStart, dataByValue, dataInBoxTree.copy)
+    new DataMulti(state.copy)
 
-  override def zip[B](that: DimensionalBase[B, D]): Data[(Set[V], B), D] =
-    Data(zipData(that, (_, _)))
+  override def zip[B](that: DimensionalBase[B, D]): Data[(Set[V], B), D] = transactionalReadWith(that): thatTx =>
+    Data(zipData(that, thatTx, (_, _)))
 
-  override def zipAll[B](that: DimensionalBase[B, D], thisDefault: Set[V], thatDefault: B): Data[(Set[V], B), D] =
-    Data(zipAllData(that, thisDefault, thatDefault, (_, _)))
+  override def zipAll[B](
+    that: DimensionalBase[B, D],
+    thisDefault: Set[V],
+    thatDefault: B
+  ): Data[(Set[V], B), D] = transactionalReadWith(that): thatTx =>
+    Data(zipAllData(that, thatTx, thisDefault, thatDefault, (_, _)))
 
   override def getByHeadDimension[H: DomainValueLike](domain: Domain1D[H])(using
     Domain.IsAtLeastTwoDimensional[D],
     Domain.IsAtHead[D, H],
     Domain.IsUpdatableAtHead[D, H],
     DomainLike[Domain.NonEmptyTail[D]]
-  )(using altConfig: CoreConfig[Domain.NonEmptyTail[D]]): DataMulti[V, Domain.NonEmptyTail[D]] =
+  )(using altConfig: CoreConfig[Domain.NonEmptyTail[D]]): DataMulti[V, Domain.NonEmptyTail[D]] = transactionalRead:
     val result = DataMulti(getByHeadDimensionData(domain))(using config = altConfig)
     result.compressAll()
     result
@@ -133,7 +131,7 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] private (
     Domain.IsAtIndex[D, dimensionIndex.type, H],
     Domain.IsUpdatableAtIndex[D, dimensionIndex.type, H],
     Domain.IsDroppedInResult[D, dimensionIndex.type, R]
-  )(using altConfig: CoreConfig[R]): DataMulti[V, R] =
+  )(using altConfig: CoreConfig[R]): DataMulti[V, R] = transactionalRead:
     val result = DataMulti(getByDimensionData(dimensionIndex, domain))(using config = altConfig)
     result.compressAll()
     result
@@ -141,5 +139,5 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] private (
   override def toMutable: intervalidus.mutable.DataMulti[V, D] =
     this
 
-  override def toImmutable: intervalidus.immutable.DataMulti[V, D] =
-    intervalidus.immutable.DataMulti(getAll)
+  override def toImmutable: intervalidus.immutable.DataMulti[V, D] = transactionalRead:
+    intervalidus.immutable.DataMulti(getAllInternal)

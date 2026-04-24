@@ -1,5 +1,7 @@
 package intervalidus
 
+import intervalidus.DimensionalBase.{Transaction, UpdateTransaction}
+
 import scala.collection.mutable
 
 /**
@@ -15,9 +17,14 @@ object DimensionalMultiBase:
   * Constructs multivalued data in multidimensional intervals.
   * @tparam Constructed
   *   Constructed type.
+  * @define dataValueType
+  *   the type of the value managed as data.
+  * @define intervalDomainType
+  *   the domain type -- a non-empty tuple that is DomainLike.
+  * @define configParam
+  *   context parameter for configuration -- uses defaults if not given explicitly
   */
-trait DimensionalMultiBaseObject[Constructed[_, _ <: NonEmptyTuple] <: DimensionalMultiBase[?, ?]]
-  extends DimensionalBaseConstructorParams:
+trait DimensionalMultiBaseObject[Constructed[_, _ <: NonEmptyTuple] <: DimensionalMultiBase[?, ?]]:
 
   // ---------- Abstract ----------
 
@@ -196,7 +203,7 @@ trait DimensionalMultiBase[V, D <: NonEmptyTuple: DomainLike] extends Dimensiona
     * @tparam B
     *   type of value to be merged (subtype of [[V]])
     */
-  protected def addOneInPlace[B <: V](data: ValidData[B, D]): Unit =
+  protected def addOneInPlace[B <: V](data: ValidData[B, D])(using UpdateTransaction[Set[V], D]): Unit =
     val updatedValues = updateOrRemoveNoCompress(data.interval, addToValueSet(data.value))
     fillInPlaceNoCompress(data.interval -> Set(data.value))
     (updatedValues.iterator ++ Iterator.single(Set(data.value))).distinct.foreach(compressInPlace)
@@ -211,7 +218,9 @@ trait DimensionalMultiBase[V, D <: NonEmptyTuple: DomainLike] extends Dimensiona
     * @tparam B
     *   type of value to be merged (subtype of [[V]])
     */
-  protected def addManyInPlace[B <: V](allData: IterableOnce[ValidData[B, D]]): Unit =
+  protected def addManyInPlace[B <: V](
+    allData: IterableOnce[ValidData[B, D]]
+  )(using UpdateTransaction[Set[V], D]): Unit =
     val affected = Set.newBuilder[Set[V]]
     allData.iterator.foreach: data =>
       val updatedValues = updateOrRemoveNoCompress(data.interval, addToValueSet(data.value))
@@ -229,7 +238,7 @@ trait DimensionalMultiBase[V, D <: NonEmptyTuple: DomainLike] extends Dimensiona
     * @tparam B
     *   type of value to be merged (subtype of [[V]])
     */
-  protected def removeOneInPlace[B <: V](data: ValidData[B, D]): Unit =
+  protected def removeOneInPlace[B <: V](data: ValidData[B, D])(using UpdateTransaction[Set[V], D]): Unit =
     updateOrRemove(data.interval, removeFromValueSet(data.value))
 
   /**
@@ -241,7 +250,9 @@ trait DimensionalMultiBase[V, D <: NonEmptyTuple: DomainLike] extends Dimensiona
     * @tparam B
     *   type of value to be merged (subtype of [[V]])
     */
-  protected def removeManyInPlace[B <: V](allData: IterableOnce[ValidData[B, D]]): Unit =
+  protected def removeManyInPlace[B <: V](
+    allData: IterableOnce[ValidData[B, D]]
+  )(using UpdateTransaction[Set[V], D]): Unit =
     val affected = Set.newBuilder[Set[V]]
     allData.iterator.foreach: data =>
       val updatedValues = updateOrRemoveNoCompress(data.interval, removeFromValueSet(data.value))
@@ -251,7 +262,8 @@ trait DimensionalMultiBase[V, D <: NonEmptyTuple: DomainLike] extends Dimensiona
   /**
     * Returns the distinct individual values that are valid in some interval.
     */
-  def valuesOne: Iterable[V] = values.flatten.toSet
+  def valuesOne: Iterable[V] = transactionalRead:
+    valuesInternal.flatten.toSet
 
   /**
     * Returns the intervals in which this individual value is valid.
@@ -259,6 +271,7 @@ trait DimensionalMultiBase[V, D <: NonEmptyTuple: DomainLike] extends Dimensiona
     * @param value
     *   the value to look up
     */
-  def intervalsOne(value: V): Iterable[Interval[D]] = Interval.compress(
-    values.filter(_.contains(value)).flatMap(intervals)
-  )
+  def intervalsOne(value: V): Iterable[Interval[D]] = transactionalRead:
+    Interval.compress(
+      valuesInternal.filter(_.contains(value)).flatMap(intervalsInternal(_))
+    )

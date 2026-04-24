@@ -1,10 +1,7 @@
 package intervalidus.mutable
 
 import intervalidus.*
-import intervalidus.collection.immutable.MultiMapSorted
-import intervalidus.collection.mutable.BoxTree
-
-import scala.collection.immutable.TreeMap
+import intervalidus.DimensionalBase.State
 
 /**
   * Constructs monoid data in multidimensional intervals.
@@ -18,8 +15,7 @@ object DataMonoid extends DimensionalMonoidBaseObject[DataMonoid]:
   override def apply[V: Monoid, D <: NonEmptyTuple: DomainLike](
     initialData: Iterable[ValidData[V, D]] = Iterable.empty[ValidData[V, D]]
   )(using config: CoreConfig[D]): DataMonoid[V, D] =
-    val (byStartAsc, byValue, inSearchTree) = constructorParams(initialData)
-    new DataMonoid(byStartAsc, byValue, inSearchTree)
+    new DataMonoid(State.from(initialData))
 
 /**
   * Immutable dimensional data where values can be combined as monoids.
@@ -32,15 +28,12 @@ object DataMonoid extends DimensionalMonoidBaseObject[DataMonoid]:
   *   $intervalDomainType
   */
 class DataMonoid[V, D <: NonEmptyTuple: DomainLike] private (
-  dataByStartInitial: TreeMap[D, ValidData[V, D]],
-  dataByValueInitial: MultiMapSorted[V, ValidData[V, D]],
-  override val dataInBoxTree: BoxTree[ValidData[V, D]]
+  initialState: State[V, D]
 )(using val config: CoreConfig[D], monoid: Monoid[V])
   extends MutableBase[V, D]
   with DimensionalMonoidBase[V, D]:
 
-  override protected var dataByStart: TreeMap[D, ValidData[V, D]] = dataByStartInitial
-  override protected var dataByValue: MultiMapSorted[V, ValidData[V, D]] = dataByValueInitial
+  @volatile override protected var state: State[V, D] = initialState
 
   // ---------- Algebra API methods: Set Algebra ----------
   // ---- Standard set-theoretic operations for multidimensional shapes. ----
@@ -69,8 +62,9 @@ class DataMonoid[V, D <: NonEmptyTuple: DomainLike] private (
     * @param that
     *   $intersectionParamThat
     */
-  infix def intersection(that: DimensionalMonoidBase[V, D]): Unit = synchronized:
-    replaceValidData(zipData(that, monoid.combine))
+  infix def intersection(that: DimensionalMonoidBase[V, D]): Unit = transactionalUpdate:
+    transactionalReadOnly(that): thatTx =>
+      replaceValidData(zipData(that, thatTx, monoid.combine))
 
   /**
     * Same as [[intersection]].
@@ -85,8 +79,8 @@ class DataMonoid[V, D <: NonEmptyTuple: DomainLike] private (
   /**
     * $complementDesc $mutableAction
     */
-  def complement(): Unit = synchronized:
-    replaceValidData(domainComplement.map(_ -> monoid.identity))
+  def complement(): Unit = transactionalUpdate:
+    replaceValidData(domainComplementInternal.map(_ -> monoid.identity))
 
   /**
     * Same as [[complement]].
@@ -99,20 +93,26 @@ class DataMonoid[V, D <: NonEmptyTuple: DomainLike] private (
   // ----  (some return Data rather than DataMonoid because the resultant value type isn't necessarily a Monoid) ----
 
   override def copy: DataMonoid[V, D] =
-    new DataMonoid(dataByStart, dataByValue, dataInBoxTree.copy)
+    new DataMonoid(state.copy)
 
-  override def zip[B](that: DimensionalBase[B, D]): Data[(V, B), D] =
-    Data(zipData(that, (_, _)))
+  override def zip[B](that: DimensionalBase[B, D]): Data[(V, B), D] = transactionalReadWith(that): thatTx =>
+    Data(zipData(that, thatTx, (_, _)))
 
-  override def zipAll[B](that: DimensionalBase[B, D], thisDefault: V, thatDefault: B): Data[(V, B), D] =
-    Data(zipAllData(that, thisDefault, thatDefault, (_, _)))
+  override def zipAll[B](
+    that: DimensionalBase[B, D],
+    thisDefault: V,
+    thatDefault: B
+  ): Data[(V, B), D] = transactionalReadWith(that): thatTx =>
+    Data(zipAllData(that, thatTx, thisDefault, thatDefault, (_, _)))
 
   override def getByHeadDimension[H: DomainValueLike](domain: Domain1D[H])(using
     Domain.IsAtLeastTwoDimensional[D],
     Domain.IsAtHead[D, H],
     Domain.IsUpdatableAtHead[D, H],
     DomainLike[Domain.NonEmptyTail[D]]
-  )(using altConfig: CoreConfig[Domain.NonEmptyTail[D]]): DataMonoid[V, Domain.NonEmptyTail[D]] =
+  )(using
+    altConfig: CoreConfig[Domain.NonEmptyTail[D]]
+  ): DataMonoid[V, Domain.NonEmptyTail[D]] = transactionalRead:
     val result = DataMonoid(getByHeadDimensionData(domain))(using config = altConfig)
     result.compressAll()
     result
@@ -125,7 +125,7 @@ class DataMonoid[V, D <: NonEmptyTuple: DomainLike] private (
     Domain.IsAtIndex[D, dimensionIndex.type, H],
     Domain.IsUpdatableAtIndex[D, dimensionIndex.type, H],
     Domain.IsDroppedInResult[D, dimensionIndex.type, R]
-  )(using altConfig: CoreConfig[R]): DataMonoid[V, R] =
+  )(using altConfig: CoreConfig[R]): DataMonoid[V, R] = transactionalRead:
     val result = DataMonoid(getByDimensionData(dimensionIndex, domain))(using config = altConfig)
     result.compressAll()
     result
@@ -133,5 +133,5 @@ class DataMonoid[V, D <: NonEmptyTuple: DomainLike] private (
   override def toMutable: intervalidus.mutable.DataMonoid[V, D] =
     this
 
-  override def toImmutable: intervalidus.immutable.DataMonoid[V, D] =
-    intervalidus.immutable.DataMonoid(getAll)
+  override def toImmutable: intervalidus.immutable.DataMonoid[V, D] = transactionalRead:
+    intervalidus.immutable.DataMonoid(getAllInternal)

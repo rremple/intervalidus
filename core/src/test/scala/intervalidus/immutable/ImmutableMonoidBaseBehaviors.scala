@@ -100,6 +100,8 @@ trait ImmutableMonoidBaseBehaviors(using DomainValueLike[Int]):
       withoutQuadrantOne == ("bogus": Any) shouldBe false // different types
       withoutQuadrantOne == withoutQuadrantTwo shouldBe false // different quadrants missing
       withoutQuadrantOne !≡ withoutQuadrantTwo.mapValues(_.toInt).toDataMonoid // different quadrants missing
+      val f = (d: ValidData[Long, Dim]) => d.copy(value = d.value.toInt)
+      withoutQuadrantTwo.map(f).toDataMonoid ≡≡ withoutQuadrantTwo.mapValues(_.toInt).toDataMonoid
 
       val withoutOneQuadrantCount = withoutQuadrantOne.foldLeft(0): (acc, data) =>
         acc + quadrantSamples.count(sample => sample._1 ∈ data.interval && sample._2 == data.value)

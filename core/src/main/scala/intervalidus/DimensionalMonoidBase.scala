@@ -3,13 +3,16 @@ package intervalidus
 /**
   * Constructs dimensional data where values can be combined as monoids.
   *
-  * @define dataValueType
-  *   the type of the value managed as data -- must be a Monoid (can be combined and has an identity).
   * @tparam Constructed
   *   Constructed type.
+  * @define dataValueType
+  *   the type of the value managed as data -- must be a Monoid (can be combined and has an identity).
+  * @define intervalDomainType
+  *   the domain type -- a non-empty tuple that is DomainLike.
+  * @define configParam
+  *   context parameter for configuration -- uses defaults if not given explicitly
   */
-trait DimensionalMonoidBaseObject[Constructed[_, _ <: NonEmptyTuple] <: DimensionalMonoidBase[?, ?]]
-  extends DimensionalBaseConstructorParams:
+trait DimensionalMonoidBaseObject[Constructed[_, _ <: NonEmptyTuple] <: DimensionalMonoidBase[?, ?]]:
 
   // ---------- Abstract ----------
 

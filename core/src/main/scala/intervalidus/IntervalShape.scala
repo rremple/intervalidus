@@ -391,11 +391,7 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
     *   a new shape that is the intersection of this and that.
     */
   infix def intersection(that: IntervalShape[D]): IntervalShape[D] = IntervalShape.withoutChecks(
-    for
-      a <- underlying.getAll
-      b <- that.underlying.getIntersecting(a.interval)
-      intervalIntersection <- a.interval ∩ b.interval
-    yield intervalIntersection
+    underlying.intersectingIntervals(that.underlying)
   )
 
   /**

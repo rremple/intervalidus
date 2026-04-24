@@ -1,6 +1,7 @@
 package intervalidus.immutable
 
 import intervalidus.*
+import intervalidus.DimensionalBase.{ReadThatTransaction, Transaction, UpdateTransaction}
 
 /**
   * Immutable dimensional data.
@@ -14,9 +15,12 @@ import intervalidus.*
   */
 trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, D, Self]] extends DimensionalBase[V, D]:
 
-  protected def copyAndModify(f: Self => Unit): Self =
+  protected def copyAndModify(f: Self => UpdateTransaction[V, D] ?=> Unit): Self =
     val result = copy
+    // dirty because result.state is already copied
+    given UpdateTransaction[V, D] = UpdateTransaction.startDirty(result.state)
     f(result)
+    result.commit()
     result
 
   // ---------- To be implemented by inheritor ----------
@@ -119,7 +123,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     *   a new structure consisting of all elements that satisfy the provided predicate p.
     */
   def filter(p: ValidData[V, D] => Boolean): Self = copyAndModify: result =>
-    getAll.filterNot(p).foreach(result.removeValidData)
+    result.getAllInternal.filterNot(p).foreach(result.removeValidData)
 
   /**
     * $intersectionDesc
@@ -130,7 +134,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     *   a new shape that is the intersection of this and the interval (i.e., this is "clipped" within the interval).
     */
   infix def intersection(interval: Interval[D]): Self = copyAndModify: result =>
-    result.replaceValidData(intersectionData(interval))
+    result.replaceValidData(result.intersectionData(interval))
 
   /**
     * $symmetricDifferenceDesc
@@ -140,8 +144,9 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     * @return
     *   a new shape with the elements in this and that, but not in both.
     */
-  infix def symmetricDifference(that: DimensionalBase[V, D]): Self = copyAndModify: result =>
-    result.replaceValidData(symmetricDifferenceData(that))
+  infix def symmetricDifference(that: DimensionalBase[V, D]): Self = transactionalReadOnly(that): thatTx =>
+    copyAndModify: result =>
+      result.replaceValidData(result.symmetricDifferenceData(that, thatTx))
 
   /**
     * $setDesc
@@ -180,7 +185,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     *   some new, updated structure if there were no conflicts and new data was set, None otherwise.
     */
   def setIfNoConflict(data: ValidData[V, D]): Option[Self] =
-    if intersects(data.interval) then None
+    if intersects(data.interval) then None // this test is in a separate transactionalRead
     else
       val updated = copyAndModify: result =>
         result.addValidData(data)
@@ -222,8 +227,9 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     * @return
     *   $immutableReturn
     */
-  def replaceByKey(key: D, newData: ValidData[V, D]): Self =
-    replace(dataByStart(key), newData)
+  def replaceByKey(key: D, newData: ValidData[V, D]): Self = copyAndModify: result =>
+    result.removeValidDataByKey(key)
+    result.setInPlace(newData)
 
   /**
     * $removeDesc
@@ -258,7 +264,8 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     * @return
     *   a new shape that is the difference of this and that.
     */
-  infix def difference(that: DimensionalBase[V, D]): Self = removeMany(that.allIntervals)
+  infix def difference(that: DimensionalBase[V, D]): Self =
+    removeMany(that.allIntervals) // uses external API of that
 
   /**
     * $removeValueDesc
@@ -269,7 +276,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     *   $immutableReturn
     */
   def removeValue(value: V): Self = copyAndModify: result =>
-    intervals(value).foreach(result.updateOrRemoveNoCompress(_, _ => None)) // no compression needed
+    intervalsInternal(value).foreach(result.updateOrRemoveNoCompress(_, _ => None)) // no compression needed
 
   /**
     * $compressDesc
@@ -289,7 +296,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     *   $immutableReturn
     */
   def compressAll(): Self = copyAndModify: result =>
-    dataByValue.keySet.foreach(result.compressInPlace)
+    valuesInternal.foreach(result.compressInPlace)
 
   /**
     * $recompressAllDesc1
@@ -324,7 +331,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     *   $immutableReturn
     */
   def syncWith(that: DimensionalBase[V, D]): Self =
-    applyDiffActions(that.diffActionsFrom(this))
+    applyDiffActions(that.diffActionsFrom(this)) // uses external API of that
 
   /**
     * $fillDesc
@@ -349,7 +356,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
   def merge(
     that: DimensionalBase[V, D],
     mergeValues: (V, V) => V = (thisDataValue, _) => thisDataValue
-  ): Self = copyAndModify(_.mergeInPlace(that.getAll, mergeValues))
+  ): Self = copyAndModify(_.mergeInPlace(that.getAll, mergeValues)) // uses external API of that
 
   // equivalent symbolic method names
 
