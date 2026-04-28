@@ -176,8 +176,7 @@ object DimensionalBase:
       * @return
       *   a new transaction.
       */
-    def start[V, D <: NonEmptyTuple](priorState: State[V, D]): ReadTransaction[V, D] =
-      ReadTransaction(priorState)
+    def start[V, D <: NonEmptyTuple](priorState: State[V, D]): ReadTransaction[V, D] = ReadTransaction(priorState)
 
   /**
     * A read transaction on a separate structure where the state never changes from the initial state. Not expected to
@@ -436,6 +435,10 @@ import intervalidus.DimensionalBase.*
   *   their intervals adjusted (e.g., shortened, shifted, split) accordingly.
   * @define removeParamInterval
   *   the interval where any valid values are removed.
+  * @define removeByKeyDesc
+  *   Remove the valid value with an interval starting at the key.
+  * @define removeByKeyParamKey
+  *   key of the data to be removed (the interval start).
   * @define removeManyDesc
   *   Remove data in all the intervals. If there are values valid on portions of any interval, those values have their
   *   intervals adjusted (e.g., shortened, shifted, split) accordingly.
@@ -514,35 +517,55 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
   given config: CoreConfig[D]
 
   /**
+    * The single source of truth for this structure's internal data.
+    *
+    * Marked @volatile to ensure that a 'commit' (the atomic swap of this reference) is immediately visible across all
+    * threads. This enables snapshot isolation: readers can grab a stable reference to a 'frozen' State and perform
+    * lock-free queries, even while a writer may be building a new state in a separate transaction on a different thread
+    * concurrently.
+    */
+  @volatile protected var state: State[V, D] = initialState
+
+  /**
     * Wraps a function body in a new read-only transaction, returning the result.
     */
-  protected def transactionalRead[T](body: Transaction[V, D] ?=> T): T =
-    body(using ReadTransaction.start(state))
+  protected def transactionalRead[T](
+    body: Transaction[V, D] ?=> T
+  ): T = body(using ReadTransaction.start(state))
 
   /**
     * Given some other structure, wraps a function body in a new read-only transaction on that structure, returning the
     * result.
     */
-  protected def transactionalReadOnly[T, B](that: DimensionalBase[B, D])(body: ReadThatTransaction[B, D] => T): T =
-    body(ReadThatTransaction.start(that.state))
+  protected def transactionalReadOnly[T, B, S <: NonEmptyTuple](that: DimensionalBase[B, S])(
+    body: ReadThatTransaction[B, S] => T
+  ): T = body(ReadThatTransaction.start(that.state))
 
   /**
     * Given some other structure, wraps a function body in new read-only transactions on both this structure and that
     * structure, returning the result.
     */
-  protected def transactionalReadWith[T, B](body: DimensionalBase[B, D])(
-    result: ReadTransaction[V, D] ?=> ReadThatTransaction[B, D] => T
-  ): T = result(using ReadTransaction.start(state))(ReadThatTransaction.start(body.state))
+  protected def transactionalReadWith[T, B, S <: NonEmptyTuple](that: DimensionalBase[B, S])(
+    body: ReadTransaction[V, D] ?=> ReadThatTransaction[B, S] => T
+  ): T = body(using ReadTransaction.start(state))(ReadThatTransaction.start[B, S](that.state))
 
   override def equals(obj: Any): Boolean = obj match
     case that: DimensionalBase[?, ?] =>
-      transactionalRead:
-        val thatTx = ReadThatTransaction.start(that.state)
-        sizeInternal == that.sizeInternal(using thatTx) &&
-        getAllInternal.iterator.zip(that.getAllInternal(using thatTx).iterator).forall(_ == _)
+      transactionalReadWith(that): thatTx =>
+        equalsInternal(that, thatTx)
     case _ => false
 
-  override def hashCode(): Int = size.hashCode() * 31 + state.dataByStart.headOption.hashCode()
+  protected def equalsInternal[B, S <: NonEmptyTuple](
+    that: DimensionalBase[B, S],
+    thatTx: ReadThatTransaction[B, S]
+  )(using Transaction[V, D]): Boolean = sizeInternal == that.sizeInternal(using thatTx) &&
+    getAllInternal.iterator.zip(that.getAllInternal(using thatTx).iterator).forall(_ == _)
+
+  override def hashCode(): Int = transactionalRead:
+    hashCodeInternal()
+
+  protected def hashCodeInternal()(using tx: Transaction[V, D]): Int =
+    sizeInternal.hashCode() * 31 + tx.dataByStart.headOption.hashCode()
 
   def decompressedData(otherIntervals: IterableOnce[Interval[D]]): Iterable[ValidData[V, D]] = transactionalRead:
     decompressedDataInternal(otherIntervals)
@@ -706,7 +729,8 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     targetInterval: Interval[D],
     updateValue: V => Option[V]
   )(using UpdateTransaction[V, D]): Unit =
-    updateOrRemoveNoCompress(targetInterval, updateValue).iterator.distinct.foreach(compressInPlace)
+    val affected = updateOrRemoveNoCompress(targetInterval, updateValue)
+    if config.compressOnUpdate then affected.iterator.distinct.foreach(compressInPlace)
 
   /**
     * Same as [[updateOrRemove]], but returning the affected values rather than compressing. For operations that make
@@ -779,7 +803,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
 
   protected def fillInPlace(data: ValidData[V, D])(using UpdateTransaction[V, D]): Unit =
     fillInPlaceNoCompress(data)
-    compressInPlace(data.value)
+    if config.compressOnUpdate then compressInPlace(data.value)
 
   /**
     * Internal method, to merge in place.
@@ -802,7 +826,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
         updateOrRemoveNoCompress(thatData.interval, thisDataValue => Some(mergeValues(thisDataValue, thatData.value)))
       fillInPlaceNoCompress(thatData)
       updatedValues ++ Iterable.single(thatData.value)
-    affected.iterator.distinct.foreach(compressInPlace)
+    if config.compressOnUpdate then affected.iterator.distinct.foreach(compressInPlace)
 
   /**
     * Internal method, to compress in place.
@@ -857,7 +881,8 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
   protected def setInPlace(data: ValidData[V, D])(using UpdateTransaction[V, D]): Unit =
     val updatedValues = updateOrRemoveNoCompress(data.interval, _ => None)
     addValidData(data)
-    (updatedValues.iterator ++ Iterator.single(data.value)).distinct.foreach(compressInPlace)
+    if config.compressOnUpdate then
+      (updatedValues.iterator ++ Iterator.single(data.value)).distinct.foreach(compressInPlace)
 
   /**
     * Applies a diff action to this structure.
@@ -1410,8 +1435,10 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
 
   // ---------- To be implemented by inheritor ----------
 
-  protected def state: State[V, D]
-  protected def state_=(v: State[V, D]): Unit
+  /**
+    * The initial state of this structure.
+    */
+  protected def initialState: State[V, D]
 
   /**
     * Creates a copy.
@@ -1419,7 +1446,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     * @return
     *   a new structure with the same data.
     */
-  def copy: DimensionalBase[V, D]
+  def copy(using CoreConfig[D]): DimensionalBase[V, D]
 
   /**
     * Returns a new structure formed from this structure and another structure by combining the corresponding elements
@@ -1473,11 +1500,13 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   a lower-dimensional (n-1) projection
     */
   def getByHeadDimension[H: DomainValueLike](domain: Domain1D[H])(using
+    altConfig: CoreConfig[Domain.NonEmptyTail[D]]
+  )(using
     Domain.IsAtLeastTwoDimensional[D],
     Domain.IsAtHead[D, H],
     Domain.IsUpdatableAtHead[D, H],
     DomainLike[Domain.NonEmptyTail[D]]
-  )(using altConfig: CoreConfig[Domain.NonEmptyTail[D]]): DimensionalBase[V, Domain.NonEmptyTail[D]]
+  ): DimensionalBase[V, Domain.NonEmptyTail[D]]
 
   /**
     * Project as data in n-1 dimensions based on a lookup in the specified dimension.
@@ -1504,11 +1533,13 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     dimensionIndex: Domain.DimensionIndex,
     domain: Domain1D[H]
   )(using
+    altConfig: CoreConfig[R]
+  )(using
     Domain.HasIndex[D, dimensionIndex.type],
     Domain.IsAtIndex[D, dimensionIndex.type, H],
     Domain.IsUpdatableAtIndex[D, dimensionIndex.type, H],
     Domain.IsDroppedInResult[D, dimensionIndex.type, R]
-  )(using altConfig: CoreConfig[R]): DimensionalBase[V, R]
+  ): DimensionalBase[V, R]
 
   /**
     * Returns this as a mutable structure.

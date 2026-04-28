@@ -63,6 +63,10 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     f(result)
     result
 
+  private def compressedUpdate[B, S <: NonEmptyTuple: DomainLike](newData: DataVersioned[B, S]): DataVersioned[B, S] =
+    newData.underlying.compressedUpdate()
+    newData
+
   // ---------- Implement methods from DimensionalVersionedBase ----------
 
   override protected def resetTo(selection: VersionSelection): DataVersioned[V, D] = selection match
@@ -70,7 +74,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     case VersionSelection.Current           => resetToVersion(currentVersion)
     case VersionSelection.Specific(version) => resetToVersion(version)
 
-  override def copy: DataVersioned[V, D] = new DataVersioned(
+  override def copy(using config: CoreConfig[Versioned[D]]): DataVersioned[V, D] = new DataVersioned(
     underlying.getAll,
     initialVersion,
     versionTimestamps.clone(),
@@ -98,35 +102,42 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     )
 
   override def getByHeadDimension[H: DomainValueLike](domain: Domain1D[H])(using
+    altConfig: CoreConfig[Versioned[Domain.NonEmptyTail[D]]]
+  )(using
     Domain.IsAtLeastTwoDimensional[D],
     Domain.IsAtHead[D, H],
     Domain.IsUpdatableAtHead[D, H],
     DomainLike[Domain.NonEmptyTail[D]],
     DomainLike[Versioned[Domain.NonEmptyTail[D]]]
-  )(using altConfig: CoreConfig[Versioned[Domain.NonEmptyTail[D]]]): DataVersioned[V, Domain.NonEmptyTail[D]] =
-    new DataVersioned(
-      getByHeadDimensionData(domain),
-      initialVersion,
-      versionTimestamps.clone(),
-      Some(currentVersion)
-    ).compressAll()
+  ): DataVersioned[V, Domain.NonEmptyTail[D]] =
+    compressedUpdate(
+      new DataVersioned(
+        getByHeadDimensionData(domain),
+        initialVersion,
+        versionTimestamps.clone(),
+        Some(currentVersion)
+      )
+    )
 
   override def getByDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
     dimensionIndex: Domain.DimensionIndex,
     domain: Domain1D[H]
+  )(using
+    altConfig: CoreConfig[Versioned[R]]
   )(using
     Domain.HasIndex[D, dimensionIndex.type],
     Domain.IsAtIndex[D, dimensionIndex.type, H],
     Domain.IsUpdatableAtIndex[D, dimensionIndex.type, H],
     Domain.IsDroppedInResult[D, dimensionIndex.type, R],
     DomainLike[Versioned[R]]
-  )(using altConfig: CoreConfig[Versioned[R]]): DataVersioned[V, R] =
+  ): DataVersioned[V, R] = compressedUpdate(
     new DataVersioned(
       getByDimensionData[H, R](dimensionIndex, domain),
       initialVersion,
       versionTimestamps.clone(),
       Some(currentVersion)
-    ).compressAll()
+    )
+  )
 
   override def toImmutable: DataVersioned[V, D] = this
 
@@ -320,8 +331,10 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   def map[B, S <: NonEmptyTuple: DomainLike](
     f: ValidData[V, Versioned[D]] => ValidData[B, Versioned[S]]
   )(using
+    altConfig: CoreConfig[Versioned[S]]
+  )(using
     DomainLike[Versioned[S]]
-  )(using altConfig: CoreConfig[Versioned[S]]): DataVersioned[B, S] =
+  ): DataVersioned[B, S] =
     new DataVersioned(
       underlying.getAll.map(f),
       initialVersion,
@@ -347,8 +360,10 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   def collect[B, S <: NonEmptyTuple: DomainLike](
     pf: PartialFunction[ValidData[V, Versioned[D]], ValidData[B, Versioned[S]]]
   )(using
+    altConfig: CoreConfig[Versioned[S]]
+  )(using
     DomainLike[Versioned[S]]
-  )(using altConfig: CoreConfig[Versioned[S]]): DataVersioned[B, S] =
+  ): DataVersioned[B, S] =
     new DataVersioned(
       underlying.getAll.collect(pf),
       initialVersion,
@@ -393,12 +408,14 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     f: Interval[Versioned[D]] => Interval[Versioned[S]]
   )(using
     DomainLike[Versioned[S]]
-  )(using altConfig: CoreConfig[Versioned[S]]): DataVersioned[V, S] = new DataVersioned(
-    underlying.getAll.map(d => d.copy(interval = f(d.interval))),
-    initialVersion,
-    versionTimestamps.clone(),
-    Some(currentVersion)
-  )(using config = altConfig).compressAll()
+  )(using altConfig: CoreConfig[Versioned[S]]): DataVersioned[V, S] = compressedUpdate(
+    new DataVersioned(
+      underlying.getAll.map(d => d.copy(interval = f(d.interval))),
+      initialVersion,
+      versionTimestamps.clone(),
+      Some(currentVersion)
+    )(using config = altConfig)
+  )
 
   /**
     * $flatMapDesc and builds a new structure by concatenating the elements of the resulting structures.
@@ -489,14 +506,16 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     */
   def resetToVersion(version: VersionDomainValue): DataVersioned[V, D] =
     val keep = VersionSelection(version)
-    new DataVersioned(
-      underlying.getAll
-        .filter(versionInterval(_) intersects keep.intervalTo)
-        .map(extendInterval(keep)),
-      initialVersion,
-      mutable.Map.from(versionTimestamps.view.filterKeys(_ <= version)),
-      Some(version)
-    ).compressAll()
+    compressedUpdate(
+      new DataVersioned(
+        underlying.getAll
+          .filter(versionInterval(_) intersects keep.intervalTo)
+          .map(extendInterval(keep)),
+        initialVersion,
+        mutable.Map.from(versionTimestamps.view.filterKeys(_ <= version)),
+        Some(version)
+      )
+    )
 
   /**
     * $collapseVersionHistoryDesc

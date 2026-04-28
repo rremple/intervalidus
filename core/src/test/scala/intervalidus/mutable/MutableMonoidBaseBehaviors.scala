@@ -228,9 +228,10 @@ trait MutableMonoidBaseBehaviors(using DomainValueLike[Int]):
       val y1 = Seq(c, d, e).holeFilled
       x1.mutate(_.c()) ≡≡ Seq(d, e).identityFilled
       y1.mutate(_.c()) ≡≡ Seq(a, b).identityFilled
-      x1.mutate(_ ∪ y1) ≡≡ Seq(a, b).donutFilled
-        .mutate(_ ++ Seq(d, e).holeFilled.getAll)
-        .mutate(_ ++ Seq(c).valueFilled(donutFilling + holeFilling).getAll)
+      x1.mutate(_ ∪ y1) ≡≡
+        Seq(a, b).donutFilled
+          .mutate(_ ++ Seq(d, e).holeFilled.getAll)
+          .mutate(_ ++ Seq(c).valueFilled(donutFilling + holeFilling).getAll)
 
       x1.zip(y1) ≡ Data(
         Seq(

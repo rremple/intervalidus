@@ -28,12 +28,10 @@ object DataMonoid extends DimensionalMonoidBaseObject[DataMonoid]:
   *   $intervalDomainType
   */
 class DataMonoid[V, D <: NonEmptyTuple: DomainLike] private (
-  initialState: State[V, D]
+  override val initialState: State[V, D]
 )(using val config: CoreConfig[D], monoid: Monoid[V])
   extends MutableBase[V, D]
   with DimensionalMonoidBase[V, D]:
-
-  @volatile override protected var state: State[V, D] = initialState
 
   // ---------- Algebra API methods: Set Algebra ----------
   // ---- Standard set-theoretic operations for multidimensional shapes. ----
@@ -92,7 +90,7 @@ class DataMonoid[V, D <: NonEmptyTuple: DomainLike] private (
   // ---------- Implement methods from DimensionalBase that create new instances ----------
   // ----  (some return Data rather than DataMonoid because the resultant value type isn't necessarily a Monoid) ----
 
-  override def copy: DataMonoid[V, D] =
+  override def copy(using config: CoreConfig[D]): DataMonoid[V, D] =
     new DataMonoid(state.copy)
 
   override def zip[B](that: DimensionalBase[B, D]): Data[(V, B), D] = transactionalReadWith(that): thatTx =>
@@ -106,28 +104,30 @@ class DataMonoid[V, D <: NonEmptyTuple: DomainLike] private (
     Data(zipAllData(that, thatTx, thisDefault, thatDefault, (_, _)))
 
   override def getByHeadDimension[H: DomainValueLike](domain: Domain1D[H])(using
+    altConfig: CoreConfig[Domain.NonEmptyTail[D]]
+  )(using
     Domain.IsAtLeastTwoDimensional[D],
     Domain.IsAtHead[D, H],
     Domain.IsUpdatableAtHead[D, H],
     DomainLike[Domain.NonEmptyTail[D]]
-  )(using
-    altConfig: CoreConfig[Domain.NonEmptyTail[D]]
   ): DataMonoid[V, Domain.NonEmptyTail[D]] = transactionalRead:
     val result = DataMonoid(getByHeadDimensionData(domain))(using config = altConfig)
-    result.compressAll()
+    result.compressedUpdate()
     result
 
   override def getByDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
     dimensionIndex: Domain.DimensionIndex,
     domain: Domain1D[H]
   )(using
+    altConfig: CoreConfig[R]
+  )(using
     Domain.HasIndex[D, dimensionIndex.type],
     Domain.IsAtIndex[D, dimensionIndex.type, H],
     Domain.IsUpdatableAtIndex[D, dimensionIndex.type, H],
     Domain.IsDroppedInResult[D, dimensionIndex.type, R]
-  )(using altConfig: CoreConfig[R]): DataMonoid[V, R] = transactionalRead:
+  ): DataMonoid[V, R] = transactionalRead:
     val result = DataMonoid(getByDimensionData(dimensionIndex, domain))(using config = altConfig)
-    result.compressAll()
+    result.compressedUpdate()
     result
 
   override def toMutable: intervalidus.mutable.DataMonoid[V, D] =

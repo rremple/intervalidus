@@ -564,7 +564,7 @@ These methods return a new structure:
 
 These mutation methods return a new structure when using immutable and `Unit` when using mutable:
 
-- `remove` (`-`) / `removeMany` (`--`) / `removeValue`
+- `remove` (`-`) / `removeMany` (`--`) / `removeValue` / `removeByKey`
 - `replace` / `replaceByKey` / `update` / `merge`
 - `set` (`+`) / `setMany` (`++`) / `setIfNoConflict` / `fill`
 - `intersection` (`∩`) / `difference` (`\`) / `symmetricDifference` (`△`)
@@ -897,7 +897,7 @@ import intervalidus.immutable.Data
 import java.time.LocalDate.of as date
 
 given Experimental = Experimental("requireDisjoint")
-// or given CoreConfig = CoreConfig.default.withExperimental(Experimental("requireDisjoint"))
+// or given CoreConfig.default[Domain.In1D[LocalDate]].withExperimental(Experimental("requireDisjoint"))
 
 val plan1d = Data(
   Seq(

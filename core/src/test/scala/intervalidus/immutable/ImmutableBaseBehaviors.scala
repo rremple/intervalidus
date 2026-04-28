@@ -27,9 +27,12 @@ trait ImmutableBaseBehaviors:
     immutableFrom: CoreConfig[D] ?=> Iterable[ValidData[String, D]] => S,
     intervalFrom1D: Interval1D[Int] => Interval[D],
     prefix: String = "Immutable"
-  )(using CoreConfig[D], DomainValueLike[Int]): Unit =
+  )(using config: CoreConfig[D])(using DomainValueLike[Int]): Unit =
+    val recompressAfterUpdate = !config.compressOnUpdate
+
     def dataFrom1D(interval1D: Interval1D[Int], v: String): ValidData[String, D] =
       intervalFrom1D(interval1D) -> v
+
     test(s"$prefix: Adding and removing data in intervals"):
       val allData = List(
         dataFrom1D(interval(0, 10), "Hello"),
@@ -88,14 +91,19 @@ trait ImmutableBaseBehaviors:
       )
       fixture3a.getAll.toList shouldBe expectedData3a
 
-      val fixture4: Data[String, D] = fixture3
-        .set(dataFrom1D(intervalFrom(20), "World"))
-      // if needed: .recompressAll()
       val expectedData4 = List(
         dataFrom1D(intervalTo(4), "Hey"),
         dataFrom1D(interval(5, 15), "to"),
         dataFrom1D(intervalFrom(16), "World")
       )
+      val fixture4: Data[String, D] = {
+        val updated = fixture3
+          .setMany(Seq(dataFrom1D(intervalFrom(20), "World")))
+        if recompressAfterUpdate then
+          assert(updated.getAll.toList != expectedData4)
+          updated.recompressAll()
+        else updated
+      }
       fixture4.getAll.toList shouldBe expectedData4
 
       val fixture5 = fixture4.remove(intervalFrom1D(interval(5, 15)))
@@ -186,24 +194,36 @@ trait ImmutableBaseBehaviors:
       )
       val fixture0: S = immutableFrom(allData)
 
-      val fixture1 = fixture0.update(dataFrom1D(interval(5, 7), "World!"))
       val expectedData1 = List(
         dataFrom1D(intervalTo(4), "Hello"),
         dataFrom1D(interval(5, 7), "World!"),
         dataFrom1D(intervalFrom(8), "Hello")
       )
+      val fixture1 = {
+        val updated = fixture0.update(dataFrom1D(interval(5, 7), "World!"))
+        if recompressAfterUpdate then
+          assert(updated.getAll.toList != expectedData1)
+          updated.recompressAll()
+        else updated
+      }
       fixture1.getAll.toList shouldBe expectedData1
       fixture1 ≡ immutableFrom(expectedData1) shouldBe true
 
-      val fixture2 = fixture1
-        .remove(intervalFrom1D(interval(3, 5)))
-        .update(dataFrom1D(interval(2, 9), "to"))
       val expectedData2 = List(
         dataFrom1D(intervalTo(1), "Hello"),
         dataFrom1D(intervalAt(2), "to"),
         dataFrom1D(interval(6, 9), "to"),
         dataFrom1D(intervalFrom(10), "Hello")
       )
+      val fixture2 = {
+        val updated = fixture1
+          .remove(intervalFrom1D(interval(3, 5)))
+          .update(dataFrom1D(interval(2, 9), "to"))
+        if recompressAfterUpdate then
+          assert(updated.getAll.toList != expectedData2)
+          updated.recompressAll()
+        else updated
+      }
       fixture2.getAll.toList shouldBe expectedData2
       fixture2.domain.toList shouldBe List(
         intervalFrom1D(intervalTo(2)),

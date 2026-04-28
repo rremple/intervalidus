@@ -1,6 +1,7 @@
 package intervalidus.microbench
 
 import intervalidus.*
+import intervalidus.CoreConfig.IsolationLevel.ReadUncommitted
 import intervalidus.microbench.DomainGenerator.{Dim1, Dim2, Dim3, Dim4, Dim5}
 import intervalidus.microbench.IntervalGenerator.*
 import intervalidus.microbench.IntervalGenerator.IntDomainTuple.given
@@ -43,22 +44,30 @@ object BenchTreeReorg:
 
     @Setup(Level.Iteration)
     def setUpIteration(): Unit =
-      println(s"Set up iteration...")
+      // println(s"Set up iteration...")
       // start again with the same seed which will generate the same random test data
       given RandomNumbers = RandomNumbers.withSeed(constantSeed)
       testDataIterator = genFromOrigin[D](sampleLeafCapacity, sampleDepth).iterator
-      println(s"Iteration set up.")
+      // println(s"Iteration set up.")
 
     @Setup(Level.Invocation)
     def setUpInvocation(): Unit =
       // println(s"Set up invocation...")
       val testData = testDataIterator.next()
       fragments = testData.iterator.zipWithIndex.map((i, v) => i -> v)
-      dataNoHint = mutable.Data.empty
-      dataWithHint = {
-        given CoreConfig[D] = CoreConfig.default[D].withCapacityHint(capacityHint)
-        mutable.Data.empty
-      }
+      dataNoHint = mutable.Data.empty(using
+        config = CoreConfig
+          .default[D]
+        // .withIsolationLevel(ReadUncommitted)
+        // .withCompressOnUpdate(false)
+      )
+      dataWithHint = mutable.Data.empty(using
+        config = CoreConfig
+          .default[D]
+          .withCapacityHint(capacityHint)
+        // .withIsolationLevel(ReadUncommitted)
+        // .withCompressOnUpdate(false)
+      )
 
   @State(Scope.Benchmark)
   abstract class GenericBenchmarkStressState(
@@ -87,25 +96,22 @@ object BenchTreeReorg:
 
     @Setup(Level.Iteration)
     def setUpIteration(): Unit =
-      println(s"Set up iteration with edgePoints=$edgePoints...")
+      // println(s"Set up iteration with edgePoints=$edgePoints...")
 
       // start again with the same seed which will generate the same random test data
       given RandomNumbers = RandomNumbers.withSeed(constantSeed)
 
       testDataIterator = genFromOrigin[D](edgePoints).iterator
-      println(s"Iteration set up.")
+      // println(s"Iteration set up.")
 
     @Setup(Level.Invocation)
     def setUpInvocation(): Unit =
-      println(s"Set up invocation...")
+      // println(s"Set up invocation...")
       val testData = testDataIterator.next()
       fragments = testData.iterator.zipWithIndex.map((i, v) => i -> v)
       dataNoHint = mutable.Data.empty
-      dataWithHint = {
-        given CoreConfig[D] = CoreConfig.default[D].withCapacityHint(capacityHint)
-        mutable.Data.empty
-      }
-      println(s"Invocation set up.")
+      dataWithHint = mutable.Data.empty(using config = CoreConfig.default[D].withCapacityHint(capacityHint))
+      // println(s"Invocation set up.")
 
   // --- --- --- --- --- --- --- Concrete State --- --- --- --- --- --- ---  ---
 
@@ -128,14 +134,14 @@ object BenchTreeReorg:
 ////  class BenchmarkState5d00512 extends GenericBenchmarkState[Dim5](512)
 ////  class BenchmarkState5d01024 extends GenericBenchmarkState[Dim5](1024)
 
-//  class BenchmarkStressState0 extends GenericBenchmarkStressState(0)
-//  class BenchmarkStressState1 extends GenericBenchmarkStressState(1)
-//  class BenchmarkStressState2 extends GenericBenchmarkStressState(2)
-//  class BenchmarkStressState3 extends GenericBenchmarkStressState(3)
-//  class BenchmarkStressState4 extends GenericBenchmarkStressState(4)
-//  class BenchmarkStressState5 extends GenericBenchmarkStressState(5)
-  class BenchmarkStressState6 extends GenericBenchmarkStressState(6)
-  class BenchmarkStressState7 extends GenericBenchmarkStressState(7)
+  class BenchmarkStressState0 extends GenericBenchmarkStressState(0)
+  class BenchmarkStressState1 extends GenericBenchmarkStressState(1)
+  class BenchmarkStressState2 extends GenericBenchmarkStressState(2)
+  class BenchmarkStressState3 extends GenericBenchmarkStressState(3)
+  class BenchmarkStressState4 extends GenericBenchmarkStressState(4)
+  class BenchmarkStressState5 extends GenericBenchmarkStressState(5)
+//  class BenchmarkStressState6 extends GenericBenchmarkStressState(6)
+//  class BenchmarkStressState7 extends GenericBenchmarkStressState(7)
 
   // --- --- --- --- --- --- --- Abstract Bench --- --- --- --- --- --- ---  ---
 
@@ -161,38 +167,38 @@ object BenchTreeReorg:
 
   // --- --- --- --- --- --- --- Concrete Bench --- --- --- --- --- --- ---  ---
 
-//  class BenchmarkLeafStress0 extends GenericBench:
-//    private type S = BenchmarkStressState0
-//    @Benchmark def setNoHint(b: Blackhole, s: S): Unit = setF(b, s.fragments, s.dataNoHint)
-//    @Benchmark def setWithHint(b: Blackhole, s: S): Unit = setF(b, s.fragments, s.dataWithHint)
-//  class BenchmarkLeafStress1 extends GenericBench:
-//    private type S = BenchmarkStressState1
-//    @Benchmark def setNoHint(b: Blackhole, s: S): Unit = setF(b, s.fragments, s.dataNoHint)
-//    @Benchmark def setWithHint(b: Blackhole, s: S): Unit = setF(b, s.fragments, s.dataWithHint)
-//  class BenchmarkLeafStress2 extends GenericBench:
-//    private type S = BenchmarkStressState2
-//    @Benchmark def setNoHint(b: Blackhole, s: S): Unit = setF(b, s.fragments, s.dataNoHint)
-//    @Benchmark def setWithHint(b: Blackhole, s: S): Unit = setF(b, s.fragments, s.dataWithHint)
-//  class BenchmarkLeafStress3 extends GenericBench:
-//    private type S = BenchmarkStressState3
-//    @Benchmark def setNoHint(b: Blackhole, s: S): Unit = setF(b, s.fragments, s.dataNoHint)
-//    @Benchmark def setWithHint(b: Blackhole, s: S): Unit = setF(b, s.fragments, s.dataWithHint)
-//  class BenchmarkLeafStress4 extends GenericBench:
-//    private type S = BenchmarkStressState4
-//    @Benchmark def setNoHint(b: Blackhole, s: S): Unit = setF(b, s.fragments, s.dataNoHint)
-//    @Benchmark def setWithHint(b: Blackhole, s: S): Unit = setF(b, s.fragments, s.dataWithHint)
-//  class BenchmarkLeafStress5 extends GenericBench:
-//    private type S = BenchmarkStressState5
-//    @Benchmark def setNoHint(b: Blackhole, s: S): Unit = setF(b, s.fragments, s.dataNoHint)
-//    @Benchmark def setWithHint(b: Blackhole, s: S): Unit = setF(b, s.fragments, s.dataWithHint)
-  class BenchmarkLeafStress6 extends GenericBench:
-    private type S = BenchmarkStressState6
+  class BenchmarkLeafStress0 extends GenericBench:
+    private type S = BenchmarkStressState0
     @Benchmark def setNoHint(b: Blackhole, s: S): Unit = setF(b, s.fragments, s.dataNoHint)
     @Benchmark def setWithHint(b: Blackhole, s: S): Unit = setF(b, s.fragments, s.dataWithHint)
-  class BenchmarkLeafStress7 extends GenericBench:
-    private type S = BenchmarkStressState7
+  class BenchmarkLeafStress1 extends GenericBench:
+    private type S = BenchmarkStressState1
     @Benchmark def setNoHint(b: Blackhole, s: S): Unit = setF(b, s.fragments, s.dataNoHint)
     @Benchmark def setWithHint(b: Blackhole, s: S): Unit = setF(b, s.fragments, s.dataWithHint)
+  class BenchmarkLeafStress2 extends GenericBench:
+    private type S = BenchmarkStressState2
+    @Benchmark def setNoHint(b: Blackhole, s: S): Unit = setF(b, s.fragments, s.dataNoHint)
+    @Benchmark def setWithHint(b: Blackhole, s: S): Unit = setF(b, s.fragments, s.dataWithHint)
+  class BenchmarkLeafStress3 extends GenericBench:
+    private type S = BenchmarkStressState3
+    @Benchmark def setNoHint(b: Blackhole, s: S): Unit = setF(b, s.fragments, s.dataNoHint)
+    @Benchmark def setWithHint(b: Blackhole, s: S): Unit = setF(b, s.fragments, s.dataWithHint)
+  class BenchmarkLeafStress4 extends GenericBench:
+    private type S = BenchmarkStressState4
+    @Benchmark def setNoHint(b: Blackhole, s: S): Unit = setF(b, s.fragments, s.dataNoHint)
+    @Benchmark def setWithHint(b: Blackhole, s: S): Unit = setF(b, s.fragments, s.dataWithHint)
+  class BenchmarkLeafStress5 extends GenericBench:
+    private type S = BenchmarkStressState5
+    @Benchmark def setNoHint(b: Blackhole, s: S): Unit = setF(b, s.fragments, s.dataNoHint)
+    @Benchmark def setWithHint(b: Blackhole, s: S): Unit = setF(b, s.fragments, s.dataWithHint)
+//  class BenchmarkLeafStress6 extends GenericBench:
+//    private type S = BenchmarkStressState6
+//    @Benchmark def setNoHint(b: Blackhole, s: S): Unit = setF(b, s.fragments, s.dataNoHint)
+//    @Benchmark def setWithHint(b: Blackhole, s: S): Unit = setF(b, s.fragments, s.dataWithHint)
+//  class BenchmarkLeafStress7 extends GenericBench:
+//    private type S = BenchmarkStressState7
+//    @Benchmark def setNoHint(b: Blackhole, s: S): Unit = setF(b, s.fragments, s.dataNoHint)
+//    @Benchmark def setWithHint(b: Blackhole, s: S): Unit = setF(b, s.fragments, s.dataWithHint)
 
 //  class BenchmarkLeaf1d00256 extends GenericBench:
 //    private type S = BenchmarkState1d00256

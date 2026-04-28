@@ -608,7 +608,7 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
   def getSelectedData(using
     VersionSelection
   ): immutable.Data[V, D] =
-    getSelectedDataMutable.toImmutable.compressAll()
+    getSelectedDataMutable.toImmutable.compressedUpdate()
 
   /**
     * Gets all the data in all versions as an n+1 dimensional structure (immutable) where the version is represented in
@@ -856,7 +856,7 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     * @return
     *   a new structure with the same data and initial/current version.
     */
-  def copy: DimensionalVersionedBase[V, D]
+  def copy(using CoreConfig[Versioned[D]]): DimensionalVersionedBase[V, D]
 
   /**
     * Returns a new structure formed from this structure and another structure by combining the corresponding elements
@@ -912,12 +912,14 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     *   a lower-dimensional (n-1) projection
     */
   def getByHeadDimension[H: DomainValueLike](domain: Domain1D[H])(using
+    altConfig: CoreConfig[Versioned[Domain.NonEmptyTail[D]]]
+  )(using
     Domain.IsAtLeastTwoDimensional[D],
     Domain.IsAtHead[D, H],
     Domain.IsUpdatableAtHead[D, H],
     DomainLike[Domain.NonEmptyTail[D]],
     DomainLike[Versioned[Domain.NonEmptyTail[D]]]
-  )(using altConfig: CoreConfig[Versioned[Domain.NonEmptyTail[D]]]): DimensionalVersionedBase[V, Domain.NonEmptyTail[D]]
+  ): DimensionalVersionedBase[V, Domain.NonEmptyTail[D]]
 
   /**
     * Project as data in n-1 dimensions based on a lookup in the specified dimension -- version information is
@@ -943,12 +945,14 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     dimensionIndex: Domain.DimensionIndex,
     domain: Domain1D[H]
   )(using
+    altConfig: CoreConfig[Versioned[R]]
+  )(using
     Domain.HasIndex[D, dimensionIndex.type],
     Domain.IsAtIndex[D, dimensionIndex.type, H],
     Domain.IsUpdatableAtIndex[D, dimensionIndex.type, H],
     Domain.IsDroppedInResult[D, dimensionIndex.type, R],
     DomainLike[Versioned[R]]
-  )(using altConfig: CoreConfig[Versioned[R]]): DimensionalVersionedBase[V, R]
+  ): DimensionalVersionedBase[V, R]
 
   /**
     * Returns this as a mutable structure.

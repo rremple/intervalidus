@@ -69,7 +69,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
         case VersionSelection.Specific(version) => resetCopy.resetToVersion(version)
       resetCopy
 
-  override def copy: DataVersioned[V, D] = new DataVersioned(
+  override def copy(using config: CoreConfig[Versioned[D]]): DataVersioned[V, D] = new DataVersioned(
     underlying.getAll,
     initialVersion,
     versionTimestamps.clone(),
@@ -97,38 +97,42 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     )
 
   override def getByHeadDimension[H: DomainValueLike](domain: Domain1D[H])(using
+    altConfig: CoreConfig[Versioned[Domain.NonEmptyTail[D]]]
+  )(using
     Domain.IsAtLeastTwoDimensional[D],
     Domain.IsAtHead[D, H],
     Domain.IsUpdatableAtHead[D, H],
     DomainLike[Domain.NonEmptyTail[D]],
     DomainLike[Versioned[Domain.NonEmptyTail[D]]]
-  )(using altConfig: CoreConfig[Versioned[Domain.NonEmptyTail[D]]]): DataVersioned[V, Domain.NonEmptyTail[D]] =
+  ): DataVersioned[V, Domain.NonEmptyTail[D]] =
     val result = new DataVersioned(
       getByHeadDimensionData(domain),
       initialVersion,
       versionTimestamps.clone(),
       Some(currentVersion)
     )
-    result.compressAll()
+    result.underlying.compressedUpdate()
     result
 
   override def getByDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
     dimensionIndex: Domain.DimensionIndex,
     domain: Domain1D[H]
   )(using
+    altConfig: CoreConfig[Versioned[R]]
+  )(using
     Domain.HasIndex[D, dimensionIndex.type],
     Domain.IsAtIndex[D, dimensionIndex.type, H],
     Domain.IsUpdatableAtIndex[D, dimensionIndex.type, H],
     Domain.IsDroppedInResult[D, dimensionIndex.type, R],
     DomainLike[Versioned[R]]
-  )(using altConfig: CoreConfig[Versioned[R]]): DataVersioned[V, R] =
+  ): DataVersioned[V, R] =
     val result = new DataVersioned(
       getByDimensionData[H, R](dimensionIndex, domain),
       initialVersion,
       versionTimestamps.clone(),
       Some(currentVersion)
     )
-    result.compressAll()
+    result.underlying.compressedUpdate()
     result
 
   override def toImmutable: intervalidus.immutable.DataVersioned[V, D] = new intervalidus.immutable.DataVersioned(

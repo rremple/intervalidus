@@ -1,6 +1,7 @@
 package intervalidus.mutable
 
 import intervalidus.*
+import intervalidus.CoreConfig.IsolationLevel.*
 import intervalidus.DimensionalBase.UpdateTransaction
 
 /**
@@ -13,16 +14,26 @@ import intervalidus.DimensionalBase.UpdateTransaction
   */
 trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, D]:
 
-  // We still need synchronized here to "serialize" transactions. Otherwise, two threads could concurrently start
-  // transactions, and the commit of one would overwrite the commit of the other.
   /**
     * Wraps a function body in a new update transaction, committing the resulting changes and returning the result.
+    * @note
+    *   Transactional updates are synchronized to "serialize" update transactions, even if the isolation level is
+    *   ReadUncommitted. Otherwise, two threads could concurrently start transactions, and the commit of one would
+    *   overwrite the commit of the other. The isolation level controls how isolated readers are from writers, not how
+    *   isolated writers are from each other.
     */
   protected def transactionalUpdate[T](body: UpdateTransaction[V, D] ?=> T): T = synchronized:
-    given UpdateTransaction[V, D] = UpdateTransaction.start(state)
+    given UpdateTransaction[V, D] = config.isolationLevel match
+      case Serializable    => UpdateTransaction.start(state)
+      case ReadUncommitted => UpdateTransaction.startDirty(state)
     val result = body
     commit()
     result
+
+  /**
+    * Used internally to compress the result of an update if configured to do so.
+    */
+  def compressedUpdate(): Unit = if config.compressOnUpdate then compressAll()
 
   // ---------- Implement methods not in DimensionalBase that have mutable signatures ----------
 
@@ -55,6 +66,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
 
   private def mapInternal(f: ValidData[V, D] => ValidData[V, D])(using UpdateTransaction[V, D]): Unit =
     replaceValidData(getAllInternal.map(f))
+    if config.compressOnUpdate then compressAllInternal()
 
   /**
     * $collectDesc $mutableAction
@@ -64,6 +76,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     */
   def collect(pf: PartialFunction[ValidData[V, D], ValidData[V, D]]): Unit = transactionalUpdate:
     replaceValidData(getAllInternal.collect(pf))
+    if config.compressOnUpdate then compressAllInternal()
 
   /**
     * $mapValuesDesc $mutableAction
@@ -92,6 +105,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     */
   def flatMap(f: ValidData[V, D] => DimensionalBase[V, D]): Unit = transactionalUpdate:
     replaceValidData(getAllInternal.flatMap(f(_).getAll))
+    if config.compressOnUpdate then compressAllInternal()
 
   /**
     * Updates structure to only include elements which satisfy a predicate. $mutableAction
@@ -122,9 +136,10 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     data.iterator.foreach: d =>
       val updatedValues = updateOrRemoveNoCompress(d.interval, _ => None)
       addValidData(d)
-      affected.addAll(updatedValues)
-      affected.addOne(d.value)
-    affected.result().foreach(compressInPlace)
+      if config.compressOnUpdate then
+        affected.addAll(updatedValues)
+        affected.addOne(d.value)
+    if config.compressOnUpdate then affected.result().foreach(compressInPlace)
 
   /**
     * $setIfNoConflictDesc $mutableAction
@@ -137,7 +152,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
   def setIfNoConflict(data: ValidData[V, D]): Boolean = transactionalUpdate:
     if getIntersectingInternal(data.interval).isEmpty then
       addValidData(data)
-      compress(data.value)
+      if config.compressOnUpdate then compress(data.value)
       true
     else false
 
@@ -184,6 +199,15 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     updateOrRemove(interval, _ => None)
 
   /**
+    * $removeByKeyDesc $mutableAction
+    *
+    * @param key
+    *   $removeByKeyParamKey
+    */
+  def removeByKey(key: D): Unit = transactionalUpdate:
+    removeValidDataByKey(key)
+
+  /**
     * $removeManyDesc $mutableAction
     *
     * @param intervals
@@ -192,8 +216,9 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
   def removeMany(intervals: IterableOnce[Interval[D]]): Unit = transactionalUpdate:
     val updatedValues = Set.newBuilder[V]
     intervals.iterator.foreach: interval =>
-      updatedValues.addAll(updateOrRemoveNoCompress(interval, _ => None))
-    updatedValues.result().foreach(compressInPlace)
+      val affected = updateOrRemoveNoCompress(interval, _ => None)
+      if config.compressOnUpdate then updatedValues.addAll(affected)
+    if config.compressOnUpdate then updatedValues.result().foreach(compressInPlace)
 
   /**
     * $differenceDesc $mutableAction
@@ -225,6 +250,9 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     * $compressAllDesc $mutableAction
     */
   def compressAll(): Unit = transactionalUpdate:
+    compressAllInternal()
+
+  def compressAllInternal()(using UpdateTransaction[V, D]): Unit =
     valuesInternal.foreach(compressInPlace)
 
   /**

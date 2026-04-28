@@ -15,7 +15,10 @@ import intervalidus.DimensionalBase.{ReadThatTransaction, Transaction, UpdateTra
   */
 trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, D, Self]] extends DimensionalBase[V, D]:
 
+  this: Self =>
+
   protected def copyAndModify(f: Self => UpdateTransaction[V, D] ?=> Unit): Self =
+    // in this case, copy always uses the same config as this (given abstractly in DimensionalBase)
     val result = copy
     // dirty because result.state is already copied
     given UpdateTransaction[V, D] = UpdateTransaction.startDirty(result.state)
@@ -23,9 +26,14 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     result.commit()
     result
 
+  /**
+    * Used internally to compress the result of an update if configured to do so.
+    */
+  def compressedUpdate(): Self = if config.compressOnUpdate then compressAll() else this
+
   // ---------- To be implemented by inheritor ----------
 
-  override def copy: Self // refine the result type for `copyAndModify`
+  override def copy(using CoreConfig[D]): Self // refine the result type for `copyAndModify`
 
   /**
     * $mapDesc Both the valid data value and interval types can be changed in the mapping.
@@ -172,9 +180,10 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     data.iterator.foreach: d =>
       val updatedValues = result.updateOrRemoveNoCompress(d.interval, _ => None)
       result.addValidData(d)
-      affected.addAll(updatedValues)
-      affected.addOne(d.value)
-    affected.result().foreach(result.compressInPlace)
+      if config.compressOnUpdate then
+        affected.addAll(updatedValues)
+        affected.addOne(d.value)
+    if config.compressOnUpdate then affected.result().foreach(result.compressInPlace)
 
   /**
     * $setIfNoConflictDesc
@@ -189,7 +198,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     else
       val updated = copyAndModify: result =>
         result.addValidData(data)
-        result.compressInPlace(data.value)
+        if config.compressOnUpdate then result.compressInPlace(data.value)
       Some(updated)
 
   /**
@@ -243,6 +252,17 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     copyAndModify(_.updateOrRemove(interval, _ => None))
 
   /**
+    * $removeByKeyDesc
+    *
+    * @param key
+    *   $removeByKeyParamKey
+    * @return
+    *   $immutableReturn
+    */
+  def removeByKey(key: D): Self =
+    copyAndModify(_.removeValidDataByKey(key))
+
+  /**
     * $removeManyDesc
     *
     * @param intervals
@@ -253,8 +273,9 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
   def removeMany(intervals: IterableOnce[Interval[D]]): Self = copyAndModify: result =>
     val updatedValues = Set.newBuilder[V]
     intervals.iterator.foreach: interval =>
-      updatedValues.addAll(result.updateOrRemoveNoCompress(interval, _ => None))
-    updatedValues.result().foreach(compressInPlace)
+      val affected = result.updateOrRemoveNoCompress(interval, _ => None)
+      if config.compressOnUpdate then updatedValues.addAll(affected)
+    if config.compressOnUpdate then updatedValues.result().foreach(compressInPlace)
 
   /**
     * $differenceDesc

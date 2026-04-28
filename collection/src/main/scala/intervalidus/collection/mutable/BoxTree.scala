@@ -2,6 +2,7 @@ package intervalidus.collection.mutable
 
 import intervalidus.collection.*
 
+import scala.annotation.tailrec
 import scala.collection.mutable
 
 /**
@@ -217,7 +218,29 @@ class BoxTreeBranch[A](
 
   override def toIterable: Iterable[BoxedPayload[A]] = subtrees.flatMap(_.toIterable)
 
-  override def toIterableOnce: IterableOnce[BoxedPayload[A]] = subtrees.iterator.flatMap(_.toIterableOnce)
+  // subtrees.iterator.flatMap(_.toIterableOnce) seems to have a large memory footprint sometimes, especially in higher
+  // dimensions where there are more subtrees per branch, so we use a custom iterator here that is more lazy.
+  override def toIterableOnce: IterableOnce[BoxedPayload[A]] = new Iterator[BoxedPayload[A]]:
+    private val subtreesIterator: Iterator[BoxTree[A]] = subtrees.iterator
+    private var payloadIterator: Iterator[BoxedPayload[A]] = scala.compiletime.uninitialized
+    @tailrec
+    private def nextPayloadIterator(): Unit = // only call if subtreesIterator.hasNext
+      payloadIterator = subtreesIterator.next().toIterableOnce.iterator
+      if !payloadIterator.hasNext && subtreesIterator.hasNext then nextPayloadIterator() // skip empty iterators
+
+    nextPayloadIterator() // subtrees.iterator can't be empty, so always hasNext initially
+
+    override def hasNext: Boolean = payloadIterator.hasNext || (
+      subtreesIterator.hasNext && {
+        nextPayloadIterator()
+        payloadIterator.hasNext // check again, after mutation
+      }
+    )
+
+    override def next(): BoxedPayload[A] =
+      // Assuming hasNext is always called before next(), we don't need the following check
+      // if !payloadIterator.hasNext && subtreesIterator.hasNext then nextPayloadIterator()
+      payloadIterator.next()
 
   override def clear(): Unit = // recursively clear, leaving the structure in place
     ensureWritable()

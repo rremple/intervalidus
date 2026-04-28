@@ -29,7 +29,7 @@ trait DataIn4DMultiBaseBehaviors:
     multiFrom4D: CoreConfig[IntDim] ?=> DimensionalBase[Set[String], IntDim] => S,
     multiOf: CoreConfig[IntDim] ?=> String => S,
     multiApply: CoreConfig[IntDim] ?=> Iterable[ValidData[Set[String], IntDim]] => S
-  )(using CoreConfig[IntDim]): Unit =
+  )(using config: CoreConfig[IntDim]): Unit =
     test(s"$prefix: Basics"):
       val allData = List(
         withHorizontal(interval(0, 9)) -> Set("Hello"),

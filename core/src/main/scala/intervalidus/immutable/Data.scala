@@ -29,11 +29,9 @@ object Data extends DimensionalBaseObject[Data]:
   *   $intervalDomainType
   */
 class Data[V, D <: NonEmptyTuple: DomainLike] private (
-  initialState: State[V, D]
+  override val initialState: State[V, D]
 )(using val config: CoreConfig[D])
   extends ImmutableBase[V, D, Data[V, D]]:
-
-  @volatile override protected var state: State[V, D] = initialState
 
   config.experimental.control("requireDisjoint")(
     nonExperimentalResult = (),
@@ -53,14 +51,14 @@ class Data[V, D <: NonEmptyTuple: DomainLike] private (
   )(using altConfig: CoreConfig[S])(using Transaction[V, D]): Data[B, S] = transactionalRead:
     Data(
       getAllInternal.map(f)
-    )(using config = altConfig).compressAll()
+    )(using config = altConfig).compressedUpdate()
 
   override def collect[B, S <: NonEmptyTuple: DomainLike](
     pf: PartialFunction[ValidData[V, D], ValidData[B, S]]
   )(using altConfig: CoreConfig[S]): Data[B, S] = transactionalRead:
     Data(
       getAllInternal.collect(pf)
-    )(using config = altConfig).compressAll()
+    )(using config = altConfig).compressedUpdate()
 
   override def mapValues[B](
     f: V => B
@@ -77,11 +75,11 @@ class Data[V, D <: NonEmptyTuple: DomainLike] private (
   )(using altConfig: CoreConfig[S]): Data[B, S] = transactionalRead:
     Data(
       getAllInternal.flatMap(f(_).getAll)
-    )(using config = altConfig).compressAll()
+    )(using config = altConfig).compressedUpdate()
 
   // ---------- Implement methods from DimensionalBase that create new instances ----------
 
-  override def copy: Data[V, D] =
+  override def copy(using config: CoreConfig[D]): Data[V, D] =
     new Data(state.copy)
 
   override def zip[B](that: DimensionalBase[B, D]): Data[(V, B), D] = transactionalReadWith(that): thatTx =>
@@ -95,23 +93,27 @@ class Data[V, D <: NonEmptyTuple: DomainLike] private (
     Data(zipAllData(that, thatTx, thisDefault, thatDefault, (_, _)))
 
   override def getByHeadDimension[H: DomainValueLike](domain: Domain1D[H])(using
+    altConfig: CoreConfig[Domain.NonEmptyTail[D]]
+  )(using
     Domain.IsAtLeastTwoDimensional[D],
     Domain.IsAtHead[D, H],
     Domain.IsUpdatableAtHead[D, H],
     DomainLike[Domain.NonEmptyTail[D]]
-  )(using altConfig: CoreConfig[Domain.NonEmptyTail[D]]): Data[V, Domain.NonEmptyTail[D]] = transactionalRead:
-    Data(getByHeadDimensionData(domain))(using config = altConfig).compressAll()
+  ): Data[V, Domain.NonEmptyTail[D]] = transactionalRead:
+    Data(getByHeadDimensionData(domain))(using config = altConfig).compressedUpdate()
 
   override def getByDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
     dimensionIndex: Domain.DimensionIndex,
     domain: Domain1D[H]
   )(using
+    altConfig: CoreConfig[R]
+  )(using
     Domain.HasIndex[D, dimensionIndex.type],
     Domain.IsAtIndex[D, dimensionIndex.type, H],
     Domain.IsUpdatableAtIndex[D, dimensionIndex.type, H],
     Domain.IsDroppedInResult[D, dimensionIndex.type, R]
-  )(using altConfig: CoreConfig[R]): Data[V, R] = transactionalRead:
-    Data(getByDimensionData(dimensionIndex, domain))(using config = altConfig).compressAll()
+  ): Data[V, R] = transactionalRead:
+    Data(getByDimensionData(dimensionIndex, domain))(using config = altConfig).compressedUpdate()
 
   override def toMutable: intervalidus.mutable.Data[V, D] = transactionalRead:
     intervalidus.mutable.Data(getAllInternal)

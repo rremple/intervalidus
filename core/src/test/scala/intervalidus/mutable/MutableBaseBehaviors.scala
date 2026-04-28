@@ -28,7 +28,9 @@ trait MutableBaseBehaviors:
     intervalFrom1D: Interval1D[Int] => Interval[D],
     mapF: ValidData[String, D] => ValidData[String, D],
     prefix: String = "Mutable"
-  )(using CoreConfig[D], DomainValueLike[Int]): Unit =
+  )(using config: CoreConfig[D])(using DomainValueLike[Int]): Unit =
+    val recompressAfterUpdate = !config.compressOnUpdate
+
     def dataFrom1D(interval1D: Interval1D[Int], v: String): ValidData[String, D] =
       intervalFrom1D(interval1D) -> v
 
@@ -89,13 +91,15 @@ trait MutableBaseBehaviors:
       )
       fixture3a.getAll.toList shouldBe expectedData3a
 
-      fixture.set(dataFrom1D(intervalFrom(20), "World"))
-      // if needed: .recompressAll()
+      fixture.setMany(Seq(dataFrom1D(intervalFrom(20), "World")))
       val expectedData4 = List(
         dataFrom1D(intervalTo(5), "Hey"),
         dataFrom1D(intervalFromAfter(5).to(15), "to"),
         dataFrom1D(intervalFromAfter(15), "World")
       )
+      if recompressAfterUpdate then
+        assert(fixture.getAll.toList != expectedData4)
+        fixture.recompressAll()
       fixture.getAll.toList shouldBe expectedData4
       fixture.remove(intervalFrom1D(interval(5, 15)))
       val expectedData5 = List(
@@ -129,26 +133,31 @@ trait MutableBaseBehaviors:
       fixture.removeValue("Filled")
       fixture.getAll.toList shouldBe expectedData6
 
-      val data1 = Data(Seq(intervalFrom(1).to(3) -> "A", intervalFrom(5) -> "B"))
-      val data2 = Data(Seq(intervalFrom(2).to(4) -> "C", intervalFrom(6) -> "D"))
+      val data1 = mutableFrom(Seq(intervalFrom1D(intervalFrom(1).to(3)) -> "A", intervalFrom1D(intervalFrom(5)) -> "B"))
+      val data2 = mutableFrom(Seq(intervalFrom1D(intervalFrom(2).to(4)) -> "C", intervalFrom1D(intervalFrom(6)) -> "D"))
       // Default merge operation will "prioritize left"
       val defaultMerge = data1.copy
       defaultMerge.merge(data2)
-      defaultMerge.getAll.toList shouldBe List(
-        intervalFrom(1).to(3) -> "A",
-        intervalFromAfter(3).to(4) -> "C",
-        intervalFrom(5) -> "B"
+      val expectedMerge1 = List(
+        intervalFrom1D(intervalFrom(1).to(3)) -> "A",
+        intervalFrom1D(intervalFromAfter(3).to(4)) -> "C",
+        intervalFrom1D(intervalFrom(5)) -> "B"
       )
+      if recompressAfterUpdate then
+        assert(defaultMerge.getAll.toList != expectedMerge1)
+        defaultMerge.recompressAll()
+      defaultMerge.getAll.toList shouldBe expectedMerge1
       // Custom merge operation will combine overlapping elements
       val customMerge = data1.copy
       customMerge.merge(data2, _ + _)
-      customMerge.getAll.toList shouldBe List(
-        intervalFrom(1).toBefore(2) -> "A",
-        intervalFrom(2).to(3) -> "AC",
-        intervalFromAfter(3).to(4) -> "C",
-        intervalFrom(5).toBefore(6) -> "B",
-        intervalFrom(6) -> "BD"
+      val expectedMerge2 = List(
+        intervalFrom1D(intervalFrom(1).toBefore(2)) -> "A",
+        intervalFrom1D(intervalFrom(2).to(3)) -> "AC",
+        intervalFrom1D(intervalFromAfter(3).to(4)) -> "C",
+        intervalFrom1D(intervalFrom(5).toBefore(6)) -> "B",
+        intervalFrom1D(intervalFrom(6)) -> "BD"
       )
+      customMerge.getAll.toList shouldBe expectedMerge2
 
     test(s"$prefix: Filter, mapping, flatmapping, etc."):
       val allData = List(dataFrom1D(intervalTo(4), "Hey"), dataFrom1D(intervalFrom(16), "World"))
@@ -205,6 +214,9 @@ trait MutableBaseBehaviors:
         dataFrom1D(interval(5, 7), "World!"),
         dataFrom1D(intervalFromAfter(7), "Hello")
       )
+      if recompressAfterUpdate then
+        assert(fixture.getAll.toList != expectedData1)
+        fixture.recompressAll()
       fixture.getAll.toList shouldBe expectedData1
       fixture ≡ mutableFrom(expectedData1) shouldBe true
 
@@ -217,6 +229,9 @@ trait MutableBaseBehaviors:
         dataFrom1D(intervalFromAfter(5).to(9), "to"),
         dataFrom1D(intervalFromAfter(9), "Hello")
       )
+      if recompressAfterUpdate then
+        assert(fixture.getAll.toList != expectedData2)
+        fixture.recompressAll()
       fixture.getAll.toList shouldBe expectedData2
       fixture.domain.toList shouldBe List(
         intervalFrom1D(intervalToBefore(3)),

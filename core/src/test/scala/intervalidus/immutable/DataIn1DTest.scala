@@ -15,7 +15,9 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
   import Domain1D.Point
 
   // shared
+  val noCompress: CoreConfig[IntDim] = CoreConfig.default.withCompressOnUpdate(false)
   testsFor(stringLookupTests("Immutable", Data(_), Data.of(_)))
+  testsFor(stringLookupTests("Immutable (noCompress)", Data(_), Data.of(_))(using config = noCompress))
 
   def usingBuilder(data: IterableOnce[ValidData[String, IntDim]]): Data[String, IntDim] =
     val builder = Data.newBuilder[String, IntDim]
@@ -27,6 +29,13 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
     Data.empty[String, IntDim] ++ data
 
   testsFor(immutableBaseTests[IntDim, Data[String, IntDim]](Data(_), identity))
+  testsFor(
+    immutableBaseTests[IntDim, Data[String, IntDim]](
+      Data(_),
+      identity,
+      "Immutable (noCompress)"
+    )(using config = noCompress)
+  )
   testsFor(immutableBaseTests[IntDim, Data[String, IntDim]](usingBuilder, identity, "Immutable (builder)"))
   testsFor(immutableBaseTests[IntDim, Data[String, IntDim]](usingSetMany, identity, "Immutable (setMany)"))
 
@@ -123,7 +132,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
     val f3 = Data(expectedData3)
     val f4 = f3
       .set(intervalFrom(1) -> "remove me")
-      .remove(intervalFrom(1))
+      .removeByKey(intervalFrom(1).start)
     val expectedData4 = List(intervalTo(0) -> "Hey")
     f4.getAll.toList shouldBe expectedData4
 

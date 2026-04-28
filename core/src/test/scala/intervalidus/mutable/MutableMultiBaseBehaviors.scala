@@ -19,15 +19,18 @@ trait MutableMultiBaseBehaviors:
     D <: NonEmptyTuple: DomainLike,
     S <: DataMulti[String, D]
   ](
+    prefix: String,
     multiFrom: CoreConfig[D] ?=> Iterable[ValidData[String, D]] => S,
-    intervalFrom1D: Interval1D[Int] => Interval[D]
-  )(using CoreConfig[D]): Unit =
+    intervalFrom1D: Interval1D[Int] => Interval[D],
+    recompressAfterUpdate: Boolean = false
+  )(using config: CoreConfig[D]): Unit =
+    val recompressAfterUpdate = !config.compressOnUpdate
     def withHorizontalOne(interval: Interval1D[Int], value: String): ValidData[String, D] =
       intervalFrom1D(interval) -> value
     def withHorizontal(interval: Interval1D[Int], value: Set[String]): ValidData[Set[String], D] =
       intervalFrom1D(interval) -> value
 
-    test("Mutable: Element-wise adding and removing data in intervals"):
+    test(s"$prefix: Element-wise adding and removing data in intervals"):
       val allData = List(
         withHorizontalOne(interval(0, 20), "A"),
         withHorizontalOne(interval(5, 25), "B"),
@@ -57,7 +60,7 @@ trait MutableMultiBaseBehaviors:
       )
 
       f0.addOne(withHorizontalOne(intervalFrom(17), "A"))
-      f0.getAll.toList shouldBe List(
+      val expectedAddOne = List(
         withHorizontal(interval(5, 9), Set("B")),
         withHorizontal(interval(10, 14), Set("B", "C")),
         withHorizontal(interval(15, 16), Set("B", "C", "D")),
@@ -66,6 +69,10 @@ trait MutableMultiBaseBehaviors:
         withHorizontal(interval(31, 35), Set("A", "D")),
         withHorizontal(intervalFrom(36), Set("A"))
       )
+      if recompressAfterUpdate then
+        assert(f0.getAll.toList != expectedAddOne)
+        f0.recompressAll()
+      f0.getAll.toList shouldBe expectedAddOne
 
       f0 + withHorizontal(interval(15, 20), Set("A", "B", "C"))
       f0.getAll.toList shouldBe List(
@@ -103,7 +110,7 @@ trait MutableMultiBaseBehaviors:
           withHorizontalOne(intervalTo(22), "C")
         )
       )
-      f0.getAll.toList shouldBe List(
+      val expectedRemoveOneMany = List(
         withHorizontal(interval(0, 4), Set("X")),
         withHorizontal(interval(5, 14), Set("X", "Y")),
         withHorizontal(interval(15, 16), Set("Y")),
@@ -113,6 +120,10 @@ trait MutableMultiBaseBehaviors:
         withHorizontal(interval(31, 35), Set("A", "D", "Z")),
         withHorizontal(intervalFrom(36), Set("A", "Z"))
       )
+      if recompressAfterUpdate then
+        assert(f0.getAll.toList != expectedRemoveOneMany)
+        f0.recompressAll()
+      f0.getAll.toList shouldBe expectedRemoveOneMany
 
   def mapAndFlatmapTests[
     D <: NonEmptyTuple: DomainLike,

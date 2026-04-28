@@ -16,7 +16,9 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
   import Domain1D.Point
 
   // shared
+  val noCompress: CoreConfig[IntDim] = CoreConfig.default.withCompressOnUpdate(false)
   testsFor(stringLookupTests("Mutable", Data(_), Data.of(_)))
+  testsFor(stringLookupTests("Mutable (noCompress)", Data(_), Data.of(_))(using config = noCompress))
 
   def usingBuilder(data: Iterable[ValidData[String, IntDim]]): Data[String, IntDim] =
     val builder = Data.newBuilder[String, IntDim]
@@ -36,11 +38,19 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
     )
 
   testsFor(mutableBaseTests[IntDim, Data[String, IntDim]](Data(_), identity, mapf))
-  testsFor(mutableBaseTests[IntDim, Data[String, IntDim]](usingBuilder, identity, mapf, "Immutable (builder)"))
-  testsFor(mutableBaseTests[IntDim, Data[String, IntDim]](usingSetMany, identity, mapf, "Immutable (setMany)"))
+  testsFor(
+    mutableBaseTests[IntDim, Data[String, IntDim]](
+      Data(_),
+      identity,
+      mapf,
+      "Mutable (noCompress)"
+    )(using config = noCompress)
+  )
+  testsFor(mutableBaseTests[IntDim, Data[String, IntDim]](usingBuilder, identity, mapf, "Mutable (builder)"))
+  testsFor(mutableBaseTests[IntDim, Data[String, IntDim]](usingSetMany, identity, mapf, "Mutable (setMany)"))
 
   testsFor(mutableCompressionTests[IntDim, Data[String, IntDim]](Data(_), identity))
-  testsFor(mutableCompressionTests[IntDim, Data[String, IntDim]](usingBuilder, identity, "Immutable (builder)"))
+  testsFor(mutableCompressionTests[IntDim, Data[String, IntDim]](usingBuilder, identity, "Mutable (builder)"))
 
   testsFor(doubleUseCaseTests("Mutable", Data(_)))
 
@@ -122,7 +132,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
 
     fixture.syncWith(fixture3)
     fixture.set(intervalFrom(1) -> "remove me")
-    fixture.remove(intervalFrom(1))
+    fixture.removeByKey(intervalFrom(1).start)
     val expectedData4 = List(intervalTo(0) -> "Hey")
     fixture.getAll.toList shouldBe expectedData4
 

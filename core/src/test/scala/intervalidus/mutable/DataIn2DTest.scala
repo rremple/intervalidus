@@ -36,13 +36,22 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
       interval = d.interval.to(d.interval.end.leftAdjacent)
     )
 
+  val noCompress: CoreConfig[MixedDim] = CoreConfig.default.withCompressOnUpdate(false)
   testsFor(mutableBaseTests[MixedDim, Data[String, MixedDim]](Data(_), asVertical, mapf))
+  testsFor(
+    mutableBaseTests[MixedDim, Data[String, MixedDim]](
+      Data(_),
+      asVertical,
+      mapf,
+      "Mutable (noCompress)"
+    )(using config = noCompress)
+  )
   testsFor(
     mutableBaseTests[MixedDim, Data[String, MixedDim]](
       usingBuilder,
       asVertical,
       mapf,
-      "Immutable (builder)"
+      "Mutable (builder)"
     )
   )
   testsFor(
@@ -50,7 +59,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
       usingSetMany,
       asVertical,
       mapf,
-      "Immutable (setMany)"
+      "Mutable (setMany)"
     )
   )
 
@@ -59,7 +68,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     mutableCompressionTests[MixedDim, Data[String, MixedDim]](
       usingBuilder,
       asVertical,
-      "Immutable (builder)"
+      "Mutable (builder)"
     )
   )
 
@@ -117,6 +126,18 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     fixture.getByDimension[Int, Domain.In1D[LocalDate]](1, 0).getAt(dayZero) shouldBe Some("Hello")
     fixture.getByDimension[Int, Domain.In1D[LocalDate]](1, Domain1D.Top).getAt(day(1)) shouldBe Some("World")
 
+    // this gets us coverage of compressedUpdate
+    fixture
+      .getByHeadDimension(dayZero)(using
+        altConfig = CoreConfig.default.withCompressOnUpdate(false)
+      )
+      .getAt(0) shouldBe Some("Hello")
+    fixture
+      .getByDimension[Int, Domain.In1D[LocalDate]](1, 0)(using
+        altConfig = CoreConfig.default.withCompressOnUpdate(false)
+      )
+      .getAt(dayZero) shouldBe Some("Hello")
+
   test("Mutable: Diff actions"):
     val expectedData2 = List(
       (unbounded[LocalDate] x interval(0, 4)) -> "Hello",
@@ -138,7 +159,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     )
     val fixture = Data(expectedData4)
     fixture.set((intervalFrom(day(1)) x intervalFrom(1)) -> "remove me")
-    fixture.remove(intervalFrom(day(1)) x intervalFrom(1))
+    fixture.removeByKey((intervalFrom(day(1)) x intervalFrom(1)).start)
     // if needed: fixture.recompressAll()
     val expectedData5 = List(
       (unbounded[LocalDate] x intervalTo(0)) -> "Hey",

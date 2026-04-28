@@ -1,6 +1,7 @@
 package intervalidus.microbench
 
 import intervalidus.*
+import intervalidus.CoreConfig.IsolationLevel.ReadUncommitted
 import intervalidus.microbench.DomainGenerator.{Dim1, Dim2, Dim3, Dim4, Dim5}
 import intervalidus.microbench.IntervalGenerator.*
 import intervalidus.microbench.IntervalGenerator.IntDomainTuple.given
@@ -35,7 +36,9 @@ object BenchImmutableCore:
     // set per invocation
     var fragments: IterableOnce[ValidData[Int, D]] = uninitialized
     var dataImmutable: immutable.Data[Int, D] = uninitialized
-    var dataMutable: mutable.Data[Int, D] = uninitialized
+    var dataMutableClean: mutable.Data[Int, D] = uninitialized
+    var dataMutableDirty: mutable.Data[Int, D] = uninitialized
+    var dataMutableSuperDirty: mutable.Data[Int, D] = uninitialized
 
     @Setup(Level.Iteration)
     def setUpIteration(): Unit =
@@ -50,7 +53,11 @@ object BenchImmutableCore:
       // println(s"Set up invocation...")
       fragments = testDataIterator.next().iterator.zipWithIndex.map((i, v) => i -> v)
       dataImmutable = immutable.Data.empty
-      dataMutable = mutable.Data.empty
+      dataMutableClean = mutable.Data.empty // default config
+      dataMutableDirty = mutable.Data.empty(using config = CoreConfig.default.withIsolationLevel(ReadUncommitted))
+      dataMutableSuperDirty = mutable.Data.empty(using
+        config = CoreConfig.default.withIsolationLevel(ReadUncommitted).withCompressOnUpdate(false)
+      )
 
   // --- --- --- --- --- --- --- Concrete State --- --- --- --- --- --- ---  ---
 
@@ -79,28 +86,44 @@ object BenchImmutableCore:
       b.consume:
         s.fragments.iterator.foldLeft(s.dataImmutable)(_.set(_))
 
-    def setMutableF[D <: NonEmptyTuple: DomainLike, S <: GenericBenchmarkState[D]](b: Blackhole, s: S): Unit =
+    def setMutableCleanF[D <: NonEmptyTuple: DomainLike, S <: GenericBenchmarkState[D]](b: Blackhole, s: S): Unit =
       b.consume:
-        s.fragments.iterator.foreach(s.dataMutable.set(_))
+        s.fragments.iterator.foreach(s.dataMutableClean.set(_))
+
+    def setMutableDirtyF[D <: NonEmptyTuple: DomainLike, S <: GenericBenchmarkState[D]](b: Blackhole, s: S): Unit =
+      b.consume:
+        s.fragments.iterator.foreach(s.dataMutableDirty.set(_))
+
+    def setMutableSuperDirtyF[D <: NonEmptyTuple: DomainLike, S <: GenericBenchmarkState[D]](b: Blackhole, s: S): Unit =
+      b.consume:
+        s.fragments.iterator.foreach(s.dataMutableSuperDirty.set(_))
 
   // --- --- --- --- --- --- --- Concrete Bench --- --- --- --- --- --- ---  ---
 
   class BenchmarkLeaf1d extends GenericBench:
     private type S = BenchmarkState1d
     @Benchmark def setImmutable(b: Blackhole, s: S): Unit = setImmutableF(b, s)
-    @Benchmark def setMutable(b: Blackhole, s: S): Unit = setMutableF(b, s)
+    @Benchmark def setMutableClean(b: Blackhole, s: S): Unit = setMutableCleanF(b, s)
+    @Benchmark def setMutableDirty(b: Blackhole, s: S): Unit = setMutableDirtyF(b, s)
+    @Benchmark def setMutableSuperDirty(b: Blackhole, s: S): Unit = setMutableSuperDirtyF(b, s)
   class BenchmarkLeaf2d extends GenericBench:
     private type S = BenchmarkState2d
     @Benchmark def setImmutable(b: Blackhole, s: S): Unit = setImmutableF(b, s)
-    @Benchmark def setMutable(b: Blackhole, s: S): Unit = setMutableF(b, s)
+    @Benchmark def setMutableClean(b: Blackhole, s: S): Unit = setMutableCleanF(b, s)
+    @Benchmark def setMutableDirty(b: Blackhole, s: S): Unit = setMutableDirtyF(b, s)
+    @Benchmark def setMutableSuperDirty(b: Blackhole, s: S): Unit = setMutableSuperDirtyF(b, s)
   class BenchmarkLeaf3d extends GenericBench:
     private type S = BenchmarkState3d
     @Benchmark def setImmutable(b: Blackhole, s: S): Unit = setImmutableF(b, s)
-    @Benchmark def setMutable(b: Blackhole, s: S): Unit = setMutableF(b, s)
+    @Benchmark def setMutableClean(b: Blackhole, s: S): Unit = setMutableCleanF(b, s)
+    @Benchmark def setMutableDirty(b: Blackhole, s: S): Unit = setMutableDirtyF(b, s)
+    @Benchmark def setMutableSuperDirty(b: Blackhole, s: S): Unit = setMutableSuperDirtyF(b, s)
   class BenchmarkLeaf4d extends GenericBench:
     private type S = BenchmarkState4d
     @Benchmark def setImmutable(b: Blackhole, s: S): Unit = setImmutableF(b, s)
-    @Benchmark def setMutable(b: Blackhole, s: S): Unit = setMutableF(b, s)
+    @Benchmark def setMutableClean(b: Blackhole, s: S): Unit = setMutableCleanF(b, s)
+    @Benchmark def setMutableDirty(b: Blackhole, s: S): Unit = setMutableDirtyF(b, s)
+    @Benchmark def setMutableSuperDirty(b: Blackhole, s: S): Unit = setMutableSuperDirtyF(b, s)
 //  class BenchmarkLeaf5d extends GenericBench:
 //    private type S = BenchmarkState5d
 //    @Benchmark def setImmutable(b: Blackhole, s: S): Unit = setImmutableF(b, s)

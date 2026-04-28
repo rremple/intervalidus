@@ -32,11 +32,19 @@ class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors 
   def asDepth(interval1D: Interval1D[Int]): Interval[MixedDim] =
     unbounded[LocalDate] x unbounded[LocalDate] x interval1D x unbounded[Int]
 
+  val noCompress: CoreConfig[MixedDim] = CoreConfig.default.withCompressOnUpdate(false)
   testsFor(
     immutableBaseTests[MixedDim, Data[String, MixedDim]](
       Data(_),
       asDepth
     )
+  )
+  testsFor(
+    immutableBaseTests[MixedDim, Data[String, MixedDim]](
+      Data(_),
+      asDepth,
+      "Immutable (noCompress)"
+    )(using config = noCompress)
   )
   testsFor(
     immutableBaseTests[MixedDim, Data[String, MixedDim]](
@@ -171,7 +179,7 @@ class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors 
     val fixture4 = Data(expectedData4)
     val fixture5 = fixture4
       .set((intervalFrom(day(1)) x unboundedDate x intervalFrom(1) x unbounded[Int]) -> "remove me")
-      .remove(intervalFrom(day(1)) x unboundedDate x intervalFrom(1) x unbounded[Int])
+      .removeByKey((intervalFrom(day(1)) x unboundedDate x intervalFrom(1) x unbounded[Int]).start)
     // if needed: .recompressAll()
     val expectedData5 = List(
       (unboundedDate x unboundedDate x intervalTo(0) x unbounded[Int]) -> "Hey",

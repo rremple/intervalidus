@@ -696,11 +696,13 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
     *   a lower-dimensional (n-1) projection
     */
   def getByHeadDimension[H: DomainValueLike](domain: Domain1D[H])(using
+    altConfig: CoreConfig[Domain.NonEmptyTail[D]]
+  )(using
     Domain.IsAtLeastTwoDimensional[D],
     Domain.IsAtHead[D, H],
     Domain.IsUpdatableAtHead[D, H],
     DomainLike[Domain.NonEmptyTail[D]]
-  )(using altConfig: CoreConfig[Domain.NonEmptyTail[D]]): IntervalShape[Domain.NonEmptyTail[D]] =
+  ): IntervalShape[Domain.NonEmptyTail[D]] =
     new IntervalShape(underlying.getByHeadDimension(domain))(using config = altConfig)
 
   /**
@@ -726,11 +728,13 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
     dimensionIndex: Domain.DimensionIndex,
     domain: Domain1D[H]
   )(using
+    altConfig: CoreConfig[R]
+  )(using
     Domain.HasIndex[D, dimensionIndex.type],
     Domain.IsAtIndex[D, dimensionIndex.type, H],
     Domain.IsUpdatableAtIndex[D, dimensionIndex.type, H],
     Domain.IsDroppedInResult[D, dimensionIndex.type, R]
-  )(using altConfig: CoreConfig[R]): IntervalShape[R] =
+  ): IntervalShape[R] =
     new IntervalShape(underlying.getByDimension(dimensionIndex, domain))(using config = altConfig)
 
   /**

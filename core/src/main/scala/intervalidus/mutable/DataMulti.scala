@@ -37,12 +37,10 @@ object DataMulti extends DimensionalMultiBaseObject[DataMulti]:
   *   $intervalDomainType
   */
 class DataMulti[V, D <: NonEmptyTuple: DomainLike] private (
-  initialState: State[Set[V], D]
+  override val initialState: State[Set[V], D]
 )(using val config: CoreConfig[D])
   extends MutableBase[Set[V], D]
   with DimensionalMultiBase[V, D]:
-
-  @volatile override protected var state: State[Set[V], D] = initialState
 
   config.experimental.control("requireDisjoint")(
     nonExperimentalResult = (),
@@ -100,7 +98,7 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] private (
   // ---------- Implement methods from DimensionalBase that create new instances ----------
   // ----  (some return Data rather than DataMulti because the resultant value type isn't necessarily a Set type) ----
 
-  override def copy: DataMulti[V, D] =
+  override def copy(using config: CoreConfig[D]): DataMulti[V, D] =
     new DataMulti(state.copy)
 
   override def zip[B](that: DimensionalBase[B, D]): Data[(Set[V], B), D] = transactionalReadWith(that): thatTx =>
@@ -114,26 +112,30 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] private (
     Data(zipAllData(that, thatTx, thisDefault, thatDefault, (_, _)))
 
   override def getByHeadDimension[H: DomainValueLike](domain: Domain1D[H])(using
+    altConfig: CoreConfig[Domain.NonEmptyTail[D]]
+  )(using
     Domain.IsAtLeastTwoDimensional[D],
     Domain.IsAtHead[D, H],
     Domain.IsUpdatableAtHead[D, H],
     DomainLike[Domain.NonEmptyTail[D]]
-  )(using altConfig: CoreConfig[Domain.NonEmptyTail[D]]): DataMulti[V, Domain.NonEmptyTail[D]] = transactionalRead:
+  ): DataMulti[V, Domain.NonEmptyTail[D]] = transactionalRead:
     val result = DataMulti(getByHeadDimensionData(domain))(using config = altConfig)
-    result.compressAll()
+    result.compressedUpdate()
     result
 
   override def getByDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
     dimensionIndex: Domain.DimensionIndex,
     domain: Domain1D[H]
   )(using
+    altConfig: CoreConfig[R]
+  )(using
     Domain.HasIndex[D, dimensionIndex.type],
     Domain.IsAtIndex[D, dimensionIndex.type, H],
     Domain.IsUpdatableAtIndex[D, dimensionIndex.type, H],
     Domain.IsDroppedInResult[D, dimensionIndex.type, R]
-  )(using altConfig: CoreConfig[R]): DataMulti[V, R] = transactionalRead:
+  ): DataMulti[V, R] = transactionalRead:
     val result = DataMulti(getByDimensionData(dimensionIndex, domain))(using config = altConfig)
-    result.compressAll()
+    result.compressedUpdate()
     result
 
   override def toMutable: intervalidus.mutable.DataMulti[V, D] =

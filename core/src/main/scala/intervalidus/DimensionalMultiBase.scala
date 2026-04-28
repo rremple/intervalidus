@@ -206,7 +206,8 @@ trait DimensionalMultiBase[V, D <: NonEmptyTuple: DomainLike] extends Dimensiona
   protected def addOneInPlace[B <: V](data: ValidData[B, D])(using UpdateTransaction[Set[V], D]): Unit =
     val updatedValues = updateOrRemoveNoCompress(data.interval, addToValueSet(data.value))
     fillInPlaceNoCompress(data.interval -> Set(data.value))
-    (updatedValues.iterator ++ Iterator.single(Set(data.value))).distinct.foreach(compressInPlace)
+    if config.compressOnUpdate then
+      (updatedValues.iterator ++ Iterator.single(Set(data.value))).distinct.foreach(compressInPlace)
 
   /**
     * Internal mutator to update all the valid value sets in the specified intervals to include the specified values,
@@ -225,9 +226,10 @@ trait DimensionalMultiBase[V, D <: NonEmptyTuple: DomainLike] extends Dimensiona
     allData.iterator.foreach: data =>
       val updatedValues = updateOrRemoveNoCompress(data.interval, addToValueSet(data.value))
       fillInPlaceNoCompress(data.interval -> Set(data.value))
-      affected.addAll(updatedValues)
-      affected.addOne(Set(data.value))
-    affected.result().foreach(compressInPlace)
+      if config.compressOnUpdate then
+        affected.addAll(updatedValues)
+        affected.addOne(Set(data.value))
+    if config.compressOnUpdate then affected.result().foreach(compressInPlace)
 
   /**
     * Internal mutator to update all the valid value sets in the interval to exclude the new value, and for any interval
@@ -256,8 +258,8 @@ trait DimensionalMultiBase[V, D <: NonEmptyTuple: DomainLike] extends Dimensiona
     val affected = Set.newBuilder[Set[V]]
     allData.iterator.foreach: data =>
       val updatedValues = updateOrRemoveNoCompress(data.interval, removeFromValueSet(data.value))
-      affected.addAll(updatedValues)
-    affected.result().foreach(compressInPlace)
+      if config.compressOnUpdate then affected.addAll(updatedValues)
+    if config.compressOnUpdate then affected.result().foreach(compressInPlace)
 
   /**
     * Returns the distinct individual values that are valid in some interval.

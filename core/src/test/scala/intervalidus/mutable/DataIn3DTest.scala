@@ -39,6 +39,7 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
       interval = d.interval.to(d.interval.end.leftAdjacent)
     )
 
+  val noCompress: CoreConfig[MixedDim] = CoreConfig.default.withCompressOnUpdate(false)
   testsFor(
     mutableBaseTests[MixedDim, Data[String, MixedDim]](
       Data(_),
@@ -48,10 +49,18 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
   )
   testsFor(
     mutableBaseTests[MixedDim, Data[String, MixedDim]](
+      Data(_),
+      asDepth,
+      mapf,
+      "Mutable (noCompress)"
+    )(using config = noCompress)
+  )
+  testsFor(
+    mutableBaseTests[MixedDim, Data[String, MixedDim]](
       usingBuilder,
       asDepth,
       mapf,
-      "Immutable (builder)"
+      "Mutable (builder)"
     )
   )
   testsFor(
@@ -59,7 +68,7 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
       usingSetMany,
       asDepth,
       mapf,
-      "Immutable (setMany)"
+      "Mutable (setMany)"
     )
   )
 
@@ -73,7 +82,7 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
     mutableCompressionTests[MixedDim, Data[String, MixedDim]](
       usingBuilder,
       asDepth,
-      "Immutable (builder)"
+      "Mutable (builder)"
     )
   )
 
@@ -184,7 +193,7 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
 
     val fixture = Data(expectedData4)
     fixture.set((intervalFrom(day(1)) x unboundedDate x intervalFrom(1)) -> "remove me")
-    fixture.remove(intervalFrom(day(1)) x unboundedDate x intervalFrom(1))
+    fixture.removeByKey((intervalFrom(day(1)) x unboundedDate x intervalFrom(1)).start)
     // if needed: fixture.recompressAll()
     val expectedData5 = List(
       (unboundedDate x unboundedDate x intervalTo(0)) -> "Hey",
