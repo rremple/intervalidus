@@ -118,7 +118,7 @@ lazy val `intervalidus-examples` = (project in file("examples"))
   .dependsOn(core, `intervalidus-tinyrule`)
   .settings(commonNoPublishSettings("intervalidus-examples"))
 
-val mongodbVersion = "5.6.5"
+val mongodbVersion = "5.7.0"
 val testcontainersVersion = "0.44.1"
 
 lazy val `intervalidus-example-mongodb` = (project in file("example-mongodb"))
