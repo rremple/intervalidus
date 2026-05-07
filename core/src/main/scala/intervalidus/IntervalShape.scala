@@ -96,7 +96,8 @@ object IntervalShape:
     initialIntervals: Iterable[Interval[D]]
   )(using config: CoreConfig[D]): IntervalShape[D] =
     require(Interval.isDisjoint(initialIntervals), s"IntervalShape based on $initialIntervals is invalid: not disjoint")
-    new IntervalShape(Data(initialIntervals.map(valid)).recompressAll())
+    val newData = Data(initialIntervals.map(valid))
+    new IntervalShape(if config.compressOnUpdate then newData.recompressAll() else newData)
 
   /**
     * Constructor for multiple (or no) initial intervals without checking if they are disjoint and compressed.

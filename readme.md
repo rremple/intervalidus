@@ -500,23 +500,23 @@ the rest of the universe is automatically filled with 'available' slots:
 [RCC-8](https://en.wikipedia.org/wiki/Region_connection_calculus) mereotopological framework, and other similar
 topological functions. This allows you to reason about the spatial relationships between any two multidimensional shapes
 using a mathematically rigorous set of predicates. For two shapes `a` and `b`, `a relationWith b` describes how `a` and
-`b`relate to one another:
+`b` relate to one another:
 
 * `DC` (Disconnected): There is a gap between the shapes.
 * `EC` (Externally Connected): The shapes "touch" at the boundary but share no volume.
 * `EQ` (Equal): The shapes are topologically identical.
 * `PO` (Partial Overlap): The shapes share some volume but neither contains the other.
-* `TPP / TPPi` (Tangential Proper Part and its inverse): One is a subset of the other, and they share a boundary.
-* `NTPP / NTPPi` (Non-Tangential Proper Part and its inverse): One is a subset of the other, but they do not share a
+* `TPP`/`TPPi` (Tangential Proper Part and its inverse): One is a subset of the other, and they share a boundary.
+* `NTPP`/`NTPPi` (Non-Tangential Proper Part and its inverse): One is a subset of the other, but they do not share a
   boundary.
 
 The library provides high-level methods for evaluating shape relationships influenced by
 [OGC](https://en.wikipedia.org/wiki/Open_Geospatial_Consortium)
 and [RCC-8](https://en.wikipedia.org/wiki/Region_connection_calculus):
 
-* `intersects`: Do they share any volume? ($EQ, PO, TPP/TPPi, NTPP/NTPPi$)
-* `touches`: Do they share a boundary? ($EC, TPP/TPPi$)
-* `isConnectedTo`: Are they in contact, i.e., they intersect or touch? (All but $DC$)
+* `intersects`: Do they share any volume? (`EQ`, `PO`, `TPP`/`TPPi`, `NTPP`/`NTPPi`)
+* `touches`: Do they share a boundary? (`EC`, `TPP`/`TPPi`)
+* `isConnectedTo`: Are they in contact, i.e., they intersect or touch? (All but `DC`)
 * `isContiguous`: Is the shape a single unbroken "mainland," or a scattered "archipelago"? (One can find all the 
   individual "islands" in a shape using the `contiguousSubshapes` method.)
 * `isSolid`: Is the shape contiguous and free of internal cavities? (One can find all the cavities in a shape using the

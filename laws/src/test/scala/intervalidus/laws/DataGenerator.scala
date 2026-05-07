@@ -20,11 +20,11 @@ object DataGenerator:
     values <- Gen.listOfN(intervals.size, Gen.oneOf(palette))
   yield immutable.Data(intervals.zip(values).map(_ -> _))
 
-  def genDim1(using DomainValueLike[Int], CoreConfig[Dim1]): Gen[immutable.Data[String, Dim1]] =
+  def genDim1(using config: CoreConfig[Dim1])(using DomainValueLike[Int]): Gen[immutable.Data[String, Dim1]] =
     gen(genNonIntersectingDim1)
-  def genDim2(using DomainValueLike[Int], CoreConfig[Dim2]): Gen[immutable.Data[String, Dim2]] =
+  def genDim2(using config: CoreConfig[Dim2])(using DomainValueLike[Int]): Gen[immutable.Data[String, Dim2]] =
     gen(genNonIntersectingDim2)
-  def genDim3(using DomainValueLike[Int], CoreConfig[Dim3]): Gen[immutable.Data[String, Dim3]] =
+  def genDim3(using config: CoreConfig[Dim3])(using DomainValueLike[Int]): Gen[immutable.Data[String, Dim3]] =
     gen(genNonIntersectingDim3)
-  def genDim4(using DomainValueLike[Int], CoreConfig[Dim4]): Gen[immutable.Data[String, Dim4]] =
+  def genDim4(using config: CoreConfig[Dim4])(using DomainValueLike[Int]): Gen[immutable.Data[String, Dim4]] =
     gen(genNonIntersectingDim4)

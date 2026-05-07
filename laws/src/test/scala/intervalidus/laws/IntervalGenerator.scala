@@ -8,6 +8,7 @@ import org.scalacheck.Gen
 
 // Generates intervals of any dimension
 object IntervalGenerator:
+  def noCompress[D <: NonEmptyTuple : DomainLike]: CoreConfig[D] = CoreConfig.default.withCompressOnUpdate(false)
 
   private def gen[D <: NonEmptyTuple: DomainLike](
     genStart: Gen[D],
