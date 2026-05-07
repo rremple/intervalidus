@@ -43,12 +43,12 @@ class IntervalShapeLaws extends AnyPropSpec with ScalaCheckPropertyChecks with P
       property(s"1D Continuous $propertyName")(testFun[Dim1](genDim1(using testCoreConfig)))
     }
 
+  extension [D <: NonEmptyTuple : DomainLike](lhs: IntervalShape[D])
+    infix def ≡≡(rhs: IntervalShape[D]): Assertion = assert(lhs ≡ rhs)
+
   /*
    * --- The actual property-based tests ---
    */
-
-  extension [D <: NonEmptyTuple: DomainLike](lhs: IntervalShape[D])
-    infix def ≡≡(rhs: IntervalShape[D]): Assertion = assert(lhs ≡ rhs)
 
   // Key Laws of Set Theory. https://en.wikipedia.org/wiki/List_of_set_identities_and_relations
 

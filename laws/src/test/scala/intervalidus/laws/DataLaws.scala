@@ -42,6 +42,9 @@ class DataLaws extends AnyPropSpec with ScalaCheckPropertyChecks with ParallelTe
       property(s"1D Continuous $propertyName")(testFun[Dim1](genDim1(using testCoreConfig)))
     }
 
+  extension [V, D <: NonEmptyTuple : DomainLike](lhs: Data[V, D])
+    infix def ≡≡(rhs: Data[V, D]): Assertion = assert(lhs ≡ rhs)
+
   /*
    * --- The actual property-based tests ---
    */
@@ -123,7 +126,7 @@ class DataLaws extends AnyPropSpec with ScalaCheckPropertyChecks with ParallelTe
     new DataPropertyTest:
       override def apply[D <: NonEmptyTuple: DomainLike](dataGen: Gen[immutable.Data[String, D]]): Assertion =
         forAll(dataGen): a =>
-          a.getAll.foldLeft(a)(_.fill (_)) shouldBe a
+          a.getAll.foldLeft(a)(_.fill(_)) ≡≡ a
 
   /**
     * This validates that the results of querying the core dataInBoxTree structure (i.e., the underlying box search
