@@ -7,6 +7,8 @@ import org.scalacheck.Gen
 
 // Generates Data with intervals of any dimension and either fixed or random values
 object DataGenerator:
+  def testCoreConfig[D <: NonEmptyTuple: DomainLike]: CoreConfig[D] =
+    CoreConfig.default // .withCompressOnUpdate(false)
 
   /**
     * Generate an immutable.Data structure where the values randomly-generated strings.

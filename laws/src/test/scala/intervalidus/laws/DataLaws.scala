@@ -27,20 +27,19 @@ class DataLaws extends AnyPropSpec with ScalaCheckPropertyChecks with ParallelTe
     * interval domain value semantics.
     */
   def dataProperty(propertyName: String)(testFun: DataPropertyTest): Unit =
-    import IntervalGenerator.noCompress
     {
       import DiscreteValue.IntDiscreteValue
-      property(s"4D Discrete   $propertyName")(testFun[Dim4](genDim4(using noCompress)))
-      property(s"3D Discrete   $propertyName")(testFun[Dim3](genDim3(using noCompress)))
-      property(s"2D Discrete   $propertyName")(testFun[Dim2](genDim2(using noCompress)))
-      property(s"1D Discrete   $propertyName")(testFun[Dim1](genDim1(using noCompress)))
+      property(s"4D Discrete   $propertyName")(testFun[Dim4](genDim4(using testCoreConfig)))
+      property(s"3D Discrete   $propertyName")(testFun[Dim3](genDim3(using testCoreConfig)))
+      property(s"2D Discrete   $propertyName")(testFun[Dim2](genDim2(using testCoreConfig)))
+      property(s"1D Discrete   $propertyName")(testFun[Dim1](genDim1(using testCoreConfig)))
     }
     {
       import ContinuousValue.IntContinuousValue
-      property(s"4D Continuous $propertyName")(testFun[Dim4](genDim4(using noCompress)))
-      property(s"3D Continuous $propertyName")(testFun[Dim3](genDim3(using noCompress)))
-      property(s"2D Continuous $propertyName")(testFun[Dim2](genDim2(using noCompress)))
-      property(s"1D Continuous $propertyName")(testFun[Dim1](genDim1(using noCompress)))
+      property(s"4D Continuous $propertyName")(testFun[Dim4](genDim4(using testCoreConfig)))
+      property(s"3D Continuous $propertyName")(testFun[Dim3](genDim3(using testCoreConfig)))
+      property(s"2D Continuous $propertyName")(testFun[Dim2](genDim2(using testCoreConfig)))
+      property(s"1D Continuous $propertyName")(testFun[Dim1](genDim1(using testCoreConfig)))
     }
 
   /*

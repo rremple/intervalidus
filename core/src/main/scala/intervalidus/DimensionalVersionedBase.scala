@@ -597,7 +597,13 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
   def getSelectedDataMutable(using
     versionSelection: VersionSelection
   ): MutableData[V, D] =
-    underlying.getByHeadDimension(versionSelection.boundary)
+    underlying.getByHeadDimension(versionSelection.boundary)(using
+      altConfig = CoreConfig(
+        config.capacityHint.map(_.tailInterval),
+        config.isolationLevel,
+        config.compressOnUpdate
+      )
+    )
 
   /**
     * Given some version selection context, gets all the data (compressed, immutable).

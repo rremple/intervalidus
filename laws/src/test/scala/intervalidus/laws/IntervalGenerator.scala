@@ -8,7 +8,6 @@ import org.scalacheck.Gen
 
 // Generates intervals of any dimension
 object IntervalGenerator:
-  def noCompress[D <: NonEmptyTuple : DomainLike]: CoreConfig[D] = CoreConfig.default.withCompressOnUpdate(false)
 
   private def gen[D <: NonEmptyTuple: DomainLike](
     genStart: Gen[D],
@@ -106,7 +105,7 @@ object IntervalGenerator:
         (NTPPi, NTPPi) -> Set(NTPPi)
       )
     )
-  
+
   /*
    * Generate a randomized target relation.
    */
@@ -122,8 +121,11 @@ object IntervalGenerator:
     target: SpatialRelation
   ): (Interval[D], Interval[D]) =
     (x relationWith y, x gapWith y) match
-      case (SpatialRelation.DC, Some(gap)) => // DC always has a gap, which we can use to construct the target relation...
-        target match // ...but the gap _sometimes_ shares a boarder (in some dimensions) with x
+      case (
+            SpatialRelation.DC,
+            Some(gap) // DC always has a gap, which we can use to construct the target relation...
+          ) =>
+        target match // ...but the gap _sometimes_ shares a border (in some dimensions) with x
           case SpatialRelation.DC    => (x, y) // we actually want DC, so no change
           case SpatialRelation.EQ    => (x, x)
           case SpatialRelation.EC    => (x, y joinedWith gap) // both x and y are connected to gap
