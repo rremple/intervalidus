@@ -2,6 +2,7 @@ package intervalidus
 
 import intervalidus.immutable.Data
 
+import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.language.implicitConversions
 
@@ -151,6 +152,14 @@ object IntervalShape:
       *   $configParam
       */
     def toShape(using config: CoreConfig[D]): IntervalShape[D] = apply(is)
+
+  extension [D <: NonEmptyTuple: DomainLike](is: Iterable[IntervalShape[D]])
+    /**
+      * Convert a collection of (possibly overlapping) interval shapes into a single shape.
+      * @param config
+      *   $configParam
+      */
+    def toSingleShape(using config: CoreConfig[D]): IntervalShape[D] = is.foldLeft(∅)(_ ∪ _)
 
 /**
   * A mutidimensional shape over some domain, represented by a collection of disjoint interval components. While an
@@ -323,14 +332,24 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
   infix def contains(interval: Interval[D]): Boolean = interval ⊆ this // Interval lifted into an IntervalShape
 
   /**
-    * Does this contain some or all of the elements of the provided interval?
+    * Does this contain some or all of the interval?
     *
     * @param interval
     *   the interval to check.
     * @return
-    *   true if there are intervals that are present somewhere on the interval.
+    *   true if any interval components intersect the interval.
     */
   infix def intersects(interval: Interval[D]): Boolean = underlying.intersects(interval)
+
+  /**
+    * Does this contain some or all of the elements of that shape?
+    *
+    * @param that
+    *   shape to check.
+    * @return
+    *   true if there are any intersecting interval components of this and that.
+    */
+  infix def intersects(that: IntervalShape[D]): Boolean = that.allIntervals.exists(intersects)
 
   /**
     * Is this a subset (proper or improper) of that? See [[https://en.wikipedia.org/wiki/Subset]].
@@ -497,6 +516,162 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
     *   a new shape that is the intersection of this and that.
     */
   infix def ∩(interval: Interval[D]): IntervalShape[D] = intersection(interval)
+
+  /**
+    * Do any interval components of this touch any interval components of that?
+    *
+    * Touching is a key aspect of the region connection calculus, differentiating the relations "disconnected" (DC) from
+    * "externally connected" (EC).
+    *
+    * @param that
+    *   shape to compare
+    */
+  infix def touches(that: IntervalShape[D]): Boolean =
+    val thatIntervals = that.allIntervals
+    allIntervals.exists: a =>
+      thatIntervals.exists: b =>
+        a touches b
+
+  /**
+    * Do any interval components of this connect to any interval components of that?
+    *
+    * Being connected is a key aspect of the region connection calculus, where it is defined as being both reflexive
+    * (for all x, x isConnectedTo x) and symmetric (for all x and y, x isConnectedTo y --> y isConnectedTo x) .
+    *
+    * @param that
+    *   shape to compare.
+    */
+  infix def isConnectedTo(that: IntervalShape[D]): Boolean =
+    val thatIntervals = that.allIntervals
+    allIntervals.exists: a =>
+      thatIntervals.exists: b =>
+        a isConnectedTo b
+
+  /**
+    * Given a particular seed interval, calculates all interval components that touch. If the shape is contiguous, this
+    * will be all interval components.
+    * @param touching
+    *   a map of how each interval component touches every other interval components in this shape
+    * @param seedInterval
+    *   the interval component to start with to find all touching interval components.
+    * @return
+    *   touching interval components.
+    */
+  private def contiguousIntervals(
+    touching: Map[Interval[D], Iterable[Interval[D]]],
+    seedInterval: Interval[D]
+  ): Set[Interval[D]] =
+    @tailrec
+    def contiguousIntervalsRecurse(seed: Set[Interval[D]], prior: Set[Interval[D]] = Set.empty): Set[Interval[D]] =
+      val entries = prior ++ seed
+      val newEntries = seed.flatMap(touching).diff(entries)
+      if newEntries.isEmpty then entries else contiguousIntervalsRecurse(newEntries, entries)
+    contiguousIntervalsRecurse(Set(seedInterval))
+
+  /**
+    * Constructs a map of how each interval in the collection touches every other interval in the collection.
+    */
+  private def touchMap(intervals: Iterable[Interval[D]]): Map[Interval[D], Iterable[Interval[D]]] =
+    intervals.map(a => (a, intervals.filter(b => (a != b) && (a touches b)))).toMap
+
+  /**
+    * Decomposes this shape into its constituent "islands." Returns a collection of subshapes, where each subshape is a
+    * contiguous shape and no two subshapes touch each other. This is useful for taking a "scattered cloud" of voxels
+    * and extracting individual "physical objects."
+    */
+  def contiguousSubshapes: Iterable[IntervalShape[D]] =
+    if isEmpty then Iterable.empty
+    else
+      val touching = touchMap(allIntervals) // reuse this through all recursions
+      @tailrec
+      def contiguousSubshapesRecurse(
+        shape: IntervalShape[D],
+        subshapes: List[IntervalShape[D]] = List.empty
+      ): Iterable[IntervalShape[D]] =
+        if shape.size == 1 then shape :: subshapes // shape consists of a single interval
+        else
+          val shapeIntervals = shape.allIntervals
+          val headIntervals = contiguousIntervals(touching, shapeIntervals.head) // touching from the head
+          if headIntervals.size == shapeIntervals.size then shape :: subshapes // all touching
+          else // not all touching
+            val headShape = IntervalShape.withoutChecks(headIntervals)
+            val tailShape = IntervalShape.withoutChecks(shapeIntervals.filterNot(headIntervals.contains))
+            contiguousSubshapesRecurse(tailShape, headShape :: subshapes)
+      contiguousSubshapesRecurse(this)
+
+  /**
+    * Returns true if this shape consists of exactly one contiguously region where all interval components touch. An
+    * empty shape is never contiguous.
+    */
+  def isContiguous: Boolean =
+    size match
+      case 0 => false // this is empty
+      case 1 => true // this consists of a single interval
+      case _ => // this consists of multiple intervals
+        val intervals = allIntervals
+        contiguousIntervals(touchMap(intervals), intervals.head).size == intervals.size
+
+  /**
+    * Returns true if all interval components are bounded, i.e., this shape does not touch the infinite boundary of the
+    * domain.
+    */
+  def isBounded: Boolean = allIntervals.forall(_.isBounded)
+
+  /**
+    * Returns an Iterable of the internally trapped voids (bubbles) within this shape. A cavity is defined as a bounded
+    * component of the complement that is entirely enclosed by the shape. This does not include "tunnels" or "bites"
+    * that connect to the infinite boundaries of the domain.
+    */
+  def cavities: Iterable[IntervalShape[D]] =
+    if isUniverse then Iterable.empty
+    else complement.contiguousSubshapes.filter(_.isBounded)
+
+  /**
+    * A predicate that returns true if the shape is both contiguous (one piece) and has no cavities (no internal
+    * bubbles).Use this to verify that a shape represents a single, monolithic mass.
+    */
+  def isSolid: Boolean = isContiguous && cavities.isEmpty
+
+  /**
+    * The relation of this with that in terms of the region connection calculus (i.e., the mereological sum in terms of
+    * the strongest common relation across all interval component relations). See
+    * [[http://en.wikipedia.org/wiki/Region_connection_calculus]] and [[https://en.wikipedia.org/wiki/Mereotopology]].
+    * @param that
+    *   shape to compare
+    * @return
+    *   the relation of this with that -- see [[SpatialRelation]] for more details.
+    */
+  infix def relationWith(that: IntervalShape[D]): SpatialRelation =
+    import SpatialRelation.*
+    val regions = immutable.Data(
+      underlying.zipAllDataGeneric(
+        that.underlying,
+        whenBothMissing = Some(1),
+        whenOnlyThis = _ => Some(2),
+        whenOnlyThat = _ => Some(3),
+        whenBothPresent = (_, _) => Some(4)
+      )
+    )
+    // These are all disjoint, and their union is ξ
+    val thisWithoutThat = regions.intervals(2) // this \ that
+    val thatWithoutThis = regions.intervals(3) // that \ this
+    def intersection = regions.intervals(4) // this ∩ that
+    def unionComplementShape = IntervalShape.withoutChecks(regions.intervals(1)) // (this ∪ that)'
+
+    // EQ (Equal): All boundaries match exactly.
+    if thisWithoutThat.isEmpty && thatWithoutThis.isEmpty then EQ
+    // Overlap: This is the "parent" for the six overlap relations:
+    else if intersection.nonEmpty then
+      // TPP/NTPP (Inside, touching/not touching): this is a subset of that and this is/isn't connected to that'.
+      if thisWithoutThat.isEmpty then if this touches unionComplementShape then TPP else NTPP
+      // TPPi/NTPPi (Inside, touching/not touching):  that is a subset of this and that is/isn't connected to this'.
+      else if thatWithoutThis.isEmpty then if that touches unionComplementShape then TPPi else NTPPi
+      // PO (Partial Overlap): They share volume but neither is a subset of the other.
+      else PO
+    // EC (Externally Connected): no intersection, but also no gaps (is connected).
+    else if this touches that then EC
+    // DC (Disconnected): At least one dimension has a gap.
+    else DC
 
   // ---------- Manipulation API methods: Set Manipulation ----------
   // ---- Adds to and removes from shapes. ----

@@ -1,9 +1,9 @@
 package intervalidus.laws
 
-import DomainGenerator.{Dim1, Dim2, Dim3, Dim4}
+import intervalidus.*
 import intervalidus.Interval.{complement, compress, isDisjoint, recompress, unbounded}
-import IntervalGenerator.*
-import intervalidus.{ContinuousValue, DiscreteValue, DomainLike, Interval}
+import intervalidus.laws.DomainGenerator.{Dim1, Dim2, Dim3, Dim4}
+import intervalidus.laws.IntervalGenerator.*
 import org.scalacheck.Gen
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.propspec.AnyPropSpec
@@ -143,3 +143,17 @@ class IntervalLaws extends AnyPropSpec with ScalaCheckPropertyChecks with Parall
           allSubsetsOrDisjoints shouldBe true
           val intersectingShards = shattered.filter(s => a.exists(_ intersects s))
           assertMatch(intersectingShards, a)
+
+  manyDimensionsProperty("spatial relations are reflexive, symmetric, and composable"):
+    new ManyDimensionsPropertyTest:
+      override def apply[D <: NonEmptyTuple: DomainLike](intervalGen: Gen[Interval[D]]): Assertion =
+        forAll(intervalGen, intervalGen, intervalGen, genRelation, genRelation):
+          (aDraft, bDraft, cDraft, relationAbTarget, relationBcTarget) =>
+            val (a, bGuess) = closerToTarget(aDraft, bDraft, relationAbTarget)
+            // since b may wind up different from bGuess, (a relationWith b) may move further from relationAbTarget
+            val (b, c) = closerToTarget(bGuess, cDraft, relationBcTarget)
+
+            a isConnectedTo a shouldBe true // reflexive
+            if a isConnectedTo b then b isConnectedTo a shouldBe true // symmetric
+            if b isConnectedTo c then c isConnectedTo b shouldBe true // symmetric
+            compositionTable((a relationWith b, b relationWith c)) should contain(a relationWith c) // composable

@@ -60,9 +60,8 @@ class DataMonoid[V, D <: NonEmptyTuple: DomainLike] private (
     * @param that
     *   $intersectionParamThat
     */
-  infix def intersection(that: DimensionalMonoidBase[V, D]): Unit = transactionalUpdate:
-    transactionalReadOnly(that): thatTx =>
-      replaceValidData(zipData(that, thatTx, monoid.combine))
+  infix def intersection(that: DimensionalMonoidBase[V, D]): Unit = transactionalUpdateWith(that): thatTx =>
+    replaceValidData(zipData(that, thatTx, monoid.combine))
 
   /**
     * Same as [[intersection]].

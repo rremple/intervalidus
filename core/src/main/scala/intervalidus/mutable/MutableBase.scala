@@ -2,7 +2,7 @@ package intervalidus.mutable
 
 import intervalidus.*
 import intervalidus.CoreConfig.IsolationLevel.*
-import intervalidus.DimensionalBase.UpdateTransaction
+import intervalidus.DimensionalBase.{ReadThatTransaction, UpdateTransaction}
 
 /**
   * Mutable dimensional data.
@@ -31,6 +31,19 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     result
 
   /**
+    * Given some other structure, wraps a function body in new transactions for updating this structure while reading
+    * from that structure, committing the resulting changes and returning the result. Transactions are started
+    * atomically for reflexive integrity.
+    */
+  protected def transactionalUpdateWith[T, B, S <: NonEmptyTuple](that: DimensionalBase[B, S])(
+    body: UpdateTransaction[V, D] ?=> ReadThatTransaction[B, S] => T
+  ): T = synchronized:
+    val (updateTransaction, readThatTransaction) = atomicStartUpdateTransactionWith(that)
+    val result = body(using updateTransaction)(readThatTransaction)
+    commit()(using updateTransaction)
+    result
+
+  /**
     * Used internally to compress the result of an update if configured to do so.
     */
   def compressedUpdate(): Unit = if config.compressOnUpdate then compressAll()
@@ -51,9 +64,8 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     * @param that
     *   $symmetricDifferenceParamThat
     */
-  infix def symmetricDifference(that: DimensionalBase[V, D]): Unit = transactionalUpdate:
-    transactionalReadOnly(that): thatTx =>
-      replaceValidData(symmetricDifferenceData(that, thatTx))
+  infix def symmetricDifference(that: DimensionalBase[V, D]): Unit = transactionalUpdateWith(that): thatTx =>
+    replaceValidData(symmetricDifferenceData(that, thatTx))
 
   /**
     * $mapDesc $mutableAction
@@ -214,11 +226,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     *   $removeManyParamIntervals
     */
   def removeMany(intervals: IterableOnce[Interval[D]]): Unit = transactionalUpdate:
-    val updatedValues = Set.newBuilder[V]
-    intervals.iterator.foreach: interval =>
-      val affected = updateOrRemoveNoCompress(interval, _ => None)
-      if config.compressOnUpdate then updatedValues.addAll(affected)
-    if config.compressOnUpdate then updatedValues.result().foreach(compressInPlace)
+    removeManyInPlace(intervals)
 
   /**
     * $differenceDesc $mutableAction
@@ -226,7 +234,8 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     * @param that
     *   $differenceParamThat
     */
-  infix def difference(that: DimensionalBase[V, D]): Unit = removeMany(that.allIntervals) // uses external API of that
+  infix def difference(that: DimensionalBase[V, D]): Unit = transactionalUpdateWith(that): thatTx =>
+    differenceInPlace(that, thatTx)
 
   /**
     * $removeValueDesc $mutableAction
@@ -275,7 +284,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     *   $applyDiffActionsParamDiffActions
     */
   def applyDiffActions(diffActions: IterableOnce[DiffAction[V, D]]): Unit = transactionalUpdate:
-    diffActions.iterator.foreach(applyDiffActionInPlace)
+    applyDiffActionsInPlace(diffActions)
 
   /**
     * $syncWithDesc $mutableAction
@@ -283,8 +292,8 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     * @param that
     *   $syncWithParamThat
     */
-  def syncWith(that: DimensionalBase[V, D]): Unit =
-    applyDiffActions(that.diffActionsFrom(this)) // uses external API of that
+  def syncWith(that: DimensionalBase[V, D]): Unit = transactionalUpdateWith(that): thatTx =>
+    syncWithInPlace(that, thatTx)
 
   /**
     * $fillDesc $mutableAction
@@ -306,8 +315,8 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
   def merge(
     that: DimensionalBase[V, D],
     mergeValues: (V, V) => V = (thisDataValue, _) => thisDataValue
-  ): Unit = transactionalUpdate:
-    mergeInPlace(that.getAll, mergeValues) // uses external API of that
+  ): Unit = transactionalUpdateWith(that): thatTx =>
+    mergeInPlace(that, thatTx, mergeValues)
 
   // equivalent symbolic method names
 

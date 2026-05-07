@@ -17,12 +17,26 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
 
   this: Self =>
 
-  protected def copyAndModify(f: Self => UpdateTransaction[V, D] ?=> Unit): Self =
+  protected def copyAndModify(
+    f: Self => UpdateTransaction[V, D] ?=> Unit
+  ): Self =
     // in this case, copy always uses the same config as this (given abstractly in DimensionalBase)
-    val result = copy
+    val result = transactionalRead(copyInternal)
     // dirty because result.state is already copied
     given UpdateTransaction[V, D] = UpdateTransaction.startDirty(result.state)
     f(result)
+    result.commit()
+    result
+
+  protected def copyAndModifyWith(that: DimensionalBase[V, D])(
+    f: Self => UpdateTransaction[V, D] ?=> ReadThatTransaction[V, D] => Unit
+  ): Self =
+    val (readThisTransaction, readThatTransaction) = atomicStartReadTransactionWith(that)
+    // in this case, copy always uses the same config as this (given abstractly in DimensionalBase)
+    val result = copyInternal(using readThisTransaction)
+    // dirty because result.state is already copied
+    given UpdateTransaction[V, D] = UpdateTransaction.startDirty(result.state)
+    f(result)(readThatTransaction)
     result.commit()
     result
 
@@ -31,9 +45,13 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     */
   def compressedUpdate(): Self = if config.compressOnUpdate then compressAll() else this
 
+  override def copy(using CoreConfig[D]): Self = transactionalRead:
+    copyInternal
+
   // ---------- To be implemented by inheritor ----------
 
-  override def copy(using CoreConfig[D]): Self // refine the result type for `copyAndModify`
+  // transactional copy, especially important for `copyAndModifyWith`
+  protected def copyInternal(using Transaction[V, D])(using CoreConfig[D]): Self
 
   /**
     * $mapDesc Both the valid data value and interval types can be changed in the mapping.
@@ -152,9 +170,8 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     * @return
     *   a new shape with the elements in this and that, but not in both.
     */
-  infix def symmetricDifference(that: DimensionalBase[V, D]): Self = transactionalReadOnly(that): thatTx =>
-    copyAndModify: result =>
-      result.replaceValidData(result.symmetricDifferenceData(that, thatTx))
+  infix def symmetricDifference(that: DimensionalBase[V, D]): Self = copyAndModifyWith(that): result =>
+    thatTx => result.replaceValidData(result.symmetricDifferenceData(that, thatTx))
 
   /**
     * $setDesc
@@ -285,8 +302,8 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     * @return
     *   a new shape that is the difference of this and that.
     */
-  infix def difference(that: DimensionalBase[V, D]): Self =
-    removeMany(that.allIntervals) // uses external API of that
+  infix def difference(that: DimensionalBase[V, D]): Self = copyAndModifyWith(that): result =>
+    thatTx => result.differenceInPlace(that, thatTx)
 
   /**
     * $removeValueDesc
@@ -351,8 +368,8 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     * @return
     *   $immutableReturn
     */
-  def syncWith(that: DimensionalBase[V, D]): Self =
-    applyDiffActions(that.diffActionsFrom(this)) // uses external API of that
+  def syncWith(that: DimensionalBase[V, D]): Self = copyAndModifyWith(that): result =>
+    thatTx => result.syncWithInPlace(that, thatTx)
 
   /**
     * $fillDesc
@@ -377,7 +394,8 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
   def merge(
     that: DimensionalBase[V, D],
     mergeValues: (V, V) => V = (thisDataValue, _) => thisDataValue
-  ): Self = copyAndModify(_.mergeInPlace(that.getAll, mergeValues)) // uses external API of that
+  ): Self = copyAndModifyWith(that): result =>
+    thatTx => result.mergeInPlace(that, thatTx, mergeValues)
 
   // equivalent symbolic method names
 

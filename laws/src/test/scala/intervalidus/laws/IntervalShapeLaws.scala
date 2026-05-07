@@ -138,6 +138,10 @@ class IntervalShapeLaws extends AnyPropSpec with ScalaCheckPropertyChecks with P
           ((a \ b) ∪ (b \ a)) ≡≡ ((a ∪ b) \ (a ∩ b)) // Symmetric difference definitions
           (a ∪ b) ≡≡ ((a △ b) ∪ (a ∩ b)) // Inclusion-Exclusion identity
 
+  intervalMultiProperty("Consistency Laws: Identities based on set algebra, e.g., (a ∩ b) ⊆ a"):
+    new IntervalShapePropertyTest:
+      override def apply[D <: NonEmptyTuple : DomainLike](intervalMultiGen: Gen[IntervalShape[D]]): Assertion =
+        forAll(intervalMultiGen, intervalMultiGen): (a, b) =>
           (a ∩ b) ⊆ a shouldBe true
           (a ∩ b) ⊆ b shouldBe true
           a ⊆ (a ∪ b) shouldBe true
@@ -146,3 +150,7 @@ class IntervalShapeLaws extends AnyPropSpec with ScalaCheckPropertyChecks with P
           (b \ a) ⊆ b shouldBe true
           a ⊆ ξ shouldBe true
           ∅ ⊆ a shouldBe true
+
+          val solidified = a.cavities.foldLeft(a)(_ ∪ _)
+          solidified.cavities.isEmpty shouldBe true
+          solidified.contiguousSubshapes.forall(_.isSolid) shouldBe true

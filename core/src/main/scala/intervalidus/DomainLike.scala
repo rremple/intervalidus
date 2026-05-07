@@ -38,6 +38,11 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
     def isUnbounded: Boolean = applyToDomain.isUnboundedFromDomain(domain)
 
     /**
+      * Tests if the domain is finite (i.e., not `Top` or `Bottom`) in all dimensions.
+      */
+    def isBounded: Boolean = applyToDomain.isBoundedFromDomain(domain)
+
+    /**
       * Test if this domain consists of only closed or unbounded points in all dimensions.
       */
     def isClosedOrUnbounded: Boolean = applyToDomain.isClosedOrUnboundedFromDomain(domain)
@@ -364,6 +369,45 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
     partialResult && adjacency == 1 && equivalency == total - 1
 
   /**
+    * Internal method. Determines if two interval are touching. That is, they are adjacent in at least one dimension and
+    * overlapping in all others.
+    */
+  def intervalTouching(a: Interval[D], b: Interval[D]): Boolean =
+    val (partialResult, overlap, adjacency, total) =
+      applyToDomain.overlapAndAdjacencyFromIntervals(a, b)
+    partialResult && adjacency > 0 && overlap + adjacency == total
+
+  /**
+    * Internal method. Determines in two intervals have a shared boundary to differentiate [[SpatialRelation.TPP]] and
+    * [[SpatialRelation.NTPP]].
+    */
+  def intervalSharedBoundary(a: Interval[D], b: Interval[D]): Boolean =
+    val (partialResult, overlap, sharedBoundary, total) =
+      applyToDomain.overlapAndSharedBoundaryFromIntervals(a, b)
+    partialResult && sharedBoundary > 0 && overlap == total
+
+  /**
+    * Internal method. Spatial relationships of two intervals.
+    */
+  def intervalSpatialRelation(a: Interval[D], b: Interval[D]): SpatialRelation =
+    val (overlap, adjacency, aIsSubset, bIsSubset, hasSharedBoundary, total) =
+      applyToDomain.spatialRelationFromIntervals(a, b)
+    // Overlap: This is the "parent" for the six overlap relations:
+    if overlap == total then
+      // EQ (Equal): All boundaries match exactly.
+      if aIsSubset == total && bIsSubset == total then SpatialRelation.EQ
+      // TPP/NTPP (Inside, touching/not touching): a is subset of b and they share/don't share boundaries.
+      else if aIsSubset == total then if hasSharedBoundary then SpatialRelation.TPP else SpatialRelation.NTPP
+      // TPPi/NTPPi (Inside, touching/not touching): b is subset of a and they share/don't share boundaries.
+      else if bIsSubset == total then if hasSharedBoundary then SpatialRelation.TPPi else SpatialRelation.NTPPi
+      // PO (Partial Overlap): They share volume but neither is a subset of the other.
+      else SpatialRelation.PO
+    // EC (Externally Connected): no gaps, same as our isConnectedTo definition.
+    else if overlap + adjacency == total then SpatialRelation.EC
+    // DC (Disconnected): At least one dimension has a gap.
+    else SpatialRelation.DC
+
+  /**
     * Internal method.
     * @return
     *   a tuple of remainders in each dimension.
@@ -385,7 +429,8 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
     *   gap between thisInterval and thatInterval, if one exists.
     */
   def intervalGapWith(thisInterval: Interval[D], thatInterval: Interval[D]): Option[Interval[D]] =
-    applyToDomain.gapWithFromIntervals(thisInterval, thatInterval)
+    val candidate = applyToDomain.gapWithFromIntervals(thisInterval, thatInterval)
+    if candidate == thisInterval then None else Some(candidate)
 
   /**
     * Internal method.

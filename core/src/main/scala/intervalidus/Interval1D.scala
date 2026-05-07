@@ -108,6 +108,38 @@ case class Interval1D[T](
     domain.isClosedOrUnbounded && // strictly speaking, open points are not "contained" in anything
       (domain afterOrAtStart start) && (domain beforeOrAtEnd end)
 
+  override infix def touches(that: Interval1D[T]): Boolean =
+    this isAdjacentTo that
+
+  override def isUnbounded: Boolean =
+    start.isUnbounded && end.isUnbounded
+
+  override def isBounded: Boolean =
+    !start.isUnbounded && !end.isUnbounded
+
+  override infix def sharesBoundaryWith(that: Interval1D[T]): Boolean =
+    def tailToTip(ds: Domain1D[T], de: Domain1D[T]): Boolean = (ds, de) match
+      case (Point(s), Point(e)) if s == e => true // one closed point in common
+      case _                              => false
+    (start equiv that.start) || (end equiv that.end) || tailToTip(end, that.start) || tailToTip(that.end, start)
+
+  override infix def relationWith(that: Interval1D[T]): SpatialRelation =
+    val hasSharedBoundary = sharesBoundaryWith(that)
+    // Overlap: This is the "parent" for the six overlap relations:
+    if this intersects that then
+      // EQ (Equal): All boundaries match exactly.
+      if this equiv that then SpatialRelation.EQ
+      // TPP/NTPP (Inside, touching/not touching): a is subset of b and they share/don't share boundaries.
+      else if this ⊆ that then if hasSharedBoundary then SpatialRelation.TPP else SpatialRelation.NTPP
+      // TPPi/NTPPi (Inside, touching/not touching): b is subset of a and they share/don't share boundaries.
+      else if that ⊆ this then if hasSharedBoundary then SpatialRelation.TPPi else SpatialRelation.NTPPi
+      // PO (Partial Overlap): They share volume but neither is a subset of the other.
+      else SpatialRelation.PO
+    // EC (Externally Connected): no gaps, same as our isConnectedTo definition.
+    else if this touches that then SpatialRelation.EC
+    // DC (Disconnected): At least one dimension has a gap.
+    else SpatialRelation.DC
+
   // Use mathematical interval notation -- default.
   override def toString: String = s"${start.leftBrace}$start${domainValue.bracePunctuation}$end${end.rightBrace}"
 

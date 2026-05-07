@@ -122,6 +122,12 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
         val _ = Interval1D[Int](Top, Bottom) // end before start
 
     test(s"$prefix: Int interval adjacency, etc."):
+      Interval1D.unbounded[Int].isUnbounded shouldBe true
+      val d = intervalTo(2)
+      d.isUnbounded shouldBe false // partially bounded
+      d.isBounded shouldBe false // partially unbounded
+      intervalFrom(1).to(2).isBounded shouldBe true
+
       assert(interval(1, 2) isLeftAdjacentTo intervalFromAfter(2).to(4))
       assert(!(interval(3, 4) isLeftAdjacentTo interval(1, 2)))
       assert(!(interval(1, 3) isLeftAdjacentTo interval(2, 4)))
@@ -166,6 +172,24 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       intervalTo(2).before shouldBe None
 
       Interval1D.between(interval(1, 2), interval(10, 12)) shouldBe intervalFromAfter(2).toBefore(10)
+      intervalFrom(2).to(10) relationWith interval(2, 10) shouldBe SpatialRelation.EQ
+      intervalFrom(2).to(10) relationWith interval(5, 15) shouldBe SpatialRelation.PO
+      intervalFrom(2).to(5) relationWith interval(10, 15) shouldBe SpatialRelation.DC
+
+      intervalTo(5) touches intervalFromAfter(5) shouldBe true
+      intervalTo(5) isConnectedTo intervalFromAfter(5) shouldBe true
+      intervalTo(5) relationWith intervalFromAfter(5) shouldBe SpatialRelation.EC
+      intervalFrom(5) touches intervalToBefore(5) shouldBe true
+      intervalTo(5) sharesBoundaryWith intervalFromAfter(5) shouldBe false // no shared start (open vs. closed)
+      intervalTo(5) sharesBoundaryWith intervalFrom(5) shouldBe true // tip to tail shares one closed point
+      interval(5, 10) sharesBoundaryWith intervalFrom(5) shouldBe true // shares closed common start
+      intervalFromAfter(5) sharesBoundaryWith intervalFromAfter(5).to(7) shouldBe true // start is open, but common
+      intervalToBefore(7) sharesBoundaryWith intervalFrom(5).toBefore(7) shouldBe true // end is open, but common
+      interval(5, 10) relationWith intervalFrom(5) shouldBe SpatialRelation.TPP
+      intervalFrom(5) relationWith interval(5, 10) shouldBe SpatialRelation.TPPi
+      intervalFrom(5).isBounded shouldBe false
+      intervalTo(5).isBounded shouldBe false
+      intervalFromAfter(4).toBefore(6).isBounded shouldBe true
 
       intervalFrom(0).toCodeLikeString shouldBe "intervalFrom(0)"
       intervalTo(0).toCodeLikeString shouldBe "intervalTo(0)"
@@ -181,13 +205,22 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       unbounded[LocalDate].toCodeLikeString shouldBe "unbounded"
 
     test(s"$prefix: Int 2D interval adjacency, etc."):
+      Interval.unbounded[Dim2Domain].isUnbounded shouldBe true
+
       val now = LocalDate.now
       val d: Interval[(Domain1D[LocalDate], Domain1D[Int])] = intervalTo(now) x intervalFrom(0)
       d.start shouldBe ((Bottom, 0): Domain.In2D[LocalDate, Int])
       d.end shouldBe ((now, Top): Domain.In2D[LocalDate, Int])
+      d.isUnbounded shouldBe false // partially bounded
+      d.isBounded shouldBe false // partially unbounded
+      interval2d(1, 2, 3, 4).isBounded shouldBe true
 
       interval2d(1, 2, 3, 4) intersectionWith interval2d(2, 3, 4, 5) shouldBe Some(interval2d(2, 2, 4, 4))
       interval2d(1, 2, 3, 4) ∩ interval2d(2, 3, 4, 5) shouldBe Some(interval2d(2, 2, 4, 4))
+      interval2d(2, 2, 4, 4) sharesBoundaryWith interval2d(1, 2, 3, 4) shouldBe true
+      interval2d(1, 2, 3, 4) sharesBoundaryWith interval2d(2, 2, 4, 4) shouldBe true
+      interval2d(2, 2, 4, 4) relationWith interval2d(1, 2, 3, 4) shouldBe SpatialRelation.TPP
+      interval2d(1, 2, 3, 4) relationWith interval2d(2, 2, 4, 4) shouldBe SpatialRelation.TPPi
       assert(interval2d(1, 2, 3, 4) contains interval2d(2, 2, 4, 4))
       assert(interval2d(2, 2, 4, 4) isSubsetOf interval2d(1, 2, 3, 4))
       assert(interval2d(2, 2, 4, 4) ⊆ interval2d(1, 2, 3, 4))
@@ -271,9 +304,51 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       interval2d(1, 2, 3, 4).gapWith(interval2d(5, 6, 7, 8)) shouldBe Some(
         interval2d(after(2), before(5), after(4), before(7))
       )
-      // even though neither adjacent nor intersecting in 2D, no gap in _all_ dimensions
-      interval2d(1, 2, 3, 4).gapWith(interval2d(5, 6, after(4), 6)) shouldBe None
+      // no gap in any dimensions
+      interval2d(1, 2, 3, 4).gapWith(interval2d(after(2), 3, after(4), 5)) shouldBe None
+
+      // even though there's no gap in _all_ dimensions, there is a gap in dim 0, so dim 1 is carried over
+      interval2d(1, 2, 3, 4).gapWith(interval2d(5, 6, after(4), 6)) shouldBe Some(interval2d(after(2), before(5), 3, 4))
       Interval.intervalAt(Domain.in2D(0, 0)).toCodeLikeString shouldBe "intervalAt(0) x intervalAt(0)"
+
+      // Face-to-Face Contact (EC) - Share a vertical side (through adjacency), perfectly aligned on Y
+      interval2d(1, 5, 1, 5) touches interval2d(after(5), 10, 1, 5) shouldBe true
+      interval2d(after(5), 10, 1, 5) touches interval2d(1, 5, 1, 5) shouldBe true
+      interval2d(after(5), 10, 1, 5) relationWith interval2d(1, 5, 1, 5) shouldBe SpatialRelation.EC
+
+      // Edge-to-Edge Contact (EC) - "Touching" (through adjacency) at a single corner point
+      interval2d(1, 5, 1, 5) touches interval2d(after(5), 10, after(5), 10) shouldBe true
+      interval2d(1, 5, 1, 5) relationWith interval2d(after(5), 10, after(5), 10) shouldBe SpatialRelation.EC
+      interval2d(1, 5, 1, 5) sharesBoundaryWith interval2d(after(5), 10, after(5), 10) shouldBe false
+
+      // Offset Contact (EC) - "Touching" (through adjacency) on a side, but 'b' is smaller and shifted
+      interval2d(1, 10, 1, 10) touches interval2d(after(10), 15, 2, 5) shouldBe true
+      interval2d(1, 10, 1, 10) relationWith interval2d(after(10), 15, 2, 5) shouldBe SpatialRelation.EC
+
+      // Disconnected (DC) - The Gap
+      interval2d(1, 5, 1, 5) touches interval2d(7, 10, 1, 5) shouldBe false
+      interval2d(1, 5, 1, 5) isConnectedTo interval2d(7, 10, 1, 5) shouldBe false
+      interval2d(1, 5, 1, 5) relationWith interval2d(7, 10, 1, 5) shouldBe SpatialRelation.DC
+
+      // Overlapping (PO) - Not Connected -- actually share a point as an overlap
+      interval2d(1, 5, 1, 5) touches interval2d(5, 10, 5, 10) shouldBe false
+      interval2d(1, 5, 1, 5) isConnectedTo interval2d(5, 10, 5, 10) shouldBe true // intersects
+      interval2d(1, 5, 1, 5) relationWith interval2d(5, 10, 5, 10) shouldBe SpatialRelation.PO
+      interval2d(1, 5, 1, 5) touches interval2d(5, 10, 5, 10) shouldBe false
+      interval2d(1, 5, 1, 5) isConnectedTo interval2d(5, 10, 5, 10) shouldBe true // intersects
+      interval2d(1, 5, 1, 5) intersectionWith interval2d(5, 10, 5, 10) shouldBe Some(interval2d(5, 5, 5, 5))
+      interval2d(1, 5, 1, 5) sharesBoundaryWith interval2d(5, 5, 5, 5) shouldBe true
+
+      interval2d(1, 5, Domain1D.Bottom, 5).isBounded shouldBe false
+      interval2d(1, 5, 1, Domain1D.Top).isBounded shouldBe false
+      interval2d(1, 5, 1, 5).isBounded shouldBe true
+
+      interval2d(0, 5, 1, 5) relationWith interval2d(0, 6, 0, 6) shouldBe SpatialRelation.TPP // tangent on left
+      interval2d(1, 6, 1, 5) relationWith interval2d(0, 6, 0, 6) shouldBe SpatialRelation.TPP // tangent on right
+      interval2d(1, 5, 0, 5) relationWith interval2d(0, 6, 0, 6) shouldBe SpatialRelation.TPP // tangent on bottom
+      interval2d(1, 5, 1, 6) relationWith interval2d(0, 6, 0, 6) shouldBe SpatialRelation.TPP // tangent on top
+      interval2d(1, 5, 1, 5) relationWith interval2d(0, 6, 0, 6) shouldBe SpatialRelation.NTPP
+      interval2d(0, 6, 0, 6) relationWith interval2d(1, 5, 1, 5) shouldBe SpatialRelation.NTPPi
 
     test(s"$prefix: Int 3D interval adjacency, etc."):
       val now = LocalDate.now
@@ -411,13 +486,27 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       interval3d(1, 2, 3, 4, 5, 6).atEnd shouldBe interval3d(2, 2, 4, 4, 6, 6)
       interval3d(1, 2, 3, 4, 5, 6).gapWith(interval3d(after(5), 6, after(7), 8, after(9), 10)) shouldBe
         Some(interval3d(after(2), 5, after(4), 7, after(6), 9))
-      // even though neither adjacent nor intersecting in 3D, no gap in _all_ dimensions
-      interval3d(1, 2, 3, 4, 5, 6).gapWith(interval3d(5, 6, after(4), 6, 8, 9)) shouldBe None
-
+      // no gap in any dimensions
+      interval3d(1, 2, 3, 4, 5, 6).gapWith(interval3d(after(2), 3, after(4), 5, before(6), 7)) shouldBe None
+      // even though there's no gap in _all_ dimensions, there is a gap in dims 0 and 2, so dim 1 is carried over
+      interval3d(1, 2, 3, 4, 5, 6).gapWith(interval3d(5, 6, after(4), 6, 8, 9)) shouldBe Some(
+        interval3d(after(2), before(5), 3, 4, after(6), before(8))
+      )
       Interval.intervalFromAfter(Domain.in3D(1, 1, 1)) shouldBe Interval.intervalFrom(
         Domain.in3D(1, 1, 1).rightAdjacent
       )
       Interval.intervalToBefore(Domain.in3D(1, 1, 1)) shouldBe Interval.intervalTo(Domain.in3D(1, 1, 1).leftAdjacent)
+
+      // Vertex Contact (The Corner "Touch", but no overlap)
+      interval3d(1, 5, 1, 5, 1, 5) touches interval3d(after(5), 10, after(5), 10, after(5), 10) shouldBe true
+      interval3d(1, 5, 1, 5, 1, 5) isConnectedTo interval3d(after(5), 10, after(5), 10, after(5), 10) shouldBe true
+      interval3d(1, 5, 1, 5, 1, 5) relationWith interval3d(after(5), 10, after(5), 10, after(5), 10) shouldBe
+        SpatialRelation.EC
+      interval3d(1, 5, 1, 5, 1, 5) relationWith interval3d(1, 5, 1, 5, 1, 5) shouldBe SpatialRelation.EQ
+
+      interval3d(1, 5, 1, 5, Domain1D.Bottom, 5).isBounded shouldBe false
+      interval3d(1, 5, 1, Domain1D.Top, 1, 5).isBounded shouldBe false
+      interval3d(1, 5, 1, 5, 1, 5).isBounded shouldBe true
 
     test(s"$prefix: Int 4D interval adjacency, etc."):
       val now = LocalDate.now
@@ -556,7 +645,12 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       ) shouldBe
         Some(interval4d(after(2), 5, after(4), 7, after(6), 9, after(8), 11))
       // even though neither adjacent nor intersecting in 4D, no gap in _all_ dimensions
-      interval4d(1, 2, 3, 4, 5, 6).gapWith(interval4d(5, 6, after(4), 6, 8, 9)) shouldBe None
+      // no gap in any dimensions
+      interval4d(1, 2, 3, 4, 5, 6).gapWith(interval4d(after(2), 6, after(4), 6, before(6), 9)) shouldBe None
+      // even though there's no gap in _all_ dimensions, there is a gap in dims 0 and 2, so dim 1 and 4 are carried over
+      interval4d(1, 2, 3, 4, 5, 6).gapWith(interval4d(5, 6, after(4), 6, 8, 9)) shouldBe Some(
+        interval4d(after(2), before(5), 3, 4, after(6), before(8))
+      )
 
       val interval1 = interval4d(1, 4, 1, 4, 1, 4, 1, 4)
       val interval2 = interval4d(0, 1, 4, 5, 2, 3, 0, 5)
@@ -588,6 +682,10 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
 
     test(s"$prefix: Int interval gaps and spans"):
       (intervalTo(4) gapWith intervalFrom(8)) shouldBe Some(intervalFromAfter(4).toBefore(8))
+      intervalFromAfter(4).toBefore(8) sharesBoundaryWith interval(4, 8) shouldBe false
+      interval(4, 8) sharesBoundaryWith intervalFromAfter(4).toBefore(8) shouldBe false
+      intervalFromAfter(4).toBefore(8) relationWith interval(4, 8) shouldBe SpatialRelation.NTPP
+      interval(4, 8) relationWith intervalFromAfter(4).toBefore(8) shouldBe SpatialRelation.NTPPi
       (intervalFrom(3).toBefore(4) gapWith intervalFromAfter(7).to(8)) shouldBe Some(interval(4, 7))
       (intervalTo(4) gapWith intervalFromAfter(4)) shouldBe None // adjacent
       (intervalFrom(4) gapWith intervalTo(8)) shouldBe None // intersects

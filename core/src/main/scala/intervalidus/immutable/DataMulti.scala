@@ -100,7 +100,7 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] private (
     *   $immutableReturn
     */
   def removeOneMany(allData: IterableOnce[ValidData[V, D]]): DataMulti[V, D] =
-    copyAndModify(_.removeManyInPlace(allData))
+    copyAndModify(_.removeOneManyInPlace(allData))
 
   // ---------- Implement methods from ImmutableBase that create new instances ----------
   // ----  (some return Data rather than DataMulti because the resultant value type isn't necessarily a Set type) ----
@@ -146,8 +146,8 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] private (
   // ---------- Implement methods from DimensionalBase that create new instances ----------
   // ----  (some return Data rather than DataMulti because the resultant value type isn't necessarily a Set type) ----
 
-  override def copy(using config: CoreConfig[D]): DataMulti[V, D] =
-    new DataMulti(state.copy)
+  override protected def copyInternal(using tx: Transaction[Set[V], D])(using CoreConfig[D]): DataMulti[V, D] =
+    new DataMulti(tx.state.copy)
 
   override def zip[B](that: DimensionalBase[B, D]): Data[(Set[V], B), D] = transactionalReadWith(that): thatTx =>
     Data(zipData(that, thatTx, (_, _)))

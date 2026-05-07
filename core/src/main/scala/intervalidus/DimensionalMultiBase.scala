@@ -252,7 +252,7 @@ trait DimensionalMultiBase[V, D <: NonEmptyTuple: DomainLike] extends Dimensiona
     * @tparam B
     *   type of value to be merged (subtype of [[V]])
     */
-  protected def removeManyInPlace[B <: V](
+  protected def removeOneManyInPlace[B <: V](
     allData: IterableOnce[ValidData[B, D]]
   )(using UpdateTransaction[Set[V], D]): Unit =
     val affected = Set.newBuilder[Set[V]]

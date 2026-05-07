@@ -134,6 +134,18 @@ case class Interval[D <: NonEmptyTuple](
   override infix def separateUsing(that: Interval[D]): Iterable[Interval[D]] =
     domainLike.intervalSeparateUsing(this, that)
 
+  /**
+    * Returns the gap between this and that interval if one exists. There is no single interval that can be thought of
+    * as the gap between two intervals in any dimension greater than one. Here, the gap is constructed from the gaps of
+    * individual 1D intervals of this and that per dimension. The values from this are used in all dimensions where
+    * there are no 1D gaps (makes the result "closer" to this than that). The result must have at least one dimension
+    * where there is a gap, otherwise None is return.
+    *
+    * @param that
+    *   the interval to evaluate.
+    * @return
+    *   if one exists, some interval representing the gap between this and that, and None otherwise.
+    */
   override infix def gapWith(that: Interval[D]): Option[Interval[D]] =
     domainLike.intervalGapWith(this, that)
 
@@ -143,29 +155,15 @@ case class Interval[D <: NonEmptyTuple](
     domain.isClosedOrUnbounded && // strictly speaking, open points are not "contained" in anything
       (domain afterOrAtStart start) && (domain beforeOrAtEnd end)
 
-  /**
-    * Tests if this interval is contained completely in an interval shape (i.e., can be thought of as an element of some
-    * set of intervals covering the shape). See [[https://en.wikipedia.org/wiki/Element_(mathematics)]].
-    *
-    * @param intervalShape
-    *   shape to test.
-    * @return
-    *   true if this is completely contained in the specified interval shape, false otherwise.
-    */
-  def belongsTo(intervalShape: IntervalShape[D]): Boolean = intervalShape.contains(this)
+  override infix def touches(that: Interval[D]): Boolean = domainLike.intervalTouching(this, that)
 
-  /**
-    * Same as [[belongsTo]]
-    *
-    * Tests if this interval is contained completely in an interval shape (i.e., can be thought of as an element of some
-    * set of intervals covering the shape). See [[https://en.wikipedia.org/wiki/Element_(mathematics)]].
-    *
-    * @param intervalShape
-    *   shape to test.
-    * @return
-    *   true if this is completely contained in the specified interval shape, false otherwise.
-    */
-  def ∈(intervalShape: IntervalShape[D]): Boolean = belongsTo(intervalShape)
+  override def isUnbounded: Boolean = start.isUnbounded && end.isUnbounded
+
+  override def isBounded: Boolean = start.isBounded && end.isBounded
+
+  override infix def sharesBoundaryWith(that: Interval[D]): Boolean = domainLike.intervalSharedBoundary(this, that)
+
+  override infix def relationWith(that: Interval[D]): SpatialRelation = domainLike.intervalSpatialRelation(this, that)
 
   // Use mathematical interval notation -- default.
   override def toString: String = domainLike.intervalToString(this)
@@ -191,6 +189,30 @@ case class Interval[D <: NonEmptyTuple](
     DomainLike[Domain.Appended[D, X]]
   ): Interval[Domain.Appended[D, X]] =
     Interval(start x that.start, end x that.end)
+
+  /**
+    * Tests if this interval is contained completely in an interval shape (i.e., can be thought of as an element of some
+    * set of intervals covering the shape). See [[https://en.wikipedia.org/wiki/Element_(mathematics)]].
+    *
+    * @param intervalShape
+    *   shape to test.
+    * @return
+    *   true if this is completely contained in the specified interval shape, false otherwise.
+    */
+  def belongsTo(intervalShape: IntervalShape[D]): Boolean = intervalShape.contains(this)
+
+  /**
+    * Same as [[belongsTo]]
+    *
+    * Tests if this interval is contained completely in an interval shape (i.e., can be thought of as an element of some
+    * set of intervals covering the shape). See [[https://en.wikipedia.org/wiki/Element_(mathematics)]].
+    *
+    * @param intervalShape
+    *   shape to test.
+    * @return
+    *   true if this is completely contained in the specified interval shape, false otherwise.
+    */
+  def ∈(intervalShape: IntervalShape[D]): Boolean = belongsTo(intervalShape)
 
   /**
     * Alternative to toString for something that looks more like code. Use when having an interval with more than one
@@ -378,12 +400,6 @@ case class Interval[D <: NonEmptyTuple](
     */
   def asBox: Box =
     Box(start.asCoordinateUnfixed, end.asCoordinateUnfixed)
-
-  /**
-    * Tests if there is no fixed start or end - spans the entire domain.
-    */
-  def isUnbounded: Boolean =
-    start.isUnbounded && end.isUnbounded
 
   /**
     * Tests if this and that have the same start.

@@ -144,8 +144,8 @@ class DataMonoid[V, D <: NonEmptyTuple: DomainLike] private (
   // ---------- Implement methods from DimensionalBase that create new instances ----------
   // ----  (some return Data rather than DataMonoid because the resultant value type isn't necessarily a Monoid) ----
 
-  override def copy(using config: CoreConfig[D]): DataMonoid[V, D] =
-    new DataMonoid(state.copy)
+  override protected def copyInternal(using tx: Transaction[V, D])(using CoreConfig[D]): DataMonoid[V, D] =
+    new DataMonoid(tx.state.copy)
 
   override def zip[B](that: DimensionalBase[B, D]): Data[(V, B), D] = transactionalReadWith(that): thatTx =>
     Data(zipData(that, thatTx, (_, _)))

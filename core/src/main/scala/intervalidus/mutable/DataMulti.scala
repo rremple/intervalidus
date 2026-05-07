@@ -93,7 +93,7 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] private (
     *   $removeOneManyParamAllData
     */
   def removeOneMany(allData: IterableOnce[ValidData[V, D]]): Unit = transactionalUpdate:
-    removeManyInPlace(allData)
+    removeOneManyInPlace(allData)
 
   // ---------- Implement methods from DimensionalBase that create new instances ----------
   // ----  (some return Data rather than DataMulti because the resultant value type isn't necessarily a Set type) ----

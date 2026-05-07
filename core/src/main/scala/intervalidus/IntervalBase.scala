@@ -200,6 +200,58 @@ trait IntervalBase[
   infix def contains(domain: MinorD): Boolean
 
   /**
+    * Intervals touch if there is no gap between them. Specifically two intervals touch if they are adjacent in at least
+    * one dimension and overlapping in all others. In 1D, this is equivalent to being adjacent, but it is a weaker form
+    * of adjacency in higher dimensions. E.g., two 3D intervals that are not face-adjacent may touch on a single edge or
+    * even just a vertex point.
+    *
+    * Touching is a key aspect of the region connection calculus, differentiating the relations "disconnected" (DC) from
+    * "externally connected" (EC).
+    *
+    * @param that
+    *   $intervalToTest
+    * @return
+    *   true if this touches that.
+    */
+  infix def touches(that: Self): Boolean
+
+  /**
+    * Tests if there is no fixed start or end - spans the entire domain.
+    */
+  def isUnbounded: Boolean
+
+  /**
+    * Tests that there are not any unbound components in the start or end - nothing touches the infinite boundary of the
+    * domain.
+    */
+  def isBounded: Boolean
+
+  /**
+    * Intervals share boundaries if they either start/end together, or they share some other boundary point.
+    * Specifically two intervals share a boundary if they overlap in all dimensions and, in at least one dimension, they
+    * either start and/or end together, or they share a single closed point.
+    *
+    * Sharing a boundary is a key aspect of the region connection calculus, determining if one interval is a
+    * "tangential" subset of another. This differentiates the relations "tangential proper part" (TPP) "tangential
+    * proper part inverse" (TPPi) from the relations "non-tangential proper part" (NTPP) and "non-tangential proper part
+    * inverse" (NTPPi).
+    *
+    * @param that
+    *   $intervalToTest
+    */
+  infix def sharesBoundaryWith(that: Self): Boolean
+
+  /**
+    * The relation of this with that in terms of the region connection calculus, see
+    * [[http://en.wikipedia.org/wiki/Region_connection_calculus]] and [[https://en.wikipedia.org/wiki/Mereotopology]].
+    * @param that
+    *   $intervalToTest
+    * @return
+    *   the relation of this with that -- see [[SpatialRelation]] for more details.
+    */
+  infix def relationWith(that: Self): SpatialRelation
+
+  /**
     * Alternative to toString for something that looks more like code
     */
   def toCodeLikeString: String
@@ -209,7 +261,21 @@ trait IntervalBase[
    */
 
   /**
-    * Tests if there is no gap or overlap between this and that, and they could be merged to form a single interval.
+    * Intervals are connected if they touch or intersect.
+    *
+    * Being connected is a key aspect of the region connection calculus, where it is defined as being both reflexive
+    * (for all x, x isConnectedTo x) and symmetric (for all x and y, x isConnectedTo y --> y isConnectedTo x) .
+    *
+    * @param that
+    *   $intervalToTest
+    * @return
+    *   true if this touches that or this intersects that.
+    */
+  infix def isConnectedTo(that: Self): Boolean = touches(that) || intersects(that)
+
+  /**
+    * Tests if there is no gap or overlap between this and that, and they could be merged to form a single interval
+    * (sometimes referred to as "face-adjacent").
     *
     * @param that
     *   $intervalToTest

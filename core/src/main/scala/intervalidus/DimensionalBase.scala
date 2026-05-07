@@ -1,5 +1,6 @@
 package intervalidus
 
+import intervalidus.CoreConfig.IsolationLevel.{ReadUncommitted, Serializable}
 import intervalidus.DomainLike.given
 import intervalidus.collection.{Boundary, Box, BoxedPayload, Capacity}
 import intervalidus.collection.immutable.MultiMapSorted
@@ -286,30 +287,25 @@ object DimensionalBase:
   /**
     * Collection of data structures kept in sync to represent the state of this structure.
     *
+    * @param dataByStart
+    *   Internal data structure where all the interval-bounded data are stored, always expected to be disjoint. TreeMap
+    *   maintains data in interval key order.
+    * @param dataByValue
+    *   An internal shadow data structure where all the interval-bounded data are also stored, but using the value
+    *   itself as the key (for faster compression, which is done by value). The ValidData[V, D] are stored in a sorted
+    *   set, so they are retrieved in key order, making compression operations repeatable.
+    * @param dataInBoxTree
+    *   An internal shadow data structure where all the interval-bounded data are also stored, but in a "box search
+    *   tree" -- a hyperoctree (i.e., a B-tree, quadtree, octree, etc., depending on the dimension) that supports quick
+    *   retrieval by interval.
     * @tparam V
     *   $dataValueType
     * @tparam D
     *   $intervalDomainType
     */
   class State[V, D <: NonEmptyTuple](
-    /**
-      * Internal data structure where all the interval-bounded data are stored, always expected to be disjoint. TreeMap
-      * maintains interval key order.
-      */
     val dataByStart: TreeMap[D, ValidData[V, D]],
-
-    /**
-      * An internal shadow data structure where all the interval-bounded data are also stored, but using the value
-      * itself as the key (for faster compression, which is done by value). The ValidData[V, D] are stored in a sorted
-      * set, so they are retrieved in key order, making compression operations repeatable.
-      */
     val dataByValue: MultiMapSorted[V, ValidData[V, D]],
-
-    /**
-      * An internal shadow data structure where all the interval-bounded data are also stored, but in a "box search
-      * tree" -- a hyperoctree (i.e., a B-tree, quadtree, octree, etc., depending on the dimension) that supports quick
-      * retrieval by interval.
-      */
     val dataInBoxTree: BoxTree[ValidData[V, D]]
   ):
     /**
@@ -527,6 +523,47 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
   @volatile protected var state: State[V, D] = initialState
 
   /**
+    * Used by [[atomicStartReadTransactionWith]], [[atomicStartUpdateTransactionWith]], and [[commit]] to ensure atomic
+    * transaction start boundaries.
+    */
+  private val stateLock = new Object
+
+  /**
+    * Ensures transactions across two read-only resources start atomically. This is most important if this eq that, and
+    * there is a reflexive call on this. For example, say one is checking if a == a, which should always be true even if
+    * a is being updated concurrently. This check will start two read transactions: one on a as "this", and one on a as
+    * "that". If the transaction starts are not atomic then the first a may get a older version of state than the second
+    * one, so the reflexive a == a check would be false. To avoid this corner case, we synchronize on the instance's own
+    * lock, ensuring both read transactions are pinned to the same version of the state before any concurrent commit can
+    * swap the reference. It shouldn't affect concurrency much because this start and the commit only synchronize during
+    * the nanosecond it takes to swap or capture the volatile var reference to State.
+    */
+  protected def atomicStartReadTransactionWith[B, S <: NonEmptyTuple](
+    that: DimensionalBase[B, S]
+  ): (ReadTransaction[V, D], ReadThatTransaction[B, S]) = stateLock.synchronized:
+    (ReadTransaction.start(state), ReadThatTransaction.start(that.state))
+
+  /**
+    * Same as [[atomicStartReadTransactionWith]], but with one read-only resource and one read-write resource.
+    */
+  protected def atomicStartUpdateTransactionWith[B, S <: NonEmptyTuple](
+    that: DimensionalBase[B, S]
+  ): (UpdateTransaction[V, D], ReadThatTransaction[B, S]) = stateLock.synchronized:
+    val updateTransaction = config.isolationLevel match
+      case Serializable    => UpdateTransaction.start(state)
+      case ReadUncommitted => UpdateTransaction.startDirty(state)
+    (updateTransaction, ReadThatTransaction.start(that.state))
+
+  /**
+    * Updates the state based on the result of the update transaction.
+    *
+    * @param tx
+    *   transaction with accumulated updates.
+    */
+  protected def commit()(using tx: UpdateTransaction[V, D]): Unit = stateLock.synchronized:
+    state = tx.state
+
+  /**
     * Wraps a function body in a new read-only transaction, returning the result.
     */
   protected def transactionalRead[T](
@@ -534,20 +571,14 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
   ): T = body(using ReadTransaction.start(state))
 
   /**
-    * Given some other structure, wraps a function body in a new read-only transaction on that structure, returning the
-    * result.
-    */
-  protected def transactionalReadOnly[T, B, S <: NonEmptyTuple](that: DimensionalBase[B, S])(
-    body: ReadThatTransaction[B, S] => T
-  ): T = body(ReadThatTransaction.start(that.state))
-
-  /**
     * Given some other structure, wraps a function body in new read-only transactions on both this structure and that
-    * structure, returning the result.
+    * structure, returning the result. Transactions are started atomically for reflexive integrity.
     */
   protected def transactionalReadWith[T, B, S <: NonEmptyTuple](that: DimensionalBase[B, S])(
     body: ReadTransaction[V, D] ?=> ReadThatTransaction[B, S] => T
-  ): T = body(using ReadTransaction.start(state))(ReadThatTransaction.start[B, S](that.state))
+  ): T =
+    val (readThisTransaction, readThatTransaction) = atomicStartReadTransactionWith(that)
+    body(using readThisTransaction)(readThatTransaction)
 
   override def equals(obj: Any): Boolean = obj match
     case that: DimensionalBase[?, ?] =>
@@ -596,7 +627,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   true if this and that are logically equivalent
     */
   infix def isEquivalentTo(that: DimensionalBase[V, D]): Boolean = transactionalReadWith(that): thatTx =>
-    equals(that) || equivalentWithMutualDecompression(that, thatTx)
+    equalsInternal(that, thatTx) || equivalentWithMutualDecompression(that, thatTx)
 
   /**
     * Same as [[isEquivalentTo]]
@@ -680,15 +711,6 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
         treeCopy.clear()
         treeCopy.addAll(data.map(_.asBoxedPayload))
     )
-
-  /**
-    * Updates the state based on the result of the update transaction.
-    *
-    * @param tx
-    *   transaction with accumulated updates.
-    */
-  protected def commit()(using tx: UpdateTransaction[V, D]): Unit =
-    state = tx.state
 
   /**
     * Internal method, to update or remove in place.
@@ -788,6 +810,25 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
       Iterable.single(overlap.value) ++ updatedValueOption
 
   /**
+    * Internal method to remove many intervals in place.
+    */
+  protected def removeManyInPlace(intervals: IterableOnce[Interval[D]])(using UpdateTransaction[V, D]): Unit =
+    val updatedValues = Set.newBuilder[V]
+    intervals.iterator.foreach: interval =>
+      val affected = updateOrRemoveNoCompress(interval, _ => None)
+      if config.compressOnUpdate then updatedValues.addAll(affected)
+    if config.compressOnUpdate then updatedValues.result().foreach(compressInPlace)
+
+  /**
+    * Internal method to find the difference with another structure by remove its intervals in place.
+    */
+  protected def differenceInPlace(
+    that: DimensionalBase[V, D],
+    thatTx: ReadThatTransaction[V, D]
+  )(using UpdateTransaction[V, D]): Unit =
+    removeManyInPlace(that.allIntervalsInternal(using thatTx))
+
+  /**
     * Internal method, to fill in place.
     *
     * Adds a value as valid in portions of the interval where there aren't already valid values.
@@ -813,15 +854,17 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     * are added (a fill operation).
     *
     * @param that
-    *   data to merge into this one
+    *   structure to merge into this one
     * @param mergeValues
     *   function that merges values where both this and that have valid values
     */
   protected def mergeInPlace(
-    that: Iterable[ValidData[V, D]],
+    that: DimensionalBase[V, D],
+    thatTx: ReadThatTransaction[V, D],
     mergeValues: (V, V) => V
   )(using UpdateTransaction[V, D]): Unit =
-    val affected = that.flatMap: thatData =>
+    val intervals = that.getAllInternal(using thatTx)
+    val affected = intervals.flatMap: thatData =>
       val updatedValues =
         updateOrRemoveNoCompress(thatData.interval, thisDataValue => Some(mergeValues(thisDataValue, thatData.value)))
       fillInPlaceNoCompress(thatData)
@@ -897,6 +940,25 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
       case DiffAction.Delete(key)                   => removeValidDataByKey(key)
     // Not sure why, but returning explicit Unit here resolves runtime type check warning above
     ()
+
+  /**
+    * Applies many diff actions to this structure.
+    *
+    * @param diffActions
+    *   actions to be applied.
+    */
+  protected def applyDiffActionsInPlace(
+    diffActions: IterableOnce[DiffAction[V, D]]
+  )(using UpdateTransaction[V, D]): Unit = diffActions.iterator.foreach(applyDiffActionInPlace)
+
+  /**
+    * Internal method to sync in place.
+    */
+  def syncWithInPlace(
+    that: DimensionalBase[V, D],
+    thatTx: ReadThatTransaction[V, D]
+  )(using thisTx: UpdateTransaction[V, D]): Unit =
+    applyDiffActionsInPlace(that.diffActionsFromInternal(this, thisTx)(using thatTx))
 
   /**
     * Data for the intersection of this and a single interval. See
@@ -1424,7 +1486,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
 
   protected def diffActionsFromInternal(
     old: DimensionalBase[V, D],
-    oldTx: ReadThatTransaction[V, D]
+    oldTx: Transaction[V, D]
   )(using newTx: Transaction[V, D]): Iterable[DiffAction[V, D]] =
     (newTx.dataByStart.keySet ++ oldTx.dataByStart.keys).toSeq.flatMap: key =>
       (oldTx.dataByStart.get(key), newTx.dataByStart.get(key)) match

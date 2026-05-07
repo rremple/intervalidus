@@ -71,6 +71,10 @@ trait IntervalShapeCommonBehaviors(using DomainValueLike[Int]):
         fromAfterOrigin x toOrigin // IV
       )
 
+      assert(withoutQuadrantOne.isContiguous)
+      assert(withoutQuadrantOne.isSolid)
+      assert(!withoutQuadrantOne.isBounded)
+
       withoutQuadrantOne.copy == withoutQuadrantOne shouldBe true
       withoutQuadrantOne.recompressAll() == withoutQuadrantOne shouldBe false
       withoutQuadrantOneNoCheck ≡≡ withoutQuadrantOne
@@ -120,6 +124,10 @@ trait IntervalShapeCommonBehaviors(using DomainValueLike[Int]):
       withoutTwoQuadrantCount shouldBe 3
       quadrantSamples.count(withoutQuadrantTwo.contains) shouldBe 3
 
+      assert(withoutQuadrantTwo.isContiguous)
+      assert(withoutQuadrantTwo.isSolid)
+      assert(!withoutQuadrantTwo.isBounded)
+
       withoutQuadrantTwo.size shouldBe 2
       withoutQuadrantTwo.allIntervals shouldBe Seq(
         unbounded x toOrigin, // III & IV merged (horizontally)
@@ -148,6 +156,9 @@ trait IntervalShapeCommonBehaviors(using DomainValueLike[Int]):
 
       val empty = IntervalShape.newBuilder[Dim].result()
       empty.isEmpty shouldBe true
+      empty.isContiguous shouldBe false
+      empty.contiguousSubshapes.isEmpty shouldBe true
+      empty.cavities.isEmpty shouldBe true
       empty ≡≡ ∅
       empty.toString shouldBe "∅"
       empty.toCodeLikeString shouldBe "∅"
@@ -159,6 +170,9 @@ trait IntervalShapeCommonBehaviors(using DomainValueLike[Int]):
       val full = buildUniverse.result()
       full.toString shouldBe "ξ"
       full.toCodeLikeString shouldBe "ξ"
+      full.isContiguous shouldBe true
+      full.contiguousSubshapes.toList shouldBe List(ξ[Dim])
+      full.cavities.isEmpty shouldBe true
 
     test(s"$prefix: Int IntervalShape 2D collection operations"):
       /* When discrete, the donut (intervals a, b, c, and d) and, its complement, the hole (interval e) look like:
@@ -190,11 +204,33 @@ trait IntervalShapeCommonBehaviors(using DomainValueLike[Int]):
       donut ≡≡ (ξ \ hole)
       donut ≡≡ (∅ ++ Seq(a, b, c, d))
       donut ≡≡ hole.c
+      donut.cavities.toList match
+        case List(oneCavity) => oneCavity ≡≡ hole
+        case theUnexpected   => fail(s"expected one hole but got $theUnexpected")
+
+      assert(donut isSubsetOf ξ)
+      assert(donut touches hole)
+      assert(donut isConnectedTo hole)
+      assert(donut.isContiguous)
+      assert(!donut.isBounded)
+      assert(!donut.isSolid)
+      assert(!donut.isUniverse)
+      assert(!donut.isEmpty)
 
       hole ≡≡ (ξ -- Seq(a, b, c, d))
       hole ≡≡ (ξ \ donut)
       hole ≡≡ (∅ + e)
       hole ≡≡ donut.c
+      assert(hole.cavities.isEmpty)
+
+      assert(hole isSubsetOf ξ)
+      assert(hole touches donut)
+      assert(hole isConnectedTo donut)
+      assert(hole.isContiguous)
+      assert(hole.isBounded)
+      assert(hole.isSolid)
+      assert(!hole.isUniverse)
+      assert(!hole.isEmpty)
 
       donut ∪ hole ≡≡ ξ
       donut ∩ hole ≡≡ ∅
@@ -228,12 +264,53 @@ trait IntervalShapeCommonBehaviors(using DomainValueLike[Int]):
       donut intersects clipInterval shouldBe true
       val clippedDonut = Seq(a, b, c, d).flatMap(_ ∩ clipInterval).toShape
       (donut ∩ clipInterval) ≡≡ clippedDonut
+      assert(clippedDonut isSubsetOf donut)
+      assert(clippedDonut touches hole)
+      assert(clippedDonut isConnectedTo hole)
+      assert(clippedDonut.isContiguous)
+      assert(clippedDonut.isBounded)
+      assert(!clippedDonut.isSolid)
+
       clippedDonut ≡≡ clippedDonut.map(_.swapDimensions[Dim](0, 1))
       clippedDonut ≡≡ donut.flatMap: i =>
         (i ∩ clipInterval).map(z => z: Shape).getOrElse(∅)
       (intervalFromAfter(1).to(10) x interval(-1, 1)) ≡≡ clippedDonut.filter(_.start > Domain.in2D(0, 0))
       (interval(-1, 1) x intervalFromAfter(1).to(10)) ≡≡ clippedDonut.collect:
         case i if i.start > Domain.in2D(0, 0) => i.swapDimensions[Dim](0, 1)
+
+      val twinDonuts = clippedDonut.flatMap:
+        case i @ Interval((Domain1D.Point(sx), sy), (Domain1D.Point(ex), ey)) =>
+          Seq(i, interval(sx + 30, ex + 30) x interval(sy, ey)).toShape
+        case i @ Interval((Domain1D.Point(sx), sy), (Domain1D.OpenPoint(ex), ey)) =>
+          Seq(i, intervalFrom(sx + 30).toBefore(ex + 30) x interval(sy, ey)).toShape
+        case i @ Interval((Domain1D.OpenPoint(sx), sy), (Domain1D.Point(ex), ey)) =>
+          Seq(i, intervalFromAfter(sx + 30).to(ex + 30) x interval(sy, ey)).toShape
+        case theUnexpected => fail(s"didn't expect $theUnexpected")
+      twinDonuts.isContiguous shouldBe false
+      val contiguousDonuts = twinDonuts.contiguousSubshapes
+      contiguousDonuts.size shouldBe 2
+      contiguousDonuts should contain(clippedDonut)
+      val contiguousHoles = twinDonuts.cavities
+      contiguousHoles.size shouldBe 2
+      contiguousHoles should contain(hole)
+      val twinHoles = contiguousHoles.toSingleShape
+      twinHoles.contiguousSubshapes.size shouldBe 2
+
+      val filledDonut = clippedDonut ∪ hole
+      filledDonut.isSolid shouldBe true
+      hole intersects clippedDonut shouldBe false
+      hole intersects filledDonut shouldBe true
+
+      clippedDonut relationWith clippedDonut shouldBe SpatialRelation.EQ
+      clippedDonut relationWith hole shouldBe SpatialRelation.EC
+      clippedDonut relationWith twinDonuts shouldBe SpatialRelation.TPP
+      twinDonuts relationWith clippedDonut shouldBe SpatialRelation.TPPi
+      hole relationWith filledDonut shouldBe SpatialRelation.NTPP
+      filledDonut relationWith hole shouldBe SpatialRelation.NTPPi
+      val transposedDonut = contiguousDonuts.filter(_.relationWith(clippedDonut) != SpatialRelation.EQ)
+      transposedDonut.size shouldBe 1
+      transposedDonut.head relationWith clippedDonut shouldBe SpatialRelation.DC
+      twinHoles relationWith filledDonut shouldBe SpatialRelation.PO
 
       val holeData = hole -> "hole"
       holeData.getAll.toList shouldBe List(e -> "hole")

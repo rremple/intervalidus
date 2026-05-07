@@ -79,8 +79,8 @@ class Data[V, D <: NonEmptyTuple: DomainLike] private (
 
   // ---------- Implement methods from DimensionalBase that create new instances ----------
 
-  override def copy(using config: CoreConfig[D]): Data[V, D] =
-    new Data(state.copy)
+  override protected def copyInternal(using tx: Transaction[V, D])(using CoreConfig[D]): Data[V, D] =
+    new Data(tx.state.copy)
 
   override def zip[B](that: DimensionalBase[B, D]): Data[(V, B), D] = transactionalReadWith(that): thatTx =>
     Data(zipData(that, thatTx, (_, _)))
