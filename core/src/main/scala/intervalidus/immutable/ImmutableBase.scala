@@ -45,7 +45,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     */
   def compressedUpdate(): Self = if config.compressOnUpdate then compressAll() else this
 
-  override def copy(using CoreConfig[D]): Self = transactionalRead:
+  override def copy(using config: CoreConfig[D]): Self = transactionalRead:
     copyInternal
 
   // ---------- To be implemented by inheritor ----------

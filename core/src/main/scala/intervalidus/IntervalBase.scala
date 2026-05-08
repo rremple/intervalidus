@@ -227,14 +227,13 @@ trait IntervalBase[
   def isBounded: Boolean
 
   /**
-    * Intervals share boundaries if they either start/end together, or they share some other boundary point.
+    * Intervals share boundaries if they either start/end together or they share some other boundary point.
     * Specifically two intervals share a boundary if they overlap in all dimensions and, in at least one dimension, they
     * either start and/or end together, or they share a single closed point.
     *
     * Sharing a boundary is a key aspect of the region connection calculus, determining if one interval is a
-    * "tangential" subset of another. This differentiates the relations "tangential proper part" (TPP) "tangential
-    * proper part inverse" (TPPi) from the relations "non-tangential proper part" (NTPP) and "non-tangential proper part
-    * inverse" (NTPPi).
+    * "tangential" subset of another. This differentiates the relations "tangential proper part" (TPP) and its
+    * inverse (TPPi) from the relations "non-tangential proper part" (NTPP) and its inverse (NTPPi).
     *
     * @param that
     *   $intervalToTest

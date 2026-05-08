@@ -37,7 +37,7 @@ case class CoreConfig[D <: NonEmptyTuple: DomainLike](
     copy(capacityHint = Some(value))
 
   /**
-    * A new configuration with a new capacity hint value.
+    * A new configuration with a new isolation level value.
     */
   def withIsolationLevel(value: CoreConfig.IsolationLevel): CoreConfig[D] =
     copy(isolationLevel = value)

@@ -379,7 +379,7 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
 
   /**
     * Internal method. Determines in two intervals have a shared boundary to differentiate [[SpatialRelation.TPP]] and
-    * [[SpatialRelation.NTPP]].
+    * [[SpatialRelation.NTPP]] (and their inverses).
     */
   def intervalSharedBoundary(a: Interval[D], b: Interval[D]): Boolean =
     val (partialResult, overlap, sharedBoundary, total) =

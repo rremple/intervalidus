@@ -517,8 +517,8 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *
     * Marked @volatile to ensure that a 'commit' (the atomic swap of this reference) is immediately visible across all
     * threads. This enables snapshot isolation: readers can grab a stable reference to a 'frozen' State and perform
-    * lock-free queries, even while a writer may be building a new state in a separate transaction on a different thread
-    * concurrently.
+    * lock-free queries, even while a writer may be building a new state in a separate transaction concurrently (i.e.,
+    * on a different thread).
     */
   @volatile protected var state: State[V, D] = initialState
 
@@ -532,11 +532,11 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     * Ensures transactions across two read-only resources start atomically. This is most important if this eq that, and
     * there is a reflexive call on this. For example, say one is checking if a == a, which should always be true even if
     * a is being updated concurrently. This check will start two read transactions: one on a as "this", and one on a as
-    * "that". If the transaction starts are not atomic then the first a may get a older version of state than the second
-    * one, so the reflexive a == a check would be false. To avoid this corner case, we synchronize on the instance's own
-    * lock, ensuring both read transactions are pinned to the same version of the state before any concurrent commit can
-    * swap the reference. It shouldn't affect concurrency much because this start and the commit only synchronize during
-    * the nanosecond it takes to swap or capture the volatile var reference to State.
+    * "that". If the transaction starts are not atomic then the first a may get an older version of state than the
+    * second one, so the reflexive a == a check could be false. To avoid this corner case, we synchronize on the
+    * instance's own lock, ensuring both read transactions are pinned to the same version of the state before any
+    * concurrent commit can swap the reference. It shouldn't affect concurrency much because this start and the commit
+    * only synchronize during the nanosecond it takes to swap or capture the volatile var reference to State.
     */
   protected def atomicStartReadTransactionWith[B, S <: NonEmptyTuple](
     that: DimensionalBase[B, S]
@@ -820,7 +820,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     if config.compressOnUpdate then updatedValues.result().foreach(compressInPlace)
 
   /**
-    * Internal method to find the difference with another structure by remove its intervals in place.
+    * Internal method to find the difference with another structure by removing its intervals in place.
     */
   protected def differenceInPlace(
     that: DimensionalBase[V, D],
@@ -942,7 +942,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     ()
 
   /**
-    * Applies many diff actions to this structure.
+    * Applies many diff actions to this structure in place.
     *
     * @param diffActions
     *   actions to be applied.
@@ -952,7 +952,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
   )(using UpdateTransaction[V, D]): Unit = diffActions.iterator.foreach(applyDiffActionInPlace)
 
   /**
-    * Internal method to sync in place.
+    * Internal method to sync this structure with that structure in place.
     */
   def syncWithInPlace(
     that: DimensionalBase[V, D],
@@ -1508,7 +1508,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     * @return
     *   a new structure with the same data.
     */
-  def copy(using CoreConfig[D]): DimensionalBase[V, D]
+  def copy(using config: CoreConfig[D]): DimensionalBase[V, D]
 
   /**
     * Returns a new structure formed from this structure and another structure by combining the corresponding elements

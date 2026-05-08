@@ -20,14 +20,14 @@ trait Semigroup[V]:
     */
   def combine(lhs: V, rhs: V): V
 
-  extension (lhs: V)
+  extension (thisElement: V)
     /**
       * Associative binary operator combining this element with that element. The combine operation should be
       * associative, i.e., `((a combineWith b) combineWith c) == (a combineWith (b combineWith c))`
       *
-      * @param that
+      * @param thatElement
       *   element to combine with
       * @return
       *   the combined value
       */
-    infix def combineWith(that: V): V = combine(lhs, that)
+    infix def combineWith(thatElement: V): V = combine(thisElement, thatElement)

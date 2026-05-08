@@ -41,6 +41,9 @@ class Data[V, D <: NonEmptyTuple: DomainLike] private (
 
   // ---------- Implement methods from ImmutableBase that create new instances ----------
 
+  override protected def copyInternal(using tx: Transaction[V, D])(using CoreConfig[D]): Data[V, D] =
+    new Data(tx.state.copy)
+
   override def map[B, S <: NonEmptyTuple: DomainLike](
     f: ValidData[V, D] => ValidData[B, S]
   )(using altConfig: CoreConfig[S]): Data[B, S] = transactionalRead:
@@ -78,9 +81,6 @@ class Data[V, D <: NonEmptyTuple: DomainLike] private (
     )(using config = altConfig).compressedUpdate()
 
   // ---------- Implement methods from DimensionalBase that create new instances ----------
-
-  override protected def copyInternal(using tx: Transaction[V, D])(using CoreConfig[D]): Data[V, D] =
-    new Data(tx.state.copy)
 
   override def zip[B](that: DimensionalBase[B, D]): Data[(V, B), D] = transactionalReadWith(that): thatTx =>
     Data(zipData(that, thatTx, (_, _)))

@@ -56,13 +56,21 @@ trait IntervalShapeCommonBehaviors(using DomainValueLike[Int]):
         )
       ) + (fromOrigin x toBeforeOrigin) // IV
 
-      val withoutQuadrantOneNoCheck = IntervalShape.withoutChecks( // origin missing (would be in I)
+      val withoutQuadrantOneNoCheck = IntervalShape.withoutChecks( // no compression
         Seq(
           toBeforeOrigin x toBeforeOrigin, // III
           toBeforeOrigin x fromOrigin, // II
           fromOrigin x toBeforeOrigin // IV
         )
       )
+
+      val withoutQuadrantOneNoCompress = IntervalShape( // also no compression
+        Seq(
+          toBeforeOrigin x toBeforeOrigin, // III
+          toBeforeOrigin x fromOrigin, // II
+          fromOrigin x toBeforeOrigin // IV
+        )
+      )(using config = CoreConfig.default.withCompressOnUpdate(false))
 
       val withoutQuadrantTwo = IntervalShape.of( // origin present (in III)
         fromAfterOrigin x fromAfterOrigin // I
@@ -78,6 +86,7 @@ trait IntervalShapeCommonBehaviors(using DomainValueLike[Int]):
       withoutQuadrantOne.copy == withoutQuadrantOne shouldBe true
       withoutQuadrantOne.recompressAll() == withoutQuadrantOne shouldBe false
       withoutQuadrantOneNoCheck ≡≡ withoutQuadrantOne
+      withoutQuadrantOneNoCompress ≡≡ withoutQuadrantOne
       withoutQuadrantOne.recompressAll(withoutQuadrantTwo) ≡≡ withoutQuadrantOne
 
       withoutQuadrantOne == ("bogus": Any) shouldBe false // different types
@@ -103,6 +112,13 @@ trait IntervalShapeCommonBehaviors(using DomainValueLike[Int]):
 
       withoutQuadrantOneNoCheck.size shouldBe 3 // uncompressed
       withoutQuadrantOneNoCheck.allIntervals shouldBe Seq(
+        toBeforeOrigin x toBeforeOrigin, // III
+        toBeforeOrigin x fromOrigin, // II
+        fromOrigin x toBeforeOrigin // IV
+      )
+
+      withoutQuadrantOneNoCompress.size shouldBe 3 // uncompressed
+      withoutQuadrantOneNoCompress.allIntervals shouldBe Seq(
         toBeforeOrigin x toBeforeOrigin, // III
         toBeforeOrigin x fromOrigin, // II
         fromOrigin x toBeforeOrigin // IV

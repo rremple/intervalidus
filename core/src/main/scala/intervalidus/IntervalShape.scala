@@ -549,8 +549,8 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
         a isConnectedTo b
 
   /**
-    * Given a particular seed interval, calculates all interval components that touch. If the shape is contiguous, this
-    * will be all interval components.
+    * Given a particular seed interval, calculates all interval components that touch. If the shape is contiguous, the
+    * result will be all interval components. If not, the result can be used to construct a contiguous subshape.
     * @param touching
     *   a map of how each interval component touches every other interval components in this shape
     * @param seedInterval
@@ -601,8 +601,8 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
       contiguousSubshapesRecurse(this)
 
   /**
-    * Returns true if this shape consists of exactly one contiguously region where all interval components touch. An
-    * empty shape is never contiguous.
+    * Returns true if this shape consists of exactly one contiguous region where all interval components touch. An empty
+    * shape is never contiguous.
     */
   def isContiguous: Boolean =
     size match
@@ -619,7 +619,7 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
   def isBounded: Boolean = allIntervals.forall(_.isBounded)
 
   /**
-    * Returns an Iterable of the internally trapped voids (bubbles) within this shape. A cavity is defined as a bounded
+    * Returns a collection of the internally trapped voids (bubbles) within this shape. A cavity is defined as a bounded
     * component of the complement that is entirely enclosed by the shape. This does not include "tunnels" or "bites"
     * that connect to the infinite boundaries of the domain.
     */
@@ -628,8 +628,8 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
     else complement.contiguousSubshapes.filter(_.isBounded)
 
   /**
-    * A predicate that returns true if the shape is both contiguous (one piece) and has no cavities (no internal
-    * bubbles).Use this to verify that a shape represents a single, monolithic mass.
+    * Returns true if the shape is both contiguous (one piece) and has no cavities (no internal bubbles). Use this to
+    * verify that a shape represents a single, monolithic mass.
     */
   def isSolid: Boolean = isContiguous && cavities.isEmpty
 

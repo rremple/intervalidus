@@ -1,6 +1,7 @@
 package intervalidus.immutable
 
 import intervalidus.*
+import intervalidus.DimensionalVersionedBase.Versioned
 import intervalidus.DiscreteValue.given
 import intervalidus.DomainLike.given
 import org.scalatest.funsuite.AnyFunSuite
@@ -13,6 +14,9 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
 
   import DimensionalVersionedBase.VersionSelection
   import Interval1D.*
+
+  given CoreConfig[Versioned[IntDim]] =
+    CoreConfig.default.withCapacityHint(interval(0, 5) x interval(0, 30) x interval(0, 30))
 
   // increment current version with each data element
   def newDataIn2DVersioned(
