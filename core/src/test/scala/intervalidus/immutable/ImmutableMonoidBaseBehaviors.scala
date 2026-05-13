@@ -61,6 +61,11 @@ trait ImmutableMonoidBaseBehaviors(using DomainValueLike[Int]):
       mUnit.identity shouldBe ()
       mUnit.combine((), ()) shouldBe ()
 
+      // Sets are monoids
+      val mSet = summon[Monoid[Set[String]]]
+      mSet.identity shouldBe Set.empty
+      mSet.combine(Set("A", "B", "C"), Set("B", "C", "D")) shouldBe Set("A", "B", "C", "D")
+
       // Option[String] can be a monoid
       given Semigroup[String] with
         override def combine(lhs: String, rhs: String): String = s"$lhs $rhs"
@@ -218,6 +223,8 @@ trait ImmutableMonoidBaseBehaviors(using DomainValueLike[Int]):
       donut ≡≡ (ξ[Double, Dim].filledWith(donutFilling) \ hole)
       donut ≡≡ (∅[Double, Dim] ++ Seq(a, b, c, d).map(_ -> donutFilling))
       donut ≡≡ hole.c.filledWith(donutFilling)
+      assert(donut isSubsetOf ξ)
+      assert(!donut.isEmpty)
 
       hole.filledWithIdentity ≡≡ (ξ -- Seq(a, b, c, d))
       hole.filledWithIdentity ≡≡ (ξ \ donut)
@@ -226,6 +233,8 @@ trait ImmutableMonoidBaseBehaviors(using DomainValueLike[Int]):
       hole ≡≡ (ξ[Double, Dim].filledWith(holeFilling) \ donut)
       hole ≡≡ (∅[Double, Dim] + (e -> holeFilling))
       hole ≡≡ donut.c.filledWith(holeFilling)
+      assert(hole isSubsetOf ξ)
+      assert(!hole.isEmpty)
 
       donut ∩ hole ≡≡ ∅
       (donut ∪ hole).filledWithIdentity ≡≡ ξ
@@ -280,6 +289,7 @@ trait ImmutableMonoidBaseBehaviors(using DomainValueLike[Int]):
       val clippedDonut = Seq(a, b, c, d).flatMap(_ ∩ clipInterval).donutFilled
       (donut ∩ clipInterval) ≡≡ clippedDonut
       clippedDonut ≡≡ clippedDonut.mapIntervals(_.swapDimensions[Dim](0, 1))
+      assert(clippedDonut isSubsetOf donut)
 
       val flatMapped = donut.flatMap: v =>
         (v.interval ∩ clipInterval).toSeq.donutFilled
@@ -291,3 +301,9 @@ trait ImmutableMonoidBaseBehaviors(using DomainValueLike[Int]):
       val collected = clippedDonut.collect:
         case x if x.interval.start > Domain.in2D(0, 0) => x.copy(interval = x.interval.swapDimensions[Dim](0, 1))
       Seq(interval(-10, 1) x intervalFromAfter(1).to(10)).donutFilled ≡≡ collected.toDataMonoid
+
+      val donutIn3D: DataMonoid[Double, Domain.In3D[Int, Int, Int]] = clippedDonut.extrudeDimension(2, interval(-1, 1))
+      val flattenedDonut: DataMonoid[Double, Dim] = donutIn3D.flattenDimension(2)
+      flattenedDonut shouldBe clippedDonut
+      val edgeShadow: DataMonoid[Double, Dim] = donutIn3D.flattenDimension(0)
+      edgeShadow shouldBe DataMonoid.of((interval(-10, 10) x interval(-1, 1)) -> donutFilling * 2)

@@ -488,6 +488,15 @@ import intervalidus.DimensionalBase.*
   * @define mergeParamMergeValues
   *   function that merges values where both this and that have valid values, where the default merge operation is to
   *   give this data values priority and drop that data values
+  * @define mergeManyDesc
+  *   Merges this structure with a collection of other data. For each, in intervals where valid values already exists,
+  *   the two values are merged (e.g., keep this data). In intervals where this does not have valid data, the data are
+  *   added (a fill operation).
+  * @define mergeManyParamThatData
+  *   collection of other data to merge with this
+  * @define mergeManyParamMergeValues
+  *   function that merges values where both this and that data have valid values, where the default merge operation is
+  *   to give this data values priority and drop that data values
   * @define replaceDesc
   *   Remove the old data and replace it with the new data. The new data value and interval can be different. Data that
   *   overlaps with the new data interval are adjusted accordingly.
@@ -863,13 +872,21 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     thatTx: ReadThatTransaction[V, D],
     mergeValues: (V, V) => V
   )(using UpdateTransaction[V, D]): Unit =
-    val intervals = that.getAllInternal(using thatTx)
-    val affected = intervals.flatMap: thatData =>
+    mergeManyInPlace(that.getAllInternal(using thatTx), mergeValues)
+
+  protected def mergeManyInPlace(
+    thatCollection: IterableOnce[ValidData[V, D]],
+    mergeValues: (V, V) => V
+  )(using UpdateTransaction[V, D]): Unit =
+    val affected = Set.newBuilder[V]
+    thatCollection.iterator.foreach: thatData =>
       val updatedValues =
         updateOrRemoveNoCompress(thatData.interval, thisDataValue => Some(mergeValues(thisDataValue, thatData.value)))
       fillInPlaceNoCompress(thatData)
-      updatedValues ++ Iterable.single(thatData.value)
-    if config.compressOnUpdate then affected.iterator.distinct.foreach(compressInPlace)
+      if config.compressOnUpdate then
+        affected.addAll(updatedValues)
+        affected.addOne(thatData.value)
+    if config.compressOnUpdate then affected.result().foreach(compressInPlace)
 
   /**
     * Internal method, to compress in place.
@@ -954,7 +971,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
   /**
     * Internal method to sync this structure with that structure in place.
     */
-  def syncWithInPlace(
+  protected def syncWithInPlace(
     that: DimensionalBase[V, D],
     thatTx: ReadThatTransaction[V, D]
   )(using thisTx: UpdateTransaction[V, D]): Unit =
@@ -1145,7 +1162,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     * @param domain
     *   the head dimension domain element used for filtering
     * @return
-    *   a collection of valid data representing the lower-dimensional (n-1) projection
+    *   a collection of valid data representing the lower-dimensional (n-1) structure
     */
   protected def getByHeadDimensionData[H: DomainValueLike](domain: Domain1D[H])(using
     Domain.IsAtLeastTwoDimensional[D],
@@ -1180,7 +1197,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   domain of intervals in the returned valid data. There is a type safety check that ensures the domain type for
     *   this result type can be constructed by concatenating the elements before and after the dropped dimension.
     * @return
-    *   a collection of valid data representing the lower-dimensional (n-1) projection
+    *   a collection of valid data representing the lower-dimensional (n-1) structure
     */
   protected def getByDimensionData[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
     dimensionIndex: Domain.DimensionIndex,
@@ -1200,6 +1217,17 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
         getIntersectingInternal(lookup)
     filteredData.map: data =>
       data.interval.dropDimension(dimensionIndex) -> data.value
+
+  protected def extrudeDimensionData[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+    dimensionIndex: Domain.DimensionIndex,
+    extent: Interval1D[H]
+  )(using
+    Domain.HasIndex[R, dimensionIndex.type],
+    Domain.IsInsertedInResult[D, dimensionIndex.type, H, R],
+    Transaction[V, D]
+  ): Iterable[ValidData[V, R]] =
+    getAllInternal.map: data =>
+      data.interval.insertDimension(dimensionIndex, extent) -> data.value
 
   // ---------- API methods implemented here ----------
 
@@ -1369,7 +1397,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
   infix def intersects(interval: Interval[D]): Boolean = transactionalRead:
     intersectsInternal(interval)
 
-  protected infix def intersectsInternal(interval: Interval[D])(using tx: Transaction[V, D]): Boolean =
+  protected def intersectsInternal(interval: Interval[D])(using tx: Transaction[V, D]): Boolean =
     tx.dataInBoxTree.get(interval.asBox).exists(_.payload.interval intersects interval)
 
   /**
@@ -1544,7 +1572,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
   def zipAll[B](that: DimensionalBase[B, D], thisDefault: V, thatDefault: B): DimensionalBase[(V, B), D]
 
   /**
-    * Project as data in n-1 dimensions based on a lookup in the head dimension.
+    * Creates a new structure with n-1 dimensions based on a lookup in the head dimension.
     *
     * (Equivalent to `getByDimension[H, Domain.NonEmptyTail[D]](0, domain)`, though the type checking is simpler)
     *
@@ -1559,7 +1587,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     * @param altConfig
     *   $configParam
     * @return
-    *   a lower-dimensional (n-1) projection
+    *   a lower-dimensional (n-1) structure
     */
   def getByHeadDimension[H: DomainValueLike](domain: Domain1D[H])(using
     altConfig: CoreConfig[Domain.NonEmptyTail[D]]
@@ -1571,7 +1599,8 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
   ): DimensionalBase[V, Domain.NonEmptyTail[D]]
 
   /**
-    * Project as data in n-1 dimensions based on a lookup in the specified dimension.
+    * Creates a new structure with n-1 dimensions based on a lookup in the specified dimension. This is an n-1
+    * dimensional "slicing" of the original structure (e.g., slice a 3d cube into its 2d sliver).
     *
     * @param dimensionIndex
     *   dimension to filter on and drop. Must be a value with a singleton type known at compile time, e.g., a numeric
@@ -1589,7 +1618,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   domain of intervals in the returned structure. There is a type safety check that ensures the domain type for
     *   this result type can be constructed by concatenating the elements before and after the dropped dimension.
     * @return
-    *   a lower-dimensional (n-1) projection
+    *   a lower-dimensional (n-1) structure
     */
   def getByDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
     dimensionIndex: Domain.DimensionIndex,
@@ -1601,6 +1630,62 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     Domain.IsAtIndex[D, dimensionIndex.type, H],
     Domain.IsUpdatableAtIndex[D, dimensionIndex.type, H],
     Domain.IsDroppedInResult[D, dimensionIndex.type, R]
+  ): DimensionalBase[V, R]
+
+  /**
+    * Creates a new structure with n-1 dimensions by collapsing overlapping lower-dimensional intervals and merging
+    * their values. This is an n-1 dimensional "squashing" of the original structure (e.g., squash a translucent 3d cube
+    * into its 2d shadow representing how much light passes through it).
+    *
+    * @param dimensionIndex
+    *   dimension to drop. Must be a value with a singleton type known at compile time, e.g., a numeric literal. (The
+    *   head dimension is dimension 0.)
+    * @param mergeValues
+    *   function that merges values where there are multiple valid values in a lower-dimensional interval (if
+    *   mergeValues is not associative, results of multiple merges may be unpredictable).
+    * @param altConfig
+    *   $configParam
+    * @tparam R
+    *   domain of intervals in the returned structure. There is a type safety check that ensures the domain type for
+    *   this result type can be constructed by concatenating the elements before and after the dropped dimension.
+    * @return
+    *   a lower-dimensional (n-1) structure
+    */
+  def collapseDimension[R <: NonEmptyTuple: DomainLike](
+    dimensionIndex: Domain.DimensionIndex,
+    mergeValues: (V, V) => V
+  )(using
+    altConfig: CoreConfig[R]
+  )(using
+    Domain.HasIndex[D, dimensionIndex.type],
+    Domain.IsDroppedInResult[D, dimensionIndex.type, R]
+  ): DimensionalBase[V, R]
+
+  /**
+    * Creates a new structure with n+1 dimensions by "extruding" all intervals in the specified dimension. This is an
+    * n+1 dimensional "stretching" of the original structure (e.g., stretch a 2d square into a 3d cube).
+    *
+    * @param dimensionIndex
+    *   the dimension where the 1D interval is inserted (e.g., inserting a new head dimension is index 0). Existing
+    *   dimensions are pushed to the right.
+    * @param extent
+    *   the 1D interval to be inserted
+    * @tparam H
+    *   the domain value type of the extent
+    * @tparam R
+    *   the result domain. There is a type safety check that ensures the domain type for this result type is a
+    *   concatenation of elements before the insert, the inserted dimension, and the elements after the insert.
+    * @return
+    *   a higher-dimensional (n+1) structure
+    */
+  def extrudeDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+    dimensionIndex: Domain.DimensionIndex,
+    extent: Interval1D[H]
+  )(using
+    altConfig: CoreConfig[R]
+  )(using
+    Domain.HasIndex[R, dimensionIndex.type],
+    Domain.IsInsertedInResult[D, dimensionIndex.type, H, R]
   ): DimensionalBase[V, R]
 
   /**

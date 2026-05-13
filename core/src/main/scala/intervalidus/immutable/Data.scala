@@ -115,6 +115,30 @@ class Data[V, D <: NonEmptyTuple: DomainLike] private (
   ): Data[V, R] = transactionalRead:
     Data(getByDimensionData(dimensionIndex, domain))(using config = altConfig).compressedUpdate()
 
+  override def collapseDimension[R <: NonEmptyTuple: DomainLike](
+    dimensionIndex: Domain.DimensionIndex,
+    mergeValues: (V, V) => V
+  )(using
+    altConfig: CoreConfig[R]
+  )(using
+    Domain.HasIndex[D, dimensionIndex.type],
+    Domain.IsDroppedInResult[D, dimensionIndex.type, R]
+  ): Data[V, R] = transactionalRead:
+    Data
+      .empty[V, R]
+      .mergeMany(getAllInternal.map(d => d.interval.dropDimension(dimensionIndex) -> d.value), mergeValues)
+
+  override def extrudeDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+    dimensionIndex: Domain.DimensionIndex,
+    extent: Interval1D[H]
+  )(using
+    altConfig: CoreConfig[R]
+  )(using
+    Domain.HasIndex[R, dimensionIndex.type],
+    Domain.IsInsertedInResult[D, dimensionIndex.type, H, R]
+  ): Data[V, R] = transactionalRead:
+    Data(extrudeDimensionData(dimensionIndex, extent))(using config = altConfig).compressedUpdate()
+
   override def toMutable: intervalidus.mutable.Data[V, D] = transactionalRead:
     intervalidus.mutable.Data(getAllInternal)
 

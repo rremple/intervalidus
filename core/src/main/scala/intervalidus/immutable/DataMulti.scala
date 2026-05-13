@@ -102,6 +102,51 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] private (
   def removeOneMany(allData: IterableOnce[ValidData[V, D]]): DataMulti[V, D] =
     copyAndModify(_.removeOneManyInPlace(allData))
 
+  /**
+    * $unionDesc
+    *
+    * @param that
+    *   $unionParmThat
+    * @return
+    *   a new shape that is the union of this and that.
+    */
+  infix def union(that: DimensionalMultiBase[V, D]): DataMulti[V, D] = merge(that, _ ++ _)
+
+  /**
+    * Same as [[union]].
+    *
+    * $unionDesc
+    *
+    * @param that
+    *   $unionParmThat
+    * @return
+    *   a new shape that is the union of this and that.
+    */
+  infix def ∪(that: DimensionalMultiBase[V, D]): DataMulti[V, D] = union(that)
+
+  /**
+    * $intersectionDesc
+    *
+    * @param that
+    *   $intersectionParamThat
+    * @return
+    *   a new shape that is the intersection of this and that.
+    */
+  infix def intersection(that: DimensionalMultiBase[V, D]): DataMulti[V, D] = transactionalReadWith(that): thatTx =>
+    DataMulti(zipData(that, thatTx, _ intersect _).filterNot(_.value.isEmpty))
+
+  /**
+    * Same as [[intersection]].
+    *
+    * $intersectionDesc
+    *
+    * @param that
+    *   $intersectionParamThat
+    * @return
+    *   a new shape that is the intersection of this and that.
+    */
+  infix def ∩(that: DimensionalMultiBase[V, D]): DataMulti[V, D] = intersection(that)
+
   // ---------- Implement methods from ImmutableBase that create new instances ----------
   // ----  (some return Data rather than DataMulti because the resultant value type isn't necessarily a Set type) ----
 
@@ -181,6 +226,39 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] private (
     Domain.IsDroppedInResult[D, dimensionIndex.type, R]
   ): DataMulti[V, R] = transactionalRead:
     DataMulti(getByDimensionData(dimensionIndex, domain))(using config = altConfig).compressedUpdate()
+
+  override def collapseDimension[R <: NonEmptyTuple: DomainLike](
+    dimensionIndex: Domain.DimensionIndex,
+    mergeValues: (Set[V], Set[V]) => Set[V]
+  )(using
+    altConfig: CoreConfig[R]
+  )(using
+    Domain.HasIndex[D, dimensionIndex.type],
+    Domain.IsDroppedInResult[D, dimensionIndex.type, R]
+  ): DataMulti[V, R] = transactionalRead:
+    DataMulti
+      .empty[V, R]
+      .mergeMany(getAllInternal.map(d => d.interval.dropDimension(dimensionIndex) -> d.value), mergeValues)
+
+  override def flattenDimension[R <: NonEmptyTuple: DomainLike](
+    dimensionIndex: Domain.DimensionIndex
+  )(using
+    altConfig: CoreConfig[R]
+  )(using
+    Domain.HasIndex[D, dimensionIndex.type],
+    Domain.IsDroppedInResult[D, dimensionIndex.type, R]
+  ): DataMulti[V, R] = collapseDimension(dimensionIndex, _ ++ _)
+
+  override def extrudeDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+    dimensionIndex: Domain.DimensionIndex,
+    extent: Interval1D[H]
+  )(using
+    altConfig: CoreConfig[R]
+  )(using
+    Domain.HasIndex[R, dimensionIndex.type],
+    Domain.IsInsertedInResult[D, dimensionIndex.type, H, R]
+  ): DataMulti[V, R] = transactionalRead:
+    DataMulti(extrudeDimensionData(dimensionIndex, extent))(using config = altConfig).compressedUpdate()
 
   override def toMutable: intervalidus.mutable.DataMulti[V, D] = transactionalRead:
     intervalidus.mutable.DataMulti(getAllInternal)

@@ -44,6 +44,15 @@ object Monoid:
       case (None, rightOnly)         => rightOnly
       case (Some(left), Some(right)) => Some(s.combine(left, right))
 
+  /*
+   * Sets as monoids
+   */
+  given [T]: Monoid[Set[T]] with
+
+    override def identity: Set[T] = Set.empty
+
+    override def combine(lhs: Set[T], rhs: Set[T]): Set[T] = lhs ++ rhs
+
 // This is an example of something that would typecheck as a Semigroup, but because it is not associative, it isn't
 // one (it is technically a "Magma"). The following shows its lack of associativity:
 //  ( (Rock +  Paper) + Scissors  ) => ( Paper + Scissors ) => Scissors, but

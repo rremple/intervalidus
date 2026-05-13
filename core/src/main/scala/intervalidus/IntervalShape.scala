@@ -856,7 +856,7 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
   // ---- Methods that slice, copy, recompress, and hydrate shapes. ----
 
   /**
-    * Project as a shape in n-1 dimensions based on a lookup in the head dimension.
+    * Creates a new shape with n-1 dimensions based on a lookup in the head dimension.
     *
     * (Equivalent to `getByDimension[H, Domain.NonEmptyTail[D]](0, domain)`, though the type checking is simpler)
     *
@@ -869,7 +869,7 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
     * @param domain
     *   the head dimension domain element
     * @return
-    *   a lower-dimensional (n-1) projection
+    *   a lower-dimensional (n-1) shape
     */
   def getByHeadDimension[H: DomainValueLike](domain: Domain1D[H])(using
     altConfig: CoreConfig[Domain.NonEmptyTail[D]]
@@ -882,13 +882,16 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
     new IntervalShape(underlying.getByHeadDimension(domain))(using config = altConfig)
 
   /**
-    * Project as a shape in n-1 dimensions based on a lookup in the specified dimension.
+    * Creates a new shape with n-1 dimensions based on a lookup in the specified dimension. This is an n-1 dimensional
+    * "slicing" of the original shape (e.g., slice a 3d cube into its 2d sliver).
     *
     * @param dimensionIndex
     *   dimension to filter on and drop. Must be a value with a singleton type known at compile time, e.g., a numeric
     *   literal. (The head dimension is dimension 0.)
     * @param domain
     *   the domain element used for filtering
+    * @param altConfig
+    *   context parameter for configuration -- uses defaults if not given explicitly
     * @tparam H
     *   the domain value type of the domain used for filtering. There are type safety checks that ensure
     *   - the 1D domain at the specified dimension index has the specified domain value type
@@ -898,7 +901,7 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
     *   domain of intervals in the returned shape. There is a type safety check that ensures the domain type for this
     *   result type can be constructed by concatenating the elements before and after the dropped dimension.
     * @return
-    *   a lower-dimensional (n-1) projection
+    *   a lower-dimensional (n-1) structure
     */
   def getByDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
     dimensionIndex: Domain.DimensionIndex,
@@ -912,6 +915,57 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
     Domain.IsDroppedInResult[D, dimensionIndex.type, R]
   ): IntervalShape[R] =
     new IntervalShape(underlying.getByDimension(dimensionIndex, domain))(using config = altConfig)
+
+  /**
+    * Creates a new shape with n-1 dimensions by collapsing overlapping lower-dimensional intervals. This is an n-1
+    * dimensional "squashing" of the original structure (e.g., squash a 3d cube into its 2d shadow).
+    *
+    * @param dimensionIndex
+    *   dimension to drop. Must be a value with a singleton type known at compile time, e.g., a numeric literal. (The
+    *   head dimension is dimension 0.)
+    * @param altConfig
+    *   context parameter for configuration -- uses defaults if not given explicitly
+    * @tparam R
+    *   domain of intervals in the returned structure. There is a type safety check that ensures the domain type for
+    *   this result type can be constructed by concatenating the elements before and after the dropped dimension.
+    * @return
+    *   a lower-dimensional (n-1) structure
+    */
+  def flattenDimension[R <: NonEmptyTuple: DomainLike](dimensionIndex: Domain.DimensionIndex)(using
+    altConfig: CoreConfig[R]
+  )(using
+    Domain.HasIndex[D, dimensionIndex.type],
+    Domain.IsDroppedInResult[D, dimensionIndex.type, R]
+  ): IntervalShape[R] =
+    new IntervalShape(underlying.collapseDimension(dimensionIndex, (_, _) => ()))(using config = altConfig)
+
+  /**
+    * Creates a new shape with n+1 dimensions by "extruding" all intervals in the specified dimension. This is an n+1
+    * dimensional "stretching" of the original structure (e.g., stretch a 2d square into a 3d cube).
+    *
+    * @param dimensionIndex
+    *   the dimension where the 1D interval is inserted (e.g., inserting a new head dimension is index 0). Existing
+    *   dimensions are pushed to the right.
+    * @param extent
+    *   the 1D interval to be inserted
+    * @tparam H
+    *   the domain value type of the extent
+    * @tparam R
+    *   the result domain. There is a type safety check that ensures the domain type for this result type is a
+    *   concatenation of elements before the insert, the inserted dimension, and the elements after the insert.
+    * @return
+    *   a higher-dimensional (n+1) shape
+    */
+  def extrudeDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+    dimensionIndex: Domain.DimensionIndex,
+    extent: Interval1D[H]
+  )(using
+    altConfig: CoreConfig[R]
+  )(using
+    Domain.HasIndex[R, dimensionIndex.type],
+    Domain.IsInsertedInResult[D, dimensionIndex.type, H, R]
+  ): IntervalShape[R] =
+    new IntervalShape(underlying.extrudeDimension(dimensionIndex, extent))(using config = altConfig)
 
   /**
     * Unlike in 1D, there is no unique compression of interval components in higher dimensions. For example, discrete

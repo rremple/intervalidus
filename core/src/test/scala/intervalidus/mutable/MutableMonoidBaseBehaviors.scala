@@ -204,6 +204,8 @@ trait MutableMonoidBaseBehaviors(using DomainValueLike[Int]):
       donut ≡≡ ξ[Double, Dim].filledWith(donutFilling).mutate(_ \ hole)
       donut ≡≡ ∅[Double, Dim].mutate(_ ++ Seq(a, b, c, d).map(_ -> donutFilling))
       donut ≡≡ hole.mutate(_.c()).filledWith(donutFilling)
+      assert(donut isSubsetOf ξ)
+      assert(!donut.isEmpty)
 
       hole.filledWithIdentity ≡≡ ξ[Double, Dim].mutate(_ -- Seq(a, b, c, d))
       hole.filledWithIdentity ≡≡ ξ[Double, Dim].mutate(_ \ donut)
@@ -212,6 +214,8 @@ trait MutableMonoidBaseBehaviors(using DomainValueLike[Int]):
       hole ≡≡ ξ[Double, Dim].filledWith(holeFilling).mutate(_ \ donut)
       hole ≡≡ ∅[Double, Dim].mutate(_ + (e -> holeFilling))
       hole ≡≡ donut.mutate(_.c()).filledWith(holeFilling)
+      assert(hole isSubsetOf ξ)
+      assert(!hole.isEmpty)
 
       donut.mutate(_ ∩ hole) ≡≡ ∅
       donut.mutate(_ ∪ hole).filledWithIdentity ≡≡ ξ
@@ -270,6 +274,7 @@ trait MutableMonoidBaseBehaviors(using DomainValueLike[Int]):
       val clippedDonut = Seq(a, b, c, d).flatMap(_ ∩ clipInterval).donutFilled
       donut.mutate(_ ∩ clipInterval) ≡≡ clippedDonut
       clippedDonut ≡≡ clippedDonut.mutate(_.mapIntervals(_.swapDimensions[Dim](0, 1)))
+      assert(clippedDonut isSubsetOf donut)
 
       val flatMapped = donut.mutate(_.flatMap: v =>
         (v.interval ∩ clipInterval).toSeq.donutFilled)
@@ -281,3 +286,9 @@ trait MutableMonoidBaseBehaviors(using DomainValueLike[Int]):
       val collected = clippedDonut.mutate(_.collect:
         case x if x.interval.start > Domain.in2D(0, 0) => x.copy(interval = x.interval.swapDimensions[Dim](0, 1)))
       Seq(interval(-10, 1) x intervalFromAfter(1).to(10)).donutFilled ≡≡ collected.toDataMonoid
+
+      val donutIn3D: DataMonoid[Double, Domain.In3D[Int, Int, Int]] = clippedDonut.extrudeDimension(2, interval(-1, 1))
+      val flattenedDonut: DataMonoid[Double, Dim] = donutIn3D.flattenDimension(2)
+      flattenedDonut shouldBe clippedDonut
+      val edgeShadow: DataMonoid[Double, Dim] = donutIn3D.flattenDimension(0)
+      edgeShadow shouldBe DataMonoid.of((interval(-10, 10) x interval(-1, 1)) -> donutFilling * 2)

@@ -295,3 +295,77 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
          || Helloooooooooo (-∞..+∞) |
          |                          | Wooooooorld (-∞..+∞)    |
          |""".stripMargin.replaceAll("\r", "")
+
+  test(s"Mutable: Int Data 2D collection operations"):
+    // assert equivalence/non-equivalence
+    extension [V, D <: NonEmptyTuple: DomainLike](lhs: Data[V, D])
+      infix def ≡≡(rhs: Data[V, D]): Assertion = assert(lhs ≡ rhs, s"\nExpected: $lhs\nActual: $rhs\n")
+      infix def !≡(rhs: Data[V, D]): Assertion = assert(!(lhs ≡ rhs))
+
+    type Dim = Domain.In2D[Int, Int]
+
+    /* When discrete, the donut (intervals a, b, c, and d) and, its complement, the hole (interval e) look like:
+
+       +∞    b  b  b  c  c  c  c  c  c
+       ..    b  b  b  c  c  c  c  c  c
+        2    b  b  b  c  c  c  c  c  c
+        1    b  b  b  e  e  e  d  d  d
+        0    b  b  b  e  e  e  d  d  d
+       -1    b  b  b  e  e  e  d  d  d
+       -2    a  a  a  a  a  a  d  d  d
+       ..    a  a  a  a  a  a  d  d  d
+       -∞    a  a  a  a  a  a  d  d  d
+
+            -∞ .. -2 -1  0  1  2 .. +∞
+
+     */
+
+    val a = intervalTo(1) x intervalToBefore(-1)
+    val b = intervalToBefore(-1) x intervalFrom(-1)
+    val c = intervalFrom(-1) x intervalFromAfter(1)
+    val d = intervalFromAfter(1) x intervalTo(1)
+    val e = interval(-1, 1) x interval(-1, 1)
+
+    val donutFilling = 3.0
+    val holeFilling = 7.0
+
+    val donut = Data(Seq(a, b, c, d).map(_ -> donutFilling)) // no e
+    val hole = Data(Seq(e -> holeFilling))
+
+    extension [T](data: Data[T, Dim])
+      private def filledWith(v: T): Data[T, Dim] = Data(data.getAll.map(_.copy(value = v)))
+
+    extension (intervals: Seq[Interval[Dim]])
+      private def valueFilled[T](v: T) = Data(intervals.map(_ -> v))
+      private def donutFilled = intervals.valueFilled(donutFilling)
+      private def holeFilled = intervals.valueFilled(holeFilling)
+
+    donut.isEmpty shouldBe false
+    hole.isEmpty shouldBe false
+
+    val clipInterval = interval(-10, 10) x interval(-10, 10)
+    val clippedDonutWithHole = donut.copy
+    clippedDonutWithHole.mergeMany(hole.getAll)
+    clippedDonutWithHole ∩ clipInterval
+
+    val donutIn3D: Data[Double, Domain.In3D[Int, Int, Int]] = clippedDonutWithHole.extrudeDimension(2, interval(-1, 1))
+
+    def donutFirst(a: Double, b: Double): Double = if a < b then a else b
+    def holeFirst(a: Double, b: Double): Double = if a < b then b else a
+    val collapsedDonutFirst: Data[Double, Dim] = donutIn3D.collapseDimension(2, donutFirst)
+    val collapsedHoleFirst: Data[Double, Dim] = donutIn3D.collapseDimension(2, donutFirst)
+    collapsedDonutFirst shouldBe clippedDonutWithHole
+    collapsedHoleFirst shouldBe clippedDonutWithHole
+
+    val collapsedEdgeShadowDonutFirst: Data[Double, Dim] = donutIn3D.collapseDimension(0, donutFirst)
+    val collapsedEdgeShadowHoleFirst: Data[Double, Dim] = donutIn3D.collapseDimension(0, holeFirst)
+    collapsedEdgeShadowDonutFirst shouldBe Data(
+      Seq((interval(-10, 10) x interval(-1, 1)) -> donutFilling)
+    )
+    collapsedEdgeShadowHoleFirst shouldBe Data(
+      Seq(
+        (intervalFrom(-10).toBefore(-1) x interval(-1, 1)) -> donutFilling,
+        (interval(-1, 1) x interval(-1, 1)) -> holeFilling,
+        (intervalFromAfter(1).to(10) x interval(-1, 1)) -> donutFilling
+      )
+    )

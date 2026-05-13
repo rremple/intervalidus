@@ -328,6 +328,12 @@ trait IntervalShapeCommonBehaviors(using DomainValueLike[Int]):
       transposedDonut.head relationWith clippedDonut shouldBe SpatialRelation.DC
       twinHoles relationWith filledDonut shouldBe SpatialRelation.PO
 
+      val donutIn3D: IntervalShape[Domain.In3D[Int, Int, Int]] = clippedDonut.extrudeDimension(2, interval(-1, 1))
+      val flattenedDonut: IntervalShape[Dim] = donutIn3D.flattenDimension(2)
+      flattenedDonut shouldBe clippedDonut
+      val edgeShadow: IntervalShape[Dim] = donutIn3D.flattenDimension(0)
+      edgeShadow shouldBe IntervalShape.of(interval(-10, 10) x interval(-1, 1))
+
       val holeData = hole -> "hole"
       holeData.getAll.toList shouldBe List(e -> "hole")
       holeData shouldBe an[immutable.Data[String, Dim]]

@@ -46,7 +46,10 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
   /**
     * Used internally to compress the result of an update if configured to do so.
     */
-  def compressedUpdate(): Unit = if config.compressOnUpdate then compressAll()
+  def compressedUpdate(): Unit = transactionalUpdate(compressedUpdateInternal())
+
+  private def compressedUpdateInternal()(using UpdateTransaction[V, D]): Unit =
+    if config.compressOnUpdate then compressAllInternal()
 
   // ---------- Implement methods not in DimensionalBase that have mutable signatures ----------
 
@@ -78,7 +81,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
 
   private def mapInternal(f: ValidData[V, D] => ValidData[V, D])(using UpdateTransaction[V, D]): Unit =
     replaceValidData(getAllInternal.map(f))
-    if config.compressOnUpdate then compressAllInternal()
+    compressedUpdateInternal()
 
   /**
     * $collectDesc $mutableAction
@@ -88,7 +91,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     */
   def collect(pf: PartialFunction[ValidData[V, D], ValidData[V, D]]): Unit = transactionalUpdate:
     replaceValidData(getAllInternal.collect(pf))
-    if config.compressOnUpdate then compressAllInternal()
+    compressedUpdateInternal()
 
   /**
     * $mapValuesDesc $mutableAction
@@ -117,7 +120,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     */
   def flatMap(f: ValidData[V, D] => DimensionalBase[V, D]): Unit = transactionalUpdate:
     replaceValidData(getAllInternal.flatMap(f(_).getAll))
-    if config.compressOnUpdate then compressAllInternal()
+    compressedUpdateInternal()
 
   /**
     * Updates structure to only include elements which satisfy a predicate. $mutableAction
@@ -259,9 +262,9 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     * $compressAllDesc $mutableAction
     */
   def compressAll(): Unit = transactionalUpdate:
-    compressAllInternal()
+    compressedUpdateInternal()
 
-  def compressAllInternal()(using UpdateTransaction[V, D]): Unit =
+  protected def compressAllInternal()(using UpdateTransaction[V, D]): Unit =
     valuesInternal.foreach(compressInPlace)
 
   /**
@@ -317,6 +320,20 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     mergeValues: (V, V) => V = (thisDataValue, _) => thisDataValue
   ): Unit = transactionalUpdateWith(that): thatTx =>
     mergeInPlace(that, thatTx, mergeValues)
+
+  /**
+    * $mergeManyDesc $mutableAction
+    *
+    * @param thatData
+    *   $mergeManyParamThatData
+    * @param mergeValues
+    *   $mergeManyParamMergeValues
+    */
+  def mergeMany(
+    thatData: IterableOnce[ValidData[V, D]],
+    mergeValues: (V, V) => V = (thisDataValue, _) => thisDataValue
+  ): Unit = transactionalUpdate:
+    mergeManyInPlace(thatData, mergeValues)
 
   // equivalent symbolic method names
 

@@ -153,9 +153,28 @@ trait DimensionalMonoidBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimensio
   */
 trait DimensionalMonoidBase[V: Monoid, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, D]:
 
-  // These overrides aren't strictly necessary, but they prevent this trait from getting optimized away
-  // and losing the scaladoc definitions for subclasses.
-
-  override def toMutable: intervalidus.mutable.DataMonoid[V, D]
-
-  override def toImmutable: intervalidus.immutable.DataMonoid[V, D]
+  /**
+    * Creates a new structure with n-1 dimensions by collapsing overlapping lower-dimensional intervals and merging
+    * their values. This is an n-1 dimensional "squashing" of the original structure (e.g., squash a translucent 3d cube
+    * into its 2d shadow representing how much light passes through it). Values are merged using the monoid combine
+    * function.
+    *
+    * @param dimensionIndex
+    *   dimension to drop. Must be a value with a singleton type known at compile time, e.g., a numeric literal. (The
+    *   head dimension is dimension 0.)
+    * @param altConfig
+    *   $configParam
+    * @tparam R
+    *   domain of intervals in the returned structure. There is a type safety check that ensures the domain type for
+    *   this result type can be constructed by concatenating the elements before and after the dropped dimension.
+    * @return
+    *   a lower-dimensional (n-1) structure
+    */
+  def flattenDimension[R <: NonEmptyTuple: DomainLike](
+    dimensionIndex: Domain.DimensionIndex
+  )(using
+    altConfig: CoreConfig[R]
+  )(using
+    Domain.HasIndex[D, dimensionIndex.type],
+    Domain.IsDroppedInResult[D, dimensionIndex.type, R]
+  ): DimensionalMonoidBase[V, R]

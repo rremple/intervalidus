@@ -184,6 +184,20 @@ trait DimensionalMultiBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimension
   *   Remove all the values following the logic in
   * @define removeOneManyParamAllData
   *   the data to remove
+  * @define unionDesc
+  *   The union of this and that, merging the sets of valid values in the intersection. For example, if structure x has
+  *   values "A", "B", and "C" as valid in [0..10], and structure y has values "B", "C", and "D" as valid in [5..15], x
+  *   union y will have "A", "B", and "C" valid in [0..4], "A", "B", "C", and "D" valid in [5..10], and "B", "C", and
+  *   "D" valid in [11..15]. See [[https://en.wikipedia.org/wiki/Union_(set_theory)]].
+  * @define unionParmThat
+  *   the shape to unite.
+  * @define intersectionDesc
+  *   The intersection of this and that where they have both intervals and values in common. For example, if structure x
+  *   has values "A", "B", and "C" as valid in [0..10], and structure y has values "B", "C", and "D" as valid in
+  *   [5..15], x intersection y will have only "B" and "C" as valid in [5..10]. See
+  *   [[https://en.wikipedia.org/wiki/Intersection_(set_theory)]].
+  * @define intersectionParamThat
+  *   shape to intersect.
   */
 trait DimensionalMultiBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[Set[V], D]:
 
@@ -277,3 +291,28 @@ trait DimensionalMultiBase[V, D <: NonEmptyTuple: DomainLike] extends Dimensiona
     Interval.compress(
       valuesInternal.filter(_.contains(value)).flatMap(intervalsInternal(_))
     )
+
+  /**
+    * Creates a new structure with n-1 dimensions by collapsing overlapping lower-dimensional intervals and merging
+    * their values. This is an n-1 dimensional "squashing" of the original structure (e.g., squash a translucent 3d cube
+    * into its 2d shadow representing how much light passes through it). Values are merged.
+    *
+    * @param dimensionIndex
+    *   dimension to drop. Must be a value with a singleton type known at compile time, e.g., a numeric literal. (The
+    *   head dimension is dimension 0.)
+    * @param altConfig
+    *   $configParam
+    * @tparam R
+    *   domain of intervals in the returned structure. There is a type safety check that ensures the domain type for
+    *   this result type can be constructed by concatenating the elements before and after the dropped dimension.
+    * @return
+    *   a lower-dimensional (n-1) structure
+    */
+  def flattenDimension[R <: NonEmptyTuple: DomainLike](
+    dimensionIndex: Domain.DimensionIndex
+  )(using
+    altConfig: CoreConfig[R]
+  )(using
+    Domain.HasIndex[D, dimensionIndex.type],
+    Domain.IsDroppedInResult[D, dimensionIndex.type, R]
+  ): DimensionalMultiBase[V, R]

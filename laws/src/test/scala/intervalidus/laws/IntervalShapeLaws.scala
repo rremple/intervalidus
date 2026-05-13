@@ -1,5 +1,6 @@
 package intervalidus.laws
 
+import intervalidus.*
 import DomainGenerator.{Dim1, Dim2, Dim3, Dim4}
 import intervalidus.DomainLike.given
 import intervalidus.IntervalShape.*
@@ -43,7 +44,52 @@ class IntervalShapeLaws extends AnyPropSpec with ScalaCheckPropertyChecks with P
       property(s"1D Continuous $propertyName")(testFun[Dim1](genDim1(using testCoreConfig)))
     }
 
-  extension [D <: NonEmptyTuple : DomainLike](lhs: IntervalShape[D])
+  type NonEmptyConcat[X <: Tuple, +Y <: NonEmptyTuple] <: NonEmptyTuple = X match
+    case EmptyTuple => Y
+    case x1 *: xs1  => x1 *: NonEmptyConcat[xs1, Y]
+
+  type ExtrudeAtZero[X <: NonEmptyTuple] = Domain1D[Int] *: X
+  type ExtrudeAtOne[X <: NonEmptyTuple] = NonEmptyConcat[Tuple.Take[X, 1], Domain1D[Int] *: Tuple.Drop[X, 1]]
+
+  /**
+    * Property tests that are applied to IntervalShape with intervals in 1, 2, 3, and 4 dimensions where shapes are
+    * extruded/collapsed.
+    */
+  trait IntervalShapeExtrudingPropertyTest:
+    def apply[D <: NonEmptyTuple: DomainLike](
+      intervalMultiGen: Gen[IntervalShape[D]]
+    )(using
+      DomainValueLike[Int],
+      DomainLike[ExtrudeAtZero[D]],
+      DomainLike[ExtrudeAtOne[D]],
+      Domain.HasIndex[ExtrudeAtZero[D], 0],
+      Domain.HasIndex[ExtrudeAtOne[D], 1],
+      Domain.IsInsertedInResult[D, 1, Int, ExtrudeAtOne[D]],
+      Domain.IsDroppedInResult[ExtrudeAtOne[D], 1, D]
+    ): Assertion
+
+  /**
+    * Evaluate an IntervalShape property in 1, 2, 3, and 4 dimensions using both discrete and continuous interval domain
+    * value semantics where shapes are extruded/collapsed..
+    */
+  def intervalMultiExtrudingProperty(propertyName: String)(testFun: IntervalShapeExtrudingPropertyTest): Unit =
+    import DataGenerator.testCoreConfig
+    {
+      import DiscreteValue.IntDiscreteValue
+      property(s"4D Discrete   $propertyName")(testFun[Dim4](genDim4(using testCoreConfig)))
+      property(s"3D Discrete   $propertyName")(testFun[Dim3](genDim3(using testCoreConfig)))
+      property(s"2D Discrete   $propertyName")(testFun[Dim2](genDim2(using testCoreConfig)))
+      property(s"1D Discrete   $propertyName")(testFun[Dim1](genDim1(using testCoreConfig)))
+    }
+    {
+      import ContinuousValue.IntContinuousValue
+      property(s"4D Continuous $propertyName")(testFun[Dim4](genDim4(using testCoreConfig)))
+      property(s"3D Continuous $propertyName")(testFun[Dim3](genDim3(using testCoreConfig)))
+      property(s"2D Continuous $propertyName")(testFun[Dim2](genDim2(using testCoreConfig)))
+      property(s"1D Continuous $propertyName")(testFun[Dim1](genDim1(using testCoreConfig)))
+    }
+
+  extension [D <: NonEmptyTuple: DomainLike](lhs: IntervalShape[D])
     infix def ≡≡(rhs: IntervalShape[D]): Assertion = assert(lhs ≡ rhs)
 
   /*
@@ -141,7 +187,7 @@ class IntervalShapeLaws extends AnyPropSpec with ScalaCheckPropertyChecks with P
 
   intervalMultiProperty("Consistency Laws: Identities based on set algebra, e.g., (a ∩ b) ⊆ a"):
     new IntervalShapePropertyTest:
-      override def apply[D <: NonEmptyTuple : DomainLike](intervalMultiGen: Gen[IntervalShape[D]]): Assertion =
+      override def apply[D <: NonEmptyTuple: DomainLike](intervalMultiGen: Gen[IntervalShape[D]]): Assertion =
         forAll(intervalMultiGen, intervalMultiGen): (a, b) =>
           (a ∩ b) ⊆ a shouldBe true
           (a ∩ b) ⊆ b shouldBe true
@@ -155,3 +201,25 @@ class IntervalShapeLaws extends AnyPropSpec with ScalaCheckPropertyChecks with P
           val solidified = a.cavities.foldLeft(a)(_ ∪ _)
           solidified.cavities.isEmpty shouldBe true
           solidified.contiguousSubshapes.forall(_.isSolid) shouldBe true
+
+  intervalMultiExtrudingProperty("Consistency Laws: collapse is the inverse of extrude"):
+    new IntervalShapeExtrudingPropertyTest:
+      override def apply[D <: NonEmptyTuple: DomainLike](
+        intervalMultiGen: Gen[IntervalShape[D]]
+      )(using
+        DomainValueLike[Int],
+        DomainLike[ExtrudeAtZero[D]],
+        DomainLike[ExtrudeAtOne[D]],
+        Domain.HasIndex[ExtrudeAtZero[D], 0],
+        Domain.HasIndex[ExtrudeAtOne[D], 1],
+        Domain.IsInsertedInResult[D, 1, Int, ExtrudeAtOne[D]],
+        Domain.IsDroppedInResult[ExtrudeAtOne[D], 1, D]
+      ): Assertion =
+        forAll(intervalMultiGen, IntervalGenerator.genDim1): (a, extent) =>
+          val extended0: IntervalShape[ExtrudeAtZero[D]] = a.extrudeDimension(0, extent.headInterval1D[Int])
+          val flattened0: IntervalShape[D] = extended0.flattenDimension(0)
+          flattened0 ≡≡ a
+
+          val extended1: IntervalShape[ExtrudeAtOne[D]] = a.extrudeDimension(1, extent.headInterval1D[Int])
+          val flattened1: IntervalShape[D] = extended1.flattenDimension(1)
+          flattened1 ≡≡ a

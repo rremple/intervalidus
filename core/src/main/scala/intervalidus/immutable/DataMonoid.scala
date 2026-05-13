@@ -141,7 +141,7 @@ class DataMonoid[V, D <: NonEmptyTuple: DomainLike] private (
       getAllInternal.map(d => d.copy(interval = f(d.interval)))
     )(using config = altConfig).compressedUpdate()
 
-  // ---------- Implement methods from DimensionalBase that create new instances ----------
+  // ---------- Implement methods from DimensionalBase and DimensionalMonoidBase that create new instances ----------
   // ----  (some return Data rather than DataMonoid because the resultant value type isn't necessarily a Monoid) ----
 
   override protected def copyInternal(using tx: Transaction[V, D])(using CoreConfig[D]): DataMonoid[V, D] =
@@ -179,6 +179,39 @@ class DataMonoid[V, D <: NonEmptyTuple: DomainLike] private (
     Domain.IsDroppedInResult[D, dimensionIndex.type, R]
   ): DataMonoid[V, R] = transactionalRead:
     DataMonoid(getByDimensionData(dimensionIndex, domain))(using config = altConfig).compressedUpdate()
+
+  override def collapseDimension[R <: NonEmptyTuple: DomainLike](
+    dimensionIndex: Domain.DimensionIndex,
+    mergeValues: (V, V) => V
+  )(using
+    altConfig: CoreConfig[R]
+  )(using
+    Domain.HasIndex[D, dimensionIndex.type],
+    Domain.IsDroppedInResult[D, dimensionIndex.type, R]
+  ): DataMonoid[V, R] = transactionalRead:
+    DataMonoid
+      .empty[V, R]
+      .mergeMany(getAllInternal.map(d => d.interval.dropDimension(dimensionIndex) -> d.value), mergeValues)
+
+  override def flattenDimension[R <: NonEmptyTuple: DomainLike](
+    dimensionIndex: Domain.DimensionIndex
+  )(using
+    altConfig: CoreConfig[R]
+  )(using
+    Domain.HasIndex[D, dimensionIndex.type],
+    Domain.IsDroppedInResult[D, dimensionIndex.type, R]
+  ): DataMonoid[V, R] = collapseDimension(dimensionIndex, monoid.combine)
+
+  override def extrudeDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+    dimensionIndex: Domain.DimensionIndex,
+    extent: Interval1D[H]
+  )(using
+    altConfig: CoreConfig[R]
+  )(using
+    Domain.HasIndex[R, dimensionIndex.type],
+    Domain.IsInsertedInResult[D, dimensionIndex.type, H, R]
+  ): DataMonoid[V, R] = transactionalRead:
+    DataMonoid(extrudeDimensionData(dimensionIndex, extent))(using config = altConfig).compressedUpdate()
 
   override def toMutable: intervalidus.mutable.DataMonoid[V, D] = transactionalRead:
     intervalidus.mutable.DataMonoid(getAllInternal)

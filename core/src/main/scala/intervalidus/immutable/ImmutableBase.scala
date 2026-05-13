@@ -397,6 +397,22 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
   ): Self = copyAndModifyWith(that): result =>
     thatTx => result.mergeInPlace(that, thatTx, mergeValues)
 
+  /**
+    * $mergeManyDesc
+    *
+    * @param thatData
+    *   $mergeManyParamThatData
+    * @param mergeValues
+    *   $mergeManyParamMergeValues
+    * @return
+    *   $immutableReturn
+    */
+  def mergeMany(
+    thatData: IterableOnce[ValidData[V, D]],
+    mergeValues: (V, V) => V = (thisDataValue, _) => thisDataValue
+  ): Self = copyAndModify: result =>
+    result.mergeManyInPlace(thatData, mergeValues)
+
   // equivalent symbolic method names
 
   /**

@@ -86,7 +86,7 @@ class DataMonoid[V, D <: NonEmptyTuple: DomainLike] private (
     */
   def c(): Unit = complement()
 
-  // ---------- Implement methods from DimensionalBase that create new instances ----------
+  // ---------- Implement methods from DimensionalBase and DimensionalMonoidBase that create new instances ----------
   // ----  (some return Data rather than DataMonoid because the resultant value type isn't necessarily a Monoid) ----
 
   override def copy(using config: CoreConfig[D]): DataMonoid[V, D] =
@@ -126,6 +126,42 @@ class DataMonoid[V, D <: NonEmptyTuple: DomainLike] private (
     Domain.IsDroppedInResult[D, dimensionIndex.type, R]
   ): DataMonoid[V, R] = transactionalRead:
     val result = DataMonoid(getByDimensionData(dimensionIndex, domain))(using config = altConfig)
+    result.compressedUpdate()
+    result
+
+  override def collapseDimension[R <: NonEmptyTuple: DomainLike](
+    dimensionIndex: Domain.DimensionIndex,
+    mergeValues: (V, V) => V
+  )(using
+    altConfig: CoreConfig[R]
+  )(using
+    Domain.HasIndex[D, dimensionIndex.type],
+    Domain.IsDroppedInResult[D, dimensionIndex.type, R]
+  ): DataMonoid[V, R] = transactionalRead:
+    val result = DataMonoid.empty[V, R]
+    result.mergeMany(getAllInternal.map(d => d.interval.dropDimension(dimensionIndex) -> d.value), mergeValues)
+    result.compressedUpdate()
+    result
+
+  override def flattenDimension[R <: NonEmptyTuple: DomainLike](
+    dimensionIndex: Domain.DimensionIndex
+  )(using
+    altConfig: CoreConfig[R]
+  )(using
+    Domain.HasIndex[D, dimensionIndex.type],
+    Domain.IsDroppedInResult[D, dimensionIndex.type, R]
+  ): DataMonoid[V, R] = collapseDimension(dimensionIndex, monoid.combine)
+
+  override def extrudeDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+    dimensionIndex: Domain.DimensionIndex,
+    extent: Interval1D[H]
+  )(using
+    altConfig: CoreConfig[R]
+  )(using
+    Domain.HasIndex[R, dimensionIndex.type],
+    Domain.IsInsertedInResult[D, dimensionIndex.type, H, R]
+  ): DataMonoid[V, R] = transactionalRead:
+    val result = DataMonoid(extrudeDimensionData(dimensionIndex, extent))(using config = altConfig)
     result.compressedUpdate()
     result
 

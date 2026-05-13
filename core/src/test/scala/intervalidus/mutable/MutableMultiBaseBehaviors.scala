@@ -47,6 +47,7 @@ trait MutableMultiBaseBehaviors:
         withHorizontal(interval(26, 30), Set("C", "D")),
         withHorizontal(interval(31, 35), Set("D"))
       )
+      val f0Start = f0.copy
 
       f0.removeOne(withHorizontalOne(intervalTo(18), "A"))
       f0.getAll.toList shouldBe List(
@@ -124,6 +125,29 @@ trait MutableMultiBaseBehaviors:
         assert(f0.getAll.toList != expectedRemoveOneMany)
         f0.recompressAll()
       f0.getAll.toList shouldBe expectedRemoveOneMany
+
+      val fUnion = f0Start.copy
+      fUnion ∪ f0
+      fUnion.getAll.toList shouldBe List(
+        withHorizontal(interval(0, 4), Set("A", "X")),
+        withHorizontal(interval(5, 9), Set("A", "B", "X", "Y")),
+        withHorizontal(interval(10, 14), Set("A", "B", "C", "X", "Y")),
+        withHorizontal(interval(15, 16), Set("A", "B", "C", "D", "Y")),
+        withHorizontal(interval(17, 20), Set("A", "B", "C", "D")),
+        withHorizontal(interval(21, 22), Set("B", "C", "D")),
+        withHorizontal(interval(23, 25), Set("A", "B", "C", "D")),
+        withHorizontal(interval(26, 30), Set("A", "C", "D", "Z")),
+        withHorizontal(interval(31, 35), Set("A", "D", "Z")),
+        withHorizontal(intervalFrom(36), Set("A", "Z"))
+      )
+      val fIntersection = f0Start.copy
+      fIntersection ∩ f0
+      fIntersection.getAll.toList shouldBe List(
+        withHorizontal(interval(21, 22), Set("D")),
+        withHorizontal(interval(23, 25), Set("B", "C", "D")),
+        withHorizontal(interval(26, 30), Set("C", "D")),
+        withHorizontal(interval(31, 35), Set("D"))
+      )
 
   def mapAndFlatmapTests[
     D <: NonEmptyTuple: DomainLike,
