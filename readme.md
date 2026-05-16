@@ -357,6 +357,16 @@ The feature combinations in all release intervals:
                                                             | {Feat(C),Feat(D)} |
 ```
 
+In addition to these `*One` methods, `DataMulti` provides some additional Boolean algebra operators:
+
+| Operator | Usage | Name                 | Description                           |
+|----------|-------|----------------------|---------------------------------------|
+| ∪        | a ∪ b | Union                | Merges both intervals and values.     |
+| ∩        | a ∩ b | Intersection         | Intersects both intervals and values. |
+
+`DataMulti` also provides a `flattenDimension` which does a `collapseDimension`, merging the values on intersecting
+regions in the lower dimension.
+
 For the same reasons explained earlier, one might want to use `DataMulti` with two dimensions instead of one to model
 what features belong in what releases (integer-based release dimension) as well as when the product management decisions
 were made to include/exclude features in each release (temporal-based knowledge dimension). These ideas are explored
@@ -387,6 +397,9 @@ theory:
 | △        | a △ b | Symmetric Difference | Valid values in A or B, but not both (from `Data`).                     |
 | \        | a \ b | Difference           | Valid values in A for which nothing is valid in B (from `Data`).        |
 | ≡        | a ≡ b | Equivalence          | Proves two shapes are logically identical (from `Data`).                |
+
+Like `DataMulti`, `DataMonoid` also provides a `flattenDimension` which does a `collapseDimension` using the monoid
+`combine` op on intersecting regions in the lower dimension.
 
 (Note: If you only need to model shapes without any associated values, see `IntervalShape` below for an optimized,
 pure-geometric alternative.)
@@ -426,6 +439,9 @@ because there is no monoidal value to consider:
 | \        | a \ b | Difference           | A shape with intervals from A that are not in B.  |
 | △        | a △ b | Symmetric Difference | A shape with intervals from A or B, but not both. |
 | ≡        | a ≡ b | Equivalence          | Proves two shapes are logically identical.        |
+
+Like `DataMonoid` and `DataMulti`, `IntervalShape` also provides a `flattenDimension` which does a `collapseDimension` 
+where intersecting regions in the lower dimension are coalesced.
 
 For example, imagine you are managing a 4D building schedule where the dimensions are the day of the week, the time,
 the floor, and the room number. The following shows how restricted zones and regular maintenance windows can be
@@ -591,12 +607,12 @@ These methods return a new structure:
 
 - `copy` / `toImmutable` / `toMutable`
 - `zip` / `zipAll`
-- `getByDimension` / `getByHeadDimension`
+- `getByDimension` / `getByHeadDimension` / `collapseDimension` / `extrudeDimension`
 
 These mutation methods return a new structure when using immutable and `Unit` when using mutable:
 
 - `remove` (`-`) / `removeMany` (`--`) / `removeValue` / `removeByKey`
-- `replace` / `replaceByKey` / `update` / `merge`
+- `replace` / `replaceByKey` / `update` / `merge` / `mergeMany`
 - `set` (`+`) / `setMany` (`++`) / `setIfNoConflict` / `fill`
 - `intersection` (`∩`) / `difference` (`\`) / `symmetricDifference` (`△`)
 - `compress` / `compressAll` / `recompressAll`

@@ -41,6 +41,11 @@ trait IntervalBase[
   def points: Iterable[MinorD]
 
   /**
+    * Returns the vertices of this interval.
+    */
+  def vertices: List[MinorD]
+
+  /**
     * Tests if this interval is to the left of that interval and there is no gap or overlap between them.
     *
     * @param that

@@ -915,7 +915,7 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     * @param domain
     *   the head dimension domain element
     * @return
-    *   a lower-dimensional (n-1) projection
+    *   a lower-dimensional (n-1) structure
     */
   def getByHeadDimension[H: DomainValueLike](domain: Domain1D[H])(using
     altConfig: CoreConfig[Versioned[Domain.NonEmptyTail[D]]]
@@ -945,7 +945,7 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     *   domain of intervals in the returned structure. There is a type safety check that ensures the domain type for
     *   this result type can be constructed by concatenating the elements before and after the dropped dimension.
     * @return
-    *   a lower-dimensional (n-1) projection
+    *   a lower-dimensional (n-1) structure
     */
   def getByDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
     dimensionIndex: Domain.DimensionIndex,

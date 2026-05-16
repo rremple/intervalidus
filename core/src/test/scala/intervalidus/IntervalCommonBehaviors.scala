@@ -124,6 +124,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
     test(s"$prefix: Int interval adjacency, etc."):
       Interval1D.unbounded[Int].isUnbounded shouldBe true
       val d = intervalTo(2)
+      d.vertices shouldBe List(d.start, d.end)
       d.isUnbounded shouldBe false // partially bounded
       d.isBounded shouldBe false // partially unbounded
       intervalFrom(1).to(2).isBounded shouldBe true
@@ -211,6 +212,12 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       val d: Interval[(Domain1D[LocalDate], Domain1D[Int])] = intervalTo(now) x intervalFrom(0)
       d.start shouldBe ((Bottom, 0): Domain.In2D[LocalDate, Int])
       d.end shouldBe ((now, Top): Domain.In2D[LocalDate, Int])
+      d.vertices shouldBe List[Domain.In2D[LocalDate, Int]](
+        d.start,
+        Domain.in2D(Bottom, Top),
+        Domain.in2D(now, 0),
+        d.end
+      )
       d.isUnbounded shouldBe false // partially bounded
       d.isBounded shouldBe false // partially unbounded
       interval2d(1, 2, 3, 4).isBounded shouldBe true
@@ -363,7 +370,18 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       i[Int](1) shouldBe interval(3, 4)
       i[Int](2) shouldBe interval(5, 6)
       i shouldBe (i[Int](0) x i[Int](1) x i[Int](2))
-
+      i.vertices shouldBe List(
+        i.start, // (1, 3, 5)
+        Domain.in3D(1, 3, 6),
+        Domain.in3D(1, 4, 5),
+        Domain.in3D(1, 4, 6),
+        Domain.in3D(2, 3, 5),
+        Domain.in3D(2, 3, 6),
+        Domain.in3D(2, 4, 5),
+        i.end // (2, 4, 6)
+      )
+      // List((1, 3, 5), (1, 3, 6), (1, 4, 5), (1, 4, 6), (2, 3, 5), (2, 3, 6), (2, 4, 5), (2, 4, 6)) was not equal to
+      // List((1, 3, 5), (1, 3, 6), (1, 4, 5), (1, 4, 6), (2, 3, 5), (2, 3, 6), (2, 4, 5), (2026-05-16, +∞, +∞))
       i.dropDimension[Dim2Domain](0) shouldBe (i[Int](1) x i[Int](2))
       i.dropDimension[Dim2Domain](1) shouldBe (i[Int](0) x i[Int](2))
       i.dropDimension[Dim2Domain](2) shouldBe (i[Int](0) x i[Int](1))
@@ -514,6 +532,25 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
         intervalTo(now) x intervalFrom(now) x intervalFrom(0) x intervalFrom(0)
       d.start shouldBe ((Bottom, now, 0, 0): Domain.In4D[LocalDate, LocalDate, Int, Int])
       d.end shouldBe ((now, Top, Top, Top): Domain.In4D[LocalDate, LocalDate, Int, Int])
+
+      d.vertices shouldBe List[Domain.In4D[LocalDate, LocalDate, Int, Int]](
+        d.start, // (Bottom, now, 0, 0)
+        Domain.in4D(Bottom, now, 0, Top),
+        Domain.in4D(Bottom, now, Top, 0),
+        Domain.in4D(Bottom, now, Top, Top),
+        Domain.in4D(Bottom, Top, 0, 0),
+        Domain.in4D(Bottom, Top, 0, Top),
+        Domain.in4D(Bottom, Top, Top, 0),
+        Domain.in4D(Bottom, Top, Top, Top),
+        Domain.in4D(now, now, 0, 0),
+        Domain.in4D(now, now, 0, Top),
+        Domain.in4D(now, now, Top, 0),
+        Domain.in4D(now, now, Top, Top),
+        Domain.in4D(now, Top, 0, 0),
+        Domain.in4D(now, Top, 0, Top),
+        Domain.in4D(now, Top, Top, 0),
+        d.end // (now, Top, Top, Top)
+      )
 
       interval4d(1, 2, 3, 4, 5, 6) intersectionWith interval4d(2, 3, 4, 5, 6, 7) shouldBe Some(
         interval4d(2, 2, 4, 4, 6, 6)

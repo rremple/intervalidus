@@ -35,6 +35,8 @@ case class Interval1D[T](
 
   override def points: Iterable[Domain1D[T]] = start.pointsTo(end)
 
+  override def vertices: List[Domain1D[T]] = List(start, end)
+
   override infix def isLeftAdjacentTo(that: Interval1D[T]): Boolean = this.end isLeftAdjacentTo that.start
 
   override infix def intersectionWith(that: Interval1D[T]): Option[Interval1D[T]] =

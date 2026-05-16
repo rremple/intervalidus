@@ -103,6 +103,8 @@ trait DomainLikeTupleOps[D <: NonEmptyTuple]:
 
   def rightAdjacentKeysFromInterval(interval: Interval[D]): List[D]
 
+  def verticesFromInterval(interval: Interval[D]): List[D]
+
   def toStringsFromInterval(interval: Interval[D]): List[String]
 
   def toCodeLikeStringsFromInterval(interval: Interval[D]): List[String]
@@ -292,6 +294,10 @@ object DomainLikeTupleOps:
     inline override def rightAdjacentKeysFromInterval(
       interval: Interval[OneDimDomain[DV]]
     ): List[OneDimDomain[DV]] = List(interval.end.head.rightAdjacent.tupled)
+
+    inline override def verticesFromInterval(
+      interval: Interval[OneDimDomain[DV]]
+    ): List[OneDimDomain[DV]] = List(interval.start, interval.end)
 
     inline override def toStringsFromInterval(
       interval: Interval[OneDimDomain[DV]]
@@ -505,7 +511,7 @@ object DomainLikeTupleOps:
         val overlap = tailOverlap + (if aHead intersects bHead then 1 else 0)
         val sharedBoundary = tailSharedBoundary + (if aHead sharesBoundaryWith bHead then 1 else 0)
         val total = tailTotal + 1
-        // ultimately, sharedBoundary > 0 && overlap + sharedBoundary == total, but in the tail, this weaker check must hold:
+        // ultimately, sharedBoundary > 0 && overlap + sharedBoundary == total, but the partial result is weaker:
         (overlap == total, overlap, sharedBoundary, total)
 
     // (overlap, adjacency, aIsSubset, bIsSubset, total)
@@ -564,6 +570,14 @@ object DomainLikeTupleOps:
     ): List[MultiDimDomain[DV, DomainTail]] =
       (interval.end.head.rightAdjacent *: interval.start.tail) ::
         applyToTail.rightAdjacentKeysFromInterval(tailInterval(interval)).map(interval.start.head *: _)
+
+    inline override def verticesFromInterval(
+      interval: Interval[MultiDimDomain[DV, DomainTail]]
+    ): List[MultiDimDomain[DV, DomainTail]] =
+      for
+        head <- headInterval(interval).vertices
+        tail <- applyToTail.verticesFromInterval(tailInterval(interval))
+      yield head *: tail
 
     inline override def toStringsFromInterval(
       interval: Interval[MultiDimDomain[DV, DomainTail]]

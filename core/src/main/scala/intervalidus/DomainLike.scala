@@ -449,6 +449,9 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
   def intervalRightAdjacentKeys(interval: Interval[D]): List[D] =
     applyToDomain.rightAdjacentKeysFromInterval(interval)
 
+  def intervalVertices(interval: Interval[D]): List[D] =
+    applyToDomain.verticesFromInterval(interval)
+
   /**
     * Internal method.
     * @return

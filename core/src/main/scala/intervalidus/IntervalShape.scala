@@ -1,10 +1,12 @@
 package intervalidus
 
 import intervalidus.immutable.Data
+import intervalidus.DomainLike.given
 
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.language.implicitConversions
+import scala.math.Ordering.Implicits.infixOrderingOps
 
 /**
   * Constructs multidimensional, multi-interval shapes.
@@ -573,7 +575,7 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
     * Constructs a map of how each interval in the collection touches every other interval in the collection.
     */
   private def touchMap(intervals: Iterable[Interval[D]]): Map[Interval[D], Iterable[Interval[D]]] =
-    intervals.map(a => (a, intervals.filter(b => (a != b) && (a touches b)))).toMap
+    intervals.map(a => (a, intervals.filter(b => (a < b) && (a touches b)))).toMap
 
   /**
     * Decomposes this shape into its constituent "islands." Returns a collection of subshapes, where each subshape is a

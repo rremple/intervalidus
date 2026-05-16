@@ -50,6 +50,8 @@ case class Interval[D <: NonEmptyTuple](
     */
   override def points: Iterable[D] = start.pointsTo(end)
 
+  override def vertices: List[D] = domainLike.intervalVertices(this)
+
   override infix def isLeftAdjacentTo(that: Interval[D]): Boolean = domainLike.intervalIsLeftAdjacentTo(this, that)
 
   override infix def intersectionWith(that: Interval[D]): Option[Interval[D]] =
