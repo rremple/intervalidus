@@ -42,7 +42,7 @@ class DataLaws extends AnyPropSpec with ScalaCheckPropertyChecks with ParallelTe
       property(s"1D Continuous $propertyName")(testFun[Dim1](genDim1(using testCoreConfig)))
     }
 
-  extension [V, D <: NonEmptyTuple : DomainLike](lhs: Data[V, D])
+  extension [V, D <: NonEmptyTuple: DomainLike](lhs: Data[V, D])
     infix def ≡≡(rhs: Data[V, D]): Assertion = assert(lhs ≡ rhs)
 
   /*
