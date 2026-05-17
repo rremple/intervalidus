@@ -131,7 +131,7 @@ lazy val `intervalidus-example-mongodb` = (project in file("example-mongodb"))
       "org.mongodb" % "mongodb-driver-sync" % mongodbVersion,
       "com.dimafeng" %% "testcontainers-scala-scalatest" % testcontainersVersion % Test,
       "com.dimafeng" %% "testcontainers-scala-mongodb" % testcontainersVersion % Test,
-      "org.slf4j" % "slf4j-nop" % "2.0.17" % Test
+      "org.slf4j" % "slf4j-nop" % "2.0.18" % Test
     )
   )
 
