@@ -280,18 +280,18 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
     */
   infix def ≡(that: IntervalShape[D]): Boolean = isEquivalentTo(that)
 
-  private def toStringTransform(f: Interval[D] => String): String =
+  private def toStringTransform(f: Interval[D] => String, start: String, end: String): String =
     allIntervals.toList match
       case List()                   => "∅"
       case List(d) if d.isUnbounded => "ξ"
-      case multiple                 => multiple.map(f).mkString("IntervalShape(", ", ", ")")
+      case multiple                 => multiple.map(f).mkString(start, ", ", end)
 
-  override def toString: String = toStringTransform(_.toString)
+  override def toString: String = toStringTransform(_.toString, "IntervalShape(", ")")
 
   /**
     * Alternative to toString for something that looks more like code
     */
-  def toCodeLikeString: String = toStringTransform(_.toCodeLikeString)
+  def toCodeLikeString: String = toStringTransform(_.toCodeLikeString, "IntervalShape(Seq(", "))")
 
   /**
     * Are there no intervals in this shape? I.e., this ≡ ∅?
@@ -675,6 +675,36 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
     else if this touches that then EC
     // DC (Disconnected): At least one dimension has a gap.
     else DC
+
+  /**
+    * If there is one, returns the smallest single interval containing this shape.
+    */
+  def boundingInterval: Option[Interval[D]] = underlying.boundingInterval
+
+  /**
+    * The shape forming a shell around this shape. The shape will be adjacent to this shape everywhere, but not
+    * intersecting it anywhere. The shell's thickness is determined by the adjustment functions.
+    *
+    * @note
+    *   If this shape extends to the boundaries of the domain in any dimensions, the shell may not be contiguous.
+    * @note
+    *   The default adjustments are leftAdjacent and rightAdjacent, which work well in discrete domains (makes the shell
+    *   one unit thick), but not so well in continuous domains. Using these defaults with a continuous domain may result
+    *   in errors, e.g., applying the default adjustment to [1, 1] would result in (1, 1), which is not a valid
+    *   interval.
+    * @param adjustStart
+    *   How coordinates related to the starts of intervals are adjusted to form the shell. This forms the thickness of
+    *   the shell on the left, bottom, back, etc.
+    * @param adjustEnd
+    *   How coordinates related to the ends of intervals are adjusted to form the shell. This forms the thickness of the
+    *   shell on the right, top, front, etc.
+    * @return
+    *   A shape that forms a shell around this shape.
+    */
+  def boundingShape(
+    adjustStart: D => D = _.leftAdjacent,
+    adjustEnd: D => D = _.rightAdjacent
+  ): IntervalShape[D] = underlying.boundingShape(adjustStart, adjustEnd)
 
   // ---------- Manipulation API methods: Set Manipulation ----------
   // ---- Adds to and removes from shapes. ----

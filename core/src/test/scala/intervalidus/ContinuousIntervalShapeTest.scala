@@ -16,4 +16,4 @@ class ContinuousIntervalShapeTest extends AnyFunSuite with Matchers with Interva
       toBeforeOrigin x toBeforeOrigin // III
     ).toShape
     stringTest.toString shouldBe "IntervalShape({(-∞, 0), (-∞, +∞)})"
-    stringTest.toCodeLikeString shouldBe "IntervalShape(intervalToBefore(0) x unbounded)"
+    stringTest.toCodeLikeString shouldBe "IntervalShape(Seq(intervalToBefore(0) x unbounded))"

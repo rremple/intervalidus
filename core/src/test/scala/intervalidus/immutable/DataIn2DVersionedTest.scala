@@ -71,6 +71,21 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
       (intervalFrom(16) x intervalTo(0)) -> "World"
     )
     fixture1.getAll.toList shouldBe expectedData1
+    fixture1.boundingInterval shouldBe Some(intervalFrom(0) x unbounded[Int])
+    // "to" being unbounded in the second dimension splits the bounding shape into two contiguous subshapes
+    assert(
+      fixture1.boundingShape() ≡ IntervalShape(
+        Seq(
+          // first contiguous subshape
+          interval(-1, 4) x intervalAt(-1), // below "Hello"
+          intervalAt(-1) x intervalFrom(0), // left of "Hello"
+          intervalAt(4) x intervalTo(-2), // left of "to"
+          // second contiguous subshape
+          intervalFrom(16) x intervalAt(1), // above "World"
+          intervalAt(16) x intervalFrom(2) // right of "to"
+        )
+      )
+    )
 
     val fixture2 = fixture1
       .set((interval(20, 25) x unbounded[Int]) -> "!") // split
@@ -278,6 +293,7 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
 
     val fixture7 = fixture6.filter(_.value == "Planet")
     assert(fixture7.isEmpty)
+    fixture7.boundingInterval shouldBe None
     assertThrows[NoSuchElementException]:
       fixture7.get
 

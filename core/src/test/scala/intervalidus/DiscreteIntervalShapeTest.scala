@@ -16,4 +16,4 @@ class DiscreteIntervalShapeTest extends AnyFunSuite with Matchers with IntervalS
       toBeforeOrigin x toBeforeOrigin // III
     ).toShape
     stringTest.toString shouldBe "IntervalShape({(-∞..-1], (-∞..+∞)})"
-    stringTest.toCodeLikeString shouldBe "IntervalShape(intervalTo(-1) x unbounded)"
+    stringTest.toCodeLikeString shouldBe "IntervalShape(Seq(intervalTo(-1) x unbounded))"

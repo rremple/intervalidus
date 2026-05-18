@@ -328,11 +328,42 @@ trait IntervalShapeCommonBehaviors(using DomainValueLike[Int]):
       transposedDonut.head relationWith clippedDonut shouldBe SpatialRelation.DC
       twinHoles relationWith filledDonut shouldBe SpatialRelation.PO
 
-      val donutIn3D: IntervalShape[Domain.In3D[Int, Int, Int]] = clippedDonut.extrudeDimension(2, interval(-1, 1))
+      val extrudeInterval = interval(-1, 1)
+      type Dim3d = Domain.In3D[Int, Int, Int]
+
+      val donutIn3D: IntervalShape[Dim3d] = clippedDonut.extrudeDimension(2, extrudeInterval)
+
+      def adjustInt(amount: Int)(d: Dim3d): Dim3d =
+        def adjust(d: Domain1D[Int]): Domain1D[Int] = d match
+          case Domain1D.Point(p: Int)     => Domain1D.Point(p + amount)
+          case Domain1D.OpenPoint(p: Int) => Domain1D.OpenPoint(p + amount)
+          case topOrBottom                => topOrBottom
+
+        d match
+          case (x, y, z) => Domain.in3D(adjust(x), adjust(y), adjust(z))
+
+      val donutIn3DBoundingBox = donutIn3D.boundingInterval
+      val donutIn3DBoundingShape = summon[DomainValueLike[Int]] match
+        case _: ContinuousValue[_] => donutIn3D.boundingShape(adjustInt(-1), adjustInt(1))
+        case _: DiscreteValue[_]   => donutIn3D.boundingShape() // use default for coverage
+      donutIn3DBoundingBox shouldBe Some(clipInterval x extrudeInterval)
+      val expectedDonutIn3DBoundingShape = IntervalShape(
+        Seq(
+          interval(-11, 11) x interval(-11, 11) x intervalFrom(-2).toBefore(-1), // back
+          interval(-11, 11) x intervalFrom(-11).toBefore(-10) x interval(-1, 2), // bottom
+          intervalFrom(-11).toBefore(-10) x interval(-10, 11) x extrudeInterval, // left
+          interval(-11, 11) x interval(-10, 11) x intervalFromAfter(1).to(2), // front
+          interval(-10, 11) x intervalFromAfter(10).to(11) x extrudeInterval, // top
+          intervalFromAfter(10).to(11) x interval(-10, 10) x extrudeInterval, // right
+          e x extrudeInterval // make it solid where the hole used to be
+        )
+      ).remove(intervalAt(0) x intervalAt(0) x interval(-2, 2)) // tunnel hollow core
+      donutIn3DBoundingShape ≡ expectedDonutIn3DBoundingShape shouldBe true
+
       val flattenedDonut: IntervalShape[Dim] = donutIn3D.flattenDimension(2)
       flattenedDonut shouldBe clippedDonut
       val edgeShadow: IntervalShape[Dim] = donutIn3D.flattenDimension(0)
-      edgeShadow shouldBe IntervalShape.of(interval(-10, 10) x interval(-1, 1))
+      edgeShadow shouldBe IntervalShape.of(interval(-10, 10) x extrudeInterval)
 
       val holeData = hole -> "hole"
       holeData.getAll.toList shouldBe List(e -> "hole")

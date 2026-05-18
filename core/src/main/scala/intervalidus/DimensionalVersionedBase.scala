@@ -831,6 +831,45 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     newerVersion: VersionSelection
   ): Iterable[DiffAction[V, Versioned[D]]] = resetTo(newerVersion).diffActionsFrom(resetTo(olderVersion))
 
+  /**
+    * If there is one, returns the smallest single interval in which all data are valid given some version selection
+    * context.
+    */
+  def boundingInterval(using VersionSelection): Option[Interval[D]] =
+    // same as, but probably faster than, getSelectedDataMutable.boundingInterval
+    val selectedIntervals = allIntervals
+    if selectedIntervals.isEmpty then None else Some(selectedIntervals.reduce(_ joinedWith _))
+
+  /**
+    * The shape forming a shell around all valid data given some version selection context. The shape will be adjacent
+    * to valid data everywhere, but not intersecting it anywhere. The shell's thickness is determined by the adjustment
+    * functions.
+    *
+    * @note
+    *   If data are valid on the boundaries of the domain in any dimensions, the shell may not be contiguous.
+    * @note
+    *   The default adjustments are leftAdjacent and rightAdjacent, which work well in discrete domains (makes the shell
+    *   one unit thick), but not so well in continuous domains. Using these defaults with a continuous domain may result
+    *   in errors, e.g., applying the default adjustment to [1, 1] would result in (1, 1), which is not a valid
+    *   interval.
+    * @param adjustStart
+    *   How coordinates related to the starts of intervals are adjusted to form the shell. This forms the thickness of
+    *   the shell on the left, bottom, back, etc.
+    * @param adjustEnd
+    *   How coordinates related to the ends of intervals are adjusted to form the shell. This forms the thickness of the
+    *   shell on the right, top, front, etc.
+    * @return
+    *   A shape that forms a shell around all valid data.
+    */
+  def boundingShape(
+    adjustStart: D => D = _.leftAdjacent,
+    adjustEnd: D => D = _.rightAdjacent
+  )(using VersionSelection): IntervalShape[D] =
+    // same as, but probably faster than, getSelectedDataMutable.boundingShape(adjustStart, adjustEnd)
+    val originalIntervals = allIntervals
+    val puffedIntervals = originalIntervals.map(i => Interval(adjustStart(i.start), adjustEnd(i.end)))
+    IntervalShape.empty.addMany(puffedIntervals).removeMany(originalIntervals)
+
   // ---------- To be implemented by inheritor ----------
 
   /**

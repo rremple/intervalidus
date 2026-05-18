@@ -595,12 +595,12 @@ these methods.
 
 These query methods provide various data, difference, and Boolean results:
 
-- `get` / `getOption` / `getAt` / `getDataAt` / `getAll` / `getIntersecting`
+- `isDefinedAt` / `apply` / `get` / `getOption` / `getAt` / `getDataAt` / `getAll` / `getIntersecting`
 - `intersects` / `isSubsetOf` (`⊆`) / `isEquivalentTo` (`≡`)
 - `foldLeft`
 - `isEmpty` / `size`
 - `domain` / `domainComplement`
-- `values` / `intervals` / `allIntervals`
+- `values` / `intervals` / `allIntervals` / `boundingInterval` / `boundingShape`
 - `diffActionsFrom`
 
 These methods return a new structure:
