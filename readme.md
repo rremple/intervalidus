@@ -616,8 +616,9 @@ These mutation methods return a new structure when using immutable and `Unit` wh
 - `set` (`+`) / `setMany` (`++`) / `setIfNoConflict` / `fill`
 - `intersection` (`∩`) / `difference` (`\`) / `symmetricDifference` (`△`)
 - `compress` / `compressAll` / `recompressAll`
-- `filter`
-- `map` / `mapValues` / `mapIntervals` / `collect` / `flatMap` (the immutable variant allows altering type parameters)
+- `map` / `mapValues` / `mapIntervals`
+- `collect` / `collectValues` / `collectIntervals`
+- `flatMap` / `filter`
 - `applyDiffActions` / `syncWith`
 
 
@@ -651,7 +652,7 @@ and there are implementations given for the following types:
 - `Int`
 - `Long`
 - `LocalDate`
-- `BigInteger`
+- `BigInt`
 
 A continuous value is also a type class, and there are implementations given for the following types:
 

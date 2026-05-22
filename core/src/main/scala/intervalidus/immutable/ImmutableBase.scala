@@ -103,6 +103,19 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
   def mapValues[B](f: V => B): DimensionalBase[B, D]
 
   /**
+    * $collectValuesDesc Only the valid data value type can be changed in the mapping.
+    *
+    * @param pf
+    *   $collectValuesParamPf
+    * @tparam B
+    *   the valid data value type of the returned structure.
+    * @return
+    *   a new structure resulting from applying the provided partial function pf to each element of this structure where
+    *   it is defined.
+    */
+  def collectValues[B](pf: PartialFunction[V, B]): DimensionalBase[B, D]
+
+  /**
     * $mapIntervalsDesc The interval type can be changed in the mapping.
     *
     * @param f
@@ -116,6 +129,22 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     */
   def mapIntervals[S <: NonEmptyTuple: DomainLike](
     f: Interval[D] => Interval[S]
+  )(using altConfig: CoreConfig[S]): DimensionalBase[V, S]
+
+  /**
+    * $collectIntervalsDesc The interval type can be changed in the mapping.
+    *
+    * @param pf
+    *   $collectIntervalsParamPf
+    * @param altConfig
+    *   $configParam
+    * @tparam S
+    *   the valid data interval domain type of the returned structure.
+    * @return
+    *   a new structure resulting from applying the provided partial function pf to each interval where it is defined.
+    */
+  def collectIntervals[S <: NonEmptyTuple: DomainLike](
+    pf: PartialFunction[Interval[D], Interval[S]]
   )(using altConfig: CoreConfig[S]): DimensionalBase[V, S]
 
   /**

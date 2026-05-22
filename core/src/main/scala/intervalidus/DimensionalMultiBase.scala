@@ -117,24 +117,6 @@ trait DimensionalMultiBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimension
   )(using config: CoreConfig[D]): Constructed[V, D] = of(Interval.unbounded[D] -> value)
 
   /**
-    * Creates a muti-value structure from a non-multi structure managing sets of values.
-    *
-    * @param that
-    *   dimensional data of value sets valid within intervals -- intervals must be disjoint.
-    * @param config
-    *   $configParam
-    * @tparam V
-    *   $dataValueType
-    * @tparam D
-    *   $intervalDomainType
-    * @return
-    *   [[DimensionalMultiBase]] structure with the same valid values as that data structure.
-    */
-  def from[V, D <: NonEmptyTuple: DomainLike](
-    that: DimensionalBase[Set[V], D]
-  )(using config: CoreConfig[D]): Constructed[V, D] = apply(that.getAll)
-
-  /**
     * Get a Builder based on an intermediate buffer of valid data.
     *
     * @param config

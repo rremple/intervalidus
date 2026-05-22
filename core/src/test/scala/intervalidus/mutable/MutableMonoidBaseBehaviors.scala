@@ -41,9 +41,6 @@ trait MutableMonoidBaseBehaviors(using DomainValueLike[Int]):
   val toOrigin: Interval1D[Int] = intervalTo(0)
   val fromAfterOrigin: Interval1D[Int] = intervalFromAfter(0)
 
-  // Some methods (e.g., flatMap) return a different type. This helps us convert back
-  extension [T: Monoid](data: DimensionalBase[T, Dim]) def toDataMonoid: DataMonoid[T, Dim] = DataMonoid(data.getAll)
-
   extension [T: Monoid](data: DataMonoid[T, Dim])
     def mutate(f: DataMonoid[T, Dim] => Unit): DataMonoid[T, Dim] =
       val dataCopy = data.copy
@@ -90,6 +87,21 @@ trait MutableMonoidBaseBehaviors(using DomainValueLike[Int]):
       withoutQuadrantOne == withoutQuadrantTwo shouldBe false // different quadrants missing
       val withoutQuadrantTwoInt = DataMonoid(withoutQuadrantTwo.getAll.map(d => d.copy(value = d.value.toInt)))
       withoutQuadrantOne !≡ withoutQuadrantTwoInt // different quadrants missing
+
+      val fcv = withoutQuadrantOne.copy
+      fcv.collectValues:
+        case v if v < 4 => 100 * v
+      fcv.getAll.toList shouldBe List(
+        (toBeforeOrigin x toBeforeOrigin) -> 300,
+        (toBeforeOrigin x fromOrigin) -> 200
+      )
+
+      val fci = withoutQuadrantOne.copy
+      fci.collectIntervals:
+        case i if i.contains(quadrantFourSample) => i.withDimensionUpdate[Int](1, _.to(0))
+      fci.getAll.toList shouldBe List(
+        (fromOrigin x toOrigin) -> 4
+      )
 
       val withoutOneQuadrantCount = withoutQuadrantOne.foldLeft(0): (acc, data) =>
         acc + quadrantSamples.count(sample => sample._1 ∈ data.interval && sample._2 == data.value)
@@ -187,6 +199,9 @@ trait MutableMonoidBaseBehaviors(using DomainValueLike[Int]):
       val donut = DataMonoid(Seq(a, b, c, d).map(_ -> donutFilling)) // no e
       val hole = DataMonoid.of(e -> holeFilling)
 
+      val donutFromData: DataMonoid[Double, Dim] = Data(Seq(a, b, c, d).map(_ -> donutFilling)) // implicitly converted
+      donutFromData ≡≡ donut
+
       extension [T](data: DataMonoid[T, Dim])(using m: Monoid[T])
         private def filledWith(v: T): DataMonoid[T, Dim] = DataMonoid(data.getAll.map(_.copy(value = v)))
         private def filledWithIdentity: DataMonoid[T, Dim] = data.filledWith(m.identity)
@@ -278,14 +293,14 @@ trait MutableMonoidBaseBehaviors(using DomainValueLike[Int]):
 
       val flatMapped = donut.mutate(_.flatMap: v =>
         (v.interval ∩ clipInterval).toSeq.donutFilled)
-      clippedDonut ≡≡ flatMapped.toDataMonoid
+      clippedDonut ≡≡ flatMapped.asDataMonoid
 
       val filtered = clippedDonut.mutate(_.filter(_.interval.start > Domain.in2D(0, 0)))
       Seq(intervalFromAfter(1).to(10) x interval(-10, 1)).donutFilled ≡≡ filtered
 
       val collected = clippedDonut.mutate(_.collect:
         case x if x.interval.start > Domain.in2D(0, 0) => x.copy(interval = x.interval.swapDimensions[Dim](0, 1)))
-      Seq(interval(-10, 1) x intervalFromAfter(1).to(10)).donutFilled ≡≡ collected.toDataMonoid
+      Seq(interval(-10, 1) x intervalFromAfter(1).to(10)).donutFilled ≡≡ collected.asDataMonoid
 
       val donutIn3D: DataMonoid[Double, Domain.In3D[Int, Int, Int]] = clippedDonut.extrudeDimension(2, interval(-1, 1))
       val flattenedDonut: DataMonoid[Double, Dim] = donutIn3D.flattenDimension(2)

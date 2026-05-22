@@ -103,6 +103,18 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     mapInternal(d => d.copy(value = f(d.value)))
 
   /**
+    * $collectValuesDesc $mutableAction
+    *
+    * @param pf
+    *   $collectValuesParamPf
+    */
+  def collectValues(pf: PartialFunction[V, V]): Unit = transactionalUpdate:
+    val collected = getAllInternal.collect:
+      case d if pf.isDefinedAt(d.value) => d.copy(value = pf(d.value))
+    replaceValidData(collected)
+    compressedUpdateInternal()
+
+  /**
     * $mapIntervalsDesc $mutableAction
     *
     * @param f
@@ -110,6 +122,18 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     */
   def mapIntervals(f: Interval[D] => Interval[D]): Unit = transactionalUpdate:
     mapInternal(d => d.copy(interval = f(d.interval)))
+
+  /**
+    * $collectIntervalsDesc $mutableAction
+    *
+    * @param pf
+    *   $collectIntervalsParamPf
+    */
+  def collectIntervals(pf: PartialFunction[Interval[D], Interval[D]]): Unit = transactionalUpdate:
+    val collected = getAllInternal.collect:
+      case d if pf.isDefinedAt(d.interval) => d.copy(interval = pf(d.interval))
+    replaceValidData(collected)
+    compressedUpdateInternal()
 
   /**
     * Applies a function to all the elements of this structure and updates valid values from the elements of the

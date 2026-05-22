@@ -399,10 +399,18 @@ import intervalidus.DimensionalBase.*
   *   Applies a function to all valid data values.
   * @define mapValuesParamF
   *   the function to apply to the value part of each valid data element.
+  * @define collectValuesDesc
+  *   Applies a partial function to all valid data values on which it is defined.
+  * @define collectValuesParamPf
+  *   the partial function to apply to the value part of each valid data element.
   * @define mapIntervalsDesc
   *   Applies a function to all valid data intervals.
   * @define mapIntervalsParamF
   *   the function to apply to the interval part of each valid data element.
+  * @define collectIntervalsDesc
+  *   Applies a partial function to all valid data intervals on which it is defined.
+  * @define collectIntervalsParamPf
+  *   the partial function to apply to the interval part of each valid data element.
   * @define flatMapParamF
   *   the function to apply to each valid data element which results in a new structure.
   * @define filterParamP
@@ -530,6 +538,11 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     * on a different thread).
     */
   @volatile protected var state: State[V, D] = initialState
+
+  /**
+    * Allows structural sharing between "sibling" data structures (e.g., new DataMonoid based on Data)
+    */
+  private[intervalidus] def stateCopy: State[V, D] = state.copy
 
   /**
     * Used by [[atomicStartReadTransactionWith]], [[atomicStartUpdateTransactionWith]], and [[commit]] to ensure atomic

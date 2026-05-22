@@ -24,6 +24,19 @@ object DataMulti extends DimensionalMultiBaseObject[DataMulti]:
     result.addOneMany(initialData)
     result
 
+  extension [V, D <: NonEmptyTuple: DomainLike](data: DimensionalBase[Set[V], D])
+    /**
+      * Creates a muti-value structure from a non-multi structure managing sets of values.
+      *
+      * @param config
+      *   $configParam
+      * @return
+      *   A new muti-value structure with the same valid values.
+      */
+    def asDataMulti(using config: CoreConfig[D]): DataMulti[V, D] = new DataMulti(data.stateCopy)
+
+  given [V, D <: NonEmptyTuple: DomainLike]: Conversion[Data[Set[V], D], DataMulti[V, D]] = _.asDataMulti
+
 /**
   * Mutable, multivalued dimensional data.
   *
@@ -132,7 +145,7 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] private (
     */
   infix def ∩(that: DimensionalMultiBase[V, D]): Unit = intersection(that)
 
-  // ---------- Implement methods from DimensionalBase that create new instances ----------
+  // ---------- Implement methods from DimensionalBase and DimensionalMultiBase that create new instances ----------
   // ----  (some return Data rather than DataMulti because the resultant value type isn't necessarily a Set type) ----
 
   override def copy(using config: CoreConfig[D]): DataMulti[V, D] =

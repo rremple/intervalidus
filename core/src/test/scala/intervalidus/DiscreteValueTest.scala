@@ -203,31 +203,30 @@ class DiscreteValueTest extends AnyFunSuite:
     assertResult("Point(3) x Bottom")((point(3) x Bottom).toCodeLikeString)
     assertResult("Point(3) x Bottom x Top")((point(3) x Bottom x Top).toCodeLikeString)
 
-  test("Ops on BigIntegers"):
-    import DiscreteValue.BigIntegerDiscreteValue
+  test("Ops on BigInts"):
+    import DiscreteValue.BigIntDiscreteValue
 
-    import java.math.BigInteger.valueOf
+    import BigInt.{apply => valueOf}
     assert(valueOf(1).predecessorValue equiv Some(valueOf(0)))
-    assert(BigIntegerDiscreteValue.minValue.predecessorValue equiv None)
+    assert(BigIntDiscreteValue.minValue.predecessorValue equiv None)
     assert(valueOf(1).successorValue equiv Some(valueOf(2)))
-    assert(BigIntegerDiscreteValue.maxValue.successorValue equiv None)
+    assert(BigIntDiscreteValue.maxValue.successorValue equiv None)
     assert(valueOf(3) equiv valueOf(3))
     assert(valueOf(3) <= valueOf(3))
     assert(valueOf(3) >= valueOf(3))
     assert(valueOf(0) < valueOf(4))
     assert(valueOf(4) > valueOf(0))
 
-  test("Ops on BigInteger Domain"):
-    import DiscreteValue.BigIntegerDiscreteValue
-    import DiscreteValue.BigIntegerDiscreteValue.{maxValue, minValue}
+  test("Ops on BigInt Domain"):
+    import DiscreteValue.BigIntDiscreteValue
+    import DiscreteValue.BigIntDiscreteValue.{maxValue, minValue}
     import Domain1D.*
 
-    import java.math.BigInteger
-    import java.math.BigInteger.valueOf
+    import BigInt.{apply => valueOf}
 
-    def point(v: Int): Domain1D[BigInteger] = domain(valueOf(v))
-    def top: Domain1D[BigInteger] = Top
-    def bottom: Domain1D[BigInteger] = Bottom
+    def point(v: Int): Domain1D[BigInt] = domain(valueOf(v))
+    def top: Domain1D[BigInt] = Top
+    def bottom: Domain1D[BigInt] = Bottom
 
     assert(point(3).rightAdjacent equiv point(4))
     assert(point(3).leftAdjacent equiv point(2))

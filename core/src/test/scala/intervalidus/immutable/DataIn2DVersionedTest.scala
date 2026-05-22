@@ -262,6 +262,19 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     fixture2a.getAll.toList shouldBe expectedData2
     fixture2b.getAll.toList shouldBe expectedData2
 
+    val fixture2c = fixture1.collectValues:
+      case v if v.startsWith("H") => v + "?"
+    fixture2c.getAll.toList shouldBe List(
+      (intervalTo(4) x intervalFrom(0)) -> "Hey?"
+    )
+
+    val currentVersion = fixture1.getCurrentVersion
+    val fixture2d = fixture1.collectIntervals:
+      case i if i.contains(Domain.in3D(currentVersion, 17, 17)) => i.withDimensionUpdate[Int](1, _.from(17))
+    fixture2d.getAll.toList shouldBe List(
+      (intervalFrom(17) x intervalFrom(0)) -> "World"
+    )
+
     val fixture3 = fixture2b.mapValues(_ + "!!")
     val expectedData3 = List(
       (intervalTo(5) x intervalFrom(0)) -> "Hey!!!",

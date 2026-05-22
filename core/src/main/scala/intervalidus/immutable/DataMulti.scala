@@ -21,6 +21,19 @@ object DataMulti extends DimensionalMultiBaseObject[DataMulti]:
     initialData: Iterable[ValidData[V, D]]
   )(using config: CoreConfig[D]): DataMulti[V, D] = empty[V, D].addOneMany(initialData)
 
+  extension [V, D <: NonEmptyTuple: DomainLike](data: DimensionalBase[Set[V], D])
+    /**
+      * Creates a muti-value structure from a non-multi structure managing sets of values.
+      *
+      * @param config
+      *   $configParam
+      * @return
+      *   A new muti-value structure with the same valid values.
+      */
+    def asDataMulti(using config: CoreConfig[D]): DataMulti[V, D] = new DataMulti(data.stateCopy)
+
+  given [V, D <: NonEmptyTuple: DomainLike]: Conversion[Data[Set[V], D], DataMulti[V, D]] = _.asDataMulti
+
 /**
   * Immutable, multivalued dimensional data.
   *
@@ -181,6 +194,13 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] private (
   ): Data[B, D] = transactionalRead:
     mapInternal(d => d.copy(value = f(d.value)))
 
+  override def collectValues[B](
+    pf: PartialFunction[Set[V], B]
+  ): Data[B, D] = transactionalRead:
+    val collected = getAllInternal.collect:
+      case d if pf.isDefinedAt(d.value) => d.copy(value = pf(d.value))
+    Data(collected).compressedUpdate()
+
   override def mapIntervals[S <: NonEmptyTuple: DomainLike](
     f: Interval[D] => Interval[S]
   )(using altConfig: CoreConfig[S]): DataMulti[V, S] = transactionalRead:
@@ -188,7 +208,14 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] private (
       getAllInternal.map(d => d.copy(interval = f(d.interval)))
     )(using config = altConfig).compressedUpdate()
 
-  // ---------- Implement methods from DimensionalBase that create new instances ----------
+  override def collectIntervals[S <: NonEmptyTuple: DomainLike](
+    pf: PartialFunction[Interval[D], Interval[S]]
+  )(using altConfig: CoreConfig[S]): DataMulti[V, S] = transactionalRead:
+    val collected = getAllInternal.collect:
+      case d if pf.isDefinedAt(d.interval) => d.copy(interval = pf(d.interval))
+    DataMulti(collected)(using config = altConfig).compressedUpdate()
+
+  // ---------- Implement methods from DimensionalBase and DimensionalMultiBase that create new instances ----------
   // ----  (some return Data rather than DataMulti because the resultant value type isn't necessarily a Set type) ----
 
   override protected def copyInternal(using tx: Transaction[Set[V], D])(using CoreConfig[D]): DataMulti[V, D] =

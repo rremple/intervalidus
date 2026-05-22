@@ -392,6 +392,27 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   )
 
   /**
+    * $collectValuesDesc Only the valid data value type can be changed in the mapping.
+    *
+    * $noVersionSelectionFunction collects all values in all versions.
+    *
+    * @param pf
+    *   $collectValuesParamPf
+    * @tparam B
+    *   the valid data value type of the returned structure.
+    * @return
+    *   a new structure with the same current version resulting from applying the provided function f to each element of
+    *   this structure.
+    */
+  def collectValues[B](pf: PartialFunction[V, B]): DataVersioned[B, D] = new DataVersioned(
+    underlying.getAll.collect:
+      case d if pf.isDefinedAt(d.value) => d.copy(value = pf(d.value)),
+    initialVersion,
+    versionTimestamps.clone(),
+    Some(currentVersion)
+  )
+
+  /**
     * $mapIntervalsDesc The interval type can be changed in the mapping.
     *
     * $noVersionSelectionFunction maps all intervals in all versions.
@@ -411,6 +432,33 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   )(using altConfig: CoreConfig[Versioned[S]]): DataVersioned[V, S] = compressedUpdate(
     new DataVersioned(
       underlying.getAll.map(d => d.copy(interval = f(d.interval))),
+      initialVersion,
+      versionTimestamps.clone(),
+      Some(currentVersion)
+    )(using config = altConfig)
+  )
+
+  /**
+    * $collectIntervalsDesc The interval type can be changed in the mapping.
+    *
+    * $noVersionSelectionFunction collects all intervals in all versions.
+    *
+    * @param pf
+    *   $collectIntervalsParamPf
+    * @tparam S
+    *   the valid data versioned interval domain type of the returned structure.
+    *
+    * @return
+    *   a new structure resulting from applying the provided function f to each versioned interval.
+    */
+  def collectIntervals[S <: NonEmptyTuple: DomainLike](
+    pf: PartialFunction[Interval[Versioned[D]], Interval[Versioned[S]]]
+  )(using
+    DomainLike[Versioned[S]]
+  )(using altConfig: CoreConfig[Versioned[S]]): DataVersioned[V, S] = compressedUpdate(
+    new DataVersioned(
+      underlying.getAll.collect:
+        case d if pf.isDefinedAt(d.interval) => d.copy(interval = pf(d.interval)),
       initialVersion,
       versionTimestamps.clone(),
       Some(currentVersion)

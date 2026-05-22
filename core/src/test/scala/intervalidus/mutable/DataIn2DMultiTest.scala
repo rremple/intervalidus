@@ -25,13 +25,13 @@ class DataIn2DMultiTest
 
   val noCompress: CoreConfig[IntDim] =
     CoreConfig.default.withCompressOnUpdate(false).withIsolationLevel(ReadUncommitted)
-  testsFor(basicAndZipTests("Mutable", DataMulti.from(_), DataMulti.from(_), DataMulti.of(_), DataMulti(_)))
+  testsFor(basicAndZipTests("Mutable", DataMulti.from(_), DataMulti.of(_), DataMulti(_)))
   testsFor(
-    basicAndZipTests("Mutable (noCompress)", DataMulti.from(_), DataMulti.from(_), DataMulti.of(_), DataMulti(_))(using
+    basicAndZipTests("Mutable (noCompress)", DataMulti.from(_), DataMulti.of(_), DataMulti(_))(using
       config = noCompress
     )
   )
-  testsFor(basicAndZipTests("Mutable (builder)", usingBuilder, DataMulti.from(_), DataMulti.of(_), DataMulti(_)))
+  testsFor(basicAndZipTests("Mutable (builder)", usingBuilder, DataMulti.of(_), DataMulti(_)))
 
   testsFor(
     addAndRemoveTests[IntDim, DataMulti[String, IntDim]](
@@ -119,6 +119,9 @@ class DataIn2DMultiTest
 
     donut.isEmpty shouldBe false
     hole.isEmpty shouldBe false
+
+    val donutFromData: DataMulti[Double, Dim] = Data(Seq(a, b, c, d).map(_ -> donutFilling)) // implicitly converted
+    donutFromData ≡≡ donut
 
     donut.mutate(_ ∩ hole).isEmpty shouldBe true
     donut.mutate(_ ∪ hole).domain.toList shouldBe List(Interval.unbounded[Dim])

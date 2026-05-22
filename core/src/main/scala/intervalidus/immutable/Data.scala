@@ -68,10 +68,24 @@ class Data[V, D <: NonEmptyTuple: DomainLike] private (
   ): Data[B, D] = transactionalRead:
     mapInternal(d => d.copy(value = f(d.value)))
 
+  override def collectValues[B](
+    pf: PartialFunction[V, B]
+  ): Data[B, D] = transactionalRead:
+    val collected = getAllInternal.collect:
+      case d if pf.isDefinedAt(d.value) => d.copy(value = pf(d.value))
+    Data(collected).compressedUpdate()
+
   override def mapIntervals[S <: NonEmptyTuple: DomainLike](
     f: Interval[D] => Interval[S]
   )(using altConfig: CoreConfig[S]): Data[V, S] = transactionalRead:
     mapInternal(d => d.copy(interval = f(d.interval)))(using altConfig = altConfig)
+
+  override def collectIntervals[S <: NonEmptyTuple: DomainLike](
+    pf: PartialFunction[Interval[D], Interval[S]]
+  )(using altConfig: CoreConfig[S]): Data[V, S] = transactionalRead:
+    val collected = getAllInternal.collect:
+      case d if pf.isDefinedAt(d.interval) => d.copy(interval = pf(d.interval))
+    Data(collected)(using config = altConfig).compressedUpdate()
 
   override def flatMap[B, S <: NonEmptyTuple: DomainLike](
     f: ValidData[V, D] => DimensionalBase[B, S]

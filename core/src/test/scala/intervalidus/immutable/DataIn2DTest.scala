@@ -238,6 +238,18 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     fixture2a.getAll.toList shouldBe expectedData2
     fixture2b.getAll.toList shouldBe expectedData2
 
+    val fixture2c = fixture1.collectValues:
+      case v if v.startsWith("H") => v + "!!"
+    fixture2c.getAll.toList shouldBe List(
+      (unbounded[LocalDate] x intervalTo(4)) -> "Hey!!"
+    )
+
+    val fixture2d = fixture1.collectIntervals:
+      case i if i.contains(Domain.in2D(LocalDate.now(), 17)) => i.withDimensionUpdate[Int](1, _.from(17))
+    fixture2d.getAll.toList shouldBe List(
+      (unbounded[LocalDate] x intervalFrom(17)) -> "World"
+    )
+
     val fixture3 = fixture2a.mapValues(_ + "!!")
     val expectedData3 = List(
       (unbounded[LocalDate] x intervalTo(5)) -> "Hey!!!",

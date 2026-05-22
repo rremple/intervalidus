@@ -22,8 +22,8 @@ class DataIn2DMultiTest
     builder.clear()
     data.foldLeft(builder)(_.addOne(_)).result()
 
-  testsFor(basicAndZipTests("Immutable", DataMulti.from(_), DataMulti.from(_), DataMulti.of(_), DataMulti(_)))
-  testsFor(basicAndZipTests("Immutable (builder)", usingBuilder, DataMulti.from(_), DataMulti.of(_), DataMulti(_)))
+  testsFor(basicAndZipTests("Immutable", DataMulti.from(_), DataMulti.of(_), DataMulti(_)))
+  testsFor(basicAndZipTests("Immutable (builder)", usingBuilder, DataMulti.of(_), DataMulti(_)))
 
   testsFor(
     addAndRemoveTests[IntDim, DataMulti[String, IntDim]](
@@ -97,6 +97,9 @@ class DataIn2DMultiTest
 
     donut.isEmpty shouldBe false
     hole.isEmpty shouldBe false
+
+    val donutFromData: DataMulti[Double, Dim] = Data(Seq(a, b, c, d).map(_ -> donutFilling)) // implicitly converted
+    donutFromData ≡≡ donut
 
     (donut ∩ hole).isEmpty shouldBe true
     (donut ∪ hole).domain.toList shouldBe List(Interval.unbounded[Dim])

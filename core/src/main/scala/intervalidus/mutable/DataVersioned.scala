@@ -308,6 +308,16 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   def mapValues(f: V => V): Unit = underlying.mapValues(f)
 
   /**
+    * $collectValuesDesc $mutableAction
+    *
+    * $noVersionSelectionFunction collects all values in all versions.
+    *
+    * @param pf
+    *   $collectValuesParamPf
+    */
+  def collectValues(pf: PartialFunction[V, V]): Unit = underlying.collectValues(pf)
+
+  /**
     * $mapIntervalsDesc $mutableAction
     *
     * $noVersionSelectionFunction maps all intervals in all versions.
@@ -316,6 +326,17 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     *   $mapIntervalsParamF
     */
   def mapIntervals(f: Interval[Versioned[D]] => Interval[Versioned[D]]): Unit = underlying.mapIntervals(f)
+
+  /**
+    * $collectIntervalsDesc $mutableAction
+    *
+    * $noVersionSelectionFunction collects all intervals in all versions.
+    *
+    * @param pf
+    *   $collectIntervalsParamPf
+    */
+  def collectIntervals(pf: PartialFunction[Interval[Versioned[D]], Interval[Versioned[D]]]): Unit =
+    underlying.collectIntervals(pf)
 
   /**
     * $flatMapDesc and updates valid values from the elements of the resulting structures. $mutableAction

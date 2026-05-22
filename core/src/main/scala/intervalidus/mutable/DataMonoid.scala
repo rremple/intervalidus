@@ -17,6 +17,19 @@ object DataMonoid extends DimensionalMonoidBaseObject[DataMonoid]:
   )(using config: CoreConfig[D]): DataMonoid[V, D] =
     new DataMonoid(State.from(initialData))
 
+  extension [V: Monoid, D <: NonEmptyTuple: DomainLike](data: DimensionalBase[V, D])
+    /**
+      * Creates a monoidal structure from a non-monoidal structure with monoidal values.
+      *
+      * @param config
+      *   $configParam
+      * @return
+      *   A new muti-value structure with the same valid values.
+      */
+    def asDataMonoid(using config: CoreConfig[D]): DataMonoid[V, D] = new DataMonoid(data.stateCopy)
+
+  given [V: Monoid, D <: NonEmptyTuple: DomainLike]: Conversion[Data[V, D], DataMonoid[V, D]] = _.asDataMonoid
+
 /**
   * Immutable dimensional data where values can be combined as monoids.
   *

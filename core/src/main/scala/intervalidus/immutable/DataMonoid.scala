@@ -17,6 +17,19 @@ object DataMonoid extends DimensionalMonoidBaseObject[DataMonoid]:
   )(using config: CoreConfig[D]): DataMonoid[V, D] =
     new DataMonoid(State.from(initialData))
 
+  extension [V: Monoid, D <: NonEmptyTuple: DomainLike](data: DimensionalBase[V, D])
+    /**
+      * Creates a monoidal structure from a non-monoidal structure with monoidal values.
+      *
+      * @param config
+      *   $configParam
+      * @return
+      *   A new muti-value structure with the same valid values.
+      */
+    def asDataMonoid(using config: CoreConfig[D]): DataMonoid[V, D] = new DataMonoid(data.stateCopy)
+
+  given [V: Monoid, D <: NonEmptyTuple: DomainLike]: Conversion[Data[V, D], DataMonoid[V, D]] = _.asDataMonoid
+
 /**
   * Immutable dimensional data where values can be combined as monoids.
   *
@@ -134,12 +147,26 @@ class DataMonoid[V, D <: NonEmptyTuple: DomainLike] private (
   ): Data[B, D] = transactionalRead:
     mapInternal(d => d.copy(value = f(d.value)))
 
+  override def collectValues[B](
+    pf: PartialFunction[V, B]
+  ): Data[B, D] = transactionalRead:
+    val collected = getAllInternal.collect:
+      case d if pf.isDefinedAt(d.value) => d.copy(value = pf(d.value))
+    Data(collected).compressedUpdate()
+
   override def mapIntervals[S <: NonEmptyTuple: DomainLike](
     f: Interval[D] => Interval[S]
   )(using altConfig: CoreConfig[S]): DataMonoid[V, S] = transactionalRead:
     DataMonoid(
       getAllInternal.map(d => d.copy(interval = f(d.interval)))
     )(using config = altConfig).compressedUpdate()
+
+  override def collectIntervals[S <: NonEmptyTuple: DomainLike](
+    pf: PartialFunction[Interval[D], Interval[S]]
+  )(using altConfig: CoreConfig[S]): DataMonoid[V, S] = transactionalRead:
+    val collected = getAllInternal.collect:
+      case d if pf.isDefinedAt(d.interval) => d.copy(interval = pf(d.interval))
+    DataMonoid(collected)(using config = altConfig).compressedUpdate()
 
   // ---------- Implement methods from DimensionalBase and DimensionalMonoidBase that create new instances ----------
   // ----  (some return Data rather than DataMonoid because the resultant value type isn't necessarily a Monoid) ----

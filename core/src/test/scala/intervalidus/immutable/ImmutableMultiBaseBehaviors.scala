@@ -13,6 +13,7 @@ import scala.language.implicitConversions
 trait ImmutableMultiBaseBehaviors:
   this: AnyFunSuite & Matchers =>
 
+  import DataMulti.*
   import Interval1D.*
 
   def addAndRemoveTests[
@@ -157,25 +158,37 @@ trait ImmutableMultiBaseBehaviors:
       )
 
       val f1: S = multiFrom(allData)
-      val f2a = DataMulti.from(f1.map(mapF))
+      val f2a: DataMulti[String, D] = f1.map(mapF) // implicitly converted
       val expectedData2 = List(
         withHorizontal(intervalTo(5), Set("Hey!")),
         withHorizontal(intervalFrom(16), Set("World!"))
       )
       f2a.getAll.toList shouldBe expectedData2
-      val f2b = DataMulti.from(f1.mapIntervals(i => i.to(i.end.rightAdjacent)).mapValues(_.map(_ + "!")))
+      val f2b = f1.mapIntervals(i => i.to(i.end.rightAdjacent)).mapValues(_.map(_ + "!")).asDataMulti
       f2b.getAll.toList shouldBe expectedData2
       val expectedDataFlattened = expectedData2.flatMap(d => d.value.map(d.interval -> _))
       f2b ≡ multiFrom(expectedDataFlattened) shouldBe true
 
-      val f3 = DataMulti.from(f2a.mapValues(_.map(_ + "!!")))
+      val f3 = f2a.mapValues(_.map(_ + "!!")).asDataMulti
       val expectedData3 = List(
         withHorizontal(intervalTo(5), Set("Hey!!!")),
         withHorizontal(intervalFrom(16), Set("World!!!"))
       )
       f3.getAll.toList shouldBe expectedData3
 
-      val f4 = DataMulti.from(f3.flatMap(flatMapF))
+      val f3b = f2a.collectValues:
+        case v if v.exists(_.startsWith("H")) => v.map(_ + "??")
+      f3b.asDataMulti.getAll.toList shouldBe List(
+        withHorizontal(intervalTo(5), Set("Hey!??"))
+      )
+
+      val f3c = f2a.collectIntervals:
+        case i if i intersects intervalFrom1D(intervalAt(17)) => intervalFrom1D(intervalAt(17))
+      f3c.asDataMulti.getAll.toList shouldBe List(
+        withHorizontal(intervalAt(17), Set("World!"))
+      )
+
+      val f4 = f3.flatMap(flatMapF).asDataMulti
       val expectedData4 = List(
         withHorizontal(intervalTo(5), Set("Hey!!!")),
         withHorizontal(intervalFrom(16), Set("World!!!"))

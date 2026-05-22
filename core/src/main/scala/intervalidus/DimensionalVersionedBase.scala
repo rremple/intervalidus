@@ -326,10 +326,18 @@ trait DimensionalVersionedBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimen
   *   Applies a function to all valid data values.
   * @define mapValuesParamF
   *   the function to apply to the value part of each valid data element.
+  * @define collectValuesDesc
+  *   Applies a partial function to all valid data values on which it is defined.
+  * @define collectValuesParamPf
+  *   the partial function to apply to the value part of each valid data element.
   * @define mapIntervalsDesc
   *   Applies a function to all valid data intervals.
   * @define mapIntervalsParamF
   *   the function to apply to the versioned interval part of each valid data element.
+  * @define collectIntervalsDesc
+  *   Applies a partial function to all valid data intervals on which it is defined.
+  * @define collectIntervalsParamPf
+  *   the partial function to apply to the versioned interval part of each valid data element.
   * @define flatMapDesc
   *   Applies a function to all the elements of this structure
   * @define flatMapParamF

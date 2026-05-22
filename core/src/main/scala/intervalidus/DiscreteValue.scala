@@ -105,33 +105,31 @@ object DiscreteValue:
 
     override val minValue: LocalDate = LocalDate.MIN
 
-  import java.math.BigInteger
-
   /**
     * Type class for big integers as discrete values.
     *
     * @note
-    *   per [[https://docs.oracle.com/javase/8/docs/api/java/math/BigInteger.html]] "BigInteger constructors and
-    *   operations throw ArithmeticException when the result is out of the supported range of
-    *   -2<sup>Integer.MAX_VALUE</sup> (exclusive) to +2<sup>Integer.MAX_VALUE</sup> (exclusive)." However, on the
-    *   practical side of things, this number is so large that just rendering it as a string can easily cause OOM in the
-    *   string builder! So maybe override this and pick your own "biggest" BigInteger based on how you plan to use it
-    *   rather than this theoretically biggest one...
+    *   per [[https://docs.oracle.com/javase/8/docs/api/java/math/BigInt.html]] "BigInt constructors and operations
+    *   throw ArithmeticException when the result is out of the supported range of -2<sup>Integer.MAX_VALUE</sup>
+    *   (exclusive) to +2<sup>Integer.MAX_VALUE</sup> (exclusive)." However, on the practical side of things, this
+    *   number is so large that just rendering it as a string can easily cause OOM in the string builder! So maybe
+    *   override this and pick your own "biggest" BigInt based on how you plan to use it rather than this theoretically
+    *   biggest one...
     */
-  given BigIntegerDiscreteValue: DiscreteValue[BigInteger] with
-    override def compare(lhs: BigInteger, rhs: BigInteger): Int = lhs.compareTo(rhs)
+  given BigIntDiscreteValue: DiscreteValue[BigInt] with
+    override def compare(lhs: BigInt, rhs: BigInt): Int = lhs.compareTo(rhs)
 
-    override def successorOf(x: BigInteger): Option[BigInteger] =
-      if x.equals(maxValue) then None else Some(x.add(BigInteger.valueOf(1)))
+    override def successorOf(x: BigInt): Option[BigInt] =
+      if x.equals(maxValue) then None else Some(x + BigInt(1))
 
-    override def predecessorOf(x: BigInteger): Option[BigInteger] =
-      if x.equals(minValue) then None else Some(x.add(BigInteger.valueOf(-1)))
+    override def predecessorOf(x: BigInt): Option[BigInt] =
+      if x.equals(minValue) then None else Some(x + BigInt(-1))
 
-    override def orderedHashOf(x: BigInteger): Double = x.doubleValue()
+    override def orderedHashOf(x: BigInt): Double = x.doubleValue()
 
-    override lazy val maxValue: BigInteger = BigInteger.valueOf(2).pow(Int.MaxValue - 1).add(BigInteger.valueOf(-1))
+    override lazy val maxValue: BigInt = BigInt(2).pow(Int.MaxValue - 1) + BigInt(-1)
 
-    override lazy val minValue: BigInteger = maxValue.negate
+    override lazy val minValue: BigInt = -maxValue
 
   /**
     * Constructs a type class from a non-empty, distinct, and indexed sequence of values, for example:

@@ -41,9 +41,6 @@ trait ImmutableMonoidBaseBehaviors(using DomainValueLike[Int]):
   val toOrigin: Interval1D[Int] = intervalTo(0)
   val fromAfterOrigin: Interval1D[Int] = intervalFromAfter(0)
 
-  // Some methods (e.g., flatMap) return a different type. This helps us convert back
-  extension [T: Monoid](data: DimensionalBase[T, Dim]) def toDataMonoid: DataMonoid[T, Dim] = DataMonoid(data.getAll)
-
   def commonBehaviors(prefix: String): Unit =
     import DataMonoid.*
     import Monoid.given
@@ -104,9 +101,22 @@ trait ImmutableMonoidBaseBehaviors(using DomainValueLike[Int]):
 
       withoutQuadrantOne == ("bogus": Any) shouldBe false // different types
       withoutQuadrantOne == withoutQuadrantTwo shouldBe false // different quadrants missing
-      withoutQuadrantOne !≡ withoutQuadrantTwo.mapValues(_.toInt).toDataMonoid // different quadrants missing
+      withoutQuadrantOne !≡ withoutQuadrantTwo.mapValues(_.toInt).asDataMonoid // different quadrants missing
       val f = (d: ValidData[Long, Dim]) => d.copy(value = d.value.toInt)
-      withoutQuadrantTwo.map(f).toDataMonoid ≡≡ withoutQuadrantTwo.mapValues(_.toInt).toDataMonoid
+      withoutQuadrantTwo.map(f).asDataMonoid ≡≡ withoutQuadrantTwo.mapValues(_.toInt).asDataMonoid
+
+      val fcv = withoutQuadrantOne.collectValues:
+        case v if v < 4 => "I" * v
+      fcv.getAll.toList shouldBe List(
+        (toBeforeOrigin x toBeforeOrigin) -> "III",
+        (toBeforeOrigin x fromOrigin) -> "II"
+      )
+
+      val fci = withoutQuadrantOne.collectIntervals:
+        case i if i.contains(quadrantFourSample) => i.withDimensionUpdate[Int](1, _.to(0))
+      fci.getAll.toList shouldBe List(
+        (fromOrigin x toOrigin) -> 4
+      )
 
       val withoutOneQuadrantCount = withoutQuadrantOne.foldLeft(0): (acc, data) =>
         acc + quadrantSamples.count(sample => sample._1 ∈ data.interval && sample._2 == data.value)
@@ -206,6 +216,9 @@ trait ImmutableMonoidBaseBehaviors(using DomainValueLike[Int]):
       val donut = DataMonoid(Seq(a, b, c, d).map(_ -> donutFilling)) // no e
       val hole = DataMonoid.of(e -> holeFilling)
 
+      val donutFromData: DataMonoid[Double, Dim] = Data(Seq(a, b, c, d).map(_ -> donutFilling)) // implicitly converted
+      donutFromData ≡≡ donut
+
       extension [T](data: DataMonoid[T, Dim])(using monoid: Monoid[T])
         private def filledWith(v: T): DataMonoid[T, Dim] = DataMonoid(data.mapValues(_ => v).getAll)
         private def filledWithIdentity: DataMonoid[T, Dim] = DataMonoid(data.mapValues(_ => monoid.identity).getAll)
@@ -293,14 +306,14 @@ trait ImmutableMonoidBaseBehaviors(using DomainValueLike[Int]):
 
       val flatMapped = donut.flatMap: v =>
         (v.interval ∩ clipInterval).toSeq.donutFilled
-      clippedDonut ≡≡ flatMapped.toDataMonoid
+      clippedDonut ≡≡ flatMapped.asDataMonoid
 
       val filtered = clippedDonut.filter(_.interval.start > Domain.in2D(0, 0))
       Seq(intervalFromAfter(1).to(10) x interval(-10, 1)).donutFilled ≡≡ filtered
 
       val collected = clippedDonut.collect:
         case x if x.interval.start > Domain.in2D(0, 0) => x.copy(interval = x.interval.swapDimensions[Dim](0, 1))
-      Seq(interval(-10, 1) x intervalFromAfter(1).to(10)).donutFilled ≡≡ collected.toDataMonoid
+      Seq(interval(-10, 1) x intervalFromAfter(1).to(10)).donutFilled ≡≡ collected.asDataMonoid
 
       val donutIn3D: DataMonoid[Double, Domain.In3D[Int, Int, Int]] = clippedDonut.extrudeDimension(2, interval(-1, 1))
       val flattenedDonut: DataMonoid[Double, Dim] = donutIn3D.flattenDimension(2)

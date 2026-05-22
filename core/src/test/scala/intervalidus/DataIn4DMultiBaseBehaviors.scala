@@ -26,7 +26,6 @@ trait DataIn4DMultiBaseBehaviors:
   def basicAndZipTests[S <: DimensionalMultiBase[String, IntDim]](
     prefix: String,
     multiFrom: CoreConfig[IntDim] ?=> Iterable[ValidData[String, IntDim]] => S,
-    multiFrom4D: CoreConfig[IntDim] ?=> DimensionalBase[Set[String], IntDim] => S,
     multiOf: CoreConfig[IntDim] ?=> String => S,
     multiApply: CoreConfig[IntDim] ?=> Iterable[ValidData[Set[String], IntDim]] => S
   )(using config: CoreConfig[IntDim]): Unit =
@@ -41,7 +40,7 @@ trait DataIn4DMultiBaseBehaviors:
       val fixture2 = multiApply(allData).toImmutable.toMutable.copy
       fixture2.getAll.toList shouldBe allData
 
-      val fixture3 = multiFrom4D(immutable.Data.of[Set[String], IntDim](Set("Hello", "world")))
+      val fixture3 = multiApply(immutable.Data.of[Set[String], IntDim](Set("Hello", "world")).getAll)
       fixture3.get shouldBe Set("Hello", "world")
 
       val f0: S = multiFrom(
