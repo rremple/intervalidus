@@ -23,16 +23,17 @@ object DataMulti extends DimensionalMultiBaseObject[DataMulti]:
 
   extension [V, D <: NonEmptyTuple: DomainLike](data: DimensionalBase[Set[V], D])
     /**
-      * Creates a muti-value structure from a non-multi structure managing sets of values.
+      * Creates an immutable muti-value structure from a non-multi structure managing sets of values.
       *
-      * @param config
-      *   $configParam
       * @return
-      *   A new muti-value structure with the same valid values.
+      *   A new immutable muti-value structure with the same valid values.
       */
-    def asDataMulti(using config: CoreConfig[D]): DataMulti[V, D] = new DataMulti(data.stateCopy)
+    def asDataMulti: DataMulti[V, D] = new DataMulti(data.stateCopy)(using config = data.config)
 
-  given [V, D <: NonEmptyTuple: DomainLike]: Conversion[Data[Set[V], D], DataMulti[V, D]] = _.asDataMulti
+  /**
+    * Automatically converts a non-multi structure managing sets of values to an immutable multi-value structure.
+    */
+  given [V, D <: NonEmptyTuple: DomainLike]: Conversion[DimensionalBase[Set[V], D], DataMulti[V, D]] = _.asDataMulti
 
 /**
   * Immutable, multivalued dimensional data.
@@ -197,9 +198,7 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] private (
   override def collectValues[B](
     pf: PartialFunction[Set[V], B]
   ): Data[B, D] = transactionalRead:
-    val collected = getAllInternal.collect:
-      case d if pf.isDefinedAt(d.value) => d.copy(value = pf(d.value))
-    Data(collected).compressedUpdate()
+    Data(collectValuesData(pf)).compressedUpdate()
 
   override def mapIntervals[S <: NonEmptyTuple: DomainLike](
     f: Interval[D] => Interval[S]
@@ -211,9 +210,7 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] private (
   override def collectIntervals[S <: NonEmptyTuple: DomainLike](
     pf: PartialFunction[Interval[D], Interval[S]]
   )(using altConfig: CoreConfig[S]): DataMulti[V, S] = transactionalRead:
-    val collected = getAllInternal.collect:
-      case d if pf.isDefinedAt(d.interval) => d.copy(interval = pf(d.interval))
-    DataMulti(collected)(using config = altConfig).compressedUpdate()
+    DataMulti(collectIntervalsData(pf))(using config = altConfig).compressedUpdate()
 
   // ---------- Implement methods from DimensionalBase and DimensionalMultiBase that create new instances ----------
   // ----  (some return Data rather than DataMulti because the resultant value type isn't necessarily a Set type) ----
@@ -287,8 +284,8 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] private (
   ): DataMulti[V, R] = transactionalRead:
     DataMulti(extrudeDimensionData(dimensionIndex, extent))(using config = altConfig).compressedUpdate()
 
-  override def toMutable: intervalidus.mutable.DataMulti[V, D] = transactionalRead:
-    intervalidus.mutable.DataMulti(getAllInternal)
+  override def toMutable: intervalidus.mutable.DataMulti[V, D] =
+    intervalidus.mutable.DataMulti.asDataMulti(this)
 
   override def toImmutable: intervalidus.immutable.DataMulti[V, D] =
     this

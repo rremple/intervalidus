@@ -119,7 +119,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
       (intervalTo(day(14)) x interval(0, 10)) -> "Hello",
       (intervalFrom(day(1)) x intervalFrom(11)) -> "World"
     )
-    val fixture = immutable.Data(allData).toImmutable.toMutable
+    val fixture: Data[String, Domain.In2D[LocalDate, Int]] = immutable.Data(allData).toImmutable // implicit conversion
     fixture.getAll.toList shouldBe allData
 
     fixture.getByHeadDimension(dayZero).getAt(0) shouldBe Some("Hello")
@@ -312,11 +312,6 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
          |""".stripMargin.replaceAll("\r", "")
 
   test(s"Mutable: Int Data 2D collection operations"):
-    // assert equivalence/non-equivalence
-    extension [V, D <: NonEmptyTuple: DomainLike](lhs: Data[V, D])
-      infix def ≡≡(rhs: Data[V, D]): Assertion = assert(lhs ≡ rhs, s"\nExpected: $lhs\nActual: $rhs\n")
-      infix def !≡(rhs: Data[V, D]): Assertion = assert(!(lhs ≡ rhs))
-
     type Dim = Domain.In2D[Int, Int]
 
     /* When discrete, the donut (intervals a, b, c, and d) and, its complement, the hole (interval e) look like:
@@ -346,14 +341,6 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
 
     val donut = Data(Seq(a, b, c, d).map(_ -> donutFilling)) // no e
     val hole = Data(Seq(e -> holeFilling))
-
-    extension [T](data: Data[T, Dim])
-      private def filledWith(v: T): Data[T, Dim] = Data(data.getAll.map(_.copy(value = v)))
-
-    extension (intervals: Seq[Interval[Dim]])
-      private def valueFilled[T](v: T) = Data(intervals.map(_ -> v))
-      private def donutFilled = intervals.valueFilled(donutFilling)
-      private def holeFilled = intervals.valueFilled(holeFilling)
 
     donut.isEmpty shouldBe false
     hole.isEmpty shouldBe false

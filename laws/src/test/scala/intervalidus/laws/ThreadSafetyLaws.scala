@@ -116,7 +116,7 @@ class ThreadSafetyLaws extends AnyPropSpec with ScalaCheckPropertyChecks with Pa
 
           // The Hammer: constant background mutation
           val asyncHammer = Future:
-            var i = 0
+            // var i = 0
             // println(s"starting hammer...")
             while !stopHammer.get() do
               val sampleIndex = r.nextInt(size)
@@ -127,7 +127,7 @@ class ThreadSafetyLaws extends AnyPropSpec with ScalaCheckPropertyChecks with Pa
                   val biggerInterval = Interval(smallerInterval.start.leftAdjacent, smallerInterval.end.rightAdjacent)
                   result.set(biggerInterval -> randomData.value)
                   result.remove(smallerInterval) // punches hole in the bigger interval, fragmenting data around it
-              i += 1
+              // i += 1
               Thread.sleep(1) // allows the Photographer to do its thing
             // println(s"hammer stopped after $i iterations...")
 

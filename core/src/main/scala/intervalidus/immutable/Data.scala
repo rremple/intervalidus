@@ -18,6 +18,20 @@ object Data extends DimensionalBaseObject[Data]:
   )(using config: CoreConfig[D]): Data[V, D] =
     new Data(State.from(initialData))
 
+  extension [V, D <: NonEmptyTuple: DomainLike](data: DimensionalBase[V, D])
+    /**
+      * Creates a general immutable dimensional data structure from a some other dimensional structure.
+      *
+      * @return
+      *   A new immutable structure with the same valid values.
+      */
+    def asData: Data[V, D] = new Data(data.stateCopy)(using config = data.config)
+
+  /**
+    * Automatically converts some other dimensional structure to a general immutable dimensional data structure.
+    */
+  given [V, D <: NonEmptyTuple: DomainLike]: Conversion[DimensionalBase[V, D], Data[V, D]] = _.asData
+
 /**
   * Immutable dimensional data.
   *
@@ -71,9 +85,7 @@ class Data[V, D <: NonEmptyTuple: DomainLike] private (
   override def collectValues[B](
     pf: PartialFunction[V, B]
   ): Data[B, D] = transactionalRead:
-    val collected = getAllInternal.collect:
-      case d if pf.isDefinedAt(d.value) => d.copy(value = pf(d.value))
-    Data(collected).compressedUpdate()
+    Data(collectValuesData(pf)).compressedUpdate()
 
   override def mapIntervals[S <: NonEmptyTuple: DomainLike](
     f: Interval[D] => Interval[S]
@@ -83,9 +95,7 @@ class Data[V, D <: NonEmptyTuple: DomainLike] private (
   override def collectIntervals[S <: NonEmptyTuple: DomainLike](
     pf: PartialFunction[Interval[D], Interval[S]]
   )(using altConfig: CoreConfig[S]): Data[V, S] = transactionalRead:
-    val collected = getAllInternal.collect:
-      case d if pf.isDefinedAt(d.interval) => d.copy(interval = pf(d.interval))
-    Data(collected)(using config = altConfig).compressedUpdate()
+    Data(collectIntervalsData(pf))(using config = altConfig).compressedUpdate()
 
   override def flatMap[B, S <: NonEmptyTuple: DomainLike](
     f: ValidData[V, D] => DimensionalBase[B, S]
@@ -153,8 +163,8 @@ class Data[V, D <: NonEmptyTuple: DomainLike] private (
   ): Data[V, R] = transactionalRead:
     Data(extrudeDimensionData(dimensionIndex, extent))(using config = altConfig).compressedUpdate()
 
-  override def toMutable: intervalidus.mutable.Data[V, D] = transactionalRead:
-    intervalidus.mutable.Data(getAllInternal)
+  override def toMutable: intervalidus.mutable.Data[V, D] =
+    intervalidus.mutable.Data.asData(this)
 
   override def toImmutable: intervalidus.immutable.Data[V, D] =
     this

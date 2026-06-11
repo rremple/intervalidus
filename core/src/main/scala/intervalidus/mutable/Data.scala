@@ -18,6 +18,20 @@ object Data extends DimensionalBaseObject[Data]:
   )(using config: CoreConfig[D]): Data[V, D] =
     new Data(State.from(initialData))
 
+  extension [V, D <: NonEmptyTuple: DomainLike](data: DimensionalBase[V, D])
+    /**
+      * Creates a general mutable dimensional data structure from a some other dimensional structure.
+      *
+      * @return
+      *   A new mutable structure with the same valid values.
+      */
+    def asData: Data[V, D] = new Data(data.stateCopy)(using config = data.config)
+
+  /**
+    * Automatically converts some other dimensional structure to a general mutable dimensional data structure.
+    */
+  given [V, D <: NonEmptyTuple: DomainLike]: Conversion[DimensionalBase[V, D], Data[V, D]] = _.asData
+
 /**
   * Mutable dimensional data.
   *
@@ -111,5 +125,5 @@ class Data[V, D <: NonEmptyTuple: DomainLike] private (
   override def toMutable: intervalidus.mutable.Data[V, D] =
     this
 
-  override def toImmutable: intervalidus.immutable.Data[V, D] = transactionalRead:
-    intervalidus.immutable.Data(getAllInternal)
+  override def toImmutable: intervalidus.immutable.Data[V, D] =
+    intervalidus.immutable.Data.asData(this)

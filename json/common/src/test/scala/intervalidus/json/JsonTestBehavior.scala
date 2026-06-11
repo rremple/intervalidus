@@ -51,6 +51,8 @@ trait JsonTestBehavior[W[_], R[_]](using
   W[immutable.DataMulti.In1D[String, Int]],
   W[mutable.DataMonoid.In1D[Double, Int]],
   W[immutable.DataMonoid.In1D[Double, Int]],
+  W[immutable.DataAffine.In1D[Double, Int]],
+  W[mutable.DataAffine.In1D[Double, Int]],
   R[Domain1D[Int]],
   R[Domain.In1D[Int]],
   R[Domain.In2D[Int, Int]],
@@ -80,7 +82,9 @@ trait JsonTestBehavior[W[_], R[_]](using
   R[mutable.DataMulti.In1D[String, Int]],
   R[immutable.DataMulti.In1D[String, Int]],
   R[mutable.DataMonoid.In1D[Double, Int]],
-  R[immutable.DataMonoid.In1D[Double, Int]]
+  R[immutable.DataMonoid.In1D[Double, Int]],
+  R[immutable.DataAffine.In1D[Double, Int]],
+  R[mutable.DataAffine.In1D[Double, Int]]
 ):
   this: AnyFunSuite & Matchers =>
 
@@ -384,8 +388,10 @@ trait JsonTestBehavior[W[_], R[_]](using
 
       val json =
         """{"initialVersion":0,"currentVersion":1""" +
-          ""","versionTimestamps":[[0,["2025-11-19T20:15:00Z","custom init"]],[1,["2025-11-19T20:16:00Z","to one"]]]""" +
-          ""","data":[""" +
+          ""","versionTimestamps":[""" +
+          """[0,["2025-11-19T20:15:00Z","custom init"]],""" +
+          """[1,["2025-11-19T20:16:00Z","to one"]]""" +
+          """],"data":[""" +
           """{"value":"Hello","interval":{"start":[{"point":0},{"point":0}],"end":["Top","Top"]}},""" +
           """{"value":"Goodbye","interval":{"start":[{"point":1},"Bottom"],"end":["Top",{"point":-1}]}}""" +
           """]}"""
@@ -457,6 +463,31 @@ trait JsonTestBehavior[W[_], R[_]](using
       )
       isomorphicData[mutable.DataMonoid.In1D[Double, Int], ValidData.In1D[Double, Int]](
         mutable.DataMonoid(data),
+        json,
+        _.getAll
+      )
+
+    test(s"$prefix: Dimensional affine data encoded as arrays - 1D"):
+      import intervalidus.DiscreteAffineValue.given
+      val data = Seq(
+        intervalFrom(1) -> 0.1134,
+        intervalTo(0) -> 6.009643
+      )
+      val json =
+        """[{"value":6.009643""" +
+          ""","interval":{"start":["Bottom"],"end":[{"point":0}]""" +
+          "}}" +
+          """,{"value":0.1134""" +
+          ""","interval":{"start":[{"point":1}],"end":["Top"]""" +
+          "}}]"
+
+      isomorphicData[immutable.DataAffine.In1D[Double, Int], ValidData.In1D[Double, Int]](
+        immutable.DataAffine(data),
+        json,
+        _.getAll
+      )
+      isomorphicData[mutable.DataAffine.In1D[Double, Int], ValidData.In1D[Double, Int]](
+        mutable.DataAffine(data),
         json,
         _.getAll
       )

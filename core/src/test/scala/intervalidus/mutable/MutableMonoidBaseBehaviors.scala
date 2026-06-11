@@ -145,13 +145,13 @@ trait MutableMonoidBaseBehaviors(using DomainValueLike[Int]):
       withoutQuadrantTwo.isDefinedAt(quadrantFourSample) shouldBe true
 
       // Unit is a monoid
-      val withoutQuadrantOneDouble = DataMonoid(withoutQuadrantOne.getAll.map(_.copy(value = ())))
-      val withoutQuadrantTwoDouble = DataMonoid(withoutQuadrantTwo.getAll.map(_.copy(value = ())))
+      val withoutQuadrantOneUnit = withoutQuadrantOne.toImmutable.mapValues(_ => ()).asDataMonoid
+      val withoutQuadrantTwoUnit = withoutQuadrantTwo.toImmutable.mapValues(_ => ()).asDataMonoid
 
       // setIfNoConflict ensures no overlaps, subsequent checks ensure no gaps
-      val complete1 = withoutQuadrantOneDouble.copy
+      val complete1 = withoutQuadrantOneUnit.copy
       complete1.setIfNoConflict((fromOrigin x fromOrigin) -> ()) shouldBe true // I
-      val complete2 = withoutQuadrantTwoDouble.copy
+      val complete2 = withoutQuadrantTwoUnit.copy
       complete2.setIfNoConflict((toOrigin x fromAfterOrigin) -> ()) shouldBe true // II
       complete1 ≡≡ complete2
       complete1 ≡≡ ξ

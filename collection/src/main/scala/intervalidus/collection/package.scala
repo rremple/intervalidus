@@ -3,7 +3,7 @@ package intervalidus
 /**
   * Intervalidus's custom data structures for optimizing multidimensional interval retrieval. These were built for
   * internal use, but use them if they are useful. There are both immutable and mutable versions of each data structure,
-  * but only the mutable box tree and immutable multimap is used internally (for performance reasons).
+  * but only the mutable box tree and immutable multimap are used internally (for performance reasons).
   *   - Box search trees manage boxed data structures in multidimensional double space (hyperoctrees of any dimension).
   *     They hold boxes rather than individual points, where boxes are split to fit into the subtrees (the hyperoctants)
   *     of the data structure. Intervalidus uses the ordered hashes defined on the domain value components of intervals

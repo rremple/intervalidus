@@ -308,6 +308,13 @@ object Domain1D:
     override def toCodeLikeString: String = s"OpenPoint(${codeLikeValue(value)})"
     override def toString: String = value.toString
 
+  // Both closed points and open points are bounded with values
+  object Bounded:
+    def unapply[P: DomainValueLike](arg: Domain1D[P]): Option[P] = arg match
+      case Point(value)     => Some(value)
+      case OpenPoint(value) => Some(value)
+      case _                => None
+
   /**
     * Code-like strings for some value, with special handling for dates and date-times.
     *

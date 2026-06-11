@@ -170,6 +170,15 @@ object Json:
       arr => immutable.DataMonoid[V, D](arr.value.map(_.as[ValidData[V, D]]))
     )
 
+  given given_FromTo_immutable_DataAffine[V, D <: NonEmptyTuple: DomainAffineLike](using
+    FromTo[ValidData[V, D]],
+    CoreConfig[D]
+  ): FromTo[immutable.DataAffine[V, D]] =
+    asValueArr.bimap[immutable.DataAffine[V, D]](
+      dimensional => Arr.from(dimensional.getAll.map(writeJs)),
+      arr => immutable.DataAffine[V, D](arr.value.map(_.as[ValidData[V, D]]))
+    )
+
   /**
     * Mutable variables and dimensional data encoded as objects and arrays. These require explicit names because the
     * generated names clash.
@@ -231,4 +240,13 @@ object Json:
     asValueArr.bimap[mutable.DataMonoid[V, D]](
       dimensional => Arr.from(dimensional.getAll.map(writeJs)),
       arr => mutable.DataMonoid[V, D](arr.value.map(_.as[ValidData[V, D]]))
+    )
+
+  given given_FromTo_mutable_DataAffine[V, D <: NonEmptyTuple: DomainAffineLike](using
+    FromTo[ValidData[V, D]],
+    CoreConfig[D]
+  ): FromTo[mutable.DataAffine[V, D]] =
+    asValueArr.bimap[mutable.DataAffine[V, D]](
+      dimensional => Arr.from(dimensional.getAll.map(writeJs)),
+      arr => mutable.DataAffine[V, D](arr.value.map(_.as[ValidData[V, D]]))
     )

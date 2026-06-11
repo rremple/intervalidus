@@ -444,7 +444,7 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
   initialVersion: VersionDomainValue,
   versionTimestamps: mutable.Map[VersionDomainValue, VersionMetadata],
   withCurrentVersion: Option[VersionDomainValue]
-)(using DomainLike[Versioned[D]], CurrentInstant)
+)(using DomainLike[Versioned[D]])
   extends PartialFunction[Versioned[D], V]:
 
   /**
@@ -552,8 +552,7 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     Domain.IsAtHead[D, H],
     Domain.IsUpdatableAtHead[D, H],
     DomainLike[Domain.NonEmptyTail[D]],
-    DomainLike[Versioned[Domain.NonEmptyTail[D]]],
-    CoreConfig[Versioned[Domain.NonEmptyTail[D]]]
+    DomainLike[Versioned[Domain.NonEmptyTail[D]]]
   ): Iterable[ValidData[V, Versioned[Domain.NonEmptyTail[D]]]] =
     val filteredUnderlyingData = domain match
       case Domain1D.Top | Domain1D.Bottom =>
@@ -573,8 +572,7 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     Domain.IsAtIndex[D, dimensionIndex.type, H],
     Domain.IsUpdatableAtIndex[D, dimensionIndex.type, H],
     Domain.IsDroppedInResult[D, dimensionIndex.type, R],
-    DomainLike[Versioned[R]],
-    CoreConfig[Versioned[R]]
+    DomainLike[Versioned[R]]
   ): Iterable[ValidData[V, Versioned[R]]] =
     val filteredUnderlyingData = domain match
       case Domain1D.Top | Domain1D.Bottom =>

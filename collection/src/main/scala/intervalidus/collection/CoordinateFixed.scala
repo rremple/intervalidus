@@ -12,8 +12,6 @@ opaque type CoordinateFixed = Array[Double]
   * Common definitions for points in multidimensional double space.
   */
 object CoordinateFixed:
-  private type MinMaxCoordinates = (CoordinateFixed, CoordinateFixed)
-
   // Slower, only used in tests
   def apply(coordinates: Double*): CoordinateFixed =
     require(coordinates.forall(!_.isNaN), s"$coordinates must not include NaN")

@@ -19,16 +19,18 @@ object DataMonoid extends DimensionalMonoidBaseObject[DataMonoid]:
 
   extension [V: Monoid, D <: NonEmptyTuple: DomainLike](data: DimensionalBase[V, D])
     /**
-      * Creates a monoidal structure from a non-monoidal structure with monoidal values.
+      * Creates a mutable monoidal structure from a non-monoidal structure with monoidal values.
       *
-      * @param config
-      *   $configParam
       * @return
-      *   A new muti-value structure with the same valid values.
+      *   A new mutable monoidal structure with the same valid values.
       */
-    def asDataMonoid(using config: CoreConfig[D]): DataMonoid[V, D] = new DataMonoid(data.stateCopy)
+    def asDataMonoid: DataMonoid[V, D] = new DataMonoid(data.stateCopy)(using config = data.config)
 
-  given [V: Monoid, D <: NonEmptyTuple: DomainLike]: Conversion[Data[V, D], DataMonoid[V, D]] = _.asDataMonoid
+  /**
+    * Automatically converts a non-monoidal structure with monoidal values to a mutable monoidal structure.
+    */
+  given [V: Monoid, D <: NonEmptyTuple: DomainLike]: Conversion[DimensionalBase[V, D], DataMonoid[V, D]] =
+    _.asDataMonoid
 
 /**
   * Immutable dimensional data where values can be combined as monoids.
@@ -181,5 +183,5 @@ class DataMonoid[V, D <: NonEmptyTuple: DomainLike] private (
   override def toMutable: intervalidus.mutable.DataMonoid[V, D] =
     this
 
-  override def toImmutable: intervalidus.immutable.DataMonoid[V, D] = transactionalRead:
-    intervalidus.immutable.DataMonoid(getAllInternal)
+  override def toImmutable: intervalidus.immutable.DataMonoid[V, D] =
+    intervalidus.immutable.DataMonoid.asDataMonoid(this)

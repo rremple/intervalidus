@@ -43,7 +43,10 @@ object Domain:
     * @tparam D
     *   a multidimensional domain
     */
-  @implicitNotFound("Cannot prove that ${D} is at least two-dimensional.")
+  @implicitNotFound(
+    "Cannot prove that ${D} is at least two-dimensional." +
+      "\nAdding the parameter `using Domain.IsAtLeastTwoDimensional[${D}]` may resolve this issue. "
+  )
   type IsAtLeastTwoDimensional[D <: NonEmptyTuple] =
     Tail[D] =:= NonEmptyTail[D]
 
@@ -55,7 +58,10 @@ object Domain:
     * @tparam I
     *   index of a one-dimensional domain
     */
-  @implicitNotFound("Cannot prove that ${D} has a dimension indexed by ${I}.")
+  @implicitNotFound(
+    "Cannot prove that ${D} has a dimension indexed by ${I}." +
+      "\nAdding the parameter `using Domain.HasIndex[${D}, ${I}]` may resolve this issue. "
+  )
   type HasIndex[D <: NonEmptyTuple, I <: DimensionIndex] = (I >= 0 && I < Size[D]) =:= true
 
   /**
@@ -70,7 +76,10 @@ object Domain:
     * @tparam I1
     *   the greater index of a one-dimensional domain
     */
-  @implicitNotFound("Cannot prove that ${D} has swappable dimensions indexed by ${I1} < ${I2}.")
+  @implicitNotFound(
+    "Cannot prove that ${D} has swappable dimensions indexed by ${I1} < ${I2}." +
+      "\nAdding the parameter `using Domain.HasSwappableIndexes[${D}, ${I1}, ${I2}]` may resolve this issue. "
+  )
   type HasSwappableIndexes[D <: NonEmptyTuple, I1 <: DimensionIndex, I2 <: DimensionIndex] =
     HasIndex[D, I1] & HasIndex[D, I2] & I1 < I2 =:= true
 
@@ -86,7 +95,10 @@ object Domain:
     * @tparam H
     *   indexed domain value type
     */
-  @implicitNotFound("Cannot prove that ${D} is updatable using Domain1D[${H}] at index ${I}.")
+  @implicitNotFound(
+    "Cannot prove that ${D} is updatable using Domain1D[${H}] at index ${I}." +
+      "\nAdding the parameter `using Domain.IsUpdatableAtIndex[${D}, ${I}]` may resolve this issue. "
+  )
   type IsUpdatableAtIndex[D <: NonEmptyTuple, I <: DimensionIndex, H] =
     Concat[Take[D, I], Domain1D[H] *: Drop[Drop[D, I], 1]] =:= D
 
@@ -99,7 +111,10 @@ object Domain:
     * @tparam H
     *   head domain value type
     */
-  @implicitNotFound("Cannot prove that ${D} is updatable using Domain1D[${H}] at head.")
+  @implicitNotFound(
+    "Cannot prove that ${D} is updatable using Domain1D[${H}] at head." +
+      "\nAdding the parameter `using Domain.IsUpdatableAtHead[${D}, ${H}]` may resolve this issue. "
+  )
   type IsUpdatableAtHead[D <: NonEmptyTuple, H] =
     Domain1D[H] *: Tail[D] =:= D
 
@@ -116,7 +131,10 @@ object Domain:
     * @tparam R
     *   the multidimensional domain result after the one-dimensional domain is inserted
     */
-  @implicitNotFound("Cannot prove that ${D} with Domain1D[${H}] inserted at index ${I} results in ${R}.")
+  @implicitNotFound(
+    "Cannot prove that ${D} with Domain1D[${H}] inserted at index ${I} results in ${R}." +
+      "\nAdding the parameter `using Domain.IsInsertedInResult[${D}, ${I}, ${H}, ${R}]` may resolve this issue. "
+  )
   type IsInsertedInResult[D <: NonEmptyTuple, I <: DimensionIndex, H, R <: NonEmptyTuple] =
     Concat[Take[D, I], Domain1D[H] *: Drop[D, I]] =:= R
 
@@ -133,7 +151,10 @@ object Domain:
     * @tparam R
     *   the multidimensional domain result after the one-dimensional domains are swapped
     */
-  @implicitNotFound("Cannot prove that ${D} with swapped dimensions indexed by ${I1} < ${I2} results in ${R}.")
+  @implicitNotFound(
+    "Cannot prove that ${D} with swapped dimensions indexed by ${I1} < ${I2} results in ${R}." +
+      "\nAdding the parameter `using Domain.IsSwappedInResult[${D}, ${I1}, ${I2}]` may resolve this issue. "
+  )
   type IsSwappedInResult[D <: NonEmptyTuple, I1 <: DimensionIndex, I2 <: DimensionIndex, R <: NonEmptyTuple] =
     Concat[
       Take[D, I1], // The prefix before the first index.
@@ -154,7 +175,10 @@ object Domain:
     * @tparam R
     *   the multidimensional domain result after dropping the indexed one-dimensional domain
     */
-  @implicitNotFound("Cannot prove that ${D} with domain dropped at index ${I} results in ${R}.")
+  @implicitNotFound(
+    "Cannot prove that ${D} with domain dropped at index ${I} results in ${R}." +
+      "\nAdding the parameter `using Domain.IsDroppedInResult[${D}, ${I}, ${R}]` may resolve this issue. "
+  )
   type IsDroppedInResult[D <: NonEmptyTuple, I <: DimensionIndex, R <: NonEmptyTuple] =
     Concat[Take[D, I], Drop[Drop[D, I], 1]] =:= R
 
@@ -169,7 +193,10 @@ object Domain:
     * @tparam H
     *   indexed domain value type
     */
-  @implicitNotFound("Cannot prove that ${D} has Domain1D[${H}] at index ${I}.")
+  @implicitNotFound(
+    "Cannot prove that ${D} has Domain1D[${H}] at index ${I}." +
+      "\nAdding the parameter `using Domain.IsAtIndex[${D}, ${I}, ${H}]` may resolve this issue. "
+  )
   type IsAtIndex[D <: NonEmptyTuple, I <: DimensionIndex, H] =
     Elem[D, I] =:= Domain1D[H]
 
@@ -182,9 +209,43 @@ object Domain:
     * @tparam H
     *   head domain value type
     */
-  @implicitNotFound("Cannot prove that the head of ${D} is Domain1D[${H}].")
+  @implicitNotFound(
+    "Cannot prove that the head of ${D} is Domain1D[${H}]." +
+      "\nAdding the parameter `using Domain.IsAtHead[${D}, ${H}]` may resolve this issue. "
+  )
   type IsAtHead[D <: NonEmptyTuple, H] =
     Head[D] =:= Domain1D[H]
+
+  /**
+    * Uses recursive structural refinement to evaluate path-dependent types in an affine domain type D to witness that S
+    * is a tuple of its displacement types. Like `=:=`, typically used infix as a witness, e.g.,
+    * `using D HasDisplacementType S`.
+    */
+  @implicitNotFound("The displacement types in ${S} do not align with displacement types in the affine domain ${D}")
+  sealed infix trait HasDisplacementType[D <: Tuple, S <: Tuple]
+
+  object HasDisplacementType:
+    given emptyProof: (EmptyTuple HasDisplacementType EmptyTuple)()
+
+    given inductiveProof[DV, SV, DTail <: Tuple, STail <: Tuple](using
+      DomainAffineValueLike[DV] { type Displacement = SV },
+      DTail HasDisplacementType STail
+    ): (Domain1D[DV] *: DTail HasDisplacementType SV *: STail)()
+
+  /**
+    * Uses recursive structural refinement to evaluate path-dependent types in an affine domain type D to witness that S
+    * is a tuple of its scalar types. Like `=:=`, typically used infix as a witness, e.g., `using D HasScalarType S`.
+    */
+  @implicitNotFound("The scalar types in ${S} do not align with scalar types in the affine domain ${D}")
+  sealed infix trait HasScalarType[D <: Tuple, S <: Tuple]
+
+  object HasScalarType:
+    given emptyProof: (EmptyTuple HasScalarType EmptyTuple)()
+
+    given inductiveProof[DV, SV, DTail <: Tuple, STail <: Tuple](using
+      DomainAffineValueLike[DV] { type Scalar = SV },
+      DTail HasScalarType STail
+    ): (Domain1D[DV] *: DTail HasScalarType SV *: STail)()
 
   type In1D[R1] = Domain1D[R1] *: EmptyTuple
   type In2D[R1, R2] = (Domain1D[R1], Domain1D[R2])

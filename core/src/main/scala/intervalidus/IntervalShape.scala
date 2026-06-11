@@ -1,12 +1,10 @@
 package intervalidus
 
 import intervalidus.immutable.Data
-import intervalidus.DomainLike.given
 
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.language.implicitConversions
-import scala.math.Ordering.Implicits.infixOrderingOps
 
 /**
   * Constructs multidimensional, multi-interval shapes.

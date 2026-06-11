@@ -75,7 +75,6 @@ class DataIn2DMultiTest
     // assert equivalence/non-equivalence
     extension [V, D <: NonEmptyTuple: DomainLike](lhs: DataMulti[V, D])
       infix def ≡≡(rhs: DataMulti[V, D]): Assertion = assert(lhs ≡ rhs, s"\nExpected: $lhs\nActual: $rhs\n")
-      infix def !≡(rhs: DataMulti[V, D]): Assertion = assert(!(lhs ≡ rhs))
 
     type Dim = Domain.In2D[Int, Int]
 
@@ -108,9 +107,6 @@ class DataIn2DMultiTest
 
     val donut = DataMulti(Seq(a, b, c, d).map(_ -> donutFilling)) // no e
     val hole = DataMulti(Seq(e -> holeFilling))
-
-    extension [T](data: DataMulti[T, Dim])
-      private def filledWith(v: Set[T]): DataMulti[T, Dim] = DataMulti(data.getAll.map(_.copy(value = v)))
 
     extension (intervals: Seq[Interval[Dim]])
       private def valueFilled[T](v: Set[T]) = DataMulti(intervals.map(_ -> v))

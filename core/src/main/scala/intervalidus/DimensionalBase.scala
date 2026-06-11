@@ -988,7 +988,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     that: DimensionalBase[V, D],
     thatTx: ReadThatTransaction[V, D]
   )(using thisTx: UpdateTransaction[V, D]): Unit =
-    applyDiffActionsInPlace(that.diffActionsFromInternal(this, thisTx)(using thatTx))
+    applyDiffActionsInPlace(that.diffActionsFromInternal(thisTx)(using thatTx))
 
   /**
     * Data for the intersection of this and a single interval. See
@@ -1498,6 +1498,22 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
   protected def allIntervalsInternal(using Transaction[V, D]): Iterable[Interval[D]] =
     getAllInternal.map(_.interval)
 
+  protected def collectValuesData[B](
+    pf: PartialFunction[V, B]
+  )(using Transaction[V, D]): Iterable[ValidData[B, D]] =
+    val f: V => Option[B] = pf.lift
+    getAllInternal.collect: d =>
+      f(d.value) match
+        case Some(newValue) => d.copy(value = newValue)
+
+  protected def collectIntervalsData[S <: NonEmptyTuple: DomainLike](
+    pf: PartialFunction[Interval[D], Interval[S]]
+  )(using Transaction[V, D]): Iterable[ValidData[V, S]] =
+    val f: Interval[D] => Option[Interval[S]] = pf.lift
+    getAllInternal.collect: d =>
+      f(d.interval) match
+        case Some(newInterval) => d.copy(interval = newInterval)
+
   /**
     * Applies a binary operator to a start value and all valid data, going left to right.
     *
@@ -1523,10 +1539,9 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   a sequence of diff actions that would synchronize it with this.
     */
   def diffActionsFrom(old: DimensionalBase[V, D]): Iterable[DiffAction[V, D]] = transactionalReadWith(old): oldTx =>
-    diffActionsFromInternal(old, oldTx)
+    diffActionsFromInternal(oldTx)
 
   protected def diffActionsFromInternal(
-    old: DimensionalBase[V, D],
     oldTx: Transaction[V, D]
   )(using newTx: Transaction[V, D]): Iterable[DiffAction[V, D]] =
     (newTx.dataByStart.keySet ++ oldTx.dataByStart.keys).toSeq.flatMap: key =>

@@ -21,8 +21,7 @@ trait MutableMultiBaseBehaviors:
   ](
     prefix: String,
     multiFrom: CoreConfig[D] ?=> Iterable[ValidData[String, D]] => S,
-    intervalFrom1D: Interval1D[Int] => Interval[D],
-    recompressAfterUpdate: Boolean = false
+    intervalFrom1D: Interval1D[Int] => Interval[D]
   )(using config: CoreConfig[D]): Unit =
     val recompressAfterUpdate = !config.compressOnUpdate
     def withHorizontalOne(interval: Interval1D[Int], value: String): ValidData[String, D] =

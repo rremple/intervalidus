@@ -2,7 +2,7 @@ package intervalidus.json.upickle
 
 import upickle.default.{Reader, Writer, write}
 import ujson.StringParser
-import intervalidus.DiscreteValue.given
+import intervalidus.DiscreteAffineValue.given
 import intervalidus.DomainLike.given
 import intervalidus.VariableBase.given
 import intervalidus.json.JsonTestBehavior

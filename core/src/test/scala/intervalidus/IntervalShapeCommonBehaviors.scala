@@ -344,8 +344,8 @@ trait IntervalShapeCommonBehaviors(using DomainValueLike[Int]):
 
       val donutIn3DBoundingBox = donutIn3D.boundingInterval
       val donutIn3DBoundingShape = summon[DomainValueLike[Int]] match
-        case _: ContinuousValue[_] => donutIn3D.boundingShape(adjustInt(-1), adjustInt(1))
-        case _: DiscreteValue[_]   => donutIn3D.boundingShape() // use default for coverage
+        case _: ContinuousValue[?] => donutIn3D.boundingShape(adjustInt(-1), adjustInt(1))
+        case _: DiscreteValue[?]   => donutIn3D.boundingShape() // use default for coverage
       donutIn3DBoundingBox shouldBe Some(clipInterval x extrudeInterval)
       val expectedDonutIn3DBoundingShape = IntervalShape(
         Seq(

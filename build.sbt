@@ -150,3 +150,39 @@ lazy val bench = project
   .disablePlugins(MimaPlugin, TastyMiMaPlugin)
   .dependsOn(core)
   .settings(commonNoPublishSettings("bench"))
+
+lazy val siteCheckAll = taskKey[Unit]("Scans generated HTML for Scaladoc issues")
+
+siteCheckAll := {
+  val log = streams.value.log
+
+  // Ensure the site is built first
+  // Calling .value forces SBT to run these tasks completely before proceeding.
+  log.info("Making site...")
+  val continuousDocs = (Compile / unidoc).value
+  val siteDir  = makeSite.value
+
+  log.info(s"Scanning site HTML in $siteDir for issues...")
+  // Find all HTML files recursively
+  val htmlFiles = (siteDir ** "*.html").get
+  var brokenCount = 0
+
+  htmlFiles.foreach { file =>
+    val lines = IO.readLines(file)
+    // log.info(s"Scanning ${file.getName}...")
+    lines.zipWithIndex.foreach { case (line, index) =>
+      // Matches things like <p>$symbol or similar unexpanded patterns
+      if (line.contains("<p>$")) {
+        log.warn(s"Scaladoc-related issue found in ${file.getName}:${index + 1} -> $line")
+        brokenCount += 1
+      }
+    }
+  }
+
+  if (brokenCount == 0) {
+    log.info("Site looks clean.")
+  } else {
+    log.error(s"Found $brokenCount site issues.")
+    throw new MessageOnlyException(s"Site check failed with $brokenCount errors.")
+  }
+}

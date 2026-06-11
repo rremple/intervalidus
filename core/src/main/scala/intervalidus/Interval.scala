@@ -764,7 +764,7 @@ object Interval:
       if leftData ~> rightData
     yield ()
 
-    adjacent.nextOption.isDefined
+    adjacent.nextOption().isDefined
 
   /**
     * Checks if the collection of intervals is disjoint. That is, all neighboring intervals do not intersect. See

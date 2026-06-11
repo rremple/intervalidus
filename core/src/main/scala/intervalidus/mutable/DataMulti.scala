@@ -26,16 +26,17 @@ object DataMulti extends DimensionalMultiBaseObject[DataMulti]:
 
   extension [V, D <: NonEmptyTuple: DomainLike](data: DimensionalBase[Set[V], D])
     /**
-      * Creates a muti-value structure from a non-multi structure managing sets of values.
+      * Creates a mutable muti-value structure from a non-multi structure managing sets of values.
       *
-      * @param config
-      *   $configParam
       * @return
-      *   A new muti-value structure with the same valid values.
+      *   A new mutable muti-value structure with the same valid values.
       */
-    def asDataMulti(using config: CoreConfig[D]): DataMulti[V, D] = new DataMulti(data.stateCopy)
+    def asDataMulti: DataMulti[V, D] = new DataMulti(data.stateCopy)(using config = data.config)
 
-  given [V, D <: NonEmptyTuple: DomainLike]: Conversion[Data[Set[V], D], DataMulti[V, D]] = _.asDataMulti
+  /**
+    * Automatically converts a non-multi structure managing sets of values to a mutable multi-value structure.
+    */
+  given [V, D <: NonEmptyTuple: DomainLike]: Conversion[DimensionalBase[Set[V], D], DataMulti[V, D]] = _.asDataMulti
 
 /**
   * Mutable, multivalued dimensional data.
@@ -226,5 +227,5 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] private (
   override def toMutable: intervalidus.mutable.DataMulti[V, D] =
     this
 
-  override def toImmutable: intervalidus.immutable.DataMulti[V, D] = transactionalRead:
-    intervalidus.immutable.DataMulti(getAllInternal)
+  override def toImmutable: intervalidus.immutable.DataMulti[V, D] =
+    intervalidus.immutable.DataMulti.asDataMulti(this)

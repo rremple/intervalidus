@@ -129,8 +129,6 @@ trait ImmutableMultiBaseBehaviors:
         withHorizontal(intervalFrom(36), Set("A", "Z"))
       )
       val fIntersection = f0 ∩ f5
-      fIntersection.getAll.foreach: d =>
-        println(d.toCodeLikeString)
       fIntersection.getAll.toList shouldBe List(
         withHorizontal(interval(21, 22), Set("D")),
         withHorizontal(interval(23, 25), Set("B", "C", "D")),

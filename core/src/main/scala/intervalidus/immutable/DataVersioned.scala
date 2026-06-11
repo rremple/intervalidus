@@ -307,7 +307,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     *   a new structure with the same current version consisting of all elements that satisfy the provided predicate p.
     */
   def filter(p: ValidData[V, Versioned[D]] => Boolean): DataVersioned[V, D] = new DataVersioned(
-    underlying.getAll.filter(p),
+    underlying.toImmutable.filter(p).getAll,
     initialVersion,
     versionTimestamps.clone(),
     Some(currentVersion)
@@ -336,7 +336,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     DomainLike[Versioned[S]]
   ): DataVersioned[B, S] =
     new DataVersioned(
-      underlying.getAll.map(f),
+      underlying.toImmutable.map(f).getAll,
       initialVersion,
       versionTimestamps.clone(),
       Some(currentVersion)
@@ -365,7 +365,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     DomainLike[Versioned[S]]
   ): DataVersioned[B, S] =
     new DataVersioned(
-      underlying.getAll.collect(pf),
+      underlying.toImmutable.collect(pf).getAll,
       initialVersion,
       versionTimestamps.clone(),
       Some(currentVersion)
@@ -385,7 +385,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     *   this structure.
     */
   def mapValues[B](f: V => B): DataVersioned[B, D] = new DataVersioned(
-    underlying.getAll.map(d => d.copy(value = f(d.value))),
+    underlying.toImmutable.mapValues(f).getAll,
     initialVersion,
     versionTimestamps.clone(),
     Some(currentVersion)
@@ -404,13 +404,13 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     *   a new structure with the same current version resulting from applying the provided function f to each element of
     *   this structure.
     */
-  def collectValues[B](pf: PartialFunction[V, B]): DataVersioned[B, D] = new DataVersioned(
-    underlying.getAll.collect:
-      case d if pf.isDefinedAt(d.value) => d.copy(value = pf(d.value)),
-    initialVersion,
-    versionTimestamps.clone(),
-    Some(currentVersion)
-  )
+  def collectValues[B](pf: PartialFunction[V, B]): DataVersioned[B, D] =
+    new DataVersioned(
+      underlying.toImmutable.collectValues(pf).getAll,
+      initialVersion,
+      versionTimestamps.clone(),
+      Some(currentVersion)
+    )
 
   /**
     * $mapIntervalsDesc The interval type can be changed in the mapping.
@@ -431,7 +431,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     DomainLike[Versioned[S]]
   )(using altConfig: CoreConfig[Versioned[S]]): DataVersioned[V, S] = compressedUpdate(
     new DataVersioned(
-      underlying.getAll.map(d => d.copy(interval = f(d.interval))),
+      underlying.toImmutable.mapIntervals(f).getAll,
       initialVersion,
       versionTimestamps.clone(),
       Some(currentVersion)
@@ -457,8 +457,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     DomainLike[Versioned[S]]
   )(using altConfig: CoreConfig[Versioned[S]]): DataVersioned[V, S] = compressedUpdate(
     new DataVersioned(
-      underlying.getAll.collect:
-        case d if pf.isDefinedAt(d.interval) => d.copy(interval = pf(d.interval)),
+      underlying.toImmutable.collectIntervals(pf).getAll,
       initialVersion,
       versionTimestamps.clone(),
       Some(currentVersion)
@@ -486,7 +485,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     DomainLike[Versioned[S]]
   )(using altConfig: CoreConfig[Versioned[S]]): DataVersioned[B, S] =
     new DataVersioned(
-      underlying.getAll.flatMap(f(_).underlying.getAll),
+      underlying.toImmutable.flatMap(f(_).underlying).getAll,
       initialVersion,
       versionTimestamps.clone(),
       Some(currentVersion)

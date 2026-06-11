@@ -206,7 +206,7 @@ class DiscreteValueTest extends AnyFunSuite:
   test("Ops on BigInts"):
     import DiscreteValue.BigIntDiscreteValue
 
-    import BigInt.{apply => valueOf}
+    import BigInt.{apply as valueOf}
     assert(valueOf(1).predecessorValue equiv Some(valueOf(0)))
     assert(BigIntDiscreteValue.minValue.predecessorValue equiv None)
     assert(valueOf(1).successorValue equiv Some(valueOf(2)))
@@ -222,7 +222,7 @@ class DiscreteValueTest extends AnyFunSuite:
     import DiscreteValue.BigIntDiscreteValue.{maxValue, minValue}
     import Domain1D.*
 
-    import BigInt.{apply => valueOf}
+    import BigInt.{apply as valueOf}
 
     def point(v: Int): Domain1D[BigInt] = domain(valueOf(v))
     def top: Domain1D[BigInt] = Top

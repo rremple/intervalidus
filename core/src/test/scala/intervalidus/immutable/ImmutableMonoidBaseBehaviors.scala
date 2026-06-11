@@ -160,8 +160,8 @@ trait ImmutableMonoidBaseBehaviors(using DomainValueLike[Int]):
       withoutQuadrantTwo.isDefinedAt(quadrantFourSample) shouldBe true
 
       // Unit is a monoid
-      val withoutQuadrantOneDouble = DataMonoid(withoutQuadrantOne.mapValues(_ => ()).getAll)
-      val withoutQuadrantTwoDouble = DataMonoid(withoutQuadrantTwo.mapValues(_ => ()).getAll)
+      val withoutQuadrantOneDouble = withoutQuadrantOne.mapValues(_ => ()).asDataMonoid
+      val withoutQuadrantTwoDouble = withoutQuadrantTwo.mapValues(_ => ()).asDataMonoid
 
       // setIfNoConflict ensures no overlaps, subsequent checks ensure no gaps
       val complete1 = withoutQuadrantOneDouble.setIfNoConflict((fromOrigin x fromOrigin) -> ()) // I
@@ -220,8 +220,8 @@ trait ImmutableMonoidBaseBehaviors(using DomainValueLike[Int]):
       donutFromData ≡≡ donut
 
       extension [T](data: DataMonoid[T, Dim])(using monoid: Monoid[T])
-        private def filledWith(v: T): DataMonoid[T, Dim] = DataMonoid(data.mapValues(_ => v).getAll)
-        private def filledWithIdentity: DataMonoid[T, Dim] = DataMonoid(data.mapValues(_ => monoid.identity).getAll)
+        private def filledWith(v: T): DataMonoid[T, Dim] = data.mapValues(_ => v)
+        private def filledWithIdentity: DataMonoid[T, Dim] = data.mapValues(_ => monoid.identity)
 
       extension (intervals: Seq[Interval[Dim]])
         private def valueFilled[T: Monoid](v: T) = DataMonoid(intervals.map(_ -> v))

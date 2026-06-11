@@ -109,9 +109,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     *   $collectValuesParamPf
     */
   def collectValues(pf: PartialFunction[V, V]): Unit = transactionalUpdate:
-    val collected = getAllInternal.collect:
-      case d if pf.isDefinedAt(d.value) => d.copy(value = pf(d.value))
-    replaceValidData(collected)
+    replaceValidData(collectValuesData(pf))
     compressedUpdateInternal()
 
   /**
@@ -130,8 +128,9 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     *   $collectIntervalsParamPf
     */
   def collectIntervals(pf: PartialFunction[Interval[D], Interval[D]]): Unit = transactionalUpdate:
-    val collected = getAllInternal.collect:
-      case d if pf.isDefinedAt(d.interval) => d.copy(interval = pf(d.interval))
+    val collected = getAllInternal.collect: d =>
+      pf.lift(d.interval) match
+        case Some(newInterval) => d.copy(interval = newInterval)
     replaceValidData(collected)
     compressedUpdateInternal()
 
@@ -286,7 +285,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     * $compressAllDesc $mutableAction
     */
   def compressAll(): Unit = transactionalUpdate:
-    compressedUpdateInternal()
+    compressAllInternal()
 
   protected def compressAllInternal()(using UpdateTransaction[V, D]): Unit =
     valuesInternal.foreach(compressInPlace)

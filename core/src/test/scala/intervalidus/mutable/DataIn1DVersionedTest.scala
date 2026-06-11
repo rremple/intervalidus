@@ -223,7 +223,6 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     fixture2.getAll(using VersionSelection(fixture6.getCurrentVersion)).toList shouldBe expectedData6
 
     val actionsFromVersion7 = fixture6.diffActionsBetween(VersionSelection(7), VersionSelection.Current)
-    // actionsFromVersion7.foreach(a => println(a.toCodeLikeString))
     actionsFromVersion7 shouldBe Iterable(
       Update((interval(2, 7) x interval(16, 19)) -> "World"),
       Update((intervalFrom(5) x intervalTo(0)) -> "Hey"),
