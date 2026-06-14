@@ -118,7 +118,7 @@ lazy val `intervalidus-examples` = (project in file("examples"))
   .dependsOn(core, `intervalidus-tinyrule`)
   .settings(commonNoPublishSettings("intervalidus-examples"))
 
-val mongodbVersion = "5.7.1"
+val mongodbVersion = "5.8.0"
 val testcontainersVersion = "0.44.1"
 
 lazy val `intervalidus-example-mongodb` = (project in file("example-mongodb"))
@@ -160,7 +160,7 @@ siteCheckAll := {
   // Calling .value forces SBT to run these tasks completely before proceeding.
   log.info("Making site...")
   val continuousDocs = (Compile / unidoc).value
-  val siteDir  = makeSite.value
+  val siteDir = makeSite.value
 
   log.info(s"Scanning site HTML in $siteDir for issues...")
   // Find all HTML files recursively
