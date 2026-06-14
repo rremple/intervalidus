@@ -99,7 +99,7 @@ lazy val `intervalidus-weepickle` = (project in file("json/weepickle"))
   .dependsOn(core, `intervalidus-pickle` % "compile->compile;test->test")
   .settings(commonPublishSettings("intervalidus-weepickle"))
   .settings(
-    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.21.4",
+    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.0",
     libraryDependencies += "com.rallyhealth" %% "weepickle-v1" % "1.9.1"
   )
 
@@ -160,7 +160,7 @@ siteCheckAll := {
   // Calling .value forces SBT to run these tasks completely before proceeding.
   log.info("Making site...")
   val continuousDocs = (Compile / unidoc).value
-  val siteDir  = makeSite.value
+  val siteDir = makeSite.value
 
   log.info(s"Scanning site HTML in $siteDir for issues...")
   // Find all HTML files recursively
