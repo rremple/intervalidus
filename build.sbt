@@ -1,6 +1,6 @@
 import sbt.Def
 
-ThisBuild / scalaVersion := "3.3.7"
+ThisBuild / scalaVersion := "3.3.8"
 
 ThisBuild / organization := "rremple" // necessary for the sbt-ghpages and sbt-github-packages
 ThisBuild / githubOwner := (ThisBuild / organization).value
@@ -160,7 +160,7 @@ siteCheckAll := {
   // Calling .value forces SBT to run these tasks completely before proceeding.
   log.info("Making site...")
   val continuousDocs = (Compile / unidoc).value
-  val siteDir  = makeSite.value
+  val siteDir = makeSite.value
 
   log.info(s"Scanning site HTML in $siteDir for issues...")
   // Find all HTML files recursively
