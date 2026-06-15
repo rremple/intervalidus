@@ -1014,14 +1014,15 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     * @return
     *   intervals representing the intersection of this and that. (The values in this and that are ignored.)
     */
-  def intersectingIntervals(
+  def intersection(
     that: DimensionalBase[?, D]
-  ): Iterable[Interval[D]] = transactionalReadWith(that): thatTx =>
-    for
+  ): IntervalShape[D] = transactionalReadWith(that): thatTx =>
+    val intersectingIntervals = for
       a <- getAllInternal
       b <- that.getIntersectingInternal(a.interval)(using thatTx)
       intervalIntersection <- a.interval ∩ b.interval
     yield intervalIntersection
+    IntervalShape.withoutChecks(intersectingIntervals)
 
   /**
     * Internal method, to zip with the data of another dimensional structure with the same domain type. The result
@@ -1445,28 +1446,11 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     * Returns all the intervals (compressed) in which there are valid values. See
     * [[https://en.wikipedia.org/wiki/Domain_of_a_function]].
     */
-  def domain: Iterable[Interval[D]] = transactionalRead:
-    Interval.compress(
-      Interval.uniqueIntervals(allIntervalsInternal).filter(intersectsInternal(_))
-    )
+  def domain: IntervalShape[D] = transactionalRead:
+    domainInternal
 
-  /**
-    * Returns all the intervals (compressed) in which there are no valid values. That is, all intervals that are not in
-    * the [[domain]]. See [[https://en.wikipedia.org/wiki/Domain_of_a_function]] and
-    * [[https://en.wikipedia.org/wiki/Complement_(set_theory)]].
-    */
-  def domainComplement: Iterable[Interval[D]] = transactionalRead:
-    domainComplementInternal
-
-  protected def domainComplementInternal(using Transaction[V, D]): Iterable[Interval[D]] =
-    Interval.compress(
-      Interval
-        .uniqueIntervals(
-          allIntervalsInternal ++
-            Iterable.single(Interval.unbounded[D])
-        )
-        .filter(!intersectsInternal(_))
-    )
+  protected def domainInternal(using Transaction[V, D]): IntervalShape[D] =
+    IntervalShape(allIntervalsInternal)(using config = config.withCompressOnUpdate(true))
 
   /**
     * Returns the distinct values that are valid in some interval.
@@ -1556,34 +1540,6 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     */
   def boundingInterval: Option[Interval[D]] =
     if isEmpty then None else Some(allIntervals.reduce(_ joinedWith _))
-
-  /**
-    * The shape forming a shell around all valid data. The shape will be adjacent to valid data everywhere, but not
-    * intersecting it anywhere. The shell's thickness is determined by the adjustment functions.
-    * @note
-    *   If data are valid on the boundaries of the domain in any dimensions, the shell may not be contiguous.
-    * @note
-    *   The default adjustments are leftAdjacent and rightAdjacent, which work well in discrete domains (makes the shell
-    *   one unit thick), but not so well in continuous domains. Using these defaults with a continuous domain may result
-    *   in errors, e.g., applying the default adjustment to [1, 1] would result in (1, 1), which is not a valid
-    *   interval.
-    *
-    * @param adjustStart
-    *   How coordinates related to the starts of intervals are adjusted to form the shell. This forms the thickness of
-    *   the shell on the left, bottom, back, etc.
-    * @param adjustEnd
-    *   How coordinates related to the ends of intervals are adjusted to form the shell. This forms the thickness of the
-    *   shell on the right, top, front, etc.
-    * @return
-    *   A shape that forms a shell around all valid data.
-    */
-  def boundingShape(
-    adjustStart: D => D = _.leftAdjacent,
-    adjustEnd: D => D = _.rightAdjacent
-  ): IntervalShape[D] =
-    val originalIntervals = allIntervals
-    val puffedIntervals = originalIntervals.map(i => Interval(adjustStart(i.start), adjustEnd(i.end)))
-    IntervalShape.empty.addMany(puffedIntervals).removeMany(originalIntervals)
 
   // ---------- To be implemented by inheritor ----------
 

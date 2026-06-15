@@ -60,6 +60,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     */
   infix def intersection(interval: Interval[D]): Unit = transactionalUpdate:
     replaceValidData(intersectionData(interval))
+    compressedUpdateInternal()
 
   /**
     * $symmetricDifferenceDesc $mutableAction
@@ -69,6 +70,7 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
     */
   infix def symmetricDifference(that: DimensionalBase[V, D]): Unit = transactionalUpdateWith(that): thatTx =>
     replaceValidData(symmetricDifferenceData(that, thatTx))
+    compressedUpdateInternal()
 
   /**
     * $mapDesc $mutableAction

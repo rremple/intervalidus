@@ -50,13 +50,13 @@ trait DataIn4DBaseBehaviors:
     assert((empty: Any) != ("<nothing is valid>": Any))
     assert(empty.getAll.isEmpty)
     assert(empty.domain.isEmpty)
-    empty.domainComplement.toList shouldBe List(Interval.unbounded[MixedDim])
+    assert(empty.domain.complement.isUniverse)
 
     val single = dataIn4DOf("Hello world")
     single.get shouldBe "Hello world"
     single.getOption shouldBe Some("Hello world")
-    single.domain.toList shouldBe List(Interval.unbounded[MixedDim])
-    assert(single.domainComplement.isEmpty)
+    assert(single.domain.isUniverse)
+    assert(single.domain.complement.isEmpty)
 
     val bounded = (intervalFrom(0) x intervalTo(0) x intervalTo(0) x intervalTo(0)) -> "Hello world"
     bounded.toString shouldBe "{[0..+∞), (-∞..0], (-∞..0], (-∞..0]} -> Hello world"
@@ -86,8 +86,8 @@ trait DataIn4DBaseBehaviors:
       (unboundedDate x unboundedDate x intervalFrom(11) x unbounded[Int]) -> "World"
     )
     val fixture2 = dataIn4DFrom(allData2)
-    fixture2.domain.toList shouldBe List(unbounded[Int] x unbounded[Int] x intervalFrom(0) x unbounded[Int])
-    fixture2.domainComplement.toList shouldBe List(
+    fixture2.domain shouldBe IntervalShape.of(unbounded[Int] x unbounded[Int] x intervalFrom(0) x unbounded[Int])
+    fixture2.domain.complement shouldBe IntervalShape.of(
       unbounded[Int] x unbounded[Int] x intervalToBefore(0) x unbounded[Int]
     )
     fixture2.values should contain theSameElementsAs List("Hello", "World")

@@ -225,16 +225,16 @@ trait ImmutableBaseBehaviors:
         else updated
       }
       fixture2.getAll.toList shouldBe expectedData2
-      fixture2.domain.toList shouldBe List(
-        intervalFrom1D(intervalTo(2)),
-        intervalFrom1D(intervalFrom(6))
+      fixture2.domain shouldBe IntervalShape(
+        List(
+          intervalFrom1D(intervalTo(2)),
+          intervalFrom1D(intervalFrom(6))
+        )
       )
-      fixture2.domainComplement.toList shouldBe List(
+      fixture2.domain.complement shouldBe IntervalShape.of(
         intervalFrom1D(intervalFromAfter(2).toBefore(6))
       )
-      Interval.compress(fixture2.domain ++ fixture2.domainComplement).toList shouldBe List(
-        intervalFrom1D(unbounded[Int])
-      )
+      (fixture2.domain union fixture2.domain.complement) shouldBe IntervalShape.universe
 
       val fixture3 = fixture2
         .remove(intervalFrom1D(interval(2, 9)))
@@ -246,12 +246,14 @@ trait ImmutableBaseBehaviors:
         dataFrom1D(intervalFrom(10), "Hello")
       )
       fixture3.getAll.toList shouldBe expectedData3
-      fixture3.domain.toList shouldBe List(
-        intervalFrom1D(intervalTo(1)),
-        intervalFrom1D(intervalFrom(10))
+      fixture3.domain shouldBe IntervalShape(
+        List(
+          intervalFrom1D(intervalTo(1)),
+          intervalFrom1D(intervalFrom(10))
+        )
       )
 
-      fixture3.domainComplement.toList shouldBe List(
+      fixture3.domain.complement shouldBe IntervalShape.of(
         intervalFrom1D(intervalFromAfter(1).toBefore(10))
       )
 
@@ -276,8 +278,8 @@ trait ImmutableBaseBehaviors:
       )
 
       val fixture0: S = immutableFrom(allData)
-      fixture0.domain.toList shouldBe List(Interval.unbounded[D])
-      assert(fixture0.domainComplement.isEmpty)
+      assert(fixture0.domain.isUniverse)
+      assert(fixture0.domain.complement.isEmpty)
       val fixture1 = fixture0.compress("Hello")
       val expectedData1 = List(
         dataFrom1D(intervalTo(4), "Hello"),
@@ -287,8 +289,8 @@ trait ImmutableBaseBehaviors:
       )
       fixture1.getAll.toList shouldBe expectedData1
       fixture1 ≡ immutableFrom(expectedData1) shouldBe true
-      fixture1.domain.toList shouldBe List(Interval.unbounded[D])
-      assert(fixture1.domainComplement.isEmpty)
+      assert(fixture1.domain.isUniverse)
+      assert(fixture1.domain.complement.isEmpty)
 
       val fixture2 = immutableFrom(allData)
         .compressAll()
@@ -298,5 +300,5 @@ trait ImmutableBaseBehaviors:
         dataFrom1D(intervalFrom(7), "Hello")
       )
       fixture2.getAll.toList shouldBe expectedData2
-      fixture2.domain.toList shouldBe List(Interval.unbounded[D])
-      assert(fixture2.domainComplement.isEmpty)
+      assert(fixture2.domain.isUniverse)
+      assert(fixture2.domain.complement.isEmpty)

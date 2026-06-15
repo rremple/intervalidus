@@ -136,7 +136,8 @@ object Json:
 
   given given_ReadWriter_immutable_DataVersioned[V, D <: NonEmptyTuple: DomainLike](using
     DomainLike[Versioned[D]],
-    ReadWriter[ValidData[V, Versioned[D]]],
+    Writer[ValidData[V, Versioned[D]]],
+    Reader[mutable.Data[V, Versioned[D]]],
     CoreConfig[Versioned[D]]
   ): ReadWriter[immutable.DataVersioned[V, D]] =
     asValueObj.bimap[immutable.DataVersioned[V, D]](
@@ -148,8 +149,7 @@ object Json:
           "data" -> writeJs(data.getVersionedData.getAll)
         ),
       obj =>
-        new immutable.DataVersioned[V, D](
-          obj("data").as[Iterable[ValidData[V, Versioned[D]]]],
+        immutable.DataVersioned.asDataVersioned[V, D](obj("data").as[mutable.Data[V, Versioned[D]]])(
           obj("initialVersion").as[VersionDomainValue],
           scala.collection.mutable.Map.from(obj("versionTimestamps").as[Seq[(VersionDomainValue, VersionMetadata)]]),
           obj("currentVersion").as[Option[VersionDomainValue]]
@@ -208,7 +208,8 @@ object Json:
 
   given given_ReadWriter_mutable_DataVersioned[V, D <: NonEmptyTuple: DomainLike](using
     DomainLike[Versioned[D]],
-    ReadWriter[ValidData[V, Versioned[D]]],
+    Writer[ValidData[V, Versioned[D]]],
+    Reader[mutable.Data[V, Versioned[D]]],
     CoreConfig[Versioned[D]]
   ): ReadWriter[mutable.DataVersioned[V, D]] =
     asValueObj.bimap[mutable.DataVersioned[V, D]](
@@ -220,8 +221,7 @@ object Json:
           "data" -> writeJs(data.getVersionedData.getAll)
         ),
       obj =>
-        new mutable.DataVersioned[V, D](
-          obj("data").as[Iterable[ValidData[V, Versioned[D]]]],
+        mutable.DataVersioned.asDataVersioned[V, D](obj("data").as[mutable.Data[V, Versioned[D]]])(
           obj("initialVersion").as[VersionDomainValue],
           scala.collection.mutable.Map.from(obj("versionTimestamps").as[Seq[(VersionDomainValue, VersionMetadata)]]),
           obj("currentVersion").as[Option[VersionDomainValue]]

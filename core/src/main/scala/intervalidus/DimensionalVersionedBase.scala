@@ -93,6 +93,15 @@ import DimensionalVersionedBase.*
   */
 trait DimensionalVersionedBaseObject[Constructed[_, _ <: NonEmptyTuple] <: DimensionalVersionedBase[?, ?]]:
 
+  protected val defaultInitialVersion: VersionDomainValue = 0
+  protected val defaultInitialComment: String = "init"
+  protected val defaultWithCurrentVersion = None
+  protected def defaultVersionTimestamps(
+    initialVersion: VersionDomainValue = defaultInitialVersion,
+    initialComment: String = defaultInitialComment
+  )(using CurrentInstant): mutable.Map[VersionDomainValue, VersionMetadata] =
+    mutable.Map(initialVersion -> (summon[CurrentInstant].now(), initialComment))
+
   // ---------- Abstract ----------
 
   /**
@@ -139,13 +148,11 @@ trait DimensionalVersionedBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimen
     *   a new empty structure
     */
   def empty[V, D <: NonEmptyTuple: DomainLike](using
-    config: CoreConfig[Versioned[D]],
-    initialVersion: VersionDomainValue = 0,
-    initialComment: String = "init"
+    config: CoreConfig[Versioned[D]]
   )(using
     DomainLike[Versioned[D]],
     CurrentInstant
-  ): Constructed[V, D] = apply(Iterable.empty, initialVersion, initialComment)
+  ): Constructed[V, D] = apply(Iterable.empty, defaultInitialVersion, defaultInitialComment)
 
   /**
     * Shorthand constructor for a single initial value that is valid in a specific interval starting at the initial
@@ -440,7 +447,7 @@ trait DimensionalVersionedBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimen
   *   interval in which all changes (updates and deletes) are approved
   */
 trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
-  initialData: Iterable[ValidData[V, Versioned[D]]],
+  protected val underlying: MutableData[V, Versioned[D]], // mutable n+1 dimensional representation of versioned data
   initialVersion: VersionDomainValue,
   versionTimestamps: mutable.Map[VersionDomainValue, VersionMetadata],
   withCurrentVersion: Option[VersionDomainValue]
@@ -499,9 +506,6 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
 
   def getVersionTimestamps: Map[VersionDomainValue, VersionMetadata] =
     versionTimestamps.toMap
-
-  // Underlying n+1 dimensional representation of versioned n dimensional data (mutable)
-  protected val underlying: MutableData[V, Versioned[D]] = MutableData(initialData)
 
   // Construct an underlying domain from a public domain plus version selection
   protected def underlyingDomain(domain: D)(using versionSelection: VersionSelection): Versioned[D] =
@@ -763,15 +767,7 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     * Returns all the intervals (compressed) in which there are valid values given some version selection context. See
     * [[https://en.wikipedia.org/wiki/Domain_of_a_function]].
     */
-  def domain(using VersionSelection): Iterable[Interval[D]] = getSelectedDataMutable.domain
-
-  /**
-    * Returns all the intervals (compressed) in which there are no valid values given some version selection context.
-    * That is, all intervals that are not in the [[domain]] given the same version selection context. See
-    * [[https://en.wikipedia.org/wiki/Domain_of_a_function]] and
-    * [[https://en.wikipedia.org/wiki/Complement_(set_theory)]].
-    */
-  def domainComplement(using VersionSelection): Iterable[Interval[D]] = getSelectedDataMutable.domainComplement
+  def domain(using VersionSelection): IntervalShape[D] = getSelectedDataMutable.domain
 
   /**
     * Returns the distinct values that are valid in some interval given some version selection context.
@@ -845,36 +841,6 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     // same as, but probably faster than, getSelectedDataMutable.boundingInterval
     val selectedIntervals = allIntervals
     if selectedIntervals.isEmpty then None else Some(selectedIntervals.reduce(_ joinedWith _))
-
-  /**
-    * The shape forming a shell around all valid data given some version selection context. The shape will be adjacent
-    * to valid data everywhere, but not intersecting it anywhere. The shell's thickness is determined by the adjustment
-    * functions.
-    *
-    * @note
-    *   If data are valid on the boundaries of the domain in any dimensions, the shell may not be contiguous.
-    * @note
-    *   The default adjustments are leftAdjacent and rightAdjacent, which work well in discrete domains (makes the shell
-    *   one unit thick), but not so well in continuous domains. Using these defaults with a continuous domain may result
-    *   in errors, e.g., applying the default adjustment to [1, 1] would result in (1, 1), which is not a valid
-    *   interval.
-    * @param adjustStart
-    *   How coordinates related to the starts of intervals are adjusted to form the shell. This forms the thickness of
-    *   the shell on the left, bottom, back, etc.
-    * @param adjustEnd
-    *   How coordinates related to the ends of intervals are adjusted to form the shell. This forms the thickness of the
-    *   shell on the right, top, front, etc.
-    * @return
-    *   A shape that forms a shell around all valid data.
-    */
-  def boundingShape(
-    adjustStart: D => D = _.leftAdjacent,
-    adjustEnd: D => D = _.rightAdjacent
-  )(using VersionSelection): IntervalShape[D] =
-    // same as, but probably faster than, getSelectedDataMutable.boundingShape(adjustStart, adjustEnd)
-    val originalIntervals = allIntervals
-    val puffedIntervals = originalIntervals.map(i => Interval(adjustStart(i.start), adjustEnd(i.end)))
-    IntervalShape.empty.addMany(puffedIntervals).removeMany(originalIntervals)
 
   // ---------- To be implemented by inheritor ----------
 

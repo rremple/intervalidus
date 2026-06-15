@@ -1,5 +1,6 @@
 package intervalidus
 
+import org.scalatest.exceptions.TestFailedException
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.{Assertion, Assertions}
 
@@ -27,4 +28,9 @@ trait ProofMatchers extends Assertions:
 class ProofMatchersTest extends AnyFunSuite with ProofMatchers:
   test("built-in witnesses work"):
     assertProven[String <:< Any]("a String is a subtype of Any")
+    assertThrows[TestFailedException]:
+      assertNotProven[String <:< Any]("a String is a subtype of Any")
+
     assertNotProven[String =:= Int]("a String is the same as an Int")
+    assertThrows[TestFailedException]:
+      assertProven[String =:= Int]("a String is the same as an Int")

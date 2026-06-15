@@ -92,7 +92,7 @@ class DataMonoid[V, D <: NonEmptyTuple: DomainLike] private (
     * $complementDesc $mutableAction
     */
   def complement(): Unit = transactionalUpdate:
-    replaceValidData(domainComplementInternal.map(_ -> monoid.identity))
+    replaceValidData(domainInternal.complement.allIntervals.map(_ -> monoid.identity))
 
   /**
     * Same as [[complement]].

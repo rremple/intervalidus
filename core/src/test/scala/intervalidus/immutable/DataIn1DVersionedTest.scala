@@ -42,7 +42,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     given CurrentInstant = dayZero.asCurrent
 
     val empty: DataVersioned[String, IntDim] = mutable.DataVersioned.empty[String, IntDim].toMutable.toImmutable
-    empty shouldBe new DataVersioned[String, IntDim]()
+    empty shouldBe DataVersioned.empty[String, IntDim]
 
     assertThrows[Exception]: // version too large
       empty.setCurrentVersion(Int.MaxValue)

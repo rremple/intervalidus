@@ -23,9 +23,9 @@ trait DataIn1DBaseBehaviors:
     dataIn1DFrom: CoreConfig[IntDim] ?=> Iterable[ValidData[String, IntDim]] => S,
     dataIn1DOf: CoreConfig[IntDim] ?=> String => S
   )(using
-    config: CoreConfig[IntDim]
-  )(using DomainValueLike[Int]): Unit = test(s"$prefix: Looking up data in intervals"):
-    val domainValue = summon[DomainValueLike[Int]]
+    config: CoreConfig[IntDim],
+    domainValue: DomainValueLike[Int]
+  ): Unit = test(s"$prefix: Looking up data in intervals"):
     {
       given CoreConfig[IntDim] = config.withExperimental(Experimental("requireDisjoint"))
 
@@ -40,15 +40,15 @@ trait DataIn1DBaseBehaviors:
     assert((empty: Any) != ("<nothing is valid>": Any))
     assert(empty.getAll.isEmpty)
     assert(empty.domain.isEmpty)
-    empty.domainComplement.toList shouldBe List(Interval.unbounded[IntDim])
+    assert(empty.domain.complement.isUniverse)
 
     dataIn1DOf("Hello").zip(dataIn1DOf("world")).get shouldBe ("Hello", "world")
 
     val single = dataIn1DOf("Hello world")
     single.get shouldBe "Hello world"
     single.getOption shouldBe Some("Hello world")
-    single.domain.toList shouldBe List(Interval.unbounded[IntDim])
-    assert(single.domainComplement.isEmpty)
+    assert(single.domain.isUniverse)
+    assert(single.domain.complement.isEmpty)
     single shouldBe dataIn1DOf("Hello world")
     single.hashCode() shouldBe dataIn1DOf("Hello world").hashCode()
 
@@ -76,8 +76,8 @@ trait DataIn1DBaseBehaviors:
 
     val allData2 = List(interval(0, 10) -> "Hello", intervalFromAfter(10) -> "World")
     val fixture2 = dataIn1DFrom(allData2)
-    fixture2.domain.toList shouldBe List(intervalFrom(0).tupled)
-    fixture2.domainComplement.toList shouldBe List(intervalToBefore(0).tupled)
+    fixture2.domain shouldBe IntervalShape.of(intervalFrom(0))
+    fixture2.domain.complement shouldBe IntervalShape.of(intervalToBefore(0))
     fixture2.values should contain theSameElementsAs List("Hello", "World")
     fixture2.getAt(5) shouldBe Some("Hello")
     fixture2.getAt(15) shouldBe Some("World")

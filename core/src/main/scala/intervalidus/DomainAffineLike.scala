@@ -134,6 +134,16 @@ object DomainAffineLike:
       val end = lhs.end displacedBy offset
       if Interval1D.validBounds(start, end) then Some(Interval1D(start, end)) else None
 
+    /**
+      * Pads this interval at both the start and end. If the displacement is positive, the interval widens, and if the
+      * displacement is negative, the interval shrinks. If the result is not a valid interval (e.g., pad to shrink more
+      * than the interval width), None is returned.
+      */
+    infix def paddedBy(offset: op.Displacement): Option[Interval1D[T]] =
+      val start = lhs.start displacedBy offset.negated
+      val end = lhs.end displacedBy offset
+      if Interval1D.validBounds(start, end) then Some(Interval1D(start, end)) else None
+
   extension [D <: NonEmptyTuple](lhs: Interval[D])(using op: DomainAffineLike[D])
     /**
       * Returns this interval reflected about some pivot.
@@ -146,6 +156,13 @@ object DomainAffineLike:
       */
     def displacedBy[S <: NonEmptyTuple](offset: S)(using D HasDisplacementType S): Option[Interval[D]] =
       op.applyToAffineDomain.displacedByFromInterval(lhs, offset)
+
+    /**
+      * Returns this interval padded by some offset. The interval end is displaced by the offset and the interval start
+      * is displaced by the negation of the offset. The offset must be a tuple of the displacement types of D.
+      */
+    def paddedBy[S <: NonEmptyTuple](offset: S)(using D HasDisplacementType S): Option[Interval[D]] =
+      op.applyToAffineDomain.paddedByFromInterval(lhs, offset)
 
     /**
       * Returns the measure of this interval as a tuple of the displacement types of D if the measures are defined in
@@ -194,7 +211,30 @@ object DomainAffineLike:
       */
     def scaledAbout[S <: NonEmptyTuple](center: D, scaledBy: S)(using D HasScalarType S): IntervalShape[D] =
       val transform = ((_: Interval[D]).scaledAbout(center, scaledBy)).unlift
-      IntervalShape.∅.addMany(lhs.allIntervals.collect(transform))
+      IntervalShape.∅ ++ lhs.allIntervals.collect(transform)
+
+    /**
+      * The shape forming a shell around the boundary of all valid data. The shell's thickness and direction are
+      * determined per dimension by the given displacement vector. The resulting shell represents the symmetric
+      * difference of the original shape and the same shape padded with the provided thickness.
+      *
+      * When all thickness components are positive (the common case), the resulting shape will be adjacent to valid data
+      * everywhere, but not intersecting it anywhere.
+      *
+      * @note
+      *   If data are valid on the boundaries of the domain in any dimension, the resulting shell may not be contiguous.
+      *
+      * @param thickness
+      *   A tuple of displacements representing the shell's thickness in each dimension. Positive values expand the
+      *   boundaries outward, while negative values contract them inward. Dimensions can mix positive and negative
+      *   displacements.
+      *
+      * @return
+      *   A shape that forms a shell around the boundary of all valid data.
+      */
+    def boundingShape[S <: NonEmptyTuple](thickness: S)(using D HasDisplacementType S): IntervalShape[D] =
+      val paddedIntervals = lhs.allIntervals.flatMap(_.paddedBy(thickness))
+      (IntervalShape.∅ ++ paddedIntervals) △ lhs
 
     /**
       * Returns an accumulated measure of this interval shape by measuring this shape's interval components (tuples of

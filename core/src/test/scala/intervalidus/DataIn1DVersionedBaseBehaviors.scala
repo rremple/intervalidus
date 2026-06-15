@@ -63,8 +63,8 @@ trait DataIn1DVersionedBaseBehaviors:
       val single = dataIn1DVersionedOf("Hello world")
       single.get shouldBe "Hello world"
       single.getOption shouldBe Some("Hello world")
-      single.domain.toList shouldBe List(Interval.unbounded[IntDim])
-      assert(single.domainComplement.isEmpty)
+      assert(single.domain.isUniverse)
+      assert(single.domain.complement.isEmpty)
       single shouldBe dataIn1DVersionedOf("Hello world")
       single.hashCode() shouldBe dataIn1DVersionedOf("Hello world").hashCode()
       single.size shouldBe 1
@@ -81,8 +81,8 @@ trait DataIn1DVersionedBaseBehaviors:
 
       val allData2 = List(interval(0, 10) -> "Hello", intervalFrom(11) -> "World")
       val fixture2 = dataIn1DVersionedFrom2D(testDataIn2D(0, allData2))
-      fixture2.domain.toList shouldBe List(intervalFrom(0).tupled)
-      fixture2.domainComplement.toList shouldBe List(intervalToBefore(0).tupled)
+      fixture2.domain shouldBe IntervalShape.of(intervalFrom(0).tupled)
+      fixture2.domain.complement shouldBe IntervalShape.of(intervalToBefore(0).tupled)
       fixture2.values should contain theSameElementsAs List("Hello", "World")
       fixture2.allIntervals should contain theSameElementsAs List(interval(0, 10), intervalFrom(11)).map(_.tupled)
       fixture2.getAt(5) shouldBe Some("Hello")

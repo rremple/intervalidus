@@ -44,6 +44,9 @@ class DataAffineDiscreteTest
   override def donutDisplacedBy(offset: (Int, Int)): DimensionalAffineBase[Double, Dim] =
     clippedDonut.mutate(_.displacedBy(offset))
 
+  def donutBoundingShape(thickness: (Int, Int)): IntervalShape[Dim] =
+    clippedDonut.boundingShape(thickness)
+
   override def convolvedByIn[V, D <: NonEmptyTuple: DomainAffineLike, K](
     dimensionIndex: Domain.DimensionIndex,
     signalData: Seq[ValidData[V, D]],

@@ -298,17 +298,17 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
       (intervalFrom(day(1)) x intervalFrom(0)) -> "updated me"
     )
     fixture4.getAll.toList shouldBe expectedData4
-    fixture4.domain.toList shouldBe List(
-      vertical2D(intervalTo(1)), // the first 5 plus a bit of the 7th and 8th
-      vertical2D(intervalFrom(10)), // the 6th plus a bit of the 7th and 8th
-      intervalFrom(day(0)) x interval(2, 9) // the remaining bits of the 7th and 8th
+    fixture4.domain shouldBe IntervalShape(
+      List(
+        vertical2D(intervalTo(1)), // the first 5 plus a bit of the 7th and 8th
+        vertical2D(intervalFrom(10)), // the 6th plus a bit of the 7th and 8th
+        intervalFrom(day(0)) x interval(2, 9) // the remaining bits of the 7th and 8th
+      )
     )
-    fixture4.domainComplement.toList shouldBe List(
+    fixture4.domain.complement shouldBe IntervalShape.of(
       intervalToBefore(day(0)) x interval(2, 9)
     )
-    Interval.compress(fixture4.domain ++ fixture4.domainComplement).toList shouldBe List(
-      Interval.unbounded[MixedDim]
-    )
+    assert((fixture4.domain union fixture4.domain.complement).isUniverse)
 
   test("Immutable: Simple toString"):
     val fixturePadData = Data
@@ -377,25 +377,9 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
 
     val donutIn3D: Data[Double, Dim3d] = clippedDonutWithHole.extrudeDimension(2, extrudeInterval)
     val donutIn3DBoundingBox = donutIn3D.boundingInterval
-    val donutIn3DBoundingShape = donutIn3D.boundingShape() // use default adjustments
     donutIn3DBoundingBox shouldBe Some(clipInterval x extrudeInterval)
-    donutIn3DBoundingShape shouldBe IntervalShape(
-      Seq(
-        interval(-11, 11) x interval(-11, 11) x intervalAt(-2), // back
-        interval(-11, 11) x intervalAt(-11) x interval(-1, 2), // bottom
-        intervalAt(-11) x interval(-10, 11) x interval(-1, 1), // left
-        interval(-11, 11) x interval(-10, 11) x intervalAt(2), // front
-        interval(-10, 11) x intervalAt(11) x interval(-1, 1), // top
-        intervalAt(11) x interval(-10, 10) x interval(-1, 1) // right
-      )
-    )
     val donutIn3DNoHole: Data[Double, Dim3d] = donutIn3D \ hole.extrudeDimension(2, extrudeInterval)
     donutIn3DNoHole.boundingInterval shouldBe donutIn3DBoundingBox // same bounding box
-    (donutIn3DNoHole.boundingShape() ≡
-      donutIn3DBoundingShape
-        .add(interval(-1, 1) x interval(-1, 1) x interval(-1, 1)) // solid tunnel
-        .remove(intervalAt(0) x intervalAt(0) x interval(-2, 2)) // tunnel hollow core
-    ) shouldBe true
 
     def donutFirst(a: Double, b: Double): Double = if a < b then a else b
     def holeFirst(a: Double, b: Double): Double = if a < b then b else a

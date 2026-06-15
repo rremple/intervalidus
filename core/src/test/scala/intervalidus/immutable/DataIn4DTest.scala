@@ -308,14 +308,14 @@ class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors 
       (intervalFrom(day(1)) x unboundedDate x intervalFrom(0) x unbounded[Int]) -> "updated me"
     )
     fixture4.getAll.toList shouldBe expectedData4
-    fixture4.domain.toList shouldBe List(
-      vertical4D(intervalTo(1)), // the first 5 plus a bit of the 7th and 8th
-      vertical4D(intervalFrom(10)), // the 6th plus a bit of the 7th and 8th
-      intervalFrom(day(0)) x unboundedDate x interval(2, 9) x unbounded[Int] // the remaining bits of the 7th and 8th
+    fixture4.domain shouldBe IntervalShape(
+      List(
+        vertical4D(intervalTo(1)), // the first 5 plus a bit of the 7th and 8th
+        vertical4D(intervalFrom(10)), // the 6th plus a bit of the 7th and 8th
+        intervalFrom(day(0)) x unboundedDate x interval(2, 9) x unbounded[Int] // the remaining bits of the 7th and 8th
+      )
     )
-    fixture4.domainComplement.toList shouldBe List(
+    fixture4.domain.complement shouldBe IntervalShape.of(
       intervalToBefore(day(0)) x unboundedDate x interval(2, 9) x unbounded[Int]
     )
-    Interval.compress(fixture4.domain ++ fixture4.domainComplement).toList shouldBe List(
-      Interval.unbounded[MixedDim]
-    )
+    assert((fixture4.domain union fixture4.domain.complement).isUniverse)

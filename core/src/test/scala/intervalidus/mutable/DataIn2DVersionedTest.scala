@@ -1,6 +1,7 @@
 package intervalidus.mutable
 
 import intervalidus.*
+import intervalidus.DimensionalVersionedBase.Versioned
 import intervalidus.DiscreteValue.given
 import intervalidus.DomainLike.given
 import org.scalatest.funsuite.AnyFunSuite
@@ -42,8 +43,9 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
 
   test("Mutable: Adding and removing data in intervals"):
     val dayZero = LocalDateTime.of(2025, 8, 1, 8, 0)
-    val empty: DataVersioned[String, IntDim] =
-      immutable.DataVersioned.empty[String, IntDim].toImmutable.toMutable
+    val empty: DataVersioned[String, IntDim] = immutable.DataVersioned.empty[String, IntDim].toImmutable.toMutable
+    val empty2: DataVersioned[String, IntDim] = Data.empty[String, Versioned[IntDim]] // implicit conversion
+    empty shouldBe empty2
 
     assertThrows[Exception]: // version too large
       empty.setCurrentVersion(Int.MaxValue)
@@ -71,20 +73,6 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     )
     fixture.getAll.toList shouldBe expectedData1
     fixture.boundingInterval shouldBe Some(intervalFrom(0) x unbounded[Int])
-    // "to" being unbounded in the second dimension splits the bounding shape into two contiguous subshapes
-    assert(
-      fixture.boundingShape() ≡ IntervalShape(
-        Seq(
-          // first contiguous subshape
-          interval(-1, 4) x intervalAt(-1), // below "Hello"
-          intervalAt(-1) x intervalFrom(0), // left of "Hello"
-          intervalAt(4) x intervalTo(-2), // left of "to"
-          // second contiguous subshape
-          intervalFrom(16) x intervalAt(1), // above "World"
-          intervalAt(16) x intervalFrom(2) // right of "to"
-        )
-      )
-    )
 
     fixture.set((interval(20, 25) x unbounded[Int]) -> "!") // split
     fixture.incrementCurrentVersion()(using LocalDateTime.of(2025, 8, 2, 9, 0).asCurrent)

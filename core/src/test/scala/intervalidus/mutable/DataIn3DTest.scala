@@ -260,15 +260,15 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
       (intervalFrom(day(1)) x unboundedDate x intervalFrom(0)) -> "updated me"
     )
     fixture.getAll.toList shouldBe expectedData4
-    fixture.domain.toList shouldBe List(
-      vertical3D(intervalTo(1)), // the first 5 plus a bit of the 7th and 8th
-      vertical3D(intervalFrom(10)), // the 6th plus a bit of the 7th and 8th
-      intervalFrom(day(0)) x unboundedDate x interval(2, 9) // the remaining bits of the 7th and 8th
+    fixture.domain shouldBe IntervalShape(
+      List(
+        vertical3D(intervalTo(1)), // the first 5 plus a bit of the 7th and 8th
+        vertical3D(intervalFrom(10)), // the 6th plus a bit of the 7th and 8th
+        intervalFrom(day(0)) x unboundedDate x interval(2, 9) // the remaining bits of the 7th and 8th
+      )
     )
 
-    fixture.domainComplement.toList shouldBe List(
+    fixture.domain.complement shouldBe IntervalShape.of(
       intervalToBefore(day(0)) x unboundedDate x interval(2, 9)
     )
-    Interval.compress(fixture.domain ++ fixture.domainComplement).toList shouldBe List(
-      Interval.unbounded[MixedDim]
-    )
+    assert((fixture.domain union fixture.domain.complement).isUniverse)

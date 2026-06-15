@@ -190,6 +190,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     */
   infix def intersection(interval: Interval[D]): Self = copyAndModify: result =>
     result.replaceValidData(result.intersectionData(interval))
+  .compressedUpdate()
 
   /**
     * $symmetricDifferenceDesc
@@ -201,6 +202,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     */
   infix def symmetricDifference(that: DimensionalBase[V, D]): Self = copyAndModifyWith(that): result =>
     thatTx => result.replaceValidData(result.symmetricDifferenceData(that, thatTx))
+  .compressedUpdate()
 
   /**
     * $setDesc

@@ -103,7 +103,7 @@ class DataMonoid[V, D <: NonEmptyTuple: DomainLike] private (
     *   a new shape that is the complement of this.
     */
   def complement: DataMonoid[V, D] = transactionalRead:
-    DataMonoid(domainComplementInternal.map(_ -> monoid.identity))
+    (domainInternal.complement -> monoid.identity).asDataMonoid
 
   /**
     * Same as [[complement]].

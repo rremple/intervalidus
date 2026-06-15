@@ -41,6 +41,8 @@ trait AffineIntervalCommonBehaviors(using op: DomainAffineValueLike[Int]):
     infix def reflectedAboutInt(pivot: Int2d): Option[Interval[Int2d]]
     infix def scaledAboutInt(center: Int2d, scaledBy: (Double, Double)): Option[Interval[Int2d]]
 
+  extension (lhs: IntervalShape[Int2d]) def boundingShapeInt(thickness: (Int, Int)): IntervalShape[Int2d]
+
   val top: Domain1D[Int] = Top
   val bottom: Domain1D[Int] = Bottom
 
@@ -139,3 +141,46 @@ trait AffineIntervalCommonBehaviors(using op: DomainAffineValueLike[Int]):
       (intervalFrom(1).toBefore(3) x intervalFromAfter(3).to(5)).measureInt shouldBe Some((2, 2))
       (intervalFromAfter(2).to(5) x intervalFrom(6).toBefore(10)).measureInt shouldBe Some((3, 4))
       (intervalFrom(4) x interval(4, 5)).measureInt shouldBe None
+
+    test(s"$prefix: Int affine interval shape bounding shapes"):
+      extension [D <: NonEmptyTuple: DomainAffineLike](lhs: IntervalShape[D])
+        infix def ≡≡(rhs: IntervalShape[D]) = assert(lhs ≡ rhs, s"\nExpected: $lhs\nActual: $rhs\n")
+
+      val i1 = intervalFrom(1).toBefore(3) x intervalFromAfter(3).to(5)
+      val i2 = intervalFromAfter(2).to(5) x intervalFromAfter(5).toBefore(10)
+
+      // pad one unit externally, one interval
+      IntervalShape(Seq(i1)).boundingShapeInt((1, 1)) ≡≡ IntervalShape(
+        Seq(
+          intervalFrom(0).toBefore(4) x intervalFromAfter(2).to(3), // under
+          intervalFrom(0).toBefore(1) x intervalFromAfter(3).to(6), // left
+          intervalFrom(1).toBefore(4) x intervalFromAfter(5).to(6), // above
+          intervalFrom(3).toBefore(4) x intervalFromAfter(3).to(5) // right
+        )
+      )
+
+      // pad two units internally, one interval with a smaller width than the pad amount (shrinks to zero)
+      IntervalShape(Seq(i1)).boundingShapeInt((-2, -2)) ≡≡ IntervalShape(Seq(i1))
+
+      // pad one unit internally, one interval
+      IntervalShape(Seq(i2)).boundingShapeInt((-1, -1)) ≡≡ IntervalShape(
+        Seq(
+          intervalFromAfter(2).to(5) x intervalFromAfter(5).to(6), // bottom
+          intervalFromAfter(2).to(3) x intervalFromAfter(6).toBefore(10), // left side
+          intervalFromAfter(3).to(5) x intervalFrom(9).toBefore(10), // top
+          intervalFromAfter(4).to(5) x intervalFromAfter(6).toBefore(9) // right side
+        )
+      )
+
+      // pad two units externally, two intervals with a shared boundary
+      IntervalShape(Seq(i1, i2)).boundingShapeInt((2, 2)) ≡≡ IntervalShape(
+        Seq(
+          intervalFrom(-1).toBefore(5) x intervalFromAfter(1).to(3), // below i1
+          intervalFrom(-1).toBefore(1) x intervalFromAfter(3).to(5), // left of i1
+          interval(-1, 2) x intervalFromAfter(5).to(7), // above i1 and left of i2
+          intervalFromAfter(0).to(2) x intervalFromAfter(7).toBefore(10), // left of i2
+          intervalFromAfter(0).to(7) x intervalFrom(10).toBefore(12), // above i2
+          interval(3, 7) x intervalFromAfter(3).to(5), // right of i1 and below i2
+          intervalFromAfter(5).to(7) x intervalFromAfter(5).toBefore(10) // right of i2
+        )
+      )

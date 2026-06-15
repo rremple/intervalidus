@@ -383,3 +383,24 @@ trait DimensionalAffineBase[V, D <: NonEmptyTuple: DomainAffineLike] extends Dim
 
     if config.compressOnUpdate then resultBuffer.compressAll()
     resultBuffer
+
+  /**
+    * The shape forming a shell around the boundary of all valid data. The shell's thickness and direction are
+    * determined per dimension by the given displacement vector. The resulting shell represents the symmetric difference
+    * of the original shape and the same shape padded with the provided thickness.
+    *
+    * When all thickness components are positive (the common case), the resulting shape will be adjacent to valid data
+    * everywhere, but not intersecting it anywhere.
+    *
+    * @note
+    *   If data are valid on the boundaries of the domain in any dimension, the resulting shell may not be contiguous.
+    * @param thickness
+    *   A tuple of displacements representing the shell's thickness in each dimension. Positive values expand the
+    *   boundaries outward, while negative values contract them inward. Dimensions can mix positive and negative
+    *   displacements.
+    * @return
+    *   A shape that forms a shell around the boundary of all valid data.
+    */
+  def boundingShape[S <: NonEmptyTuple](thickness: S)(using D HasDisplacementType S): IntervalShape[D] =
+    val paddedIntervals = allIntervals.flatMap(_.paddedBy(thickness))
+    (IntervalShape.∅ ++ paddedIntervals) △ domain

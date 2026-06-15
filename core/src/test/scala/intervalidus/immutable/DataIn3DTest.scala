@@ -285,7 +285,7 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
     fixture5.get shouldBe "Hey!!!"
 
   test("Immutable: Updating data in intervals - bounded r1"):
-    val expectedData3 = List(
+    val expectedData3: Seq[ValidData[String, MixedDim]] = List(
       (unboundedDate x unboundedDate x intervalTo(-6)) -> "Hello",
       (unboundedDate x unboundedDate x interval(-5, -2)) -> "World!",
       (unboundedDate x unboundedDate x interval(-1, 1)) -> "Hello",
@@ -307,14 +307,14 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
       (intervalFrom(day(1)) x unboundedDate x intervalFrom(0)) -> "updated me"
     )
     fixture4.getAll.toList shouldBe expectedData4
-    fixture4.domain.toList shouldBe List(
-      vertical3D(intervalTo(1)), // the first 5 plus a bit of the 7th and 8th
-      vertical3D(intervalFrom(10)), // the 6th plus a bit of the 7th and 8th
-      intervalFrom(day(0)) x unboundedDate x interval(2, 9) // the remaining bits of the 7th and 8th
+    fixture4.domain shouldBe IntervalShape(
+      List(
+        vertical3D(intervalTo(1)), // the first 5 plus a bit of the 7th and 8th
+        vertical3D(intervalFrom(10)), // the 6th plus a bit of the 7th and 8th
+        intervalFrom(day(0)) x unboundedDate x interval(2, 9) // the remaining bits of the 7th and 8th
+      )
     )
-    fixture4.domainComplement.toList shouldBe List(
+    fixture4.domain.complement shouldBe IntervalShape.of(
       intervalToBefore(day(0)) x unboundedDate x interval(2, 9)
     )
-    Interval.compress(fixture4.domain ++ fixture4.domainComplement).toList shouldBe List(
-      Interval.unbounded[MixedDim]
-    )
+    assert((fixture4.domain union fixture4.domain.complement).isUniverse)

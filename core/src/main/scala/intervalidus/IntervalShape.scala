@@ -389,7 +389,7 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
     * @return
     *   a new shape that is the complement of this.
     */
-  def complement: IntervalShape[D] = IntervalShape.withoutChecks(underlying.domainComplement)
+  def complement: IntervalShape[D] = ξ -- allIntervals
 
   /**
     * Same as [[complement]].
@@ -410,9 +410,7 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
     * @return
     *   a new shape that is the intersection of this and that.
     */
-  infix def intersection(that: IntervalShape[D]): IntervalShape[D] = IntervalShape.withoutChecks(
-    underlying.intersectingIntervals(that.underlying)
-  )
+  infix def intersection(that: IntervalShape[D]): IntervalShape[D] = underlying.intersection(that.underlying)
 
   /**
     * Same as [[intersection]].
@@ -678,31 +676,6 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
     * If there is one, returns the smallest single interval containing this shape.
     */
   def boundingInterval: Option[Interval[D]] = underlying.boundingInterval
-
-  /**
-    * The shape forming a shell around this shape. The shape will be adjacent to this shape everywhere, but not
-    * intersecting it anywhere. The shell's thickness is determined by the adjustment functions.
-    *
-    * @note
-    *   If this shape extends to the boundaries of the domain in any dimensions, the shell may not be contiguous.
-    * @note
-    *   The default adjustments are leftAdjacent and rightAdjacent, which work well in discrete domains (makes the shell
-    *   one unit thick), but not so well in continuous domains. Using these defaults with a continuous domain may result
-    *   in errors, e.g., applying the default adjustment to [1, 1] would result in (1, 1), which is not a valid
-    *   interval.
-    * @param adjustStart
-    *   How coordinates related to the starts of intervals are adjusted to form the shell. This forms the thickness of
-    *   the shell on the left, bottom, back, etc.
-    * @param adjustEnd
-    *   How coordinates related to the ends of intervals are adjusted to form the shell. This forms the thickness of the
-    *   shell on the right, top, front, etc.
-    * @return
-    *   A shape that forms a shell around this shape.
-    */
-  def boundingShape(
-    adjustStart: D => D = _.leftAdjacent,
-    adjustEnd: D => D = _.rightAdjacent
-  ): IntervalShape[D] = underlying.boundingShape(adjustStart, adjustEnd)
 
   // ---------- Manipulation API methods: Set Manipulation ----------
   // ---- Adds to and removes from shapes. ----

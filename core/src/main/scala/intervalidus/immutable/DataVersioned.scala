@@ -3,6 +3,7 @@ package intervalidus.immutable
 import intervalidus.*
 import intervalidus.DimensionalVersionedBase.*
 import intervalidus.DiscreteValue.IntDiscreteValue
+import intervalidus.mutable.Data as MutableData
 
 import scala.collection.mutable
 import scala.math.Ordering.Implicits.infixOrderingOps
@@ -16,14 +17,59 @@ object DataVersioned extends DimensionalVersionedBaseObject[DataVersioned]:
 
   override def apply[V, D <: NonEmptyTuple: DomainLike](
     initialData: Iterable[ValidData[V, Versioned[D]]],
-    initialVersion: VersionDomainValue = 0,
-    initialComment: String = "init"
+    initialVersion: VersionDomainValue = defaultInitialVersion,
+    initialComment: String = defaultInitialComment
   )(using config: CoreConfig[Versioned[D]])(using DomainLike[Versioned[D]], CurrentInstant): DataVersioned[V, D] =
     new DataVersioned[V, D](
-      initialData,
+      MutableData(initialData),
       initialVersion,
-      mutable.Map(initialVersion -> (summon[CurrentInstant].now(), initialComment))
+      defaultVersionTimestamps(initialVersion, initialComment),
+      defaultWithCurrentVersion
     )
+
+  extension [V, D <: NonEmptyTuple: DomainLike](data: DimensionalBase[V, Versioned[D]])(using DomainLike[Versioned[D]])
+    /**
+      * Creates an immutable versioned data structure with a default initial version and comment from some other
+      * dimensional structure with a versioned domain.
+      *
+      * @return
+      *   A new immutable structure with the same valid values.
+      */
+    def asDataVersioned: DataVersioned[V, D] =
+      new DataVersioned(
+        MutableData.asData(data),
+        defaultInitialVersion,
+        defaultVersionTimestamps(),
+        defaultWithCurrentVersion
+      )(using config = data.config)
+
+    /**
+      * Creates an immutable versioned data structure with specific version and comment parameters from some other
+      * dimensional structure with a versioned domain. Useful internally with when switching from mutable to immutable
+      * and when restoring a serialized structure.
+      *
+      * @return
+      *   A new immutable structure with the same valid values.
+      */
+    def asDataVersioned(
+      initialVersion: VersionDomainValue,
+      versionTimestamps: mutable.Map[VersionDomainValue, VersionMetadata],
+      withCurrentVersion: Option[VersionDomainValue]
+    ): DataVersioned[V, D] =
+      new DataVersioned(
+        MutableData.asData(data),
+        initialVersion,
+        versionTimestamps.clone(),
+        withCurrentVersion
+      )(using config = data.config)
+
+  /**
+    * Automatically converts some other dimensional structure with a versioned domain to an immutable versioned
+    * structure with a default initial version and comment.
+    */
+  given [V, D <: NonEmptyTuple: DomainLike](using
+    DomainLike[Versioned[D]]
+  ): Conversion[DimensionalBase[V, Versioned[D]], DataVersioned[V, D]] = _.asDataVersioned
 
 /**
   * Immutable versioned dimensional data in any dimension.
@@ -44,22 +90,25 @@ object DataVersioned extends DimensionalVersionedBaseObject[DataVersioned]:
   * @tparam D
   *   $intervalDomainType
   */
-class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
-  initialData: Iterable[ValidData[V, Versioned[D]]] = Iterable.empty[ValidData[V, Versioned[D]]],
-  initialVersion: VersionDomainValue = 0,
-  versionTimestamps: mutable.Map[VersionDomainValue, VersionMetadata] = mutable.Map.empty,
-  withCurrentVersion: Option[VersionDomainValue] = None
+class DataVersioned[V, D <: NonEmptyTuple: DomainLike] private (
+  underlying: MutableData[V, Versioned[D]],
+  initialVersion: VersionDomainValue,
+  versionTimestamps: mutable.Map[VersionDomainValue, VersionMetadata],
+  withCurrentVersion: Option[VersionDomainValue]
 )(using
   val config: CoreConfig[Versioned[D]]
 )(using
   DomainLike[Versioned[D]],
   CurrentInstant
-) extends DimensionalVersionedBase[V, D](initialData, initialVersion, versionTimestamps, withCurrentVersion):
-
-  if versionTimestamps.isEmpty then addVersionTimestampInPlace("init")
+) extends DimensionalVersionedBase[V, D](underlying, initialVersion, versionTimestamps, withCurrentVersion):
 
   private def copyAndModify(f: DataVersioned[V, D] => Unit): DataVersioned[V, D] =
     val result = copy
+    f(result)
+    result
+
+  private def underlyingCopyAndModify(f: MutableData[V, Versioned[D]] => Unit): MutableData[V, Versioned[D]] =
+    val result = underlying.copy
     f(result)
     result
 
@@ -75,7 +124,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     case VersionSelection.Specific(version) => resetToVersion(version)
 
   override def copy(using config: CoreConfig[Versioned[D]]): DataVersioned[V, D] = new DataVersioned(
-    underlying.getAll,
+    underlying.copy,
     initialVersion,
     versionTimestamps.clone(),
     Some(currentVersion)
@@ -83,7 +132,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
 
   override def zip[B](that: DimensionalVersionedBase[B, D]): DataVersioned[(V, B), D] =
     new DataVersioned(
-      underlying.zip(that.getVersionedData).getAll,
+      underlying.zip(that.getVersionedData),
       initialVersion,
       mergeVersionTimestamps(that),
       Some(currentVersion)
@@ -95,7 +144,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     thatDefault: B
   ): DataVersioned[(V, B), D] =
     new DataVersioned(
-      underlying.zipAll(that.getVersionedData, thisDefault, thatDefault).getAll,
+      underlying.zipAll(that.getVersionedData, thisDefault, thatDefault),
       initialVersion,
       mergeVersionTimestamps(that),
       Some(currentVersion)
@@ -112,7 +161,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
   ): DataVersioned[V, Domain.NonEmptyTail[D]] =
     compressedUpdate(
       new DataVersioned(
-        getByHeadDimensionData(domain),
+        MutableData(getByHeadDimensionData(domain)),
         initialVersion,
         versionTimestamps.clone(),
         Some(currentVersion)
@@ -132,7 +181,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     DomainLike[Versioned[R]]
   ): DataVersioned[V, R] = compressedUpdate(
     new DataVersioned(
-      getByDimensionData[H, R](dimensionIndex, domain),
+      MutableData(getByDimensionData[H, R](dimensionIndex, domain)),
       initialVersion,
       versionTimestamps.clone(),
       Some(currentVersion)
@@ -141,12 +190,12 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
 
   override def toImmutable: DataVersioned[V, D] = this
 
-  override def toMutable: intervalidus.mutable.DataVersioned[V, D] = new intervalidus.mutable.DataVersioned(
-    underlying.getAll,
-    initialVersion,
-    versionTimestamps.clone(),
-    Some(currentVersion)
-  )
+  override def toMutable: intervalidus.mutable.DataVersioned[V, D] =
+    intervalidus.mutable.DataVersioned.asDataVersioned(underlying)(
+      initialVersion,
+      versionTimestamps.clone(),
+      Some(currentVersion)
+    )
 
   // ------ Implement methods similar to those from ImmutableVersionedBase, but with a version selection context ------
 
@@ -306,12 +355,8 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     * @return
     *   a new structure with the same current version consisting of all elements that satisfy the provided predicate p.
     */
-  def filter(p: ValidData[V, Versioned[D]] => Boolean): DataVersioned[V, D] = new DataVersioned(
-    underlying.toImmutable.filter(p).getAll,
-    initialVersion,
-    versionTimestamps.clone(),
-    Some(currentVersion)
-  )
+  def filter(p: ValidData[V, Versioned[D]] => Boolean): DataVersioned[V, D] =
+    copyAndModify(_.underlying.filter(p))
 
   /**
     * $mapDesc Both the valid data value and interval types can be changed in the mapping.
@@ -336,7 +381,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     DomainLike[Versioned[S]]
   ): DataVersioned[B, S] =
     new DataVersioned(
-      underlying.toImmutable.map(f).getAll,
+      underlying.toImmutable.map(f).toMutable,
       initialVersion,
       versionTimestamps.clone(),
       Some(currentVersion)
@@ -365,7 +410,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     DomainLike[Versioned[S]]
   ): DataVersioned[B, S] =
     new DataVersioned(
-      underlying.toImmutable.collect(pf).getAll,
+      underlying.toImmutable.collect(pf).toMutable,
       initialVersion,
       versionTimestamps.clone(),
       Some(currentVersion)
@@ -385,7 +430,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     *   this structure.
     */
   def mapValues[B](f: V => B): DataVersioned[B, D] = new DataVersioned(
-    underlying.toImmutable.mapValues(f).getAll,
+    underlying.toImmutable.mapValues(f).toMutable,
     initialVersion,
     versionTimestamps.clone(),
     Some(currentVersion)
@@ -406,7 +451,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     */
   def collectValues[B](pf: PartialFunction[V, B]): DataVersioned[B, D] =
     new DataVersioned(
-      underlying.toImmutable.collectValues(pf).getAll,
+      underlying.toImmutable.collectValues(pf).toMutable,
       initialVersion,
       versionTimestamps.clone(),
       Some(currentVersion)
@@ -431,7 +476,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     DomainLike[Versioned[S]]
   )(using altConfig: CoreConfig[Versioned[S]]): DataVersioned[V, S] = compressedUpdate(
     new DataVersioned(
-      underlying.toImmutable.mapIntervals(f).getAll,
+      underlying.toImmutable.mapIntervals(f).toMutable,
       initialVersion,
       versionTimestamps.clone(),
       Some(currentVersion)
@@ -457,7 +502,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     DomainLike[Versioned[S]]
   )(using altConfig: CoreConfig[Versioned[S]]): DataVersioned[V, S] = compressedUpdate(
     new DataVersioned(
-      underlying.toImmutable.collectIntervals(pf).getAll,
+      underlying.toImmutable.collectIntervals(pf).toMutable,
       initialVersion,
       versionTimestamps.clone(),
       Some(currentVersion)
@@ -485,7 +530,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     DomainLike[Versioned[S]]
   )(using altConfig: CoreConfig[Versioned[S]]): DataVersioned[B, S] =
     new DataVersioned(
-      underlying.toImmutable.flatMap(f(_).underlying).getAll,
+      underlying.toImmutable.flatMap(f(_).underlying).toMutable,
       initialVersion,
       versionTimestamps.clone(),
       Some(currentVersion)
@@ -555,9 +600,10 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike](
     val keep = VersionSelection(version)
     compressedUpdate(
       new DataVersioned(
-        underlying.getAll
-          .filter(versionInterval(_) intersects keep.intervalTo)
-          .map(extendInterval(keep)),
+        underlyingCopyAndModify: result =>
+          result.filter(versionInterval(_) intersects keep.intervalTo)
+          result.map(extendInterval(keep))
+        ,
         initialVersion,
         mutable.Map.from(versionTimestamps.view.filterKeys(_ <= version)),
         Some(version)

@@ -51,13 +51,13 @@ trait DataIn2DBaseBehaviors:
     assert((empty: Any) != ("<nothing is valid>": Any))
     assert(empty.getAll.isEmpty)
     assert(empty.domain.isEmpty)
-    empty.domainComplement.toList shouldBe List(Interval.unbounded[MixedDim])
+    assert(empty.domain.complement.isUniverse)
 
     val single = dataIn2DOf("Hello world")
     single.get shouldBe "Hello world"
     single.getOption shouldBe Some("Hello world")
-    single.domain.toList shouldBe List(Interval.unbounded[MixedDim])
-    assert(single.domainComplement.isEmpty)
+    assert(single.domain.isUniverse)
+    assert(single.domain.complement.isEmpty)
 
     val bounded = (intervalFrom(0) x intervalTo(0)) -> "Hello world"
     bounded.toString shouldBe "{[0..+∞), (-∞..0]} -> Hello world"
@@ -86,8 +86,8 @@ trait DataIn2DBaseBehaviors:
     )
 
     val fixture2 = dataIn2DFrom(allData2)
-    fixture2.domain.toList shouldBe List(unboundedDate x intervalFrom(0))
-    fixture2.domainComplement.toList shouldBe List(unboundedDate x intervalToBefore(0))
+    fixture2.domain shouldBe IntervalShape.of(unboundedDate x intervalFrom(0))
+    fixture2.domain.complement shouldBe IntervalShape.of(unboundedDate x intervalToBefore(0))
     fixture2.values should contain theSameElementsAs List("Hello", "World")
     fixture2.getAt(now, 5) shouldBe Some("Hello")
     fixture2.getAt(now, 15) shouldBe Some("World")

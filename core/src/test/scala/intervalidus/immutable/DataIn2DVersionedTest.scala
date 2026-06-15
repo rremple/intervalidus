@@ -43,7 +43,9 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
 
   test("Immutable: Adding and removing data in intervals"):
     val dayZero = LocalDateTime.of(2025, 8, 1, 8, 0)
-    val empty: DataVersioned[String, IntDim] = new mutable.DataVersioned[String, IntDim]().toMutable.toImmutable
+    val empty: DataVersioned[String, IntDim] = mutable.DataVersioned.empty[String, IntDim].toMutable.toImmutable
+    val empty2: DataVersioned[String, IntDim] = Data.empty[String, Versioned[IntDim]] // implicit conversion
+    empty shouldBe empty2
 
     assertThrows[Exception]: // version too large
       empty.setCurrentVersion(Int.MaxValue)
@@ -72,20 +74,6 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     )
     fixture1.getAll.toList shouldBe expectedData1
     fixture1.boundingInterval shouldBe Some(intervalFrom(0) x unbounded[Int])
-    // "to" being unbounded in the second dimension splits the bounding shape into two contiguous subshapes
-    assert(
-      fixture1.boundingShape() ≡ IntervalShape(
-        Seq(
-          // first contiguous subshape
-          interval(-1, 4) x intervalAt(-1), // below "Hello"
-          intervalAt(-1) x intervalFrom(0), // left of "Hello"
-          intervalAt(4) x intervalTo(-2), // left of "to"
-          // second contiguous subshape
-          intervalFrom(16) x intervalAt(1), // above "World"
-          intervalAt(16) x intervalFrom(2) // right of "to"
-        )
-      )
-    )
 
     val fixture2 = fixture1
       .set((interval(20, 25) x unbounded[Int]) -> "!") // split

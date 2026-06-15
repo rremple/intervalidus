@@ -36,4 +36,7 @@ class DiscreteAffineIntervalTest
     override infix def scaledAboutInt(center: Int2d, scaledBy: (Double, Double)): Option[Interval[Int2d]] =
       lhs.scaledAbout(center, scaledBy)
 
+  extension (lhs: IntervalShape[Int2d])
+    def boundingShapeInt(thickness: (Int, Int)): IntervalShape[Int2d] = lhs.boundingShape(thickness)
+
   testsFor(commonAffineBehaviors("Discrete"))

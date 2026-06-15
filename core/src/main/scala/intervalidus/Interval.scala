@@ -813,7 +813,7 @@ object Interval:
     * Performance: depends on immutable.Data performance
     *
     * @param intervals
-    *   a collection of intervals -- must be disjoint and ordered by start.
+    *   a collection of intervals -- must be disjoint.
     * @tparam D
     *   $intervalDomainType
     * @return
@@ -822,7 +822,7 @@ object Interval:
   def complement[D <: NonEmptyTuple: DomainLike](
     intervals: Iterable[Interval[D]]
   )(using config: CoreConfig[D]): Iterable[Interval[D]] =
-    immutable.Data(intervals.map(_ -> false)).fill(unbounded -> true).filter(_.value).allIntervals
+    IntervalShape.withoutChecks(intervals).complement.allIntervals
 
   /**
     * Intervals are ordered by start

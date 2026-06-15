@@ -120,7 +120,7 @@ class DataIn2DMultiTest
     donutFromData ≡≡ donut
 
     donut.mutate(_ ∩ hole).isEmpty shouldBe true
-    donut.mutate(_ ∪ hole).domain.toList shouldBe List(Interval.unbounded[Dim])
+    assert(donut.mutate(_ ∪ hole).domain.isUniverse)
     donut.mutate(_ ∪ hole) shouldBe DataMulti(Seq(a, b, c, d).map(_ -> donutFilling) ++ Seq(e -> holeFilling))
 
     Seq(a, b).donutFilled.mutate(_ ∪ Seq(c, d).donutFilled) ≡≡ donut

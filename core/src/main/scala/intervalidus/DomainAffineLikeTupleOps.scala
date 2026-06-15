@@ -18,6 +18,11 @@ trait DomainAffineLikeTupleOps[D <: NonEmptyTuple]:
     D HasDisplacementType S
   )(interval: Interval[D], offset: S): Option[Interval[D]]
 
+  def paddedByFromInterval[S <: NonEmptyTuple](using
+    DomainAffineLike[D],
+    D HasDisplacementType S
+  )(interval: Interval[D], offset: S): Option[Interval[D]]
+
   def measureFromInterval[S <: NonEmptyTuple](using
     DomainAffineLike[D],
     D HasDisplacementType S
@@ -82,6 +87,16 @@ object DomainAffineLikeTupleOps:
     ): Option[Interval[OneDimDomain[DV]]] =
       val provenOffset = offset.asInstanceOf[OneDimDisplacement[DispV]]
       headInterval(interval).displacedBy(provenOffset.head).map(_.tupled)
+
+    inline override def paddedByFromInterval[S <: NonEmptyTuple](using
+      DomainAffineLike[OneDimDomain[DV]],
+      OneDimDomain[DV] HasDisplacementType S
+    )(
+      interval: Interval[OneDimDomain[DV]],
+      offset: S
+    ): Option[Interval[OneDimDomain[DV]]] =
+      val provenOffset = offset.asInstanceOf[OneDimDisplacement[DispV]]
+      headInterval(interval).paddedBy(provenOffset.head).map(_.tupled)
 
     inline override def measureFromInterval[S <: NonEmptyTuple](using
       DomainAffineLike[OneDimDomain[DV]],
@@ -152,6 +167,19 @@ object DomainAffineLikeTupleOps:
       for
         head <- headInterval(interval).displacedBy(provenOffset.head)
         tail <- applyToTail.displacedByFromInterval(tailInterval(interval), provenOffset.tail)
+      yield tail withHead head
+
+    inline override def paddedByFromInterval[S <: NonEmptyTuple](using
+      DomainAffineLike[MultiDimDomain[DV, DomainTail]],
+      MultiDimDomain[DV, DomainTail] HasDisplacementType S
+    )(
+      interval: Interval[MultiDimDomain[DV, DomainTail]],
+      offset: S
+    ): Option[Interval[MultiDimDomain[DV, DomainTail]]] =
+      val provenOffset = offset.asInstanceOf[MultiDimDisplacement[DispV, DispTail]]
+      for
+        head <- headInterval(interval).paddedBy(provenOffset.head)
+        tail <- applyToTail.paddedByFromInterval(tailInterval(interval), provenOffset.tail)
       yield tail withHead head
 
     inline override def measureFromInterval[S <: NonEmptyTuple](using

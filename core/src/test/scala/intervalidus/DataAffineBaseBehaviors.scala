@@ -86,6 +86,8 @@ trait DataAffineBaseBehaviors(using
 
   def donutDisplacedBy(offset: (Int, Int)): DimensionalAffineBase[Double, Dim]
 
+  def donutBoundingShape(thickness: (Int, Int)): IntervalShape[Dim]
+
   // accomodates any multidimensional signal with Int dimensions
   def convolvedByIn[V, D <: NonEmptyTuple: DomainAffineLike, K](
     dimensionIndex: Domain.DimensionIndex,
@@ -187,6 +189,18 @@ trait DataAffineBaseBehaviors(using
         (intervalFrom(-9).toBefore(0) x interval(0, 11)) -> donutFilling,
         (interval(0, 11) x intervalFromAfter(2).to(11)) -> donutFilling,
         (intervalFromAfter(2).to(11) x interval(-9, 2)) -> donutFilling
+      )
+
+      assert(
+        donutBoundingShape((2, 2)) ≡ IntervalShape(
+          Seq(
+            ee, // the entire hole, because the (2, 2) padding captures the "whole" thing (pun intended)
+            interval(-12, 12) x intervalFrom(-12).toBefore(-10), // under
+            interval(-10, 12) x intervalFromAfter(10).to(12), // above
+            intervalFrom(-12).toBefore(-10) x interval(-10, 12), // left
+            intervalFromAfter(10).to(12) x interval(-10, 10) // right
+          )
+        )
       )
 
     /**
