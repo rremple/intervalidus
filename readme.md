@@ -425,7 +425,7 @@ By way of analogy, think of the game "Minecraft":
 
 Similar to `DataMonoid`, `IntervalShape` behaves like a first-class geometric entity, providing a complete Boolean
 algebra in multidimensional domains. Unlike `DataMonoid`, it does not support all the queries of a regular `Data`
-structure (e.g., there is no value to `get`). Instead it supports more of the spatial queries of a regular `Interval`,
+structure (e.g., there is no value to `get`). Instead, it supports more of the spatial queries of a regular `Interval`,
 which are applicable to multi-interval shapes, plus the algebraic operators from set theory which are simplified,
 because there is no monoidal value to consider:
 
@@ -543,6 +543,40 @@ and [RCC-8](https://en.wikipedia.org/wiki/Region_connection_calculus):
 
 `Interval` laws ensure RCC axioms related to spatial relations being reflexive, symmetric, and composable all hold.
 
+#### DataAffine:
+
+What if you have plain vanilla values, but you want to do more math on the elements of your domain? `DataAffine` may be
+the answer. While both `Data` and `DataAffine` use the same underlying domain values, they interpret the relationships
+between those domains through entirely different structural lenses.
+
+The general `Data` structure (and its siblings, described above) operate in an **absolute domain**. In this space,
+domains are only understood in terms of their position, order, and topology. For any two domains based on finite domain
+values (such as `5` and `8`), the system can only evaluate:
+
+* **Order:** is one domain less than the other? In this case, yes, `5 < 8`.
+* **Boundaries:** is a domain finite, or does it represent some unbounded limit (i.e., `Top` and `Bottom`)? Both `5` and
+  `8` are finite.
+* **Adjacency:** are two domains strictly next to each other? `5` is not next to `8`.
+
+An absolute domain is fundamentally *ordinal*. It treats boundaries as distinct, ordered positions on an axis. It does
+not have an inherent concept of geometric space between them -- the system knows `5` comes before `8`, but it does not
+intrinsically measure a distance of `3`.
+
+`DataAffine` upgrades the environment to use an **affine domain**, which retains all the topological properties of the
+absolute domain, and overlays it with a kind of geometric vector space. This introduces operations that allows the
+system to calculate:
+
+* **Displacement:** The exact directional distance (vector) between two domain values. For example, the displacement
+  from `5` to `8` is `3`, and `8` displaced by `-6` is `2`
+* **Scale:** The ability to stretch or shrink the domain space relative to some arbitrary origin. For example, `5`
+  scaled by `3.0` relative an origin at `0` is `15`. (Note there is no fixed origin in an affine space.)
+
+By utilizing an affine domain, you can perform true geometric operations, such as shifting an entire dataset across the
+domain via displacement vectors or altering its density via scaling, without altering the underlying structural identity
+of the intervals. `DataAffine` even supports a discrete form of convolution and methods for constructing bounding 
+shapes. Intervalidus provides extension methods for many foundational classes to operate in these affine spaces,
+specifically: `Domain1D`, `Interval1D`, `Interval`, and `IntervalShape`.
+
 #### DataVersioned:
 
 `DataVersioned`, mimics the `Data` API but uses an underlying `Data` structure of a higher dimension (i.e., with an
@@ -599,8 +633,7 @@ These query methods provide various data, difference, and Boolean results:
 - `intersects` / `isSubsetOf` (`⊆`) / `isEquivalentTo` (`≡`)
 - `foldLeft`
 - `isEmpty` / `size`
-- `domain` / `domainComplement`
-- `values` / `intervals` / `allIntervals` / `boundingInterval` / `boundingShape`
+- `domain` /  `values` / `intervals` / `allIntervals` / `boundingInterval`
 - `diffActionsFrom`
 
 These methods return a new structure:

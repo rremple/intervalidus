@@ -19,4 +19,4 @@ jobs:
         jvm: 17
         apps: sbt
     - name: Run Laws
-      run: sbt laws/test
+      run: sbt "laws/test"
