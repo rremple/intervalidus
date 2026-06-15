@@ -43,7 +43,7 @@ ThisBuild / scmInfo := Some(
 // SUBPROJECT CONFIGURATIONS
 // =========================================================================================
 
-def commonSettings(projectName: String): Seq[Def.Setting[_]] = Seq(
+def commonSettings(projectName: String): Seq[Def.Setting[?]] = Seq(
   name := projectName,
   description := s"Intervalidus, for all your interval-based data needs: $projectName module",
   scalacOptions ++= Seq("-feature", "-deprecation"), // , "-Wunused:all", "-source", "future"),
@@ -53,26 +53,24 @@ def commonSettings(projectName: String): Seq[Def.Setting[_]] = Seq(
   libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.20" % Test
 )
 
-def commonPublishSettings(projectName: String): Seq[Def.Setting[_]] = commonSettings(projectName) ++ Seq(
-  tastyMiMaPreviousArtifacts := mimaPreviousArtifacts.value,
-  tastyMiMaReportIssues := {
-    if (versionPolicyIntention.value == Compatibility.None) // e.g., major release
-      streams.value.log.info(s"TASTy compatibility check skipped for ${name.value}.")
-    else tastyMiMaReportIssues.value
-  }
-)
+def commonPublishSettings(projectName: String): Seq[Def.Setting[?]] = commonSettings(projectName)
 
-def commonNoPublishSettings(projectName: String): Seq[Def.Setting[_]] = commonSettings(projectName) ++ Seq(
+def commonNoPublishSettings(projectName: String): Seq[Def.Setting[?]] = commonSettings(projectName) ++ Seq(
   publish / skip := true,
   Compile / packageDoc / publishArtifact := false,
   coverageEnabled := false
 )
 
-lazy val makeSite = taskKey[Seq[File]]("Generate unified docs and inject the landing page")
 lazy val siteTarget = settingKey[File]("Full site target directory")
+lazy val siteRevision = settingKey[String]("Revision for documentation site links (usually just master)")
+
+@transient
+lazy val makeSite = taskKey[Seq[File]]("Generate unified docs and inject the landing page")
+@transient
+lazy val siteCheckAll = taskKey[Unit]("Scans generated HTML for Scaladoc issues")
 
 lazy val root = (project in file("."))
-  .disablePlugins(MimaPlugin, TastyMiMaPlugin)
+  .disablePlugins(MimaPlugin)
   .aggregate(
     core,
     collection,
@@ -90,17 +88,18 @@ lazy val root = (project in file("."))
     versionPolicyCheck / aggregate := true,
     publish / skip := true,
     siteTarget := baseDirectory.value / "target" / "site",
+    siteRevision := dynverGitDescribeOutput.value.map(_.ref.value).getOrElse("master"),
     makeSite := {
       val log = streams.value.log
       val sourceFile = baseDirectory.value / "src" / "site" / "index.html"
       val targetFile = siteTarget.value / "index.html"
-      val copiedFiles = if (!sourceFile.exists()) {
-        log.warn(s"Source missing: $sourceFile")
-        Seq()
-      } else {
-        IO.copyFile(sourceFile, targetFile)
-        Seq(targetFile)
-      }
+      val copiedFiles =
+        if !sourceFile.exists() then
+          log.warn(s"Source missing: $sourceFile")
+          Seq()
+        else
+          IO.copyFile(sourceFile, targetFile)
+          Seq(targetFile)
       (Compile / unidoc).value ++ copiedFiles
     },
     ScalaUnidoc / unidoc / target := siteTarget.value / "api",
@@ -110,14 +109,43 @@ lazy val root = (project in file("."))
     ScalaUnidoc / unidoc / scalacOptions ++= Seq(
       "-source-links:github://rremple/intervalidus",
       "-revision",
-      dynverGitDescribeOutput.value.map(_.ref.value).getOrElse("master")
+      siteRevision.value
     ),
     ScalaUnidoc / unidoc / unidocProjectFilter := inAnyProject -- inProjects(
       `intervalidus-examples`,
       `intervalidus-example-mongodb`,
       laws,
       bench
-    )
+    ),
+    // Documentation checks (because sometimes my scaladoc symbolic references get broken)
+    siteCheckAll := {
+      val log = streams.value.log
+
+      // Ensure the site is built first
+      // Calling .value forces SBT to run these tasks completely before proceeding.
+      val unifiedDocs = makeSite.value
+      val siteDir = (ScalaUnidoc / unidoc / target).value
+
+      log.info(s"Scanning site HTML in $siteDir for issues...")
+      // Find all HTML files recursively
+      val htmlFiles = (siteDir ** "*.html").get()
+      var brokenCount = 0
+
+      htmlFiles.foreach: file =>
+        val lines = IO.readLines(file)
+        // log.info(s"Scanning ${file.getName}...")
+        lines.zipWithIndex.foreach: (line, index) =>
+          // Matches things like <p>$symbol or similar unexpanded patterns
+          if line.contains("<p>$") then
+            log.warn(s"Scaladoc-related issue found in ${file.getName}:${index + 1} -> $line")
+            brokenCount += 1
+
+      if brokenCount == 0 then
+        log.info("Site looks clean.")
+      else
+        log.error(s"Found $brokenCount site issues.")
+        throw new MessageOnlyException(s"Site check failed with $brokenCount errors.")
+    }
   )
 
 lazy val core = project
@@ -150,7 +178,7 @@ lazy val `intervalidus-tinyrule` = (project in file("sidequests/tinyrule"))
   .settings(commonPublishSettings("intervalidus-tinyrule"))
 
 lazy val `intervalidus-examples` = (project in file("examples"))
-  .disablePlugins(MimaPlugin, TastyMiMaPlugin)
+  .disablePlugins(MimaPlugin)
   .dependsOn(core, `intervalidus-tinyrule`)
   .settings(commonNoPublishSettings("intervalidus-examples"))
 
@@ -158,7 +186,7 @@ val mongodbVersion = "5.8.0"
 val testcontainersVersion = "0.44.1"
 
 lazy val `intervalidus-example-mongodb` = (project in file("example-mongodb"))
-  .disablePlugins(MimaPlugin, TastyMiMaPlugin)
+  .disablePlugins(MimaPlugin)
   .dependsOn(core, `intervalidus-weepickle`, `intervalidus-upickle`)
   .settings(
     commonNoPublishSettings("intervalidus-example-mongodb"),
@@ -172,7 +200,7 @@ lazy val `intervalidus-example-mongodb` = (project in file("example-mongodb"))
   )
 
 lazy val laws = project
-  .disablePlugins(MimaPlugin, TastyMiMaPlugin)
+  .disablePlugins(MimaPlugin)
   .dependsOn(core)
   .settings(commonNoPublishSettings("laws"))
   .settings(
@@ -183,46 +211,6 @@ lazy val laws = project
 
 lazy val bench = project
   .enablePlugins(JmhPlugin)
-  .disablePlugins(MimaPlugin, TastyMiMaPlugin)
+  .disablePlugins(MimaPlugin)
   .dependsOn(core)
   .settings(commonNoPublishSettings("bench"))
-
-// =========================================================================================
-// DOCUMENTATION CHECKS (because sometimes my scaladoc symbolic references get broken)
-// =========================================================================================
-
-lazy val siteCheckAll = taskKey[Unit]("Scans generated HTML for Scaladoc issues")
-
-siteCheckAll := {
-  val log = streams.value.log
-
-  // Ensure the site is built first
-  // Calling .value forces SBT to run these tasks completely before proceeding.
-  log.info("Making site...")
-  val unifiedDocs = (Compile / unidoc).value
-  val siteDir = (ScalaUnidoc / unidoc / target).value
-
-  log.info(s"Scanning site HTML in $siteDir for issues...")
-  // Find all HTML files recursively
-  val htmlFiles = (siteDir ** "*.html").get
-  var brokenCount = 0
-
-  htmlFiles.foreach { file =>
-    val lines = IO.readLines(file)
-    // log.info(s"Scanning ${file.getName}...")
-    lines.zipWithIndex.foreach { case (line, index) =>
-      // Matches things like <p>$symbol or similar unexpanded patterns
-      if (line.contains("<p>$")) {
-        log.warn(s"Scaladoc-related issue found in ${file.getName}:${index + 1} -> $line")
-        brokenCount += 1
-      }
-    }
-  }
-
-  if (brokenCount == 0) {
-    log.info("Site looks clean.")
-  } else {
-    log.error(s"Found $brokenCount site issues.")
-    throw new MessageOnlyException(s"Site check failed with $brokenCount errors.")
-  }
-}
