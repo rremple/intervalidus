@@ -18,8 +18,7 @@ and versioning data.
 Add the following to your **build.sbt** file:
 
 ```sbt
-resolvers += "Intervalidus" at "https://maven.pkg.github.com/rremple/intervalidus"
-libraryDependencies += "rremple" %% "intervalidus" % "<version>"
+libraryDependencies += "io.github.rremple" %% "intervalidus" % "<version>"
 ```
 
 For more on usage including other artifacts, Scala 2 considerations, GitHub Package authentication, etc., see 

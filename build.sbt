@@ -12,7 +12,7 @@ ThisBuild / versionPolicyIgnoredInternalDependencyVersions := Some("^\\d+\\.\\d+
 // =========================================================================================
 // NATIVE MAVEN CENTRAL (SONATYPE CENTRAL) PUBLISHING SETTINGS
 // =========================================================================================
-ThisBuild /publishMavenStyle := true
+ThisBuild / publishMavenStyle := true
 ThisBuild / pomIncludeRepository := { _ => false }
 
 ThisBuild / publishTo := {
@@ -26,10 +26,10 @@ ThisBuild / homepage := Some(url("https://github.com/rremple/intervalidus"))
 ThisBuild / licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt"))
 ThisBuild / developers := List(
   Developer(
-    id    = "rremple",
-    name  = "Russell Remple",
+    id = "rremple",
+    name = "Russell Remple",
     email = "rremple@users.noreply.github.com",
-    url   = url("https://github.com/rremple")
+    url = url("https://github.com/rremple")
   )
 )
 ThisBuild / scmInfo := Some(

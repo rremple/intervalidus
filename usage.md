@@ -3,8 +3,7 @@
 Assuming you are using Scala 3.3 or above, add the following to your **build.sbt** file:
 
 ```sbt
-resolvers += "Intervalidus" at "https://maven.pkg.github.com/rremple/intervalidus"
-libraryDependencies += "rremple" %% "intervalidus" % "<version>"
+libraryDependencies += "io.github.rremple" %% "intervalidus" % "<version>" // the core artifact
 ```
 
 ### Other Artifacts
@@ -13,9 +12,17 @@ You probably aren't going to need them, but just in case you do, there are also 
 
 ```sbt
 libraryDependencies ++= Seq(
-  "rremple" %% "intervalidus-upickle" % "<version>", // JSON transformers using com.lihaoyi:upickle
-  "rremple" %% "intervalidus-weepickle" % "<version>", // JSON transformers using com.rallyhealth:weepickle-v1
-  "rremple" %% "intervalidus-tinyrule" % "<version>" // sidequest rules engine used in one example (explained later)
+  "io.github.rremple" %% "intervalidus-upickle" % "<version>", // JSON transformers using com.lihaoyi:upickle
+  "io.github.rremple" %% "intervalidus-weepickle" % "<version>", // JSON transformers using com.rallyhealth:weepickle-v1
+  "io.github.rremple" %% "intervalidus-tinyrule" % "<version>" // sidequest rules engine used in one example
+)
+```
+
+There are also these artifacts, which other Intervalidus artifacts depend on:
+```sbt
+libraryDependencies ++= Seq(
+  "io.github.rremple" %% "intervalidus-collection" % "<version>", // custom high-performance collections used by core
+  "io.github.rremple" %% "intervalidus-pickle-common" % "<version>" // common JSON stuff used by weepickle and upickle
 )
 ```
 
@@ -31,11 +38,19 @@ well to Scala 2 implicits), inlines (for tuple processing) and some use of macro
 auto-derivation of a discrete value type class from an `enum`, but are more heavily used in the `intervalidus-tinyrule`
 subproject). You really ought to upgrade to Scala 3!
 
-### GitHub Package Registry
+### Accessing older versions ([YAGNI](https://en.wikipedia.org/wiki/You_aren%27t_gonna_need_it))
 
-As indicated by the resolver above, I'm using the GitHub Package Registry for this. A decision I immediately regretted
-when I learned that it does not, and probably never will, support unauthenticated access! Sorry for the extra friction,
-but you'll need the resolver above plus some credentials for GitHub that can read packages. For this, you will need to
+Prior to version 3.0.0, Intervalidus was published to the GitHub Package Registry. (A decision I immediately
+regretted when I learned that it did not, and probably would never, support unauthenticated access!) Artifacts are now
+(finally) published to Maven Central. If you need to depend on an older version, add the following to your **build.sbt**
+file:
+
+```sbt
+resolvers += "Intervalidus" at "https://maven.pkg.github.com/rremple/intervalidus"
+libraryDependencies += "rremple" %% "intervalidus" % "<version>" // note the org is a little different
+```
+
+You'll also need some credentials for GitHub that can read packages. For this, you will need to
 use a Personal Access Token (PAT) with at least the ability to read packages. For more information on PATs, see the
 [GitHub docs](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens).
 
