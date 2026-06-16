@@ -13,24 +13,57 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      PUBLISH_TO_PACKAGES: ${{ secrets.PUBLISH_TO_PACKAGES }}
+      PUBLISH_TO_PAGES: ${{ secrets.PUBLISH_TO_PAGES }}
+
+      # Sonatype Central Portal variables
+      SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+      SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+
+      # GPG Signing variables for non-interactive sbt-pgp execution
+      PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
 
     steps:
     - uses: actions/checkout@v4
+
     - name: Restore cache
       uses: coursier/cache-action@v6
-    - name: Set up JDK 17 & Scala
+
+    - name: Set up JDK 21 & Scala
       uses: coursier/setup-action@v1
       with:
-        jvm: 17
+        jvm: 21
         apps: sbt
+
+    - name: Import GPG Key
+      uses: crazy-max/ghaction-import-gpg@v6
+      with:
+        gpg_private_key: ${{ secrets.PGP_SECRET }}
+        passphrase: ${{ secrets.PGP_PASSPHRASE }}
+
     - name: Publish Site
       # The bot needs its identity set to make the 'gh-pages' commit
       run: |
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
         git config --global user.name "github-actions[bot]"
         sbt "unidoc; makeSite; siteCheckAll; ghpagesPushSite"
-    - name: Publish Package
+
+    - name: Publish Package to Sonatype Central
       # Only publish packages if current commit has a version tag
       if: startsWith(github.ref, 'refs/tags/v')
-      run: sbt "publish"
+      # Compile, sign, and release directly to Maven Central
+      run: |
+        # Write credentials dynamically (nothing leaked in the project repo)
+        mkdir -p ~/.sbt/1.0
+        cat <<EOF > ~/.sbt/1.0/sonatype.sbt
+        credentials += Credentials(
+          "Sonatype Nexus Repository Manager",
+          "central.sonatype.com",
+          "$SONATYPE_USERNAME",
+          "$SONATYPE_PASSWORD"
+        )
+        EOF
+        
+        # Automatically delete credentials when sbt completes
+        trap 'rm -f ~/.sbt/1.0/sonatype.sbt' EXIT
+        
+        sbt "publishSigned; sonaRelease"

@@ -14,8 +14,8 @@ jobs:
       - name: Launch Scala Steward
         uses: scala-steward-org/scala-steward-action@v2
         with:
-          github-token: ${{ secrets.PUBLISH_TO_PACKAGES }}
+          github-token: ${{ secrets.PUBLISH_TO_PAGES }}
           author-email: "rremple@users.noreply.github.com"
           author-name: "Scala Steward (rremple)"
         env:
-          PUBLISH_TO_PACKAGES: ${{ secrets.PUBLISH_TO_PACKAGES }}
+          PUBLISH_TO_PAGES: ${{ secrets.PUBLISH_TO_PAGES }}

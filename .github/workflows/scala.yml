@@ -18,7 +18,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      PUBLISH_TO_PACKAGES: ${{ secrets.PUBLISH_TO_PACKAGES }}
+      PUBLISH_TO_PAGES: ${{ secrets.PUBLISH_TO_PAGES }}
 
     steps:
     - uses: actions/checkout@v4

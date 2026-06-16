@@ -2,27 +2,57 @@ import sbt.Def
 
 ThisBuild / scalaVersion := "3.3.8"
 
-ThisBuild / organization := "rremple" // necessary for the sbt-ghpages and sbt-github-packages
-ThisBuild / githubOwner := (ThisBuild / organization).value
-ThisBuild / githubRepository := "intervalidus"
-ThisBuild / publishTo := githubPublishTo.value // based on githubOwner and githubRepository
-
+ThisBuild / organization := "io.github.rremple"
 ThisBuild / versionScheme := Some("early-semver")
 ThisBuild / versionPolicyIntention := Compatibility.BinaryCompatible // None // as a stopgap
+
 // Ignore dynamic version suffixes for internal sub-project dependencies
 ThisBuild / versionPolicyIgnoredInternalDependencyVersions := Some("^\\d+\\.\\d+\\.\\d+\\+\\d+".r)
 
-publishMavenStyle := true
+// =========================================================================================
+// NATIVE MAVEN CENTRAL (SONATYPE CENTRAL) PUBLISHING SETTINGS
+// =========================================================================================
+ThisBuild /publishMavenStyle := true
+ThisBuild / pomIncludeRepository := { _ => false }
+
+ThisBuild / publishTo := {
+  val centralSnapshots = "https://central.sonatype.com/repository/maven-snapshots/"
+  if (version.value.endsWith("-SNAPSHOT")) Some("central-snapshots" at centralSnapshots)
+  else localStaging.value // Native sbt 1.11+ zero-plugin staging engine
+}
+
+// POM Metadata (Mandatory for Maven Central validation)
+ThisBuild / homepage := Some(url("https://github.com/rremple/intervalidus"))
+ThisBuild / licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt"))
+ThisBuild / developers := List(
+  Developer(
+    id    = "rremple",
+    name  = "Russell Remple",
+    email = "rremple@users.noreply.github.com",
+    url   = url("https://github.com/rremple")
+  )
+)
+ThisBuild / scmInfo := Some(
+  ScmInfo(
+    url("https://github.com/rremple/intervalidus"),
+    "scm:git@github.com:rremple/intervalidus.git"
+  )
+)
+
+// =========================================================================================
+// SUBPROJECT CONFIGURATIONS
+// =========================================================================================
 
 def commonSettings(projectName: String): Seq[Def.Setting[_]] = Seq(
   name := projectName,
+  description := s"Intervalidus, for all your interval-based data needs: $projectName module",
   scalacOptions ++= Seq("-feature", "-deprecation"), // , "-Wunused:all", "-source", "future"),
-  githubTokenSource := TokenSource.GitConfig("github.token") || TokenSource.Environment("PUBLISH_TO_PACKAGES"),
   coverageFailOnMinimum := true,
   coverageMinimumStmtTotal := 99,
   coverageMinimumBranchTotal := 99,
   libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.20" % Test
 )
+
 def commonPublishSettings(projectName: String): Seq[Def.Setting[_]] = commonSettings(projectName) ++ Seq(
   tastyMiMaPreviousArtifacts := mimaPreviousArtifacts.value,
   tastyMiMaReportIssues := {
@@ -31,6 +61,7 @@ def commonPublishSettings(projectName: String): Seq[Def.Setting[_]] = commonSett
     else tastyMiMaReportIssues.value
   }
 )
+
 def commonNoPublishSettings(projectName: String): Seq[Def.Setting[_]] = commonSettings(projectName) ++ Seq(
   publish / skip := true,
   Compile / packageDoc / publishArtifact := false,
@@ -53,13 +84,12 @@ lazy val root = (project in file("."))
   .enablePlugins(ScalaUnidocPlugin, SiteScaladocPlugin, GhpagesPlugin)
   .settings(
     name := "intervalidus-root",
-    githubTokenSource := TokenSource.GitConfig("github.token") || TokenSource.Environment("PUBLISH_TO_PACKAGES"),
     versionPolicyCheck / aggregate := true,
     publish / skip := true,
     // Publish unified API to the GitHub Pages site: unidoc; makeSite; ghpagesPushSite
     git.remoteRepo := {
-      val domainPath = s"github.com/${githubOwner.value}/${githubRepository.value}.git"
-      sys.env.get("PUBLISH_TO_PACKAGES") match {
+      val domainPath = "github.com/rremple/intervalidus.git"
+      sys.env.get("PUBLISH_TO_PAGES") match {
         case Some(token) => // CI path: Inject token for headless auth
           s"https://$token@$domainPath"
         case None => // Local path: Standard URL using Git Credential Manager
@@ -72,7 +102,7 @@ lazy val root = (project in file("."))
     ScalaUnidoc / unidoc / scalacOptions ++= Seq("-doc-title", "Intervalidus API"),
     ScalaUnidoc / unidoc / scalacOptions ++= Seq("-doc-version", version.value),
     ScalaUnidoc / unidoc / scalacOptions ++= Seq(
-      s"-source-links:github://${githubOwner.value}/${githubRepository.value}",
+      "-source-links:github://rremple/intervalidus",
       "-revision",
       dynverGitDescribeOutput.value.map(_.ref.value).getOrElse("master")
     ),
