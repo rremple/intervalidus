@@ -23,13 +23,13 @@ jobs:
       PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Restore cache
-      uses: coursier/cache-action@v6
+      uses: coursier/cache-action@v8
 
     - name: Set up JDK 21 & Scala
-      uses: coursier/setup-action@v1
+      uses: coursier/setup-action@v3
       with:
         jvm: 21
         apps: sbt
