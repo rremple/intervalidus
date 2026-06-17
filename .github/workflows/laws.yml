@@ -13,10 +13,10 @@ jobs:
     - uses: actions/checkout@v6
     - name: Restore cache
       uses: coursier/cache-action@v8
-    - name: Set up JDK 17 & Scala
+    - name: Set up JDK 21 & Scala
       uses: coursier/setup-action@v3
       with:
-        jvm: 17
+        jvm: 21
         apps: sbt
     - name: Run Laws
       run: sbt "laws/test"

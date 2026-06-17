@@ -26,10 +26,10 @@ jobs:
         fetch-depth: 0
     - name: Restore cache
       uses: coursier/cache-action@v8
-    - name: Set up JDK 17 & Scala
+    - name: Set up JDK 21 & Scala
       uses: coursier/setup-action@v3
       with:
-        jvm: 17
+        jvm: 21
         apps: sbt
     - name: Run checks
       run: sbt "scalafmtCheckAll; versionPolicyCheck; tastyMiMaReportIssues"

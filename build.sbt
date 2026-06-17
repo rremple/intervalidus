@@ -181,6 +181,10 @@ lazy val bench = project
   .dependsOn(core)
   .settings(commonNoPublishSettings("bench"))
 
+// =========================================================================================
+// DOCUMENTATION CHECKS (because sometimes my scaladoc symbolic references get broken)
+// =========================================================================================
+
 lazy val siteCheckAll = taskKey[Unit]("Scans generated HTML for Scaladoc issues")
 
 siteCheckAll := {
