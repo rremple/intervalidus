@@ -6,7 +6,7 @@ ThisBuild / organization := "io.github.rremple"
 ThisBuild / versionScheme := Some("early-semver")
 ThisBuild / versionPolicyIntention := Compatibility.BinaryCompatible // None // as a stopgap
 
-// Ignore dynamic version suffixes for internal sub-project dependencies
+// Ignore dynamic version suffixes for internal subproject dependencies
 ThisBuild / versionPolicyIgnoredInternalDependencyVersions := Some("^\\d+\\.\\d+\\.\\d+\\+\\d+".r)
 
 // =========================================================================================
@@ -23,7 +23,7 @@ ThisBuild / publishTo := {
 
 // POM Metadata (Mandatory for Maven Central validation)
 ThisBuild / homepage := Some(url("https://github.com/rremple/intervalidus"))
-ThisBuild / licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt"))
+ThisBuild / licenses := List("Apache-2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0.txt"))
 ThisBuild / developers := List(
   Developer(
     id = "rremple",

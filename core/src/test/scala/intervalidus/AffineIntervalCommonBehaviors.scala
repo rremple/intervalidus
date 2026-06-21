@@ -3,6 +3,7 @@ package intervalidus
 import intervalidus.*
 import intervalidus.Domain1D.{Bottom, Top, domain}
 import intervalidus.Interval1D.*
+import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
@@ -53,7 +54,7 @@ trait AffineIntervalCommonBehaviors(using op: DomainAffineValueLike[Int]):
   // A tuple type with the same number of elements as T, but every element is Double
   type TupleOfDoubles[T <: Tuple] <: Tuple = T match
     case EmptyTuple => EmptyTuple
-    case _ *: tail  => Double *: TupleOfDoubles[tail]
+    case ? *: tail  => Double *: TupleOfDoubles[tail]
 
   // Folds over a tuple of Doubles to arrive at some non-tuple result
   def foldTuple[T <: Tuple](t: T, z: Double)(op: (Double, Double) => Double)(using T =:= TupleOfDoubles[T]): Double =
@@ -72,6 +73,9 @@ trait AffineIntervalCommonBehaviors(using op: DomainAffineValueLike[Int]):
   def diagonal[T <: Tuple](t: T)(using T =:= TupleOfDoubles[T]): Double = math.sqrt(foldTuple(t, 0.0)(_ + _ ** 2))
 
   def commonAffineBehaviors(prefix: String): Unit =
+    extension [D <: NonEmptyTuple: DomainAffineLike](lhs: IntervalShape[D])
+      infix def ≡≡(rhs: IntervalShape[D]): Assertion =
+        assert(lhs ≡ rhs, s"\nExpected (rhs): ${rhs.toCodeLikeString}\nActual (lhs): ${lhs.toCodeLikeString}\n")
 
     test(s"$prefix: Int affine 1d domain behaviors"):
       domain(2) displacementToInt domain(2) shouldBe Some(0)
@@ -114,7 +118,6 @@ trait AffineIntervalCommonBehaviors(using op: DomainAffineValueLike[Int]):
 
     test(s"$prefix: Int affine 1d interval behaviors"):
       intervalFrom(1).toBefore(2).measureInt shouldBe Some(1) // measure = 2-1
-      intervalToBefore(2).reflectedAboutInt(3) shouldBe Some(intervalFromAfter(4))
       intervalFrom(1).toBefore(2).scaledAboutInt(0, scaledBy = 3.0) shouldBe Some(
         intervalFrom(3).toBefore(6)
       ) // 2 * 3 = 6
@@ -123,9 +126,6 @@ trait AffineIntervalCommonBehaviors(using op: DomainAffineValueLike[Int]):
       intervalAt(op.maxValue).displacedByInt(3) shouldBe None
 
     test(s"$prefix: Int affine 2d interval behaviors"):
-      (intervalToBefore(2) x intervalFrom(1).toBefore(2)).reflectedAboutInt(Domain.in2D(3, 3)) shouldBe
-        Some(intervalFromAfter(4) x intervalFromAfter(4).to(5))
-
       (intervalFrom(1).toBefore(2) x intervalFrom(3).toBefore(4))
         .scaledAboutInt(Domain.in2D(0, 0), scaledBy = (3.0, 2.0)) shouldBe
         Some(intervalFrom(3).toBefore(6) x intervalFrom(6).toBefore(8)) // measure 1x1 => measure 3x2
@@ -143,9 +143,6 @@ trait AffineIntervalCommonBehaviors(using op: DomainAffineValueLike[Int]):
       (intervalFrom(4) x interval(4, 5)).measureInt shouldBe None
 
     test(s"$prefix: Int affine interval shape bounding shapes"):
-      extension [D <: NonEmptyTuple: DomainAffineLike](lhs: IntervalShape[D])
-        infix def ≡≡(rhs: IntervalShape[D]) = assert(lhs ≡ rhs, s"\nExpected: $lhs\nActual: $rhs\n")
-
       val i1 = intervalFrom(1).toBefore(3) x intervalFromAfter(3).to(5)
       val i2 = intervalFromAfter(2).to(5) x intervalFromAfter(5).toBefore(10)
 
@@ -182,5 +179,56 @@ trait AffineIntervalCommonBehaviors(using op: DomainAffineValueLike[Int]):
           intervalFromAfter(0).to(7) x intervalFrom(10).toBefore(12), // above i2
           interval(3, 7) x intervalFromAfter(3).to(5), // right of i1 and below i2
           intervalFromAfter(5).to(7) x intervalFromAfter(5).toBefore(10) // right of i2
+        )
+      )
+
+    test(s"$prefix: Int affine interval shape morphology"):
+      import DomainAffineLike.* // extension methods
+      val tinyShape = IntervalShape.of(intervalFrom(0).toBefore(2) x intervalFrom(0).toBefore(2)) // 2 x 2
+      val smallShape = IntervalShape(
+        Seq(
+          intervalFrom(0).toBefore(11) x intervalFrom(0).toBefore(11), // 11 x 11
+          intervalFrom(10).toBefore(31) x intervalFrom(20).toBefore(51) // 21 x 31
+        )
+      )
+      val maxFiniteInterval1d = intervalFrom(Int.MinValue).to(Int.MaxValue)
+      val maxFiniteInterval2d = maxFiniteInterval1d x maxFiniteInterval1d
+      val bigShape = IntervalShape.of(maxFiniteInterval2d) // huge
+      val element1 = intervalFrom(-5).toBefore(5) x intervalFrom(-5).toBefore(5) // 10 x 10
+      val center1 = Domain.in2D(0, 0) // center of element 1 (5 left/below, 5 right/above)
+
+      tinyShape.erodedBy(element1, center1) ≡≡ IntervalShape.∅ // eroded away
+      tinyShape.erodedBy(element1, maxFiniteInterval2d.start) ≡≡ IntervalShape.∅ // eroded away w/ overflow
+      tinyShape.erodedBy(element1, maxFiniteInterval2d.end) ≡≡ IntervalShape.∅ // eroded away w/ overflow
+
+      bigShape.dilatedBy(element1, center1) ≡≡ IntervalShape.ξ // dilated past finite boundaries
+      bigShape.dilatedBy(maxFiniteInterval2d, maxFiniteInterval2d.start) ≡≡ IntervalShape.of( // overflow at the top
+        maxFiniteInterval2d.toTop
+      )
+      bigShape.dilatedBy(maxFiniteInterval2d, maxFiniteInterval2d.end) ≡≡ IntervalShape.of( // overflow at the bottom
+        maxFiniteInterval2d.fromBottom
+      )
+      IntervalShape.of(intervalAt(op.maxValue)).dilatedBy(interval(-10, 10), -20) ≡≡ IntervalShape.∅ // over top
+      IntervalShape.of(intervalAt(op.minValue)).dilatedBy(interval(-10, 10), 20) ≡≡ IntervalShape.∅ // under bottom
+
+      smallShape.erodedBy(element1, center1) ≡≡ IntervalShape(
+        Seq(
+          intervalFrom(5).toBefore(6) x intervalFrom(5).toBefore(6), // 11 x 11 - 10 x 10 = 1 x 1
+          intervalFrom(15).toBefore(26) x intervalFrom(25).toBefore(46) // 21 x 31 - 10 x 10 = 11 x 21
+        )
+      )
+      smallShape.dilatedBy(element1, center1) ≡≡ IntervalShape(
+        Seq(
+          intervalFrom(-5).toBefore(16) x intervalFrom(-5).toBefore(15), // (-5, 15) truncated to be non-overlapping
+          intervalFrom(-5).toBefore(5) x intervalFrom(15).toBefore(16), // excludes overlapping edge
+          intervalFrom(5).toBefore(36) x intervalFrom(15).toBefore(56) // 21 x 31 + 10 x 10 = 31 x 41
+        )
+      )
+      smallShape.openingBy(element1, center1) ≡≡ smallShape // no changes
+
+      smallShape.closingBy(element1, center1) ≡≡ IntervalShape(
+        Seq(
+          intervalFrom(0).toBefore(11) x intervalFrom(0).toBefore(10), // dinged by overlap
+          intervalFrom(10).toBefore(31) x intervalFrom(20).toBefore(51)
         )
       )

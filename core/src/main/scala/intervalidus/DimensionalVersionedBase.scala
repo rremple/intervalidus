@@ -839,8 +839,7 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     */
   def boundingInterval(using VersionSelection): Option[Interval[D]] =
     // same as, but probably faster than, getSelectedDataMutable.boundingInterval
-    val selectedIntervals = allIntervals
-    if selectedIntervals.isEmpty then None else Some(selectedIntervals.reduce(_ joinedWith _))
+    allIntervals.reduceOption(_ joinedWith _)
 
   // ---------- To be implemented by inheritor ----------
 

@@ -38,7 +38,7 @@ object DomainAffineLike:
     /**
       * Scale this domain relative to some center. Overflows of the underlying value operations are translated to
       * Bottom/Top. See [[https://en.wikipedia.org/wiki/Scaling_(geometry)]] and
-      * [[https://en.wikipedia.org/wiki/Homothetic_center]]
+      * [[https://en.wikipedia.org/wiki/Homothetic_center]].
       */
     infix def scaledAbout(center: Domain1D[T], scaledBy: op.Scalar): Domain1D[T] =
       val centerValue: T = center match
@@ -113,17 +113,62 @@ object DomainAffineLike:
        */
       lhs.start displacementTo lhs.end.rightAdjacent
 
-    // uses left and right adjacent to (1) preserve adjacency, and (2) preserve measure(scale(a, s)) = measure(a) * s
+    /**
+      * Returns this interval scaled about some center scaled by some factor. The scaling factor must be a the scalar
+      * type of T.
+      *
+      * Ignoring errors sometimes introduced by overflows and rounding, there are three invariants for this
+      * transformation given any two intervals a and b, some scale s (non-zero, positive or negative), and some center c
+      * (contained or not contained in a and/or b):
+      *   - inversion: a ≡ scale(scale(a, s, c), 1/s, c) ≡ reflect(reflect(a, c), c)
+      *   - adjacency: iff a is adjacent to b, scale(a, s, c) is adjacent to scale(b, s, c). If s is positive, they are
+      *     adjacent in the same way (both left or both right), where if s is negative, adjacency flips (left becomes
+      *     right or right becomes left )
+      *   - measure: measure(scale(a, s, c)) = measure(a) * |s|
+      *
+      * The scaling of intervals in continuous domains is straightforward, but care is taken in the algorithm (i.e., use
+      * of adjacency) for intervals in discrete domains to ensure these invariants.
+      */
     def scaledAbout(center: Domain1D[T], scaledBy: op.Scalar): Option[Interval1D[T]] =
-      val (from, to) = if scaledBy > op.zeroScalar then (lhs.start, lhs.end) else (lhs.end, lhs.start)
-      val start = from.scaledAbout(center, scaledBy)
-      val endRightAdjacent = to.rightAdjacent.scaledAbout(center, scaledBy)
-      val end = if scaledBy > op.zeroScalar then endRightAdjacent.leftAdjacent else endRightAdjacent.rightAdjacent
+      val scaleIsPositive = scaledBy > op.zeroScalar
+      val (start, end) = op match
+        case _: ContinuousAffineValue[T] =>
+          val (from, to) = if scaleIsPositive then (lhs.start, lhs.end) else (lhs.end, lhs.start)
+          (from.scaledAbout(center, scaledBy), to.scaledAbout(center, scaledBy))
+        case _: DiscreteAffineValue[T] =>
+          val (from, to) =
+            if scaleIsPositive then (lhs.start, lhs.end.rightAdjacent) else (lhs.end.rightAdjacent, lhs.start)
+          (from.scaledAbout(center, scaledBy), to.scaledAbout(center, scaledBy).leftAdjacent)
+
       if Interval1D.validBounds(start, end) then Some(Interval1D(start, end)) else None
 
-      /**
-        * Reflects this interval about a pivot. If the result is not a valid interval, None is returned.
-        */
+    /**
+      * Reflects this interval about a pivot. If the result is not a valid interval, None is returned.
+      *
+      * Ignoring errors sometimes introduced by overflows and rounding, there are three invariants for this
+      * transformation given any intervals a and b and some center c (contained or not contained in a and/or b):
+      *   - adjacency: iff a is adjacent to b, reflect(a, c) is adjacent to reflect(b, c), and the adjacency type flips
+      *     (left and right becomes right and left)
+      *   - measure: measure(reflect(a, c)) = measure(a)
+      *   - inversion: a = reflect(reflect(a, c), c)
+      *
+      * @note
+      *   The reflecting of intervals in a continuous domain is straightforward, but the algorithm for reflecting in a
+      *   discrete domain that maintains these invariants is slightly counterintuitive. Specifically the "center" is not
+      *   a zero-width point, but a unit block. The line of symmetry for reflecting can be thought of as the left edge
+      *   of this "block". E.g., reflecting the interval [0..1] about the center 3 results in the interval [4..5],
+      *   because the left edge of 3 dictates that because the cell to the left its left edge (at 2) is empty, then the
+      *   cell to the right of its left edge (at 3) is also empty.
+      *
+      * {{{
+      *   Grid:         0   1   2   |   3   4   5   6
+      *   Original:    [=====]  .   |   .  [=====]
+      *   Pivot Axis:               |
+      *                         ^       ^
+      *                    1-block     1-block
+      *                      gap         gap
+      * }}}
+      */
     infix def reflectedAbout(pivot: Domain1D[T]): Option[Interval1D[T]] = lhs.scaledAbout(pivot, op.reflectionScalar)
 
     /**
@@ -142,6 +187,52 @@ object DomainAffineLike:
     infix def paddedBy(offset: op.Displacement): Option[Interval1D[T]] =
       val start = lhs.start displacedBy offset.negated
       val end = lhs.end displacedBy offset
+      if Interval1D.validBounds(start, end) then Some(Interval1D(start, end)) else None
+
+    /**
+      * In mathematical morphology, a dilation operation uses a structuring element for probing and expanding a shape.
+      * When applied to a one-dimensional interval, it positively pads the interval, potentially asymmetrically based on
+      * the provided center of the structuring element. Depending on the choice of the center, the interval may also be
+      * translated. See [[https://en.wikipedia.org/wiki/Mathematical_morphology]] and
+      * [[https://en.wikipedia.org/wiki/Dilation_(morphology)]]
+      *
+      * @param element
+      *   a structuring element for the dilation.
+      * @param elementCenter
+      *   the center of the structuring element.
+      * @return
+      *   if the interval can be dilated, a new interval dilated by the structuring element, otherwise None.
+      */
+    def dilatedBy(element: Interval1D[T], elementCenter: Domain1D[T]): Option[Interval1D[T]] =
+      val start = elementCenter displacementTo element.start match
+        case Some(displacement) => lhs.start displacedBy displacement
+        case None               => Bottom
+      val end = elementCenter displacementTo element.end.rightAdjacent match
+        case Some(displacement) => lhs.end displacedBy displacement
+        case None               => Top
+      if Interval1D.validBounds(start, end) then Some(Interval1D(start, end)) else None
+
+    /**
+      * In mathematical morphology, an erosion operation uses a structuring element for probing and contracting a shape.
+      * When applied to a one-dimensional interval, it negatively pads the interval, potentially asymmetrically based on
+      * the provided center of the structuring element. Depending on the choice of the center, the interval may also be
+      * translated. See [[https://en.wikipedia.org/wiki/Mathematical_morphology]] and
+      * [[https://en.wikipedia.org/wiki/Erosion_(morphology)]]
+      *
+      * @param element
+      *   a structuring element for the erosion.
+      * @param elementCenter
+      *   the center of the structuring element.
+      * @return
+      *   if the interval can be eroded, a new interval eroded by the structuring element, otherwise None.
+      */
+    def erodedBy(element: Interval1D[T], elementCenter: Domain1D[T]): Option[Interval1D[T]] =
+      val start = element.start displacementTo elementCenter match
+        case Some(displacement) => lhs.start displacedBy displacement
+        case None               => Top
+      val end = element.end.rightAdjacent displacementTo elementCenter match
+        case Some(displacement) => lhs.end displacedBy displacement
+        case None               => Bottom
       if Interval1D.validBounds(start, end) then Some(Interval1D(start, end)) else None
 
   extension [D <: NonEmptyTuple](lhs: Interval[D])(using op: DomainAffineLike[D])
@@ -163,6 +254,40 @@ object DomainAffineLike:
       */
     def paddedBy[S <: NonEmptyTuple](offset: S)(using D HasDisplacementType S): Option[Interval[D]] =
       op.applyToAffineDomain.paddedByFromInterval(lhs, offset)
+
+    /**
+      * In mathematical morphology, a dilation operation uses a structuring element for probing and expanding a shape.
+      * When applied to a multidimensional interval, it positively pads the interval in all dimensions, potentially
+      * asymmetrically based on the provided center of the structuring element. Depending on the choice of the center,
+      * the interval may also be translated. See [[https://en.wikipedia.org/wiki/Mathematical_morphology]] and
+      * [[https://en.wikipedia.org/wiki/Dilation_(morphology)]]
+      *
+      * @param element
+      *   a structuring element for the dilation.
+      * @param elementCenter
+      *   the center of the structuring element.
+      * @return
+      *   if the interval can be dilated, a new interval dilated by the structuring element, otherwise None.
+      */
+    def dilatedBy(element: Interval[D], elementCenter: D): Option[Interval[D]] =
+      op.applyToAffineDomain.dilatedByFromInterval(lhs, element, elementCenter)
+
+    /**
+      * In mathematical morphology, an erosion operation uses a structuring element for probing and contracting a shape.
+      * When applied to a multidimensional interval, it negatively pads the interval in all dimensions, potentially
+      * asymmetrically based on the provided center of the structuring element. Depending on the choice of the center,
+      * the interval may also be translated. See [[https://en.wikipedia.org/wiki/Mathematical_morphology]] and
+      * [[https://en.wikipedia.org/wiki/Erosion_(morphology)]]
+      *
+      * @param element
+      *   a structuring element for the erosion.
+      * @param elementCenter
+      *   the center of the structuring element.
+      * @return
+      *   if the interval can be eroded, a new interval eroded by the structuring element, otherwise None.
+      */
+    def erodedBy(element: Interval[D], elementCenter: D): Option[Interval[D]] =
+      op.applyToAffineDomain.erodedByFromInterval(lhs, element, elementCenter)
 
     /**
       * Returns the measure of this interval as a tuple of the displacement types of D if the measures are defined in
@@ -235,6 +360,87 @@ object DomainAffineLike:
     def boundingShape[S <: NonEmptyTuple](thickness: S)(using D HasDisplacementType S): IntervalShape[D] =
       val paddedIntervals = lhs.allIntervals.flatMap(_.paddedBy(thickness))
       (IntervalShape.∅ ++ paddedIntervals) △ lhs
+
+    /**
+      * In mathematical morphology, a dilation operation uses a structuring element for probing and expanding a shape.
+      * When applied to an interval shape, it positively pads all the interval components of the shape, potentially
+      * asymmetrically based on the provided center of the structuring element, and collects the result as a new shape.
+      * Depending on the choice of the center, the shape may also be translated. See
+      * [[https://en.wikipedia.org/wiki/Mathematical_morphology]] and
+      * [[https://en.wikipedia.org/wiki/Dilation_(morphology)]]
+      *
+      * @param element
+      *   a structuring element for the dilation.
+      * @param elementCenter
+      *   the center of the structuring element.
+      * @return
+      *   a new shape with all components dilated by the structuring element -- any components that cannot be dialated
+      *   are dropped in the result.
+      */
+    def dilatedBy(element: Interval[D], elementCenter: D): IntervalShape[D] =
+      val dilatedIntervals = lhs.allIntervals.flatMap(_.dilatedBy(element, elementCenter))
+      IntervalShape.∅ ++ dilatedIntervals
+
+    /**
+      * In mathematical morphology, an erosion operation uses a structuring element for probing and contracting a shape.
+      * When applied to an interval shape, it negatively pads all the interval components of the shape, potentially
+      * asymmetrically based on the provided center of the structuring element, and collects the result as a new shape.
+      * Depending on the choice of the center, the shape may also be translated. See
+      * [[https://en.wikipedia.org/wiki/Mathematical_morphology]] and
+      * [[https://en.wikipedia.org/wiki/Erosion_(morphology)]]
+      *
+      * @note
+      *   because eroding a shape is just the erosion applied to each of its interval components in the shape, the
+      *   results in more than one dimension can be surprising. That is because a shape with intervals partially
+      *   adjacent to one another can wind up with gaps between them when eroded.
+      *
+      * @param element
+      *   a structuring element for the erosion.
+      * @param elementCenter
+      *   the center of the structuring element.
+      * @return
+      *   a new shape with all components eroded by the structuring element -- any components that cannot be eroded are
+      *   dropped in the result.
+      */
+    def erodedBy(element: Interval[D], elementCenter: D): IntervalShape[D] =
+      val transform = ((_: Interval[D]).erodedBy(element, elementCenter)).unlift
+      lhs.collect(transform)
+
+    /**
+      * In mathematical morphology, an opening operation is the dilation of the erosion, essentially removing features
+      * smaller than the structuring element. See [[https://en.wikipedia.org/wiki/Mathematical_morphology]] and
+      * [[https://en.wikipedia.org/wiki/Opening_(morphology)]]
+      *
+      * @param element
+      *   a structuring element for the erosion and subsequent dilation.
+      * @param elementCenter
+      *   the center of the structuring element.
+      * @return
+      *   a new shape with all components eroded by, and subsequently dialated by, the structuring element -- any
+      *   components that cannot be eroded or dialated are dropped in the result.
+      */
+    def openingBy(element: Interval[D], elementCenter: D): IntervalShape[D] =
+      erodedBy(element, elementCenter).dilatedBy(element, elementCenter)
+
+    /**
+      * In mathematical morphology, a closing operation is the erosion of the dilation, essentially removing gaps
+      * smaller than the structuring element. See [[https://en.wikipedia.org/wiki/Mathematical_morphology]] and
+      * [[https://en.wikipedia.org/wiki/Closing_(morphology)]]
+      *
+      * @note
+      *   because the second step is eroding, the results in more than one dimension can be surprising (gaps open up
+      *   where interval components had been partially adjacent). See note on [[erodedBy]] for more details.
+      *
+      * @param element
+      *   a structuring element for the dilation and subsequent erosion.
+      * @param elementCenter
+      *   the center of the structuring element.
+      * @return
+      *   a new shape with all components dialated by, and subsequently eroded by, the structuring element -- any
+      *   components that cannot be dialated or eroded are dropped in the result.
+      */
+    def closingBy(element: Interval[D], elementCenter: D): IntervalShape[D] =
+      dilatedBy(element, elementCenter).erodedBy(element, elementCenter)
 
     /**
       * Returns an accumulated measure of this interval shape by measuring this shape's interval components (tuples of

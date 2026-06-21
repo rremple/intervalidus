@@ -18,19 +18,6 @@ class DataAffineContinuousTest
    * Implementations for DataAffineBaseBehaviors.
    */
 
-  override def donutReflectedAboutIn(
-    dimensionIndex: Domain.DimensionIndex,
-    pivot: Domain1D[Int]
-  )(using
-    Domain.HasIndex[Dim, dimensionIndex.type],
-    Domain.IsAtIndex[Dim, dimensionIndex.type, Int],
-    Domain.IsUpdatableAtIndex[Dim, dimensionIndex.type, Int]
-  ): DimensionalAffineBase[Double, Dim] =
-    clippedDonut.reflectedAboutIn(dimensionIndex, pivot)
-
-  override def donutReflectedAbout[V, D](pivot: Dim): DimensionalAffineBase[Double, Dim] =
-    clippedDonut.reflectedAbout(pivot)
-
   override def donutDisplacedByIn(
     dimensionIndex: Domain.DimensionIndex,
     offset: Int
@@ -73,20 +60,56 @@ class DataAffineContinuousTest
     accumulate
   )
 
-  testsFor(commonBehaviors("Continuous"))
+  testsFor(commonBehaviors("Continuous immutable"))
 
-  testsFor(affineBehaviors("Continuous"))
+  testsFor(affineBehaviors("Continuous immutable"))
 
   // Important continuous interval measures:
   // clipInterval: [-10, 10] x [-10, 10] has measure 20 x 20
   // hole: [-1, 1] x [-1, 1] has measure 2 x 2
 
-  /**
-    * Continuous/discrete results are slightly different because of how measure is calculated Also the Scalar type must
-    * resolve where there is a concrete reference to the affine domain value type (IntContinuousAffineValue in the
-    * continuous case).
-    */
-  test(s"Continuous: Int DataAffine scaling"):
+  /*
+   * Continuous/discrete results of reflection and scaling are slightly different because of how each measures interval
+   * width and how the center translates to the actual axis of reflection/scaling.
+   */
+
+  test("Continuous immutable: Int DataAffine reflecting"):
+
+    // - dimension 0 (horizontal)
+
+    clippedDonut.reflectedAboutIn(0, 0) ≡≡ clippedDonut // no-op reflection (since the donut is symmetric)
+
+    clippedDonut.reflectedAboutIn(0, 1).getAll.toList shouldBe List(
+      (intervalFrom(-8).toBefore(1) x interval(-10, 1)) -> donutFilling, // clipped dd reflected horizontally
+      (interval(-8, 3) x intervalFromAfter(1).to(10)) -> donutFilling, // clipped cc reflected horizontally
+      (interval(1, 12) x intervalFrom(-10).toBefore(-1)) -> donutFilling, // clipped aa reflected horizontally
+      (intervalFromAfter(3).to(12) x interval(-1, 10)) -> donutFilling // clipped bb reflected horizontally
+    )
+
+    // - dimension 1 (vertical)
+
+    clippedDonut.reflectedAboutIn(1, 0) ≡≡ clippedDonut // no-op reflection (since the donut is symmetric)
+
+    clippedDonut.reflectedAboutIn(1, 1).getAll.toList shouldBe List(
+      (intervalFrom(-10)
+        .toBefore(-1) x interval(-8, 3)) -> donutFilling, // clipped part of bb+dd reflected vertically
+      (interval(-10, 1) x intervalFromAfter(3).to(12)) -> donutFilling, // clipped aa reflected vertically
+      (interval(-1, 10) x intervalFrom(-8).toBefore(1)) -> donutFilling, // clipped cc reflected vertically
+      (intervalFromAfter(1).to(10) x interval(1, 12)) -> donutFilling // clipped part of bb+dd reflected vertically
+    )
+
+    // multi-dimensional
+
+    clippedDonut.reflectedAbout(Domain.in2D(0, 0)) ≡≡ clippedDonut // no-op reflection (since the donut is symmetric)
+
+    clippedDonut.reflectedAbout(Domain.in2D(1, 1)).getAll.toList shouldBe List(
+      (interval(-8, 3) x intervalFrom(-8).toBefore(1)) -> donutFilling,
+      (intervalFrom(-8).toBefore(1) x interval(1, 12)) -> donutFilling,
+      (interval(1, 12) x intervalFromAfter(3).to(12)) -> donutFilling,
+      (intervalFromAfter(3).to(12) x interval(-8, 3)) -> donutFilling
+    )
+
+  test(s"Continuous immutable: Int DataAffine scaling"):
 
     // - dimension 0 (horizontal)
 

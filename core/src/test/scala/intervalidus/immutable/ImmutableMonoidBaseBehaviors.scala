@@ -20,7 +20,8 @@ trait ImmutableMonoidBaseBehaviors(using DomainValueLike[Int]):
 
   // assert equivalence/non-equivalence
   extension [V: Monoid, D <: NonEmptyTuple: DomainLike](lhs: DataMonoid[V, D])
-    infix def ≡≡(rhs: DataMonoid[V, D]): Assertion = assert(lhs ≡ rhs, s"\nExpected: $lhs\nActual: $rhs\n")
+    infix def ≡≡(rhs: DataMonoid[V, D]): Assertion =
+      assert(lhs ≡ rhs, s"\nExpected (rhs): \n$rhs\nActual (lhs): \n$lhs\n")
     infix def !≡(rhs: DataMonoid[V, D]): Assertion = assert(!(lhs ≡ rhs))
 
   val origin: Dim = Domain.in2D(0, 0)

@@ -2,6 +2,7 @@ package intervalidus
 
 import intervalidus.DiscreteAffineValue.given
 import intervalidus.DomainAffineLike.*
+import intervalidus.Interval1D.*
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
@@ -40,3 +41,8 @@ class DiscreteAffineIntervalTest
     def boundingShapeInt(thickness: (Int, Int)): IntervalShape[Int2d] = lhs.boundingShape(thickness)
 
   testsFor(commonAffineBehaviors("Discrete"))
+
+  test("Discrete: Int affine interval reflection behaviors"):
+    intervalToBefore(2).reflectedAboutInt(3) shouldBe Some(intervalFrom(4)) // center is left edge of 3
+    (intervalToBefore(2) x intervalAt(1)).reflectedAboutInt(Domain.in2D(3, 3)) shouldBe
+      Some(intervalFrom(4) x intervalAt(4)) // center is left/lower corner of (3, 3)

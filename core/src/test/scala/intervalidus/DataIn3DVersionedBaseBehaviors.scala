@@ -7,7 +7,6 @@ import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
 import java.time.{Instant, LocalDate, LocalDateTime, ZoneId}
-import scala.annotation.nowarn
 import scala.language.implicitConversions
 
 /*
@@ -32,7 +31,7 @@ trait DataIn3DVersionedBaseBehaviors:
 
   def horizontal[H: DomainValueLike, V: DomainValueLike, D: DomainValueLike](
     interval: Interval[Versioned[Domain.In3D[H, V, D]]]
-  ): Interval1D[H] = (interval: @nowarn("msg=match may not be exhaustive")) match
+  ): Interval1D[H] = interval match
     case _ x_: horizontal x_: _ x_: _ => horizontal
 
   protected def testDataIn4D[T](

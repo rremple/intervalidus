@@ -18,19 +18,6 @@ class DataAffineDiscreteTest
    * Implementations for DataAffineBaseBehaviors.
    */
 
-  override def donutReflectedAboutIn(
-    dimensionIndex: Domain.DimensionIndex,
-    pivot: Domain1D[Int]
-  )(using
-    Domain.HasIndex[Dim, dimensionIndex.type],
-    Domain.IsAtIndex[Dim, dimensionIndex.type, Int],
-    Domain.IsUpdatableAtIndex[Dim, dimensionIndex.type, Int]
-  ): DimensionalAffineBase[Double, Dim] =
-    clippedDonut.mutate(_.reflectedAboutIn(dimensionIndex, pivot))
-
-  override def donutReflectedAbout[V, D](pivot: Dim): DimensionalAffineBase[Double, Dim] =
-    clippedDonut.mutate(_.reflectedAbout(pivot))
-
   override def donutDisplacedByIn(
     dimensionIndex: Domain.DimensionIndex,
     offset: Int
@@ -76,20 +63,66 @@ class DataAffineDiscreteTest
     )
     result
 
-  testsFor(commonBehaviors("Discrete"))
+  testsFor(commonBehaviors("Discrete mutable"))
 
-  testsFor(affineBehaviors("Discrete"))
+  testsFor(affineBehaviors("Discrete mutable"))
 
   // Important discrete interval measures:
   // clipInterval: [-10..10] x [-10..10] has measure 21 x 21
   // hole: [-1..1] x [-1..1] has measure 3 x 3
 
-  /**
-    * Continuous/discrete results are slightly different because of how measure is calculated Also the Scalar type must
-    * resolve where there is a concrete reference to the affine domain value type (IntDiscreteAffineValue in the
-    * discrete case).
-    */
-  test(s"Discrete: Int DataAffine scaling"):
+  /*
+   * Continuous/discrete results of reflection and scaling are slightly different because of how each measures interval
+   * width and how the center translates to the actual axis of reflection/scaling.
+   */
+
+  test("Discrete mutable: Int DataAffine reflecting"):
+
+    // - dimension 0 (horizontal)
+
+    // Choosing an axis left of a 0 center yields a donut lobsided on the right, so the reflection is lobsided on the
+    // left, so it will match the donut shifted left by 1.
+    clippedDonut.mutate(_.reflectedAboutIn(0, 0)) ≡≡ clippedDonut.mutate(_.displacedBy((-1, 0))) // nearly symmetric
+
+    // Choosing an axis left of a 1 center yields a donut lobsided on the left, so the reflection is lobsided on the
+    // right, so it will match the donut shifted right by 1.
+    clippedDonut.mutate(_.reflectedAboutIn(0, 1)) ≡≡ clippedDonut.mutate(_.displacedBy((1, 0))) // nearly symmetric
+
+    // And there's nothing between 0 and 1 that you can use as the center in a discrete domain.
+
+    clippedDonut.mutate(_.reflectedAboutIn(0, 1)).mutate(_.displacedBy((1, 0))).getAll.toList shouldBe List(
+      (intervalFrom(-8).toBefore(1) x interval(-10, 1)) -> donutFilling, // clipped dd reflected horizontally
+      (interval(-8, 3) x intervalFromAfter(1).to(10)) -> donutFilling, // clipped cc reflected horizontally
+      (interval(1, 12) x intervalFrom(-10).toBefore(-1)) -> donutFilling, // clipped aa reflected horizontally
+      (intervalFromAfter(3).to(12) x interval(-1, 10)) -> donutFilling // clipped bb reflected horizontally
+    )
+
+    // - dimension 1 (vertical)
+
+    clippedDonut.mutate(_.reflectedAboutIn(1, 0)) ≡≡ clippedDonut.mutate(_.displacedBy((0, -1))) // nearly symmetric
+
+    clippedDonut.mutate(_.reflectedAboutIn(1, 1)).mutate(_.displacedBy((0, 1))).getAll.toList shouldBe List(
+      (intervalFrom(-10)
+        .toBefore(-1) x interval(-8, 3)) -> donutFilling, // clipped part of bb+dd reflected vertically
+      (interval(-10, 1) x intervalFromAfter(3).to(12)) -> donutFilling, // clipped aa reflected vertically
+      (interval(-1, 10) x intervalFrom(-8).toBefore(1)) -> donutFilling, // clipped cc reflected vertically
+      (intervalFromAfter(1).to(10) x interval(1, 12)) -> donutFilling // clipped part of bb+dd reflected vertically
+    )
+
+    // multi-dimensional
+
+    clippedDonut.mutate(_.reflectedAbout(Domain.in2D(0, 0))) ≡≡ clippedDonut.mutate(
+      _.displacedBy((-1, -1))
+    ) // nearly symmetric
+
+    clippedDonut.mutate(_.reflectedAbout(Domain.in2D(1, 1))).mutate(_.displacedBy((1, 1))).getAll.toList shouldBe List(
+      (interval(-8, 3) x intervalFrom(-8).toBefore(1)) -> donutFilling,
+      (intervalFrom(-8).toBefore(1) x interval(1, 12)) -> donutFilling,
+      (interval(1, 12) x intervalFromAfter(3).to(12)) -> donutFilling,
+      (intervalFromAfter(3).to(12) x interval(-8, 3)) -> donutFilling
+    )
+
+  test(s"Discrete mutable: Int DataAffine scaling"):
 
     // - dimension 0 (horizontal)
 

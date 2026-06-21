@@ -402,5 +402,5 @@ trait DimensionalAffineBase[V, D <: NonEmptyTuple: DomainAffineLike] extends Dim
     *   A shape that forms a shell around the boundary of all valid data.
     */
   def boundingShape[S <: NonEmptyTuple](thickness: S)(using D HasDisplacementType S): IntervalShape[D] =
-    val paddedIntervals = allIntervals.flatMap(_.paddedBy(thickness))
+    val paddedIntervals = getAll.flatMap(_.interval.paddedBy(thickness))
     (IntervalShape.∅ ++ paddedIntervals) △ domain

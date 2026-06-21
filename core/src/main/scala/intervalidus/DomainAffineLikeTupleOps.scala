@@ -23,6 +23,22 @@ trait DomainAffineLikeTupleOps[D <: NonEmptyTuple]:
     D HasDisplacementType S
   )(interval: Interval[D], offset: S): Option[Interval[D]]
 
+  def dilatedByFromInterval(using
+    DomainAffineLike[D]
+  )(
+    interval: Interval[D],
+    element: Interval[D],
+    elementCenter: D
+  ): Option[Interval[D]]
+
+  def erodedByFromInterval(using
+    DomainAffineLike[D]
+  )(
+    interval: Interval[D],
+    element: Interval[D],
+    elementCenter: D
+  ): Option[Interval[D]]
+
   def measureFromInterval[S <: NonEmptyTuple](using
     DomainAffineLike[D],
     D HasDisplacementType S
@@ -97,6 +113,24 @@ object DomainAffineLikeTupleOps:
     ): Option[Interval[OneDimDomain[DV]]] =
       val provenOffset = offset.asInstanceOf[OneDimDisplacement[DispV]]
       headInterval(interval).paddedBy(provenOffset.head).map(_.tupled)
+
+    inline def dilatedByFromInterval(using
+      DomainAffineLike[OneDimDomain[DV]]
+    )(
+      interval: Interval[OneDimDomain[DV]],
+      element: Interval[OneDimDomain[DV]],
+      elementCenter: OneDimDomain[DV]
+    ): Option[Interval[OneDimDomain[DV]]] =
+      headInterval(interval).dilatedBy(headInterval(element), elementCenter.head).map(_.tupled)
+
+    inline def erodedByFromInterval(using
+      DomainAffineLike[OneDimDomain[DV]]
+    )(
+      interval: Interval[OneDimDomain[DV]],
+      element: Interval[OneDimDomain[DV]],
+      elementCenter: OneDimDomain[DV]
+    ): Option[Interval[OneDimDomain[DV]]] =
+      headInterval(interval).erodedBy(headInterval(element), elementCenter.head).map(_.tupled)
 
     inline override def measureFromInterval[S <: NonEmptyTuple](using
       DomainAffineLike[OneDimDomain[DV]],
@@ -180,6 +214,30 @@ object DomainAffineLikeTupleOps:
       for
         head <- headInterval(interval).paddedBy(provenOffset.head)
         tail <- applyToTail.paddedByFromInterval(tailInterval(interval), provenOffset.tail)
+      yield tail withHead head
+
+    inline def dilatedByFromInterval(using
+      DomainAffineLike[MultiDimDomain[DV, DomainTail]]
+    )(
+      interval: Interval[MultiDimDomain[DV, DomainTail]],
+      element: Interval[MultiDimDomain[DV, DomainTail]],
+      elementCenter: MultiDimDomain[DV, DomainTail]
+    ): Option[Interval[MultiDimDomain[DV, DomainTail]]] =
+      for
+        head <- headInterval(interval).dilatedBy(headInterval(element), elementCenter.head)
+        tail <- applyToTail.dilatedByFromInterval(tailInterval(interval), tailInterval(element), elementCenter.tail)
+      yield tail withHead head
+
+    inline def erodedByFromInterval(using
+      DomainAffineLike[MultiDimDomain[DV, DomainTail]]
+    )(
+      interval: Interval[MultiDimDomain[DV, DomainTail]],
+      element: Interval[MultiDimDomain[DV, DomainTail]],
+      elementCenter: MultiDimDomain[DV, DomainTail]
+    ): Option[Interval[MultiDimDomain[DV, DomainTail]]] =
+      for
+        head <- headInterval(interval).erodedBy(headInterval(element), elementCenter.head)
+        tail <- applyToTail.erodedByFromInterval(tailInterval(interval), tailInterval(element), elementCenter.tail)
       yield tail withHead head
 
     inline override def measureFromInterval[S <: NonEmptyTuple](using

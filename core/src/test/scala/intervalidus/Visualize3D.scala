@@ -17,11 +17,11 @@ object Visualize3D:
 
   // compatibility with old fixed Interval3D by using pattern match extractors
   extension [R1: DomainValueLike, R2: DomainValueLike, R3: DomainValueLike](interval: Interval.In3D[R1, R2, R3])
-    def horizontal: Interval1D[R1] = (interval: @nowarn("msg=match may not be exhaustive")) match
+    def horizontal: Interval1D[R1] = interval match
       case horizontal x_: _ x_: _ => horizontal
-    def vertical: Interval1D[R2] = (interval: @nowarn("msg=match may not be exhaustive")) match
+    def vertical: Interval1D[R2] = interval match
       case _ x_: vertical x_: _ => vertical
-    def depth: Interval1D[R3] = (interval: @nowarn("msg=match may not be exhaustive")) match
+    def depth: Interval1D[R3] = interval match
       case _ x_: _ x_: depth => depth
 
   private val webRootDirPath = Paths.get("core", "vis3d")

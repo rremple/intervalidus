@@ -44,6 +44,11 @@ class ContinuousAffineIntervalTest
 
   testsFor(commonAffineBehaviors("Continuous"))
 
+  test("Continuous: Int affine interval reflection behaviors"):
+    intervalToBefore(2).reflectedAboutInt(3) shouldBe Some(intervalFromAfter(4))
+    (intervalToBefore(2) x intervalFrom(1).toBefore(2)).reflectedAboutInt(Domain.in2D(3, 3)) shouldBe
+      Some(intervalFromAfter(4) x intervalFromAfter(4).to(5))
+
   test("Continuous: Int affine 1d open domain behaviors"):
     domain(2) displacementToInt open(2) shouldBe Some(0)
     open(2) displacementToInt top shouldBe None

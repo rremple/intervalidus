@@ -70,14 +70,6 @@ trait DataAffineBaseBehaviors(using
 
   def clippedDonut: DimensionalAffineBase[Double, Dim]
 
-  def donutReflectedAboutIn(dimensionIndex: Domain.DimensionIndex, pivot: Domain1D[Int])(using
-    Domain.HasIndex[Dim, dimensionIndex.type],
-    Domain.IsAtIndex[Dim, dimensionIndex.type, Int],
-    Domain.IsUpdatableAtIndex[Dim, dimensionIndex.type, Int]
-  ): DimensionalAffineBase[Double, Dim]
-
-  def donutReflectedAbout[V, D](pivot: Dim): DimensionalAffineBase[Double, Dim]
-
   def donutDisplacedByIn(dimensionIndex: Domain.DimensionIndex, offset: Int)(using
     Domain.HasIndex[Dim, dimensionIndex.type],
     Domain.IsAtIndex[Dim, dimensionIndex.type, Int],
@@ -109,54 +101,19 @@ trait DataAffineBaseBehaviors(using
 
   // assert equivalence/non-equivalence
   extension [V, D <: NonEmptyTuple: DomainAffineLike](lhs: DimensionalAffineBase[V, D])
-    infix def ≡≡(rhs: DimensionalAffineBase[V, D]): Assertion = assert(lhs ≡ rhs, s"\nExpected: $lhs\nActual: $rhs\n")
+    infix def ≡≡(rhs: DimensionalAffineBase[V, D]): Assertion =
+      assert(lhs ≡ rhs, s"\nExpected (rhs): \n$rhs\nActual (lhs): \n$lhs\n")
     infix def !≡(rhs: DimensionalAffineBase[V, D]): Assertion = assert(!(lhs ≡ rhs))
 
   def affineBehaviors(
     prefix: String
   ): Unit =
 
-    test(s"$prefix: Int DataAffine reflecting"):
-
-      // - dimension 0 (horizontal)
-
-      donutReflectedAboutIn(0, 0) ≡≡ clippedDonut // no-op reflection (since the donut is symmetric)
-
-      donutReflectedAboutIn(0, 1).getAll.toList shouldBe List(
-        (intervalFrom(-8).toBefore(1) x interval(-10, 1)) -> donutFilling, // clipped dd reflected horizontally
-        (interval(-8, 3) x intervalFromAfter(1).to(10)) -> donutFilling, // clipped cc reflected horizontally
-        (interval(1, 12) x intervalFrom(-10).toBefore(-1)) -> donutFilling, // clipped aa reflected horizontally
-        (intervalFromAfter(3).to(12) x interval(-1, 10)) -> donutFilling // clipped bb reflected horizontally
-      )
-
-      // - dimension 1 (vertical)
-
-      donutReflectedAboutIn(1, 0) ≡≡ clippedDonut // no-op reflection (since the donut is symmetric)
-
-      donutReflectedAboutIn(1, 1).getAll.toList shouldBe List(
-        (intervalFrom(-10)
-          .toBefore(-1) x interval(-8, 3)) -> donutFilling, // clipped part of bb+dd reflected vertically
-        (interval(-10, 1) x intervalFromAfter(3).to(12)) -> donutFilling, // clipped aa reflected vertically
-        (interval(-1, 10) x intervalFrom(-8).toBefore(1)) -> donutFilling, // clipped cc reflected vertically
-        (intervalFromAfter(1).to(10) x interval(1, 12)) -> donutFilling // clipped part of bb+dd reflected vertically
-      )
-
-      // multi-dimensional
-
-      donutReflectedAbout(Domain.in2D(0, 0)) ≡≡ clippedDonut // no-op reflection (since the donut is symmetric)
-
-      donutReflectedAbout(Domain.in2D(1, 1)).getAll.toList shouldBe List(
-        (interval(-8, 3) x intervalFrom(-8).toBefore(1)) -> donutFilling,
-        (intervalFrom(-8).toBefore(1) x interval(1, 12)) -> donutFilling,
-        (interval(1, 12) x intervalFromAfter(3).to(12)) -> donutFilling,
-        (intervalFromAfter(3).to(12) x interval(-8, 3)) -> donutFilling
-      )
-
     /**
       * Continuous/discrete results are the same, but the Displacement type must resolve where there is a concrete
       * reference to the affine domain type.
       */
-    test(s"Continuous: Int DataAffine displacing"):
+    test(s"$prefix: Int DataAffine displacing"):
 
       // - dimension 0 (horizontal)
 
@@ -207,7 +164,7 @@ trait DataAffineBaseBehaviors(using
       * Continuous/discrete results are the same, but the Displacement type must resolve where there is a concrete
       * reference to the affine domain value type (IntContinuousAffineValue in the continuous case).
       */
-    test(s"Continuous: Int DataAffine convolving"):
+    test(s"$prefix: Int DataAffine convolving"):
       /**
         * Convolution kernels must be finitely bound
         */

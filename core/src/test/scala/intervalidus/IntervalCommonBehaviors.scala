@@ -834,6 +834,50 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       uniqueIntervals(intervals2) shouldBe expected2
       complement(expected2) shouldBe Nil
 
+      val intDomain = summon[DomainValueLike[Int]]
+
+      uniqueIntervals(Seq(intervalAt(0))) shouldBe Seq(intervalAt(0))
+      uniqueIntervals(Seq(intervalAt(intDomain.minValue))) shouldBe Seq(intervalAt(intDomain.minValue))
+
+      val closeToMax = uniqueIntervals(Seq(interval(0, intDomain.maxValue - 1), intervalFrom(10)))
+      val closeToMin = uniqueIntervals(Seq(interval(intDomain.minValue + 1, 0), intervalTo(-10)))
+      closeToMax shouldBe Seq(
+        intervalFrom(0).toBefore(10),
+        interval(10, intDomain.maxValue - 1),
+        intervalFromAfter(intDomain.maxValue - 1)
+      )
+      closeToMin shouldBe Seq(
+        intervalToBefore(intDomain.minValue + 1),
+        intervalFrom(intDomain.minValue + 1).to(-10),
+        intervalFromAfter(-10).to(0)
+      )
+
+      val atMax = uniqueIntervals(Seq(interval(0, intDomain.maxValue), intervalFrom(10)))
+      val atMin = uniqueIntervals(Seq(interval(intDomain.minValue, 0), intervalTo(-10)))
+      intDomain match
+        case _: DiscreteValue[Int] =>
+          uniqueIntervals(Seq(intervalAt(intDomain.maxValue))) shouldBe Seq(intervalFrom(intDomain.maxValue))
+          atMax shouldBe Seq(
+            intervalFrom(0).toBefore(10),
+            intervalFrom(10) // break at intDomain.maxValue is lost
+          )
+          atMin shouldBe Seq(
+            intervalFrom(intDomain.minValue).to(-10), // extent from Bottom is lost
+            intervalFromAfter(-10).to(0)
+          )
+        case _: ContinuousValue[Int] =>
+          uniqueIntervals(Seq(intervalAt(intDomain.maxValue))) shouldBe Seq(intervalAt(intDomain.maxValue))
+          atMax shouldBe Seq(
+            intervalFrom(0).toBefore(10),
+            interval(10, intDomain.maxValue),
+            intervalFromAfter(intDomain.maxValue)
+          )
+          atMin shouldBe Seq(
+            intervalToBefore(intDomain.minValue),
+            intervalFrom(intDomain.minValue).to(-10),
+            intervalFromAfter(-10).to(0)
+          )
+
     test(s"$prefix: Int interval 2D collection operations"):
       import Interval.{isCompressible, uniqueIntervals, compress, recompress, complement}
 

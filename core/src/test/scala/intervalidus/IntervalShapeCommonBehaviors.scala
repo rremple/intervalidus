@@ -22,7 +22,8 @@ trait IntervalShapeCommonBehaviors(using DomainValueLike[Int]):
 
   // assert equivalence/non-equivalence
   extension [D <: NonEmptyTuple: DomainLike](lhs: IntervalShape[D])
-    infix def ≡≡(rhs: IntervalShape[D]): Assertion = assert(lhs ≡ rhs, s"\nExpected: $lhs\nActual: $rhs\n")
+    infix def ≡≡(rhs: IntervalShape[D]): Assertion =
+      assert(lhs ≡ rhs, s"\nExpected (rhs): ${rhs.toCodeLikeString}\nActual (lhs): ${lhs.toCodeLikeString}\n")
     infix def !≡(rhs: IntervalShape[D]): Assertion = assert(!(lhs ≡ rhs))
 
   val origin: Dim = Domain.in2D[Int, Int](0, 0)
@@ -332,15 +333,6 @@ trait IntervalShapeCommonBehaviors(using DomainValueLike[Int]):
       type Dim3d = Domain.In3D[Int, Int, Int]
 
       val donutIn3D: IntervalShape[Dim3d] = clippedDonut.extrudeDimension(2, extrudeInterval)
-
-      def adjustInt(amount: Int)(d: Dim3d): Dim3d =
-        def adjust(d: Domain1D[Int]): Domain1D[Int] = d match
-          case Domain1D.Point(p: Int)     => Domain1D.Point(p + amount)
-          case Domain1D.OpenPoint(p: Int) => Domain1D.OpenPoint(p + amount)
-          case topOrBottom                => topOrBottom
-
-        d match
-          case (x, y, z) => Domain.in3D(adjust(x), adjust(y), adjust(z))
 
       donutIn3D.boundingInterval shouldBe Some(clipInterval x extrudeInterval)
 

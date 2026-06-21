@@ -26,6 +26,15 @@ object IntervalGenerator:
   def genDim4(using DomainValueLike[Int]): Gen[Interval[Dim4]] =
     gen(genStartDim4, genEndDim4)
 
+  def genBoundedDim1(using DomainValueLike[Int]): Gen[Interval[Dim1]] =
+    gen(genBoundedStartDim1, genBoundedEndDim1)
+  def genBoundedDim2(using DomainValueLike[Int]): Gen[Interval[Dim2]] =
+    gen(genBoundedStartDim2, genBoundedEndDim2)
+  def genBoundedDim3(using DomainValueLike[Int]): Gen[Interval[Dim3]] =
+    gen(genBoundedStartDim3, genBoundedEndDim3)
+  def genBoundedDim4(using DomainValueLike[Int]): Gen[Interval[Dim4]] =
+    gen(genBoundedStartDim4, genBoundedEndDim4)
+
   private def genNonIntersecting[D <: NonEmptyTuple: DomainLike](
     minSize: Int,
     maxSize: Int,

@@ -356,6 +356,17 @@ object Interval1D:
     * Finds all intervals, including all overlaps and gaps between intervals, as intervals. Inputs may be overlapping.
     * The result is disjoint and covers the span of the input intervals.
     *
+    * @note
+    *   Continuous domains are well-behaved at the boundaries of their finite ranges, but discrete domains are not. If a
+    *   discrete interval starts at the domain minValue, and it is combined with an interval without a lower bound
+    *   (starting at -∞), the result will be truncated to minValue due to finite range boundary collapse. For example,
+    *   using uniqueIntervals to combine [minValue..0] with (-∞..-10] yields only two intervals: [minValue..-10] and
+    *   [-9..0], so the extent from -∞ is completely lost. Similarly, if an interval ends at the domain maxValue, and it
+    *   is combined with another interval overlapping it without an upper bound (ending at +∞), the result will be
+    *   coalesced with maxValue and the break at maxValue will be lost. For example, using uniqueIntervals to combine
+    *   [0..Int.MaxValue] with [10..+∞) yields only two intervals: [0..9] and [10..+∞), so the break at maxValue is
+    *   lost.
+    *
     * Performance: O(|intervals|) plus sorting/distinct time (O(n*log(n))?).
     *
     * @param intervals
@@ -371,21 +382,18 @@ object Interval1D:
     else
       // using a tree set is faster than some other sequence that has to be sorted later
       val starts = mutable.TreeSet.newBuilder[Domain1D[T]]
-      val ends = mutable.TreeSet.newBuilder[Domain1D[T]](using Domain1D.endOrdering)
       val resultBuilder = Iterable.newBuilder[Interval1D[T]]
 
       intervalsIterator.foreach: i =>
         starts += i.start
         starts += i.end.rightAdjacent
-        ends += i.end
-        ends += i.start.leftAdjacent
 
-      starts
-        .result()
-        .iterator
-        .zip(ends.result().iterator.drop(1))
-        .foreach: (s, e) =>
-          resultBuilder += Interval1D(s, e)
+      val startResults = starts.result()
+      startResults.iterator
+        .zip(startResults.iterator.drop(1))
+        .foreach: (s, s2) =>
+          val e = s2.leftAdjacent
+          if Interval1D.validBounds(s, e) then resultBuilder += Interval1D(s, e)
       resultBuilder.result()
 
   /**

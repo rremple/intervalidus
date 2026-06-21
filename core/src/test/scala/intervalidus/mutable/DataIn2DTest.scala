@@ -353,15 +353,6 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
 
     type Dim3d = Domain.In3D[Int, Int, Int]
 
-    def adjustInt(amount: Int)(d: Dim3d): Dim3d =
-      def adjust(d: Domain1D[Int]): Domain1D[Int] = d match
-        case Domain1D.Point(p: Int)     => Domain1D.Point(p + amount)
-        case Domain1D.OpenPoint(p: Int) => Domain1D.OpenPoint(p + amount)
-        case topOrBottom                => topOrBottom
-
-      d match
-        case (x, y, z) => Domain.in3D(adjust(x), adjust(y), adjust(z))
-
     val donutIn3D: Data[Double, Dim3d] = clippedDonutWithHole.extrudeDimension(2, extrudeInterval)
     val donutIn3DBoundingBox = donutIn3D.boundingInterval
     donutIn3DBoundingBox shouldBe Some(clipInterval x extrudeInterval)

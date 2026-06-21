@@ -1538,8 +1538,8 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
   /**
     * If there is one, returns the smallest single interval in which all data are valid.
     */
-  def boundingInterval: Option[Interval[D]] =
-    if isEmpty then None else Some(allIntervals.reduce(_ joinedWith _))
+  def boundingInterval: Option[Interval[D]] = transactionalRead:
+    allIntervalsInternal.reduceOption(_ joinedWith _)
 
   // ---------- To be implemented by inheritor ----------
 

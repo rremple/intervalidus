@@ -52,7 +52,8 @@ class DataIn2DMultiTest
   test(s"Immutable: Int DataMulti 2D collection operations"):
     // assert equivalence/non-equivalence
     extension [V, D <: NonEmptyTuple: DomainLike](lhs: DataMulti[V, D])
-      infix def ≡≡(rhs: DataMulti[V, D]): Assertion = assert(lhs ≡ rhs, s"\nExpected: $lhs\nActual: $rhs\n")
+      infix def ≡≡(rhs: DataMulti[V, D]): Assertion =
+        assert(lhs ≡ rhs, s"\nExpected (rhs): \n$rhs\nActual (lhs): \n$lhs\n")
 
     type Dim = Domain.In2D[Int, Int]
 
