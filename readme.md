@@ -21,7 +21,7 @@ Add the following to your **build.sbt** file:
 libraryDependencies += "io.github.rremple" %% "intervalidus" % "<version>"
 ```
 
-For more on usage including other artifacts, Scala 2 considerations, GitHub Package authentication, etc., see 
+For more on usage including other artifacts, Scala 2 considerations, accessing older versions, etc., see 
 [expanded usage](usage.md).
 
 ### Goals, Non-Goals, Background, and Motivation:
@@ -473,7 +473,7 @@ val maintenanceWindows = Seq(
     intervalFrom(1200).to(1300) x // noon to 1 p.m.
     unbounded[Int] x // all floors
     unbounded[Int], // all rooms
-    
+
   weekends x // weekend maintenance is at night
     intervalFrom(2200).to(2300) x // 10 to 11 p.m.
     intervalFrom(2).to(9) x // floors 2-9
@@ -931,7 +931,7 @@ Apart from `collection`, there are a few other subprojects that are worth mentio
     (a ∩ (b ∪ c)) ≡≡ ((a ∩ b) ∪ (a ∩ c))
     (a ∩ (b △ c)) ≡≡ ((a ∩ b) △ (a ∩ c))
   ```
- 
+
 - As described earlier, in the `intervalidus-examples` subproject there is a sample billing application that shows how
   Intervalidus structures can be used to support time-oriented logic like billing directly.
 

@@ -37,7 +37,7 @@ trait DataAffineBaseBehaviors(using
   val fromAfterOrigin: Interval1D[Int] = intervalFromAfter(0)
 
   /* When discrete, the donut (intervals a, b, c, and d) and, its complement, the hole (interval e) look like:
-  
+
      +∞    b  b  b  c  c  c  c  c  c
      ..    b  b  b  c  c  c  c  c  c
       2    b  b  b  c  c  c  c  c  c
@@ -47,9 +47,9 @@ trait DataAffineBaseBehaviors(using
      -2    a  a  a  a  a  a  d  d  d
      ..    a  a  a  a  a  a  d  d  d
      -∞    a  a  a  a  a  a  d  d  d
-  
+
           -∞ .. -2 -1  0  1  2 .. +∞
-  
+
    */
   val aa: Interval[Dim] = intervalTo(1) x intervalToBefore(-1)
   val bb: Interval[Dim] = intervalToBefore(-1) x intervalFrom(-1)

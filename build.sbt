@@ -68,6 +68,9 @@ def commonNoPublishSettings(projectName: String): Seq[Def.Setting[_]] = commonSe
   coverageEnabled := false
 )
 
+lazy val makeSite = taskKey[Seq[File]]("Generate unified docs and inject the landing page")
+lazy val siteTarget = settingKey[File]("Full site target directory")
+
 lazy val root = (project in file("."))
   .disablePlugins(MimaPlugin, TastyMiMaPlugin)
   .aggregate(
@@ -81,23 +84,26 @@ lazy val root = (project in file("."))
     `intervalidus-example-mongodb`,
     bench
   )
-  .enablePlugins(ScalaUnidocPlugin, SiteScaladocPlugin, GhpagesPlugin)
+  .enablePlugins(ScalaUnidocPlugin)
   .settings(
     name := "intervalidus-root",
     versionPolicyCheck / aggregate := true,
     publish / skip := true,
-    // Publish unified API to the GitHub Pages site: unidoc; makeSite; ghpagesPushSite
-    git.remoteRepo := {
-      val domainPath = "github.com/rremple/intervalidus.git"
-      sys.env.get("PUBLISH_TO_PAGES") match {
-        case Some(token) => // CI path: Inject token for headless auth
-          s"https://$token@$domainPath"
-        case None => // Local path: Standard URL using Git Credential Manager
-          s"https://$domainPath"
+    siteTarget := baseDirectory.value / "target" / "site",
+    makeSite := {
+      val log = streams.value.log
+      val sourceFile = baseDirectory.value / "src" / "site" / "index.html"
+      val targetFile = siteTarget.value / "index.html"
+      val copiedFiles = if (!sourceFile.exists()) {
+        log.warn(s"Source missing: $sourceFile")
+        Seq()
+      } else {
+        IO.copyFile(sourceFile, targetFile)
+        Seq(targetFile)
       }
+      (Compile / unidoc).value ++ copiedFiles
     },
-    SiteScaladoc / siteSubdirName := "api",
-    addMappingsToSiteDir(ScalaUnidoc / packageDoc / mappings, SiteScaladoc / siteSubdirName),
+    ScalaUnidoc / unidoc / target := siteTarget.value / "api",
     ScalaUnidoc / unidoc / scalacOptions ++= Seq("-project", "Intervalidus API"),
     ScalaUnidoc / unidoc / scalacOptions ++= Seq("-doc-title", "Intervalidus API"),
     ScalaUnidoc / unidoc / scalacOptions ++= Seq("-doc-version", version.value),
@@ -193,8 +199,8 @@ siteCheckAll := {
   // Ensure the site is built first
   // Calling .value forces SBT to run these tasks completely before proceeding.
   log.info("Making site...")
-  val continuousDocs = (Compile / unidoc).value
-  val siteDir = makeSite.value
+  val unifiedDocs = (Compile / unidoc).value
+  val siteDir = (ScalaUnidoc / unidoc / target).value
 
   log.info(s"Scanning site HTML in $siteDir for issues...")
   // Find all HTML files recursively

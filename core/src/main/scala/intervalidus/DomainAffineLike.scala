@@ -318,7 +318,7 @@ object DomainAffineLike:
       */
     def reflectedAbout(pivot: D): IntervalShape[D] =
       val transform = ((_: Interval[D]).reflectedAbout(pivot)).unlift
-      lhs.collect(transform)
+      lhs.collect(transform)(using altConfig = lhs.config)
 
     /**
       * Returns an interval shape consisting of this shape's interval components displaced by some offset. For any
@@ -327,7 +327,7 @@ object DomainAffineLike:
       */
     def displacedBy[S <: NonEmptyTuple](offset: S)(using D HasDisplacementType S): IntervalShape[D] =
       val transform = ((_: Interval[D]).displacedBy(offset)).unlift
-      lhs.collect(transform)
+      lhs.collect(transform)(using altConfig = lhs.config)
 
     /**
       * Returns an interval shape consisting of this shape's interval components scaled abound some center by some
@@ -336,7 +336,7 @@ object DomainAffineLike:
       */
     def scaledAbout[S <: NonEmptyTuple](center: D, scaledBy: S)(using D HasScalarType S): IntervalShape[D] =
       val transform = ((_: Interval[D]).scaledAbout(center, scaledBy)).unlift
-      IntervalShape.∅ ++ lhs.allIntervals.collect(transform)
+      IntervalShape.∅(using config = lhs.config) ++ lhs.allIntervals.collect(transform)
 
     /**
       * The shape forming a shell around the boundary of all valid data. The shell's thickness and direction are
@@ -359,7 +359,7 @@ object DomainAffineLike:
       */
     def boundingShape[S <: NonEmptyTuple](thickness: S)(using D HasDisplacementType S): IntervalShape[D] =
       val paddedIntervals = lhs.allIntervals.flatMap(_.paddedBy(thickness))
-      (IntervalShape.∅ ++ paddedIntervals) △ lhs
+      (IntervalShape.∅(using config = lhs.config) ++ paddedIntervals) △ lhs
 
     /**
       * In mathematical morphology, a dilation operation uses a structuring element for probing and expanding a shape.
@@ -379,7 +379,7 @@ object DomainAffineLike:
       */
     def dilatedBy(element: Interval[D], elementCenter: D): IntervalShape[D] =
       val dilatedIntervals = lhs.allIntervals.flatMap(_.dilatedBy(element, elementCenter))
-      IntervalShape.∅ ++ dilatedIntervals
+      IntervalShape.∅(using config = lhs.config) ++ dilatedIntervals
 
     /**
       * In mathematical morphology, an erosion operation uses a structuring element for probing and contracting a shape.
@@ -404,7 +404,7 @@ object DomainAffineLike:
       */
     def erodedBy(element: Interval[D], elementCenter: D): IntervalShape[D] =
       val transform = ((_: Interval[D]).erodedBy(element, elementCenter)).unlift
-      lhs.collect(transform)
+      lhs.collect(transform)(using altConfig = lhs.config)
 
     /**
       * In mathematical morphology, an opening operation is the dilation of the erosion, essentially removing features

@@ -2,7 +2,6 @@ addDependencyTreePlugin
 
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "2.4.4")
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.6.1")
-addSbtPlugin("com.github.sbt" % "sbt-ghpages" % "0.9.0")
 addSbtPlugin("com.github.sbt" % "sbt-unidoc" % "0.6.1")
 addSbtPlugin("com.github.sbt" % "sbt-pgp" % "2.3.1")
 addSbtPlugin("com.github.sbt" % "sbt-dynver" % "5.1.1")

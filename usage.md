@@ -88,4 +88,3 @@ host=maven.pkg.github.com
 user=<your_github_username>
 password=<your_github_personal_access_token>
 ```
-

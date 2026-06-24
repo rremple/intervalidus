@@ -238,7 +238,7 @@ object IntervalShape:
   */
 class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
   val underlying: Data[Unit, D]
-)(using config: CoreConfig[D]):
+)(using val config: CoreConfig[D]):
 
   import IntervalShape.{valid, ξ, ∅}
 

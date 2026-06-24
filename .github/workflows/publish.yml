@@ -8,10 +8,22 @@ on:
 
 permissions:
   contents: write
+  pages: write      # Required for native GitHub Pages deployment
+  id-token: write   # Required for native GitHub Pages deployment
+
+# Prevent concurrent page deployments from clobbering each other
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
     env:
       PUBLISH_TO_PAGES: ${{ secrets.PUBLISH_TO_PAGES }}
 
@@ -35,17 +47,25 @@ jobs:
         apps: sbt
 
     - name: Import GPG Key
-      uses: crazy-max/ghaction-import-gpg@v6
+      uses: crazy-max/ghaction-import-gpg@v7
       with:
         gpg_private_key: ${{ secrets.PGP_SECRET }}
         passphrase: ${{ secrets.PGP_PASSPHRASE }}
 
-    - name: Publish Site
-      # The bot needs its identity set to make the 'gh-pages' commit
-      run: |
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git config --global user.name "github-actions[bot]"
-        sbt "unidoc; makeSite; siteCheckAll; ghpagesPushSite"
+    - name: Build and Package Site
+      run: sbt "makeSite; siteCheckAll"
+
+    - name: Setup Pages Infrastructure
+      uses: actions/configure-pages@v6
+
+    - name: Upload Site Artifact
+      uses: actions/upload-pages-artifact@v5
+      with:
+        path: 'target/site'
+
+    - name: Deploy Site to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v5
 
     - name: Publish Package to Sonatype Central
       # Only publish packages if current commit has a version tag
@@ -62,8 +82,8 @@ jobs:
           "$SONATYPE_PASSWORD"
         )
         EOF
-        
+
         # Automatically delete credentials when sbt completes
         trap 'rm -f ~/.sbt/1.0/sonatype.sbt' EXIT
-        
+
         sbt "publishSigned; sonaRelease"
