@@ -88,7 +88,14 @@ lazy val root = (project in file("."))
     versionPolicyCheck / aggregate := true,
     publish / skip := true,
     siteTarget := baseDirectory.value / "target" / "site",
-    siteRevision := dynverGitDescribeOutput.value.map(_.ref.value).getOrElse("master"),
+    siteRevision := {
+      dynverGitDescribeOutput.value match
+        case Some(gitDescription) =>
+          val ref = gitDescription.ref.value
+          if ref != "0.0.0" then ref else gitDescription.commitSuffix.sha
+        case None =>
+          "master"
+    },
     makeSite := {
       val log = streams.value.log
       log.info(s"Making site using siteRevision ${siteRevision.value}")

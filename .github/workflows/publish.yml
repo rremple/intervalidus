@@ -36,8 +36,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v6
-      with:
-        fetch-depth: 0
 
     - name: Restore cache
       uses: coursier/cache-action@v8
