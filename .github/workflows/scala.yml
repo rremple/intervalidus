@@ -19,6 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PUBLISH_TO_PAGES: ${{ secrets.PUBLISH_TO_PAGES }}
+      # Avoid "Missing environment variable GITHUB_TOKEN. This task must run in a Github Action."?
+      GITHUB_TOKEN: ${{ secrets.PUBLISH_TO_PAGES }}
 
     steps:
     - uses: actions/checkout@v6
@@ -35,8 +37,7 @@ jobs:
       run: sbt "scalafmtCheckAll; versionPolicyCheck"
     - name: Run tests
       run: sbt "coverage; test; doc; coverageReport; coverageOff"
-#TODO: this is broken right now
-#      # Uploads information to the GitHub dependency graph, unblocking Dependabot alerts for the repository
-#    - name: Upload dependency graph
-#      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-#      uses: scalacenter/sbt-dependency-submission@v3
+    # Uploads information to the GitHub dependency graph, unblocking Dependabot alerts for the repository
+    - name: Upload dependency graph
+      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+      uses: scalacenter/sbt-dependency-submission@v3
