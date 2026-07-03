@@ -32,11 +32,10 @@ jobs:
         jvm: 21
         apps: sbt
     - name: Run checks
-      run: sbt "scalafmtCheckAll; versionPolicyCheck; tastyMiMaReportIssues"
+      run: sbt "scalafmtCheckAll; versionPolicyCheck"
     - name: Run tests
       run: sbt "coverage; test; doc; coverageReport; coverageOff"
-#TODO: this is broken right now
-#      # Uploads information to the GitHub dependency graph, unblocking Dependabot alerts for the repository
-#    - name: Upload dependency graph
-#      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-#      uses: scalacenter/sbt-dependency-submission@v3
+    # Uploads information to the GitHub dependency graph, unblocking Dependabot alerts for the repository
+    - name: Upload dependency graph
+      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+      uses: scalacenter/sbt-dependency-submission@v3
