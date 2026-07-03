@@ -39,3 +39,5 @@ jobs:
     - name: Upload dependency graph
       if: github.event_name == 'push' && github.ref == 'refs/heads/master'
       uses: scalacenter/sbt-dependency-submission@v3
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
