@@ -91,6 +91,7 @@ lazy val root = (project in file("."))
     siteRevision := dynverGitDescribeOutput.value.map(_.ref.value).getOrElse("master"),
     makeSite := {
       val log = streams.value.log
+      log.info(s"Making site using siteRevision ${siteRevision.value}")
       val sourceFile = baseDirectory.value / "src" / "site" / "index.html"
       val targetFile = siteTarget.value / "index.html"
       val copiedFiles =
