@@ -53,7 +53,7 @@ jobs:
         passphrase: ${{ secrets.PGP_PASSPHRASE }}
 
     - name: Build and Package Site
-      run: sbt makeSite siteCheckAll
+      run: sbt "makeSite; siteCheckAll"
 
     - name: Setup Pages Infrastructure
       uses: actions/configure-pages@v6
@@ -86,4 +86,4 @@ jobs:
         # Automatically delete credentials when sbt completes
         trap 'rm -f ~/.sbt/1.0/sonatype.sbt' EXIT
 
-        sbt publishSigned sonaRelease
+        sbt "publishSigned; sonaRelease"
