@@ -5,6 +5,7 @@ import intervalidus.Interval1D.{intervalFrom, intervalTo}
 
 import scala.annotation.nowarn
 import scala.collection.mutable
+import scala.compiletime.error
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 /**
@@ -237,34 +238,40 @@ object Interval1D:
   /**
     * Returns an interval from the input value that is unbounded on the right.
     */
-  def intervalFrom[T: DomainValueLike](s: Domain1D[T]): Interval1D[T] = apply(s, Top)
+  inline def intervalFrom[T: DomainValueLike](s: Domain1D[T]): Interval1D[T] = interval(s, Top)
 
   /**
     * Returns an interval from after the input value that is unbounded on the right.
     */
-  def intervalFromAfter[T: DomainValueLike](s: Domain1D[T]): Interval1D[T] = apply(s.rightAdjacent, Top)
+  inline def intervalFromAfter[T: DomainValueLike](s: Domain1D[T]): Interval1D[T] = interval(s.rightAdjacent, Top)
 
   /**
     * Returns an interval to the input value that is unbounded on the left.
     */
-  def intervalTo[T: DomainValueLike](e: Domain1D[T]): Interval1D[T] = apply(Bottom, e)
+  inline def intervalTo[T: DomainValueLike](e: Domain1D[T]): Interval1D[T] = interval(Bottom, e)
 
   /**
     * Returns an interval to before the input value that is unbounded on the left.
     */
-  def intervalToBefore[T: DomainValueLike](e: Domain1D[T]): Interval1D[T] = apply(Bottom, e.leftAdjacent)
+  inline def intervalToBefore[T: DomainValueLike](e: Domain1D[T]): Interval1D[T] = interval(Bottom, e.leftAdjacent)
 
   /**
     * Returns an interval that starts and ends at the same value.
     */
-  def intervalAt[T: DomainValueLike](s: Domain1D[T]): Interval1D[T] =
+  inline def intervalAt[T: DomainValueLike](s: Domain1D[T]): Interval1D[T] =
     val closestPoint = s.closeIfOpen
     interval(closestPoint, closestPoint)
 
   /**
     * Returns an interval that starts and ends at different values.
     */
-  def interval[T: DomainValueLike](s: Domain1D[T], e: Domain1D[T]): Interval1D[T] = apply(s, e)
+  inline def interval[T: DomainValueLike](inline s: Domain1D[T], inline e: Domain1D[T]): Interval1D[T] =
+    inline s match
+      case Top => error("Compile-time Error: An interval start bound cannot be 'Top'.")
+      case _   =>
+        inline e match
+          case Bottom => error("Compile-time Error: An interval end bound cannot be 'Bottom'.")
+          case _      => apply(s, e)
 
   /**
     * Returns the interval between `before` and `after`. This is equivalent to `before.gapWith(after).get`, but without
@@ -418,7 +425,7 @@ object Interval1D:
           if next.start.leftAdjacent == priorEnd then acc
           else acc.appended(interval(priorEnd.rightAdjacent, next.start.leftAdjacent))
         (next.end, nextAcc)
-    if lastEnd == Top then result else result.appended(apply(lastEnd.rightAdjacent, Top))
+    if lastEnd.rightAdjacent == Top then result else result.appended(apply(lastEnd.rightAdjacent, Top))
 
   /**
     * Intervals are ordered by start

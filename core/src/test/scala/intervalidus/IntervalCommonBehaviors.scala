@@ -118,8 +118,14 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       assertThrows[IllegalArgumentException]:
         val _ = interval(2, 1) // end before start
 
+      // Appropriately fails at runtime when given bad non-literal values.
+      val top: Domain1D[Int] = Top
+      val bottom: Domain1D[Int] = Bottom
       assertThrows[IllegalArgumentException]:
-        val _ = Interval1D[Int](Top, Bottom) // end before start
+        val _ = interval[Int](top, bottom) // end before start
+
+      // Appropriately fails at compile time when given bad literal values.
+      "Interval1D.interval[Int](Top, Bottom)" shouldNot typeCheck
 
     test(s"$prefix: Int interval adjacency, etc."):
       Interval1D.unbounded[Int].isUnbounded shouldBe true
