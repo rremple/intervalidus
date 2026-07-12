@@ -46,7 +46,16 @@ ThisBuild / scmInfo := Some(
 def commonSettings(projectName: String): Seq[Def.Setting[?]] = Seq(
   name := projectName,
   description := s"Intervalidus, for all your interval-based data needs: $projectName module",
-  scalacOptions ++= Seq("-feature", "-deprecation"), // , "-Wunused:all", "-source", "future"),
+  scalacOptions ++= Seq("-feature", "-deprecation"),
+  // scalacOptions ++= Seq("-source", "future"),
+  scalacOptions ++= Seq(
+    "-Wunused:imports",
+    "-Wunused:privates",
+    "-Wunused:locals",
+    "-Wunused:explicits", // not :implicits or :params -- too many false positives
+    "-Wunused:nowarn"
+  ),
+  // scalacOptions ++= Seq("-Werror"),
   coverageFailOnMinimum := true,
   coverageMinimumStmtTotal := 99,
   coverageMinimumBranchTotal := 99,

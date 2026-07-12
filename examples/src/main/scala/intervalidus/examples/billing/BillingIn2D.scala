@@ -79,8 +79,11 @@ object BillingIn2D extends Billing:
       .updated(Customer.john.id, johnUpdate1)
       .updated(Customer.jane.id, janeUpdate1)
     val cycle1 = billAllCustomers(customerTiers1)(currentCycle, 1) // mid-Jan for Feb
+    println(s"Completed $cycle1")
     val cycle2 = billAllCustomers(customerTiers1)(currentCycle, 2) // mid-Feb for Mar
+    println(s"Completed $cycle2")
     val cycle3 = billAllCustomers(customerTiers1)(currentCycle, 3) // mid-Mar for Apr
+    println(s"Completed $cycle3")
 
     // On March 17, John upgrades to premium starting April 1
     val johnUpdate2 =
@@ -91,13 +94,17 @@ object BillingIn2D extends Billing:
       .updated(Customer.john.id, johnUpdate2)
       .updated(Customer.jane.id, janeUpdate2)
     val cycle4 = billAllCustomers(customerTiers2)(currentCycle, 4) // mid-Apr for May
+    println(s"Completed $cycle4")
     val cycle5 = billAllCustomers(customerTiers2)(currentCycle, 5) // mid-May for Jun
+    println(s"Completed $cycle5")
     val cycle6 = billAllCustomers(customerTiers2)(currentCycle, 6) // mid-Jun for Jul
+    println(s"Completed $cycle6")
 
     // On June 28, John decides not to renew for July
     val johnUpdate3 = customerTiers2(Customer.john.id) - (intervalFromAfter(Jun / 30) x intervalFrom(Jun / 28))
     val customerTiers3 = customerTiers2.updated(Customer.john.id, johnUpdate3)
     val cycle7 = billAllCustomers(customerTiers3)(currentCycle, 7) // mid-Jun for Jul
+    println(s"Completed $cycle7")
 
     printTransactions()
 

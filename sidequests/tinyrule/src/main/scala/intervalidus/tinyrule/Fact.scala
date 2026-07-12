@@ -93,12 +93,12 @@ case class Fact(id: String, attributes: Set[Attribute[?]]):
     *   product element value, in the same order as the target elements
     */
   private inline def attributeValuesToElementValues[T <: Tuple]: List[(String, Set[Any]) => Any] =
-    def setAsSet(name: String, values: Set[Any]): Set[Any] =
-      values // no checks needed
-    def setAsOption(name: String, values: Set[Any]): Option[Any] =
+    val setAsSet: (String, Set[Any]) => Set[Any] =
+      (_, values) => values // no checks needed
+    val setAsOption: (String, Set[Any]) => Option[Any] = (name, values) =>
       if values.size > 1 then throw Exception(s"Multiple attributes for $name")
       else values.headOption
-    def setAsSingleValue(name: String, values: Set[Any]): Any =
+    val setAsSingleValue: (String, Set[Any]) => Any = (name, values) =>
       setAsOption(name, values).getOrElse(throw Exception(s"No attribute for $name"))
 
     inline erasedValue[T] match

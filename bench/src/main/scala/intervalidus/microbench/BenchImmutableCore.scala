@@ -2,7 +2,7 @@ package intervalidus.microbench
 
 import intervalidus.*
 import intervalidus.CoreConfig.IsolationLevel.ReadUncommitted
-import intervalidus.microbench.DomainGenerator.{Dim1, Dim2, Dim3, Dim4, Dim5}
+import intervalidus.microbench.DomainGenerator.{Dim1, Dim2, Dim3, Dim4}
 import intervalidus.microbench.IntervalGenerator.*
 import intervalidus.microbench.IntervalGenerator.IntDomainTuple.given
 import org.openjdk.jmh.annotations.*
