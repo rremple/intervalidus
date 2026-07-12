@@ -4,6 +4,7 @@ import intervalidus.DiscreteValue.IntDiscreteValue
 import intervalidus.mutable.Data as MutableData
 
 import java.time.Instant
+import scala.annotation.nowarn
 import scala.collection.mutable
 import scala.math.Ordering.Implicits.infixOrderingOps
 
@@ -460,6 +461,7 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
   given config: CoreConfig[Versioned[D]]
 
   // considers versions, but does not consider version metadata history in equality check
+  @nowarn("msg=pattern selector should be an instance of Matchable")
   override def equals(obj: Any): Boolean = obj match
     case that: DimensionalVersionedBase[?, ?] => underlying == that.underlying
     case _                                    => false

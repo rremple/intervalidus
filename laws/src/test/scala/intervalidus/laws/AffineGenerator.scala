@@ -4,6 +4,8 @@ import intervalidus.laws.DomainGenerator.*
 import intervalidus.*
 import org.scalacheck.Gen
 
+import scala.annotation.nowarn
+
 // Generates IntervalShape with intervals of any dimension
 object AffineGenerator:
   // A tuple type with the same number of elements as T, but every element is Double
@@ -18,6 +20,7 @@ object AffineGenerator:
 
   // for displacements -- all Ints
   inline def mapDisplacement[T <: Tuple](b: T, f: Int => Int): T =
+    @nowarn("msg=pattern selector should be an instance of Matchable")
     def c[T <: Tuple](x: T): Tuple = x match
       case EmptyTuple          => EmptyTuple
       case (head: Int) *: tail => f(head) *: c(tail)
@@ -28,6 +31,7 @@ object AffineGenerator:
 
   // for scalars -- all Doubles
   inline def mapScalar[T <: Tuple](b: T, f: Double => Double): T =
+    @nowarn("msg=pattern selector should be an instance of Matchable")
     def c[T <: Tuple](x: T): Tuple = x match
       case EmptyTuple             => EmptyTuple
       case (head: Double) *: tail => f(head) *: c(tail)
@@ -38,6 +42,7 @@ object AffineGenerator:
 
   // adjust Int displacements using Double scalars
   inline def mapScaledDisplacement[D <: Tuple, S <: Tuple](d: D, s: S, f: (Int, Double) => Int): D =
+    @nowarn("msg=pattern selector should be an instance of Matchable")
     def c[D <: Tuple, S <: Tuple](d: D, s: S): Tuple = (d, s) match
       case (EmptyTuple, EmptyTuple)                          => EmptyTuple
       case ((headD: Int) *: tailD, (headS: Double) *: tailS) => f(headD, headS) *: c(tailD, tailS)

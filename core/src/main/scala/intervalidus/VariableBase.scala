@@ -3,6 +3,7 @@ package intervalidus
 import intervalidus.Domain1D.{Top, Point, domain}
 
 import java.time.{Duration, Instant}
+import scala.annotation.nowarn
 
 /**
   * Common definitions for values that vary in time.
@@ -90,6 +91,7 @@ trait VariableBase[T] extends (Time => T):
   // could be mutable or immutable
   protected def underlyingData: DimensionalBase[T, Time]
 
+  @nowarn("msg=pattern selector should be an instance of Matchable")
   override def equals(obj: Any): Boolean = obj match
     case that: VariableBase[?] => underlyingData.equals(that.underlyingData)
     case _                     => false

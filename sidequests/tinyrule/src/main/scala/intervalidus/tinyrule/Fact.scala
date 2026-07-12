@@ -1,8 +1,8 @@
 package intervalidus.tinyrule
 
 import java.util.UUID
-import scala.compiletime.{constValueTuple, erasedValue, summonFrom}
-
+import scala.annotation.nowarn
+import scala.compiletime.{asMatchable, constValueTuple, erasedValue, summonFrom}
 import scala.deriving.Mirror
 
 /**
@@ -132,6 +132,7 @@ case class Fact(id: String, attributes: Set[Attribute[?]]):
       * @return
       *   a tuple of values that can be used to construct the product (i.e., case class) using its mirror
       */
+    @nowarn("msg=pattern selector should be an instance of Matchable")
     def elementsFromAttributes[T <: Tuple](
       labels: T,
       fromAttributeValues: List[(String, Set[Any]) => Any]
@@ -166,7 +167,7 @@ object Fact:
     summonFrom:
       case given AttributeValueLike[T] => Seq(Attribute(elementName, elementValue))
       case _                           =>
-        inline elementValue match
+        inline elementValue.asMatchable match
           case a: Option[?] => a.toSeq.flatMap(attributesFromOneElement(elementName, _))
           case a: Set[?]    => a.toSeq.flatMap(attributesFromOneElement(elementName, _))
           case a            => Seq(Attribute(elementName, a.toString)) // fallback to String

@@ -52,14 +52,12 @@ trait AffineIntervalCommonBehaviors(using op: DomainAffineValueLike[Int]):
   extension (lhs: Double) infix def **(power: Double): Double = math.pow(lhs, power)
 
   // A tuple type with the same number of elements as T, but every element is Double
-  type TupleOfDoubles[T <: Tuple] <: Tuple = T match
-    case EmptyTuple => EmptyTuple
-    case ? *: tail  => Double *: TupleOfDoubles[tail]
+  type TupleOfDoubles[T <: Tuple] = Tuple.Map[T, [_] =>> Double]
 
   // Folds over a tuple of Doubles to arrive at some non-tuple result
   def foldTuple[T <: Tuple](t: T, z: Double)(op: (Double, Double) => Double)(using T =:= TupleOfDoubles[T]): Double =
     @tailrec
-    @nowarn("msg=match may not be exhaustive") // it's a tuple of Doubles (proven), but the compiler doesn't know that
+    @nowarn // it's a tuple of Doubles (proven), but the compiler doesn't know that
     def loop[TT <: Tuple](t: TT, acc: Double): Double = t match
       case EmptyTuple             => acc
       case (head: Double) *: tail => loop(tail, op(acc, head))

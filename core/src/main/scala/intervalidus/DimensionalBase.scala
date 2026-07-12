@@ -7,6 +7,7 @@ import intervalidus.collection.immutable.MultiMapSorted
 import intervalidus.collection.mutable.BoxTree
 
 import java.util.NoSuchElementException
+import scala.annotation.nowarn
 import scala.collection.immutable.TreeMap
 import scala.collection.mutable
 
@@ -602,6 +603,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     val (readThisTransaction, readThatTransaction) = atomicStartReadTransactionWith(that)
     body(using readThisTransaction)(readThatTransaction)
 
+  @nowarn("msg=pattern selector should be an instance of Matchable")
   override def equals(obj: Any): Boolean = obj match
     case that: DimensionalBase[?, ?] =>
       transactionalReadWith(that): thatTx =>

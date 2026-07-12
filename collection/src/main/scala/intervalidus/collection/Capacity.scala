@@ -1,5 +1,7 @@
 package intervalidus.collection
 
+import scala.annotation.nowarn
+
 /**
   * Like a box, but with fixed coordinates. Used for calculating the midPoint for splitting and scaling boundaries.
   *
@@ -19,6 +21,7 @@ case class Capacity(minPoint: CoordinateFixed, maxPoint: CoordinateFixed):
     * with object equality rather than logical equality, so we have to redefine `equals` here to checks for logical
     * equality.
     */
+  @nowarn("msg=pattern selector should be an instance of Matchable")
   override def equals(obj: Any): Boolean = obj match
     case that: Capacity =>
       CoordinateFixed.equals(minPoint, that.minPoint) && CoordinateFixed.equals(maxPoint, that.maxPoint)

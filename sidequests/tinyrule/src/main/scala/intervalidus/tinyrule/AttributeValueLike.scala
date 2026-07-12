@@ -1,6 +1,7 @@
 package intervalidus.tinyrule
 
 import java.time.LocalDate
+import scala.annotation.nowarn
 
 /**
   * Type class for attribute values. Implementations are given for Boolean, Int, Double, String, and LocalDate.
@@ -19,6 +20,7 @@ object AttributeValueLike:
 
   private type Matches[T] = PartialFunction[(T, MatchType, T), Boolean]
 
+  @nowarn("msg=pattern selector should be an instance of Matchable")
   private inline def nameAndAttributeMatch[T: AttributeValueLike](
     matchType: MatchType,
     thisAttribute: Attribute[T],

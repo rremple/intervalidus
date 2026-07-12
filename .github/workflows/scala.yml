@@ -35,7 +35,7 @@ jobs:
     - name: Run checks
       run: sbt "scalafmtCheckAll; versionPolicyCheck"
     - name: Run tests
-      run: sbt "coverage; test; doc; coverageReport; coverageOff"
+      run: sbt "coverage; testFull; coverageReport; coverageOff"
     # Uploads information to the GitHub dependency graph, unblocking Dependabot alerts for the repository
     - name: Upload dependency graph
       if: github.event_name == 'push' && github.ref == 'refs/heads/master'

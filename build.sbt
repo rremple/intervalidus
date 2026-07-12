@@ -47,7 +47,7 @@ def commonSettings(projectName: String): Seq[Def.Setting[?]] = Seq(
   name := projectName,
   description := s"Intervalidus, for all your interval-based data needs: $projectName module",
   scalacOptions ++= Seq("-feature", "-deprecation"),
-  // scalacOptions ++= Seq("-source", "future"),
+  scalacOptions ++= Seq("-source", "future"),
   scalacOptions ++= Seq(
     "-Wunused:imports",
     "-Wunused:privates",
@@ -168,6 +168,7 @@ lazy val root = (project in file("."))
 lazy val core = project
   .dependsOn(collection)
   .settings(commonPublishSettings("intervalidus"))
+  .settings(Test / discoveredMainClasses := Seq()) // ignore multiple examples
 
 lazy val collection = project
   .settings(commonPublishSettings("intervalidus-collection"))
@@ -198,6 +199,7 @@ lazy val `intervalidus-examples` = (project in file("examples"))
   .disablePlugins(MimaPlugin)
   .dependsOn(core, `intervalidus-tinyrule`)
   .settings(commonNoPublishSettings("intervalidus-examples"))
+  .settings(Compile / discoveredMainClasses := Seq()) // ignore multiple examples
 
 val mongodbVersion = "5.9.0"
 val testcontainersVersion = "0.44.1"

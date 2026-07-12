@@ -1,5 +1,7 @@
 package intervalidus.collection
 
+import scala.annotation.nowarn
+
 /**
   * Represents a box in multidimensional double space. It could be used as a bounding box that defines the boundary of a
   * tree node, or it could be used as a valid region associated with some payload.
@@ -26,6 +28,7 @@ case class Box(minPoint: Coordinate, maxPoint: Coordinate):
 
   override def hashCode(): Int = cachedHashCode
 
+  @nowarn("msg=pattern selector should be an instance of Matchable")
   override def equals(obj: Any): Boolean = obj match
     case that: Box =>
       hashCode == that.hashCode &&

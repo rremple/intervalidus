@@ -3,6 +3,7 @@ package intervalidus
 import intervalidus.collection.BoxedPayload
 
 import scala.collection.mutable
+import scala.compiletime.asMatchable
 
 /**
   * A value that is valid in some multidimensional interval. Conceptually, this defines a partial function where all
@@ -37,10 +38,7 @@ case class ValidData[V, D <: NonEmptyTuple](
     * Alternative to toString for something that looks more like code. When the dimension of the interval is bigger than
     * 1, puts the interval in parens so the `x` function would actually work.
     */
-  def toCodeLikeString: String = s"${interval.toCodeLikeStringWithParens} -> ${value match
-      case s: String => s"\"$s\""
-      case _         => value.toString
-    }"
+  def toCodeLikeString: String = s"${interval.toCodeLikeStringWithParens} -> ${Domain1D.codeLikeValue(value)}"
 
   /**
     * When stored in the `TreeMap` collection, the start of the corresponding interval is the key.
@@ -64,7 +62,7 @@ case class ValidData[V, D <: NonEmptyTuple](
   override def isDefinedAt(domainIndex: D): Boolean = domainIndex ∈ interval
 
   // inline because it is called from inline methods in DomainLikeTupleOps
-  inline def valueToString: String = value match
+  inline def valueToString: String = value.asMatchable match
     case set: Set[?] => set.map(_.toString).mkString("{", ",", "}") // for DataMulti
     case _           => value.toString
 

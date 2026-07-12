@@ -1,6 +1,7 @@
 package intervalidus
 
 import java.time.{Instant, LocalDate, LocalDateTime, ZoneOffset}
+import scala.compiletime.asMatchable
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 /**
@@ -325,7 +326,7 @@ object Domain1D:
     * @return
     *   a code-like string constructing the value
     */
-  def codeLikeValue[T](value: T): String = value match
+  def codeLikeValue[T](value: T): String = value.asMatchable match
     case d: LocalDate     => s"LocalDate.of(${d.getYear},${d.getMonthValue},${d.getDayOfMonth})"
     case d: LocalDateTime =>
       s"LocalDate.of(${d.getYear},${d.getMonthValue},${d.getDayOfMonth})" +
@@ -334,7 +335,8 @@ object Domain1D:
       val d = LocalDateTime.ofInstant(i, ZoneOffset.UTC)
       s"LocalDate.of(${d.getYear},${d.getMonthValue},${d.getDayOfMonth})" +
         s".atTime(${d.getHour},${d.getMinute},${d.getSecond},${d.getNano}).toInstant(ZoneOffset.UTC)"
-    case _ => value.toString
+    case s: String => s"\"$s\"" // only used by ValidData.toCodeLikeString
+    case _         => value.toString
 
   /**
     * Construct a domain point (closed) based on a domain value.

@@ -2,7 +2,7 @@ package intervalidus
 
 import intervalidus.immutable.Data
 
-import scala.annotation.tailrec
+import scala.annotation.{nowarn, tailrec}
 import scala.collection.mutable
 import scala.language.implicitConversions
 
@@ -250,6 +250,7 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
   // ---------- Query API methods: Retrieval and Inspection ----------
   // ---- Evaluates equality/equivalence, inspects/queries/extracts shape data, and represents shapes as strings. ----
 
+  @nowarn("msg=pattern selector should be an instance of Matchable")
   override def equals(obj: Any): Boolean = obj match
     case that: IntervalShape[?] => underlying.equals(that.underlying)
     case _                      => false
