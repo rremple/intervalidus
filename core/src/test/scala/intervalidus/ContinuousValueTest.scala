@@ -15,6 +15,22 @@ class ContinuousValueTest extends AnyFunSuite:
 
     assertResult(0)(Color.Red.orderedHashValue)
 
+  test("Auto-derive Discrete Value from a sealed trait"):
+    sealed trait TrafficLight derives ContinuousValue
+    case object Green extends TrafficLight
+    case object Yellow extends TrafficLight
+    case object Red extends TrafficLight
+
+    assertResult(0)(Green.orderedHashValue)
+
+  test("Auto-derive Discrete Value from a sealed abstract class"):
+    sealed abstract class TrafficLight(val means: String) derives ContinuousValue
+    case object Green extends TrafficLight("Go")
+    case object Yellow extends TrafficLight("Slow down")
+    case object Red extends TrafficLight("Stop")
+
+    assertResult(0)(Green.orderedHashValue)
+
   test("Ops on Ints"):
     import intervalidus.ContinuousValue.IntContinuousValue
     assert(3 equiv 3)

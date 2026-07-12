@@ -1,5 +1,7 @@
 package intervalidus
 
+import scala.deriving.Mirror
+
 /**
   * Type class for continuous values, which are:
   *   1. bounded, with both a lower bound ([[minValue]]) and an upper bound ([[maxValue]])
@@ -147,7 +149,8 @@ object ContinuousValue:
     override def orderedHashOf(x: E): Double = values.indexOf(x).toDouble
 
   /**
-    * Auto-derives a ContinuousValue type class from an enum type, for example:
+    * Auto-derives a ContinuousValue type class from a sum type: an enum, sealed trait, or sealed abstract class. For
+    * example:
     * {{{
     *   enum Color derives ContinuousValue:
     *     case Red, Yellow, Green, Cyan, Blue, Magenta
@@ -158,5 +161,5 @@ object ContinuousValue:
     * @return
     *   a continuous value type class based on the enum values
     */
-  inline def derived[E <: scala.reflect.Enum]: ContinuousValue[E] =
-    fromSeq(EnumMacro.enumValues[E].toIndexedSeq)
+  inline def derived[E: Mirror.SumOf]: ContinuousValue[E] =
+    fromSeq(SumTypeValues.sumTypeValues[E].toIndexedSeq)

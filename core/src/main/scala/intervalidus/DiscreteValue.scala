@@ -1,5 +1,7 @@
 package intervalidus
 
+import scala.deriving.Mirror
+
 /**
   * Type class for discrete values, which are:
   *   1. bounded, with both a lower bound ([[minValue]]) and an upper bound ([[maxValue]])
@@ -174,7 +176,8 @@ object DiscreteValue:
     override def orderedHashOf(x: E): Double = values.indexOf(x).toDouble
 
   /**
-    * Auto-derives a DiscreteValue type class from an enum type, for example:
+    * Auto-derives a DiscreteValue type class from a sum type: an enum, sealed trait, or sealed abstract class. For
+    * example:
     * {{{
     *   enum Color derives DiscreteValue:
     *     case Red, Yellow, Green, Cyan, Blue, Magenta
@@ -185,5 +188,5 @@ object DiscreteValue:
     * @return
     *   a discrete value type class based on the enum values
     */
-  inline def derived[E <: scala.reflect.Enum]: DiscreteValue[E] =
-    fromSeq(EnumMacro.enumValues[E].toIndexedSeq)
+  inline def derived[E: Mirror.SumOf]: DiscreteValue[E] =
+    fromSeq(SumTypeValues.sumTypeValues[E].toIndexedSeq)

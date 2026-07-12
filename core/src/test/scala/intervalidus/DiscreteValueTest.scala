@@ -10,11 +10,27 @@ import scala.language.implicitConversions
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 class DiscreteValueTest extends AnyFunSuite:
-  test("Auto-derive Discrete Value"):
+  test("Auto-derive Discrete Value from an enum"):
     enum Color derives DiscreteValue:
       case Red, Yellow, Green, Cyan, Blue, Magenta
 
     assertResult(Some(Color.Yellow))(Color.Red.successorValue)
+
+  test("Auto-derive Discrete Value from a sealed trait"):
+    sealed trait TrafficLight derives DiscreteValue
+    case object Green extends TrafficLight
+    case object Yellow extends TrafficLight
+    case object Red extends TrafficLight
+
+    assertResult(Some(Yellow))(Green.successorValue)
+
+  test("Auto-derive Discrete Value from a sealed abstract class"):
+    sealed abstract class TrafficLight(val means: String) derives DiscreteValue
+    case object Green extends TrafficLight("Go")
+    case object Yellow extends TrafficLight("Slow down")
+    case object Red extends TrafficLight("Stop")
+
+    assertResult(Some("Slow down"))(Green.successorValue.map(_.means))
 
   test("Ops on Ints"):
     import DiscreteValue.IntDiscreteValue
