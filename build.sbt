@@ -22,19 +22,19 @@ ThisBuild / publishTo := {
 }
 
 // POM Metadata (Mandatory for Maven Central validation)
-ThisBuild / homepage := Some(url("https://github.com/rremple/intervalidus"))
-ThisBuild / licenses := List("Apache-2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0.txt"))
+ThisBuild / homepage := Some(uri("https://github.com/rremple/intervalidus"))
+ThisBuild / licenses := List("Apache-2.0" -> uri("https://www.apache.org/licenses/LICENSE-2.0.txt"))
 ThisBuild / developers := List(
   Developer(
     id = "rremple",
     name = "Russell Remple",
     email = "rremple@users.noreply.github.com",
-    url = url("https://github.com/rremple")
+    url = uri("https://github.com/rremple")
   )
 )
 ThisBuild / scmInfo := Some(
   ScmInfo(
-    url("https://github.com/rremple/intervalidus"),
+    uri("https://github.com/rremple/intervalidus"),
     "scm:git@github.com:rremple/intervalidus.git"
   )
 )
