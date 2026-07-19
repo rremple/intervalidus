@@ -14,6 +14,8 @@ class DataAffineContinuousTest
   with DataAffineBaseBehaviors
   with ImmutableAffineBaseBehaviors:
 
+  import DomainAffineLike.* // extension methods
+
   /*
    * Implementations for DataAffineBaseBehaviors.
    */
@@ -38,7 +40,7 @@ class DataAffineContinuousTest
     dimensionIndex: Domain.DimensionIndex,
     signalData: Seq[ValidData[V, D]],
     kernelData: Seq[ValidData[K, Domain.In1D[Int]]],
-    kernelOrigin: Domain1D[Int],
+    kernelCenter: Domain1D[Int],
     epsilon: Int,
     combine: (V, K) => V,
     scaledByEpsilon: (V, Int) => V,
@@ -52,8 +54,7 @@ class DataAffineContinuousTest
     Domain.IsUpdatableAtIndex[D, dimensionIndex.type, Int]
   ): DimensionalAffineBase[V, D] = DataAffine(signalData).convolvedByIn(
     dimensionIndex,
-    DataAffine(kernelData),
-    kernelOrigin,
+    DataAffine(kernelData).withCenter(kernelCenter),
     epsilon,
     combine,
     scaledByEpsilon,

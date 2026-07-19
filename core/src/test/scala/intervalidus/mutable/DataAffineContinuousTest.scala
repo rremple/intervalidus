@@ -14,6 +14,8 @@ class DataAffineContinuousTest
   with DataAffineBaseBehaviors
   with MutableAffineBaseBehaviors:
 
+  import DomainAffineLike.* // extension methods
+
   /*
    * Implementations for DataAffineBaseBehaviors.
    */
@@ -38,7 +40,7 @@ class DataAffineContinuousTest
     dimensionIndex: Domain.DimensionIndex,
     signalData: Seq[ValidData[V, D]],
     kernelData: Seq[ValidData[K, Domain.In1D[Int]]],
-    kernelOrigin: Domain1D[Int],
+    kernelCenter: Domain1D[Int],
     epsilon: Int,
     combine: (V, K) => V,
     scaledByEpsilon: (V, Int) => V,
@@ -54,8 +56,7 @@ class DataAffineContinuousTest
     val result = DataAffine(signalData)
     result.convolvedByIn(
       dimensionIndex,
-      DataAffine(kernelData),
-      kernelOrigin,
+      DataAffine(kernelData).withCenter(kernelCenter),
       epsilon,
       combine,
       scaledByEpsilon,

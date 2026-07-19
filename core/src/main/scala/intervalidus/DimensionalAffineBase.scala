@@ -164,10 +164,9 @@ trait DimensionalAffineBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimensio
   * @define convolvedByInParmDimensionIndex
   *   The dimension being convolved.
   * @define convolvedByInParmKernel
-  *   The convolution kernel (a one-dimensional affine structure).
-  * @define convolvedByInParmKernelOrigin
-  *   The reflection pivot of the kernel (usually its center). Because the kernel is reflected, kernelOrigin positions
-  *   are also mirrored (e.g., treating the end of the kernel as the origin moves the output forward).
+  *   The convolution kernel, a one-dimensional affine structure along with its center, i.e., its reflection pivot.
+  *   Because the kernel element is reflected, the kernel center positions are also mirrored (e.g., treating the end of
+  *   the kernel as the center moves the output forward).
   * @define convolvedByInParmEpsilon
   *   The integration step size, defining the maximum measure of the Riemann sum elements.
   * @define convolvedByInParmCombine
@@ -342,8 +341,6 @@ trait DimensionalAffineBase[V, D <: NonEmptyTuple: DomainAffineLike] extends Dim
     *
     * @param kernel
     *   $convolvedByInParmKernel
-    * @param kernelOrigin
-    *   $convolvedByInParmKernelOrigin
     * @param epsilon
     *   $convolvedByInParmEpsilon
     * @param accumulate
@@ -358,8 +355,7 @@ trait DimensionalAffineBase[V, D <: NonEmptyTuple: DomainAffineLike] extends Dim
   protected def convolvedInternal[H, K](using
     dimOp: DomainAffineValueLike[H]
   )(
-    kernel: DimensionalAffineBase[K, Domain.In1D[H]],
-    kernelOrigin: Domain1D[H],
+    kernel: CenteredKernel[K, H],
     epsilon: dimOp.Displacement,
     accumulate: (V, V) => V
   )(
@@ -367,19 +363,19 @@ trait DimensionalAffineBase[V, D <: NonEmptyTuple: DomainAffineLike] extends Dim
   ): mutable.DataAffine[V, D] =
     val delayCompression: CoreConfig[D] = config.withCompressOnUpdate(false)
     val resultBuffer: mutable.DataAffine[V, D] = mutable.DataAffine.empty(using config = delayCompression)
-    kernel.getAll.foreach: kernelElement =>
-      val kernelInterval1D = kernelElement.interval.headInterval1D
+    kernel.element.getAll.foreach: kernelComponent =>
+      val kernelInterval1D = kernelComponent.interval.headInterval1D
 
-      def toOriginFrom(f: Interval1D[H] => Domain1D[H]) = (f(kernelInterval1D) displacementTo kernelOrigin).getOrElse:
-        throw IllegalArgumentException(s"Invalid kernel element / origin: $kernelElement / $kernelOrigin")
+      def toCenterFrom(f: Interval1D[H] => Domain1D[H]) = (f(kernelInterval1D) displacementTo kernel.center).getOrElse:
+        throw IllegalArgumentException(s"Invalid kernel component / center: $kernelComponent / ${kernel.center}")
 
       /**
         * Why the heck does this use `end.rightAdjacent` instead of just `end`? This is explained in a comment in
         * [[DomainAffineValueLike.measure]].
         */
-      val offsetsAndDeltas = dimOp.range(toOriginFrom(_.start), toOriginFrom(_.end.rightAdjacent), epsilon.negated)
+      val offsetsAndDeltas = dimOp.range(toCenterFrom(_.start), toCenterFrom(_.end.rightAdjacent), epsilon.negated)
       offsetsAndDeltas.iterator.foreach: (offset, delta) =>
-        resultBuffer.merge(offsetLayer(kernelElement.value, offset, delta.magnitude), accumulate)
+        resultBuffer.merge(offsetLayer(kernelComponent.value, offset, delta.magnitude), accumulate)
 
     if config.compressOnUpdate then resultBuffer.compressAll()
     resultBuffer

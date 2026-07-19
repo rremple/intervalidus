@@ -3,6 +3,7 @@ package intervalidus.immutable
 import intervalidus.*
 import intervalidus.DimensionalBase.{State, Transaction}
 import intervalidus.Domain.{HasDisplacementType, HasScalarType}
+import intervalidus.DomainAffineLike.CenteredKernel
 
 import scala.language.implicitConversions
 
@@ -138,8 +139,6 @@ class DataAffine[V, D <: NonEmptyTuple] private (
     *   $convolvedByInParmDimensionIndex
     * @param kernel
     *   $convolvedByInParmKernel
-    * @param kernelOrigin
-    *   $convolvedByInParmKernelOrigin
     * @param epsilon
     *   $convolvedByInParmEpsilon
     * @param combine
@@ -159,8 +158,7 @@ class DataAffine[V, D <: NonEmptyTuple] private (
     dimOp: DomainAffineValueLike[H]
   )(
     dimensionIndex: Domain.DimensionIndex,
-    kernel: DataAffine[K, Domain.In1D[H]],
-    kernelOrigin: Domain1D[H],
+    kernel: CenteredKernel[K, H],
     epsilon: dimOp.Displacement,
     combine: (V, K) => V,
     scaledByEpsilon: (V, dimOp.Displacement) => V,
@@ -170,7 +168,7 @@ class DataAffine[V, D <: NonEmptyTuple] private (
     Domain.IsAtIndex[D, dimensionIndex.type, H],
     Domain.IsUpdatableAtIndex[D, dimensionIndex.type, H]
   ): DataAffine[V, D] =
-    convolvedInternal(kernel, kernelOrigin, epsilon, accumulate): (kernelValue, offset, delta) =>
+    convolvedInternal(kernel, epsilon, accumulate): (kernelValue, offset, delta) =>
       displacedByIn(dimensionIndex, offset).mapValues: signalValue =>
         scaledByEpsilon(combine(signalValue, kernelValue), delta)
     .toImmutable

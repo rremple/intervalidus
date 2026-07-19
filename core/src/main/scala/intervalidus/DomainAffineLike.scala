@@ -16,7 +16,40 @@ import scala.math.Ordering.Implicits.infixOrderingOps
   */
 class DomainAffineLike[D <: NonEmptyTuple: DomainLikeTupleOps](using
   val applyToAffineDomain: DomainAffineLikeTupleOps[D]
-) extends DomainLike[D]
+) extends DomainLike[D]:
+
+  /**
+    * Operations on multidimensional domains
+    */
+  extension (domain: D)
+
+    /**
+      * Displaces this domain by reflecting it about a pivot. Overflows of the underlying value operations are
+      * translated to Bottom/Top.
+      */
+    infix def reflectedAbout(pivot: D): D =
+      applyToAffineDomain.reflectedAboutFromDomain(domain, pivot)
+
+    /**
+      * Displaces this domain by scaling the displacement from some center. Overflows of the underlying value operations
+      * are translated to Bottom/Top. See [[https://en.wikipedia.org/wiki/Scaling_(geometry)]] and
+      * [[https://en.wikipedia.org/wiki/Homothetic_center]].
+      */
+    infix def scaledAbout[S <: NonEmptyTuple](using D HasScalarType S)(center: D, scaledBy: S): D =
+      applyToAffineDomain.scaledAboutFromDomain(domain, center, scaledBy)
+
+    /**
+      * Displaces this domain. Overflows of the underlying value operations are translated to Bottom/Top.
+      */
+    infix def displacedBy[S <: NonEmptyTuple](using D HasDisplacementType S)(offset: S): D =
+      applyToAffineDomain.displacedByFromDomain(domain, offset)
+
+    /**
+      * Finds the displacement from this domain to another. Overflows, such as displacements to or from Top or Bottom,
+      * or overflowing underlying value operations, are returned as None.
+      */
+    infix def displacementTo[S <: NonEmptyTuple](using D HasDisplacementType S)(toDomain: D): Option[S] =
+      applyToAffineDomain.displacementToFromDomain(domain, toDomain)
 
 /**
   * Common definitions and extensions for single and multidimensional structures with affine domains.
@@ -25,6 +58,53 @@ object DomainAffineLike:
 
   given [D <: NonEmptyTuple: DomainAffineLikeTupleOps: DomainLikeTupleOps]: DomainAffineLike[D] = DomainAffineLike[D]
 
+  /**
+    * Many affine operations require some notion of a center relative to some element. For example, convolutions use a
+    * kernel, which is a one-dimensional affine structure centered at some domain point. Similalarly, morphological
+    * operations like dilation and erosion use a probe, which is an interval centered at some domain point. This trait
+    * generalizes this notion of a centered element.
+    * @tparam A
+    *   the element type.
+    * @tparam C
+    *   the center type.
+    */
+  sealed trait CenteredElement[A, C]:
+    def element: A
+    def center: C
+
+  /**
+    * Affine data structures support convolutions. These operations use a kernel, which is a one-dimensional affine
+    * structure centered at some domain point (the reflection pivot of the kernel).
+    *
+    * @param element
+    *   a one-dimensional affine structure.
+    * @param center
+    *   The reflection pivot of the kernel (usually its actual center).
+    * @tparam K
+    *   The value type of the kernel.
+    * @tparam H
+    *   The domain value type of the dimension being convolved.
+    */
+  case class CenteredKernel[K, H: DomainAffineValueLike](
+    element: DimensionalAffineBase[K, Domain.In1D[H]],
+    center: Domain1D[H]
+  ) extends CenteredElement[DimensionalAffineBase[K, Domain.In1D[H]], Domain1D[H]]
+
+  /**
+    * Operations on one-dimensional affine data that can be used as a convolution kernel
+    */
+  extension [K, H: DomainAffineValueLike](element: DimensionalAffineBase[K, Domain.In1D[H]])
+    /**
+      * Use this a one-dimensional affine structure as a centered kernel.
+      *
+      * @param center
+      *   The reflection pivot of the kernel (usually its actual center), not necessarily contained in the element.
+      */
+    def withCenter(center: Domain1D[H]): CenteredKernel[K, H] = CenteredKernel(element, center)
+
+  /**
+    * Operations on one-dimensional domains
+    */
   extension [T](lhs: Domain1D[T])(using op: DomainAffineValueLike[T])
     /**
       * Finds the displacement from this domain to another. Overflows, such as displacements to or from Top or Bottom,
@@ -86,7 +166,48 @@ object DomainAffineLike:
         case OpenPoint(value) => displaceAs(value, OpenPoint(_))
         case bottomOrTop      => bottomOrTop
 
+  /**
+    * One-dimensional morphological operations, such as dilation and erosion, probe a shape using a one-dimensional
+    * interval as a structuring element along with its one-dimensional domain center. Only elements that can be
+    * reflected about the center are considered valid.
+    *
+    * @param element
+    *   a structuring element for the morphological operation.
+    * @param center
+    *   the center of the structuring element, not necessarily contained in the element.
+    * @tparam T
+    *   The domain value type of the element and center.
+    */
+  case class CenteredInterval1D[T: DomainAffineValueLike](
+    element: Interval1D[T],
+    center: Domain1D[T]
+  ) extends CenteredElement[Interval1D[T], Domain1D[T]]:
+
+    private val reflectedElement: Interval1D[T] = element.reflectedAbout(center) match
+      case Some(reflected) => reflected
+      case _ => throw IllegalArgumentException(s"requirement failed: $element cannot be reflected about $center")
+
+    /**
+      * The reflection of the underlying structuring element at the same center.
+      */
+    def reflected: CenteredInterval1D[T] = reflectedElement.withCenter(center)
+
+    /**
+      * Symmetric super-element that is guaranteed to contain the center.
+      */
+    def superElement: CenteredInterval1D[T] = (element ∪ reflected.element).withCenter(center)
+
+  /**
+    * Operations on one-dimensional intervals
+    */
   extension [T](lhs: Interval1D[T])(using op: DomainAffineValueLike[T])
+    /**
+      * Use this interval as the structuring element of a morphological probe.
+      *
+      * @param center
+      *   the center of the structuring element, not necessarily contained in the element.
+      */
+    def withCenter(center: Domain1D[T]): CenteredInterval1D[T] = CenteredInterval1D(lhs, center)
 
     /**
       * The measure of an interval.
@@ -203,11 +324,11 @@ object DomainAffineLike:
       * @return
       *   if the interval can be dilated, a new interval dilated by the structuring element, otherwise None.
       */
-    def dilatedBy(element: Interval1D[T], elementCenter: Domain1D[T]): Option[Interval1D[T]] =
-      val start = elementCenter displacementTo element.start match
+    def dilatedBy(probe: CenteredInterval1D[T]): Option[Interval1D[T]] =
+      val start = probe.center displacementTo probe.element.start match
         case Some(displacement) => lhs.start displacedBy displacement
         case None               => Bottom
-      val end = elementCenter displacementTo element.end.rightAdjacent match
+      val end = probe.center displacementTo probe.element.end.rightAdjacent match
         case Some(displacement) => lhs.end displacedBy displacement
         case None               => Top
       if Interval1D.validBounds(start, end) then Some(Interval1D(start, end)) else None
@@ -219,23 +340,69 @@ object DomainAffineLike:
       * translated. See [[https://en.wikipedia.org/wiki/Mathematical_morphology]] and
       * [[https://en.wikipedia.org/wiki/Erosion_(morphology)]]
       *
-      * @param element
-      *   a structuring element for the erosion.
-      * @param elementCenter
-      *   the center of the structuring element.
+      * @param probe
+      *   a structuring element along with its center for the erosion.
       * @return
       *   if the interval can be eroded, a new interval eroded by the structuring element, otherwise None.
       */
-    def erodedBy(element: Interval1D[T], elementCenter: Domain1D[T]): Option[Interval1D[T]] =
-      val start = element.start displacementTo elementCenter match
+    def erodedBy(probe: CenteredInterval1D[T]): Option[Interval1D[T]] =
+      val start = probe.element.start displacementTo probe.center match
         case Some(displacement) => lhs.start displacedBy displacement
         case None               => Top
-      val end = element.end.rightAdjacent displacementTo elementCenter match
+      val end = probe.element.end.rightAdjacent displacementTo probe.center match
         case Some(displacement) => lhs.end displacedBy displacement
         case None               => Bottom
       if Interval1D.validBounds(start, end) then Some(Interval1D(start, end)) else None
 
+    /** Same as [[dilatedBy]] */
+    infix def ⊕(probe: CenteredInterval1D[T]): Option[Interval1D[T]] = dilatedBy(probe)
+
+    /** Same as [[erodedBy]] */
+    infix def ⊖(probe: CenteredInterval1D[T]): Option[Interval1D[T]] = erodedBy(probe)
+
+  /**
+    * Multidimensional morphological operations, such as dilation and erosion, probe a shape using a multidimensional
+    * interval as a structuring element along with its multidimensional domain center. Only elements that can be *
+    * reflected about the center are considered valid.
+    *
+    * @param element
+    *   a structuring element for the morphological operation.
+    * @param center
+    *   the center of the structuring element, not necessarily contained in the element
+    * @tparam D
+    *   The multidimensional domain type of the element and center.
+    */
+  case class CenteredInterval[D <: NonEmptyTuple: DomainAffineLike](
+    element: Interval[D],
+    center: D
+  ) extends CenteredElement[Interval[D], D]:
+
+    private val reflectedElement: Interval[D] = element.reflectedAbout(center) match
+      case Some(reflected) => reflected
+      case _ => throw IllegalArgumentException(s"requirement failed: $element cannot be reflected about $center")
+
+    /**
+      * The reflection of the underlying structuring element at the same center.
+      */
+    def reflected: CenteredInterval[D] = reflectedElement.withCenter(center)
+
+    /**
+      * Symmetric super-element that is guaranteed to contain the center.
+      */
+    def containingCenter: CenteredInterval[D] = (element ∪ reflected.element).withCenter(center)
+
+  /**
+    * Operations on multidimensional intervals
+    */
   extension [D <: NonEmptyTuple](lhs: Interval[D])(using op: DomainAffineLike[D])
+    /**
+      * Use this interval as the structuring element of a morphological probe.
+      *
+      * @param center
+      *   the center of the structuring element, not necessarily contained in the element
+      */
+    def withCenter(center: D): CenteredInterval[D] = CenteredInterval(lhs, center)
+
     /**
       * Returns this interval reflected about some pivot.
       */
@@ -262,15 +429,13 @@ object DomainAffineLike:
       * the interval may also be translated. See [[https://en.wikipedia.org/wiki/Mathematical_morphology]] and
       * [[https://en.wikipedia.org/wiki/Dilation_(morphology)]]
       *
-      * @param element
-      *   a structuring element for the dilation.
-      * @param elementCenter
-      *   the center of the structuring element.
+      * @param probe
+      *   a structuring element and its center for the dilation.
       * @return
       *   if the interval can be dilated, a new interval dilated by the structuring element, otherwise None.
       */
-    def dilatedBy(element: Interval[D], elementCenter: D): Option[Interval[D]] =
-      op.applyToAffineDomain.dilatedByFromInterval(lhs, element, elementCenter)
+    def dilatedBy(probe: CenteredInterval[D]): Option[Interval[D]] =
+      op.applyToAffineDomain.dilatedByFromInterval(lhs, probe.element, probe.center)
 
     /**
       * In mathematical morphology, an erosion operation uses a structuring element for probing and contracting a shape.
@@ -279,15 +444,13 @@ object DomainAffineLike:
       * the interval may also be translated. See [[https://en.wikipedia.org/wiki/Mathematical_morphology]] and
       * [[https://en.wikipedia.org/wiki/Erosion_(morphology)]]
       *
-      * @param element
-      *   a structuring element for the erosion.
-      * @param elementCenter
-      *   the center of the structuring element.
+      * @param probe
+      *   a structuring element and its center for the erosion.
       * @return
       *   if the interval can be eroded, a new interval eroded by the structuring element, otherwise None.
       */
-    def erodedBy(element: Interval[D], elementCenter: D): Option[Interval[D]] =
-      op.applyToAffineDomain.erodedByFromInterval(lhs, element, elementCenter)
+    def erodedBy(probe: CenteredInterval[D]): Option[Interval[D]] =
+      op.applyToAffineDomain.erodedByFromInterval(lhs, probe.element, probe.center)
 
     /**
       * Returns the measure of this interval as a tuple of the displacement types of D if the measures are defined in
@@ -310,6 +473,15 @@ object DomainAffineLike:
     def scaledAbout[S <: NonEmptyTuple](center: D, scaledBy: S)(using D HasScalarType S): Option[Interval[D]] =
       op.applyToAffineDomain.scaledAboutFromInterval(lhs, center, scaledBy)
 
+    /** Same as [[dilatedBy]] */
+    infix def ⊕(probe: CenteredInterval[D]): Option[Interval[D]] = dilatedBy(probe)
+
+    /** Same as [[erodedBy]] */
+    infix def ⊖(probe: CenteredInterval[D]): Option[Interval[D]] = erodedBy(probe)
+
+  /**
+    * Operations on multidimensional interval shapes
+    */
   extension [D <: NonEmptyTuple](lhs: IntervalShape[D])(using op: DomainAffineLike[D])
     /**
       * Returns an interval shape consisting of this shape's interval components reflected about some pivot. For any
@@ -369,16 +541,14 @@ object DomainAffineLike:
       * [[https://en.wikipedia.org/wiki/Mathematical_morphology]] and
       * [[https://en.wikipedia.org/wiki/Dilation_(morphology)]]
       *
-      * @param element
-      *   a structuring element for the dilation.
-      * @param elementCenter
-      *   the center of the structuring element.
+      * @param probe
+      *   a structuring element and its center for the dilation.
       * @return
       *   a new shape with all components dilated by the structuring element -- any components that cannot be dialated
       *   are dropped in the result.
       */
-    def dilatedBy(element: Interval[D], elementCenter: D): IntervalShape[D] =
-      val dilatedIntervals = lhs.allIntervals.flatMap(_.dilatedBy(element, elementCenter))
+    def dilatedBy(probe: CenteredInterval[D]): IntervalShape[D] =
+      val dilatedIntervals = lhs.allIntervals.flatMap(_ ⊕ probe)
       IntervalShape.∅(using config = lhs.config) ++ dilatedIntervals
 
     /**
@@ -389,58 +559,91 @@ object DomainAffineLike:
       * [[https://en.wikipedia.org/wiki/Mathematical_morphology]] and
       * [[https://en.wikipedia.org/wiki/Erosion_(morphology)]]
       *
-      * @note
-      *   because eroding a shape is just the erosion applied to each of its interval components in the shape, the
-      *   results in more than one dimension can be surprising. That is because a shape with intervals partially
-      *   adjacent to one another can wind up with gaps between them when eroded.
-      *
-      * @param element
-      *   a structuring element for the erosion.
-      * @param elementCenter
-      *   the center of the structuring element.
+      * @param probe
+      *   a structuring element and its center for the erosion.
       * @return
       *   a new shape with all components eroded by the structuring element -- any components that cannot be eroded are
       *   dropped in the result.
       */
-    def erodedBy(element: Interval[D], elementCenter: D): IntervalShape[D] =
-      val transform = ((_: Interval[D]).erodedBy(element, elementCenter)).unlift
-      lhs.collect(transform)(using altConfig = lhs.config)
+    def erodedBy(probe: CenteredInterval[D]): IntervalShape[D] =
+      /*
+       * If we eroded a shape by just the eroding each of the interval components in the shape, the results in more
+       * than one dimension would be surprising. That is because a shape with interval components partially adjacent to
+       * one another would wind up with gaps between them when eroded. That is why we use the dilation of the
+       * complement -- the interval component representation does not leave any artifacts under dilation, and the
+       * complement of the result winds up being the perfect erosion, even in higher dimensions.
+       */
+      (lhs.complement ⊕ probe.reflected).complement
 
     /**
       * In mathematical morphology, an opening operation is the dilation of the erosion, essentially removing features
       * smaller than the structuring element. See [[https://en.wikipedia.org/wiki/Mathematical_morphology]] and
       * [[https://en.wikipedia.org/wiki/Opening_(morphology)]]
       *
-      * @param element
-      *   a structuring element for the erosion and subsequent dilation.
-      * @param elementCenter
-      *   the center of the structuring element.
+      * @param probe
+      *   a structuring element and its center for the erosion and subsequent dilation.
       * @return
       *   a new shape with all components eroded by, and subsequently dialated by, the structuring element -- any
       *   components that cannot be eroded or dialated are dropped in the result.
       */
-    def openingBy(element: Interval[D], elementCenter: D): IntervalShape[D] =
-      erodedBy(element, elementCenter).dilatedBy(element, elementCenter)
+    def openingBy(probe: CenteredInterval[D]): IntervalShape[D] =
+      lhs ⊖ probe ⊕ probe
 
     /**
       * In mathematical morphology, a closing operation is the erosion of the dilation, essentially removing gaps
       * smaller than the structuring element. See [[https://en.wikipedia.org/wiki/Mathematical_morphology]] and
       * [[https://en.wikipedia.org/wiki/Closing_(morphology)]]
       *
-      * @note
-      *   because the second step is eroding, the results in more than one dimension can be surprising (gaps open up
-      *   where interval components had been partially adjacent). See note on [[erodedBy]] for more details.
-      *
-      * @param element
-      *   a structuring element for the dilation and subsequent erosion.
-      * @param elementCenter
-      *   the center of the structuring element.
+      * @param probe
+      *   a structuring element and its center for the dilation and subsequent erosion.
       * @return
       *   a new shape with all components dialated by, and subsequently eroded by, the structuring element -- any
       *   components that cannot be dialated or eroded are dropped in the result.
       */
-    def closingBy(element: Interval[D], elementCenter: D): IntervalShape[D] =
-      dilatedBy(element, elementCenter).erodedBy(element, elementCenter)
+    def closingBy(probe: CenteredInterval[D]): IntervalShape[D] =
+      lhs ⊕ probe ⊖ probe
+
+    /**
+      * In mathematical morphology, gradient acts like a non-linear derivative, isolating the boundaries of the shape.
+      * It is the difference between the dilation and the erosion. See
+      * [[https://en.wikipedia.org/wiki/Mathematical_morphology]] and
+      * [[https://en.wikipedia.org/wiki/Morphological_gradient]] .
+      *
+      * @param probe
+      *   a structuring element and its center for the underlying dilation and erosion of the calculation.
+      * @return
+      *   a new shape that is the difference between the dilation and the erosion (using a reflected probe).
+      */
+    def gradientBy(probe: CenteredInterval[D]): IntervalShape[D] =
+      (lhs ⊕ probe) \ (lhs ⊖ probe.reflected)
+
+    /**
+      * In mathematical morphology, a top-hat transform extracts small elements and details. A white top-hat transform
+      * consists of the elements removed as part of an opening, so it is the difference between a shape and its opening.
+      * See [[https://en.wikipedia.org/wiki/Mathematical_morphology]] and
+      * [[https://en.wikipedia.org/wiki/Top-hat_transform]] .
+      *
+      * @param probe
+      *   a structuring element and its center for the underlying opening.
+      * @return
+      *   a new shape that is the difference between this shape and its opening.
+      */
+    infix def whiteTopHatBy(probe: CenteredInterval[D]): IntervalShape[D] =
+      lhs \ (lhs ◯ probe)
+
+    /**
+      * In mathematical morphology, a top-hat transform extracts small elements and details. A black top-hat transform
+      * consists of the elements added as part of a closing, so it is the difference between a shape's closing and
+      * itself. See [[https://en.wikipedia.org/wiki/Mathematical_morphology]] and
+      * [[https://en.wikipedia.org/wiki/Top-hat_transform]] .
+      *
+      * @param probe
+      *   a structuring element and its center for the underlying closing.
+      * @return
+      *   a new shape that is the difference between this shape's closing and itself.
+      */
+    infix def blackTopHatBy(probe: CenteredInterval[D]): IntervalShape[D] =
+      (lhs ● probe) \ lhs
 
     /**
       * Returns an accumulated measure of this interval shape by measuring this shape's interval components (tuples of
@@ -454,3 +657,18 @@ object DomainAffineLike:
     )(using D HasDisplacementType S): Option[R] =
       val measure = ((_: Interval[D]).mapMeasure(f)).unlift
       lhs.allIntervals.collect(measure).reduceOption(combine)
+
+    /** Same as [[dilatedBy]] */
+    infix def ⊕(probe: CenteredInterval[D]): IntervalShape[D] = dilatedBy(probe)
+
+    /** Same as [[erodedBy]] */
+    infix def ⊖(probe: CenteredInterval[D]): IntervalShape[D] = erodedBy(probe)
+
+    /** Same as [[openingBy]] */
+    infix def ◯(probe: CenteredInterval[D]): IntervalShape[D] = openingBy(probe)
+
+    /** Same as [[closingBy]] */
+    infix def ●(probe: CenteredInterval[D]): IntervalShape[D] = closingBy(probe)
+
+    /** Same as [[gradientBy]] */
+    infix def ∇(probe: CenteredInterval[D]): IntervalShape[D] = gradientBy(probe)

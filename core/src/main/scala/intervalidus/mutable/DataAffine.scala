@@ -3,6 +3,7 @@ package intervalidus.mutable
 import intervalidus.*
 import intervalidus.DimensionalBase.State
 import intervalidus.Domain.{HasDisplacementType, HasScalarType}
+import intervalidus.DomainAffineLike.CenteredKernel
 
 import scala.language.implicitConversions
 
@@ -133,8 +134,6 @@ class DataAffine[V, D <: NonEmptyTuple: DomainAffineLike] private (
     *   $convolvedByInParmDimensionIndex
     * @param kernel
     *   $convolvedByInParmKernel
-    * @param kernelOrigin
-    *   $convolvedByInParmKernelOrigin
     * @param epsilon
     *   $convolvedByInParmEpsilon
     * @param combine
@@ -152,8 +151,7 @@ class DataAffine[V, D <: NonEmptyTuple: DomainAffineLike] private (
     dimOp: DomainAffineValueLike[H]
   )(
     dimensionIndex: Domain.DimensionIndex,
-    kernel: DataAffine[K, Domain.In1D[H]],
-    kernelOrigin: Domain1D[H],
+    kernel: CenteredKernel[K, H],
     epsilon: dimOp.Displacement,
     combine: (V, K) => V,
     scaledByEpsilon: (V, dimOp.Displacement) => V,
@@ -163,7 +161,7 @@ class DataAffine[V, D <: NonEmptyTuple: DomainAffineLike] private (
     Domain.IsAtIndex[D, dimensionIndex.type, H],
     Domain.IsUpdatableAtIndex[D, dimensionIndex.type, H]
   ): Unit = transactionalUpdate:
-    val result = convolvedInternal(kernel, kernelOrigin, epsilon, accumulate): (kernelValue, offset, delta) =>
+    val result = convolvedInternal(kernel, epsilon, accumulate): (kernelValue, offset, delta) =>
       val offsetLayer = copy
       offsetLayer.displacedByIn(dimensionIndex, offset)
       offsetLayer.mapValues(signalValue => scaledByEpsilon(combine(signalValue, kernelValue), delta))

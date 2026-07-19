@@ -30,6 +30,13 @@ class DiscreteAffineIntervalTest
     override infix def scaledAboutInt(center: Domain1D[Int], scaledBy: Double): Option[Interval1D[Int]] =
       lhs.scaledAbout(center, scaledBy)
 
+  extension (lhs: Int2d)(using DomainAffineLike[Int2d])
+    override infix def displacementToInt(rhs: Int2d): Option[(Int, Int)] = lhs.displacementTo(rhs)
+    override infix def displacedByInt(offset: (Int, Int)): Int2d = lhs.displacedBy(offset)
+    override infix def reflectedAboutInt(pivot: Int2d): Int2d = lhs.reflectedAbout(pivot)
+    override infix def scaledAboutInt(center: Int2d, scaledBy: (Double, Double)): Int2d =
+      lhs.scaledAbout(center, scaledBy)
+
   extension (lhs: Interval[Int2d])
     override infix def measureInt: Option[(Int, Int)] = lhs.measure
     override infix def displacedByInt(offset: (Int, Int)): Option[Interval[Int2d]] = lhs.displacedBy(offset)

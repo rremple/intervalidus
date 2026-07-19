@@ -439,6 +439,20 @@ because there is no monoidal value to consider:
 | △        | a △ b | Symmetric Difference | A shape with intervals from A or B, but not both. |
 | ≡        | a ≡ b | Equivalence          | Proves two shapes are logically identical.        |
 
+When used in an affine domain space (described in greater detail below in the context of `DataAffine`), the full set of
+mathematical morphology operations are also available. Below, usage is shown for a shape `a` with a probe `b` (i.e., a
+structuring element with a defined center).
+
+| Operator | Usage           | Name          | Description                                                    |
+|----------|-----------------|---------------|----------------------------------------------------------------|
+| ⊕        | a ⊕ b           | dilate        | Enlarges the shape and fills gaps smaller than the probe.      |
+| ⊖        | a ⊖ b           | erode         | Shrinks the shape and removes features smaller than the probe. |
+| ◯        | a ◯ b           | opening       | Removes features smaller than the probe.                       |
+| ●        | a ● b           | closing       | Removes gaps smaller than the probe.                           |
+| ∇        | a ∇ b           | gradient      | Isolates the boundaries of the shape relative to the probe.    |
+|          | a whiteTopHat b | white top-hat | Isolates the features removed in an opening.                   |
+|          | a blackTopHat b | black top-hat | Isolates the features added in a closing.                      |
+
 Like `DataMonoid` and `DataMulti`, `IntervalShape` also provides a `flattenDimension` which does a `collapseDimension` 
 where intersecting regions in the lower dimension are coalesced.
 

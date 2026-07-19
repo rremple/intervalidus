@@ -3,6 +3,31 @@ package intervalidus
 import intervalidus.Domain.{HasDisplacementType, HasScalarType}
 
 trait DomainAffineLikeTupleOps[D <: NonEmptyTuple]:
+
+  // From domains
+
+  def reflectedAboutFromDomain(using
+    DomainAffineLike[D]
+    // nothing to prove
+  )(domain: D, pivot: D): D
+
+  def scaledAboutFromDomain[S <: NonEmptyTuple](using
+    DomainAffineLike[D],
+    D HasScalarType S
+  )(domain: D, center: D, scaledBy: S): D
+
+  def displacedByFromDomain[S <: NonEmptyTuple](using
+    DomainAffineLike[D],
+    D HasDisplacementType S
+  )(domain: D, offset: S): D
+
+  def displacementToFromDomain[S <: NonEmptyTuple](using
+    DomainAffineLike[D],
+    D HasDisplacementType S
+  )(domain: D, toDomain: D): Option[S]
+
+  // From intervals
+
   def reflectedAboutFromInterval(using
     DomainAffineLike[D]
     // nothing to prove
@@ -63,7 +88,7 @@ object DomainAffineLikeTupleOps:
   private type OneDimScalar[ScalarV] = ScalarV *: EmptyTuple
   private type MultiDimScalar[ScalarV, ScalarTail <: NonEmptyTuple] = ScalarV *: ScalarTail
 
-  import DomainAffineLike.*
+  import DomainAffineLike.* // extension methods
 
   /**
     * Base case, for a one-dimensional domain (empty tail)
@@ -74,6 +99,36 @@ object DomainAffineLikeTupleOps:
 
     private inline def headInterval(interval: Interval[OneDimDomain[DV]]): Interval1D[DV] =
       Interval1D(interval.start.head, interval.end.head)
+
+    // From domains
+
+    inline override def reflectedAboutFromDomain(using
+      DomainAffineLike[OneDimDomain[DV]]
+    )(domain: OneDimDomain[DV], pivot: OneDimDomain[DV]): OneDimDomain[DV] =
+      domain.head.reflectedAbout(pivot.head).tupled
+
+    inline override def scaledAboutFromDomain[S <: NonEmptyTuple](using
+      DomainAffineLike[OneDimDomain[DV]],
+      OneDimDomain[DV] HasScalarType S
+    )(domain: OneDimDomain[DV], center: OneDimDomain[DV], scaledBy: S): OneDimDomain[DV] =
+      val provenScaledBy = scaledBy.asInstanceOf[OneDimScalar[ScalarV]]
+      domain.head.scaledAbout(center.head, provenScaledBy.head).tupled
+
+    inline override def displacedByFromDomain[S <: NonEmptyTuple](using
+      DomainAffineLike[OneDimDomain[DV]],
+      OneDimDomain[DV] HasDisplacementType S
+    )(domain: OneDimDomain[DV], offset: S): OneDimDomain[DV] =
+      val provenOffset = offset.asInstanceOf[OneDimDisplacement[DispV]]
+      domain.head.displacedBy(provenOffset.head).tupled
+
+    inline override def displacementToFromDomain[S <: NonEmptyTuple](using
+      DomainAffineLike[OneDimDomain[DV]],
+      OneDimDomain[DV] HasDisplacementType S
+    )(domain: OneDimDomain[DV], toDomain: OneDimDomain[DV]): Option[S] =
+      def provenDisplacement(offset: DispV): S = (offset *: EmptyTuple).asInstanceOf[S]
+      domain.head.displacementTo(toDomain.head).map(provenDisplacement)
+
+    // From intervals
 
     inline override def reflectedAboutFromInterval(using
       DomainAffineLike[OneDimDomain[DV]]
@@ -121,7 +176,7 @@ object DomainAffineLikeTupleOps:
       element: Interval[OneDimDomain[DV]],
       elementCenter: OneDimDomain[DV]
     ): Option[Interval[OneDimDomain[DV]]] =
-      headInterval(interval).dilatedBy(headInterval(element), elementCenter.head).map(_.tupled)
+      (headInterval(interval) ⊕ headInterval(element).withCenter(elementCenter.head)).map(_.tupled)
 
     inline def erodedByFromInterval(using
       DomainAffineLike[OneDimDomain[DV]]
@@ -130,7 +185,7 @@ object DomainAffineLikeTupleOps:
       element: Interval[OneDimDomain[DV]],
       elementCenter: OneDimDomain[DV]
     ): Option[Interval[OneDimDomain[DV]]] =
-      headInterval(interval).erodedBy(headInterval(element), elementCenter.head).map(_.tupled)
+      (headInterval(interval) ⊖ headInterval(element).withCenter(elementCenter.head)).map(_.tupled)
 
     inline override def measureFromInterval[S <: NonEmptyTuple](using
       DomainAffineLike[OneDimDomain[DV]],
@@ -164,6 +219,52 @@ object DomainAffineLikeTupleOps:
 
     private inline def tailInterval(interval: Interval[MultiDimDomain[DV, DomainTail]]): Interval[DomainTail] =
       Interval(interval.start.tail, interval.end.tail)
+
+    // From domains
+
+    inline override def reflectedAboutFromDomain(using
+      DomainAffineLike[MultiDimDomain[DV, DomainTail]]
+    )(domain: MultiDimDomain[DV, DomainTail], pivot: MultiDimDomain[DV, DomainTail]): MultiDimDomain[DV, DomainTail] =
+      val head = domain.head.reflectedAbout(pivot.head)
+      val tail = applyToTail.reflectedAboutFromDomain(domain.tail, pivot.tail)
+      tail withHead head
+
+    inline override def scaledAboutFromDomain[S <: NonEmptyTuple](using
+      DomainAffineLike[MultiDimDomain[DV, DomainTail]],
+      MultiDimDomain[DV, DomainTail] HasScalarType S
+    )(
+      domain: MultiDimDomain[DV, DomainTail],
+      center: MultiDimDomain[DV, DomainTail],
+      scaledBy: S
+    ): MultiDimDomain[DV, DomainTail] =
+      val provenScaledBy = scaledBy.asInstanceOf[MultiDimScalar[ScalarV, ScalarTail]]
+      val head = domain.head.scaledAbout(center.head, provenScaledBy.head)
+      val tail = applyToTail.scaledAboutFromDomain(domain.tail, center.tail, provenScaledBy.tail)
+      tail withHead head
+
+    inline override def displacedByFromDomain[S <: NonEmptyTuple](using
+      DomainAffineLike[MultiDimDomain[DV, DomainTail]],
+      MultiDimDomain[DV, DomainTail] HasDisplacementType S
+    )(domain: MultiDimDomain[DV, DomainTail], offset: S): MultiDimDomain[DV, DomainTail] =
+      val provenOffset = offset.asInstanceOf[MultiDimDisplacement[DispV, DispTail]]
+      val head = domain.head.displacedBy(provenOffset.head)
+      val tail = applyToTail.displacedByFromDomain(domain.tail, provenOffset.tail)
+      tail withHead head
+
+    inline override def displacementToFromDomain[S <: NonEmptyTuple](using
+      DomainAffineLike[MultiDimDomain[DV, DomainTail]],
+      MultiDimDomain[DV, DomainTail] HasDisplacementType S
+    )(
+      domain: MultiDimDomain[DV, DomainTail],
+      toDomain: MultiDimDomain[DV, DomainTail]
+    ): Option[S] =
+      def provenDisplacement(offset: DispV *: DispTail): S = offset.asInstanceOf[S]
+      for
+        head <- domain.head.displacementTo(toDomain.head)
+        tail <- applyToTail.displacementToFromDomain(domain.tail, toDomain.tail)
+      yield provenDisplacement(head *: tail)
+
+    // From intervals
 
     inline override def reflectedAboutFromInterval(using
       DomainAffineLike[MultiDimDomain[DV, DomainTail]]
@@ -224,7 +325,7 @@ object DomainAffineLikeTupleOps:
       elementCenter: MultiDimDomain[DV, DomainTail]
     ): Option[Interval[MultiDimDomain[DV, DomainTail]]] =
       for
-        head <- headInterval(interval).dilatedBy(headInterval(element), elementCenter.head)
+        head <- headInterval(interval) ⊕ headInterval(element).withCenter(elementCenter.head)
         tail <- applyToTail.dilatedByFromInterval(tailInterval(interval), tailInterval(element), elementCenter.tail)
       yield tail withHead head
 
@@ -236,7 +337,7 @@ object DomainAffineLikeTupleOps:
       elementCenter: MultiDimDomain[DV, DomainTail]
     ): Option[Interval[MultiDimDomain[DV, DomainTail]]] =
       for
-        head <- headInterval(interval).erodedBy(headInterval(element), elementCenter.head)
+        head <- headInterval(interval) ⊖ headInterval(element).withCenter(elementCenter.head)
         tail <- applyToTail.erodedByFromInterval(tailInterval(interval), tailInterval(element), elementCenter.tail)
       yield tail withHead head
 

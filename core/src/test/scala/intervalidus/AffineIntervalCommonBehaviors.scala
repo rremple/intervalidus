@@ -2,6 +2,7 @@ package intervalidus
 
 import intervalidus.*
 import intervalidus.Domain1D.{Bottom, Top, domain}
+import intervalidus.IntervalShape.{∅, ξ}
 import intervalidus.Interval1D.*
 import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
@@ -9,6 +10,7 @@ import org.scalatest.matchers.should.Matchers
 
 import scala.annotation.{nowarn, tailrec}
 import scala.language.implicitConversions
+import scala.util.Try
 
 /**
   * Test behaviors that do not differ between discrete or continuous affine intervals.
@@ -35,6 +37,12 @@ trait AffineIntervalCommonBehaviors(using op: DomainAffineValueLike[Int]):
     infix def displacedByInt(offset: Int): Option[Interval1D[Int]]
     infix def reflectedAboutInt(pivot: Domain1D[Int]): Option[Interval1D[Int]]
     infix def scaledAboutInt(center: Domain1D[Int], scaledBy: Double): Option[Interval1D[Int]]
+
+  extension (lhs: Int2d)(using DomainAffineLike[Int2d])
+    infix def displacementToInt(rhs: Int2d): Option[(Int, Int)]
+    infix def displacedByInt(offset: (Int, Int)): Int2d
+    infix def reflectedAboutInt(pivot: Int2d): Int2d
+    infix def scaledAboutInt(center: Int2d, scaledBy: (Double, Double)): Int2d
 
   extension (lhs: Interval[Int2d])
     infix def measureInt: Option[(Int, Int)]
@@ -123,6 +131,24 @@ trait AffineIntervalCommonBehaviors(using op: DomainAffineValueLike[Int]):
       intervalFromAfter(1).to(2).displacedByInt(3) shouldBe Some(intervalFromAfter(4).to(5))
       intervalAt(op.maxValue).displacedByInt(3) shouldBe None
 
+    test(s"$prefix: Int affine 2d domain behaviors"):
+      import Domain.in2D
+      in2D(1, 2) displacementToInt in2D(1, 2) shouldBe Some((0, 0))
+      in2D(1, 2) displacementToInt (Top x Bottom) shouldBe None
+      in2D(1, 2) displacementToInt in2D(3, 4) shouldBe Some((2, 2))
+
+      in2D(1, 2) reflectedAboutInt in2D(3, 3) shouldBe in2D(5, 4)
+
+      in2D(1, 3).scaledAboutInt(in2D(0, 0), scaledBy = (3.0, 2.0)) shouldBe in2D(3, 6)
+      in2D(2, 4).scaledAboutInt(in2D(0, 0), scaledBy = (3.0, 2.0)) shouldBe in2D(6, 8)
+
+      in2D(op.maxValue, 1).scaledAboutInt(in2D(0, 0), scaledBy = (3.0, 2.0)) shouldBe in2D(Top, 2)
+
+      in2D(1, 3).displacedByInt((3, 2)) shouldBe in2D(4, 5)
+      in2D(2, 4).displacedByInt((3, 2)) shouldBe in2D(5, 6)
+      in2D(op.maxValue, 1).displacedByInt((3, 2)) shouldBe in2D(Top, 3)
+      in2D(op.minValue, -1).displacedByInt((-3, -2)) shouldBe in2D(Bottom, -3)
+
     test(s"$prefix: Int affine 2d interval behaviors"):
       (intervalFrom(1).toBefore(2) x intervalFrom(3).toBefore(4))
         .scaledAboutInt(Domain.in2D(0, 0), scaledBy = (3.0, 2.0)) shouldBe
@@ -189,44 +215,101 @@ trait AffineIntervalCommonBehaviors(using op: DomainAffineValueLike[Int]):
           intervalFrom(10).toBefore(31) x intervalFrom(20).toBefore(51) // 21 x 31
         )
       )
-      val maxFiniteInterval1d = intervalFrom(Int.MinValue).to(Int.MaxValue)
+      val maxFiniteInterval1d = intervalFromAfter(op.minValue).toBefore(op.maxValue)
       val maxFiniteInterval2d = maxFiniteInterval1d x maxFiniteInterval1d
       val bigShape = IntervalShape.of(maxFiniteInterval2d) // huge
-      val element1 = intervalFrom(-5).toBefore(5) x intervalFrom(-5).toBefore(5) // 10 x 10
-      val center1 = Domain.in2D(0, 0) // center of element 1 (5 left/below, 5 right/above)
+      val r = 5 // probe element radius
+      val element = intervalFrom(-r).toBefore(r) x intervalFrom(-r).toBefore(r) // 10 x 10
+      val center = Domain.in2D(0, 0) // center of element (5 left/below, 5 right/above)
+      val probe = element.withCenter(center)
+      val probe1D = element.headInterval1D.withCenter(center.head)
 
-      tinyShape.erodedBy(element1, center1) ≡≡ IntervalShape.∅ // eroded away
-      tinyShape.erodedBy(element1, maxFiniteInterval2d.start) ≡≡ IntervalShape.∅ // eroded away w/ overflow
-      tinyShape.erodedBy(element1, maxFiniteInterval2d.end) ≡≡ IntervalShape.∅ // eroded away w/ overflow
+      probe1D.superElement.element.contains(probe1D.center)
 
-      bigShape.dilatedBy(element1, center1) ≡≡ IntervalShape.ξ // dilated past finite boundaries
-      bigShape.dilatedBy(maxFiniteInterval2d, maxFiniteInterval2d.start) ≡≡ IntervalShape.of( // overflow at the top
-        maxFiniteInterval2d.toTop
-      )
-      bigShape.dilatedBy(maxFiniteInterval2d, maxFiniteInterval2d.end) ≡≡ IntervalShape.of( // overflow at the bottom
-        maxFiniteInterval2d.fromBottom
-      )
-      IntervalShape.of(intervalAt(op.maxValue)).dilatedBy(interval(-10, 10), -20) ≡≡ IntervalShape.∅ // over top
-      IntervalShape.of(intervalAt(op.minValue)).dilatedBy(interval(-10, 10), 20) ≡≡ IntervalShape.∅ // under bottom
+      val single1D = intervalFrom(-r).toBefore(r)
+      val probe1DSkewed = intervalFrom(-4).toBefore(r).withCenter(3)
+      single1D ⊖ probe1DSkewed shouldBe Some(intervalFrom(2).toBefore(3))
+      single1D ⊖ probe1DSkewed.reflected shouldBe Some(intervalFrom(-3).toBefore(-2))
+      single1D ⊕ probe1DSkewed shouldBe Some(intervalFrom(-12).toBefore(7))
+      single1D ⊖ single1D.withCenter(0) shouldBe None // eroded away
+      interval(-10, 10) ⊖ unbounded[Int].withCenter(0) shouldBe None // displacement overflows
+      interval(-10, 10) ⊕ unbounded[Int].withCenter(0) shouldBe Some(unbounded[Int]) // displacement overflows
 
-      smallShape.erodedBy(element1, center1) ≡≡ IntervalShape(
+      val single2D = single1D x single1D
+      val probe2DSkewed = (probe1DSkewed.element x probe1DSkewed.element).withCenter(Domain.in2D(3, 3))
+      single2D ⊖ probe2DSkewed shouldBe Some(intervalFrom(2).toBefore(3) x intervalFrom(2).toBefore(3))
+      single2D ⊖ probe2DSkewed.reflected shouldBe Some(intervalFrom(-3).toBefore(-2) x intervalFrom(-3).toBefore(-2))
+      single2D ⊕ probe2DSkewed shouldBe Some(intervalFrom(-12).toBefore(7) x intervalFrom(-12).toBefore(7))
+
+      val centerSkewed = Domain.in2D(10, 10)
+      val probeSkewed = element.withCenter(centerSkewed)
+      element contains centerSkewed shouldBe false
+      probeSkewed.containingCenter.element contains centerSkewed shouldBe true
+
+      Try(element.headInterval1D.withCenter(maxFiniteInterval1d.start)).isFailure shouldBe true // no reflection
+      Try(element.headInterval1D.withCenter(maxFiniteInterval1d.end)).isFailure shouldBe true // no reflection
+      Try(element.withCenter(maxFiniteInterval2d.start)).isFailure shouldBe true // no reflection
+      Try(element.withCenter(maxFiniteInterval2d.end)).isFailure shouldBe true // no reflection
+
+      tinyShape ⊖ probe ≡≡ ∅ // eroded away
+      bigShape ⊕ probe ≡≡ ξ // dilated past finite boundaries
+
+      IntervalShape.of(intervalAt(op.maxValue)) ⊕ interval(-10, 10).tupled.withCenter(-20) ≡≡ ∅ // over top
+      IntervalShape.of(intervalAt(op.minValue)) ⊕ interval(-10, 10).tupled.withCenter(20) ≡≡ ∅ // under bottom
+
+      // Covered more extensively in laws
+      smallShape ⊖ probe ≡≡ (smallShape.complement ⊕ probe.reflected).complement // duality of erosion and dilation
+      smallShape ⊆ (smallShape ⊕ probe) shouldBe true // dilation is extensive
+      smallShape ⊆ (smallShape ● probe) shouldBe true // closing is extensive
+      smallShape ⊖ probe ⊆ smallShape shouldBe true // erosion is anti-extensive
+      smallShape ◯ probe ⊆ smallShape shouldBe true // opening is anti-extensive
+      smallShape ◯ probe ◯ probe ≡≡ (smallShape ◯ probe) // opening is idempotent
+      smallShape ● probe ● probe ≡≡ (smallShape ● probe) // closing is idempotent
+
+      smallShape ⊖ probe ≡≡ IntervalShape(
         Seq(
-          intervalFrom(5).toBefore(6) x intervalFrom(5).toBefore(6), // 11 x 11 - 10 x 10 = 1 x 1
-          intervalFrom(15).toBefore(26) x intervalFrom(25).toBefore(46) // 21 x 31 - 10 x 10 = 11 x 21
+          intervalFrom(0 + r).toBefore(11 - r) x intervalFrom(0 + r).toBefore(11 - r), //  11 x 11 ⊖ 10 x 10 =  1 x  1
+          intervalFrom(10 + r).toBefore(31 - r) x intervalFrom(20 + r).toBefore(51 - r) // 21 x 31 ⊖ 10 x 10 = 11 x 21
         )
       )
-      smallShape.dilatedBy(element1, center1) ≡≡ IntervalShape(
+
+      smallShape ⊕ probe ≡≡ IntervalShape(
         Seq(
-          intervalFrom(-5).toBefore(16) x intervalFrom(-5).toBefore(15), // (-5, 15) truncated to be non-overlapping
-          intervalFrom(-5).toBefore(5) x intervalFrom(15).toBefore(16), // excludes overlapping edge
-          intervalFrom(5).toBefore(36) x intervalFrom(15).toBefore(56) // 21 x 31 + 10 x 10 = 31 x 41
+          intervalFrom(0 - r).toBefore(11 + r) x intervalFrom(0 - r).toBefore(11 + r - 1), // (-5, 15) truncated
+          intervalFrom(0 - r).toBefore(10 - r) x intervalFrom(20 - r).toBefore(11 + r), // excludes overlapping edge
+          intervalFrom(10 - r).toBefore(31 + r) x intervalFrom(20 - r).toBefore(51 + r) // 21 x 31 ⊕ 10 x 10 = 31 x 41
         )
       )
-      smallShape.openingBy(element1, center1) ≡≡ smallShape // no changes
 
-      smallShape.closingBy(element1, center1) ≡≡ IntervalShape(
+      smallShape ◯ probe ≡≡ smallShape // opening yields no changes
+      smallShape.whiteTopHatBy(probe) ≡≡ ∅ // white top-hat is collection of opening changes
+
+      val pillus = (intervalFrom(10).toBefore(11) x intervalFrom(11).toBefore(20))
+      smallShape ● probe ≡≡ (smallShape + pillus) // closing yields the shape plus the pillus
+      smallShape.blackTopHatBy(probe) ≡≡ IntervalShape.of(pillus) // black top-hat is collection of closing changes
+
+      tinyShape ∇ probe ≡≡ IntervalShape.of(
+        intervalFrom(0 - r).toBefore(2 + r) x intervalFrom(0 - r).toBefore(2 + r)
+      )
+
+      smallShape ∇ probe ≡≡ IntervalShape(
         Seq(
-          intervalFrom(0).toBefore(11) x intervalFrom(0).toBefore(10), // dinged by overlap
-          intervalFrom(10).toBefore(31) x intervalFrom(20).toBefore(51)
+          intervalFrom(0 - r).toBefore(11 + r) x intervalFrom(0 - r).toBefore(0 + r),
+          intervalFrom(0 - r).toBefore(0 + r) x intervalFrom(0 + r).toBefore(11 + r),
+          intervalFrom(0 + r).toBefore(11 + r) x intervalFrom(11 - r).toBefore(20 - r),
+          intervalFrom(0 + r).toBefore(31 + r) x intervalFrom(10 + r).toBefore(20 + r),
+          intervalFrom(0 + r).toBefore(20 - r) x intervalFrom(20 + r).toBefore(51 + r),
+          intervalFrom(11 - r).toBefore(11 + r) x intervalFrom(0 + r).toBefore(11 - r),
+          intervalFrom(10 + r).toBefore(31 + r) x intervalFrom(51 - r).toBefore(51 + r),
+          intervalFrom(31 - r).toBefore(31 + r) x intervalFrom(20 + r).toBefore(51 - r)
+        )
+      )
+
+      bigShape ∇ probe ≡≡ IntervalShape(
+        Seq(
+          unbounded x intervalTo(op.minValue + r), // bottom
+          intervalTo(op.minValue + r) x intervalFromAfter(op.minValue + r), // left
+          intervalFromAfter(op.minValue + r) x intervalFrom(op.maxValue - r), // top
+          intervalFrom(op.maxValue - r) x intervalFromAfter(op.minValue + r).toBefore(op.maxValue - r) // right
         )
       )
