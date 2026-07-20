@@ -71,6 +71,7 @@ class BoxBtreeTest extends AnyFunSuite with Matchers:
     val shrunkenTree = treeSplit.copy
     shrunkenTree.remove(BoxedPayload(box(-1, 3), "two"))
     shrunkenTree.remove(BoxedPayload(box(5, 7), "five"))
+    shrunkenTree.remove(BoxedPayload(box(5, 7), "never added"))
 
     shrunkenTree.get(box(3, 5)) should contain theSameElementsAs
       List(

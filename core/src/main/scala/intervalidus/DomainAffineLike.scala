@@ -629,7 +629,7 @@ object DomainAffineLike:
       *   a new shape that is the difference between this shape and its opening.
       */
     infix def whiteTopHatBy(probe: CenteredInterval[D]): IntervalShape[D] =
-      lhs \ (lhs ◯ probe)
+      lhs \ (lhs ○ probe)
 
     /**
       * In mathematical morphology, a top-hat transform extracts small elements and details. A black top-hat transform
@@ -665,10 +665,16 @@ object DomainAffineLike:
     infix def ⊖(probe: CenteredInterval[D]): IntervalShape[D] = erodedBy(probe)
 
     /** Same as [[openingBy]] */
-    infix def ◯(probe: CenteredInterval[D]): IntervalShape[D] = openingBy(probe)
+    infix def ○(probe: CenteredInterval[D]): IntervalShape[D] = openingBy(probe)
 
     /** Same as [[closingBy]] */
     infix def ●(probe: CenteredInterval[D]): IntervalShape[D] = closingBy(probe)
 
     /** Same as [[gradientBy]] */
     infix def ∇(probe: CenteredInterval[D]): IntervalShape[D] = gradientBy(probe)
+
+    /** Same as [[whiteTopHatBy]] */
+    infix def wth(probe: CenteredInterval[D]): IntervalShape[D] = whiteTopHatBy(probe)
+
+    /** Same as [[blackTopHatBy]] */
+    infix def bth(probe: CenteredInterval[D]): IntervalShape[D] = blackTopHatBy(probe)

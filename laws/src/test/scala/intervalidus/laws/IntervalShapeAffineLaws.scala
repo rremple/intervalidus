@@ -204,17 +204,15 @@ class IntervalShapeAffineLaws
     *   - Gradient scale monotonicity: if you scale up your structuring element, the gradient is guaranteed to grow
     *     monotonically.
     *   - Top-hat boundedness: the original set is perfectly partitioned by its opening and its white top-hat. Because
-    *     (A ◯ B) ⊆ A, the set difference is an exact decomposition, i.e., (A ◯ B) ∪ (A whiteTopHatBy B) ≡ A and (A ◯ B)
-    *     ∩ (A whiteTopHatBy B) ≡ ∅ . Conversely, the closing can be broken down by the original set and the black
-    *     top-hat, i.e., (A ● B) ≡ A ∪ (A blackTopHatBy B).
+    *     (A ○ B) ⊆ A, the set difference is an exact decomposition, i.e., (A ○ B) ∪ (A wth B) ≡ A and (A ○ B) ∩ (A wth
+    *     B) ≡ ∅ . Conversely, the closing can be broken down by the original set and the black top-hat, i.e., (A ● B) ≡
+    *     A ∪ (A bth B).
     *   - Top-hat idempotency: applying a white top-hat transform a second time has no effect because all structures
-    *     larger than the element have already been removed, i.e., (A whiteTopHatBy B) whiteTopHatBy B ≡ (A
-    *     whiteTopHatBy B).
+    *     larger than the element have already been removed, i.e., (A wth B) wth B ≡ (A wth B).
     *   - Top-hat sieving: because a top-hat contains only structures smaller than the element, opening either the white
-    *     or black top-hat reduces it to empty, i.e., (A whiteTopHatBy B) ◯ B ≡ (A blackTopHatBy B) ◯ B ≡ ∅.
+    *     or black top-hat reduces it to empty, i.e., (A wth B) ○ B ≡ (A bth B) ○ B ≡ ∅.
     *   - Top-hat duality: just like erosion and dilation are duals, the white and black top-hat transforms are exact
-    *     duals of each other under set complementation A', i.e., (A whiteTopHatBy B) ≡ (A' blackTopHatBy B)' and (A
-    *     blackTopHatBy B) ≡ (A' whiteTopHatBy B)'.
+    *     duals of each other under set complementation A', i.e., (A wth B) ≡ (A' bth B)' and (A bth B) ≡ (A' wth B)'.
     *   - Translation invariance: both the gradient and the top-hat transforms are strictly translation invariant. If
     *     you translate your set A by some vector x, the resulting gradient or top-hat shifts by that exact same vector.
     */
@@ -271,14 +269,14 @@ class IntervalShapeAffineLaws
               // we pass the pre-reflected element here.
               val erodedShape = shape ⊖ probe.reflected // using reflected element
               val dilatedShape = shape ⊕ probe
-              val openedShape = shape ◯ probe
+              val openedShape = shape ○ probe
               val closedShape = shape ● probe
               val gradientShape = shape ∇ probe
-              val whiteTopHatShape = shape whiteTopHatBy probe
-              val blackTopHatShape = shape blackTopHatBy probe
+              val whiteTopHatShape = shape wth probe
+              val blackTopHatShape = shape bth probe
 
               // Idempotency
-              openedShape ◯ probe ≡≡ openedShape
+              openedShape ○ probe ≡≡ openedShape
               closedShape ● probe ≡≡ closedShape
 
               // Monotonicity
@@ -315,16 +313,16 @@ class IntervalShapeAffineLaws
               (shape ∪ blackTopHatShape) ≡≡ closedShape
 
               // Top-hat idempotency
-              val whiteTopHatShapeSuper = shape whiteTopHatBy probe.containingCenter
-              (whiteTopHatShapeSuper whiteTopHatBy probe.containingCenter) ≡≡ whiteTopHatShapeSuper
+              val whiteTopHatShapeSuper = shape wth probe.containingCenter
+              (whiteTopHatShapeSuper wth probe.containingCenter) ≡≡ whiteTopHatShapeSuper
 
               // Top-hat sieving
-              (whiteTopHatShape ◯ probe) ≡≡ ∅
-              (blackTopHatShape ◯ probe) ≡≡ ∅
+              (whiteTopHatShape ○ probe) ≡≡ ∅
+              (blackTopHatShape ○ probe) ≡≡ ∅
 
               // Top-hat duality
-              (shape.c blackTopHatBy probe.reflected) ≡≡ whiteTopHatShape
-              (shape.c whiteTopHatBy probe.reflected) ≡≡ blackTopHatShape
+              (shape.c bth probe.reflected) ≡≡ whiteTopHatShape
+              (shape.c wth probe.reflected) ≡≡ blackTopHatShape
 
               // Translation invariance
               probe.element
@@ -333,8 +331,8 @@ class IntervalShapeAffineLaws
                   Try(displacedElement.withCenter(probe.center displacedBy offset)).toOption
                 .map: displacedProbe =>
                   gradientShape.displacedBy(offset) ≡≡ (shape.displacedBy(offset) ∇ displacedProbe)
-                  whiteTopHatShape.displacedBy(offset) ≡≡ (shape.displacedBy(offset) whiteTopHatBy displacedProbe)
-                  blackTopHatShape.displacedBy(offset) ≡≡ (shape.displacedBy(offset) blackTopHatBy displacedProbe)
+                  whiteTopHatShape.displacedBy(offset) ≡≡ (shape.displacedBy(offset) wth displacedProbe)
+                  blackTopHatShape.displacedBy(offset) ≡≡ (shape.displacedBy(offset) bth displacedProbe)
                 .getOrElse:
                   succeed
 
@@ -389,14 +387,14 @@ class IntervalShapeAffineLaws
               // we pass the pre-reflected element here.
               val erodedShape = shape ⊖ probe.reflected // using reflected element
               val dilatedShape = shape ⊕ probe
-              val openedShape = shape ◯ probe
+              val openedShape = shape ○ probe
               val closedShape = shape ● probe
               val gradientShape = shape ∇ probe
-              val whiteTopHatShape = shape whiteTopHatBy probe
-              val blackTopHatShape = shape blackTopHatBy probe
+              val whiteTopHatShape = shape wth probe
+              val blackTopHatShape = shape bth probe
 
               // Idempotency
-              openedShape ◯ probe ≡≡ openedShape
+              openedShape ○ probe ≡≡ openedShape
               closedShape ● probe ≡≡ closedShape
 
               // Monotonicity
@@ -433,16 +431,16 @@ class IntervalShapeAffineLaws
               (shape ∪ blackTopHatShape) ≡≡ closedShape
 
               // Top-hat idempotency
-              val whiteTopHatShapeSuper = shape whiteTopHatBy probe.containingCenter
-              (whiteTopHatShapeSuper whiteTopHatBy probe.containingCenter) ≡≡ whiteTopHatShapeSuper
+              val whiteTopHatShapeSuper = shape wth probe.containingCenter
+              (whiteTopHatShapeSuper wth probe.containingCenter) ≡≡ whiteTopHatShapeSuper
 
               // Top-hat sieving
-              (whiteTopHatShape ◯ probe) ≡≡ ∅
-              (blackTopHatShape ◯ probe) ≡≡ ∅
+              (whiteTopHatShape ○ probe) ≡≡ ∅
+              (blackTopHatShape ○ probe) ≡≡ ∅
 
               // Top-hat duality
-              (shape.c blackTopHatBy probe.reflected) ≡≡ whiteTopHatShape
-              (shape.c whiteTopHatBy probe.reflected) ≡≡ blackTopHatShape
+              (shape.c bth probe.reflected) ≡≡ whiteTopHatShape
+              (shape.c wth probe.reflected) ≡≡ blackTopHatShape
 
               // Translation invariance
               probe.element
@@ -451,8 +449,8 @@ class IntervalShapeAffineLaws
                   Try(displacedElement.withCenter(probe.center displacedBy offset)).toOption
                 .map: displacedProbe =>
                   gradientShape.displacedBy(offset) ≡≡ (shape.displacedBy(offset) ∇ displacedProbe)
-                  whiteTopHatShape.displacedBy(offset) ≡≡ (shape.displacedBy(offset) whiteTopHatBy displacedProbe)
-                  blackTopHatShape.displacedBy(offset) ≡≡ (shape.displacedBy(offset) blackTopHatBy displacedProbe)
+                  whiteTopHatShape.displacedBy(offset) ≡≡ (shape.displacedBy(offset) wth displacedProbe)
+                  blackTopHatShape.displacedBy(offset) ≡≡ (shape.displacedBy(offset) bth displacedProbe)
                 .getOrElse:
                   succeed
 
@@ -507,14 +505,14 @@ class IntervalShapeAffineLaws
               // we pass the pre-reflected element here.
               val erodedShape = shape ⊖ probe.reflected // using reflected element
               val dilatedShape = shape ⊕ probe
-              val openedShape = shape ◯ probe
+              val openedShape = shape ○ probe
               val closedShape = shape ● probe
               val gradientShape = shape ∇ probe
-              val whiteTopHatShape = shape whiteTopHatBy probe
-              val blackTopHatShape = shape blackTopHatBy probe
+              val whiteTopHatShape = shape wth probe
+              val blackTopHatShape = shape bth probe
 
               // Idempotency
-              openedShape ◯ probe ≡≡ openedShape
+              openedShape ○ probe ≡≡ openedShape
               closedShape ● probe ≡≡ closedShape
 
               // Monotonicity
@@ -551,16 +549,16 @@ class IntervalShapeAffineLaws
               (shape ∪ blackTopHatShape) ≡≡ closedShape
 
               // Top-hat idempotency
-              val whiteTopHatShapeSuper = shape whiteTopHatBy probe.containingCenter
-              (whiteTopHatShapeSuper whiteTopHatBy probe.containingCenter) ≡≡ whiteTopHatShapeSuper
+              val whiteTopHatShapeSuper = shape wth probe.containingCenter
+              (whiteTopHatShapeSuper wth probe.containingCenter) ≡≡ whiteTopHatShapeSuper
 
               // Top-hat sieving
-              (whiteTopHatShape ◯ probe) ≡≡ ∅
-              (blackTopHatShape ◯ probe) ≡≡ ∅
+              (whiteTopHatShape ○ probe) ≡≡ ∅
+              (blackTopHatShape ○ probe) ≡≡ ∅
 
               // Top-hat duality
-              (shape.c blackTopHatBy probe.reflected) ≡≡ whiteTopHatShape
-              (shape.c whiteTopHatBy probe.reflected) ≡≡ blackTopHatShape
+              (shape.c bth probe.reflected) ≡≡ whiteTopHatShape
+              (shape.c wth probe.reflected) ≡≡ blackTopHatShape
 
               // Translation invariance
               probe.element
@@ -569,8 +567,8 @@ class IntervalShapeAffineLaws
                   Try(displacedElement.withCenter(probe.center displacedBy offset)).toOption
                 .map: displacedProbe =>
                   gradientShape.displacedBy(offset) ≡≡ (shape.displacedBy(offset) ∇ displacedProbe)
-                  whiteTopHatShape.displacedBy(offset) ≡≡ (shape.displacedBy(offset) whiteTopHatBy displacedProbe)
-                  blackTopHatShape.displacedBy(offset) ≡≡ (shape.displacedBy(offset) blackTopHatBy displacedProbe)
+                  whiteTopHatShape.displacedBy(offset) ≡≡ (shape.displacedBy(offset) wth displacedProbe)
+                  blackTopHatShape.displacedBy(offset) ≡≡ (shape.displacedBy(offset) bth displacedProbe)
                 .getOrElse:
                   succeed
 
@@ -625,14 +623,14 @@ class IntervalShapeAffineLaws
               // we pass the pre-reflected element here.
               val erodedShape = shape ⊖ probe.reflected // using reflected element
               val dilatedShape = shape ⊕ probe
-              val openedShape = shape ◯ probe
+              val openedShape = shape ○ probe
               val closedShape = shape ● probe
               val gradientShape = shape ∇ probe
-              val whiteTopHatShape = shape whiteTopHatBy probe
-              val blackTopHatShape = shape blackTopHatBy probe
+              val whiteTopHatShape = shape wth probe
+              val blackTopHatShape = shape bth probe
 
               // Idempotency
-              openedShape ◯ probe ≡≡ openedShape
+              openedShape ○ probe ≡≡ openedShape
               closedShape ● probe ≡≡ closedShape
 
               // Monotonicity
@@ -669,16 +667,16 @@ class IntervalShapeAffineLaws
               (shape ∪ blackTopHatShape) ≡≡ closedShape
 
               // Top-hat idempotency
-              val whiteTopHatShapeSuper = shape whiteTopHatBy probe.containingCenter
-              (whiteTopHatShapeSuper whiteTopHatBy probe.containingCenter) ≡≡ whiteTopHatShapeSuper
+              val whiteTopHatShapeSuper = shape wth probe.containingCenter
+              (whiteTopHatShapeSuper wth probe.containingCenter) ≡≡ whiteTopHatShapeSuper
 
               // Top-hat sieving
-              (whiteTopHatShape ◯ probe) ≡≡ ∅
-              (blackTopHatShape ◯ probe) ≡≡ ∅
+              (whiteTopHatShape ○ probe) ≡≡ ∅
+              (blackTopHatShape ○ probe) ≡≡ ∅
 
               // Top-hat duality
-              (shape.c blackTopHatBy probe.reflected) ≡≡ whiteTopHatShape
-              (shape.c whiteTopHatBy probe.reflected) ≡≡ blackTopHatShape
+              (shape.c bth probe.reflected) ≡≡ whiteTopHatShape
+              (shape.c wth probe.reflected) ≡≡ blackTopHatShape
 
               // Translation invariance
               probe.element
@@ -687,7 +685,7 @@ class IntervalShapeAffineLaws
                   Try(displacedElement.withCenter(probe.center displacedBy offset)).toOption
                 .map: displacedProbe =>
                   gradientShape.displacedBy(offset) ≡≡ (shape.displacedBy(offset) ∇ displacedProbe)
-                  whiteTopHatShape.displacedBy(offset) ≡≡ (shape.displacedBy(offset) whiteTopHatBy displacedProbe)
-                  blackTopHatShape.displacedBy(offset) ≡≡ (shape.displacedBy(offset) blackTopHatBy displacedProbe)
+                  whiteTopHatShape.displacedBy(offset) ≡≡ (shape.displacedBy(offset) wth displacedProbe)
+                  blackTopHatShape.displacedBy(offset) ≡≡ (shape.displacedBy(offset) bth displacedProbe)
                 .getOrElse:
                   succeed

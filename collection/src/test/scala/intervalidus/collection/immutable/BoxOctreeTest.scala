@@ -128,6 +128,7 @@ class BoxOctreeTest extends AnyFunSuite with Matchers:
     val shrunkenTree = treeSplit
       .remove(BoxedPayload(Box(coordinate(3, 3, 1), coordinate(5, 5, 2)), "one"))
       .remove(BoxedPayload(Box(coordinate(5, 4, 1), coordinate(7, 5, 2)), "six"))
+      .remove(BoxedPayload(Box(coordinate(5, 4, 1), coordinate(7, 5, 2)), "never added"))
     shrunkenTree.get(Box(coordinate(3, 5, 1), coordinate(7, 7, 2))) should contain theSameElementsAs
       List(
         BoxedPayload(

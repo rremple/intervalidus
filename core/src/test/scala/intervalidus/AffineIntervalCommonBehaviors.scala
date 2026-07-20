@@ -262,8 +262,8 @@ trait AffineIntervalCommonBehaviors(using op: DomainAffineValueLike[Int]):
       smallShape ⊆ (smallShape ⊕ probe) shouldBe true // dilation is extensive
       smallShape ⊆ (smallShape ● probe) shouldBe true // closing is extensive
       smallShape ⊖ probe ⊆ smallShape shouldBe true // erosion is anti-extensive
-      smallShape ◯ probe ⊆ smallShape shouldBe true // opening is anti-extensive
-      smallShape ◯ probe ◯ probe ≡≡ (smallShape ◯ probe) // opening is idempotent
+      smallShape ○ probe ⊆ smallShape shouldBe true // opening is anti-extensive
+      smallShape ○ probe ○ probe ≡≡ (smallShape ○ probe) // opening is idempotent
       smallShape ● probe ● probe ≡≡ (smallShape ● probe) // closing is idempotent
 
       smallShape ⊖ probe ≡≡ IntervalShape(
@@ -281,12 +281,12 @@ trait AffineIntervalCommonBehaviors(using op: DomainAffineValueLike[Int]):
         )
       )
 
-      smallShape ◯ probe ≡≡ smallShape // opening yields no changes
-      smallShape.whiteTopHatBy(probe) ≡≡ ∅ // white top-hat is collection of opening changes
+      smallShape ○ probe ≡≡ smallShape // opening yields no changes
+      (smallShape wth probe) ≡≡ ∅ // white top-hat is collection of opening changes
 
       val pillus = (intervalFrom(10).toBefore(11) x intervalFrom(11).toBefore(20))
       smallShape ● probe ≡≡ (smallShape + pillus) // closing yields the shape plus the pillus
-      smallShape.blackTopHatBy(probe) ≡≡ IntervalShape.of(pillus) // black top-hat is collection of closing changes
+      (smallShape bth probe) ≡≡ IntervalShape.of(pillus) // black top-hat is collection of closing changes
 
       tinyShape ∇ probe ≡≡ IntervalShape.of(
         intervalFrom(0 - r).toBefore(2 + r) x intervalFrom(0 - r).toBefore(2 + r)

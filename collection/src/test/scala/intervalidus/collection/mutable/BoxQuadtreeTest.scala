@@ -116,6 +116,7 @@ class BoxQuadtreeTest extends AnyFunSuite with Matchers:
     val shrunkenTree = treeSplit.copy
     shrunkenTree.remove(BoxedPayload(Box(coordinate(3, 3), coordinate(5, 5)), "one"))
     shrunkenTree.remove(BoxedPayload(Box(coordinate(5, 4), coordinate(7, 5)), "six"))
+    shrunkenTree.remove(BoxedPayload(Box(coordinate(5, 4), coordinate(7, 5)), "never added"))
     shrunkenTree.get(Box(coordinate(3, 5), coordinate(7, 7))) should contain theSameElementsAs
       List(
         BoxedPayload(

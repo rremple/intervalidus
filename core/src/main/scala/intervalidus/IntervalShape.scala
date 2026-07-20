@@ -163,7 +163,7 @@ object IntervalShape:
     def toSingleShape(using config: CoreConfig[D]): IntervalShape[D] = is.foldLeft(∅)(_ ∪ _)
 
 /**
-  * A mutidimensional shape over some domain, represented by a collection of disjoint interval components. While an
+  * A multidimensional shape over some domain, represented by a collection of disjoint interval components. While an
   * [[Interval]] represents a single hyper-rectangle, an [[IntervalShape]] represents a complex, potentially disjoint
   * region of space, behaving like a first-class geometric entity. (This is structurally similar to, and supported
   * internally by, an [[immutable.Data]] structure with a single unit value.)
@@ -172,7 +172,7 @@ object IntervalShape:
   *   - [[union]] (or [[∪]]) combines two shapes into one
   *   - [[intersection]] (or [[∩]]) finds the overlapping region of two shapes
   *   - [[complement]] (or [[c]]) is the inverse of a shape with respect to the universe
-  *   - [[difference]] (or [[\]]) chisels one shape out of another
+  *   - [[difference]] (or [[\\]]) chisels one shape out of another
   *   - [[symmetricDifference]] (or [[△]]) finds the disjunctive union of two shapes (a.k.a., the exclusive or)
   *   - [[isEquivalentTo]] (or [[≡]]) establishes if two shapes are logically identical
   *   - [[isSubsetOf]] (or [[⊆]]) establishes if one shape is contained in another
@@ -201,8 +201,8 @@ object IntervalShape:
   *      - `(a ∪ a) ≡ a`
   *      - `(a ∩ a) ≡ a`
   *   1. Nilpotent -- a set combined with itself is ∅ (self-inverse):
-  *      - `(a △ a) ≡≡ ∅`
-  *      - `(a \ a) ≡≡ ∅`
+  *      - `(a △ a) ≡ ∅`
+  *      - `(a \ a) ≡ ∅`
   *   1. Identity -- operations where ξ and ∅ are the identity:
   *      - `(a ∪ ∅) ≡ a`
   *      - `(a ∩ ξ) ≡ a`
@@ -230,6 +230,44 @@ object IntervalShape:
   *      - `(b \ a) ⊆ b`
   *      - `a ⊆ ξ`
   *      - `∅ ⊆ a`
+  *
+  * The following summarizes additional morphological laws that hold when a shape is in an affine domain (where `a` is a
+  * shape and `b` is a probe, where `b'` represents the reflection of the probe):
+  *   1. Scale, reflection, and displacement identity, for any displacement d and scalar s:
+  *      - `(a scaledBy s) scaledBy 1/s ≡ a`
+  *      - `(a reflected) reflected ≡ a // special case of scaling when s = -1`
+  *      - `(a displacedBy d) displacedBy -d ≡ a`
+  *   1. Translation invariance, for any displacement d:
+  *      - `(a ∇ b) displacedBy d ≡ (a displacedBy d) ∇ (b displacedBy d)`
+  *      - `(a wth b) displacedBy d ≡ (a displacedBy d) wth (b displacedBy d)`
+  *      - `(a bth b) displacedBy d ≡ (a displacedBy d) bth (b displacedBy d)`
+  *   1. Idempotency:
+  *      - `a ○ b ○ b ≡ a ○ b`
+  *      - `a ● b ● b ≡ a ● b`
+  *      - `a wth b wth b ≡ a wth b`
+  *      - `a bth b bth b ≡ a bth b`
+  *   1. Duality:
+  *      - `(a' ⊖ b')' ≡ a ⊕ b`
+  *      - `(a' ⊕ b')' ≡ a ⊖ b`
+  *      - `(a' wth b') ≡ a bth b`
+  *      - `(a' bth b') ≡ a wth b`
+  *   1. Monotonicity:
+  *      - `a1 ⊆ a2 (shapes) ==> a1 ⊕ b ⊆ a2 ⊕ b`
+  *      - `b1 ⊆ b2 (probes) ==> a ∇ b1 ⊆ a ∇ b2`
+  *   1. Extensive and anti-extensive:
+  *      - `a ⊆ a ● b`
+  *      - `a ○ b ⊆ a`
+  *      - `a ∇ b ⊆ a ⊕ b`
+  *   1. Extensive, when the probe element contains the center:
+  *      - `(a ⊕ b) \ a ⊆ a ∇ b`
+  *      - `a \ (a ⊖ b) ⊆ a ∇ b`
+  *   1. Boundedness and sieving:
+  *      - `a ∪ (a bth b) ≡ (a ● b)`
+  *      - `(a ○ b) ∪ (a wth b) ≡ a`
+  *      - `(a ○ b) ∩ (a wth b) ≡ ∅`
+  *      - `(a ∇ b) ∩ (a ⊖ b') ≡ ∅`
+  *      - `(a wth b) ○ b ≡ ∅`
+  *      - `(a bth b) ○ b ≡ ∅`
   *
   * @param config
   *   context parameter for configuration -- uses defaults if not given explicitly
