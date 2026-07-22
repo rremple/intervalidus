@@ -232,10 +232,10 @@ object IntervalShape:
   *      - `∅ ⊆ a`
   *
   * The following summarizes additional morphological laws that hold when a shape is in an affine domain (where `a` is a
-  * shape and `b` is a probe, where `b'` represents the reflection of the probe):
-  *   1. Scale, reflection, and displacement identity, for any displacement d and scalar s:
+  * shape, `b` is a probe, and `b'` represents the reflection of the probe):
+  *   1. Scale, reflection, and displacement identity, for any displacement `d` and scalar `s`:
   *      - `(a scaledBy s) scaledBy 1/s ≡ a`
-  *      - `(a reflected) reflected ≡ a // special case of scaling when s = -1`
+  *      - `(a reflected) reflected ≡ a` // special case of scaling when `s` = -1
   *      - `(a displacedBy d) displacedBy -d ≡ a`
   *   1. Translation invariance, for any displacement d:
   *      - `(a ∇ b) displacedBy d ≡ (a displacedBy d) ∇ (b displacedBy d)`
@@ -258,7 +258,7 @@ object IntervalShape:
   *      - `a ⊆ a ● b`
   *      - `a ○ b ⊆ a`
   *      - `a ∇ b ⊆ a ⊕ b`
-  *   1. Extensive, when the probe element contains the center:
+  *   1. Extensive, when the structuring element of `b` contains the center:
   *      - `(a ⊕ b) \ a ⊆ a ∇ b`
   *      - `a \ (a ⊖ b) ⊆ a ∇ b`
   *   1. Boundedness and sieving:
