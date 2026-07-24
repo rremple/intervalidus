@@ -1,6 +1,7 @@
 package intervalidus
 
 import intervalidus.CoreConfig.IsolationLevel.{ReadUncommitted, Serializable}
+import intervalidus.DimensionalBase.State
 import intervalidus.DomainLike.given
 import intervalidus.collection.{Boundary, Box, BoxedPayload, Capacity}
 import intervalidus.collection.immutable.MultiMapSorted
@@ -31,6 +32,29 @@ trait DimensionalBaseObject[Constructed[_, _ <: NonEmptyTuple] <: DimensionalBas
   // ---------- Abstract ----------
 
   /**
+    * Create a new instance from internal state.
+    */
+  protected def fromState[V, D <: NonEmptyTuple: DomainLike](
+    initialState: State[V, D]
+  )(using config: CoreConfig[D]): Constructed[V, D]
+
+  // ---------- Concrete ----------
+
+  extension [V, D <: NonEmptyTuple : DomainLike](data: DimensionalBase[V, D])
+    /**
+      * Creates a general dimensional data structure from a some other dimensional structure.
+      *
+      * @return
+      * A new structure with the same valid values.
+      */
+    def asData: Constructed[V, D] = fromState(data.stateCopy)(using config = data.config)
+
+  /**
+    * Automatically converts some other dimensional structure to a general dimensional data structure.
+    */
+  given [V, D <: NonEmptyTuple : DomainLike]: Conversion[DimensionalBase[V, D], Constructed[V, D]] = _.asData
+
+  /**
     * Constructor for multiple initial values that are valid in the various intervals.
     *
     * @param initialData
@@ -45,10 +69,8 @@ trait DimensionalBaseObject[Constructed[_, _ <: NonEmptyTuple] <: DimensionalBas
     *   a new structure with zero or more valid values.
     */
   def apply[V, D <: NonEmptyTuple: DomainLike](
-    initialData: Iterable[ValidData[V, D]]
-  )(using config: CoreConfig[D]): Constructed[V, D]
-
-  // ---------- Concrete ----------
+    initialData: Iterable[ValidData[V, D]] = Iterable.empty[ValidData[V, D]]
+  )(using config: CoreConfig[D]): Constructed[V, D] = fromState(State.from(initialData))
 
   /**
     * Constructor where no values are valid.

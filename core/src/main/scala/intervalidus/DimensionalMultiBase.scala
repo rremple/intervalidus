@@ -1,17 +1,8 @@
 package intervalidus
 
-import intervalidus.DimensionalBase.{Transaction, UpdateTransaction}
+import intervalidus.DimensionalBase.{State, Transaction, UpdateTransaction}
 
 import scala.collection.mutable
-
-/**
-  * Common definitions used in all dimensional multivalued data.
-  */
-object DimensionalMultiBase:
-  type In1D[V, R1] = DimensionalMultiBase[V, Domain.In1D[R1]]
-  type In2D[V, R1, R2] = DimensionalMultiBase[V, Domain.In2D[R1, R2]]
-  type In3D[V, R1, R2, R3] = DimensionalMultiBase[V, Domain.In3D[R1, R2, R3]]
-  type In4D[V, R1, R2, R3, R4] = DimensionalMultiBase[V, Domain.In4D[R1, R2, R3, R4]]
 
 /**
   * Constructs multivalued data in multidimensional intervals.
@@ -29,21 +20,10 @@ trait DimensionalMultiBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimension
   // ---------- Abstract ----------
 
   /**
-    * Constructor for multiple initial value sets that are valid in the various intervals.
-    *
-    * @param initialData
-    *   a collection of valid data sets within intervals -- intervals must be disjoint.
-    * @param config
-    *   $configParam
-    * @tparam V
-    *   $dataValueType
-    * @tparam D
-    *   $intervalDomainType
-    * @return
-    *   [[DimensionalMultiBase]] structure with zero or more valid values.
+    * Create a new instance from internal state.
     */
-  def apply[V, D <: NonEmptyTuple: DomainLike](
-    initialData: Iterable[ValidData[Set[V], D]]
+  protected def fromState[V, D <: NonEmptyTuple: DomainLike](
+    initialState: State[Set[V], D]
   )(using config: CoreConfig[D]): Constructed[V, D]
 
   /**
@@ -65,6 +45,38 @@ trait DimensionalMultiBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimension
   )(using config: CoreConfig[D]): Constructed[V, D]
 
   // ---------- Concrete ----------
+
+  extension [V, D <: NonEmptyTuple: DomainLike](data: DimensionalBase[Set[V], D])
+    /**
+      * Creates an muti-value structure from a non-multi structure managing sets of values.
+      *
+      * @return
+      *   A new muti-value structure with the same valid values.
+      */
+    def asDataMulti: Constructed[V, D] = fromState(data.stateCopy)(using config = data.config)
+
+  /**
+    * Automatically converts a non-monoidal structure with monoidal values to a monoidal structure.
+    */
+  given [V, D <: NonEmptyTuple: DomainLike]: Conversion[DimensionalBase[Set[V], D], Constructed[V, D]] = _.asDataMulti
+
+  /**
+    * Constructor for multiple initial value sets that are valid in the various intervals.
+    *
+    * @param initialData
+    *   a collection of valid data sets within intervals -- intervals must be disjoint.
+    * @param config
+    *   $configParam
+    * @tparam V
+    *   $dataValueType
+    * @tparam D
+    *   $intervalDomainType
+    * @return
+    *   [[DimensionalMultiBase]] structure with zero or more valid values.
+    */
+  def apply[V, D <: NonEmptyTuple: DomainLike](
+    initialData: Iterable[ValidData[Set[V], D]] = Iterable.empty[ValidData[Set[V], D]]
+  )(using config: CoreConfig[D]): Constructed[V, D] = fromState(State.from(initialData))
 
   /**
     * Constructor where no values are valid.

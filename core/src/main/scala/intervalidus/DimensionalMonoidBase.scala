@@ -1,5 +1,7 @@
 package intervalidus
 
+import intervalidus.DimensionalBase.State
+
 /**
   * Constructs dimensional data where values can be combined as monoids.
   *
@@ -17,6 +19,30 @@ trait DimensionalMonoidBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimensio
   // ---------- Abstract ----------
 
   /**
+    * Create a new instance from internal state.
+    */
+  protected def fromState[V: Monoid, D <: NonEmptyTuple: DomainLike](
+    initialState: State[V, D]
+  )(using config: CoreConfig[D]): Constructed[V, D]
+
+  // ---------- Concrete ----------
+
+  extension [V: Monoid, D <: NonEmptyTuple: DomainLike](data: DimensionalBase[V, D])
+    /**
+      * Creates a monoidal structure from a non-monoidal structure with monoidal values.
+      *
+      * @return
+      *   A new monoidal structure with the same valid values.
+      */
+    def asDataMonoid: Constructed[V, D] = fromState(data.stateCopy)(using config = data.config)
+
+  /**
+    * Automatically converts a non-monoidal structure with monoidal values to a monoidal structure.
+    */
+  given [V: Monoid, D <: NonEmptyTuple: DomainLike]: Conversion[DimensionalBase[V, D], Constructed[V, D]] = 
+    _.asDataMonoid
+
+  /**
     * Constructor for multiple initial monoid values that are valid in the various intervals.
     *
     * @param initialData
@@ -31,10 +57,8 @@ trait DimensionalMonoidBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimensio
     *   a new structure with zero or more valid values.
     */
   def apply[V: Monoid, D <: NonEmptyTuple: DomainLike](
-    initialData: Iterable[ValidData[V, D]]
-  )(using config: CoreConfig[D]): Constructed[V, D]
-
-  // ---------- Concrete ----------
+    initialData: Iterable[ValidData[V, D]] = Iterable.empty[ValidData[V, D]]
+  )(using config: CoreConfig[D]): Constructed[V, D] = fromState(State.from(initialData))
 
   /**
     * Constructor where no values are valid. The empty set.

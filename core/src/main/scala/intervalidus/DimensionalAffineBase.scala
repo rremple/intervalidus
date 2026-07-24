@@ -1,5 +1,7 @@
 package intervalidus
 
+import intervalidus.DimensionalBase.State
+
 import scala.language.implicitConversions
 
 /**
@@ -19,6 +21,30 @@ trait DimensionalAffineBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimensio
   // ---------- Abstract ----------
 
   /**
+    * Create a new instance from internal state.
+    */
+  protected def fromState[V, D <: NonEmptyTuple: DomainAffineLike](
+    initialState: State[V, D]
+  )(using config: CoreConfig[D]): Constructed[V, D]
+
+  // ---------- Concrete ----------
+
+  extension [V, D <: NonEmptyTuple: DomainAffineLike](data: DimensionalBase[V, D])
+    /**
+      * Creates an affine structure from a non-affine structure in an affine domain.
+      *
+      * @return
+      *   A new affine structure with the same valid values.
+      */
+    def asDataAffine: Constructed[V, D] = fromState(data.stateCopy)(using config = data.config)
+
+  /**
+    * Automatically converts a non-affine structure in an affine domain to an affine structure.
+    */
+  given [V, D <: NonEmptyTuple: DomainAffineLike]: Conversion[DimensionalBase[V, D], Constructed[V, D]] =
+    _.asDataAffine
+
+  /**
     * Constructor for multiple initial values that are valid in the various intervals.
     *
     * @param initialData
@@ -33,10 +59,8 @@ trait DimensionalAffineBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimensio
     *   a new structure with zero or more valid values.
     */
   def apply[V, D <: NonEmptyTuple: DomainAffineLike](
-    initialData: Iterable[ValidData[V, D]]
-  )(using config: CoreConfig[D]): Constructed[V, D]
-
-  // ---------- Concrete ----------
+    initialData: Iterable[ValidData[V, D]] = Iterable.empty[ValidData[V, D]]
+  )(using config: CoreConfig[D]): Constructed[V, D] = fromState(State.from(initialData))
 
   /**
     * Constructor where no values are valid. The empty set.

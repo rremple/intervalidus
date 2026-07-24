@@ -12,25 +12,9 @@ object DataMonoid extends DimensionalMonoidBaseObject[DataMonoid]:
   type In3D[V, R1, R2, R3] = DataMonoid[V, Domain.In3D[R1, R2, R3]]
   type In4D[V, R1, R2, R3, R4] = DataMonoid[V, Domain.In4D[R1, R2, R3, R4]]
 
-  override def apply[V: Monoid, D <: NonEmptyTuple: DomainLike](
-    initialData: Iterable[ValidData[V, D]] = Iterable.empty[ValidData[V, D]]
-  )(using config: CoreConfig[D]): DataMonoid[V, D] =
-    new DataMonoid(State.from(initialData))
-
-  extension [V: Monoid, D <: NonEmptyTuple: DomainLike](data: DimensionalBase[V, D])
-    /**
-      * Creates a mutable monoidal structure from a non-monoidal structure with monoidal values.
-      *
-      * @return
-      *   A new mutable monoidal structure with the same valid values.
-      */
-    def asDataMonoid: DataMonoid[V, D] = new DataMonoid(data.stateCopy)(using config = data.config)
-
-  /**
-    * Automatically converts a non-monoidal structure with monoidal values to a mutable monoidal structure.
-    */
-  given [V: Monoid, D <: NonEmptyTuple: DomainLike]: Conversion[DimensionalBase[V, D], DataMonoid[V, D]] =
-    _.asDataMonoid
+  override protected def fromState[V: Monoid, D <: NonEmptyTuple: DomainLike](
+    initialState: State[V, D]
+  )(using config: CoreConfig[D]): DataMonoid[V, D] = new DataMonoid(initialState)
 
 /**
   * Immutable dimensional data where values can be combined as monoids.

@@ -7,30 +7,14 @@ import intervalidus.DimensionalBase.State
   * $objectDesc
   */
 object Data extends DimensionalBaseObject[Data]:
-
   type In1D[V, R1] = Data[V, Domain.In1D[R1]]
   type In2D[V, R1, R2] = Data[V, Domain.In2D[R1, R2]]
   type In3D[V, R1, R2, R3] = Data[V, Domain.In3D[R1, R2, R3]]
   type In4D[V, R1, R2, R3, R4] = Data[V, Domain.In4D[R1, R2, R3, R4]]
 
-  override def apply[V, D <: NonEmptyTuple: DomainLike](
-    initialData: Iterable[ValidData[V, D]] = Iterable.empty[ValidData[V, D]]
-  )(using config: CoreConfig[D]): Data[V, D] =
-    new Data(State.from(initialData))
-
-  extension [V, D <: NonEmptyTuple: DomainLike](data: DimensionalBase[V, D])
-    /**
-      * Creates a general mutable dimensional data structure from a some other dimensional structure.
-      *
-      * @return
-      *   A new mutable structure with the same valid values.
-      */
-    def asData: Data[V, D] = new Data(data.stateCopy)(using config = data.config)
-
-  /**
-    * Automatically converts some other dimensional structure to a general mutable dimensional data structure.
-    */
-  given [V, D <: NonEmptyTuple: DomainLike]: Conversion[DimensionalBase[V, D], Data[V, D]] = _.asData
+  override protected def fromState[V, D <: NonEmptyTuple: DomainLike](
+    initialState: State[V, D]
+  )(using config: CoreConfig[D]): Data[V, D] = new Data(initialState)
 
 /**
   * Mutable dimensional data.

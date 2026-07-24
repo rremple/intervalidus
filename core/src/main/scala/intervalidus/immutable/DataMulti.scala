@@ -12,28 +12,13 @@ object DataMulti extends DimensionalMultiBaseObject[DataMulti]:
   type In3D[V, R1, R2, R3] = DataMulti[V, Domain.In3D[R1, R2, R3]]
   type In4D[V, R1, R2, R3, R4] = DataMulti[V, Domain.In4D[R1, R2, R3, R4]]
 
-  override def apply[V, D <: NonEmptyTuple: DomainLike](
-    initialData: Iterable[ValidData[Set[V], D]] = Iterable.empty[ValidData[Set[V], D]]
-  )(using config: CoreConfig[D]): DataMulti[V, D] =
-    new DataMulti(State.from(initialData))
+  override protected def fromState[V, D <: NonEmptyTuple: DomainLike](
+    initialState: State[Set[V], D]
+  )(using config: CoreConfig[D]): DataMulti[V, D] = new DataMulti(initialState)
 
   override def from[V, D <: NonEmptyTuple: DomainLike](
     initialData: Iterable[ValidData[V, D]]
   )(using config: CoreConfig[D]): DataMulti[V, D] = empty[V, D].addOneMany(initialData)
-
-  extension [V, D <: NonEmptyTuple: DomainLike](data: DimensionalBase[Set[V], D])
-    /**
-      * Creates an immutable muti-value structure from a non-multi structure managing sets of values.
-      *
-      * @return
-      *   A new immutable muti-value structure with the same valid values.
-      */
-    def asDataMulti: DataMulti[V, D] = new DataMulti(data.stateCopy)(using config = data.config)
-
-  /**
-    * Automatically converts a non-multi structure managing sets of values to an immutable multi-value structure.
-    */
-  given [V, D <: NonEmptyTuple: DomainLike]: Conversion[DimensionalBase[Set[V], D], DataMulti[V, D]] = _.asDataMulti
 
 /**
   * Immutable, multivalued dimensional data.

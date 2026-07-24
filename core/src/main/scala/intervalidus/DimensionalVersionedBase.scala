@@ -12,11 +12,6 @@ import scala.math.Ordering.Implicits.infixOrderingOps
   * Common definitions used in all versioned dimensional data (with a hidden version dimension).
   */
 object DimensionalVersionedBase:
-  type In1D[V, R1] = DimensionalVersionedBase[V, Domain.In1D[R1]]
-  type In2D[V, R1, R2] = DimensionalVersionedBase[V, Domain.In2D[R1, R2]]
-  type In3D[V, R1, R2, R3] = DimensionalVersionedBase[V, Domain.In3D[R1, R2, R3]]
-  type In4D[V, R1, R2, R3, R4] = DimensionalVersionedBase[V, Domain.In4D[R1, R2, R3, R4]]
-
   /**
     * The domain value type of the version.
     */

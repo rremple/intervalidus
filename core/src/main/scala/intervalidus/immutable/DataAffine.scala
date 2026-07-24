@@ -16,24 +16,9 @@ object DataAffine extends DimensionalAffineBaseObject[DataAffine]:
   type In3D[V, R1, R2, R3] = DataAffine[V, Domain.In3D[R1, R2, R3]]
   type In4D[V, R1, R2, R3, R4] = DataAffine[V, Domain.In4D[R1, R2, R3, R4]]
 
-  override def apply[V, D <: NonEmptyTuple: DomainAffineLike](
-    initialData: Iterable[ValidData[V, D]] = Iterable.empty[ValidData[V, D]]
-  )(using config: CoreConfig[D]): DataAffine[V, D] =
-    new DataAffine(State.from(initialData))
-
-  extension [V, D <: NonEmptyTuple: DomainAffineLike](data: DimensionalBase[V, D])
-    /**
-      * Creates an immutable affine structure from a non-affine structure in an affine domain.
-      *
-      * @return
-      *   A new immutable affine structure with the same valid values.
-      */
-    def asDataAffine: DataAffine[V, D] = new DataAffine(data.stateCopy)(using config = data.config)
-
-  /**
-    * Automatically converts a non-affine structure in an affine domain to an immutable affine structure.
-    */
-  given [V, D <: NonEmptyTuple: DomainAffineLike]: Conversion[DimensionalBase[V, D], DataAffine[V, D]] = _.asDataAffine
+  override protected def fromState[V, D <: NonEmptyTuple: DomainAffineLike](
+    initialState: State[V, D]
+  )(using config: CoreConfig[D]): DataAffine[V, D] = new DataAffine(initialState)
 
 /**
   * Immutable dimensional data where intervals exist in an affine domain.

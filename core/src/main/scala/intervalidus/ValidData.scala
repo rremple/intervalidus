@@ -73,7 +73,6 @@ case class ValidData[V, D <: NonEmptyTuple](
   * Common definitions for values that are valid in multidimensional intervals.
   */
 object ValidData:
-
   type In1D[V, R1] = ValidData[V, Domain.In1D[R1]]
   type In2D[V, R1, R2] = ValidData[V, Domain.In2D[R1, R2]]
   type In3D[V, R1, R2, R3] = ValidData[V, Domain.In3D[R1, R2, R3]]
