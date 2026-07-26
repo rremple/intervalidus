@@ -33,9 +33,9 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     DataVersioned.empty[String, IntDim] ++ data
 
   // shared
-  testsFor(stringLookupTests("Immutable", newDataIn1DVersioned, DataVersioned(_), DataVersioned.of(_)))
-  testsFor(stringLookupTests("Immutable (builder)", usingBuilder, DataVersioned(_), DataVersioned.of(_)))
-  testsFor(stringLookupTests("Immutable (setMany)", usingSetMany, DataVersioned(_), DataVersioned.of(_)))
+  testsFor(stringLookupTests("Immutable", newDataIn1DVersioned, DataVersioned(_), DataVersioned.ofValue(_)))
+  testsFor(stringLookupTests("Immutable (builder)", usingBuilder, DataVersioned(_), DataVersioned.ofValue(_)))
+  testsFor(stringLookupTests("Immutable (setMany)", usingSetMany, DataVersioned(_), DataVersioned.ofValue(_)))
 
   test("Immutable: Adding and removing data in intervals"):
     val dayZero = LocalDateTime.of(2025, 8, 1, 8, 0)
@@ -265,7 +265,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     val expectedData3 = List(intervalTo(5) -> "Hey!!!", intervalFrom(16) -> "World!!!")
     fixture3.getAll.toList shouldBe expectedData3
 
-    val fixture4 = fixture3.flatMap(d => DataVersioned.of[String, IntDim](d.value).map(x => d.interval -> x.value))
+    val fixture4 = fixture3.flatMap(d => DataVersioned.ofValue[String, IntDim](d.value).map(x => d.interval -> x.value))
     val expectedData4 = List(intervalTo(5) -> "Hey!!!", intervalFrom(16) -> "World!!!")
     fixture4.getAll.toList shouldBe expectedData4
     assertThrows[NoSuchElementException]:
@@ -278,7 +278,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     assertThrows[NoSuchElementException]:
       fixture5.get
 
-    val fixture6 = fixture5.flatMap(d => DataVersioned.of[String, IntDim](d.value))
+    val fixture6 = fixture5.flatMap(d => DataVersioned.ofValue[String, IntDim](d.value))
     val expectedData6 = List(unbounded[Int] -> "Hey!!!")
     fixture6.getAll.toList shouldBe expectedData6
     fixture6.get shouldBe "Hey!!!"
@@ -322,7 +322,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
 
   test("Immutable: Updating data in intervals"):
     val one: DataVersioned[String, IntDim] = DataVersioned
-      .of[String, IntDim]("value")
+      .ofValue[String, IntDim]("value")
       .incrementCurrentVersion()
 
     val oneSplit = one.remove(intervalAt(0)) // split

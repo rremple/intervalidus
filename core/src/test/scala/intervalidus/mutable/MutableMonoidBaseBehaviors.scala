@@ -253,19 +253,15 @@ trait MutableMonoidBaseBehaviors(using DomainValueLike[Int]):
           .mutate(_ ++ Seq(d, e).holeFilled.getAll)
           .mutate(_ ++ Seq(c).valueFilled(donutFilling + holeFilling).getAll)
 
-      x1.zip(y1) ≡ Data(
-        Seq(
-          c -> (donutFilling, holeFilling)
-        )
+      x1.zip(y1) ≡ Data.of(
+        c -> (donutFilling, holeFilling)
       ) shouldBe true
-      x1.zipAll(y1, -1.0, -1.0) ≡ Data(
-        Seq(
-          a -> (donutFilling, -1.0),
-          b -> (donutFilling, -1.0),
-          c -> (donutFilling, holeFilling),
-          d -> (-1.0, holeFilling),
-          e -> (-1.0, holeFilling)
-        )
+      x1.zipAll(y1, -1.0, -1.0) ≡ Data.of(
+        a -> (donutFilling, -1.0),
+        b -> (donutFilling, -1.0),
+        c -> (donutFilling, holeFilling),
+        d -> (-1.0, holeFilling),
+        e -> (-1.0, holeFilling)
       ) shouldBe true
 
       x1.mutate(_ ∩ y1) ≡≡ Seq(c).valueFilled(donutFilling + holeFilling)

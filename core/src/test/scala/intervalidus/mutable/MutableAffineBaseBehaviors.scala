@@ -34,7 +34,7 @@ trait MutableAffineBaseBehaviors(using DomainAffineValueLike[Int]):
     private def holeFilled = intervals.valueFilled(holeFilling)
 
   // donut-filled universe
-  val ξ: DataAffine[Double, Dim] = DataAffine.of[Double, Dim](donutFilling)
+  val ξ: DataAffine[Double, Dim] = DataAffine.ofValue[Double, Dim](donutFilling)
 
   def commonBehaviors(prefix: String): Unit =
     import DataAffine.*
@@ -132,7 +132,7 @@ trait MutableAffineBaseBehaviors(using DomainAffineValueLike[Int]):
       val complete2 = withoutQuadrantTwoUnit.copy
       complete2.setIfNoConflict((toOrigin x fromAfterOrigin) -> ()) shouldBe true // II
       complete1 ≡≡ complete2
-      complete1 ≡≡ DataAffine.of[Unit, Dim](())
+      complete1 ≡≡ DataAffine.ofValue[Unit, Dim](())
 
       val empty = DataAffine.newBuilder[Double, Dim].result()
       empty.isEmpty shouldBe true
@@ -179,14 +179,12 @@ trait MutableAffineBaseBehaviors(using DomainAffineValueLike[Int]):
       x1.zip(y1) ≡ Data(
         Seq(cc -> (donutFilling, holeFilling))
       ) shouldBe true
-      x1.zipAll(y1, -1.0, -1.0) ≡ Data(
-        Seq(
-          aa -> (donutFilling, -1.0),
-          bb -> (donutFilling, -1.0),
-          cc -> (donutFilling, holeFilling),
-          dd -> (-1.0, holeFilling),
-          ee -> (-1.0, holeFilling)
-        )
+      x1.zipAll(y1, -1.0, -1.0) ≡ Data.of(
+        aa -> (donutFilling, -1.0),
+        bb -> (donutFilling, -1.0),
+        cc -> (donutFilling, holeFilling),
+        dd -> (-1.0, holeFilling),
+        ee -> (-1.0, holeFilling)
       ) shouldBe true
 
       (x1.mutate(_ \ y1)) ≡≡ Seq(aa, bb).donutFilled

@@ -183,10 +183,8 @@ object Visualize3D:
     import intervalidus.DiscreteValue.given
     import intervalidus.Interval1D.*
     import scala.language.implicitConversions
-    val data = intervalidus.immutable.Data(
-      Seq(
-        (intervalFrom(-6).to(5) x intervalFrom(0).to(5) x intervalFrom(0).to(5)) -> "Hello",
-        (intervalFrom(5).to(10) x intervalFrom(-1).to(6) x intervalFrom(-1).to(6)) -> "World"
-      )
+    val data = intervalidus.immutable.Data.of(
+      (intervalFrom(-6).to(5) x intervalFrom(0).to(5) x intervalFrom(0).to(5)) -> "Hello",
+      (intervalFrom(5).to(10) x intervalFrom(-1).to(6) x intervalFrom(-1).to(6)) -> "World"
     )
     Visualize3D(data)

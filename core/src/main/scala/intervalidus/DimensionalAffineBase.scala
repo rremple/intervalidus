@@ -97,7 +97,7 @@ trait DimensionalAffineBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimensio
     * @return
     *   a new structure with a single valid value.
     */
-  def of[V, D <: NonEmptyTuple: DomainAffineLike](value: V)(using config: CoreConfig[D]): Constructed[V, D] =
+  def ofValue[V, D <: NonEmptyTuple: DomainAffineLike](value: V)(using config: CoreConfig[D]): Constructed[V, D] =
     of(Interval.unbounded[D] -> value)
 
   /**
@@ -105,6 +105,8 @@ trait DimensionalAffineBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimensio
     *
     * @param data
     *   value valid within an interval.
+    * @param moreData
+    *   additional values valid within an intervals (optional).
     * @param config
     *   $configParam
     * @tparam V
@@ -112,11 +114,12 @@ trait DimensionalAffineBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimensio
     * @tparam D
     *   $intervalDomainType
     * @return
-    *   a new structure with a single valid value.
+    *   a new structure with at least a single valid value.
     */
   def of[V, D <: NonEmptyTuple: DomainAffineLike](
-    data: ValidData[V, D]
-  )(using config: CoreConfig[D]): Constructed[V, D] = apply(Iterable.single(data))
+    data: ValidData[V, D],
+    moreData: ValidData[V, D]*
+  )(using config: CoreConfig[D]): Constructed[V, D] = apply(data +: moreData)
 
   /**
     * Get a Builder based on an intermediate buffer of valid data.

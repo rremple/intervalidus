@@ -43,7 +43,7 @@ trait DataIn1DMultiBaseBehaviors:
       fixture1 shouldBe fixture2
       fixture1.hashCode() shouldBe fixture2.hashCode()
 
-      val fixture3 = multiApply(immutable.Data.of[Set[String], IntDim](Set("Hello", "world")).getAll)
+      val fixture3 = multiApply(immutable.Data.ofValue[Set[String], IntDim](Set("Hello", "world")).getAll)
       fixture3.get shouldBe Set("Hello", "world")
 
       val f0: S = multiFrom(

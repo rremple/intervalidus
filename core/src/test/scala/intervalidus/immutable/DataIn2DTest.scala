@@ -17,7 +17,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
   import Interval.Patterns.*
 
   // shared
-  testsFor(stringLookupTests("Immutable", Data(_), Data.of(_)))
+  testsFor(stringLookupTests("Immutable", Data(_), Data.ofValue(_)))
 
   def usingBuilder(data: Iterable[ValidData[String, MixedDim]]): Data[String, MixedDim] =
     data.foldLeft(Data.newBuilder[String, MixedDim])(_.addOne(_)).result()
@@ -258,7 +258,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     fixture3.getAll.toList shouldBe expectedData3
 
     val fixture4 =
-      fixture3.flatMap(d => Data.of[String, MixedDim](d.value).map(x => d.interval -> x.value))
+      fixture3.flatMap(d => Data.ofValue[String, MixedDim](d.value).map(x => d.interval -> x.value))
     val expectedData4 = List(
       (unbounded[LocalDate] x intervalTo(5)) -> "Hey!!!",
       (unbounded[LocalDate] x intervalFrom(16)) -> "World!!!"
@@ -267,7 +267,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     assertThrows[NoSuchElementException]:
       fixture4.get
 
-    val fixture5a = fixture4.filter(_.value == "Hey!!!").flatMap(d => Data.of[String, MixedDim](d.value))
+    val fixture5a = fixture4.filter(_.value == "Hey!!!").flatMap(d => Data.ofValue[String, MixedDim](d.value))
     val fixture5b = fixture4.collect:
       case d if d.value == "Hey!!!" => Interval.unbounded[MixedDim] -> d.value
     val expectedData5 = List((unbounded[LocalDate] x unbounded[Int]) -> "Hey!!!")
@@ -312,7 +312,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
 
   test("Immutable: Simple toString"):
     val fixturePadData = Data
-      .of[String, MixedDim]("H")
+      .ofValue[String, MixedDim]("H")
       .set((intervalFrom(day(0)) x unbounded[Int]) -> "W")
     // println(fixturePadData.toString)
     fixturePadData.toString shouldBe
@@ -326,7 +326,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     concat.result() shouldBe "H->(-∞..2024-07-14] W->[2024-07-15..+∞) "
 
     val fixturePadLabel = Data
-      .of[String, MixedDim]("Helloooooooooo")
+      .ofValue[String, MixedDim]("Helloooooooooo")
       .set((intervalFrom(day(0)) x unbounded[Int]) -> "Wooooooorld")
     // println(fixturePadLabel.toString)
     fixturePadLabel.toString shouldBe
@@ -364,7 +364,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     val holeFilling = 7.0
 
     val donut = Data(Seq(a, b, c, d).map(_ -> donutFilling)) // no e
-    val hole = Data(Seq(e -> holeFilling))
+    val hole = Data.of(e -> holeFilling)
 
     donut.isEmpty shouldBe false
     hole.isEmpty shouldBe false
@@ -393,10 +393,8 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     collapsedEdgeShadowDonutFirst shouldBe Data(
       Seq((interval(-10, 10) x extrudeInterval) -> donutFilling)
     )
-    collapsedEdgeShadowHoleFirst shouldBe Data(
-      Seq(
-        (intervalFrom(-10).toBefore(-1) x extrudeInterval) -> donutFilling,
-        (interval(-1, 1) x extrudeInterval) -> holeFilling,
-        (intervalFromAfter(1).to(10) x extrudeInterval) -> donutFilling
-      )
+    collapsedEdgeShadowHoleFirst shouldBe Data.of(
+      (intervalFrom(-10).toBefore(-1) x extrudeInterval) -> donutFilling,
+      (interval(-1, 1) x extrudeInterval) -> holeFilling,
+      (intervalFromAfter(1).to(10) x extrudeInterval) -> donutFilling
     )

@@ -25,13 +25,13 @@ class DataIn1DMultiTest
 
   val noCompress: CoreConfig[IntDim] =
     CoreConfig.default.withCompressOnUpdate(false).withIsolationLevel(ReadUncommitted)
-  testsFor(basicAndZipTests("Mutable", DataMulti.from(_), DataMulti.of(_), DataMulti(_)))
+  testsFor(basicAndZipTests("Mutable", DataMulti.from(_), DataMulti.ofValue(_), DataMulti(_)))
   testsFor(
-    basicAndZipTests("Mutable (noCompress)", DataMulti.from(_), DataMulti.of(_), DataMulti(_))(using
+    basicAndZipTests("Mutable (noCompress)", DataMulti.from(_), DataMulti.ofValue(_), DataMulti(_))(using
       config = noCompress
     )
   )
-  testsFor(basicAndZipTests("Mutable (builder)", usingBuilder, DataMulti.of(_), DataMulti(_)))
+  testsFor(basicAndZipTests("Mutable (builder)", usingBuilder, DataMulti.ofValue(_), DataMulti(_)))
 
   testsFor(
     addAndRemoveTests[IntDim, DataMulti[String, IntDim]](
@@ -87,7 +87,7 @@ class DataIn1DMultiTest
   test("Immutable: equals and hashCode"):
     val empty1 = DataMulti[String, IntDim]()
     val empty2 = DataMulti.empty[String, IntDim]
-    val nonEmpty = DataMulti.of[String, IntDim]("Hello")
+    val nonEmpty = DataMulti.ofValue[String, IntDim]("Hello")
     empty1 shouldBe empty2
     assert(empty1 != nonEmpty)
     empty1.hashCode() shouldBe empty2.hashCode()

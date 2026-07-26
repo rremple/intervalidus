@@ -25,13 +25,13 @@ class DataIn1DMultiTest
 
   val noCompress: CoreConfig[IntDim] =
     CoreConfig.default.withCompressOnUpdate(false).withIsolationLevel(ReadUncommitted)
-  testsFor(basicAndZipTests("Immutable", DataMulti.from(_), DataMulti.of(_), DataMulti(_)))
+  testsFor(basicAndZipTests("Immutable", DataMulti.from(_), DataMulti.ofValue(_), DataMulti(_)))
   testsFor(
-    basicAndZipTests("Immutable (noCompress)", DataMulti.from(_), DataMulti.of(_), DataMulti(_))(using
+    basicAndZipTests("Immutable (noCompress)", DataMulti.from(_), DataMulti.ofValue(_), DataMulti(_))(using
       config = noCompress
     )
   )
-  testsFor(basicAndZipTests("Immutable (builder)", usingBuilder, DataMulti.of(_), DataMulti(_)))
+  testsFor(basicAndZipTests("Immutable (builder)", usingBuilder, DataMulti.ofValue(_), DataMulti(_)))
 
   testsFor(addAndRemoveTests[IntDim, DataMulti[String, IntDim]](DataMulti.from(_), _.tupled))
 

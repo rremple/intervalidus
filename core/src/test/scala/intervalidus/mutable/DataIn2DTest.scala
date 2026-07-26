@@ -17,7 +17,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
   import Interval.Patterns.*
 
   // shared
-  testsFor(stringLookupTests("Mutable", Data(_), Data.of(_)))
+  testsFor(stringLookupTests("Mutable", Data(_), Data.ofValue(_)))
 
   def usingBuilder(data: Iterable[ValidData[String, MixedDim]]): Data[String, MixedDim] =
     data.foldLeft(Data.newBuilder[String, MixedDim])(_.addOne(_)).result()
@@ -289,7 +289,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     assert((fixture.domain union fixture.domain.complement).isUniverse)
 
   test("Mutable: Simple toString"):
-    val fixturePadData = Data.of[String, MixedDim]("H")
+    val fixturePadData = Data.ofValue[String, MixedDim]("H")
     fixturePadData.set((intervalFrom(day(0)) x unbounded[Int]) -> "W")
     // println(fixturePadData.toString)
     fixturePadData.toString shouldBe
@@ -302,7 +302,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
       a.append(d.value).append("->").append(d.interval.headInterval1D[LocalDate].toString).append(" ")
     concat.result() shouldBe "H->(-∞..2024-07-14] W->[2024-07-15..+∞) "
 
-    val fixturePadLabel = Data.of[String, MixedDim]("Helloooooooooo")
+    val fixturePadLabel = Data.ofValue[String, MixedDim]("Helloooooooooo")
     fixturePadLabel.set((intervalFrom(day(0)) x unbounded[Int]) -> "Wooooooorld")
     // println(fixturePadLabel.toString)
     fixturePadLabel.toString shouldBe
@@ -372,10 +372,8 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     collapsedEdgeShadowDonutFirst shouldBe Data(
       Seq((interval(-10, 10) x extrudeInterval) -> donutFilling)
     )
-    collapsedEdgeShadowHoleFirst shouldBe Data(
-      Seq(
-        (intervalFrom(-10).toBefore(-1) x extrudeInterval) -> donutFilling,
-        (interval(-1, 1) x extrudeInterval) -> holeFilling,
-        (intervalFromAfter(1).to(10) x extrudeInterval) -> donutFilling
-      )
+    collapsedEdgeShadowHoleFirst shouldBe Data.of(
+      (intervalFrom(-10).toBefore(-1) x extrudeInterval) -> donutFilling,
+      (interval(-1, 1) x extrudeInterval) -> holeFilling,
+      (intervalFromAfter(1).to(10) x extrudeInterval) -> donutFilling
     )

@@ -27,7 +27,7 @@ trait ImmutableAffineBaseBehaviors(using DomainAffineValueLike[Int]):
     private def holeFilled = intervals.valueFilled(holeFilling)
 
   // donut-filled universe
-  val ξ: DataAffine[Double, Dim] = DataAffine.of[Double, Dim](donutFilling)
+  val ξ: DataAffine[Double, Dim] = DataAffine.ofValue[Double, Dim](donutFilling)
 
   def commonBehaviors(prefix: String): Unit =
     import DataAffine.*
@@ -123,7 +123,7 @@ trait ImmutableAffineBaseBehaviors(using DomainAffineValueLike[Int]):
       (complete1, complete2) match
         case (Some(c1), Some(c2)) =>
           c1 ≡≡ c2
-          c1 ≡≡ DataAffine.of[Unit, Dim](())
+          c1 ≡≡ DataAffine.ofValue[Unit, Dim](())
         case _ =>
           fail(s"expected add to succeed in $complete1 and $complete2")
 
@@ -172,14 +172,12 @@ trait ImmutableAffineBaseBehaviors(using DomainAffineValueLike[Int]):
       x1.zip(y1) ≡ Data(
         Seq(cc -> (donutFilling, holeFilling))
       ) shouldBe true
-      x1.zipAll(y1, -1.0, -1.0) ≡ Data(
-        Seq(
-          aa -> (donutFilling, -1.0),
-          bb -> (donutFilling, -1.0),
-          cc -> (donutFilling, holeFilling),
-          dd -> (-1.0, holeFilling),
-          ee -> (-1.0, holeFilling)
-        )
+      x1.zipAll(y1, -1.0, -1.0) ≡ Data.of(
+        aa -> (donutFilling, -1.0),
+        bb -> (donutFilling, -1.0),
+        cc -> (donutFilling, holeFilling),
+        dd -> (-1.0, holeFilling),
+        ee -> (-1.0, holeFilling)
       ) shouldBe true
 
       (x1 \ y1) ≡≡ Seq(aa, bb).donutFilled

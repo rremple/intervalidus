@@ -16,7 +16,7 @@ class DataIn1DContinuousTest extends AnyFunSuite with Matchers with DataIn1DBase
   import Domain1D.Point
 
   // shared
-  testsFor(stringLookupTests("Mutable", Data(_), Data.of(_)))
+  testsFor(stringLookupTests("Mutable", Data(_), Data.ofValue(_)))
 
   testsFor(
     mutableBaseTests[IntDim, Data[String, IntDim]](

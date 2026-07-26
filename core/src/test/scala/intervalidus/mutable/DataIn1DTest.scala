@@ -17,8 +17,8 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
 
   // shared
   val noCompress: CoreConfig[IntDim] = CoreConfig.default.withCompressOnUpdate(false)
-  testsFor(stringLookupTests("Mutable", Data(_), Data.of(_)))
-  testsFor(stringLookupTests("Mutable (noCompress)", Data(_), Data.of(_))(using config = noCompress))
+  testsFor(stringLookupTests("Mutable", Data(_), Data.ofValue(_)))
+  testsFor(stringLookupTests("Mutable (noCompress)", Data(_), Data.ofValue(_))(using config = noCompress))
 
   def usingBuilder(data: Iterable[ValidData[String, IntDim]]): Data[String, IntDim] =
     val builder = Data.newBuilder[String, IntDim]

@@ -37,9 +37,9 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     newStructure
 
   // shared
-  testsFor(stringLookupTests("Mutable", newDataIn2DVersioned, DataVersioned(_), DataVersioned.of(_)))
-  testsFor(stringLookupTests("Mutable (builder)", usingBuilder, DataVersioned(_), DataVersioned.of(_)))
-  testsFor(stringLookupTests("Mutable (setMany)", usingSetMany, DataVersioned(_), DataVersioned.of(_)))
+  testsFor(stringLookupTests("Mutable", newDataIn2DVersioned, DataVersioned(_), DataVersioned.ofValue(_)))
+  testsFor(stringLookupTests("Mutable (builder)", usingBuilder, DataVersioned(_), DataVersioned.ofValue(_)))
+  testsFor(stringLookupTests("Mutable (setMany)", usingSetMany, DataVersioned(_), DataVersioned.ofValue(_)))
 
   test("Mutable: Adding and removing data in intervals"):
     val dayZero = LocalDateTime.of(2025, 8, 1, 8, 0)
@@ -293,7 +293,7 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     assertThrows[NoSuchElementException]:
       fixture.get
 
-    fixture.flatMap(d => DataVersioned.of[String, IntDim](d.value))
+    fixture.flatMap(d => DataVersioned.ofValue[String, IntDim](d.value))
     val expectedData6 = List(Interval.unbounded[IntDim] -> "Hey!!!")
     fixture.getAll.toList shouldBe expectedData6
     fixture.get shouldBe "Hey!!!"
@@ -325,7 +325,7 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     fixture1.getSelectedDataMutable.getAll.toList shouldBe expectedData1
 
   test("Mutable: Updating data in intervals"):
-    val one: DataVersioned[String, IntDim] = DataVersioned.of("value")
+    val one: DataVersioned[String, IntDim] = DataVersioned.ofValue("value")
     one.incrementCurrentVersion()
 
     one.remove(intervalAt(0) x unbounded[Int]) // split

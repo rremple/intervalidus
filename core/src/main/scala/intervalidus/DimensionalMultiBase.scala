@@ -97,6 +97,8 @@ trait DimensionalMultiBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimension
     *
     * @param data
     *   value valid within an interval.
+    * @param moreData
+    *   additional values valid within an intervals (optional).
     * @param config
     *   $configParam
     * @tparam V
@@ -104,11 +106,13 @@ trait DimensionalMultiBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimension
     * @tparam D
     *   $intervalDomainType
     * @return
-    *   [[DimensionalMultiBase]] structure with a single valid value.
+    *   [[DimensionalMultiBase]] structure with at least a single valid value.
     */
   def of[V, D <: NonEmptyTuple: DomainLike](
-    data: ValidData[V, D]
-  )(using config: CoreConfig[D]): Constructed[V, D] = apply(Iterable.single(data.interval -> Set(data.value)))
+    data: ValidData[V, D],
+    moreData: ValidData[V, D]*
+  )(using config: CoreConfig[D]): Constructed[V, D] =
+    apply((data +: moreData).map(d => d.interval -> Set(d.value)))
 
   /**
     * Shorthand constructor for a single initial value that is valid in the full interval domain.
@@ -124,7 +128,7 @@ trait DimensionalMultiBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimension
     * @return
     *   [[DimensionalMultiBase]] structure with a single valid value.
     */
-  def of[V, D <: NonEmptyTuple: DomainLike](
+  def ofValue[V, D <: NonEmptyTuple: DomainLike](
     value: V
   )(using config: CoreConfig[D]): Constructed[V, D] = of(Interval.unbounded[D] -> value)
 

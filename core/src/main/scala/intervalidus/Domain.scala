@@ -252,6 +252,28 @@ object Domain:
   type In3D[R1, R2, R3] = (Domain1D[R1], Domain1D[R2], Domain1D[R3])
   type In4D[R1, R2, R3, R4] = (Domain1D[R1], Domain1D[R2], Domain1D[R3], Domain1D[R4])
 
+  object Point:
+    object In1D:
+      def unapply[T1](tup: Domain.In1D[T1]): Option[T1] = tup match
+        case Domain1D.Point(p1) *: EmptyTuple => Some(p1)
+        case _                                => None
+
+    object In2D:
+      def unapply[T1, T2](tup: Domain.In2D[T1, T2]): Option[(T1, T2)] = tup match
+        case (Domain1D.Point(p1), Domain1D.Point(p2)) => Some((p1, p2))
+        case _                                        => None
+
+    object In3D:
+      def unapply[T1, T2, T3](tup: Domain.In3D[T1, T2, T3]): Option[(T1, T2, T3)] = tup match
+        case (Domain1D.Point(p1), Domain1D.Point(p2), Domain1D.Point(p3)) => Some((p1, p2, p3))
+        case _                                                            => None
+
+    object In4D:
+      def unapply[T1, T2, T3, T4](tup: Domain.In4D[T1, T2, T3, T4]): Option[(T1, T2, T3, T4)] = tup match
+        case (Domain1D.Point(p1), Domain1D.Point(p2), Domain1D.Point(p3), Domain1D.Point(p4)) =>
+          Some((p1, p2, p3, p4))
+        case _ => None
+
   def in1D[R1: DomainValueLike](
     r1: Domain1D[R1]
   ): In1D[R1] = r1 *: EmptyTuple

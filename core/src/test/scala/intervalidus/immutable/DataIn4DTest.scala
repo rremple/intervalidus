@@ -17,7 +17,7 @@ class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors 
   import Interval.Patterns.*
 
   // shared
-  testsFor(stringLookupTests("Immutable", Data(_), Data.of(_)))
+  testsFor(stringLookupTests("Immutable", Data(_), Data.ofValue(_)))
 
   def usingBuilder(
     data: Iterable[ValidData[String, MixedDim]]
@@ -128,7 +128,7 @@ class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors 
 
   test("Immutable: Simple toString"):
     val fixturePadData = Data
-      .of[String, IntDim]("H")
+      .ofValue[String, IntDim]("H")
       .set((intervalFrom(1) x intervalTo(0) x interval(1, 9) x unbounded[Int]) -> "W")
     // if needed: .recompressAll()
     // println(fixturePadData.toString)
@@ -147,7 +147,7 @@ class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors 
       "H->{-∞, -∞, -∞, -∞} H->{-∞, -∞, 1, -∞} H->{-∞, -∞, 10, -∞} W->{1, -∞, 1, -∞} H->{1, 1, 1, -∞} "
 
     val fixturePadLabel = Data
-      .of[String, IntDim]("Helloooooooooo")
+      .ofValue[String, IntDim]("Helloooooooooo")
       .set((intervalFrom(1) x unbounded[Int] x unbounded[Int] x unbounded[Int]) -> "Wooooooorld")
     // println(fixturePadLabel.toString)
     fixturePadLabel.toString shouldBe
@@ -269,7 +269,7 @@ class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors 
 
     val fixture4 =
       fixture3.flatMap: d =>
-        Data.of[String, MixedDim](d.value).map(x => d.interval -> x.value)
+        Data.ofValue[String, MixedDim](d.value).map(x => d.interval -> x.value)
     val expectedData4 = List(
       (unboundedDate x unboundedDate x intervalTo(5) x unbounded[Int]) -> "Hey!!!",
       (unboundedDate x unboundedDate x intervalFrom(16) x unbounded[Int]) -> "World!!!"
@@ -279,7 +279,7 @@ class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors 
       fixture4.get
 
     val fixture5 =
-      fixture4.filter(_.value == "Hey!!!").flatMap(d => Data.of[String, MixedDim](d.value))
+      fixture4.filter(_.value == "Hey!!!").flatMap(d => Data.ofValue[String, MixedDim](d.value))
     val expectedData5 = List((unboundedDate x unboundedDate x unbounded[Int] x unbounded[Int]) -> "Hey!!!")
     fixture5.getAll.toList shouldBe expectedData5
     fixture5.get shouldBe "Hey!!!"

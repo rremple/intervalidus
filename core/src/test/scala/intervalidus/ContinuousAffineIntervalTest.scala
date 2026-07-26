@@ -70,7 +70,7 @@ class ContinuousAffineIntervalTest
     val i3 = (intervalFrom(4.0) x interval(4.0, 5.0))
     i3.measure shouldBe None
 
-    val shape = IntervalShape(Seq(i1, i2, i3))
+    val shape = IntervalShape.of(i1, i2, i3)
 
     val shapeReflected = shape.reflectedAbout(Domain.in2D(3.0, 3.0))
     shapeReflected.allIntervals.toList shouldBe List(

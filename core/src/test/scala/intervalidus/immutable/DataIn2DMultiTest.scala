@@ -22,8 +22,8 @@ class DataIn2DMultiTest
     builder.clear()
     data.foldLeft(builder)(_.addOne(_)).result()
 
-  testsFor(basicAndZipTests("Immutable", DataMulti.from(_), DataMulti.of(_), DataMulti(_)))
-  testsFor(basicAndZipTests("Immutable (builder)", usingBuilder, DataMulti.of(_), DataMulti(_)))
+  testsFor(basicAndZipTests("Immutable", DataMulti.from(_), DataMulti.ofValue(_), DataMulti(_)))
+  testsFor(basicAndZipTests("Immutable (builder)", usingBuilder, DataMulti.ofValue(_), DataMulti(_)))
 
   testsFor(
     addAndRemoveTests[IntDim, DataMulti[String, IntDim]](

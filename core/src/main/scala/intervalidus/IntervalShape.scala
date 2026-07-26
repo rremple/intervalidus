@@ -69,16 +69,19 @@ object IntervalShape:
     *
     * @param initialInterval
     *   a single interval.
+    * @param moreIntervals
+    *   additional intervals (optional).
     * @param config
     *   $configParam
     * @tparam D
     *   $intervalDomainType
     * @return
-    *   [[IntervalShape]] shape with the initial interval present.
+    *   [[IntervalShape]] shape with at least the initial interval present.
     */
   def of[D <: NonEmptyTuple: DomainLike](
-    initialInterval: Interval[D]
-  )(using config: CoreConfig[D]): IntervalShape[D] = withoutChecks(Iterable.single(initialInterval))
+    initialInterval: Interval[D],
+    moreIntervals: Interval[D]*
+  )(using config: CoreConfig[D]): IntervalShape[D] = withoutChecks(initialInterval +: moreIntervals)
 
   /**
     * Constructor for multiple (or no) initial intervals.

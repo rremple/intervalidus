@@ -10,7 +10,7 @@ import intervalidus.VariableBase.{Time, given}
 object Variable extends VariableObjectBase[Variable]:
   override def apply[T](
     initialValue: T
-  )(using config: CoreConfig[Time]): Variable[T] = new Variable(Data.of(initialValue))
+  )(using config: CoreConfig[Time]): Variable[T] = new Variable(Data.ofValue(initialValue))
 
   override def fromHistory[T](
     history: Iterable[ValidData[T, Time]]

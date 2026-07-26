@@ -203,7 +203,7 @@ trait DimensionalVersionedBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimen
     * @return
     *   a new structure with a single valid value.
     */
-  def of[V, D <: NonEmptyTuple: DomainLike](
+  def ofValue[V, D <: NonEmptyTuple: DomainLike](
     value: V,
     initialVersion: VersionDomainValue = 0,
     initialComment: String = "init"

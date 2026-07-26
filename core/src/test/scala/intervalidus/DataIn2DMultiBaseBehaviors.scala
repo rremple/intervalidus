@@ -38,7 +38,7 @@ trait DataIn2DMultiBaseBehaviors:
       val fixture2 = multiApply(allData).toImmutable.toMutable.copy
       fixture2.getAll.toList shouldBe allData
 
-      val fixture3 = multiApply(immutable.Data.of[Set[String], IntDim](Set("Hello", "world")).getAll)
+      val fixture3 = multiApply(immutable.Data.ofValue[Set[String], IntDim](Set("Hello", "world")).getAll)
       fixture3.get shouldBe Set("Hello", "world")
 
       val f0: S = multiFrom(

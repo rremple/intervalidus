@@ -40,19 +40,19 @@ trait DimensionalBaseObject[Constructed[_, _ <: NonEmptyTuple] <: DimensionalBas
 
   // ---------- Concrete ----------
 
-  extension [V, D <: NonEmptyTuple : DomainLike](data: DimensionalBase[V, D])
+  extension [V, D <: NonEmptyTuple: DomainLike](data: DimensionalBase[V, D])
     /**
       * Creates a general dimensional data structure from a some other dimensional structure.
       *
       * @return
-      * A new structure with the same valid values.
+      *   A new structure with the same valid values.
       */
     def asData: Constructed[V, D] = fromState(data.stateCopy)(using config = data.config)
 
   /**
     * Automatically converts some other dimensional structure to a general dimensional data structure.
     */
-  given [V, D <: NonEmptyTuple : DomainLike]: Conversion[DimensionalBase[V, D], Constructed[V, D]] = _.asData
+  given [V, D <: NonEmptyTuple: DomainLike]: Conversion[DimensionalBase[V, D], Constructed[V, D]] = _.asData
 
   /**
     * Constructor for multiple initial values that are valid in the various intervals.
@@ -97,12 +97,15 @@ trait DimensionalBaseObject[Constructed[_, _ <: NonEmptyTuple] <: DimensionalBas
     *   $intervalDomainType
     * @param data
     *   value valid within an interval.
+    * @param moreData
+    *   additional values valid within an intervals (optional).
     * @return
-    *   a new structure with a single valid value.
+    *   a new structure with at least a single valid value.
     */
   def of[V, D <: NonEmptyTuple: DomainLike](
-    data: ValidData[V, D]
-  )(using config: CoreConfig[D]): Constructed[V, D] = apply(Iterable.single(data))
+    data: ValidData[V, D],
+    moreData: ValidData[V, D]*
+  )(using config: CoreConfig[D]): Constructed[V, D] = apply(data +: moreData)
 
   /**
     * Shorthand constructor for a single initial value that is valid in the full interval domain.
@@ -118,7 +121,7 @@ trait DimensionalBaseObject[Constructed[_, _ <: NonEmptyTuple] <: DimensionalBas
     * @return
     *   a new structure with a single valid value.
     */
-  def of[V, D <: NonEmptyTuple: DomainLike](
+  def ofValue[V, D <: NonEmptyTuple: DomainLike](
     value: V
   )(using config: CoreConfig[D]): Constructed[V, D] = of(Interval.unbounded[D] -> value)
 

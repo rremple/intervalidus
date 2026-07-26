@@ -16,8 +16,8 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
 
   // shared
   val noCompress: CoreConfig[IntDim] = CoreConfig.default.withCompressOnUpdate(false)
-  testsFor(stringLookupTests("Immutable", Data(_), Data.of(_)))
-  testsFor(stringLookupTests("Immutable (noCompress)", Data(_), Data.of(_))(using config = noCompress))
+  testsFor(stringLookupTests("Immutable", Data(_), Data.ofValue(_)))
+  testsFor(stringLookupTests("Immutable (noCompress)", Data(_), Data.ofValue(_))(using config = noCompress))
 
   def usingBuilder(data: IterableOnce[ValidData[String, IntDim]]): Data[String, IntDim] =
     val builder = Data.newBuilder[String, IntDim]
@@ -69,7 +69,7 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
     val brackets = Data(taxBrackets)
 
     def taxUsingZip(income: Int): Double =
-      val incomeInterval: Data[Unit, IntDim] = Data(Seq(interval(1, income) -> ()))
+      val incomeInterval: Data[Unit, IntDim] = Data.of(interval(1, income) -> ())
       val taxesByBracket = incomeInterval
         .zip(brackets)
         .getAll
@@ -180,13 +180,13 @@ class DataIn1DTest extends AnyFunSuite with Matchers with DataIn1DBaseBehaviors 
     val expectedData3 = List(intervalTo(5) -> "Hey!!!", intervalFrom(16) -> "World!!!")
     fixture3.getAll.toList shouldBe expectedData3
 
-    val fixture4 = fixture3.flatMap(d => Data.of[String, IntDim](d.value).map(x => d.interval -> x.value))
+    val fixture4 = fixture3.flatMap(d => Data.ofValue[String, IntDim](d.value).map(x => d.interval -> x.value))
     val expectedData4 = List(intervalTo(5) -> "Hey!!!", intervalFrom(16) -> "World!!!")
     fixture4.getAll.toList shouldBe expectedData4
     assertThrows[NoSuchElementException]:
       fixture4.get
 
-    val fixture5 = fixture4.filter(_.value == "Hey!!!").flatMap(d => Data.of[String, IntDim](d.value))
+    val fixture5 = fixture4.filter(_.value == "Hey!!!").flatMap(d => Data.ofValue[String, IntDim](d.value))
     val expectedData5 = List(unbounded[Int] -> "Hey!!!")
     fixture5.getAll.toList shouldBe expectedData5
     fixture5.get shouldBe "Hey!!!"

@@ -171,49 +171,41 @@ trait AffineIntervalCommonBehaviors(using op: DomainAffineValueLike[Int]):
       val i2 = intervalFromAfter(2).to(5) x intervalFromAfter(5).toBefore(10)
 
       // pad one unit externally, one interval
-      IntervalShape(Seq(i1)).boundingShapeInt((1, 1)) ≡≡ IntervalShape(
-        Seq(
-          intervalFrom(0).toBefore(4) x intervalFromAfter(2).to(3), // under
-          intervalFrom(0).toBefore(1) x intervalFromAfter(3).to(6), // left
-          intervalFrom(1).toBefore(4) x intervalFromAfter(5).to(6), // above
-          intervalFrom(3).toBefore(4) x intervalFromAfter(3).to(5) // right
-        )
+      IntervalShape.of(i1).boundingShapeInt((1, 1)) ≡≡ IntervalShape.of(
+        intervalFrom(0).toBefore(4) x intervalFromAfter(2).to(3), // under
+        intervalFrom(0).toBefore(1) x intervalFromAfter(3).to(6), // left
+        intervalFrom(1).toBefore(4) x intervalFromAfter(5).to(6), // above
+        intervalFrom(3).toBefore(4) x intervalFromAfter(3).to(5) // right
       )
 
       // pad two units internally, one interval with a smaller width than the pad amount (shrinks to zero)
-      IntervalShape(Seq(i1)).boundingShapeInt((-2, -2)) ≡≡ IntervalShape(Seq(i1))
+      IntervalShape.of(i1).boundingShapeInt((-2, -2)) ≡≡ IntervalShape.of(i1)
 
       // pad one unit internally, one interval
-      IntervalShape(Seq(i2)).boundingShapeInt((-1, -1)) ≡≡ IntervalShape(
-        Seq(
-          intervalFromAfter(2).to(5) x intervalFromAfter(5).to(6), // bottom
-          intervalFromAfter(2).to(3) x intervalFromAfter(6).toBefore(10), // left side
-          intervalFromAfter(3).to(5) x intervalFrom(9).toBefore(10), // top
-          intervalFromAfter(4).to(5) x intervalFromAfter(6).toBefore(9) // right side
-        )
+      IntervalShape.of(i2).boundingShapeInt((-1, -1)) ≡≡ IntervalShape.of(
+        intervalFromAfter(2).to(5) x intervalFromAfter(5).to(6), // bottom
+        intervalFromAfter(2).to(3) x intervalFromAfter(6).toBefore(10), // left side
+        intervalFromAfter(3).to(5) x intervalFrom(9).toBefore(10), // top
+        intervalFromAfter(4).to(5) x intervalFromAfter(6).toBefore(9) // right side
       )
 
       // pad two units externally, two intervals with a shared boundary
-      IntervalShape(Seq(i1, i2)).boundingShapeInt((2, 2)) ≡≡ IntervalShape(
-        Seq(
-          intervalFrom(-1).toBefore(5) x intervalFromAfter(1).to(3), // below i1
-          intervalFrom(-1).toBefore(1) x intervalFromAfter(3).to(5), // left of i1
-          interval(-1, 2) x intervalFromAfter(5).to(7), // above i1 and left of i2
-          intervalFromAfter(0).to(2) x intervalFromAfter(7).toBefore(10), // left of i2
-          intervalFromAfter(0).to(7) x intervalFrom(10).toBefore(12), // above i2
-          interval(3, 7) x intervalFromAfter(3).to(5), // right of i1 and below i2
-          intervalFromAfter(5).to(7) x intervalFromAfter(5).toBefore(10) // right of i2
-        )
+      IntervalShape(Seq(i1, i2)).boundingShapeInt((2, 2)) ≡≡ IntervalShape.of(
+        intervalFrom(-1).toBefore(5) x intervalFromAfter(1).to(3), // below i1
+        intervalFrom(-1).toBefore(1) x intervalFromAfter(3).to(5), // left of i1
+        interval(-1, 2) x intervalFromAfter(5).to(7), // above i1 and left of i2
+        intervalFromAfter(0).to(2) x intervalFromAfter(7).toBefore(10), // left of i2
+        intervalFromAfter(0).to(7) x intervalFrom(10).toBefore(12), // above i2
+        interval(3, 7) x intervalFromAfter(3).to(5), // right of i1 and below i2
+        intervalFromAfter(5).to(7) x intervalFromAfter(5).toBefore(10) // right of i2
       )
 
     test(s"$prefix: Int affine interval shape morphology"):
       import DomainAffineLike.* // extension methods
       val tinyShape = IntervalShape.of(intervalFrom(0).toBefore(2) x intervalFrom(0).toBefore(2)) // 2 x 2
-      val smallShape = IntervalShape(
-        Seq(
-          intervalFrom(0).toBefore(11) x intervalFrom(0).toBefore(11), // 11 x 11
-          intervalFrom(10).toBefore(31) x intervalFrom(20).toBefore(51) // 21 x 31
-        )
+      val smallShape = IntervalShape.of(
+        intervalFrom(0).toBefore(11) x intervalFrom(0).toBefore(11), // 11 x 11
+        intervalFrom(10).toBefore(31) x intervalFrom(20).toBefore(51) // 21 x 31
       )
       val maxFiniteInterval1d = intervalFromAfter(op.minValue).toBefore(op.maxValue)
       val maxFiniteInterval2d = maxFiniteInterval1d x maxFiniteInterval1d
@@ -266,19 +258,15 @@ trait AffineIntervalCommonBehaviors(using op: DomainAffineValueLike[Int]):
       smallShape ○ probe ○ probe ≡≡ (smallShape ○ probe) // opening is idempotent
       smallShape ● probe ● probe ≡≡ (smallShape ● probe) // closing is idempotent
 
-      smallShape ⊖ probe ≡≡ IntervalShape(
-        Seq(
-          intervalFrom(0 + r).toBefore(11 - r) x intervalFrom(0 + r).toBefore(11 - r), //  11 x 11 ⊖ 10 x 10 =  1 x  1
-          intervalFrom(10 + r).toBefore(31 - r) x intervalFrom(20 + r).toBefore(51 - r) // 21 x 31 ⊖ 10 x 10 = 11 x 21
-        )
+      smallShape ⊖ probe ≡≡ IntervalShape.of(
+        intervalFrom(0 + r).toBefore(11 - r) x intervalFrom(0 + r).toBefore(11 - r), //  11 x 11 ⊖ 10 x 10 =  1 x  1
+        intervalFrom(10 + r).toBefore(31 - r) x intervalFrom(20 + r).toBefore(51 - r) // 21 x 31 ⊖ 10 x 10 = 11 x 21
       )
 
-      smallShape ⊕ probe ≡≡ IntervalShape(
-        Seq(
-          intervalFrom(0 - r).toBefore(11 + r) x intervalFrom(0 - r).toBefore(11 + r - 1), // (-5, 15) truncated
-          intervalFrom(0 - r).toBefore(10 - r) x intervalFrom(20 - r).toBefore(11 + r), // excludes overlapping edge
-          intervalFrom(10 - r).toBefore(31 + r) x intervalFrom(20 - r).toBefore(51 + r) // 21 x 31 ⊕ 10 x 10 = 31 x 41
-        )
+      smallShape ⊕ probe ≡≡ IntervalShape.of(
+        intervalFrom(0 - r).toBefore(11 + r) x intervalFrom(0 - r).toBefore(11 + r - 1), // (-5, 15) truncated
+        intervalFrom(0 - r).toBefore(10 - r) x intervalFrom(20 - r).toBefore(11 + r), // excludes overlapping edge
+        intervalFrom(10 - r).toBefore(31 + r) x intervalFrom(20 - r).toBefore(51 + r) // 21 x 31 ⊕ 10 x 10 = 31 x 41
       )
 
       smallShape ○ probe ≡≡ smallShape // opening yields no changes
@@ -292,24 +280,20 @@ trait AffineIntervalCommonBehaviors(using op: DomainAffineValueLike[Int]):
         intervalFrom(0 - r).toBefore(2 + r) x intervalFrom(0 - r).toBefore(2 + r)
       )
 
-      smallShape ∇ probe ≡≡ IntervalShape(
-        Seq(
-          intervalFrom(0 - r).toBefore(11 + r) x intervalFrom(0 - r).toBefore(0 + r),
-          intervalFrom(0 - r).toBefore(0 + r) x intervalFrom(0 + r).toBefore(11 + r),
-          intervalFrom(0 + r).toBefore(11 + r) x intervalFrom(11 - r).toBefore(20 - r),
-          intervalFrom(0 + r).toBefore(31 + r) x intervalFrom(10 + r).toBefore(20 + r),
-          intervalFrom(0 + r).toBefore(20 - r) x intervalFrom(20 + r).toBefore(51 + r),
-          intervalFrom(11 - r).toBefore(11 + r) x intervalFrom(0 + r).toBefore(11 - r),
-          intervalFrom(10 + r).toBefore(31 + r) x intervalFrom(51 - r).toBefore(51 + r),
-          intervalFrom(31 - r).toBefore(31 + r) x intervalFrom(20 + r).toBefore(51 - r)
-        )
+      smallShape ∇ probe ≡≡ IntervalShape.of(
+        intervalFrom(0 - r).toBefore(11 + r) x intervalFrom(0 - r).toBefore(0 + r),
+        intervalFrom(0 - r).toBefore(0 + r) x intervalFrom(0 + r).toBefore(11 + r),
+        intervalFrom(0 + r).toBefore(11 + r) x intervalFrom(11 - r).toBefore(20 - r),
+        intervalFrom(0 + r).toBefore(31 + r) x intervalFrom(10 + r).toBefore(20 + r),
+        intervalFrom(0 + r).toBefore(20 - r) x intervalFrom(20 + r).toBefore(51 + r),
+        intervalFrom(11 - r).toBefore(11 + r) x intervalFrom(0 + r).toBefore(11 - r),
+        intervalFrom(10 + r).toBefore(31 + r) x intervalFrom(51 - r).toBefore(51 + r),
+        intervalFrom(31 - r).toBefore(31 + r) x intervalFrom(20 + r).toBefore(51 - r)
       )
 
-      bigShape ∇ probe ≡≡ IntervalShape(
-        Seq(
-          unbounded x intervalTo(op.minValue + r), // bottom
-          intervalTo(op.minValue + r) x intervalFromAfter(op.minValue + r), // left
-          intervalFromAfter(op.minValue + r) x intervalFrom(op.maxValue - r), // top
-          intervalFrom(op.maxValue - r) x intervalFromAfter(op.minValue + r).toBefore(op.maxValue - r) // right
-        )
+      bigShape ∇ probe ≡≡ IntervalShape.of(
+        unbounded x intervalTo(op.minValue + r), // bottom
+        intervalTo(op.minValue + r) x intervalFromAfter(op.minValue + r), // left
+        intervalFromAfter(op.minValue + r) x intervalFrom(op.maxValue - r), // top
+        intervalFrom(op.maxValue - r) x intervalFromAfter(op.minValue + r).toBefore(op.maxValue - r) // right
       )

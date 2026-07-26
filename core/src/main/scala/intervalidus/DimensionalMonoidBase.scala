@@ -39,7 +39,7 @@ trait DimensionalMonoidBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimensio
   /**
     * Automatically converts a non-monoidal structure with monoidal values to a monoidal structure.
     */
-  given [V: Monoid, D <: NonEmptyTuple: DomainLike]: Conversion[DimensionalBase[V, D], Constructed[V, D]] = 
+  given [V: Monoid, D <: NonEmptyTuple: DomainLike]: Conversion[DimensionalBase[V, D], Constructed[V, D]] =
     _.asDataMonoid
 
   /**
@@ -92,7 +92,7 @@ trait DimensionalMonoidBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimensio
   def universe[V, D <: NonEmptyTuple: DomainLike](using
     config: CoreConfig[D],
     monoid: Monoid[V]
-  ): Constructed[V, D] = of(monoid.identity)
+  ): Constructed[V, D] = ofValue(monoid.identity)
 
   /**
     * Same as [[universe]]
@@ -117,7 +117,7 @@ trait DimensionalMonoidBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimensio
     * @return
     *   a new structure with a single valid value.
     */
-  def of[V: Monoid, D <: NonEmptyTuple: DomainLike](value: V)(using config: CoreConfig[D]): Constructed[V, D] =
+  def ofValue[V: Monoid, D <: NonEmptyTuple: DomainLike](value: V)(using config: CoreConfig[D]): Constructed[V, D] =
     of(Interval.unbounded[D] -> value)
 
   /**
@@ -125,6 +125,8 @@ trait DimensionalMonoidBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimensio
     *
     * @param data
     *   value valid within an interval.
+    * @param moreData
+    *   additional values valid within an intervals (optional).
     * @param config
     *   $configParam
     * @tparam V
@@ -132,11 +134,12 @@ trait DimensionalMonoidBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimensio
     * @tparam D
     *   $intervalDomainType
     * @return
-    *   a new structure with a single valid value.
+    *   a new structure with at least a single valid value.
     */
   def of[V: Monoid, D <: NonEmptyTuple: DomainLike](
-    data: ValidData[V, D]
-  )(using config: CoreConfig[D]): Constructed[V, D] = apply(Iterable.single(data))
+    data: ValidData[V, D],
+    moreData: ValidData[V, D]*
+  )(using config: CoreConfig[D]): Constructed[V, D] = apply(data +: moreData)
 
   /**
     * Get a Builder based on an intermediate buffer of valid data.

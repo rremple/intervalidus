@@ -149,14 +149,12 @@ trait DataAffineBaseBehaviors(using
       )
 
       assert(
-        donutBoundingShape((2, 2)) ≡ IntervalShape(
-          Seq(
-            ee, // the entire hole, because the (2, 2) padding captures the "whole" thing (pun intended)
-            interval(-12, 12) x intervalFrom(-12).toBefore(-10), // under
-            interval(-10, 12) x intervalFromAfter(10).to(12), // above
-            intervalFrom(-12).toBefore(-10) x interval(-10, 12), // left
-            intervalFromAfter(10).to(12) x interval(-10, 10) // right
-          )
+        donutBoundingShape((2, 2)) ≡ IntervalShape.of(
+          ee, // the entire hole, because the (2, 2) padding captures the "whole" thing (pun intended)
+          interval(-12, 12) x intervalFrom(-12).toBefore(-10), // under
+          interval(-10, 12) x intervalFromAfter(10).to(12), // above
+          intervalFrom(-12).toBefore(-10) x interval(-10, 12), // left
+          intervalFromAfter(10).to(12) x interval(-10, 10) // right
         )
       )
 

@@ -33,9 +33,9 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
     DataVersioned.empty[String, IntDim] ++ data
 
   // shared
-  testsFor(stringLookupTests("Immutable", newDataIn3DVersioned, DataVersioned(_), DataVersioned.of(_)))
-  testsFor(stringLookupTests("Immutable (builder)", usingBuilder, DataVersioned(_), DataVersioned.of(_)))
-  testsFor(stringLookupTests("Immutable (setMany)", usingSetMany, DataVersioned(_), DataVersioned.of(_)))
+  testsFor(stringLookupTests("Immutable", newDataIn3DVersioned, DataVersioned(_), DataVersioned.ofValue(_)))
+  testsFor(stringLookupTests("Immutable (builder)", usingBuilder, DataVersioned(_), DataVersioned.ofValue(_)))
+  testsFor(stringLookupTests("Immutable (setMany)", usingSetMany, DataVersioned(_), DataVersioned.ofValue(_)))
 
   test("Immutable: Adding and removing data in intervals"):
     val dayZero = LocalDateTime.of(2025, 8, 1, 8, 0)
@@ -258,7 +258,7 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
     fixture3.getAll.toList shouldBe expectedData3
 
     val fixture4 = fixture3
-      .flatMap(d => DataVersioned.of[String, IntDim](d.value).map(x => d.interval -> x.value))
+      .flatMap(d => DataVersioned.ofValue[String, IntDim](d.value).map(x => d.interval -> x.value))
     val expectedData4 = expectedData3
     fixture4.getAll.toList shouldBe expectedData4
     assertThrows[NoSuchElementException]:
@@ -271,7 +271,7 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
     assertThrows[NoSuchElementException]:
       fixture5.get
 
-    val fixture6 = fixture5.flatMap(d => DataVersioned.of[String, IntDim](d.value))
+    val fixture6 = fixture5.flatMap(d => DataVersioned.ofValue[String, IntDim](d.value))
     val expectedData6 = List((unbounded[Int] x unbounded[Int] x unbounded[Int]) -> "Hey!!!")
     fixture6.getAll.toList shouldBe expectedData6
     fixture6.get shouldBe "Hey!!!"
@@ -304,7 +304,7 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
 
   test("Immutable: Updating data in intervals"):
     val one: DataVersioned[String, IntDim] = DataVersioned
-      .of[String, IntDim]("value")
+      .ofValue[String, IntDim]("value")
       .incrementCurrentVersion()
 
     val oneSplit = one.remove(intervalAt(0) x unbounded[Int] x unbounded[Int]) // split

@@ -16,7 +16,7 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
   import Interval1D.*
 
   // shared
-  testsFor(stringLookupTests("Mutable", Data(_), Data.of(_)))
+  testsFor(stringLookupTests("Mutable", Data(_), Data.ofValue(_)))
 
   def usingBuilder(
     data: Iterable[ValidData[String, MixedDim]]
@@ -144,7 +144,7 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
 
   test("Mutable: Simple toString"):
     val fixturePadData = Data
-      .of[String, IntDim]("H")
+      .ofValue[String, IntDim]("H")
     fixturePadData.set((intervalFrom(1) x intervalTo(0) x interval(1, 9)) -> "W")
     // if needed: fixturePadData.recompressAll()
     // println(fixturePadData.toString)
@@ -162,7 +162,7 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
     concat.result() shouldBe "H->{-∞, -∞, -∞} H->{-∞, -∞, 1} H->{-∞, -∞, 10} W->{1, -∞, 1} H->{1, 1, 1} "
 
     val fixturePadLabel = Data
-      .of[String, IntDim]("Helloooooooooo")
+      .ofValue[String, IntDim]("Helloooooooooo")
     fixturePadLabel.set((intervalFrom(1) x unbounded[Int] x unbounded[Int]) -> "Wooooooorld")
     // println(fixturePadLabel.toString)
     fixturePadLabel.toString shouldBe

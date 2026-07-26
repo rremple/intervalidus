@@ -993,12 +993,10 @@ import java.time.LocalDate.of as date
 given Experimental = Experimental("requireDisjoint")
 // or given CoreConfig.default[Domain.In1D[LocalDate]].withExperimental(Experimental("requireDisjoint"))
 
-val plan1d = Data(
-  Seq(
-    intervalFrom(date(2024, 4, 1)) -> "Premium",
-    intervalFrom(date(2024, 1, 1)) -> "Basic" // <-- wrong, throws an IllegalArgumentException: requirement failed: data must be disjoint
-    // interval(date(2024, 1, 1), date(2024, 3, 31)) -> "Basic" // <-- right, does not throw
-  )
+val plan1d = Data.of(
+  intervalFrom(date(2024, 4, 1)) -> "Premium",
+  intervalFrom(date(2024, 1, 1)) -> "Basic" // <-- wrong, throws an IllegalArgumentException: requirement failed: data must be disjoint
+  // interval(date(2024, 1, 1), date(2024, 3, 31)) -> "Basic" // <-- right, does not throw
 )
 ```
 

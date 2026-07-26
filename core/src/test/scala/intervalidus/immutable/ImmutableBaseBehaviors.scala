@@ -155,8 +155,8 @@ trait ImmutableBaseBehaviors:
         )
       )
 
-      val data1 = Data(Seq(intervalFrom(1).to(3) -> "A", intervalFrom(5) -> "B"))
-      val data2 = Data(Seq(intervalFrom(2).to(4) -> "C", intervalFrom(6) -> "D"))
+      val data1 = Data.of(intervalFrom(1).to(3) -> "A", intervalFrom(5) -> "B")
+      val data2 = Data.of(intervalFrom(2).to(4) -> "C", intervalFrom(6) -> "D")
       // Default merge operation will "prioritize left"
       data1.merge(data2).getAll.toList shouldBe List(
         intervalFrom(1).to(3) -> "A",
