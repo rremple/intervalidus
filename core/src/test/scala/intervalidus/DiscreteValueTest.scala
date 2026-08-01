@@ -4,12 +4,13 @@ import intervalidus.DomainLike.given
 import intervalidus.collection.{Coordinate, CoordinateFixed}
 import org.scalatest.compatible.Assertion
 import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 
 import java.time.LocalDate
 import scala.language.implicitConversions
 import scala.math.Ordering.Implicits.infixOrderingOps
 
-class DiscreteValueTest extends AnyFunSuite:
+class DiscreteValueTest extends AnyFunSuite with Matchers:
   test("Auto-derive Discrete Value from an enum"):
     enum Color derives DiscreteValue:
       case Red, Yellow, Green, Cyan, Blue, Magenta
@@ -94,6 +95,31 @@ class DiscreteValueTest extends AnyFunSuite:
     assert(Domain.in1D(4) beforeOrAtEnd Domain.in1D(4))
     assert(!(Domain.in1D(4) beforeEnd Domain.in1D(4)))
     assert(Domain.in1D(3) beforeEnd Domain.in1D(4))
+
+    Domain.in1D(1) match
+      case Domain.Point.In1D(x) => x shouldBe 1
+      case _                    => fail("expected point match")
+    Domain.in2D(1, 2) match
+      case Domain.Point.In2D(x, y) => (x, y) shouldBe (1, 2)
+      case _                       => fail("expected point match")
+    Domain.in3D(1, 2, 3) match
+      case Domain.Point.In3D(x, y, z) => (x, y, z) shouldBe (1, 2, 3)
+      case _                          => fail("expected point match")
+    Domain.in4D(1, 2, 3, 4) match
+      case Domain.Point.In4D(x, y, z, w) => (x, y, z, w) shouldBe (1, 2, 3, 4)
+      case _                             => fail("expected point match")
+    Domain.in1D(Top) match
+      case Domain.Point.In1D(x) => fail("didn't expect point match")
+      case _                    => succeed
+    Domain.in2D(1, Bottom) match
+      case Domain.Point.In2D(x, y) => fail("didn't expect point match")
+      case _                       => succeed
+    Domain.in3D(Bottom, Top, 3) match
+      case Domain.Point.In3D(x, y, z) => fail("didn't expect point match")
+      case _                          => succeed
+    Domain.in4D(Top, 2, 3, 4) match
+      case Domain.Point.In4D(x, y, z, w) => fail("didn't expect point match")
+      case _                             => succeed
 
     assertResult("3")(Domain.in1D(3).asString)
     assertResult("{3, -∞}")((domain(3) x Bottom).asString)

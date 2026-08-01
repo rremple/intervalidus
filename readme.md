@@ -603,6 +603,28 @@ the `SoftwareProductFeatureManagement` example for tracking release planning and
 immutable forms of
 `DataVersioned`.
 
+#### DataFunction:
+
+Similar to `DataVersioned`, `DataFunction` mimics the `Data` API but uses an underlying `Data` structure with domain
+functions as the value type. This allows more natural representation and handling of piecewise functions. For example,
+the reLU example above could be expressed even more directly using a `DataFunction` instance:
+
+```scala 3
+val reLU = DataFunction.of(
+  intervalToBefore(0.0) -> (_ => 0.0),
+  intervalFrom(0.0) -> {
+    case Point.In1D(x) => x
+    case _ => Double.PositiveInfinity
+  }
+)
+
+println(s"reLU at -1 = ${reLU(-1)}") // reLU at -1 = 0
+println(s"reLU at  0 = ${reLU(0)}") // reLU at  0 = 0
+println(s"reLU at  1 = ${reLU(1)}") // reLU at  1 = 1
+```
+Like `Data`, there are both mutable and immutable forms of `DataFunction`.
+
+
 #### Variable:
 
 Another application is a simple variable, i.e., having a value that varies in time. The twist here is that an underlying

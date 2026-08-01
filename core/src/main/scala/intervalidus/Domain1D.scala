@@ -335,8 +335,9 @@ object Domain1D:
       val d = LocalDateTime.ofInstant(i, ZoneOffset.UTC)
       s"LocalDate.of(${d.getYear},${d.getMonthValue},${d.getDayOfMonth})" +
         s".atTime(${d.getHour},${d.getMinute},${d.getSecond},${d.getNano}).toInstant(ZoneOffset.UTC)"
-    case s: String => s"\"$s\"" // only used by ValidData.toCodeLikeString
-    case _         => value.toString
+    case s: String   => s"\"$s\"" // only used by ValidData.toCodeLikeString
+    case s: (? => ?) => "<function>" // only used by ValidData.toCodeLikeString
+    case _           => value.toString
 
   /**
     * Construct a domain point (closed) based on a domain value.

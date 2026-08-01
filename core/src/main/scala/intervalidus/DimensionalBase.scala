@@ -1049,7 +1049,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
       b <- that.getIntersectingInternal(a.interval)(using thatTx)
       intervalIntersection <- a.interval ∩ b.interval
     yield intervalIntersection
-    IntervalShape.withoutChecks(intersectingIntervals)
+    IntervalShape(intersectingIntervals)
 
   /**
     * Internal method, to zip with the data of another dimensional structure with the same domain type. The result
@@ -1442,8 +1442,8 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     tx.dataInBoxTree.get(interval.asBox).exists(_.payload.interval intersects interval)
 
   /**
-    * Is this a subset (proper or improper) of that? See [[https://en.wikipedia.org/wiki/Subset]]. This is the
-    * Topological Subset without considering values.
+    * Is the domain of this a subset (proper or improper) of that's domain? See
+    * [[https://en.wikipedia.org/wiki/Subset]]. This is the Topological Subset without considering values.
     *
     * @param that
     *   shape to test
@@ -1459,8 +1459,8 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
   /**
     * Same as [[isSubsetOf]]
     *
-    * Is this a subset (proper or improper) of that? See [[https://en.wikipedia.org/wiki/Subset]]. This is the
-    * Topological Subset without considering values.
+    * Is the domain of this a subset (proper or improper) of that's domain? See
+    * [[https://en.wikipedia.org/wiki/Subset]]. This is the Topological Subset without considering values.
     *
     * @param that
     *   shape to test
