@@ -12,7 +12,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Launch Scala Steward
-        uses: scala-steward-org/scala-steward-action@v2
+        uses: scala-steward-org/scala-steward-action@v2.92.0
         with:
           github-token: ${{ secrets.PUBLISH_TO_PAGES }}
           author-email: "rremple@users.noreply.github.com"
