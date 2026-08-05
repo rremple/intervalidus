@@ -49,6 +49,20 @@ object DataFunction extends DimensionalFunctionBaseObject[DataFunction]:
   *   2. When querying or modifying existing pieces dynamically, reuse references retrieved directly from the structure
   *      (e.g., `df.getDataAt(pt).map(_.value)`).
   *
+  * @note
+  *   This class inherits [[DimensionalFunctionBase]] methods exported from the underlying [[mutable.Data]] structure.
+  *   Because of an open [[https://github.com/scala/scala3/issues/14342 Scala issue]], only exported methods without
+  *   parameters are rendered correctly in the API docs. Although not in the API doc, these methods are also available:
+  *   - [[Data.isDefinedAt isDefinedAt]]
+  *   - [[Data.getDataAt getDataAt]]
+  *   - [[Data.getIntersecting getIntersecting]]
+  *   - [[Data.intersects intersects]]
+  *   - [[Data.isSubsetOf isSubsetOf]]
+  *   - [[Data.intervals intervals]]
+  *   - [[Data.foldLeft foldLeft]]
+  *   - [[Data.diffActionsFrom diffActionsFrom]]
+  *   - [[Data.⊆ ⊆]]
+  *
   * @tparam V
   *   the result type of the domain function managed as data.
   * @tparam D

@@ -49,6 +49,45 @@ object DataFunction extends DimensionalFunctionBaseObject[DataFunction]:
   *   2. When querying or modifying existing pieces dynamically, reuse references retrieved directly from the structure
   *      (e.g., `df.getDataAt(pt).map(_.value)`).
   *
+  * @note
+  *   This class inherits [[DimensionalFunctionBase]] methods exported from the underlying [[mutable.Data]] structure,
+  *   and also exports additional underlying methods. Because of an open
+  *   [[https://github.com/scala/scala3/issues/14342 Scala issue]], only exported methods without parameters are
+  *   rendered correctly in the API docs. Although not in the API doc, these methods are also available:
+  *   - [[Data.isDefinedAt isDefinedAt]]
+  *   - [[Data.getDataAt getDataAt]]
+  *   - [[Data.getIntersecting getIntersecting]]
+  *   - [[Data.intersects intersects]]
+  *   - [[Data.isSubsetOf isSubsetOf]]
+  *   - [[Data.intervals intervals]]
+  *   - [[Data.foldLeft foldLeft]]
+  *   - [[Data.diffActionsFrom diffActionsFrom]]
+  *   - [[Data.⊆ ⊆]]
+  *   - [[Data.map map]]
+  *   - [[Data.mapIntervals mapIntervals]]
+  *   - [[Data.collect collect]]
+  *   - [[Data.collectValues collectValues]]
+  *   - [[Data.collectIntervals collectIntervals]]
+  *   - [[Data.filter filter]]
+  *   - [[Data.set set]]
+  *   - [[Data.setMany setMany]]
+  *   - [[Data.setIfNoConflict setIfNoConflict]]
+  *   - [[Data.update update]]
+  *   - [[Data.replace replace]]
+  *   - [[Data.replaceByKey replaceByKey]]
+  *   - [[Data.remove remove]]
+  *   - [[Data.removeByKey removeByKey]]
+  *   - [[Data.removeMany removeMany]]
+  *   - [[Data.removeValue removeValue]]
+  *   - [[Data.compress compress]]
+  *   - [[Data.compressAll compressAll]]
+  *   - [[Data.recompressAll recompressAll]]
+  *   - [[Data.applyDiffActions applyDiffActions]]
+  *   - [[Data.fill fill]]
+  *   - [[Data.+ +]]
+  *   - [[Data.++ ++]]
+  *   - [[Data.- -]]
+  *   - [[Data.-- --]]
   * @tparam V
   *   the result type of the domain function managed as data.
   * @tparam D
@@ -242,7 +281,8 @@ class DataFunction[V, D <: NonEmptyTuple: DomainLike] private (
     */
   def ∩(interval: Interval[D]): Unit = intersection(interval)
 
-  // Everything else exports cleanly (TODO: this should fully inherit scaladoc, but doesn't because of a ScalaDoc bug).
+  // Everything else exports cleanly
+  // All these methods take parameters (or have an empty parameter list), so scaladoc does not generate
   export underlying.{
     map,
     mapIntervals,

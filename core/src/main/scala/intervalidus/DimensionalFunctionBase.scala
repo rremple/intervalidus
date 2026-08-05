@@ -206,6 +206,20 @@ trait DimensionalFunctionBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimens
   * Interface is similar to [[DimensionalBase]], but it operates on an underlying [[intervalidus.immutable.Data]] where
   * values are domain functions.
   *
+  * @note
+  *   This class exports methods from the underlying [[mutable.Data]] structure. Because of an open
+  *   [[https://github.com/scala/scala3/issues/14342 Scala issue]], only exported methods without parameters are
+  *   rendered correctly in the API docs. Although not in the API doc, these methods are also available:
+  *   - [[Data.isDefinedAt isDefinedAt]]
+  *   - [[Data.getDataAt getDataAt]]
+  *   - [[Data.getIntersecting getIntersecting]]
+  *   - [[Data.intersects intersects]]
+  *   - [[Data.isSubsetOf isSubsetOf]]
+  *   - [[Data.intervals intervals]]
+  *   - [[Data.foldLeft foldLeft]]
+  *   - [[Data.diffActionsFrom diffActionsFrom]]
+  *   - [[Data.⊆ ⊆]]
+  *
   * @tparam V
   *   the result type of the domain function managed as data.
   * @tparam D
@@ -282,92 +296,6 @@ trait DimensionalFunctionBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimens
   * @define removeManyParamIntervals
   *   the intervals where any valid functions are removed.
   */
-//TODO: in case export forwarding has to be replaced with manual forwarding to solve scaladoc issue:
-//  * @define mapDesc
-//  *   Applies a function to all valid function data.
-//  * @define mapParamF
-//  *   the function to apply to each valid function data element.
-//  * @define collectDesc
-//  *   Applies a partial function to all valid function data on which it is defined.
-//  * @define collectParamPf
-//  *   the partial function to apply to each data element.
-//  * @define collectValuesDesc
-//  *   Applies a partial function to all valid function data values on which it is defined. Whole functions are
-//  considered rather than just function results.
-//  * @define collectValuesParamPf
-//  *   the partial function to apply to the value part of each valid function data element.
-//  * @define mapIntervalsDesc
-//  *   Applies a function to all valid function data intervals.
-//  * @define mapIntervalsParamF
-//  *   the function to apply to the interval part of each valid function data element.
-//  * @define collectIntervalsDesc
-//  *   Applies a partial function to all valid function data intervals on which it is defined.
-//  * @define collectIntervalsParamPf
-//  *   the partial function to apply to the interval part of each valid function data element.
-//  * @define filterParamP
-//  *   the predicate used to test elements.
-//  * @define setIfNoConflictDesc
-//  *   Set new valid function data, but only if there are no data previously valid in this interval.
-//  * @define setIfNoConflictParamData
-//  *   the valid function data to set.
-//  * @define updateDesc
-//  *   Update everything valid in the data's interval to have the data's value. No new intervals of validity are
-//  added as
-//  *   part of this operation. Data with overlaps are adjusted accordingly.
-//  * @define updateParamData
-//  *   the new value and interval existing data should take on.
-//  * @define removeByKeyDesc
-//  *   Remove the valid function with an interval starting at the key.
-//  * @define removeByKeyParamKey
-//  *   key of the data to be removed (the interval start).
-//  * @define removeValueDesc
-//  *   Remove the value in all the intervals where it is valid.
-//  * @define removeValueParamValue
-//  *   the value that is removed.
-//  * @define compressDesc
-//  *   Compress out adjacent intervals with the same value.
-//  * @define compressParamValue
-//  *   value for which valid function data are compressed.
-//  * @define compressAllDesc
-//  *   Compress out adjacent intervals with the same value for all values.
-//  * @define recompressAllDesc1
-//  *   Unlike in 1D, there is no unique compression in higher dimensions. For example, {[1..5], [1..2]} + {[1..2],
-//  *   [3..4]} could also be represented physically as {[1..2], [1..4]} + {[3..5], [1..2]}.
-//  * @define recompressAllDesc2
-//  *   First, this method decompresses data to use a unique arrangement of "atomic" intervals. In the above example,
-//  that
-//  *   would be the following "atomic" intervals: {[1..2], [1..2]} + {[3..5], [1..2]} + {[1..2], [3..4]}. Next, it
-//  *   recompresses the data, which results in a unique physical representation. It may be useful when comparing two
-//  *   structures to see if they are logically equivalent even if, physically, they differ in how they are compressed.
-//  * @define recompressAllParamOtherIntervals
-//  *   other intervals to be considered when decompressing the space. This is useful in testing equivalence of two
-//  *   structures where their starting intervals differ enough that they result in a different enough decompression
-//  that
-//  *   it results in different recompressions.
-//  * @define applyDiffActionsDesc
-//  *   Applies a sequence of diff actions to this structure.
-//  * @define applyDiffActionsParamDiffActions
-//  *   actions to be applied.
-//  * @define fillDesc
-//  *   Adds a value as valid in portions of the interval where there aren't already valid functions.
-//  * @define fillParamData
-//  *   value to make valid in any validity gaps found in the interval
-//  * @define replaceDesc
-//  *   Remove the old data and replace it with the new data. The new data value and interval can be different. Data
-//  that
-//  *   overlaps with the new data interval are adjusted accordingly.
-//  * @define replaceParamOldData
-//  *   the old data to be replaced.
-//  * @define replaceParamNewData
-//  *   the new data replacing the old data
-//  * @define replaceByKeyDesc
-//  *   Remove the old data and replace it with the new data. The new data value and interval can be different. Data
-//  that
-//  *   overlaps with the new data interval are adjusted accordingly.
-//  * @define replaceByKeyParamKey
-//  *   key of the old data to be replaced (the interval start).
-//  * @define replaceByKeyParamNewData
-//  *   the new data replacing the old data
 trait DimensionalFunctionBase[V, D <: NonEmptyTuple: DomainLike](
   private[intervalidus] val underlying: MutableData[DomainFunction[V, D], D]
 ) extends PartialFunction[D, V]:
@@ -704,22 +632,24 @@ trait DimensionalFunctionBase[V, D <: NonEmptyTuple: DomainLike](
   // ---------- (no function-specific arguments or return types) ----------
 
   export underlying.{
-    isDefinedAt,
+    // These methods don't take parameters, so scaladoc generates fine
     isEmpty,
     size,
     get,
     getOption,
     getAll,
+    domain,
+    values,
+    allIntervals,
+    boundingInterval,
+    // These methods take parameters, so scaladoc does not generate
+    isDefinedAt,
     getDataAt,
     getIntersecting,
     intersects,
     isSubsetOf,
-    domain,
-    values,
     intervals,
-    allIntervals,
     foldLeft,
     diffActionsFrom,
-    boundingInterval,
     ⊆
   }
