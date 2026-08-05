@@ -21,10 +21,10 @@ object DataFunction extends DimensionalFunctionBaseObject[DataFunction]:
   * functions.
   *
   * Because domain functions (`D => V`) are arbitrary executable closures, equality and lookup operations within
-  * `DataFunction` that rely on the identity of these values (e.g., [[compress]], [[intervals]], and [[removeValue]])
-  * ultimately depend on reference identity of functions (i.e., `eq`), not logical equivilance. Also functions created
-  * through functional composition (e.g., `f.andThen(g)`) instantiate distinct object references on the heap even when
-  * mathematically identical.
+  * `DataFunction` that rely on the identity of these values (e.g., [[compress]], [[mutable.Data.intervals intervals]],
+  * and [[removeValue]]) ultimately depend on reference identity of functions (i.e., `eq`), not logical equivilance.
+  * Also functions created through functional composition (e.g., `f.andThen(g)`) instantiate distinct object references
+  * even when mathematically identical.
   *
   * {{{
   * type D = Domain.In1D[Double]
@@ -53,15 +53,15 @@ object DataFunction extends DimensionalFunctionBaseObject[DataFunction]:
   *   This class inherits [[DimensionalFunctionBase]] methods exported from the underlying [[mutable.Data]] structure.
   *   Because of an open [[https://github.com/scala/scala3/issues/14342 Scala issue]], only exported methods without
   *   parameters are rendered correctly in the API docs. Although not in the API doc, these methods are also available:
-  *   - [[Data.isDefinedAt isDefinedAt]]
-  *   - [[Data.getDataAt getDataAt]]
-  *   - [[Data.getIntersecting getIntersecting]]
-  *   - [[Data.intersects intersects]]
-  *   - [[Data.isSubsetOf isSubsetOf]]
-  *   - [[Data.intervals intervals]]
-  *   - [[Data.foldLeft foldLeft]]
-  *   - [[Data.diffActionsFrom diffActionsFrom]]
-  *   - [[Data.⊆ ⊆]]
+  *   - [[mutable.Data.isDefinedAt isDefinedAt]]
+  *   - [[mutable.Data.getDataAt getDataAt]]
+  *   - [[mutable.Data.getIntersecting getIntersecting]]
+  *   - [[mutable.Data.intersects intersects]]
+  *   - [[mutable.Data.isSubsetOf isSubsetOf]]
+  *   - [[mutable.Data.intervals intervals]]
+  *   - [[mutable.Data.foldLeft foldLeft]]
+  *   - [[mutable.Data.diffActionsFrom diffActionsFrom]]
+  *   - [[mutable.Data.⊆ ⊆]]
   *
   * @tparam V
   *   the result type of the domain function managed as data.

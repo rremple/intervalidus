@@ -21,10 +21,10 @@ object DataFunction extends DimensionalFunctionBaseObject[DataFunction]:
   * functions.
   *
   * Because domain functions (`D => V`) are arbitrary executable closures, equality and lookup operations within
-  * `DataFunction` that rely on the identity of these values (e.g., [[compress]], [[intervals]], and [[removeValue]])
-  * ultimately depend on reference identity of functions (i.e., `eq`), not logical equivilance. Also functions created
-  * through functional composition (e.g., `f.andThen(g)`) instantiate distinct object references on the heap even when
-  * mathematically identical.
+  * `DataFunction` that rely on the identity of these values (e.g., [[mutable.Data.compress compress]],
+  * [[mutable.Data.intervals intervals]], and [[mutable.Data.removeValue removeValue]]) ultimately depend on reference
+  * identity of functions (i.e., `eq`), not logical equivilance. Also functions created through functional composition
+  * (e.g., `f.andThen(g)`) instantiate distinct object references even when mathematically identical.
   *
   * {{{
   * type D = Domain.In1D[Double]
@@ -39,10 +39,11 @@ object DataFunction extends DimensionalFunctionBaseObject[DataFunction]:
   * }}}
   *
   * Consequently:
-  *   - Transformation methods (e.g., [[mapValues]] and [[collectValues]]) that compose or instantiate new functions
-  *     will produce distinct function references across intervals even if they were the same before transformation.
-  *   - Adjacent intervals with transformed functions will not coalesce under [[compress]] unless the exact same
-  *     transformed function instance is shared.
+  *   - Transformation methods (e.g., [[mapValues]] and [[mutable.Data.collectValues collectValues]]) that compose or
+  *     instantiate new functions will produce distinct function references across intervals even if they were the same
+  *     before transformation.
+  *   - Adjacent intervals with transformed functions will not coalesce under [[mutable.Data.compress compress]] unless
+  *     the exact same transformed function instance is shared.
   *
   * Best Practices:
   *   1. Bind domain functions to stable `val` identifiers wherever identity is important.
@@ -54,40 +55,40 @@ object DataFunction extends DimensionalFunctionBaseObject[DataFunction]:
   *   and also exports additional underlying methods. Because of an open
   *   [[https://github.com/scala/scala3/issues/14342 Scala issue]], only exported methods without parameters are
   *   rendered correctly in the API docs. Although not in the API doc, these methods are also available:
-  *   - [[Data.isDefinedAt isDefinedAt]]
-  *   - [[Data.getDataAt getDataAt]]
-  *   - [[Data.getIntersecting getIntersecting]]
-  *   - [[Data.intersects intersects]]
-  *   - [[Data.isSubsetOf isSubsetOf]]
-  *   - [[Data.intervals intervals]]
-  *   - [[Data.foldLeft foldLeft]]
-  *   - [[Data.diffActionsFrom diffActionsFrom]]
-  *   - [[Data.⊆ ⊆]]
-  *   - [[Data.map map]]
-  *   - [[Data.mapIntervals mapIntervals]]
-  *   - [[Data.collect collect]]
-  *   - [[Data.collectValues collectValues]]
-  *   - [[Data.collectIntervals collectIntervals]]
-  *   - [[Data.filter filter]]
-  *   - [[Data.set set]]
-  *   - [[Data.setMany setMany]]
-  *   - [[Data.setIfNoConflict setIfNoConflict]]
-  *   - [[Data.update update]]
-  *   - [[Data.replace replace]]
-  *   - [[Data.replaceByKey replaceByKey]]
-  *   - [[Data.remove remove]]
-  *   - [[Data.removeByKey removeByKey]]
-  *   - [[Data.removeMany removeMany]]
-  *   - [[Data.removeValue removeValue]]
-  *   - [[Data.compress compress]]
-  *   - [[Data.compressAll compressAll]]
-  *   - [[Data.recompressAll recompressAll]]
-  *   - [[Data.applyDiffActions applyDiffActions]]
-  *   - [[Data.fill fill]]
-  *   - [[Data.+ +]]
-  *   - [[Data.++ ++]]
-  *   - [[Data.- -]]
-  *   - [[Data.-- --]]
+  *   - [[mutable.Data.isDefinedAt isDefinedAt]]
+  *   - [[mutable.Data.getDataAt getDataAt]]
+  *   - [[mutable.Data.getIntersecting getIntersecting]]
+  *   - [[mutable.Data.intersects intersects]]
+  *   - [[mutable.Data.isSubsetOf isSubsetOf]]
+  *   - [[mutable.Data.intervals intervals]]
+  *   - [[mutable.Data.foldLeft foldLeft]]
+  *   - [[mutable.Data.diffActionsFrom diffActionsFrom]]
+  *   - [[mutable.Data.⊆ ⊆]]
+  *   - [[mutable.Data.map map]]
+  *   - [[mutable.Data.mapIntervals mapIntervals]]
+  *   - [[mutable.Data.collect collect]]
+  *   - [[mutable.Data.collectValues collectValues]]
+  *   - [[mutable.Data.collectIntervals collectIntervals]]
+  *   - [[mutable.Data.filter filter]]
+  *   - [[mutable.Data.set set]]
+  *   - [[mutable.Data.setMany setMany]]
+  *   - [[mutable.Data.setIfNoConflict setIfNoConflict]]
+  *   - [[mutable.Data.update update]]
+  *   - [[mutable.Data.replace replace]]
+  *   - [[mutable.Data.replaceByKey replaceByKey]]
+  *   - [[mutable.Data.remove remove]]
+  *   - [[mutable.Data.removeByKey removeByKey]]
+  *   - [[mutable.Data.removeMany removeMany]]
+  *   - [[mutable.Data.removeValue removeValue]]
+  *   - [[mutable.Data.compress compress]]
+  *   - [[mutable.Data.compressAll compressAll]]
+  *   - [[mutable.Data.recompressAll recompressAll]]
+  *   - [[mutable.Data.applyDiffActions applyDiffActions]]
+  *   - [[mutable.Data.fill fill]]
+  *   - [[mutable.Data.+ +]]
+  *   - [[mutable.Data.++ ++]]
+  *   - [[mutable.Data.- -]]
+  *   - [[mutable.Data.-- --]]
   * @tparam V
   *   the result type of the domain function managed as data.
   * @tparam D
