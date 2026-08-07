@@ -86,6 +86,8 @@ lazy val root = (project in file("."))
     `intervalidus-pickle`,
     `intervalidus-weepickle`,
     `intervalidus-upickle`,
+    `intervalidus-circe`,
+    `intervalidus-play`,
     `intervalidus-tinyrule`,
     `intervalidus-examples`,
     `intervalidus-example-mongodb`,
@@ -190,6 +192,23 @@ lazy val `intervalidus-upickle` = (project in file("json/upickle"))
   .settings(commonPublishSettings("intervalidus-upickle"))
   .settings(
     libraryDependencies += "com.lihaoyi" %% "upickle" % "4.4.3"
+  )
+
+lazy val `intervalidus-circe` = (project in file("json/circe"))
+  .dependsOn(core, `intervalidus-pickle` % "test->test")
+  .settings(commonPublishSettings("intervalidus-circe"))
+  .settings(
+    libraryDependencies ++= Seq(
+      "io.circe" %% "circe-core" % "0.14.16",
+      "io.circe" %% "circe-parser" % "0.14.16" % Test
+    )
+  )
+
+lazy val `intervalidus-play` = (project in file("json/play"))
+  .dependsOn(core, `intervalidus-pickle` % "test->test")
+  .settings(commonPublishSettings("intervalidus-play"))
+  .settings(
+    libraryDependencies += "org.playframework" %% "play-json" % "3.0.6"
   )
 
 lazy val `intervalidus-tinyrule` = (project in file("sidequests/tinyrule"))

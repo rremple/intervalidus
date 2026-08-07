@@ -94,7 +94,7 @@ trait JsonTestBehavior[W[_], R[_]](using
   extension (json: String) def as[T: R]: T = jsonTo(json)
   extension [T: W](t: T) def asJson: String = toJsonString(t)
 
-  private def quote(s: String): String = s"\"$s\""
+  protected def quote(s: String): String = s"\"$s\""
   private def isomorphic[T: R: W](t: T, json: String): Assertion =
     json.as[T] shouldBe t
     t.asJson shouldBe json
