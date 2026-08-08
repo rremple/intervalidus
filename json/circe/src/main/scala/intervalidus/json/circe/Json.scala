@@ -15,7 +15,7 @@ object Json:
   /**
     * Domains encoded as strings/objects
     */
-  given [T: DiscreteValue: Decoder](using encoderT: Encoder[T]): Codec[Domain1D[T]] = Codec.from(
+  given [T: DiscreteValue: Encoder: Decoder]: Codec[Domain1D[T]] = Codec.from(
     Decoder.instance: cursor =>
       def asClosedPoint = cursor.get[T]("point").map(Domain1D.Point(_))
       def asOpenPoint = cursor.get[T]("open").map(Domain1D.OpenPoint(_))
@@ -28,8 +28,8 @@ object Json:
       asClosedPoint.orElse(asOpenPoint).orElse(asUnbound)
     ,
     Encoder.instance:
-      case Domain1D.Point(p)     => obj("point" -> p.asJson(using encoderT))
-      case Domain1D.OpenPoint(p) => obj("open" -> p.asJson(using encoderT))
+      case Domain1D.Point(p)     => obj("point" -> (p: T).asJson)
+      case Domain1D.OpenPoint(p) => obj("open" -> (p: T).asJson)
       case Domain1D.Top          => fromString("Top")
       case Domain1D.Bottom       => fromString("Bottom")
   )
@@ -82,9 +82,8 @@ object Json:
   /**
     * Diff actions encoded as objects
     */
-  given [V, D <: NonEmptyTuple: DomainLike: Decoder](using
-    codecV: Codec[ValidData[V, D]],
-    encoderD: Encoder[D]
+  given [V, D <: NonEmptyTuple: DomainLike: Encoder: Decoder](using
+    Codec[ValidData[V, D]],
   ): Codec[DiffAction[V, D]] = Codec.from(
     Decoder.instance: cursor =>
       cursor
@@ -96,11 +95,11 @@ object Json:
           case unknown  => Left(DecodingFailure(s"Unknown DiffAction: $unknown", cursor.history)),
     Encoder.instance:
       case DiffAction.Create(validData: ValidData[V, D]) =>
-        obj("action" -> fromString("Create"), "validData" -> validData.asJson(using codecV))
+        obj("action" -> fromString("Create"), "validData" -> validData.asJson)
       case DiffAction.Update(validData: ValidData[V, D]) =>
-        obj("action" -> fromString("Update"), "validData" -> validData.asJson(using codecV))
+        obj("action" -> fromString("Update"), "validData" -> validData.asJson)
       case DiffAction.Delete(key) =>
-        obj("action" -> fromString("Delete"), "key" -> key.asJson(using encoderD))
+        obj("action" -> fromString("Delete"), "key" -> (key: D).asJson)
   )
 
   /**

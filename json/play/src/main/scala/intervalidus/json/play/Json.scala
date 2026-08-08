@@ -14,7 +14,7 @@ object Json:
   /**
     * Domains encoded as strings/objects
     */
-  given [T: DiscreteValue: Reads](using writesT: Writes[T]): Format[Domain1D[T]] = Format(
+  given [T: DiscreteValue: Reads: Writes]: Format[Domain1D[T]] = Format(
     Reads: json =>
       def asClosedPoint = (json \ "point").validate[T].map(Domain1D.Point(_))
       def asOpenPoint = (json \ "open").validate[T].map(Domain1D.OpenPoint(_))
@@ -27,8 +27,8 @@ object Json:
       asClosedPoint.orElse(asOpenPoint).orElse(asUnbound)
     ,
     Writes:
-      case Domain1D.Point(p)     => obj("point" -> toJson(p)(using writesT))
-      case Domain1D.OpenPoint(p) => obj("open" -> toJson(p)(using writesT))
+      case Domain1D.Point(p)     => obj("point" -> toJson[T](p))
+      case Domain1D.OpenPoint(p) => obj("open" -> toJson[T](p))
       case Domain1D.Top          => JsString("Top")
       case Domain1D.Bottom       => JsString("Bottom")
   )
@@ -36,7 +36,7 @@ object Json:
   /**
     * Intervals encoded as objects
     */
-  given [D <: NonEmptyTuple: DomainLike: Writes: Reads]: Format[Interval[D]] = Format(
+  given [D <: NonEmptyTuple: DomainLike: Reads: Writes]: Format[Interval[D]] = Format(
     Reads: json =>
       for
         start <- (json \ "start").validate[D]
@@ -63,7 +63,7 @@ object Json:
   /**
     * Valid data encoded as objects
     */
-  given [V: Writes: Reads, D <: NonEmptyTuple: DomainLike](using
+  given [V: Reads: Writes, D <: NonEmptyTuple: DomainLike](using
     Format[Interval[D]]
   ): Format[ValidData[V, D]] = Format(
     Reads: json =>
@@ -81,9 +81,8 @@ object Json:
   /**
     * Diff actions encoded as objects
     */
-  given [V, D <: NonEmptyTuple: DomainLike: Reads](using
-    formatV: Format[ValidData[V, D]],
-    writesD: Writes[D]
+  given [V, D <: NonEmptyTuple: DomainLike: Reads: Writes](using
+    Format[ValidData[V, D]]
   ): Format[DiffAction[V, D]] = Format(
     Reads: json =>
       (json \ "action")
@@ -95,11 +94,11 @@ object Json:
           case unknown  => JsError(s"Unknown DiffAction: $unknown"),
     Writes:
       case DiffAction.Create(validData: ValidData[V, D]) =>
-        obj("action" -> "Create", "validData" -> toJson(validData)(using formatV))
+        obj("action" -> "Create", "validData" -> toJson(validData))
       case DiffAction.Update(validData: ValidData[V, D]) =>
-        obj("action" -> "Update", "validData" -> toJson(validData)(using formatV))
+        obj("action" -> "Update", "validData" -> toJson(validData))
       case DiffAction.Delete(key) =>
-        obj("action" -> "Delete", "key" -> toJson(key)(using writesD))
+        obj("action" -> "Delete", "key" -> toJson[D](key))
   )
 
   /**
