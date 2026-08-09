@@ -41,7 +41,7 @@ object BsonTransformer:
       case string: BsonString => to.visitString(string.getValue)
       case id: BsonObjectId   => to.visitString(id.getValue.toHexString)
       case theUnexpected      =>
-        throw Exception(s"BsonTransformer: didn't expect $theUnexpected (${theUnexpected.getBsonType})")
+        throw IllegalArgumentException(s"BsonTransformer: didn't expect $theUnexpected (${theUnexpected.getBsonType})")
 
     // To
 

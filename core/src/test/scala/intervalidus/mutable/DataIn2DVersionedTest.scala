@@ -47,11 +47,11 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     val empty2: DataVersioned[String, IntDim] = Data.empty[String, Versioned[IntDim]] // implicit conversion
     empty shouldBe empty2
 
-    assertThrows[Exception]: // version too large
+    assertThrows[IllegalArgumentException]: // version too large
       empty.setCurrentVersion(Int.MaxValue)
 
     empty.setCurrentVersion(Int.MaxValue - 1) // last approved version
-    assertThrows[Exception]: // wow, ran out of versions!
+    assertThrows[IllegalStateException]: // wow, ran out of versions!
       empty.incrementCurrentVersion()
 
     val allData = List(

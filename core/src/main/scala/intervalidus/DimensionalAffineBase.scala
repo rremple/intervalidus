@@ -365,7 +365,8 @@ trait DimensionalAffineBase[V, D <: NonEmptyTuple: DomainAffineLike] extends Dim
     * along a specific dimension index using a function that creates layers for each kernel element displacement. Rather
     * than sliding the kernel's reflection over the signal, we actually slide the signal over the kernel, and accumulate
     * those results.
-    *
+    * @throws IllegalArgumentException
+    *   if the kernel is invalid
     * @param kernel
     *   $convolvedByInParmKernel
     * @param epsilon

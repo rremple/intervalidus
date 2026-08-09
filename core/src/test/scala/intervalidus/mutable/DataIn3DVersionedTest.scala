@@ -44,11 +44,11 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
     val dayZero = LocalDateTime.of(2025, 8, 1, 8, 0)
     val empty: DataVersioned[String, IntDim] = immutable.DataVersioned.empty[String, IntDim].toImmutable.toMutable
 
-    assertThrows[Exception]: // version too large
+    assertThrows[IllegalArgumentException]: // version too large
       empty.setCurrentVersion(Int.MaxValue)
 
     empty.setCurrentVersion(Int.MaxValue - 1) // last approved version
-    assertThrows[Exception]: // wow, ran out of versions!
+    assertThrows[IllegalStateException]: // wow, ran out of versions!
       empty.incrementCurrentVersion()
 
     val allData = List(

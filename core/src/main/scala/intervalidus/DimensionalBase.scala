@@ -1329,7 +1329,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
 
   // from PartialFunction
   override def apply(domainIndex: D): V = getAt(domainIndex).getOrElse(
-    throw Exception(s"Not defined at $domainIndex")
+    throw NoSuchElementException(s"Not defined at $domainIndex")
   )
 
   /**

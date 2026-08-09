@@ -7,6 +7,7 @@ import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
 import java.time.{Instant, LocalDate, LocalDateTime, ZoneId}
+import java.util.NoSuchElementException
 import scala.language.implicitConversions
 
 /*
@@ -82,7 +83,7 @@ trait DataIn3DVersionedBaseBehaviors:
       fixture1(0, 0, 0, 0) shouldBe "Hello world"
       assert(!fixture1.isDefinedAt(-1, 0, 0, 0))
       assert(!fixture1.isValidAt(-1, 0, 0))
-      assertThrows[Exception]:
+      assertThrows[NoSuchElementException]:
         val _ = fixture1(-1, 0, 0, 0)
 
       val allData2 = List(

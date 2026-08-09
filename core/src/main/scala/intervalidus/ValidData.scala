@@ -2,6 +2,7 @@ package intervalidus
 
 import intervalidus.collection.BoxedPayload
 
+import java.util.NoSuchElementException
 import scala.collection.mutable
 import scala.compiletime.asMatchable
 
@@ -57,7 +58,7 @@ case class ValidData[V, D <: NonEmptyTuple](
   def withValueKey: (V, ValidData[V, D]) = value -> this
 
   override def apply(domainIndex: D): V =
-    if isDefinedAt(domainIndex) then value else throw Exception(s"Not defined at $domainIndex")
+    if isDefinedAt(domainIndex) then value else throw NoSuchElementException(s"Not defined at $domainIndex")
 
   override def isDefinedAt(domainIndex: D): Boolean = domainIndex ∈ interval
 

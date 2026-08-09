@@ -7,6 +7,7 @@ import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
 import java.time.LocalDate
+import java.util.NoSuchElementException
 import scala.language.implicitConversions
 
 /*
@@ -65,7 +66,7 @@ trait DataIn3DBaseBehaviors:
     assert(bounded.isDefinedAt(0, 0, 0))
     assert(!bounded.isDefinedAt(-1, 0, 0))
     bounded(0, 0, 0) shouldBe "Hello world"
-    assertThrows[Exception]:
+    assertThrows[NoSuchElementException]:
       val _ = bounded(-1, 0, 0)
 
     val fixture1 = dataIn3DFrom(
@@ -75,7 +76,7 @@ trait DataIn3DBaseBehaviors:
     assert(fixture1.isDefinedAt(day(1), dayZero, 0))
     fixture1(day(1), dayZero, 0) shouldBe "Hello world"
     assert(!fixture1.isDefinedAt(day(-1), day(1), 0))
-    assertThrows[Exception]:
+    assertThrows[NoSuchElementException]:
       val _ = fixture1(day(-1), day(1), 0)
 
     val now: Domain1D[LocalDate] =

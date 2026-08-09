@@ -49,7 +49,7 @@ object SoftwareProductFeatureManagement:
       case major :: Nil                   => Release(major.toInt, 0)
       case major :: minor :: Nil          => Release(major.toInt, minor.toInt)
       case major :: minor :: patch :: Nil => Release(major.toInt, minor.toInt, patch.toInt)
-      case _                              => throw Exception(s"Invalid release: $string")
+      case _                              => throw IllegalArgumentException(s"Invalid release: $string")
 
     val productRoadmap: IndexedSeq[Release] = IndexedSeq(
       Release(1.0),

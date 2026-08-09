@@ -11,7 +11,7 @@ class ExperimentalTest extends AnyFunSuite with Matchers:
     fixtureAll.control("anyFeature")("nonExperimental", "experimental") shouldBe "experimental"
     fixtureAll.parallelCheck("anyFeature")("one", "one")() shouldBe "one"
     fixtureAll.parallelCheck("anyFeature")("one", "not one")((_, _) => "failed") shouldBe "failed"
-    assertThrows[Exception]:
+    assertThrows[AssertionError]:
       val _ = fixtureAll.parallelCheck("anyFeature")("one", "not one")()
 
     val fixtureAllExcept = Experimental.allExcept("thatFeature")

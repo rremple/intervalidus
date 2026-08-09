@@ -5,6 +5,7 @@ import org.scalatest.compatible.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
+import java.util.NoSuchElementException
 import scala.language.implicitConversions
 
 /*
@@ -63,7 +64,7 @@ trait DataIn1DBaseBehaviors:
     assert(bounded.isDefinedAt(0))
     assert(!bounded.isDefinedAt(-1))
     bounded(0) shouldBe "Hello world"
-    assertThrows[Exception]:
+    assertThrows[NoSuchElementException]:
       val _ = bounded(-1)
 
     val fixture1: S = dataIn1DFrom(Seq(intervalFrom(0) -> "Hello world"))
@@ -71,7 +72,7 @@ trait DataIn1DBaseBehaviors:
     assert(fixture1.isDefinedAt(0))
     fixture1(0) shouldBe "Hello world"
     assert(!fixture1.isDefinedAt(-1))
-    assertThrows[Exception]:
+    assertThrows[NoSuchElementException]:
       val _ = fixture1(-1)
 
     val allData2 = List(interval(0, 10) -> "Hello", intervalFromAfter(10) -> "World")

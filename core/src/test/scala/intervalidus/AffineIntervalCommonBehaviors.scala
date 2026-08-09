@@ -91,7 +91,7 @@ trait AffineIntervalCommonBehaviors(using op: DomainAffineValueLike[Int]):
       domain(2) reflectedAboutInt 3 shouldBe domain(4)
 
       domain(1).scaledAboutInt(0, scaledBy = 3.0) shouldBe domain(3)
-      assertThrows[Exception]: // can't scale using an unbounded center
+      assertThrows[IllegalArgumentException]: // can't scale using an unbounded center
         domain(1).scaledAboutInt(top, scaledBy = 3.0) shouldBe domain(3)
       top.scaledAboutInt(0, scaledBy = 3.0) shouldBe top
       bottom.scaledAboutInt(0, scaledBy = 3.0) shouldBe bottom

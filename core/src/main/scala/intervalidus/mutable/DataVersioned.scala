@@ -412,7 +412,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike] private (
 
   /**
     * $setCurrentVersionDesc $mutableAction
-    * @throws Exception
+    * @throws IllegalArgumentException
     *   if the version is too large
     * @param version
     *   $setCurrentVersionParamVersion
@@ -421,18 +421,18 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike] private (
     version: VersionDomainValue,
     comment: String = "version set"
   )(using CurrentInstant): Unit = synchronized:
-    if version >= unapprovedStartVersion then throw Exception("version too large")
+    if version >= unapprovedStartVersion then throw IllegalArgumentException("version too large")
     else
       currentVersion = version
       addVersionTimestampInPlace(comment)
 
   /**
     * $incrementCurrentVersionDesc $mutableAction
-    * @throws Exception
+    * @throws IllegalStateException
     *   if we run out of versions
     */
   def incrementCurrentVersion(comment: String = "incremented")(using CurrentInstant): Unit = synchronized:
-    if currentVersion + 1 == unapprovedStartVersion then throw Exception("wow, ran out of versions!")
+    if currentVersion + 1 == unapprovedStartVersion then throw IllegalStateException("wow, ran out of versions!")
     else
       currentVersion = currentVersion + 1
       addVersionTimestampInPlace(comment)

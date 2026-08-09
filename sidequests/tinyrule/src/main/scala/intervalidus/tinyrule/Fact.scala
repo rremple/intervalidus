@@ -96,10 +96,10 @@ case class Fact(id: String, attributes: Set[Attribute[?]]):
     val setAsSet: (String, Set[Any]) => Set[Any] =
       (_, values) => values // no checks needed
     val setAsOption: (String, Set[Any]) => Option[Any] = (name, values) =>
-      if values.size > 1 then throw Exception(s"Multiple attributes for $name")
+      if values.size > 1 then throw IllegalArgumentException(s"Multiple attributes for $name")
       else values.headOption
     val setAsSingleValue: (String, Set[Any]) => Any = (name, values) =>
-      setAsOption(name, values).getOrElse(throw Exception(s"No attribute for $name"))
+      setAsOption(name, values).getOrElse(throw IllegalArgumentException(s"No attribute for $name"))
 
     inline erasedValue[T] match
       case _: EmptyTuple        => Nil
@@ -142,7 +142,7 @@ case class Fact(id: String, attributes: Set[Attribute[?]]):
         val attributeValues = attributeValuesByName.getOrElse(label, Set.empty)
         val elementValue = fromAttributeValues.head.apply(label, attributeValues)
         elementValue *: elementsFromAttributes(labelsTail, fromAttributeValues.tail)
-      case other => throw Exception(s"Unexpected case: $other")
+      case other => throw IllegalArgumentException(s"Unexpected case: $other")
 
     val productElemLabels = constValueTuple[mirror.MirroredElemLabels]
     val productElemValuesFromAttributeValues = attributeValuesToElementValues[mirror.MirroredElemTypes]

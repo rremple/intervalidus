@@ -92,7 +92,8 @@ object Experimental:
       * If the experimental feature is not enabled, return the non-experimental result. If it is enabled, compare the
       * experimental and non-experimental results. If they match, return that result. Otherwise, return `onFailure`
       * result (which would usually just throw after maybe logging some details about the mismatch).
-      *
+      * @throws AssertionError
+      *   default onFailure behavior when experimental and non-experimental results don't match.
       * @param feature
       *   name of the experimental feature
       * @param nonExperimentalResult
@@ -113,7 +114,7 @@ object Experimental:
       nonExperimentalResult: => T,
       experimentalResult: => T
     )(
-      onFailure: (T, T) => T = (_: T, _: T) => throw Exception("Experiment failed")
+      onFailure: (T, T) => T = (_: T, _: T) => throw AssertionError("Experiment failed")
     ): T =
       if enabledExperimental(feature)
       then

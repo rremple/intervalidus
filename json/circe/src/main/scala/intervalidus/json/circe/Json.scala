@@ -83,7 +83,7 @@ object Json:
     * Diff actions encoded as objects
     */
   given [V, D <: NonEmptyTuple: DomainLike: Encoder: Decoder](using
-    Codec[ValidData[V, D]],
+    Codec[ValidData[V, D]]
   ): Codec[DiffAction[V, D]] = Codec.from(
     Decoder.instance: cursor =>
       cursor

@@ -55,7 +55,7 @@ object DomainGenerator:
         val startInt = start match
           case Domain1D.Point(value: Int) => value
           case Domain1D.Bottom            => intRange.start
-          case _                          => throw Exception("Can't start after top")
+          case _                          => throw IllegalArgumentException("Can't start after top")
         Gen.frequency(
           80 -> Gen.choose(startInt, intRange.end).map(Domain1D.domain),
           20 -> Gen.const(Domain1D.Top)
@@ -66,7 +66,7 @@ object DomainGenerator:
           case Domain1D.Point(value: Int)     => value
           case Domain1D.OpenPoint(value: Int) => value + 1
           case Domain1D.Bottom                => intRange.start
-          case _                              => throw Exception("Can't start after top")
+          case _                              => throw IllegalArgumentException("Can't start after top")
         Gen.frequency(
           40 -> Gen.choose(startInt, intRange.end).map(Domain1D.domain),
           40 -> Gen.choose(startInt + 1, intRange.end).map(Domain1D.open),
@@ -79,7 +79,7 @@ object DomainGenerator:
         val startInt = start match
           case Domain1D.Point(value: Int) => value
           case Domain1D.Bottom            => intRange.start
-          case _                          => throw Exception("Can't start after top")
+          case _                          => throw IllegalArgumentException("Can't start after top")
         Gen.choose(startInt, intRange.end).map(Domain1D.domain)
 
       case _: ContinuousValue[?] =>
@@ -87,7 +87,7 @@ object DomainGenerator:
           case Domain1D.Point(value: Int)     => value
           case Domain1D.OpenPoint(value: Int) => value + 1
           case Domain1D.Bottom                => intRange.start
-          case _                              => throw Exception("Can't start after top")
+          case _                              => throw IllegalArgumentException("Can't start after top")
         Gen.frequency(
           50 -> Gen.choose(startInt, intRange.end).map(Domain1D.domain),
           50 -> Gen.choose(startInt + 1, intRange.end).map(Domain1D.open)

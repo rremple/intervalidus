@@ -119,11 +119,13 @@ object DomainAffineLike:
       * Scale this domain relative to some center. Overflows of the underlying value operations are translated to
       * Bottom/Top. See [[https://en.wikipedia.org/wiki/Scaling_(geometry)]] and
       * [[https://en.wikipedia.org/wiki/Homothetic_center]].
+      * @throws IllegalArgumentException
+      *   if center is not bounded
       */
     infix def scaledAbout(center: Domain1D[T], scaledBy: op.Scalar): Domain1D[T] =
       val centerValue: T = center match
         case Domain1D.Bounded(value) => value
-        case bottomOrTop             => throw Exception(s"can't scale using an unbounded center: $bottomOrTop")
+        case bottomOrTop => throw IllegalArgumentException(s"can't scale using an unbounded center: $bottomOrTop")
 
       val scalePositive = scaledBy > op.zeroScalar
       def scaleAs(value: T, domain: T => Domain1D[T]): Domain1D[T] = op.displacement(centerValue, value) match

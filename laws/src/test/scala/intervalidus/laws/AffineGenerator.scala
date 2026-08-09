@@ -47,7 +47,7 @@ object AffineGenerator:
       case (EmptyTuple, EmptyTuple)                          => EmptyTuple
       case ((headD: Int) *: tailD, (headS: Double) *: tailS) => f(headD, headS) *: c(tailD, tailS)
       case (otherD *: tailD, _ *: tailS)                     => otherD *: c(tailD, tailS)
-      case theUnexpected                                     => throw Exception(s"didn't expect $theUnexpected")
+      case theUnexpected                                     => throw IllegalArgumentException(s"didn't expect $theUnexpected")
     c(d, s).asInstanceOf[D]
 
   private def genDisplacemen1D: Gen[Int] = Gen.choose(intRange.start, intRange.end)

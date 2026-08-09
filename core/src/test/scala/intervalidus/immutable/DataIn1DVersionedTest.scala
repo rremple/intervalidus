@@ -44,11 +44,11 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     val empty: DataVersioned[String, IntDim] = mutable.DataVersioned.empty[String, IntDim].toMutable.toImmutable
     empty shouldBe DataVersioned.empty[String, IntDim]
 
-    assertThrows[Exception]: // version too large
+    assertThrows[IllegalArgumentException]: // version too large
       empty.setCurrentVersion(Int.MaxValue)
 
     val emptyAtMaxVersion = empty.setCurrentVersion(Int.MaxValue - 1) // last approved version
-    assertThrows[Exception]: // wow, ran out of versions!
+    assertThrows[IllegalStateException]: // wow, ran out of versions!
       emptyAtMaxVersion.incrementCurrentVersion()
 
     val allData = List(interval(0, 9) -> "Hello", intervalFrom(10) -> "World")
