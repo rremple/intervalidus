@@ -23,7 +23,7 @@ case class LevelWord(level: Int, word: WordIn1D)
 
 /**
   * Demonstrate how dimensional data can be managed in a database. Uses MongoDB (via Testcontainers) to store, retrieve,
-  * and update data, where JSON (actually BSON).WeePickle and uPickle test only differ in the monad type names.
+  * and update data, where JSON (actually BSON). JSON framework-specific tests only differ in the monad type names.
   *
   * @tparam W
   *   monad for writing from a type (Writer/From)

@@ -14,6 +14,8 @@ You probably aren't going to need them, but just in case you do, there are also 
 libraryDependencies ++= Seq(
   "io.github.rremple" %% "intervalidus-upickle" % "<version>", // JSON transformers using com.lihaoyi:upickle
   "io.github.rremple" %% "intervalidus-weepickle" % "<version>", // JSON transformers using com.rallyhealth:weepickle-v1
+  "io.github.rremple" %% "intervalidus-circe" % "<version>", // JSON transformers using io.circe:circe-core
+  "io.github.rremple" %% "intervalidus-play" % "<version>", // JSON transformers using org.playframework:play-json
   "io.github.rremple" %% "intervalidus-tinyrule" % "<version>" // sidequest rules engine used in one example
 )
 ```
@@ -22,7 +24,7 @@ There are also these artifacts, which other Intervalidus artifacts depend on:
 ```sbt
 libraryDependencies ++= Seq(
   "io.github.rremple" %% "intervalidus-collection" % "<version>", // custom high-performance collections used by core
-  "io.github.rremple" %% "intervalidus-pickle-common" % "<version>" // common JSON stuff used by weepickle and upickle
+  "io.github.rremple" %% "intervalidus-pickle-common" % "<version>" // common stuff used by JSON transformer projects
 )
 ```
 

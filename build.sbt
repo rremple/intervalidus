@@ -225,7 +225,7 @@ val testcontainersVersion = "0.44.1"
 
 lazy val `intervalidus-example-mongodb` = (project in file("example-mongodb"))
   .disablePlugins(MimaPlugin)
-  .dependsOn(core, `intervalidus-weepickle`, `intervalidus-upickle`)
+  .dependsOn(core, `intervalidus-weepickle`, `intervalidus-upickle`, `intervalidus-circe`, `intervalidus-play`)
   .settings(
     commonNoPublishSettings("intervalidus-example-mongodb"),
     libraryDependencies ++= Seq(

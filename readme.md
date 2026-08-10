@@ -870,7 +870,8 @@ The only dimension-specific classes are the base 1D cases of domains and interva
 `DomainLike` tuple underpins multidimensional support across all Intervalidus data structures. You may never need more 
 than three or four dimensions, but if you do, the support is available to you (but remember: flatter is faster).
 
-Furthermore, the definitions and implementations of methods across mutable/immutable variants of `Data` and `DataMulti` 
+Furthermore, the definitions and implementations of methods across mutable/immutable variants of `Data` and its sibling
+structures (e.g., `DataMulti`, `DataMonad`, and `DataAffine`) 
 have been made as generic as possible to avoid repetitive code/scaladoc (DRY). However, this can make it
 harder to navigate to methods. (Although this was a larger issue back when Intervalidus had separate class hierarchies
 for each dimension supported.) The following (rather unorthodox) diagram shows where to find each method in a
@@ -881,7 +882,9 @@ implementation in the higher, inheriting trait/class:
 
 ## Internals and extras
 
-Both the mutable and immutable variants of `Data`, `DataMulti`, and `DataVersioned` use three data structures internally
+Both the mutable and immutable variants of `Data`, its sibling structures (e.g., `DataMulti`, `DataMonad`, and
+`DataAffine`), and structures that extend it through composition (e.g., `DataVersioned`, `IntervalShape`, and
+`Variable`) use three data structures internally
 for managing state, two of which are custom (in the `collection` subproject):
 
 - An immutable standard library `TreeMap`, ordered by the start of each interval. This allows for fast in-order
@@ -919,7 +922,8 @@ for managing state, two of which are custom (in the `collection` subproject):
   - **Shatter Absorption**: The tree is tuned to handle the high "entropy spikes" common in multidimensional algebra. By
     using a default 1024-node leaf capacity, the engine balances surgical lookup precision with the ability to "absorb"
     the thousands of fragments generated during complex, high-dimensional unions and intersections. In special cases,
-    other values for leaf capacity may perform better, so this default capacity can be adjusted by environment variable
+    other values for leaf capacity may perform better, so this default capacity can be adjusted by
+    setting a configuration parameter, environment variable,
     or system property. (The same is true for maximum tree depth.)
   - **Recursive Efficiency**: Leveraging Scala 3’s inline metaprogramming and closure-free while loops, the engine
     achieves sub-second performance even for higher-dimensional unions. For example, benchmarks of five-dimensional
@@ -986,7 +990,8 @@ Apart from `collection`, there are a few other subprojects that are worth mentio
 - There is a separate `bench` subproject that leverages the Java Microbenchmark Harness (jmh) framework to benchmark
   methods, including relative performance of experimental vs. non-experimental features.
 
-- There are sample JSON pickling subprojects `intervalidus-upickle` and `intervalidus-weepickle` which could be useful
+- There are sample JSON pickling subprojects `intervalidus-upickle`, `intervalidus-weepickle`, `intervalidus-circe`,
+  and `intervalidus-play`, which could be useful
   when managing Intervalidus data in a JSON data store (e.g., MongoDB) and/or serializing data through web services.
   (There are many JSON frameworks, and one could use these subprojects as a starting point to add support for others.)
 

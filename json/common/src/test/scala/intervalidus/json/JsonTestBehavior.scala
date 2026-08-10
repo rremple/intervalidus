@@ -13,12 +13,12 @@ import java.time.{Instant, LocalDateTime, ZoneId, ZoneOffset}
 import scala.language.implicitConversions
 
 /**
-  * WeePickle and uPickle test only differ in the monad type names.
+  * JSON framework tests that only differ in the monad type names.
   *
   * @tparam W
-  *   monad for writing from a type (Writer/From)
+  *   monad for writing from a type (Writer/Writes/From/Encoder)
   * @tparam R
-  *   monad for reading to a type (Reader/To)
+  *   monad for reading to a type (Reader/Reads/To/Decoder)
   */
 trait JsonTestBehavior[W[_], R[_]](using
   W[Domain1D[Int]],
