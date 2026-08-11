@@ -63,17 +63,12 @@ class FactTest extends AnyFunSuite with Matchers:
       "myBooleans" is true,
       "myBooleans" is false,
       "myBooleans" is true,
-      "myBooleans" is false,
-      "myInts" is 1,
-      "myInts" is 2,
-      "myInts" is 3,
-      "myStrings" is "hello",
-      "myStrings" is "world",
-      "myDoubles" is 1.5,
-      "myDoubles" is 1.6,
-      "myDates" is today,
-      "myDates" is tomorrow
-    )
+      "myBooleans" is false
+    ) ++
+      ("myInts" are (1, 2, 3)) ++
+      ("myStrings" are ("hello", "world")) ++
+      ("myDoubles" are (1.5, 1.6)) ++
+      ("myDates" are (today, tomorrow))
     val fact1 = Fact.from(test1)
     fact1.attributes shouldBe expectedAttributes1
     assert(fact1.id.startsWith("BigStuff"))

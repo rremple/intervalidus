@@ -12,4 +12,6 @@ case class Attribute[T: AttributeValueLike](name: String, value: T)
   * Common definitions for attributes.
   */
 object Attribute:
-  extension (name: String) infix def is[T: AttributeValueLike](value: T): Attribute[T] = Attribute(name, value)
+  extension (name: String) 
+    infix def is[T: AttributeValueLike](value: T): Attribute[T] = Attribute(name, value)
+    infix def are[T: AttributeValueLike](values: T*): Set[Attribute[T]] = values.map(Attribute(name, _)).toSet
