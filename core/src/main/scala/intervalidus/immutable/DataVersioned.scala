@@ -576,7 +576,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike] private (
 
   /**
     * $incrementCurrentVersionDesc
-    * @throws IllegalStateException
+    * @throws java.lang.IllegalStateException
     *   if we run out of versions
     * @return
     *   a new structure with the current version incremented.

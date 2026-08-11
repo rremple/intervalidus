@@ -428,7 +428,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike] private (
 
   /**
     * $incrementCurrentVersionDesc $mutableAction
-    * @throws IllegalStateException
+    * @throws java.lang.IllegalStateException
     *   if we run out of versions
     */
   def incrementCurrentVersion(comment: String = "incremented")(using CurrentInstant): Unit = synchronized:

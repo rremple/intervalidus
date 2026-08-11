@@ -92,7 +92,7 @@ object Experimental:
       * If the experimental feature is not enabled, return the non-experimental result. If it is enabled, compare the
       * experimental and non-experimental results. If they match, return that result. Otherwise, return `onFailure`
       * result (which would usually just throw after maybe logging some details about the mismatch).
-      * @throws AssertionError
+      * @throws java.lang.AssertionError
       *   default onFailure behavior when experimental and non-experimental results don't match.
       * @param feature
       *   name of the experimental feature
