@@ -162,7 +162,7 @@ trait DimensionalMonoidBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimensio
   * @tparam V
   *   the type of the value managed as data -- must be a Monoid (can be combined and has an identity).
   * @tparam D
-  *   the domain type -- a non-empty tuple that is DomainLike.
+  *   $intervalDomainType
   * @define unionDesc
   *   The union of this and that, applying the monoid combine operator in the intersection. See
   *   [[https://en.wikipedia.org/wiki/Union_(set_theory)]].

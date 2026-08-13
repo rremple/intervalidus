@@ -207,7 +207,7 @@ trait DimensionalFunctionBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimens
   * domain functions.
   *
   * @note
-  *   This class exports methods from the underlying [[mutable.Data]] structure. Because of an open
+  *   This class exports methods from the underlying [[mutable.Data]] structure. Because of this
   *   [[https://github.com/scala/scala3/issues/14342 Scala issue]], only exported methods without parameters are
   *   rendered correctly in the API docs. Although not in the API doc, these methods are also available:
   *   - [[mutable.Data.isDefinedAt isDefinedAt]]
@@ -223,56 +223,26 @@ trait DimensionalFunctionBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimens
   * @tparam V
   *   the result type of the domain function managed as data.
   * @tparam D
-  *   the domain type -- a non-empty tuple that is DomainLike.
+  *   $intervalDomainType
   *
-  * @define configParam
-  *   context parameter for configuration -- uses defaults if not given explicitly
   * @define dataValueType
   *   the result type of the domain function managed as data.
-  * @define intervalDomainType
-  *   the domain type -- a non-empty tuple that is DomainLike.
-  * @define immutableReturn
-  *   a new, updated structure.
-  * @define mutableAction
-  *   Data are mutated in place.
-  * @define intersectionDesc
-  *   The intersection of this and a single interval. See [[https://en.wikipedia.org/wiki/Intersection_(set_theory)]].
-  * @define intersectionParamInterval
-  *   a single interval with which to intersect.
-  * @define symmetricDifferenceDesc
-  *   The "exclusive or" of this and that. That is, the portions of the that which are not in the domain of this and the
-  *   portions of this which are not in the domain of that. See [[https://en.wikipedia.org/wiki/Symmetric_difference]].
-  * @define symmetricDifferenceParamThat
-  *   structure to combine.
   * @define mapValuesDesc
   *   Applies a function to all valid function results (i.e., functions are composed).
   * @define mapValuesParamF
   *   the function to compose with each valid function.
   * @define flatMapParamF
   *   the function to apply to each valid function which results in a new structure.
-  * @define differenceDesc
-  *   The elements in this which are not in the domain of that. The values of that are ignored. See
-  *   [[https://en.wikipedia.org/wiki/Complement_(set_theory)#Relative_complement]].
-  * @define differenceParamThat
-  *   shape to remove.
-  * @define syncWithDesc
-  *   Synchronizes this with another structure by getting and applying the applicable diff actions.
-  * @define syncWithParamThat
-  *   the structure with which this is synchronized.
   * @define mergeDesc
   *   Merges this structure with data from that structure. In intervals where both structures have valid functions, the
   *   two functions are merged (e.g., keep this data). In intervals where this does not have valid function data but
   *   that does, the data are added (a fill operation).
-  * @define mergeParamThat
-  *   structure to merge with this one
   * @define mergeParamMergeValues
   *   function that merges function results where both this and that have valid functions
   * @define mergeManyDesc
   *   Merges this structure with a collection of other data. For each, in intervals where valid functions already
   *   exists, the two functions are merged. In intervals where this does not have valid function data, the data are
   *   added (a fill operation).
-  * @define mergeManyParamThatData
-  *   collection of other data to merge with this
   * @define mergeManyParamMergeValues
   *   function that merges function results where both this and that have valid functions
   * @define setDesc
@@ -281,8 +251,6 @@ trait DimensionalFunctionBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimens
   *   the valid function data to set.
   * @define setManyDesc
   *   Set a collection of new valid function data. Replaces any data previously valid in this interval.
-  * @define setManyNote
-  *   if intervals overlap, later items will update earlier ones, so order can matter.
   * @define setManyParamData
   *   collection of valid function data to set.
   * @define removeDesc
@@ -290,15 +258,13 @@ trait DimensionalFunctionBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimens
   *   their intervals adjusted (e.g., shortened, shifted, split) accordingly.
   * @define removeParamInterval
   *   the interval where any valid functions are removed.
-  * @define removeManyDesc
-  *   Remove data in all the intervals. If there are values valid on portions of any interval, those values have their
-  *   intervals adjusted (e.g., shortened, shifted, split) accordingly.
   * @define removeManyParamIntervals
   *   the intervals where any valid functions are removed.
   */
 trait DimensionalFunctionBase[V, D <: NonEmptyTuple: DomainLike](
   private[intervalidus] val underlying: MutableData[DomainFunction[V, D], D]
-) extends PartialFunction[D, V]:
+) extends PartialFunction[D, V]
+  with DimensionalDocs:
 
   @nowarn("msg=pattern selector should be an instance of Matchable")
   override def equals(obj: Any): Boolean = obj match

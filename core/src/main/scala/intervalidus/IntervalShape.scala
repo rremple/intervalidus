@@ -273,13 +273,14 @@ object IntervalShape:
   *      - `(a bth b) ○ b ≡ ∅`
   *
   * @param config
-  *   context parameter for configuration -- uses defaults if not given explicitly
+  *   $configParam
   * @tparam D
-  *   the domain type -- a non-empty tuple that is DomainLike.
+  *   $intervalDomainType
   */
 class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
   val underlying: Data[Unit, D]
-)(using val config: CoreConfig[D]):
+)(using val config: CoreConfig[D])
+  extends DimensionalDocs:
 
   import IntervalShape.{valid, ξ, ∅}
 
@@ -936,7 +937,7 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
     * @param domain
     *   the domain element used for filtering
     * @param altConfig
-    *   context parameter for configuration -- uses defaults if not given explicitly
+    *   $configParam
     * @tparam H
     *   the domain value type of the domain used for filtering. There are type safety checks that ensure
     *   - the 1D domain at the specified dimension index has the specified domain value type
@@ -969,7 +970,7 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
     *   dimension to drop. Must be a value with a singleton type known at compile time, e.g., a numeric literal. (The
     *   head dimension is dimension 0.)
     * @param altConfig
-    *   context parameter for configuration -- uses defaults if not given explicitly
+    *   $configParam
     * @tparam R
     *   domain of intervals in the returned structure. There is a type safety check that ensures the domain type for
     *   this result type can be constructed by concatenating the elements before and after the dropped dimension.

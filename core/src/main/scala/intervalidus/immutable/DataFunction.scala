@@ -51,7 +51,7 @@ object DataFunction extends DimensionalFunctionBaseObject[DataFunction]:
   *
   * @note
   *   This class inherits [[DimensionalFunctionBase]] methods exported from the underlying [[mutable.Data]] structure.
-  *   Because of an open [[https://github.com/scala/scala3/issues/14342 Scala issue]], only exported methods without
+  *   Because of this [[https://github.com/scala/scala3/issues/14342 Scala issue]], only exported methods without
   *   parameters are rendered correctly in the API docs. Although not in the API doc, these methods are also available:
   *   - [[mutable.Data.isDefinedAt isDefinedAt]]
   *   - [[mutable.Data.getDataAt getDataAt]]
@@ -66,7 +66,7 @@ object DataFunction extends DimensionalFunctionBaseObject[DataFunction]:
   * @tparam V
   *   the result type of the domain function managed as data.
   * @tparam D
-  *   the domain type -- a non-empty tuple that is DomainLike.
+  *   $intervalDomainType
   */
 class DataFunction[V, D <: NonEmptyTuple: DomainLike] private (
   initialData: MutableFunctionData[V, D]

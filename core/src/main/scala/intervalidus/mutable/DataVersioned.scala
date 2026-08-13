@@ -83,6 +83,26 @@ object DataVersioned extends DimensionalVersionedBaseObject[DataVersioned]:
   * @note
   *   $classNote
   *
+  *  @note
+  *   This class inherits [[DimensionalVersionedBase]] methods exported from the underlying [[mutable.Data]] structure,
+  *   and also exports additional underlying methods. Because of this
+  *   [[https://github.com/scala/scala3/issues/14342 Scala issue]], only exported methods without parameters are
+  *   rendered correctly in the API docs. Although not in the API doc, these methods are also available:
+  *   - [[mutable.Data.isDefinedAt isDefinedAt]]
+  *   - [[mutable.Data.apply apply]]
+  *   - [[mutable.Data.foldLeft foldLeft]]
+  *   - [[mutable.Data.compress compress]]
+  *   - [[mutable.Data.compressAll compressAll]]
+  *   - [[mutable.Data.recompressAll recompressAll]]
+  *   - [[mutable.Data.applyDiffActions applyDiffActions]]
+  *   - [[mutable.Data.filter filter]]
+  *   - [[mutable.Data.map map]]
+  *   - [[mutable.Data.collect collect]]
+  *   - [[mutable.Data.mapValues mapValues]]
+  *   - [[mutable.Data.collectValues collectValues]]
+  *   - [[mutable.Data.mapIntervals mapIntervals]]
+  *   - [[mutable.Data.collectIntervals collectIntervals]]
+  *
   * @param config
   *   $configParam
   * @tparam V
@@ -270,37 +290,6 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike] private (
   // ------ Implement methods similar to those from MutableVersionedBase, without version selection context ------
 
   /**
-    * $compressDesc $mutableAction $noVersionSelection
-    *
-    * @param value
-    *   $compressParamValue
-    */
-  def compress(value: V): Unit = underlying.compress(value)
-
-  /**
-    * $compressAllDesc $mutableAction $noVersionSelection
-    */
-  def compressAll(): Unit = underlying.compressAll()
-
-  /**
-    * $recompressAllDesc $mutableAction $noVersionSelection
-    *
-    * @param otherIntervals
-    *   $recompressAllParamOtherIntervals
-    */
-  def recompressAll(otherIntervals: IterableOnce[Interval[Versioned[D]]] = Iterable.empty): Unit =
-    underlying.recompressAll(otherIntervals)
-
-  /**
-    * $applyDiffActionsDesc $mutableAction $noVersionSelection
-    *
-    * @param diffActions
-    *   $applyDiffActionsParamDiffActions
-    */
-  def applyDiffActions(diffActions: IterableOnce[DiffAction[V, Versioned[D]]]): Unit =
-    underlying.applyDiffActions(diffActions)
-
-  /**
     * $syncWithDesc $mutableAction $noVersionSelection
     *
     * @param that
@@ -308,79 +297,6 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike] private (
     */
   def syncWith(that: DataVersioned[V, D]): Unit =
     applyDiffActions(that.diffActionsFrom(this))
-
-  /**
-    * $filterDesc $mutableAction
-    *
-    * $noVersionSelectionFunction $noVersionSelectionApply
-    *
-    * @param p
-    *   $filterParamP
-    */
-  def filter(p: ValidData[V, Versioned[D]] => Boolean): Unit = underlying.filter(p)
-
-  /**
-    * $mapDesc $mutableAction
-    *
-    * $noVersionSelectionFunction $noVersionSelectionApply
-    *
-    * @param f
-    *   $mapParamF
-    */
-  def map(f: ValidData[V, Versioned[D]] => ValidData[V, Versioned[D]]): Unit = underlying.map(f)
-
-  /**
-    * $collectDesc $mutableAction
-    *
-    * $noVersionSelectionFunction $noVersionSelectionApply
-    *
-    * @param pf
-    *   $collectParamPf
-    */
-  def collect(
-    pf: PartialFunction[ValidData[V, Versioned[D]], ValidData[V, Versioned[D]]]
-  ): Unit = underlying.collect(pf)
-
-  /**
-    * $mapValuesDesc $mutableAction
-    *
-    * $noVersionSelectionFunction maps all values in all versions.
-    *
-    * @param f
-    *   $mapValuesParamF
-    */
-  def mapValues(f: V => V): Unit = underlying.mapValues(f)
-
-  /**
-    * $collectValuesDesc $mutableAction
-    *
-    * $noVersionSelectionFunction collects all values in all versions.
-    *
-    * @param pf
-    *   $collectValuesParamPf
-    */
-  def collectValues(pf: PartialFunction[V, V]): Unit = underlying.collectValues(pf)
-
-  /**
-    * $mapIntervalsDesc $mutableAction
-    *
-    * $noVersionSelectionFunction maps all intervals in all versions.
-    *
-    * @param f
-    *   $mapIntervalsParamF
-    */
-  def mapIntervals(f: Interval[Versioned[D]] => Interval[Versioned[D]]): Unit = underlying.mapIntervals(f)
-
-  /**
-    * $collectIntervalsDesc $mutableAction
-    *
-    * $noVersionSelectionFunction collects all intervals in all versions.
-    *
-    * @param pf
-    *   $collectIntervalsParamPf
-    */
-  def collectIntervals(pf: PartialFunction[Interval[Versioned[D]], Interval[Versioned[D]]]): Unit =
-    underlying.collectIntervals(pf)
 
   /**
     * $flatMapDesc and updates valid values from the elements of the resulting structures. $mutableAction
@@ -541,6 +457,23 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike] private (
     */
   infix def --(intervals: IterableOnce[Interval[D]])(using VersionSelection): Unit =
     removeMany(intervals)
+
+  // ---------- Export other methods from MutableBase that can be handled directly by underlying... ----------
+  // ---------- (these just operate on the underlying data without an API difference) ----------
+
+  export underlying.{
+    compress,
+    compressAll,
+    recompressAll,
+    applyDiffActions,
+    filter,
+    map,
+    collect,
+    mapValues,
+    collectValues,
+    mapIntervals,
+    collectIntervals
+  }
 
 // These may be problematic/misunderstood in the versioned space, so leaving them out for now.
 //  def replace(oldData: ValidData[V, D], newData: ValidData[V, D]): Unit

@@ -286,13 +286,20 @@ trait DimensionalVersionedBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimen
   *
   * @note
   *   Updates starting with "current" also update unapproved changes (since intervalFrom goes to the Top).
-  * @tparam V
-  *   the type of the value managed as data.
-  * @tparam D
-  *   the domain type -- a non-empty tuple that is DomainLike.
   *
-  * @define configParam
-  *   context parameter for configuration -- uses defaults if not given explicitly
+  * @note
+  *   This class exports methods from the underlying [[mutable.Data]] structure. Because of this
+  *   [[https://github.com/scala/scala3/issues/14342 Scala issue]], only exported methods without parameters are
+  *   rendered correctly in the API docs. Although not in the API doc, these methods are also available:
+  *   - [[mutable.Data.isDefinedAt isDefinedAt]]
+  *   - [[mutable.Data.apply apply]]
+  *   - [[mutable.Data.foldLeft foldLeft]]
+  *
+  * @tparam V
+  *   $dataValueType
+  * @tparam D
+  *   $intervalDomainType
+  *
   * @define classDescUseCase
   *   One use case would be versioned data that are valid in two dimensions of time, so the underlying data actually
   *   vary in terms of version and two dimensions of time (three dimensions).
@@ -309,117 +316,48 @@ trait DimensionalVersionedBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimen
   *   Does not use a version selection context -- the function is applied to the underlying data, so it
   * @define noVersionSelectionApply
   *   can operate on the underlying version information as well as the valid interval/value.
-  * @define dataValueType
-  *   the type of the value managed as data.
-  * @define intervalDomainType
-  *   the domain type -- a non-empty tuple that is DomainLike.
-  * @define immutableReturn
-  *   a new, updated structure.
-  * @define mutableAction
-  *   Data are mutated in place.
-  * @define mapDesc
-  *   Applies a function to all valid data.
-  * @define mapParamF
-  *   the function to apply to each valid data element.
-  * @define collectDesc
-  *   Applies a partial function to all valid data on which it is defined.
   * @define collectParamPf
   *   the partial function to apply to each versioned data element.
-  * @define mapValuesDesc
-  *   Applies a function to all valid data values.
-  * @define mapValuesParamF
-  *   the function to apply to the value part of each valid data element.
-  * @define collectValuesDesc
-  *   Applies a partial function to all valid data values on which it is defined.
-  * @define collectValuesParamPf
-  *   the partial function to apply to the value part of each valid data element.
-  * @define mapIntervalsDesc
-  *   Applies a function to all valid data intervals.
   * @define mapIntervalsParamF
   *   the function to apply to the versioned interval part of each valid data element.
-  * @define collectIntervalsDesc
-  *   Applies a partial function to all valid data intervals on which it is defined.
   * @define collectIntervalsParamPf
   *   the partial function to apply to the versioned interval part of each valid data element.
   * @define flatMapDesc
   *   Applies a function to all the elements of this structure
-  * @define flatMapParamF
-  *   the function to apply to each valid data element which results in a new structure.
   * @define filterDesc
   *   Updates structure to only include elements which satisfy a predicate.
-  * @define filterParamP
-  *   the predicate used to test elements.
   * @define setDesc
   *   Set new valid data. Given a version selection context, any data previously valid in this interval are replaced by
   *   this data.
-  * @define setParamData
-  *   the valid data to set.
   * @define setManyDesc
   *   Set a collection of new valid data. Given a version selection context, any data previously valid in the intervals
   *   are replaced by these data.
-  * @define setManyNote
-  *   if intervals overlap, later items will update earlier ones, so order can matter.
-  * @define setManyParamData
-  *   collection of valid data to set.
   * @define setIfNoConflictDesc
   *   Set new valid data, but only if there are no previously valid values in its interval and given the version
   *   selection context.
-  * @define setIfNoConflictParamData
-  *   the valid data to set.
   * @define updateDesc
   *   Update everything valid in the data's interval and the given version selection context to have the data's value.
   *   No new intervals of validity are added as part of this operation. Data with overlaps are adjusted accordingly.
-  * @define updateParamData
-  *   the new value and interval existing data should take on.
   * @define removeDesc
   *   Remove valid values on the interval and the given version selection context. If there are values valid on portions
   *   of the interval, those values have their intervals adjusted (e.g., shortened, shifted, split) accordingly.
-  * @define removeParamInterval
-  *   the interval where any valid values are removed.
   * @define removeManyDesc
   *   Remove data in all the intervals given a version selection context. If there are values valid on portions of any
   *   interval, those values have their intervals adjusted (e.g., shortened, shifted, split) accordingly.
-  * @define removeManyParamIntervals
-  *   the intervals where any valid values are removed.
   * @define removeValueDesc
   *   Remove the value in all the intervals where it is valid in the given version selection context.
-  * @define removeValueParamValue
-  *   the value that is removed.
-  * @define compressDesc
-  *   Compress out adjacent intervals with the same value.
-  * @define compressParamValue
-  *   value for which valid data are compressed.
-  * @define compressAllDesc
-  *   Compress out adjacent intervals with the same value for all values.
   * @define recompressAllDesc
   *   Compress out adjacent intervals with the same value for all values after decompressing everything, resulting in a
   *   unique physical representation.
-  * @define recompressAllParamOtherIntervals
-  *   other intervals to be considered when decompressing the space. This is useful in testing equivalence of two
-  *   structures where their starting intervals differ enough that they result in a different enough decompression that
-  *   it results in different recompressions.
-  * @define applyDiffActionsDesc
-  *   Applies a sequence of diff actions to this structure.
-  * @define applyDiffActionsParamDiffActions
-  *   actions to be applied.
-  * @define syncWithDesc
-  *   Synchronizes this with another structure by getting and applying the applicable diff actions.
-  * @define syncWithParamThat
-  *   the structure with which this is synchronized.
   * @define fillDesc
   *   Given the version selection context, adds a value as valid in portions of the interval where there aren't already
   *   valid values.
-  * @define fillParamData
-  *   value to make valid in any validity gaps found in the interval
   * @define mergeDesc
   *   Merges this structure with data from that structure. In intervals where both structures have valid values, the two
   *   values are merged (e.g., keep this data). In intervals where this does not have valid data but that does, the data
   *   are added (a fill operation). (Version timestamps of this and that are merged.)
   * @define mergeParamThat
   *   versioned structure to merge with this one
-  * @define mergeParamMergeValues
-  *   function that merges values where both this and that have valid values, where the default merge operation is to
-  *   give this data values priority and drop that data values
   * @define setCurrentVersionDesc
   *   Sets the current version. No version history is rewritten, which may cause some unexpected results (especially if
   *   the version is set to something from the past, which also rewrites version timestamp history). Use with caution.
@@ -448,7 +386,8 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
   versionTimestamps: mutable.Map[VersionDomainValue, VersionMetadata],
   withCurrentVersion: Option[VersionDomainValue]
 )(using DomainLike[Versioned[D]])
-  extends PartialFunction[Versioned[D], V]:
+  extends PartialFunction[Versioned[D], V]
+  with DimensionalDocs:
 
   /**
     * $configParam
@@ -673,23 +612,12 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
   // from Object - print the current version and a uniform grid representing the underlying versioned data.
   override def toString: String = s"current version = $getCurrentVersion\n$underlying"
 
-  // from PartialFunction
-  override def isDefinedAt(key: Versioned[D]): Boolean = underlying.isDefinedAt(key)
-
-  // from PartialFunction
-  override def apply(key: Versioned[D]): V = underlying(key)
-
   /**
     * Tests if there are no valid data in this structure given some version selection criteria.
     * @return
     *   true if there are no valid data, false otherwise.
     */
   def isEmpty(using VersionSelection): Boolean = getSelectedDataMutable.isEmpty
-
-  /**
-    * The number of valid data entries. $noVersionSelection
-    */
-  def size: Int = underlying.size
 
   /**
     * Returns the value if a single, unbounded valid value exists given some version selection context, otherwise throws
@@ -785,22 +713,6 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     */
   def allIntervals(using VersionSelection): Iterable[Interval[D]] =
     getSelectedData.allIntervals
-
-  /**
-    * Applies a binary operator to a start value and all valid data, going left to right. $noVersionSelectionFunction
-    * can operate on the underlying version information as well as the valid interval/value.
-    *
-    * @param z
-    *   the start value.
-    * @param op
-    *   the binary operator.
-    * @tparam B
-    *   the result type of the binary operator.
-    * @return
-    *   the result of inserting op between consecutive valid data elements, going left to right with the start value z
-    *   on the left. Returns z if there are no valid data elements.
-    */
-  def foldLeft[B](z: B)(op: (B, ValidData[V, Versioned[D]]) => B): B = underlying.foldLeft(z)(op)
 
   /**
     * Constructs a sequence of diff actions that, if applied to the old structure, would synchronize it with this one.
@@ -909,7 +821,8 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
   ): DimensionalVersionedBase[(V, B), D]
 
   /**
-    * Project as data in n-1 dimensions based on a lookup in the head dimension -- version information is preserved.
+    * Creates a new structure with n-1 dimensions based on a lookup in the head dimension -- version information is
+    * preserved.
     *
     * (Equivalent to `getByDimension[H, Domain.NonEmptyTail[D]](0, domain)`, though the type checking is simpler)
     *
@@ -935,7 +848,7 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
   ): DimensionalVersionedBase[V, Domain.NonEmptyTail[D]]
 
   /**
-    * Project as data in n-1 dimensions based on a lookup in the specified dimension -- version information is
+    * Creates a new structure with n-1 dimensions based on a lookup in the specified dimension -- version information is
     * preserved.
     *
     * @param dimensionIndex
@@ -943,6 +856,8 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     *   literal. (The head dimension is dimension 0.)
     * @param domain
     *   the domain element used for filtering
+    * @param altConfig
+    *   $configParam
     * @tparam H
     *   the domain value type of the domain used for filtering. There are type safety checks that ensure
     *   - the 1D domain at the specified dimension index has the specified domain value type
@@ -976,3 +891,8 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     * Returns this as an immutable structure.
     */
   def toImmutable: intervalidus.immutable.DataVersioned[V, D]
+
+  // ---------- Other API methods in DimensionalBase can be exported directly from underlying data ----------
+  // ---------- (no function-specific arguments or return types) ----------
+
+  export underlying.{isDefinedAt, apply, size, foldLeft}

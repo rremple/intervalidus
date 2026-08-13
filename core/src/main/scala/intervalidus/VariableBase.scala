@@ -79,10 +79,8 @@ trait VariableObjectBase[Self[_] <: VariableBase[?]]:
   *
   * @tparam T
   *   the value type
-  * @define configParam
-  *   context parameter for configuration -- uses defaults if not given explicitly
   */
-trait VariableBase[T] extends (Time => T):
+trait VariableBase[T] extends (Time => T) with DimensionalDocs:
   /**
     * $configParam
     */
