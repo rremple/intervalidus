@@ -83,7 +83,7 @@ object DataVersioned extends DimensionalVersionedBaseObject[DataVersioned]:
   * @note
   *   $classNote
   *
-  *  @note
+  * @note
   *   This class inherits [[DimensionalVersionedBase]] methods exported from the underlying [[mutable.Data]] structure,
   *   and also exports additional underlying methods. Because of this
   *   [[https://github.com/scala/scala3/issues/14342 Scala issue]], only exported methods without parameters are

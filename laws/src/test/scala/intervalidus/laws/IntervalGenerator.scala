@@ -3,58 +3,36 @@ package intervalidus.laws
 import intervalidus.*
 import intervalidus.laws.DomainGenerator.*
 import intervalidus.Interval.unbounded
-import intervalidus.{DomainLike, DomainValueLike, Interval}
+import intervalidus.{DomainLike, Interval}
 import org.scalacheck.Gen
 
 // Generates intervals of any dimension
 object IntervalGenerator:
 
-  private def gen[D <: NonEmptyTuple: DomainLike](
-    genStart: Gen[D],
-    genEnd: D => Gen[D]
-  ): Gen[Interval[D]] = for
-    start <- genStart
-    end <- genEnd(start)
+  def gen[D <: NonEmptyTuple: DomainLike: GenDomainOps]: Gen[Interval[D]] = for
+    start <- genStart[D]
+    end <- genEnd[D](start)
   yield Interval(start, end)
 
-  def genDim1(using DomainValueLike[Int]): Gen[Interval[Dim1]] =
-    gen(genStartDim1, genEndDim1)
-  def genDim2(using DomainValueLike[Int]): Gen[Interval[Dim2]] =
-    gen(genStartDim2, genEndDim2)
-  def genDim3(using DomainValueLike[Int]): Gen[Interval[Dim3]] =
-    gen(genStartDim3, genEndDim3)
-  def genDim4(using DomainValueLike[Int]): Gen[Interval[Dim4]] =
-    gen(genStartDim4, genEndDim4)
+  def genBounded[D <: NonEmptyTuple: DomainLike: GenDomainOps]: Gen[Interval[D]] = for
+    start <- genBoundedStart[D]
+    end <- genBoundedEnd[D](start)
+  yield Interval(start, end)
 
-  def genBoundedDim1(using DomainValueLike[Int]): Gen[Interval[Dim1]] =
-    gen(genBoundedStartDim1, genBoundedEndDim1)
-  def genBoundedDim2(using DomainValueLike[Int]): Gen[Interval[Dim2]] =
-    gen(genBoundedStartDim2, genBoundedEndDim2)
-  def genBoundedDim3(using DomainValueLike[Int]): Gen[Interval[Dim3]] =
-    gen(genBoundedStartDim3, genBoundedEndDim3)
-  def genBoundedDim4(using DomainValueLike[Int]): Gen[Interval[Dim4]] =
-    gen(genBoundedStartDim4, genBoundedEndDim4)
+  val minSizeDim = IndexedSeq(100, 10, 3, 2)
+  val maxSizeDim = IndexedSeq(200, 30, 5, 3)
 
-  private def genNonIntersecting[D <: NonEmptyTuple: DomainLike](
-    minSize: Int,
-    maxSize: Int,
-    gen: Gen[Interval[D]]
-  ): Gen[Iterable[Interval[D]]] = for
-    size <- Gen.choose(minSize, maxSize)
-    raw <- Gen.listOfN(size, gen)
-    shards = Interval.uniqueIntervals(unbounded +: raw)
-    subset <- Gen.someOf(shards)
-    limitSize <- Gen.choose(100, 200)
-  yield subset.take(limitSize)
-
-  def genNonIntersectingDim1(using DomainValueLike[Int]): Gen[Iterable[Interval[Dim1]]] =
-    genNonIntersecting(100, 200, genDim1)
-  def genNonIntersectingDim2(using DomainValueLike[Int]): Gen[Iterable[Interval[Dim2]]] =
-    genNonIntersecting(10, 30, genDim2)
-  def genNonIntersectingDim3(using DomainValueLike[Int]): Gen[Iterable[Interval[Dim3]]] =
-    genNonIntersecting(3, 5, genDim3)
-  def genNonIntersectingDim4(using DomainValueLike[Int]): Gen[Iterable[Interval[Dim4]]] =
-    genNonIntersecting(2, 3, genDim4)
+  def genNonIntersecting[D <: NonEmptyTuple: DomainLike: GenDomainOps]: Gen[Iterable[Interval[D]]] =
+    val dimIndex = arity[D] - 1
+    val minSize: Int = minSizeDim.applyOrElse(dimIndex, _ => 2)
+    val maxSize: Int = maxSizeDim.applyOrElse(dimIndex, _ => 3)
+    for
+      size <- Gen.choose(minSize, maxSize)
+      raw <- Gen.listOfN(size, gen[D])
+      shards = Interval.uniqueIntervals(unbounded +: raw)
+      subset <- Gen.someOf(shards)
+      limitSize <- Gen.choose(100, 200)
+    yield subset.take(limitSize)
 
   val compositionTable: Map[(SpatialRelation, SpatialRelation), Set[SpatialRelation]] =
     import SpatialRelation.*

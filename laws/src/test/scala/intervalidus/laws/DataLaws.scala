@@ -1,7 +1,7 @@
 package intervalidus.laws
 
 import DataGenerator.*
-import DomainGenerator.{Dim1, Dim2, Dim3, Dim4}
+import DomainGenerator.{Dim1, Dim2, Dim3, Dim4, GenDomainOps}
 import intervalidus.DomainLike.given
 import intervalidus.immutable.Data
 import intervalidus.*
@@ -21,6 +21,7 @@ class DataLaws extends AnyPropSpec with ScalaCheckPropertyChecks with ParallelTe
     */
   trait DataPropertyTest:
     def apply[D <: NonEmptyTuple: DomainLike](dataGen: Gen[immutable.Data[String, D]]): Assertion
+    def runFor[D <: NonEmptyTuple: DomainLike: GenDomainOps]: Assertion = apply(gen[D](using config = testCoreConfig))
 
   /**
     * Evaluate a random-valued immutable data property in 1, 2, 3, and 4 dimensions using both discrete and continuous
@@ -29,17 +30,17 @@ class DataLaws extends AnyPropSpec with ScalaCheckPropertyChecks with ParallelTe
   def dataProperty(propertyName: String)(testFun: DataPropertyTest): Unit =
     {
       import DiscreteValue.IntDiscreteValue
-      property(s"4D Discrete   $propertyName")(testFun[Dim4](genDim4(using testCoreConfig)))
-      property(s"3D Discrete   $propertyName")(testFun[Dim3](genDim3(using testCoreConfig)))
-      property(s"2D Discrete   $propertyName")(testFun[Dim2](genDim2(using testCoreConfig)))
-      property(s"1D Discrete   $propertyName")(testFun[Dim1](genDim1(using testCoreConfig)))
+      property(s"4D Discrete   $propertyName")(testFun.runFor[Dim4])
+      property(s"3D Discrete   $propertyName")(testFun.runFor[Dim3])
+      property(s"2D Discrete   $propertyName")(testFun.runFor[Dim2])
+      property(s"1D Discrete   $propertyName")(testFun.runFor[Dim1])
     }
     {
       import ContinuousValue.IntContinuousValue
-      property(s"4D Continuous $propertyName")(testFun[Dim4](genDim4(using testCoreConfig)))
-      property(s"3D Continuous $propertyName")(testFun[Dim3](genDim3(using testCoreConfig)))
-      property(s"2D Continuous $propertyName")(testFun[Dim2](genDim2(using testCoreConfig)))
-      property(s"1D Continuous $propertyName")(testFun[Dim1](genDim1(using testCoreConfig)))
+      property(s"4D Continuous $propertyName")(testFun.runFor[Dim4])
+      property(s"3D Continuous $propertyName")(testFun.runFor[Dim3])
+      property(s"2D Continuous $propertyName")(testFun.runFor[Dim2])
+      property(s"1D Continuous $propertyName")(testFun.runFor[Dim1])
     }
 
   extension [V, D <: NonEmptyTuple: DomainLike](lhs: Data[V, D])

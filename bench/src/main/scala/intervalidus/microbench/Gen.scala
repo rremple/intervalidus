@@ -43,33 +43,6 @@ object Gen:
       yield (t, ())
     Gen(it)
 
-  def zip[T1, T2](g1: Gen[T1], g2: Gen[T2]): Gen[(T1, T2)] = Gen:
-    g1.iterator.zip(g2.iterator)
-
-  def zip[T1, T2, T3](g1: Gen[T1], g2: Gen[T2], g3: Gen[T3]): Gen[(T1, T2, T3)] = Gen:
-    zip(g1, g2).iterator
-      .zip(g3.iterator)
-      .map:
-        case ((t1, t2), t3) => (t1, t2, t3)
-
-  def zip[T1, T2, T3, T4](g1: Gen[T1], g2: Gen[T2], g3: Gen[T3], g4: Gen[T4]): Gen[(T1, T2, T3, T4)] = Gen:
-    zip(g1, g2, g3).iterator
-      .zip(g4.iterator)
-      .map:
-        case ((t1, t2, t3), t4) => (t1, t2, t3, t4)
-
-  def zip[T1, T2, T3, T4, T5](
-    g1: Gen[T1],
-    g2: Gen[T2],
-    g3: Gen[T3],
-    g4: Gen[T4],
-    g5: Gen[T5]
-  ): Gen[(T1, T2, T3, T4, T5)] = Gen:
-    zip(g1, g2, g3, g4).iterator
-      .zip(g5.iterator)
-      .map:
-        case ((t1, t2, t3, t4), t5) => (t1, t2, t3, t4, t5)
-
 // a thin wrapper around Iterator
 class Gen[T](val iterator: Iterator[T]):
   def map[U](f: T => U): Gen[U] = Gen:

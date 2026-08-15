@@ -2,7 +2,8 @@ package intervalidus.laws
 
 import intervalidus.*
 import AffineGenerator.*
-import DomainGenerator.{Dim1, Dim2, Dim3, Dim4}
+import DataGenerator.testCoreConfig
+import DomainGenerator.{Dim1, Dim2, Dim3, Dim4, GenDomainOps}
 import intervalidus.DomainAffineLike.given
 import IntervalShapeGenerator.*
 import intervalidus.Domain.{HasDisplacementType, HasScalarType}
@@ -27,145 +28,46 @@ class IntervalShapeAffineLaws
     * Property tests that are applied to IntervalShapes with intervals in 1, 2, 3, and 4 dimensions.
     */
   trait AffineShapePropertyTest:
-    def testDim1(
-      shapeGen: Gen[IntervalShape[Dim1]],
-      displacementGen: Gen[TupleOfInts[Dim1]],
-      scaleGen: Gen[TupleOfDoubles[Dim1]],
-      elementGen: Gen[Interval[Dim1]],
-      centerGen: Gen[Dim1]
+    def apply[D <: NonEmptyTuple: DomainAffineLike](
+      shapeGen: Gen[IntervalShape[D]],
+      displacementGen: Gen[TupleOfInts[D]],
+      scaleGen: Gen[TupleOfDoubles[D]],
+      elementGen: Gen[Interval[D]],
+      centerGen: Gen[D]
     )(using
-      op: DomainAffineValueLike[Int]
-    )(using
-      DomainAffineLike[Dim1],
-      Dim1 HasDisplacementType TupleOfInts[Dim1],
-      Dim1 HasScalarType TupleOfDoubles[Dim1]
+      D HasDisplacementType TupleOfInts[D],
+      D HasScalarType TupleOfDoubles[D]
     ): Assertion
 
-    def testDim2(
-      shapeGen: Gen[IntervalShape[Dim2]],
-      displacementGen: Gen[TupleOfInts[Dim2]],
-      scaleGen: Gen[TupleOfDoubles[Dim2]],
-      elementGen: Gen[Interval[Dim2]],
-      centerGen: Gen[Dim2]
-    )(using
-      op: DomainAffineValueLike[Int]
-    )(using
-      DomainAffineLike[Dim2],
-      Dim2 HasDisplacementType TupleOfInts[Dim2],
-      Dim2 HasScalarType TupleOfDoubles[Dim2]
-    ): Assertion
-
-    def testDim3(
-      shapeGen: Gen[IntervalShape[Dim3]],
-      displacementGen: Gen[TupleOfInts[Dim3]],
-      scaleGen: Gen[TupleOfDoubles[Dim3]],
-      elementGen: Gen[Interval[Dim3]],
-      centerGen: Gen[Dim3]
-    )(using
-      op: DomainAffineValueLike[Int]
-    )(using
-      DomainAffineLike[Dim3],
-      Dim3 HasDisplacementType TupleOfInts[Dim3],
-      Dim3 HasScalarType TupleOfDoubles[Dim3]
-    ): Assertion
-
-    def testDim4(
-      shapeGen: Gen[IntervalShape[Dim4]],
-      displacementGen: Gen[TupleOfInts[Dim4]],
-      scaleGen: Gen[TupleOfDoubles[Dim4]],
-      elementGen: Gen[Interval[Dim4]],
-      centerGen: Gen[Dim4]
-    )(using
-      op: DomainAffineValueLike[Int]
-    )(using
-      DomainAffineLike[Dim4],
-      Dim4 HasDisplacementType TupleOfInts[Dim4],
-      Dim4 HasScalarType TupleOfDoubles[Dim4]
-    ): Assertion
+    def runFor[D <: NonEmptyTuple: DomainAffineLike: GenDomainOps: GenAffineOps](using
+      D HasDisplacementType TupleOfInts[D],
+      D HasScalarType TupleOfDoubles[D]
+    ): Assertion = apply(
+      gen[D](using config = testCoreConfig),
+      genDisplacement[D],
+      genScalar[D],
+      IntervalGenerator.genBounded[D],
+      DomainGenerator.genBoundedStart[D]
+    )
 
   /**
     * Evaluate an IntervalShape property in 1, 2, 3, and 4 dimensions using both discrete and continuous interval domain
     * value semantics.
     */
   def affineShapeProperty(propertyName: String)(testFun: AffineShapePropertyTest): Unit =
-    import DataGenerator.testCoreConfig
     {
       import DiscreteAffineValue.IntDiscreteAffineValue
-      property(s"4D Discrete   $propertyName")(
-        testFun.testDim4(
-          genDim4(using testCoreConfig),
-          genDisplacemenDim4,
-          genScalarDim4,
-          IntervalGenerator.genBoundedDim4,
-          DomainGenerator.genBoundedStartDim4
-        )
-      )
-      property(s"3D Discrete   $propertyName")(
-        testFun.testDim3(
-          genDim3(using testCoreConfig),
-          genDisplacemenDim3,
-          genScalarDim3,
-          IntervalGenerator.genBoundedDim3,
-          DomainGenerator.genBoundedStartDim3
-        )
-      )
-      property(s"2D Discrete   $propertyName")(
-        testFun.testDim2(
-          genDim2(using testCoreConfig),
-          genDisplacemenDim2,
-          genScalarDim2,
-          IntervalGenerator.genBoundedDim2,
-          DomainGenerator.genBoundedStartDim2
-        )
-      )
-      property(s"1D Discrete   $propertyName")(
-        testFun.testDim1(
-          genDim1(using testCoreConfig),
-          genDisplacemenDim1,
-          genScalarDim1,
-          IntervalGenerator.genBoundedDim1,
-          DomainGenerator.genBoundedStartDim1
-        )
-      )
+      property(s"4D Discrete   $propertyName")(testFun.runFor[Dim4])
+      property(s"3D Discrete   $propertyName")(testFun.runFor[Dim3])
+      property(s"2D Discrete   $propertyName")(testFun.runFor[Dim2])
+      property(s"1D Discrete   $propertyName")(testFun.runFor[Dim1])
     }
     {
       import ContinuousAffineValue.IntContinuousAffineValue
-      property(s"4D Continuous $propertyName")(
-        testFun.testDim4(
-          genDim4(using testCoreConfig),
-          genDisplacemenDim4,
-          genScalarDim4,
-          IntervalGenerator.genBoundedDim4,
-          DomainGenerator.genBoundedStartDim4
-        )
-      )
-      property(s"3D Continuous $propertyName")(
-        testFun.testDim3(
-          genDim3(using testCoreConfig),
-          genDisplacemenDim3,
-          genScalarDim3,
-          IntervalGenerator.genBoundedDim3,
-          DomainGenerator.genBoundedStartDim3
-        )
-      )
-      property(s"2D Continuous $propertyName")(
-        testFun.testDim2(
-          genDim2(using testCoreConfig),
-          genDisplacemenDim2,
-          genScalarDim2,
-          IntervalGenerator.genBoundedDim2,
-          DomainGenerator.genBoundedStartDim2
-        )
-      )
-      property(s"1D Continuous $propertyName")(
-        testFun.testDim1(
-          genDim1(using testCoreConfig),
-          genDisplacemenDim1,
-          genScalarDim1,
-          IntervalGenerator.genBoundedDim1,
-          DomainGenerator.genBoundedStartDim1
-        )
-      )
+      property(s"4D Continuous $propertyName")(testFun.runFor[Dim4])
+      property(s"3D Continuous $propertyName")(testFun.runFor[Dim3])
+      property(s"2D Continuous $propertyName")(testFun.runFor[Dim2])
+      property(s"1D Continuous $propertyName")(testFun.runFor[Dim1])
     }
 
   extension [D <: NonEmptyTuple: DomainAffineLike](lhs: IntervalShape[D])
@@ -218,18 +120,15 @@ class IntervalShapeAffineLaws
     */
   affineShapeProperty("Affine operations on shapes"):
     new AffineShapePropertyTest:
-      override def testDim1(
-        shapeGen: Gen[IntervalShape[Dim1]],
-        displacementGen: Gen[TupleOfInts[Dim1]],
-        scaleGen: Gen[TupleOfDoubles[Dim1]],
-        elementGen: Gen[Interval[Dim1]],
-        centerGen: Gen[Dim1]
+      override def apply[D <: NonEmptyTuple: DomainAffineLike](
+        shapeGen: Gen[IntervalShape[D]],
+        displacementGen: Gen[TupleOfInts[D]],
+        scaleGen: Gen[TupleOfDoubles[D]],
+        elementGen: Gen[Interval[D]],
+        centerGen: Gen[D]
       )(using
-        op: DomainAffineValueLike[Int]
-      )(using
-        DomainAffineLike[Dim1],
-        Dim1 HasDisplacementType TupleOfInts[Dim1],
-        Dim1 HasScalarType TupleOfDoubles[Dim1]
+        D HasDisplacementType TupleOfInts[D],
+        D HasScalarType TupleOfDoubles[D]
       ): Assertion =
         forAll(shapeGen, displacementGen, scaleGen, elementGen, centerGen): (shape, offset, scale, element, center) =>
           // Inversion
@@ -237,7 +136,7 @@ class IntervalShapeAffineLaws
           shape.scaledAbout(center, scale).scaledAbout(center, inverted(scale)) ≡≡ shape
 
           // Adjacency
-          if shape.isEmpty then () // succeed
+          if shape.isEmpty then () // ignore
           else
             shape.allIntervals
               .zip(shape.allIntervals.drop(1))
@@ -250,7 +149,7 @@ class IntervalShapeAffineLaws
           // Measure
           shape.allIntervals.foreach: i =>
             i.scaledAbout(center, scale) match
-              case None          => ()
+              case None          => () // ignore
               case Some(iScaled) =>
                 val measureThenScale = i.measure.map: m =>
                   mapScaledDisplacement(m, scale, (i, s) => (i * Math.abs(s)).toInt)
@@ -261,7 +160,7 @@ class IntervalShapeAffineLaws
           shape.displacedBy(offset).displacedBy(negated(offset)) ≡≡ shape
 
           Try(element.withCenter(center)) match
-            case Failure(_)     => succeed // results may not be valid if the element can't be reflected
+            case Failure(_)     => succeed // ignore results if the element can't be reflected
             case Success(probe) =>
 
               // NOTE: erodedBy internally reflects the element to satisfy complementation duality.
@@ -305,7 +204,7 @@ class IntervalShapeAffineLaws
                 case Some(scaledProbeElement) =>
                   val scaledProbe = scaledProbeElement.withCenter(center)
                   (gradientShapeSuper ⊆ (shape ∇ scaledProbe)) shouldBe true
-                case _ => succeed
+                case _ => succeed // ignore
 
               // Top-hat boundedness
               (openedShape ∪ whiteTopHatShape) ≡≡ shape
@@ -334,358 +233,4 @@ class IntervalShapeAffineLaws
                   whiteTopHatShape.displacedBy(offset) ≡≡ (shape.displacedBy(offset) wth displacedProbe)
                   blackTopHatShape.displacedBy(offset) ≡≡ (shape.displacedBy(offset) bth displacedProbe)
                 .getOrElse:
-                  succeed
-
-      override def testDim2(
-        shapeGen: Gen[IntervalShape[Dim2]],
-        displacementGen: Gen[TupleOfInts[Dim2]],
-        scaleGen: Gen[TupleOfDoubles[Dim2]],
-        elementGen: Gen[Interval[Dim2]],
-        centerGen: Gen[Dim2]
-      )(using
-        op: DomainAffineValueLike[Int]
-      )(using
-        DomainAffineLike[Dim2],
-        Dim2 HasDisplacementType TupleOfInts[Dim2],
-        Dim2 HasScalarType TupleOfDoubles[Dim2]
-      ): Assertion =
-        forAll(shapeGen, displacementGen, scaleGen, elementGen, centerGen): (shape, offset, scale, element, center) =>
-          // Inversion
-          shape.reflectedAbout(center).reflectedAbout(center) ≡≡ shape // scale = -1, and 1/(-1) = -1
-          shape.scaledAbout(center, scale).scaledAbout(center, inverted(scale)) ≡≡ shape
-
-          // Adjacency
-          if shape.isEmpty then () // succeed
-          else
-            shape.allIntervals
-              .zip(shape.allIntervals.drop(1))
-              .foreach: (left, right) =>
-                (left.scaledAbout(center, scale), right.scaledAbout(center, scale)) match
-                  case (Some(leftScaled), Some(rightScaled)) =>
-                    left.isAdjacentTo(right) shouldBe leftScaled.isAdjacentTo(rightScaled)
-                  case _ => succeed
-
-          // Measure
-          shape.allIntervals.foreach: i =>
-            i.scaledAbout(center, scale) match
-              case None          => ()
-              case Some(iScaled) =>
-                val measureThenScale = i.measure.map: m =>
-                  mapScaledDisplacement(m, scale, (i, s) => (i * Math.abs(s)).toInt)
-                val scaleThenMeasure = i.scaledAbout(center, scale).flatMap(_.measure)
-                measureThenScale shouldBe scaleThenMeasure
-
-          // Displacement
-          shape.displacedBy(offset).displacedBy(negated(offset)) ≡≡ shape
-
-          Try(element.withCenter(center)) match
-            case Failure(_)     => succeed // results may not be valid if the element can't be reflected
-            case Success(probe) =>
-
-              // NOTE: erodedBy internally reflects the element to satisfy complementation duality.
-              // To keep our test suite's spatial orientations aligned for direct comparison,
-              // we pass the pre-reflected element here.
-              val erodedShape = shape ⊖ probe.reflected // using reflected element
-              val dilatedShape = shape ⊕ probe
-              val openedShape = shape ○ probe
-              val closedShape = shape ● probe
-              val gradientShape = shape ∇ probe
-              val whiteTopHatShape = shape wth probe
-              val blackTopHatShape = shape bth probe
-
-              // Idempotency
-              openedShape ○ probe ≡≡ openedShape
-              closedShape ● probe ≡≡ closedShape
-
-              // Monotonicity
-              val shapeB = shape + element // shape is a subset of shapeB
-              (dilatedShape ⊆ (shapeB ⊕ probe)) shouldBe true
-
-              // Extensive closing and Anti-Extensive opening
-              (shape ⊆ closedShape) shouldBe true
-              (openedShape ⊆ shape) shouldBe true
-
-              // Duality
-              (shape.c ⊖ probe.reflected).c ≡≡ dilatedShape
-
-              // Gradient inclusion
-              (gradientShape ∩ erodedShape) ≡≡ ∅
-              (gradientShape ⊆ dilatedShape) shouldBe true
-
-              val gradientShapeSuper = shape ∇ probe.containingCenter
-
-              // Gradient extensivity over the identity
-              (((shape ⊕ probe.containingCenter) \ shape) ⊆ gradientShapeSuper) shouldBe true
-              ((shape \ (shape ⊖ probe.containingCenter)) ⊆ gradientShapeSuper) shouldBe true
-
-              // Gradient scale monotonicity
-              probe.containingCenter.element ⊕ probe.containingCenter match
-                case Some(scaledProbeElement) =>
-                  val scaledProbe = scaledProbeElement.withCenter(center)
-                  (gradientShapeSuper ⊆ (shape ∇ scaledProbe)) shouldBe true
-                case _ => succeed
-
-              // Top-hat boundedness
-              (openedShape ∪ whiteTopHatShape) ≡≡ shape
-              (openedShape ∩ whiteTopHatShape) ≡≡ ∅
-              (shape ∪ blackTopHatShape) ≡≡ closedShape
-
-              // Top-hat idempotency
-              val whiteTopHatShapeSuper = shape wth probe.containingCenter
-              (whiteTopHatShapeSuper wth probe.containingCenter) ≡≡ whiteTopHatShapeSuper
-
-              // Top-hat sieving
-              (whiteTopHatShape ○ probe) ≡≡ ∅
-              (blackTopHatShape ○ probe) ≡≡ ∅
-
-              // Top-hat duality
-              (shape.c bth probe.reflected) ≡≡ whiteTopHatShape
-              (shape.c wth probe.reflected) ≡≡ blackTopHatShape
-
-              // Translation invariance
-              probe.element
-                .displacedBy(offset)
-                .flatMap: displacedElement =>
-                  Try(displacedElement.withCenter(probe.center displacedBy offset)).toOption
-                .map: displacedProbe =>
-                  gradientShape.displacedBy(offset) ≡≡ (shape.displacedBy(offset) ∇ displacedProbe)
-                  whiteTopHatShape.displacedBy(offset) ≡≡ (shape.displacedBy(offset) wth displacedProbe)
-                  blackTopHatShape.displacedBy(offset) ≡≡ (shape.displacedBy(offset) bth displacedProbe)
-                .getOrElse:
-                  succeed
-
-      override def testDim3(
-        shapeGen: Gen[IntervalShape[Dim3]],
-        displacementGen: Gen[TupleOfInts[Dim3]],
-        scaleGen: Gen[TupleOfDoubles[Dim3]],
-        elementGen: Gen[Interval[Dim3]],
-        centerGen: Gen[Dim3]
-      )(using
-        op: DomainAffineValueLike[Int]
-      )(using
-        DomainAffineLike[Dim3],
-        Dim3 HasDisplacementType TupleOfInts[Dim3],
-        Dim3 HasScalarType TupleOfDoubles[Dim3]
-      ): Assertion =
-        forAll(shapeGen, displacementGen, scaleGen, elementGen, centerGen): (shape, offset, scale, element, center) =>
-          // Inversion
-          shape.reflectedAbout(center).reflectedAbout(center) ≡≡ shape // scale = -1, and 1/(-1) = -1
-          shape.scaledAbout(center, scale).scaledAbout(center, inverted(scale)) ≡≡ shape
-
-          // Adjacency
-          if shape.isEmpty then () // succeed
-          else
-            shape.allIntervals
-              .zip(shape.allIntervals.drop(1))
-              .foreach: (left, right) =>
-                (left.scaledAbout(center, scale), right.scaledAbout(center, scale)) match
-                  case (Some(leftScaled), Some(rightScaled)) =>
-                    left.isAdjacentTo(right) shouldBe leftScaled.isAdjacentTo(rightScaled)
-                  case _ => succeed
-
-          // Measure
-          shape.allIntervals.foreach: i =>
-            i.scaledAbout(center, scale) match
-              case None          => ()
-              case Some(iScaled) =>
-                val measureThenScale = i.measure.map: m =>
-                  mapScaledDisplacement(m, scale, (i, s) => (i * Math.abs(s)).toInt)
-                val scaleThenMeasure = i.scaledAbout(center, scale).flatMap(_.measure)
-                measureThenScale shouldBe scaleThenMeasure
-
-          // Displacement
-          shape.displacedBy(offset).displacedBy(negated(offset)) ≡≡ shape
-
-          Try(element.withCenter(center)) match
-            case Failure(_)     => succeed // results may not be valid if the element can't be reflected
-            case Success(probe) =>
-
-              // NOTE: erodedBy internally reflects the element to satisfy complementation duality.
-              // To keep our test suite's spatial orientations aligned for direct comparison,
-              // we pass the pre-reflected element here.
-              val erodedShape = shape ⊖ probe.reflected // using reflected element
-              val dilatedShape = shape ⊕ probe
-              val openedShape = shape ○ probe
-              val closedShape = shape ● probe
-              val gradientShape = shape ∇ probe
-              val whiteTopHatShape = shape wth probe
-              val blackTopHatShape = shape bth probe
-
-              // Idempotency
-              openedShape ○ probe ≡≡ openedShape
-              closedShape ● probe ≡≡ closedShape
-
-              // Monotonicity
-              val shapeB = shape + element // shape is a subset of shapeB
-              (dilatedShape ⊆ (shapeB ⊕ probe)) shouldBe true
-
-              // Extensive closing and Anti-Extensive opening
-              (shape ⊆ closedShape) shouldBe true
-              (openedShape ⊆ shape) shouldBe true
-
-              // Duality
-              (shape.c ⊖ probe.reflected).c ≡≡ dilatedShape
-
-              // Gradient inclusion
-              (gradientShape ∩ erodedShape) ≡≡ ∅
-              (gradientShape ⊆ dilatedShape) shouldBe true
-
-              val gradientShapeSuper = shape ∇ probe.containingCenter
-
-              // Gradient extensivity over the identity
-              (((shape ⊕ probe.containingCenter) \ shape) ⊆ gradientShapeSuper) shouldBe true
-              ((shape \ (shape ⊖ probe.containingCenter)) ⊆ gradientShapeSuper) shouldBe true
-
-              // Gradient scale monotonicity
-              probe.containingCenter.element ⊕ probe.containingCenter match
-                case Some(scaledProbeElement) =>
-                  val scaledProbe = scaledProbeElement.withCenter(center)
-                  (gradientShapeSuper ⊆ (shape ∇ scaledProbe)) shouldBe true
-                case _ => succeed
-
-              // Top-hat boundedness
-              (openedShape ∪ whiteTopHatShape) ≡≡ shape
-              (openedShape ∩ whiteTopHatShape) ≡≡ ∅
-              (shape ∪ blackTopHatShape) ≡≡ closedShape
-
-              // Top-hat idempotency
-              val whiteTopHatShapeSuper = shape wth probe.containingCenter
-              (whiteTopHatShapeSuper wth probe.containingCenter) ≡≡ whiteTopHatShapeSuper
-
-              // Top-hat sieving
-              (whiteTopHatShape ○ probe) ≡≡ ∅
-              (blackTopHatShape ○ probe) ≡≡ ∅
-
-              // Top-hat duality
-              (shape.c bth probe.reflected) ≡≡ whiteTopHatShape
-              (shape.c wth probe.reflected) ≡≡ blackTopHatShape
-
-              // Translation invariance
-              probe.element
-                .displacedBy(offset)
-                .flatMap: displacedElement =>
-                  Try(displacedElement.withCenter(probe.center displacedBy offset)).toOption
-                .map: displacedProbe =>
-                  gradientShape.displacedBy(offset) ≡≡ (shape.displacedBy(offset) ∇ displacedProbe)
-                  whiteTopHatShape.displacedBy(offset) ≡≡ (shape.displacedBy(offset) wth displacedProbe)
-                  blackTopHatShape.displacedBy(offset) ≡≡ (shape.displacedBy(offset) bth displacedProbe)
-                .getOrElse:
-                  succeed
-
-      override def testDim4(
-        shapeGen: Gen[IntervalShape[Dim4]],
-        displacementGen: Gen[TupleOfInts[Dim4]],
-        scaleGen: Gen[TupleOfDoubles[Dim4]],
-        elementGen: Gen[Interval[Dim4]],
-        centerGen: Gen[Dim4]
-      )(using
-        op: DomainAffineValueLike[Int]
-      )(using
-        DomainAffineLike[Dim4],
-        Dim4 HasDisplacementType TupleOfInts[Dim4],
-        Dim4 HasScalarType TupleOfDoubles[Dim4]
-      ): Assertion =
-        forAll(shapeGen, displacementGen, scaleGen, elementGen, centerGen): (shape, offset, scale, element, center) =>
-          // Inversion
-          shape.reflectedAbout(center).reflectedAbout(center) ≡≡ shape // scale = -1, and 1/(-1) = -1
-          shape.scaledAbout(center, scale).scaledAbout(center, inverted(scale)) ≡≡ shape
-
-          // Adjacency
-          if shape.isEmpty then () // succeed
-          else
-            shape.allIntervals
-              .zip(shape.allIntervals.drop(1))
-              .foreach: (left, right) =>
-                (left.scaledAbout(center, scale), right.scaledAbout(center, scale)) match
-                  case (Some(leftScaled), Some(rightScaled)) =>
-                    left.isAdjacentTo(right) shouldBe leftScaled.isAdjacentTo(rightScaled)
-                  case _ => succeed
-
-          // Measure
-          shape.allIntervals.foreach: i =>
-            i.scaledAbout(center, scale) match
-              case None          => ()
-              case Some(iScaled) =>
-                val measureThenScale = i.measure.map: m =>
-                  mapScaledDisplacement(m, scale, (i, s) => (i * Math.abs(s)).toInt)
-                val scaleThenMeasure = i.scaledAbout(center, scale).flatMap(_.measure)
-                measureThenScale shouldBe scaleThenMeasure
-
-          // Displacement
-          shape.displacedBy(offset).displacedBy(negated(offset)) ≡≡ shape
-
-          Try(element.withCenter(center)) match
-            case Failure(_)     => succeed // results may not be valid if the element can't be reflected
-            case Success(probe) =>
-
-              // NOTE: erodedBy internally reflects the element to satisfy complementation duality.
-              // To keep our test suite's spatial orientations aligned for direct comparison,
-              // we pass the pre-reflected element here.
-              val erodedShape = shape ⊖ probe.reflected // using reflected element
-              val dilatedShape = shape ⊕ probe
-              val openedShape = shape ○ probe
-              val closedShape = shape ● probe
-              val gradientShape = shape ∇ probe
-              val whiteTopHatShape = shape wth probe
-              val blackTopHatShape = shape bth probe
-
-              // Idempotency
-              openedShape ○ probe ≡≡ openedShape
-              closedShape ● probe ≡≡ closedShape
-
-              // Monotonicity
-              val shapeB = shape + element // shape is a subset of shapeB
-              (dilatedShape ⊆ (shapeB ⊕ probe)) shouldBe true
-
-              // Extensive closing and Anti-Extensive opening
-              (shape ⊆ closedShape) shouldBe true
-              (openedShape ⊆ shape) shouldBe true
-
-              // Duality
-              (shape.c ⊖ probe.reflected).c ≡≡ dilatedShape
-
-              // Gradient inclusion
-              (gradientShape ∩ erodedShape) ≡≡ ∅
-              (gradientShape ⊆ dilatedShape) shouldBe true
-
-              val gradientShapeSuper = shape ∇ probe.containingCenter
-
-              // Gradient extensivity over the identity
-              (((shape ⊕ probe.containingCenter) \ shape) ⊆ gradientShapeSuper) shouldBe true
-              ((shape \ (shape ⊖ probe.containingCenter)) ⊆ gradientShapeSuper) shouldBe true
-
-              // Gradient scale monotonicity
-              probe.containingCenter.element ⊕ probe.containingCenter match
-                case Some(scaledProbeElement) =>
-                  val scaledProbe = scaledProbeElement.withCenter(center)
-                  (gradientShapeSuper ⊆ (shape ∇ scaledProbe)) shouldBe true
-                case _ => succeed
-
-              // Top-hat boundedness
-              (openedShape ∪ whiteTopHatShape) ≡≡ shape
-              (openedShape ∩ whiteTopHatShape) ≡≡ ∅
-              (shape ∪ blackTopHatShape) ≡≡ closedShape
-
-              // Top-hat idempotency
-              val whiteTopHatShapeSuper = shape wth probe.containingCenter
-              (whiteTopHatShapeSuper wth probe.containingCenter) ≡≡ whiteTopHatShapeSuper
-
-              // Top-hat sieving
-              (whiteTopHatShape ○ probe) ≡≡ ∅
-              (blackTopHatShape ○ probe) ≡≡ ∅
-
-              // Top-hat duality
-              (shape.c bth probe.reflected) ≡≡ whiteTopHatShape
-              (shape.c wth probe.reflected) ≡≡ blackTopHatShape
-
-              // Translation invariance
-              probe.element
-                .displacedBy(offset)
-                .flatMap: displacedElement =>
-                  Try(displacedElement.withCenter(probe.center displacedBy offset)).toOption
-                .map: displacedProbe =>
-                  gradientShape.displacedBy(offset) ≡≡ (shape.displacedBy(offset) ∇ displacedProbe)
-                  whiteTopHatShape.displacedBy(offset) ≡≡ (shape.displacedBy(offset) wth displacedProbe)
-                  blackTopHatShape.displacedBy(offset) ≡≡ (shape.displacedBy(offset) bth displacedProbe)
-                .getOrElse:
-                  succeed
+                  succeed // ignore

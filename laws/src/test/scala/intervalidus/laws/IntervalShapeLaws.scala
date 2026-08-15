@@ -1,7 +1,8 @@
 package intervalidus.laws
 
 import intervalidus.*
-import DomainGenerator.{Dim1, Dim2, Dim3, Dim4}
+import DataGenerator.testCoreConfig
+import DomainGenerator.{Dim1, Dim2, Dim3, Dim4, GenDomainOps}
 import intervalidus.DomainLike.given
 import intervalidus.IntervalShape.*
 import IntervalShapeGenerator.*
@@ -22,26 +23,26 @@ class IntervalShapeLaws extends AnyPropSpec with ScalaCheckPropertyChecks with P
     */
   trait IntervalShapePropertyTest:
     def apply[D <: NonEmptyTuple: DomainLike](intervalMultiGen: Gen[IntervalShape[D]]): Assertion
+    def runFor[D <: NonEmptyTuple: DomainLike: GenDomainOps]: Assertion = apply(gen[D](using config = testCoreConfig))
 
   /**
     * Evaluate an IntervalShape property in 1, 2, 3, and 4 dimensions using both discrete and continuous interval domain
     * value semantics.
     */
   def intervalMultiProperty(propertyName: String)(testFun: IntervalShapePropertyTest): Unit =
-    import DataGenerator.testCoreConfig
     {
       import DiscreteValue.IntDiscreteValue
-      property(s"4D Discrete   $propertyName")(testFun[Dim4](genDim4(using testCoreConfig)))
-      property(s"3D Discrete   $propertyName")(testFun[Dim3](genDim3(using testCoreConfig)))
-      property(s"2D Discrete   $propertyName")(testFun[Dim2](genDim2(using testCoreConfig)))
-      property(s"1D Discrete   $propertyName")(testFun[Dim1](genDim1(using testCoreConfig)))
+      property(s"4D Discrete   $propertyName")(testFun.runFor[Dim4])
+      property(s"3D Discrete   $propertyName")(testFun.runFor[Dim3])
+      property(s"2D Discrete   $propertyName")(testFun.runFor[Dim2])
+      property(s"1D Discrete   $propertyName")(testFun.runFor[Dim1])
     }
     {
       import ContinuousValue.IntContinuousValue
-      property(s"4D Continuous $propertyName")(testFun[Dim4](genDim4(using testCoreConfig)))
-      property(s"3D Continuous $propertyName")(testFun[Dim3](genDim3(using testCoreConfig)))
-      property(s"2D Continuous $propertyName")(testFun[Dim2](genDim2(using testCoreConfig)))
-      property(s"1D Continuous $propertyName")(testFun[Dim1](genDim1(using testCoreConfig)))
+      property(s"4D Continuous $propertyName")(testFun.runFor[Dim4])
+      property(s"3D Continuous $propertyName")(testFun.runFor[Dim3])
+      property(s"2D Continuous $propertyName")(testFun.runFor[Dim2])
+      property(s"1D Continuous $propertyName")(testFun.runFor[Dim1])
     }
 
   type NonEmptyConcat[X <: Tuple, +Y <: NonEmptyTuple] <: NonEmptyTuple = X match
@@ -68,25 +69,34 @@ class IntervalShapeLaws extends AnyPropSpec with ScalaCheckPropertyChecks with P
       Domain.IsDroppedInResult[ExtrudeAtOne[D], 1, D]
     ): Assertion
 
+    def runFor[D <: NonEmptyTuple: DomainLike: GenDomainOps](using
+      DomainValueLike[Int],
+      DomainLike[ExtrudeAtZero[D]],
+      DomainLike[ExtrudeAtOne[D]],
+      Domain.HasIndex[ExtrudeAtZero[D], 0],
+      Domain.HasIndex[ExtrudeAtOne[D], 1],
+      Domain.IsInsertedInResult[D, 1, Int, ExtrudeAtOne[D]],
+      Domain.IsDroppedInResult[ExtrudeAtOne[D], 1, D]
+    ): Assertion = apply(gen[D](using config = testCoreConfig))
+
   /**
     * Evaluate an IntervalShape property in 1, 2, 3, and 4 dimensions using both discrete and continuous interval domain
     * value semantics where shapes are extruded/collapsed..
     */
   def intervalMultiExtrudingProperty(propertyName: String)(testFun: IntervalShapeExtrudingPropertyTest): Unit =
-    import DataGenerator.testCoreConfig
     {
       import DiscreteValue.IntDiscreteValue
-      property(s"4D Discrete   $propertyName")(testFun[Dim4](genDim4(using testCoreConfig)))
-      property(s"3D Discrete   $propertyName")(testFun[Dim3](genDim3(using testCoreConfig)))
-      property(s"2D Discrete   $propertyName")(testFun[Dim2](genDim2(using testCoreConfig)))
-      property(s"1D Discrete   $propertyName")(testFun[Dim1](genDim1(using testCoreConfig)))
+      property(s"4D Discrete   $propertyName")(testFun.runFor[Dim4])
+      property(s"3D Discrete   $propertyName")(testFun.runFor[Dim3])
+      property(s"2D Discrete   $propertyName")(testFun.runFor[Dim2])
+      property(s"1D Discrete   $propertyName")(testFun.runFor[Dim1])
     }
     {
       import ContinuousValue.IntContinuousValue
-      property(s"4D Continuous $propertyName")(testFun[Dim4](genDim4(using testCoreConfig)))
-      property(s"3D Continuous $propertyName")(testFun[Dim3](genDim3(using testCoreConfig)))
-      property(s"2D Continuous $propertyName")(testFun[Dim2](genDim2(using testCoreConfig)))
-      property(s"1D Continuous $propertyName")(testFun[Dim1](genDim1(using testCoreConfig)))
+      property(s"4D Continuous $propertyName")(testFun.runFor[Dim4])
+      property(s"3D Continuous $propertyName")(testFun.runFor[Dim3])
+      property(s"2D Continuous $propertyName")(testFun.runFor[Dim2])
+      property(s"1D Continuous $propertyName")(testFun.runFor[Dim1])
     }
 
   extension [D <: NonEmptyTuple: DomainLike](lhs: IntervalShape[D])
@@ -215,7 +225,7 @@ class IntervalShapeLaws extends AnyPropSpec with ScalaCheckPropertyChecks with P
         Domain.IsInsertedInResult[D, 1, Int, ExtrudeAtOne[D]],
         Domain.IsDroppedInResult[ExtrudeAtOne[D], 1, D]
       ): Assertion =
-        forAll(intervalMultiGen, IntervalGenerator.genDim1): (a, extent) =>
+        forAll(intervalMultiGen, IntervalGenerator.gen[Dim1]): (a, extent) =>
           val extended0: IntervalShape[ExtrudeAtZero[D]] = a.extrudeDimension(0, extent.headInterval1D[Int])
           val flattened0: IntervalShape[D] = extended0.flattenDimension(0)
           flattened0 ≡≡ a

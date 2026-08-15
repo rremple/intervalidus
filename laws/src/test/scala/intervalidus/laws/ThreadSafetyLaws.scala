@@ -1,7 +1,7 @@
 package intervalidus.laws
 
 import DataGenerator.*
-import DomainGenerator.{Dim1, Dim2, Dim3, Dim4}
+import DomainGenerator.{Dim1, Dim2, Dim3, Dim4, GenDomainOps}
 import intervalidus.DomainLike.given
 import intervalidus.*
 import org.scalacheck.Gen
@@ -25,18 +25,16 @@ class ThreadSafetyLaws extends AnyPropSpec with ScalaCheckPropertyChecks with Pa
     */
   trait ThreadSafetyPropertyTest:
     def apply[D <: NonEmptyTuple: DomainLike](dataGen: Gen[immutable.Data[String, D]]): Assertion
+    def runFor[D <: NonEmptyTuple : DomainLike : GenDomainOps]: Assertion =
+      apply(gen[D](using config = CoreConfig.default.withCompressOnUpdate(false)))
 
   def threadSafetyPropertyInt(propertyName: String, testFun: ThreadSafetyPropertyTest, paddedName: String)(using
     DomainValueLike[Int]
   ): Unit =
-    given CoreConfig[Dim4] = CoreConfig.default.withCompressOnUpdate(false)
-    property(s"4D $paddedName $propertyName")(testFun[Dim4](genDim4))
-    given CoreConfig[Dim3] = CoreConfig.default.withCompressOnUpdate(false)
-    property(s"3D $paddedName $propertyName")(testFun[Dim3](genDim3))
-    given CoreConfig[Dim2] = CoreConfig.default.withCompressOnUpdate(false)
-    property(s"2D $paddedName $propertyName")(testFun[Dim2](genDim2))
-    given CoreConfig[Dim1] = CoreConfig.default.withCompressOnUpdate(false)
-    property(s"1D $paddedName $propertyName")(testFun[Dim1](genDim1))
+    property(s"4D $paddedName $propertyName")(testFun.runFor[Dim4])
+    property(s"3D $paddedName $propertyName")(testFun.runFor[Dim3])
+    property(s"2D $paddedName $propertyName")(testFun.runFor[Dim2])
+    property(s"1D $paddedName $propertyName")(testFun.runFor[Dim1])
 
   def threadSafetyDiscreteProperty(propertyName: String)(testFun: ThreadSafetyPropertyTest): Unit =
     threadSafetyPropertyInt(propertyName, testFun, "Discrete  ")(using DiscreteValue.IntDiscreteValue)

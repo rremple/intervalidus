@@ -47,27 +47,47 @@ object AffineGenerator:
       case (EmptyTuple, EmptyTuple)                          => EmptyTuple
       case ((headD: Int) *: tailD, (headS: Double) *: tailS) => f(headD, headS) *: c(tailD, tailS)
       case (otherD *: tailD, _ *: tailS)                     => otherD *: c(tailD, tailS)
-      case theUnexpected                                     => throw IllegalArgumentException(s"didn't expect $theUnexpected")
+      case theUnexpected => throw IllegalArgumentException(s"didn't expect $theUnexpected")
     c(d, s).asInstanceOf[D]
 
   private def genDisplacemen1D: Gen[Int] = Gen.choose(intRange.start, intRange.end)
 
-  def genDisplacemenDim1: Gen[TupleOfInts[Dim1]] =
-    genDisplacemen1D.map(_ *: EmptyTuple)
-  def genDisplacemenDim2: Gen[TupleOfInts[Dim2]] =
-    Gen.zip(genDisplacemen1D, genDisplacemen1D)
-  def genDisplacemenDim3: Gen[TupleOfInts[Dim3]] =
-    Gen.zip(genDisplacemen1D, genDisplacemen1D, genDisplacemen1D)
-  def genDisplacemenDim4: Gen[TupleOfInts[Dim4]] =
-    Gen.zip(genDisplacemen1D, genDisplacemen1D, genDisplacemen1D, genDisplacemen1D)
-
   private def genScalar1D: Gen[Double] = Gen.oneOf(List(-4.0, -2.0, -1.0, 1.0, 2.0, 4.0))
 
-  def genScalarDim1: Gen[TupleOfDoubles[Dim1]] =
-    genScalar1D.map(_ *: EmptyTuple)
-  def genScalarDim2: Gen[TupleOfDoubles[Dim2]] =
-    Gen.zip(genScalar1D, genScalar1D)
-  def genScalarDim3: Gen[TupleOfDoubles[Dim3]] =
-    Gen.zip(genScalar1D, genScalar1D, genScalar1D)
-  def genScalarDim4: Gen[TupleOfDoubles[Dim4]] =
-    Gen.zip(genScalar1D, genScalar1D, genScalar1D, genScalar1D)
+  // Generates domains of any dimension, specialized for Ints
+  trait GenAffineOps[D <: NonEmptyTuple]:
+    def genDisplacement: Gen[TupleOfInts[D]]
+    def genScalar: Gen[TupleOfDoubles[D]]
+
+  private type OneDimTuple[T] = T *: EmptyTuple
+  private type MultiDimTuple[T, DomainTail <: NonEmptyTuple] = T *: DomainTail
+
+  inline def genDisplacement[D <: NonEmptyTuple](using genAffineOps: GenAffineOps[D]): Gen[TupleOfInts[D]] =
+    genAffineOps.genDisplacement
+  inline def genScalar[D <: NonEmptyTuple](using genAffineOps: GenAffineOps[D]): Gen[TupleOfDoubles[D]] =
+    genAffineOps.genScalar
+
+  /**
+    * Base case, for a one-dimensional domain (empty tail)
+    */
+  given GenAffineOneDimOps[T]: GenAffineOps[OneDimTuple[T]] with
+    inline override def genDisplacement: Gen[TupleOfInts[OneDimTuple[T]]] = genDisplacemen1D.map(_ *: EmptyTuple)
+    inline override def genScalar: Gen[TupleOfDoubles[OneDimTuple[T]]] = genScalar1D.map(_ *: EmptyTuple)
+
+  /**
+    * Inductive case for a domain with two or more dimensions (non-empty tail)
+    */
+  given GenAffineMultiDimOps[T, DomainTail <: NonEmptyTuple](using
+    applyToTail: GenAffineOps[DomainTail]
+  ): GenAffineOps[MultiDimTuple[T, DomainTail]] with
+    inline override def genDisplacement: Gen[TupleOfInts[MultiDimTuple[T, DomainTail]]] =
+      for
+        head <- genDisplacemen1D
+        tail <- applyToTail.genDisplacement
+      yield head *: tail
+
+    inline override def genScalar: Gen[TupleOfDoubles[MultiDimTuple[T, DomainTail]]] =
+      for
+        head <- genScalar1D
+        tail <- applyToTail.genScalar
+      yield head *: tail

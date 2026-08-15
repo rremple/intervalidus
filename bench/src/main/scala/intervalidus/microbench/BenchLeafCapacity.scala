@@ -1,6 +1,7 @@
 package intervalidus.microbench
 
 import intervalidus.*
+import intervalidus.microbench.DomainGenerator.{Dim1, Dim2, Dim3, Dim4, Dim5}
 import intervalidus.microbench.IntervalShapeGenerator.*
 import org.openjdk.jmh.annotations.*
 import org.openjdk.jmh.infra.Blackhole
@@ -54,31 +55,31 @@ object BenchLeafCapacity:
   // TODO: someday I can run discrete and continuous together, but not today...
   import DiscreteValue.IntDiscreteValue
   // import ContinuousValue.IntContinuousValue
-  class BenchmarkState1d00256 extends GenericBenchmarkState(256, () => genDim1)
-  class BenchmarkState1d00512 extends GenericBenchmarkState(512, () => genDim1)
-  class BenchmarkState1d01024 extends GenericBenchmarkState(1024, () => genDim1)
-  class BenchmarkState1d02048 extends GenericBenchmarkState(2048, () => genDim1)
-  class BenchmarkState1d04096 extends GenericBenchmarkState(4096, () => genDim1)
-  class BenchmarkState2d00256 extends GenericBenchmarkState(256, () => genDim2)
-  class BenchmarkState2d00512 extends GenericBenchmarkState(512, () => genDim2)
-  class BenchmarkState2d01024 extends GenericBenchmarkState(1024, () => genDim2)
-  class BenchmarkState2d02048 extends GenericBenchmarkState(2048, () => genDim2)
-  class BenchmarkState2d04096 extends GenericBenchmarkState(4096, () => genDim2)
-  class BenchmarkState3d00256 extends GenericBenchmarkState(256, () => genDim3)
-  class BenchmarkState3d00512 extends GenericBenchmarkState(512, () => genDim3)
-  class BenchmarkState3d01024 extends GenericBenchmarkState(1024, () => genDim3)
-  class BenchmarkState3d02048 extends GenericBenchmarkState(2048, () => genDim3)
-  class BenchmarkState3d04096 extends GenericBenchmarkState(4096, () => genDim3)
-  class BenchmarkState4d00256 extends GenericBenchmarkState(256, () => genDim4)
-  class BenchmarkState4d00512 extends GenericBenchmarkState(512, () => genDim4)
-  class BenchmarkState4d01024 extends GenericBenchmarkState(1024, () => genDim4)
-  class BenchmarkState4d02048 extends GenericBenchmarkState(2048, () => genDim4)
-  class BenchmarkState4d04096 extends GenericBenchmarkState(4096, () => genDim4)
-  class BenchmarkState5d00256 extends GenericBenchmarkState(256, () => genDim5)
-  class BenchmarkState5d00512 extends GenericBenchmarkState(512, () => genDim5)
-  class BenchmarkState5d01024 extends GenericBenchmarkState(1024, () => genDim5)
-  class BenchmarkState5d02048 extends GenericBenchmarkState(2048, () => genDim5)
-  class BenchmarkState5d04096 extends GenericBenchmarkState(4096, () => genDim5)
+  class BenchmarkState1d00256 extends GenericBenchmarkState(256, () => gen[Dim1])
+  class BenchmarkState1d00512 extends GenericBenchmarkState(512, () => gen[Dim1])
+  class BenchmarkState1d01024 extends GenericBenchmarkState(1024, () => gen[Dim1])
+  class BenchmarkState1d02048 extends GenericBenchmarkState(2048, () => gen[Dim1])
+  class BenchmarkState1d04096 extends GenericBenchmarkState(4096, () => gen[Dim1])
+  class BenchmarkState2d00256 extends GenericBenchmarkState(256, () => gen[Dim2])
+  class BenchmarkState2d00512 extends GenericBenchmarkState(512, () => gen[Dim2])
+  class BenchmarkState2d01024 extends GenericBenchmarkState(1024, () => gen[Dim2])
+  class BenchmarkState2d02048 extends GenericBenchmarkState(2048, () => gen[Dim2])
+  class BenchmarkState2d04096 extends GenericBenchmarkState(4096, () => gen[Dim2])
+  class BenchmarkState3d00256 extends GenericBenchmarkState(256, () => gen[Dim3])
+  class BenchmarkState3d00512 extends GenericBenchmarkState(512, () => gen[Dim3])
+  class BenchmarkState3d01024 extends GenericBenchmarkState(1024, () => gen[Dim3])
+  class BenchmarkState3d02048 extends GenericBenchmarkState(2048, () => gen[Dim3])
+  class BenchmarkState3d04096 extends GenericBenchmarkState(4096, () => gen[Dim3])
+  class BenchmarkState4d00256 extends GenericBenchmarkState(256, () => gen[Dim4])
+  class BenchmarkState4d00512 extends GenericBenchmarkState(512, () => gen[Dim4])
+  class BenchmarkState4d01024 extends GenericBenchmarkState(1024, () => gen[Dim4])
+  class BenchmarkState4d02048 extends GenericBenchmarkState(2048, () => gen[Dim4])
+  class BenchmarkState4d04096 extends GenericBenchmarkState(4096, () => gen[Dim4])
+  class BenchmarkState5d00256 extends GenericBenchmarkState(256, () => gen[Dim5])
+  class BenchmarkState5d00512 extends GenericBenchmarkState(512, () => gen[Dim5])
+  class BenchmarkState5d01024 extends GenericBenchmarkState(1024, () => gen[Dim5])
+  class BenchmarkState5d02048 extends GenericBenchmarkState(2048, () => gen[Dim5])
+  class BenchmarkState5d04096 extends GenericBenchmarkState(4096, () => gen[Dim5])
 
   // --- --- --- --- --- --- --- Abstract Bench --- --- --- --- --- --- ---  ---
 

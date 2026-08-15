@@ -2,6 +2,7 @@ package intervalidus.microbench
 
 import intervalidus.*
 import IntervalShapeGenerator.*
+import intervalidus.microbench.DomainGenerator.{Dim1, Dim2, Dim3, Dim4, Dim5}
 import org.openjdk.jmh.annotations.*
 import org.openjdk.jmh.infra.Blackhole
 
@@ -61,11 +62,11 @@ object BenchIntervalShape:
   // TODO: someday I can run discrete and continuous together, but not today...
   import DiscreteValue.IntDiscreteValue
   // import ContinuousValue.IntContinuousValue
-  class BenchmarkState1d extends GenericBenchmarkState(() => genDim1)
-  class BenchmarkState2d extends GenericBenchmarkState(() => genDim2)
-  class BenchmarkState3d extends GenericBenchmarkState(() => genDim3)
-  class BenchmarkState4d extends GenericBenchmarkState(() => genDim4)
-  class BenchmarkState5d extends GenericBenchmarkState(() => genDim5)
+  class BenchmarkState1d extends GenericBenchmarkState(() => gen[Dim1])
+  class BenchmarkState2d extends GenericBenchmarkState(() => gen[Dim2])
+  class BenchmarkState3d extends GenericBenchmarkState(() => gen[Dim3])
+  class BenchmarkState4d extends GenericBenchmarkState(() => gen[Dim4])
+  class BenchmarkState5d extends GenericBenchmarkState(() => gen[Dim5])
 
 //  def limit(c: Int, dim: Int, leafSize: Int = 256): Int = math.pow(2.0, dim).toInt * leafSize * c
 //

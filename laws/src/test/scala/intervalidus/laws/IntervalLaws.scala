@@ -2,7 +2,7 @@ package intervalidus.laws
 
 import intervalidus.*
 import intervalidus.Interval.{complement, compress, isDisjoint, recompress, unbounded}
-import intervalidus.laws.DomainGenerator.{Dim1, Dim2, Dim3, Dim4}
+import intervalidus.laws.DomainGenerator.{Dim1, Dim2, Dim3, Dim4, GenDomainOps}
 import intervalidus.laws.IntervalGenerator.*
 import org.scalacheck.Gen
 import org.scalatest.matchers.should.Matchers
@@ -20,12 +20,14 @@ class IntervalLaws extends AnyPropSpec with ScalaCheckPropertyChecks with Parall
     */
   trait ManyDimensionsPropertyTest:
     def apply[D <: NonEmptyTuple: DomainLike](intervalGen: Gen[Interval[D]]): Assertion
+    def runFor[D <: NonEmptyTuple: DomainLike: GenDomainOps]: Assertion = apply(gen[D])
 
   /**
     * Property tests that are applied to collections of intervals in 1, 2, 3, and 4 dimensions.
     */
   trait ManyDimensionsIterablePropertyTest:
     def apply[D <: NonEmptyTuple: DomainLike](intervalsGen: Gen[Iterable[Interval[D]]]): Assertion
+    def runFor[D <: NonEmptyTuple : DomainLike : GenDomainOps]: Assertion = apply(genNonIntersecting[D])
 
   /**
     * Evaluate an interval property in 1, 2, 3, and 4 dimensions using both discrete and continuous value semantics.
@@ -33,17 +35,17 @@ class IntervalLaws extends AnyPropSpec with ScalaCheckPropertyChecks with Parall
   def manyDimensionsProperty(propertyName: String)(testFun: ManyDimensionsPropertyTest): Unit =
     {
       import DiscreteValue.IntDiscreteValue
-      property(s"4D Discrete   $propertyName")(testFun[Dim4](genDim4))
-      property(s"3D Discrete   $propertyName")(testFun[Dim3](genDim3))
-      property(s"2D Discrete   $propertyName")(testFun[Dim2](genDim2))
-      property(s"1D Discrete   $propertyName")(testFun[Dim1](genDim1))
+      property(s"4D Discrete   $propertyName")(testFun.runFor[Dim4])
+      property(s"3D Discrete   $propertyName")(testFun.runFor[Dim3])
+      property(s"2D Discrete   $propertyName")(testFun.runFor[Dim2])
+      property(s"1D Discrete   $propertyName")(testFun.runFor[Dim1])
     }
     {
       import ContinuousValue.IntContinuousValue
-      property(s"4D Continuous $propertyName")(testFun[Dim4](genDim4))
-      property(s"3D Continuous $propertyName")(testFun[Dim3](genDim3))
-      property(s"2D Continuous $propertyName")(testFun[Dim2](genDim2))
-      property(s"1D Continuous $propertyName")(testFun[Dim1](genDim1))
+      property(s"4D Continuous $propertyName")(testFun.runFor[Dim4])
+      property(s"3D Continuous $propertyName")(testFun.runFor[Dim3])
+      property(s"2D Continuous $propertyName")(testFun.runFor[Dim2])
+      property(s"1D Continuous $propertyName")(testFun.runFor[Dim1])
     }
 
   /**
@@ -53,17 +55,17 @@ class IntervalLaws extends AnyPropSpec with ScalaCheckPropertyChecks with Parall
   def manyDimensionsIterableProperty(propertyName: String)(testFun: ManyDimensionsIterablePropertyTest): Unit =
     {
       import DiscreteValue.IntDiscreteValue
-      property(s"4D Discrete   $propertyName")(testFun[Dim4](genNonIntersectingDim4))
-      property(s"3D Discrete   $propertyName")(testFun[Dim3](genNonIntersectingDim3))
-      property(s"2D Discrete   $propertyName")(testFun[Dim2](genNonIntersectingDim2))
-      property(s"1D Discrete   $propertyName")(testFun[Dim1](genNonIntersectingDim1))
+      property(s"4D Discrete   $propertyName")(testFun.runFor[Dim4])
+      property(s"3D Discrete   $propertyName")(testFun.runFor[Dim3])
+      property(s"2D Discrete   $propertyName")(testFun.runFor[Dim2])
+      property(s"1D Discrete   $propertyName")(testFun.runFor[Dim1])
     }
     {
       import ContinuousValue.IntContinuousValue
-      property(s"4D Continuous $propertyName")(testFun[Dim4](genNonIntersectingDim4))
-      property(s"3D Continuous $propertyName")(testFun[Dim3](genNonIntersectingDim3))
-      property(s"2D Continuous $propertyName")(testFun[Dim2](genNonIntersectingDim2))
-      property(s"1D Continuous $propertyName")(testFun[Dim1](genNonIntersectingDim1))
+      property(s"4D Continuous $propertyName")(testFun.runFor[Dim4])
+      property(s"3D Continuous $propertyName")(testFun.runFor[Dim3])
+      property(s"2D Continuous $propertyName")(testFun.runFor[Dim2])
+      property(s"1D Continuous $propertyName")(testFun.runFor[Dim1])
     }
 
   /*

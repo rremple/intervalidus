@@ -67,55 +67,48 @@ object DomainGenerator:
   type Dim4 = Domain.In4D[Int, Int, Int, Int]
   type Dim5 = Domain1D[Int] *: Domain.In4D[Int, Int, Int, Int]
 
-  def genDim1(using RandomNumbers, DomainValueLike[Int]): Gen[Dim1] = gen1D.map(_ *: EmptyTuple)
-  def genDim2(using RandomNumbers, DomainValueLike[Int]): Gen[Dim2] = Gen.zip(gen1D, gen1D)
-  def genDim3(using RandomNumbers, DomainValueLike[Int]): Gen[Dim3] =
-    Gen.zip(gen1D, gen1D, gen1D)
-  def genDim4(using RandomNumbers, DomainValueLike[Int]): Gen[Dim4] =
-    Gen.zip(gen1D, gen1D, gen1D, gen1D)
-  def genDim5(using RandomNumbers, DomainValueLike[Int]): Gen[Dim5] =
-    Gen.zip(gen1D, gen1D, gen1D, gen1D, gen1D)
+  // Generates domains of any dimension, specialized for Ints
+  trait GenDomainOps[D <: NonEmptyTuple]:
+    def arity: Int
+    def gen: Gen[D]
+    def genStart: Gen[D]
+    def genEnd(after: D): Gen[D]
 
-  def genStartDim1(using RandomNumbers, DomainValueLike[Int]): Gen[Dim1] =
-    genStart1D.map(_ *: EmptyTuple)
-  def genStartDim2(using RandomNumbers, DomainValueLike[Int]): Gen[Dim2] =
-    Gen.zip(genStart1D, genStart1D)
-  def genStartDim3(using RandomNumbers, DomainValueLike[Int]): Gen[Dim3] =
-    Gen.zip(genStart1D, genStart1D, genStart1D)
-  def genStartDim4(using RandomNumbers, DomainValueLike[Int]): Gen[Dim4] = Gen.zip(
-    genStart1D,
-    genStart1D,
-    genStart1D,
-    genStart1D
-  )
-  def genStartDim5(using RandomNumbers, DomainValueLike[Int]): Gen[Dim5] = Gen.zip(
-    genStart1D,
-    genStart1D,
-    genStart1D,
-    genStart1D,
-    genStart1D
-  )
+  private type OneDimDomain = Domain.In1D[Int]
+  private type MultiDimDomain[DomainTail <: NonEmptyTuple] = Domain1D[Int] *: DomainTail
 
-  def genEndDim1(after: Dim1)(using RandomNumbers, DomainValueLike[Int]): Gen[Dim1] =
-    genEnd1D(after(0)).map(_ *: EmptyTuple)
-  def genEndDim2(after: Dim2)(using RandomNumbers, DomainValueLike[Int]): Gen[Dim2] =
-    Gen.zip(genEnd1D(after(0)), genEnd1D(after(1)))
-  def genEndDim3(after: Dim3)(using RandomNumbers, DomainValueLike[Int]): Gen[Dim3] = Gen.zip(
-    genEnd1D(after(0)),
-    genEnd1D(after(1)),
-    genEnd1D(after(2))
-  )
-  def genEndDim4(after: Dim4)(using RandomNumbers, DomainValueLike[Int]): Gen[Dim4] = Gen.zip(
-    genEnd1D(after(0)),
-    genEnd1D(after(1)),
-    genEnd1D(after(2)),
-    genEnd1D(after(3))
-  )
+  def arity[D <: NonEmptyTuple](using genDomainOps: GenDomainOps[D])(using RandomNumbers): Int = genDomainOps.arity
+  def gen[D <: NonEmptyTuple](using genDomainOps: GenDomainOps[D])(using RandomNumbers): Gen[D] = genDomainOps.gen
+  def genStart[D <: NonEmptyTuple](using genDomainOps: GenDomainOps[D])(using RandomNumbers): Gen[D] =
+    genDomainOps.genStart
+  def genEnd[D <: NonEmptyTuple](after: D)(using genDomainOps: GenDomainOps[D])(using RandomNumbers): Gen[D] =
+    genDomainOps.genEnd(after)
 
-  def genEndDim5(after: Dim5)(using RandomNumbers, DomainValueLike[Int]): Gen[Dim5] = Gen.zip(
-    genEnd1D(after(0)),
-    genEnd1D(after(1)),
-    genEnd1D(after(2)),
-    genEnd1D(after(3)),
-    genEnd1D(after(4))
-  )
+  /**
+    * Base case, for a one-dimensional domain (empty tail)
+    */
+  given GenDomainOneDimOps(using RandomNumbers, DomainValueLike[Int]): GenDomainOps[OneDimDomain] with
+    inline override def arity: Int = 1
+    inline override def gen: Gen[OneDimDomain] = gen1D.map(_.tupled)
+    inline override def genStart: Gen[OneDimDomain] = genStart1D.map(_.tupled)
+    inline override def genEnd(after: OneDimDomain): Gen[OneDimDomain] = genEnd1D(after(0)).map(_.tupled)
+
+  /**
+    * Inductive case for a domain with two or more dimensions (non-empty tail)
+    */
+  given GenDomainMultiDimOps[DomainTail <: NonEmptyTuple](using
+    applyToTail: GenDomainOps[DomainTail]
+  )(using RandomNumbers, DomainValueLike[Int]): GenDomainOps[Domain1D[Int] *: DomainTail] with
+
+    extension (tailGen: Gen[DomainTail])
+      def withHead(headGen: Gen[Domain1D[Int]]): Gen[MultiDimDomain[DomainTail]] =
+        for
+          head <- headGen
+          tail <- tailGen
+        yield head *: tail
+
+    inline override def arity: Int = applyToTail.arity + 1
+    inline override def gen: Gen[MultiDimDomain[DomainTail]] = applyToTail.gen.withHead(gen1D)
+    inline override def genStart: Gen[MultiDimDomain[DomainTail]] = applyToTail.genStart.withHead(genStart1D)
+    inline override def genEnd(after: MultiDimDomain[DomainTail]): Gen[MultiDimDomain[DomainTail]] =
+      applyToTail.genEnd(after.tail).withHead(genEnd1D(after.head))

@@ -10,50 +10,30 @@ import scala.language.implicitConversions
 // Generates intervals of any dimension
 object IntervalGenerator:
 
-  private def gen[D <: NonEmptyTuple: DomainLike](
-    genStart: Gen[D],
-    genEnd: D => Gen[D]
-  ): Gen[Interval[D]] = for
-    start <- genStart
-    end <- genEnd(start)
+  def gen[D <: NonEmptyTuple: DomainLike: GenDomainOps](using RandomNumbers): Gen[Interval[D]] = for
+    start <- genStart[D]
+    end <- genEnd[D](start)
   yield Interval(start, end)
 
-  def genDim1(using RandomNumbers, DomainValueLike[Int]): Gen[Interval[Dim1]] =
-    gen(genStartDim1, genEndDim1)
-  def genDim2(using RandomNumbers, DomainValueLike[Int]): Gen[Interval[Dim2]] =
-    gen(genStartDim2, genEndDim2)
-  def genDim3(using RandomNumbers, DomainValueLike[Int]): Gen[Interval[Dim3]] =
-    gen(genStartDim3, genEndDim3)
-  def genDim4(using RandomNumbers, DomainValueLike[Int]): Gen[Interval[Dim4]] =
-    gen(genStartDim4, genEndDim4)
-  def genDim5(using RandomNumbers, DomainValueLike[Int]): Gen[Interval[Dim5]] =
-    gen(genStartDim5, genEndDim5)
+  val minSizeDim = IndexedSeq(290, 20, 4, 3, 3)
+  val maxSizeDim = IndexedSeq(310, 60, 6, 5, 4)
 
-  private def genNonIntersecting[D <: NonEmptyTuple: DomainLike](
-    gen: Gen[Interval[D]],
-    minInitialSize: Int,
-    maxInitialSize: Int,
-    minFinalSize: Int = 290,
-    maxFinalSize: Int = 310,
-    keepAtLeast: Double = 0.5
-  )(using RandomNumbers): Gen[Iterable[Interval[D]]] = for
-    size <- Gen.choose(minInitialSize, maxInitialSize)
-    raw <- Gen.listOfN(size, gen)
-    shards = Interval.uniqueIntervals(unbounded +: raw)
-    subset <- Gen.someOf(shards, keepAtLeast)
-    finalSize <- Gen.choose(minFinalSize, maxFinalSize)
-  yield subset.take(finalSize)
-
-  def genNonIntersectingDim1(using RandomNumbers, DomainValueLike[Int]): Gen[Iterable[Interval[Dim1]]] =
-    genNonIntersecting(genDim1, 290, 310)
-  def genNonIntersectingDim2(using RandomNumbers, DomainValueLike[Int]): Gen[Iterable[Interval[Dim2]]] =
-    genNonIntersecting(genDim2, 20, 60)
-  def genNonIntersectingDim3(using RandomNumbers, DomainValueLike[Int]): Gen[Iterable[Interval[Dim3]]] =
-    genNonIntersecting(genDim3, 4, 6)
-  def genNonIntersectingDim4(using RandomNumbers, DomainValueLike[Int]): Gen[Iterable[Interval[Dim4]]] =
-    genNonIntersecting(genDim4, 3, 5)
-  def genNonIntersectingDim5(using RandomNumbers, DomainValueLike[Int]): Gen[Iterable[Interval[Dim5]]] =
-    genNonIntersecting(genDim5, 3, 4)
+  def genNonIntersecting[D <: NonEmptyTuple: DomainLike: GenDomainOps](using
+    RandomNumbers
+  ): Gen[Iterable[Interval[D]]] =
+    val dimIndex = DomainGenerator.arity[D] - 1
+    val minInitialSize: Int = minSizeDim.applyOrElse(dimIndex, _ => 3)
+    val maxInitialSize: Int = maxSizeDim.applyOrElse(dimIndex, _ => 4)
+    val minFinalSize: Int = 290
+    val maxFinalSize: Int = 310
+    val keepAtLeast: Double = 0.5
+    for
+      size <- Gen.choose(minInitialSize, maxInitialSize)
+      raw <- Gen.listOfN(size, gen[D])
+      shards = Interval.uniqueIntervals(unbounded +: raw)
+      subset <- Gen.someOf(shards, keepAtLeast)
+      finalSize <- Gen.choose(minFinalSize, maxFinalSize)
+    yield subset.take(finalSize)
 
   def genNonIntersectingDim2Special(
     limit: Int
