@@ -23,6 +23,7 @@ class IntervalShapeAffineLaws
   with ParallelTestExecution
   with Matchers:
   // given PropertyCheckConfiguration(minSuccessful = 200 /*, workers = 2*/ )
+  def laws: String = getClass.getSimpleName
 
   /**
     * Property tests that are applied to IntervalShapes with intervals in 1, 2, 3, and 4 dimensions.
@@ -57,17 +58,17 @@ class IntervalShapeAffineLaws
   def affineShapeProperty(propertyName: String)(testFun: AffineShapePropertyTest): Unit =
     {
       import DiscreteAffineValue.IntDiscreteAffineValue
-      property(s"4D Discrete   $propertyName")(testFun.runFor[Dim4])
-      property(s"3D Discrete   $propertyName")(testFun.runFor[Dim3])
-      property(s"2D Discrete   $propertyName")(testFun.runFor[Dim2])
-      property(s"1D Discrete   $propertyName")(testFun.runFor[Dim1])
+      property(s"4D Discrete   $propertyName [$laws]")(testFun.runFor[Dim4])
+      property(s"3D Discrete   $propertyName [$laws]")(testFun.runFor[Dim3])
+      property(s"2D Discrete   $propertyName [$laws]")(testFun.runFor[Dim2])
+      property(s"1D Discrete   $propertyName [$laws]")(testFun.runFor[Dim1])
     }
     {
       import ContinuousAffineValue.IntContinuousAffineValue
-      property(s"4D Continuous $propertyName")(testFun.runFor[Dim4])
-      property(s"3D Continuous $propertyName")(testFun.runFor[Dim3])
-      property(s"2D Continuous $propertyName")(testFun.runFor[Dim2])
-      property(s"1D Continuous $propertyName")(testFun.runFor[Dim1])
+      property(s"4D Continuous $propertyName [$laws]")(testFun.runFor[Dim4])
+      property(s"3D Continuous $propertyName [$laws]")(testFun.runFor[Dim3])
+      property(s"2D Continuous $propertyName [$laws]")(testFun.runFor[Dim2])
+      property(s"1D Continuous $propertyName [$laws]")(testFun.runFor[Dim1])
     }
 
   extension [D <: NonEmptyTuple: DomainAffineLike](lhs: IntervalShape[D])

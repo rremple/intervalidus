@@ -15,6 +15,7 @@ import scala.language.implicitConversions
 
 class DataLaws extends AnyPropSpec with ScalaCheckPropertyChecks with ParallelTestExecution with Matchers:
   // given PropertyCheckConfiguration(minSuccessful = 200 /*, workers = 2*/ )
+  def laws: String = getClass.getSimpleName
 
   /**
     * Property tests that are applied to data with intervals in 1, 2, 3, and 4 dimensions.
@@ -30,17 +31,17 @@ class DataLaws extends AnyPropSpec with ScalaCheckPropertyChecks with ParallelTe
   def dataProperty(propertyName: String)(testFun: DataPropertyTest): Unit =
     {
       import DiscreteValue.IntDiscreteValue
-      property(s"4D Discrete   $propertyName")(testFun.runFor[Dim4])
-      property(s"3D Discrete   $propertyName")(testFun.runFor[Dim3])
-      property(s"2D Discrete   $propertyName")(testFun.runFor[Dim2])
-      property(s"1D Discrete   $propertyName")(testFun.runFor[Dim1])
+      property(s"4D Discrete   $propertyName [$laws]")(testFun.runFor[Dim4])
+      property(s"3D Discrete   $propertyName [$laws]")(testFun.runFor[Dim3])
+      property(s"2D Discrete   $propertyName [$laws]")(testFun.runFor[Dim2])
+      property(s"1D Discrete   $propertyName [$laws]")(testFun.runFor[Dim1])
     }
     {
       import ContinuousValue.IntContinuousValue
-      property(s"4D Continuous $propertyName")(testFun.runFor[Dim4])
-      property(s"3D Continuous $propertyName")(testFun.runFor[Dim3])
-      property(s"2D Continuous $propertyName")(testFun.runFor[Dim2])
-      property(s"1D Continuous $propertyName")(testFun.runFor[Dim1])
+      property(s"4D Continuous $propertyName [$laws]")(testFun.runFor[Dim4])
+      property(s"3D Continuous $propertyName [$laws]")(testFun.runFor[Dim3])
+      property(s"2D Continuous $propertyName [$laws]")(testFun.runFor[Dim2])
+      property(s"1D Continuous $propertyName [$laws]")(testFun.runFor[Dim1])
     }
 
   extension [V, D <: NonEmptyTuple: DomainLike](lhs: Data[V, D])

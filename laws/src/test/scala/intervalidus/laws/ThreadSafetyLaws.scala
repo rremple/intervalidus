@@ -19,6 +19,7 @@ import scala.util.Random
 
 class ThreadSafetyLaws extends AnyPropSpec with ScalaCheckPropertyChecks with ParallelTestExecution with Matchers:
   // given PropertyCheckConfiguration(minSuccessful = 2000 /*, workers = 2*/ )
+  def laws: String = getClass.getSimpleName
 
   /**
     * Property tests that are applied to data with intervals in 1, 2, 3, and 4 dimensions.
@@ -31,10 +32,10 @@ class ThreadSafetyLaws extends AnyPropSpec with ScalaCheckPropertyChecks with Pa
   def threadSafetyPropertyInt(propertyName: String, testFun: ThreadSafetyPropertyTest, paddedName: String)(using
     DomainValueLike[Int]
   ): Unit =
-    property(s"4D $paddedName $propertyName")(testFun.runFor[Dim4])
-    property(s"3D $paddedName $propertyName")(testFun.runFor[Dim3])
-    property(s"2D $paddedName $propertyName")(testFun.runFor[Dim2])
-    property(s"1D $paddedName $propertyName")(testFun.runFor[Dim1])
+    property(s"4D $paddedName $propertyName [$laws]")(testFun.runFor[Dim4])
+    property(s"3D $paddedName $propertyName [$laws]")(testFun.runFor[Dim3])
+    property(s"2D $paddedName $propertyName [$laws]")(testFun.runFor[Dim2])
+    property(s"1D $paddedName $propertyName [$laws]")(testFun.runFor[Dim1])
 
   def threadSafetyDiscreteProperty(propertyName: String)(testFun: ThreadSafetyPropertyTest): Unit =
     threadSafetyPropertyInt(propertyName, testFun, "Discrete  ")(using DiscreteValue.IntDiscreteValue)
