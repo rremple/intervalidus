@@ -113,8 +113,10 @@ object DomainGenerator:
   inline def arity[D <: NonEmptyTuple](using genDomainOps: GenDomainOps[D]): Int = genDomainOps.arity
   inline def gen[D <: NonEmptyTuple](using genDomainOps: GenDomainOps[D]): Gen[D] = genDomainOps.gen
   inline def genStart[D <: NonEmptyTuple](using genDomainOps: GenDomainOps[D]): Gen[D] = genDomainOps.genStart
-  inline def genBoundedStart[D <: NonEmptyTuple](using genDomainOps: GenDomainOps[D]): Gen[D] = genDomainOps.genBoundedStart
-  inline def genEnd[D <: NonEmptyTuple](after: D)(using genDomainOps: GenDomainOps[D]): Gen[D] = genDomainOps.genEnd(after)
+  inline def genBoundedStart[D <: NonEmptyTuple](using genDomainOps: GenDomainOps[D]): Gen[D] =
+    genDomainOps.genBoundedStart
+  inline def genEnd[D <: NonEmptyTuple](after: D)(using genDomainOps: GenDomainOps[D]): Gen[D] =
+    genDomainOps.genEnd(after)
   inline def genBoundedEnd[D <: NonEmptyTuple](after: D)(using genDomainOps: GenDomainOps[D]): Gen[D] =
     genDomainOps.genBoundedEnd(after)
 
@@ -123,9 +125,9 @@ object DomainGenerator:
     */
   given GenDomainOneDimOps(using DomainValueLike[Int]): GenDomainOps[OneDimDomain] with
     inline override def arity: Int = 1
-    inline override def gen: Gen[OneDimDomain] = gen1D.map(_.tupled)
-    inline override def genStart: Gen[OneDimDomain] = genStart1D.map(_.tupled)
-    inline override def genBoundedStart: Gen[OneDimDomain] = genBounded1D.map(_.tupled)
+    override lazy val gen: Gen[OneDimDomain] = gen1D.map(_.tupled)
+    override lazy val genStart: Gen[OneDimDomain] = genStart1D.map(_.tupled)
+    override lazy val genBoundedStart: Gen[OneDimDomain] = genBounded1D.map(_.tupled)
     inline override def genEnd(after: OneDimDomain): Gen[OneDimDomain] = genEnd1D(after(0)).map(_.tupled)
     inline override def genBoundedEnd(after: OneDimDomain): Gen[OneDimDomain] = genBoundedEnd1D(after(0)).map(_.tupled)
 
@@ -137,16 +139,13 @@ object DomainGenerator:
   )(using DomainValueLike[Int]): GenDomainOps[Domain1D[Int] *: DomainTail] with
 
     extension (tailGen: Gen[DomainTail])
-      def withHead(headGen: Gen[Domain1D[Int]]): Gen[MultiDimDomain[DomainTail]] =
-        for
-          head <- headGen
-          tail <- tailGen
-        yield head *: tail
+      inline def withHead(headGen: Gen[Domain1D[Int]]): Gen[MultiDimDomain[DomainTail]] =
+        Gen.zip(headGen, tailGen).map(_ *: _)
 
     inline override def arity: Int = applyToTail.arity + 1
-    inline override def gen: Gen[MultiDimDomain[DomainTail]] = applyToTail.gen.withHead(gen1D)
-    inline override def genStart: Gen[MultiDimDomain[DomainTail]] = applyToTail.genStart.withHead(genStart1D)
-    inline override def genBoundedStart: Gen[MultiDimDomain[DomainTail]] =
+    override lazy val gen: Gen[MultiDimDomain[DomainTail]] = applyToTail.gen.withHead(gen1D)
+    override lazy val genStart: Gen[MultiDimDomain[DomainTail]] = applyToTail.genStart.withHead(genStart1D)
+    override lazy val genBoundedStart: Gen[MultiDimDomain[DomainTail]] =
       applyToTail.genBoundedStart.withHead(genBounded1D)
     inline override def genEnd(after: MultiDimDomain[DomainTail]): Gen[MultiDimDomain[DomainTail]] =
       applyToTail.genEnd(after.tail).withHead(genEnd1D(after.head))
