@@ -388,6 +388,8 @@ import intervalidus.DimensionalBase.*
 
 /**
   * Base for all dimensional data, both mutable and immutable, of multiple dimensions.
+  * @define configParam
+  *   context parameter for configuration -- uses defaults if not given explicitly
   */
 trait DimensionalBase[V, D <: NonEmptyTuple](using
   domainLike: DomainLike[D]
