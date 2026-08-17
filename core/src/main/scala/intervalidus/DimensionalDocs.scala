@@ -18,6 +18,10 @@ package intervalidus
   *   a new, updated structure.
   * @define mutableAction
   *   Data are mutated in place.
+  * @define returnedDataValueType
+  *   the valid data value type of the returned structure.
+  * @define returnedIntervalDomainType
+  *   the valid data interval domain type of the returned structure.
   * @define intersectionDesc
   *   The intersection of this and a single interval. See [[https://en.wikipedia.org/wiki/Intersection_(set_theory)]].
   * @define intersectionParamInterval

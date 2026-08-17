@@ -374,9 +374,9 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike] private (
     * @param f
     *   $mapParamF
     * @tparam B
-    *   the valid data value type of the returned structure.
+    *   $returnedDataValueType
     * @tparam S
-    *   the valid data interval domain type of the returned structure.
+    *   $returnedIntervalDomainType
     * @return
     *   a new structure with the same current version resulting from applying the provided function f to each element of
     *   this structure.
@@ -403,7 +403,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike] private (
     * @param pf
     *   $collectParamPf
     * @tparam B
-    *   the valid data value type of the returned structure.
+    *   $returnedDataValueType
     * @tparam S
     *   the valid data versioned interval domain type of the returned structure.
     * @return
@@ -432,7 +432,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike] private (
     * @param f
     *   $mapValuesParamF
     * @tparam B
-    *   the valid data value type of the returned structure.
+    *   $returnedDataValueType
     * @return
     *   a new structure with the same current version resulting from applying the provided function f to each element of
     *   this structure.
@@ -452,7 +452,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike] private (
     * @param pf
     *   $collectValuesParamPf
     * @tparam B
-    *   the valid data value type of the returned structure.
+    *   $returnedDataValueType
     * @return
     *   a new structure with the same current version resulting from applying the provided function f to each element of
     *   this structure.
@@ -525,9 +525,9 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike] private (
     * @param f
     *   $flatMapParamF
     * @tparam B
-    *   the valid data value type of the returned structure.
+    *   $returnedDataValueType
     * @tparam S
-    *   the valid data interval domain type of the returned structure.
+    *   $returnedIntervalDomainType
     * @return
     *   a new structure with the same current version resulting from applying the provided function f to each element of
     *   this structure and concatenating the results.

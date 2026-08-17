@@ -85,7 +85,7 @@ class DomainLaws extends AnyPropSpec with ScalaCheckPropertyChecks with Parallel
           a.leftAdjacent != a || a.isUnbounded shouldBe true
           a.rightAdjacent != a || a.isUnbounded shouldBe true
 
-  property(s"2D Discrete   orthogonal translations are commutative"):
+  property(s"2D Discrete   orthogonal translations are commutative [$laws]"):
     import DiscreteValue.IntDiscreteValue
     forAll(DomainGenerator.gen[Dim2]): a =>
       val a0 = a.updateDimension(0, a(0).rightAdjacent) // do dimension 0 first
@@ -94,7 +94,7 @@ class DomainLaws extends AnyPropSpec with ScalaCheckPropertyChecks with Parallel
       val a10 = a1.updateDimension(0, a1(0).rightAdjacent) // ... then 0
       a01 shouldBe a10
 
-  property(s"2D Continuous orthogonal translations are commutative"):
+  property(s"2D Continuous orthogonal translations are commutative [$laws]"):
     import ContinuousValue.IntContinuousValue
     forAll(DomainGenerator.gen[Dim2]): a =>
       val a0 = a.updateDimension(0, a(0).rightAdjacent) // do dimension 0 first

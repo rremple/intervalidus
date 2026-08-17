@@ -166,9 +166,9 @@ class DataFunction[V, D <: NonEmptyTuple: DomainLike] private (
     * @param altConfig
     *   $configParam
     * @tparam B
-    *   the valid data value type of the returned structure.
+    *   $returnedDataValueType
     * @tparam S
-    *   the valid data interval domain type of the returned structure.
+    *   $returnedIntervalDomainType
     * @return
     *   a new structure resulting from applying the provided function f to each element of this structure and
     *   concatenating the results.
@@ -290,7 +290,7 @@ class DataFunction[V, D <: NonEmptyTuple: DomainLike] private (
     * @tparam B
     *   the valid data domain function result type of the returned structure.
     * @tparam S
-    *   the valid data interval domain type of the returned structure.
+    *   $returnedIntervalDomainType
     * @return
     *   a new structure resulting from applying the provided function to each element of this structure.
     */
@@ -323,7 +323,7 @@ class DataFunction[V, D <: NonEmptyTuple: DomainLike] private (
     * @tparam B
     *   the valid data domain function result type of the returned structure.
     * @tparam S
-    *   the valid data interval domain type of the returned structure.
+    *   $returnedIntervalDomainType
     * @return
     *   a new structure resulting from applying the provided function to each element of this structure on which it is
     *   defined.

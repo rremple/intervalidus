@@ -61,9 +61,9 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     * @param altConfig
     *   $configParam
     * @tparam B
-    *   the valid data value type of the returned structure.
+    *   $returnedDataValueType
     * @tparam S
-    *   the valid data interval domain type of the returned structure.
+    *   $returnedIntervalDomainType
     * @return
     *   a new structure resulting from applying the provided function to each element of this structure.
     */
@@ -79,9 +79,9 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     * @param altConfig
     *   $configParam
     * @tparam B
-    *   the valid data value type of the returned structure.
+    *   $returnedDataValueType
     * @tparam S
-    *   the valid data interval domain type of the returned structure.
+    *   $returnedIntervalDomainType
     * @return
     *   a new structure resulting from applying the provided function to each element of this structure on which it is
     *   defined.
@@ -96,7 +96,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     * @param f
     *   $mapValuesParamF
     * @tparam B
-    *   the valid data value type of the returned structure.
+    *   $returnedDataValueType
     * @return
     *   a new structure resulting from applying the provided function f to each element of this structure.
     */
@@ -108,7 +108,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     * @param pf
     *   $collectValuesParamPf
     * @tparam B
-    *   the valid data value type of the returned structure.
+    *   $returnedDataValueType
     * @return
     *   a new structure resulting from applying the provided partial function pf to each element of this structure where
     *   it is defined.
@@ -123,7 +123,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     * @param altConfig
     *   $configParam
     * @tparam S
-    *   the valid data interval domain type of the returned structure.
+    *   $returnedIntervalDomainType
     * @return
     *   a new structure resulting from applying the provided function f to each interval.
     */
@@ -139,7 +139,7 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     * @param altConfig
     *   $configParam
     * @tparam S
-    *   the valid data interval domain type of the returned structure.
+    *   $returnedIntervalDomainType
     * @return
     *   a new structure resulting from applying the provided partial function pf to each interval where it is defined.
     */
@@ -156,9 +156,9 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
     * @param altConfig
     *   $configParam
     * @tparam B
-    *   the valid data value type of the returned structure.
+    *   $returnedDataValueType
     * @tparam S
-    *   the valid data interval domain type of the returned structure.
+    *   $returnedIntervalDomainType
     * @return
     *   a new structure resulting from applying the provided function f to each element of this structure and
     *   concatenating the results.
