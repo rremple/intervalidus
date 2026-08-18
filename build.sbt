@@ -159,8 +159,7 @@ lazy val root = (project in file("."))
             log.warn(s"Scaladoc-related issue found in ${file.getName}:${index + 1} -> $line")
             brokenCount += 1
 
-      if brokenCount == 0 then
-        log.info("Site looks clean.")
+      if brokenCount == 0 then log.info("Site looks clean.")
       else
         log.error(s"Found $brokenCount site issues.")
         throw new MessageOnlyException(s"Site check failed with $brokenCount errors.")

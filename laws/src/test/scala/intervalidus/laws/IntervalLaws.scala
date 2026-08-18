@@ -28,7 +28,7 @@ class IntervalLaws extends AnyPropSpec with ScalaCheckPropertyChecks with Parall
     */
   trait ManyDimensionsIterablePropertyTest:
     def apply[D <: NonEmptyTuple: DomainLike](intervalsGen: Gen[Iterable[Interval[D]]]): Assertion
-    def runFor[D <: NonEmptyTuple : DomainLike : GenDomainOps]: Assertion = apply(genNonIntersecting[D])
+    def runFor[D <: NonEmptyTuple: DomainLike: GenDomainOps]: Assertion = apply(genNonIntersecting[D])
 
   /**
     * Evaluate an interval property in 1, 2, 3, and 4 dimensions using both discrete and continuous value semantics.

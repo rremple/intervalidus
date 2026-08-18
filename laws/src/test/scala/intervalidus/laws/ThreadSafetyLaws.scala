@@ -26,7 +26,7 @@ class ThreadSafetyLaws extends AnyPropSpec with ScalaCheckPropertyChecks with Pa
     */
   trait ThreadSafetyPropertyTest:
     def apply[D <: NonEmptyTuple: DomainLike](dataGen: Gen[immutable.Data[String, D]]): Assertion
-    def runFor[D <: NonEmptyTuple : DomainLike : GenDomainOps]: Assertion =
+    def runFor[D <: NonEmptyTuple: DomainLike: GenDomainOps]: Assertion =
       apply(gen[D](using config = CoreConfig.default.withCompressOnUpdate(false)))
 
   def threadSafetyPropertyInt(propertyName: String, testFun: ThreadSafetyPropertyTest, paddedName: String)(using
