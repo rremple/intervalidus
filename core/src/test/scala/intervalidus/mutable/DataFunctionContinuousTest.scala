@@ -253,6 +253,10 @@ class DataFunctionContinuousTest extends AnyFunSuite with Matchers:
     shiftedReciprocal(0.0) shouldBe Double.PositiveInfinity
     shiftedReciprocal(-0.0) shouldBe Double.NegativeInfinity
 
+    safeReciprocal.values.size shouldBe 1
+    val scaledReciprocal = safeReciprocal.mutate(_.mapValues(_ * 10))
+    scaledReciprocal.values.size shouldBe 1 // the two intervals still map to the same function
+
     val uncompressed = DataFunction.of(
       intervalToBefore(0.0) -> reciprocalFunction,
       intervalFrom(0.0) -> reciprocalFunction

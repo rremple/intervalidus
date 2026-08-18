@@ -22,27 +22,30 @@ object DataFunction extends DimensionalFunctionBaseObject[DataFunction]:
   *
   * Because domain functions (`D => V`) are arbitrary executable closures, equality and lookup operations within
   * `DataFunction` that rely on the identity of these values (e.g., [[compress]], [[mutable.Data.intervals intervals]],
-  * and [[removeValue]]) ultimately depend on reference identity of functions (i.e., `eq`), not logical equivilance.
-  * Also functions created through functional composition (e.g., `f.andThen(g)`) instantiate distinct object references
+  * and [[removeValue]]) ultimately depend on reference identity of functions (i.e., `eq`), not logical equivalence.
+  * Also, functions created through functional composition (e.g., `f.andThen(g)`) instantiate distinct object references
   * even when mathematically identical.
   *
   * {{{
   * type D = Domain.In1D[Double]
   * val f: FunctionValue[Double, D] = _ => 0.0
   * val f2: FunctionValue[Double, D] = _ => 0.0
-  * f == f2 // returns false (although functionally equivilant, f and f2 are different objects)
+  * f == f2 // returns false (although functionally equivalent, f and f2 are different objects)
   *
   * val g: Double => Double = _ + 1.0
   * val fg = f.andThen(g)
   * val fg2 = f.andThen(g)
-  * fg == fg2 // returns false (although functionally equivilant, fg and fg2 are different objects)
+  * fg == fg2 // returns false (although functionally equivalent, fg and fg2 are different objects)
   * }}}
   *
   * Consequently:
-  *   - Transformation methods (e.g., [[mapValues]] and [[collectValues]]) that compose or instantiate new functions
-  *     will produce distinct function references across intervals even if they were the same before transformation.
-  *   - Adjacent intervals with transformed functions will not coalesce under [[compress]] unless the exact same
-  *     transformed function instance is shared.
+  *   - Although [[mapValues]] uses `andThen`, the implementation preserves shared reference identity. Intervals that
+  *     originally shared the same function instance will share the exact same composed (`andThen`) function instance
+  *     after transformation, allowing them to coalesce under [[compress]].
+  *   - Custom transformations (such as [[collectValues]]) will only preserve function identity across intervals if the
+  *     supplied partial function yields stable/reused function references rather than instantiating a new closure on
+  *     every evaluation.
+  *   - Distinct function references, even with identical behavior, will not coalesce under [[compress]].
   *
   * Best Practices:
   *   1. Bind domain functions to stable `val` identifiers wherever identity is important.
@@ -147,6 +150,11 @@ class DataFunction[V, D <: NonEmptyTuple: DomainLike] private (
   /**
     * $mapValuesDesc Only the valid data domain function result type can be changed in the mapping.
     *
+    * @note
+    *   Although this method uses `andThen`, it preserves shared reference identity. Intervals that originally shared
+    *   the same function instance will share the exact same composed (`andThen`) function instance after
+    *   transformation, allowing them to coalesce under [[compress]].
+    *
     * @param f
     *   $mapValuesParamF
     * @tparam B
@@ -155,7 +163,8 @@ class DataFunction[V, D <: NonEmptyTuple: DomainLike] private (
     *   a new structure resulting from applying the provided function f to each element of this structure.
     */
   def mapValues[B](f: V => B): DataFunction[B, D] =
-    withUnderlying(_.mapValues(_.andThen(f)))
+    val uniqueTransform: Map[DomainFunction[V, D], DomainFunction[B, D]] = values.map(v => v -> v.andThen(f)).toMap
+    withUnderlying(_.mapValues(uniqueTransform))
 
   /**
     * Builds a new structure by applying a function to all the elements of this structure and concatenating the elements
