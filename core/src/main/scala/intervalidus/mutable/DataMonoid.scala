@@ -2,6 +2,7 @@ package intervalidus.mutable
 
 import intervalidus.*
 import intervalidus.DimensionalBase.State
+import intervalidus.math.Monoid
 
 /**
   * Constructs monoid data in multidimensional intervals.

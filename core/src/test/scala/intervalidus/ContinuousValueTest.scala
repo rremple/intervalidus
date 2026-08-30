@@ -123,6 +123,14 @@ class ContinuousValueTest extends AnyFunSuite with Matchers:
     assertResult("OpenPoint(3) x Bottom")((open(3) x Bottom).toCodeLikeString)
     assertResult("Point(3) x Bottom x Top")((domain(3) x Bottom x Top).toCodeLikeString)
 
+    {
+      import intervalidus.ContinuousValue.DoubleContinuousValue
+      bottom.map(_.toDouble) shouldBe (Bottom: Domain1D[Double])
+      top.map(_.toDouble) shouldBe (Top: Domain1D[Double])
+      domain(4).map(_.toDouble) shouldBe domain(4.0)
+      open(4).map(_.toDouble) shouldBe open(4.0)
+    }
+
   test("Ops on Enum and Enum Domain"):
     // Can't be empty
     assertThrows[IllegalArgumentException]:

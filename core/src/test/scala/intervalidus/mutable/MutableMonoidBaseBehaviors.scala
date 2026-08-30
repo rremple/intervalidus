@@ -3,6 +3,7 @@ package intervalidus.mutable
 import intervalidus.*
 import intervalidus.DomainLike.given
 import intervalidus.Interval1D.*
+import intervalidus.math.Monoid
 import org.scalatest.compatible.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers

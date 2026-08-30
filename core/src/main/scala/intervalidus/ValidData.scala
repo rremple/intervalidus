@@ -64,9 +64,9 @@ case class ValidData[V, D <: NonEmptyTuple](
 
   // inline because it is called from inline methods in DomainLikeTupleOps
   inline def valueToString: String = value.asMatchable match
-    case set: Set[?] => set.map(_.toString).mkString("{", ",", "}") // for DataMulti
-    case _: (? => ?) => "<function>" // for DataFunction
-    case _           => value.toString
+    case set: Set[?]                                     => set.map(_.toString).mkString("{", ",", "}") // for DataMulti
+    case fn: (? => ?) if !Domain1D.hasCustomToString(fn) => "<function>" // for DataFunction
+    case _                                               => value.toString
 
   // first dimension start string, first dimension end string, value + remaining dimension string
   def preprocessForGrid: (String, String, String) = domainLike.validDataPreprocessForGrid(this)

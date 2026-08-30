@@ -6,6 +6,7 @@ import intervalidus.Interval.unbounded
 
 import java.util
 import scala.language.implicitConversions
+import scala.math
 
 // Generates intervals of any dimension
 object IntervalGenerator:

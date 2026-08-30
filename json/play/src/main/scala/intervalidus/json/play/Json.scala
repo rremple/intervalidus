@@ -3,6 +3,7 @@ package intervalidus.json.play
 import intervalidus.*
 import intervalidus.DimensionalVersionedBase.{VersionDomainValue, VersionMetadata, Versioned}
 import intervalidus.VariableBase.Time
+import intervalidus.math.Monoid
 import play.api.libs.json.*
 import play.api.libs.json.Json.{obj, toJson}
 

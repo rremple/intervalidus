@@ -11,6 +11,7 @@ import org.openjdk.jmh.infra.Blackhole
 import java.util.concurrent.TimeUnit
 import scala.compiletime.uninitialized
 import scala.language.implicitConversions
+import scala.math
 
 // Similar to BenchTreeReorg, but providing one size hint/depth/capacity, and using both mutable. and immutable.Data.
 object BenchImmutableCore:

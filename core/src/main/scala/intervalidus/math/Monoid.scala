@@ -1,4 +1,4 @@
-package intervalidus
+package intervalidus.math
 
 /**
   * Type class for a monoid. A monoid is a semigroup with an identity element. See

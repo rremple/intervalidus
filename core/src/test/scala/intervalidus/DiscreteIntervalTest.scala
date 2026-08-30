@@ -15,6 +15,10 @@ class DiscreteIntervalTest extends AnyFunSuite with Matchers with IntervalCommon
   testsFor(commonBehaviors("Discrete"))
 
   test("Discrete: Int discrete-specific interval behaviors"):
+    // Mapping
+    intervalToBefore(2).map(_.toLong) shouldBe intervalToBefore(2L)
+    intervalFrom(3).map(_.toLong) shouldBe intervalFrom(3L)
+
     // String representation
     interval2d(1, 2, 3, 4).toString shouldBe "{[1..2], [3..4]}"
     interval3d(1, 2, 3, 4, 5, 6).toString shouldBe "{[1..2], [3..4], [5..6]}"

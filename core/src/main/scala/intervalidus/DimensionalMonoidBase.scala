@@ -1,6 +1,7 @@
 package intervalidus
 
 import intervalidus.DimensionalBase.State
+import intervalidus.math.Monoid
 
 /**
   * Constructs dimensional data where values can be combined as monoids.

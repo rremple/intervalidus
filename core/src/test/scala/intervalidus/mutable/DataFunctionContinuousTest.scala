@@ -10,6 +10,7 @@ import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
 import scala.language.implicitConversions
+import scala.math
 
 class DataFunctionContinuousTest extends AnyFunSuite with Matchers:
 

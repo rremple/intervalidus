@@ -6,6 +6,7 @@ import io.circe.Json.{obj, fromString}
 import intervalidus.*
 import intervalidus.DimensionalVersionedBase.{VersionDomainValue, VersionMetadata, Versioned}
 import intervalidus.VariableBase.Time
+import intervalidus.math.Monoid
 
 /**
   * Common definitions for encoding and decoding Intervalidus structures as JSON.

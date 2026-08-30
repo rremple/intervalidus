@@ -5,6 +5,7 @@ import upickle.default.{Reader, ReadWriter, StringReader, StringWriter, Writer, 
 import intervalidus.*
 import intervalidus.DimensionalVersionedBase.{VersionDomainValue, VersionMetadata, Versioned}
 import intervalidus.VariableBase.Time
+import intervalidus.math.Monoid
 
 import java.time.Instant
 

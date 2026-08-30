@@ -622,6 +622,27 @@ println(s"reLU at -1 = ${reLU(-1)}") // reLU at -1 = 0
 println(s"reLU at  0 = ${reLU(0)}") // reLU at  0 = 0
 println(s"reLU at  1 = ${reLU(1)}") // reLU at  1 = 1
 ```
+
+Polynomial // TODO
+When used in conjunction with the `Polynomial` class one can use `DataFunction` to represent
+[splines](https://en.wikipedia.org/wiki/Spline_(mathematics)) (piecewise polynomial functions). Arithmetic and exact
+calculus methods are available through extension methods. For example:
+```scala 3
+import intervalidus.math.Polynomial.*
+
+val spline: Spline = DataFunction.of(
+  intervalTo(2.0) -> (3 * (x ^ 2) + x),
+  intervalFromAfter(2.0) -> (8 * x - 4)
+)
+println(spline.integral + 42.0)
+```
+This prints:
+```text
+( -∞, 2.0 ]         ( 2.0, +∞ )         |
+| x^3 + 0.5x^2 + 42 |
+                    | 4x^2 - 4x + 44    |
+```
+
 Like `Data`, there are both mutable and immutable forms of `DataFunction`.
 
 

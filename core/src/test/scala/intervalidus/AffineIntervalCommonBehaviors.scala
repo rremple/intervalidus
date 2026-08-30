@@ -11,6 +11,7 @@ import org.scalatest.matchers.should.Matchers
 import scala.annotation.{nowarn, tailrec}
 import scala.language.implicitConversions
 import scala.util.Try
+import scala.math
 
 /**
   * Test behaviors that do not differ between discrete or continuous affine intervals.

@@ -183,6 +183,21 @@ sealed trait Domain1D[+D]:
    */
 
   /**
+    * Maps this domain to a new domain value type.
+    * @param f
+    *   function from old domain value type to the new domain value type
+    * @tparam S
+    *   the new domain value type
+    * @return
+    *   a new domain with the point or open point value transformed to the new type.
+    */
+  def map[S: DomainValueLike](f: D => S): Domain1D[S] = this match
+    case Point(value)     => Point(f(value))
+    case OpenPoint(value) => OpenPoint(f(value))
+    case Top              => Top
+    case Bottom           => Bottom
+
+  /**
     * Returns this specialized one-dimensional domain as a general domain tuple.
     */
   def tupled[T >: D: DomainValueLike]: Domain.In1D[T] = Domain.in1D[T](this)
@@ -316,6 +331,9 @@ object Domain1D:
       case OpenPoint(value) => Some(value)
       case _                => None
 
+  def hasCustomToString(obj: Any): Boolean =
+    obj.getClass.getMethod("toString").getDeclaringClass != classOf[Object]
+
   /**
     * Code-like strings for some value, with special handling for dates and date-times.
     *
@@ -335,9 +353,9 @@ object Domain1D:
       val d = LocalDateTime.ofInstant(i, ZoneOffset.UTC)
       s"LocalDate.of(${d.getYear},${d.getMonthValue},${d.getDayOfMonth})" +
         s".atTime(${d.getHour},${d.getMinute},${d.getSecond},${d.getNano}).toInstant(ZoneOffset.UTC)"
-    case s: String   => s"\"$s\"" // only used by ValidData.toCodeLikeString
-    case s: (? => ?) => "<function>" // only used by ValidData.toCodeLikeString
-    case _           => value.toString
+    case s: String                              => s"\"$s\"" // only used by ValidData.toCodeLikeString
+    case fn: (? => ?) if !hasCustomToString(fn) => "<function>" // only used by ValidData.toCodeLikeString
+    case _                                      => value.toString
 
   /**
     * Construct a domain point (closed) based on a domain value.

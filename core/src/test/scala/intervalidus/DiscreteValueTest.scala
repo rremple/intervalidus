@@ -82,6 +82,13 @@ class DiscreteValueTest extends AnyFunSuite with Matchers:
     assert(!(bottom > bottom))
     assert(!(bottom equiv top))
 
+    {
+      import intervalidus.DiscreteValue.LongDiscreteValue
+      bottom.map(_.toLong) shouldBe (Bottom: Domain1D[Long])
+      top.map(_.toLong) shouldBe (Top: Domain1D[Long])
+      domain(4).map(_.toLong) shouldBe domain(4L)
+    }
+
     assert(domain(3).orderedHashFixed == domain(3).orderedHashFixed)
     assert(domain(0).orderedHashFixed <= domain(4).orderedHashFixed)
     assert(bottom.orderedHashFixed <= domain(4).orderedHashFixed)

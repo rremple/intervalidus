@@ -1,6 +1,7 @@
 package intervalidus
 
 import intervalidus.immutable.Data
+import intervalidus.math.Monoid
 
 import scala.annotation.{nowarn, tailrec}
 import scala.collection.mutable

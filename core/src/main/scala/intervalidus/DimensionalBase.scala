@@ -11,6 +11,7 @@ import java.util.NoSuchElementException
 import scala.annotation.nowarn
 import scala.collection.immutable.TreeMap
 import scala.collection.mutable
+import scala.math
 
 /**
   * Constructs data in multidimensional intervals.

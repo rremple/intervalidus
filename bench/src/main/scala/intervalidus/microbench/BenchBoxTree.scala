@@ -9,6 +9,7 @@ import org.openjdk.jmh.infra.Blackhole
 
 import scala.collection.mutable
 import scala.language.implicitConversions
+import scala.math
 
 /**
   * Not using the "features" aspect of BenchBase. Only using it to derive test boxed payloads from dimensional data so

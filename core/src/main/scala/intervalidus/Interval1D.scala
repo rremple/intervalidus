@@ -166,6 +166,18 @@ case class Interval1D[T](
    */
 
   /**
+    * Maps this interval to a new domain value type.
+    *
+    * @param f
+    *   function from old domain value type to the new domain value type
+    * @tparam S
+    *   the new domain value type
+    * @return
+    *   a new interval with the start and end transformed to the new type.
+    */
+  def map[S: DomainValueLike](f: T => S): Interval1D[S] = Interval1D(start.map(f), end.map(f))
+
+  /**
     * Cross this interval with that interval to arrive at a new two-dimensional interval.
     *
     * @param that

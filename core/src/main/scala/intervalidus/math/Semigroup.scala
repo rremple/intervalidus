@@ -1,4 +1,4 @@
-package intervalidus
+package intervalidus.math
 
 /**
   * Type class for a semigroup. See [[https://en.wikipedia.org/wiki/Semigroup]]

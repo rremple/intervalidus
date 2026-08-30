@@ -15,6 +15,10 @@ class ContinuousIntervalTest extends AnyFunSuite with Matchers with IntervalComm
   testsFor(commonBehaviors("Continuous"))
 
   test("Continuous: Int continuous-specific interval behaviors"):
+    // Mapping
+    intervalToBefore(2).map(_.toDouble) shouldBe intervalToBefore(2.0)
+    intervalFrom(3).map(_.toDouble) shouldBe intervalFrom(3.0)
+
     // String representation
     interval2d(1, open(2), open(3), 4).toString shouldBe "{[1, 2), (3, 4]}"
     interval3d(1, 2, open(3), open(4), 5, 6).toString shouldBe "{[1, 2], (3, 4), [5, 6]}"

@@ -165,5 +165,5 @@ package intervalidus
   *   the new data replacing the old data
   */
 private[intervalidus] trait DimensionalDocs:
-  /** Marker method to ensure trait interface bytecode generation for Scaladoc. */
-  protected def dimensionalDocsMarker(): Unit = ()
+  /** Marker to ensure trait interface bytecode generation for Scaladoc. */
+  protected val dimensionalDocsMarker: Unit = ()
