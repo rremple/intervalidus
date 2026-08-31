@@ -219,7 +219,7 @@ lazy val `intervalidus-examples` = (project in file("examples"))
   .settings(commonNoPublishSettings("intervalidus-examples"))
   .settings(Compile / discoveredMainClasses := Seq()) // ignore multiple examples
 
-val mongodbVersion = "5.10.0"
+val mongodbVersion = "5.11.0"
 val testcontainersVersion = "0.44.1"
 
 lazy val `intervalidus-example-mongodb` = (project in file("example-mongodb"))
