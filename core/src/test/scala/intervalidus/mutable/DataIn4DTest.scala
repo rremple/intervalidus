@@ -143,14 +143,14 @@ class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors 
       .getByHeadDimension(0)
       .getAt(0) shouldBe Some("Hello")
     fixture
-      .getByDimension[Int, Domain.In3D[LocalDate, LocalDate, Int]](3, 0)
-      .getByDimension[Int, Domain.In2D[LocalDate, LocalDate]](2, 0)
-      .getByDimension[LocalDate, Domain.In1D[LocalDate]](1, dayZero)
+      .getByDimension(3, 0)[Domain.In3D[LocalDate, LocalDate, Int]]
+      .getByDimension(2, 0)[Domain.In2D[LocalDate, LocalDate]]
+      .getByDimension(1, dayZero)[Domain.In1D[LocalDate]]
       .getAt(dayZero) shouldBe Some("Hello")
 
   test("Mutable: Simple toString"):
     val fixturePadData = Data
-      .ofValue[String, IntDim]("H")
+      .ofValue("H")[IntDim]
     fixturePadData.set((intervalFrom(1) x intervalTo(0) x interval(1, 9) x unbounded[Int]) -> "W")
     // if needed: fixturePadData.recompressAll()
     // println(fixturePadData.toString)
@@ -169,7 +169,7 @@ class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors 
       "H->{-∞, -∞, -∞, -∞} H->{-∞, -∞, 1, -∞} H->{-∞, -∞, 10, -∞} W->{1, -∞, 1, -∞} H->{1, 1, 1, -∞} "
 
     val fixturePadLabel = Data
-      .ofValue[String, IntDim]("Helloooooooooo")
+      .ofValue("Helloooooooooo")[IntDim]
     fixturePadLabel.set((intervalFrom(1) x unbounded[Int] x unbounded[Int] x unbounded[Int]) -> "Wooooooorld")
     // println(fixturePadLabel.toString)
     fixturePadLabel.toString shouldBe

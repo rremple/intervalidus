@@ -15,7 +15,7 @@ object Json:
   /**
     * Domains encoded as strings/objects
     */
-  given [T: DiscreteValue: Reads: Writes]: Format[Domain1D[T]] = Format(
+  given [T: {DiscreteValue, Reads, Writes}] => Format[Domain1D[T]] = Format(
     Reads: json =>
       def asClosedPoint = (json \ "point").validate[T].map(Domain1D.Point(_))
       def asOpenPoint = (json \ "open").validate[T].map(Domain1D.OpenPoint(_))
@@ -37,7 +37,7 @@ object Json:
   /**
     * Intervals encoded as objects
     */
-  given [D <: NonEmptyTuple: DomainLike: Reads: Writes]: Format[Interval[D]] = Format(
+  given [D <: NonEmptyTuple: {DomainLike, Reads, Writes}] => Format[Interval[D]] = Format(
     Reads: json =>
       for
         start <- (json \ "start").validate[D]
@@ -53,10 +53,10 @@ object Json:
   /**
     * Interval shapes encoded as arrays
     */
-  given [D <: NonEmptyTuple: DomainLike](using
+  given [D <: NonEmptyTuple: DomainLike] => (
     Format[Interval[D]],
     CoreConfig[D]
-  ): Format[IntervalShape[D]] = Format(
+  ) => Format[IntervalShape[D]] = Format(
     Reads.of[Vector[Interval[D]]].map(IntervalShape.withoutChecks[D]),
     Writes.of[Vector[Interval[D]]].contramap(_.allIntervals.toVector)
   )
@@ -64,9 +64,7 @@ object Json:
   /**
     * Valid data encoded as objects
     */
-  given [V: Reads: Writes, D <: NonEmptyTuple: DomainLike](using
-    Format[Interval[D]]
-  ): Format[ValidData[V, D]] = Format(
+  given [V: {Reads, Writes}, D <: NonEmptyTuple: DomainLike] => Format[Interval[D]] => Format[ValidData[V, D]] = Format(
     Reads: json =>
       for
         value <- (json \ "value").validate[V]
@@ -82,9 +80,8 @@ object Json:
   /**
     * Diff actions encoded as objects
     */
-  given [V, D <: NonEmptyTuple: DomainLike: Reads: Writes](using
-    Format[ValidData[V, D]]
-  ): Format[DiffAction[V, D]] = Format(
+  given [V, D <: NonEmptyTuple: {DomainLike, Reads, Writes}] => Format[ValidData[V, D]]
+    => Format[DiffAction[V, D]] = Format(
     Reads: json =>
       (json \ "action")
         .validate[String]
@@ -106,28 +103,29 @@ object Json:
     * Immutable variables and dimensional data encoded as objects and arrays. These require explicit names because the
     * generated names clash.
     */
-  given given_Format_immutable_Variable[V](using
+
+  given given_Format_immutable_Variable: [V] => (
     Format[ValidData[V, Time]],
     CoreConfig[Time]
-  ): Format[immutable.Variable[V]] = Format(
+  ) => Format[immutable.Variable[V]] = Format(
     Reads.of[Vector[ValidData[V, Time]]].map(immutable.Variable.fromHistory),
     Writes.of[Vector[ValidData[V, Time]]].contramap(_.history.getAll.toVector)
   )
 
-  given given_Format_immutable_Data[V, D <: NonEmptyTuple: DomainLike](using
+  given given_Format_immutable_Data: [V, D <: NonEmptyTuple: DomainLike] => (
     Format[ValidData[V, D]],
     CoreConfig[D]
-  ): Format[immutable.Data[V, D]] = Format(
+  ) => Format[immutable.Data[V, D]] = Format(
     Reads.of[Vector[ValidData[V, D]]].map(items => immutable.Data[V, D](items)),
     Writes.of[Vector[ValidData[V, D]]].contramap(_.getAll.toVector)
   )
 
-  given given_Format_immutable_DataVersioned[V, D <: NonEmptyTuple: DomainLike](using
+  given given_Format_immutable_DataVersioned: [V, D <: NonEmptyTuple: DomainLike] => (
     DomainLike[Versioned[D]],
     Writes[ValidData[V, Versioned[D]]],
     Reads[mutable.Data[V, Versioned[D]]],
     CoreConfig[Versioned[D]]
-  ): Format[immutable.DataVersioned[V, D]] = Format(
+  ) => Format[immutable.DataVersioned[V, D]] = Format(
     Reads: json =>
       for
         data <- (json \ "data").validate[mutable.Data[V, Versioned[D]]]
@@ -148,26 +146,26 @@ object Json:
       )
   )
 
-  given given_Format_immutable_DataMulti[V, D <: NonEmptyTuple: DomainLike](using
+  given given_Format_immutable_DataMulti: [V, D <: NonEmptyTuple: DomainLike] => (
     Format[ValidData[Set[V], D]],
     CoreConfig[D]
-  ): Format[immutable.DataMulti[V, D]] = Format(
+  ) => Format[immutable.DataMulti[V, D]] = Format(
     Reads.of[Vector[ValidData[Set[V], D]]].map(items => immutable.DataMulti[V, D](items)),
     Writes.of[Vector[ValidData[Set[V], D]]].contramap(_.getAll.toVector)
   )
 
-  given given_Format_immutable_DataMonoid[V: Monoid, D <: NonEmptyTuple: DomainLike](using
+  given given_Format_immutable_DataMonoid: [V: Monoid, D <: NonEmptyTuple: DomainLike] => (
     Format[ValidData[V, D]],
     CoreConfig[D]
-  ): Format[immutable.DataMonoid[V, D]] = Format(
+  ) => Format[immutable.DataMonoid[V, D]] = Format(
     Reads.of[Vector[ValidData[V, D]]].map(items => immutable.DataMonoid[V, D](items)),
     Writes.of[Vector[ValidData[V, D]]].contramap(_.getAll.toVector)
   )
 
-  given given_Format_immutable_DataAffine[V, D <: NonEmptyTuple: DomainAffineLike](using
+  given given_Format_immutable_DataAffine: [V, D <: NonEmptyTuple: DomainAffineLike] => (
     Format[ValidData[V, D]],
     CoreConfig[D]
-  ): Format[immutable.DataAffine[V, D]] = Format(
+  ) => Format[immutable.DataAffine[V, D]] = Format(
     Reads.of[Vector[ValidData[V, D]]].map(items => immutable.DataAffine[V, D](items)),
     Writes.of[Vector[ValidData[V, D]]].contramap(_.getAll.toVector)
   )
@@ -176,28 +174,29 @@ object Json:
     * Mutable variables and dimensional data encoded as objects and arrays. These require explicit names because the
     * generated names clash.
     */
-  given given_Format_mutable_Variable[V](using
+
+  given given_Format_mutable_Variable: [V] => (
     Format[ValidData[V, Time]],
     CoreConfig[Time]
-  ): Format[mutable.Variable[V]] = Format(
+  ) => Format[mutable.Variable[V]] = Format(
     Reads.of[Vector[ValidData[V, Time]]].map(mutable.Variable.fromHistory),
     Writes.of[Vector[ValidData[V, Time]]].contramap(_.history.getAll.toVector)
   )
 
-  given given_Format_mutable_Data[V, D <: NonEmptyTuple: DomainLike](using
+  given given_Format_mutable_Data: [V, D <: NonEmptyTuple: DomainLike] => (
     Format[ValidData[V, D]],
     CoreConfig[D]
-  ): Format[mutable.Data[V, D]] = Format(
+  ) => Format[mutable.Data[V, D]] = Format(
     Reads.of[Vector[ValidData[V, D]]].map(items => mutable.Data[V, D](items)),
     Writes.of[Vector[ValidData[V, D]]].contramap(_.getAll.toVector)
   )
 
-  given given_Format_mutable_DataVersioned[V, D <: NonEmptyTuple: DomainLike](using
+  given given_Format_mutable_DataVersioned: [V, D <: NonEmptyTuple: DomainLike] => (
     DomainLike[Versioned[D]],
     Writes[ValidData[V, Versioned[D]]],
     Reads[mutable.Data[V, Versioned[D]]],
     CoreConfig[Versioned[D]]
-  ): Format[mutable.DataVersioned[V, D]] = Format(
+  ) => Format[mutable.DataVersioned[V, D]] = Format(
     Reads: json =>
       for
         data <- (json \ "data").validate[mutable.Data[V, Versioned[D]]]
@@ -218,26 +217,26 @@ object Json:
       )
   )
 
-  given given_Format_mutable_DataMulti[V, D <: NonEmptyTuple: DomainLike](using
+  given given_Format_mutable_DataMulti: [V, D <: NonEmptyTuple: DomainLike] => (
     Format[ValidData[Set[V], D]],
     CoreConfig[D]
-  ): Format[mutable.DataMulti[V, D]] = Format(
+  ) => Format[mutable.DataMulti[V, D]] = Format(
     Reads.of[Vector[ValidData[Set[V], D]]].map(items => mutable.DataMulti[V, D](items)),
     Writes.of[Vector[ValidData[Set[V], D]]].contramap(_.getAll.toVector)
   )
 
-  given given_Format_mutable_DataMonoid[V: Monoid, D <: NonEmptyTuple: DomainLike](using
+  given given_Format_mutable_DataMonoid: [V: Monoid, D <: NonEmptyTuple: DomainLike] => (
     Format[ValidData[V, D]],
     CoreConfig[D]
-  ): Format[mutable.DataMonoid[V, D]] = Format(
+  ) => Format[mutable.DataMonoid[V, D]] = Format(
     Reads.of[Vector[ValidData[V, D]]].map(items => mutable.DataMonoid[V, D](items)),
     Writes.of[Vector[ValidData[V, D]]].contramap(_.getAll.toVector)
   )
 
-  given unbroken_given_Format_mutable_DataAffine[V, D <: NonEmptyTuple: DomainAffineLike](using
+  given given_Format_mutable_DataAffine: [V, D <: NonEmptyTuple: DomainAffineLike] => (
     Format[ValidData[V, D]],
     CoreConfig[D]
-  ): Format[mutable.DataAffine[V, D]] = Format(
+  ) => Format[mutable.DataAffine[V, D]] = Format(
     Reads.of[Vector[ValidData[V, D]]].map(items => mutable.DataAffine[V, D](items)),
     Writes.of[Vector[ValidData[V, D]]].contramap(_.getAll.toVector)
   )

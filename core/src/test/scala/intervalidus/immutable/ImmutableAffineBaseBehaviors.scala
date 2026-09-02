@@ -27,7 +27,7 @@ trait ImmutableAffineBaseBehaviors(using DomainAffineValueLike[Int]):
     private def holeFilled = intervals.valueFilled(holeFilling)
 
   // donut-filled universe
-  val ξ: DataAffine[Double, Dim] = DataAffine.ofValue[Double, Dim](donutFilling)
+  val ξ: DataAffine[Double, Dim] = DataAffine.ofValue(donutFilling)[Dim]
 
   def commonBehaviors(prefix: String): Unit =
     import DataAffine.*
@@ -73,9 +73,9 @@ trait ImmutableAffineBaseBehaviors(using DomainAffineValueLike[Int]):
       )
 
       val withoutOneQuadrantCount = withoutQuadrantOne.foldLeft(0): (acc, data) =>
-        acc + quadrantSamples.count(sample => data.interval.contains(sample._1) && sample._2 == data.value)
+        acc + quadrantSamples.count(sample => data.interval.contains(sample.point) && sample.quadrant == data.value)
       withoutOneQuadrantCount shouldBe 3
-      quadrantSamples.count(sample => withoutQuadrantOne.isDefinedAt(sample._1)) shouldBe 3
+      quadrantSamples.count(sample => withoutQuadrantOne.isDefinedAt(sample.point)) shouldBe 3
 
       withoutQuadrantOne.size shouldBe 3
       Interval.compress(withoutQuadrantOne.allIntervals).toList shouldBe List(
@@ -83,7 +83,8 @@ trait ImmutableAffineBaseBehaviors(using DomainAffineValueLike[Int]):
         toBeforeOrigin x fromOrigin // II
       )
 
-      val yQuadrantFour: DataAffine[Int, Domain.In1D[Int]] = withoutQuadrantOne.getByHeadDimension(quadrantOneSample._1)
+      val yQuadrantFour: DataAffine[Int, Domain.In1D[Int]] =
+        withoutQuadrantOne.getByHeadDimension(quadrantOneSample.head)
       yQuadrantFour.allIntervals shouldBe Seq[Interval[Domain.In1D[Int]]](
         toBeforeOrigin // IV, below I
       )
@@ -94,9 +95,9 @@ trait ImmutableAffineBaseBehaviors(using DomainAffineValueLike[Int]):
       withoutQuadrantOne.isDefinedAt(quadrantFourSample) shouldBe true
 
       val withoutTwoQuadrantCount = withoutQuadrantTwo.foldLeft(0): (acc, data) =>
-        acc + quadrantSamples.count(sample => data.interval.contains(sample._1) && sample._2 == data.value)
+        acc + quadrantSamples.count(sample => data.interval.contains(sample.point) && sample.quadrant == data.value)
       withoutTwoQuadrantCount shouldBe 3
-      quadrantSamples.count(sample => withoutQuadrantTwo.isDefinedAt(sample._1)) shouldBe 3
+      quadrantSamples.count(sample => withoutQuadrantTwo.isDefinedAt(sample.point)) shouldBe 3
 
       withoutQuadrantTwo.size shouldBe 3
       Interval.compress(withoutQuadrantTwo.allIntervals).toList shouldBe List(
@@ -104,7 +105,7 @@ trait ImmutableAffineBaseBehaviors(using DomainAffineValueLike[Int]):
         fromAfterOrigin x fromAfterOrigin // I
       )
       val yQuadrantOne: DataAffine[Long, Domain.In1D[Int]] =
-        withoutQuadrantTwo.getByDimension[Int, Domain.In1D[Int]](1, quadrantTwoSample._2)
+        withoutQuadrantTwo.getByDimension(1, quadrantTwoSample(1))[Domain.In1D[Int]]
       yQuadrantOne.allIntervals shouldBe Seq[Interval[Domain.In1D[Int]]](
         fromAfterOrigin // I, to the right of II
       )
@@ -123,7 +124,7 @@ trait ImmutableAffineBaseBehaviors(using DomainAffineValueLike[Int]):
       (complete1, complete2) match
         case (Some(c1), Some(c2)) =>
           c1 ≡≡ c2
-          c1 ≡≡ DataAffine.ofValue[Unit, Dim](())
+          c1 ≡≡ DataAffine.ofValue(())[Dim]
         case _ =>
           fail(s"expected add to succeed in $complete1 and $complete2")
 
@@ -209,6 +210,6 @@ trait ImmutableAffineBaseBehaviors(using DomainAffineValueLike[Int]):
       Seq(interval(-10, 1) x intervalFromAfter(1).to(10)).donutFilled ≡≡ collected.asDataAffine
 
       val donutIn3D: DataAffine[Double, Domain.In3D[Int, Int, Int]] =
-        clippedDonut.extrudeDimension[Int, Domain.In3D[Int, Int, Int]](2, interval(-1, 1))
+        clippedDonut.extrudeDimension(2, interval(-1, 1))[Domain.In3D[Int, Int, Int]]
       val flattenedDonut: DataAffine[Double, Dim] = donutIn3D.collapseDimension[Dim](2, (takeFirst, _) => takeFirst)
       flattenedDonut shouldBe clippedDonut

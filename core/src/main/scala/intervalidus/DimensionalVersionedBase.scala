@@ -200,14 +200,32 @@ trait DimensionalVersionedBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimen
     *   $dataValueType
     * @tparam D
     *   $intervalDomainType
+    * @note
+    *   The result domain type parameter is isolated in its own trailing type parameter list to facilitate fluent type
+    *   inference. While the value type is always cleanly inferred from the term argument, the result domain cannot
+    *   always be inferred. For example, when assigning directly to a value with an annotated type, the compiler can
+    *   infer the value type directly from the term argument and the result domain type by flowing backward from the
+    *   left-hand side.
+    *   {{{
+    *     val s: DataVersioned[String, Domain.In1D[Int]] = DataVersioned.of("Hello")
+    *     val r: DataVersioned[Double, Domain.In1D[Int]] = s.mapValues(_.length.toDouble / 2)
+    *   }}}
+    *   But, because the term argument list is interleaved between type parameter lists, you can cleanly chain these
+    *   operations without redundant type declarations (the String value type) to obtain the final result.
+    *   {{{
+    *     val r = DataVersioned.of("Hello")[Domain.In1D[Int]].mapValues(_.length.toDouble / 2)
+    *   }}}
+    *   (This ergonomic layout is made possible by Scala 3's type and term [Clause
+    *   Interleaving](https://docs.scala-lang.org/sips/clause-interleaving.html).)
+    *
     * @return
     *   a new structure with a single valid value.
     */
-  def ofValue[V, D <: NonEmptyTuple: DomainLike](
+  def ofValue[V](
     value: V,
     initialVersion: VersionDomainValue = 0,
     initialComment: String = "init"
-  )(using
+  )[D <: NonEmptyTuple: DomainLike](using
     config: CoreConfig[Versioned[D]]
   )(using
     DomainLike[Versioned[D]],
@@ -385,14 +403,9 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
   initialVersion: VersionDomainValue,
   versionTimestamps: mutable.Map[VersionDomainValue, VersionMetadata],
   withCurrentVersion: Option[VersionDomainValue]
-)(using DomainLike[Versioned[D]])
+)(using DomainLike[Versioned[D]])(using val config: CoreConfig[Versioned[D]])
   extends PartialFunction[Versioned[D], V]
   with DimensionalDocs:
-
-  /**
-    * $configParam
-    */
-  given config: CoreConfig[Versioned[D]]
 
   // considers versions, but does not consider version metadata history in equality check
   @nowarn("msg=pattern selector should be an instance of Matchable")
@@ -866,13 +879,38 @@ trait DimensionalVersionedBase[V, D <: NonEmptyTuple: DomainLike](
     * @tparam R
     *   domain of intervals in the returned structure. There is a type safety check that ensures the domain type for
     *   this result type can be constructed by concatenating the elements before and after the dropped dimension.
+    *
+    * @note
+    *   The result domain type parameter is isolated in its own trailing type parameter list to facilitate fluent type
+    *   inference. While the coordinate types of the lookup arguments are always cleanly inferred from the term
+    *   arguments, the target result domain cannot always be inferred. For example, when assigning directly to a value
+    *   with an annotated type, the compiler can infer the result domain type by flowing backward from the left-hand
+    *   side:
+    *   {{{
+    *     val s: DataVersioned[String, Domain.In2D[Int, Double]] =
+    *       DataVersioned.from(Seq((intervalFrom(0) x intervalTo(1.1)) -> "Hello"))
+    *     val i: DataVersioned[String, Domain.In1D[Int]] = s.getByDimension(1, 0.9)
+    *     val r: Option[String] = i.getAt(0)
+    *   }}}
+    *   But, because the term argument list is interleaved between type parameter lists, you can cleanly chain these
+    *   operations without redundant type declarations (the String value type and the Double dimension 1 domain value
+    *   type) to obtain the final result.
+    *   {{{
+    *     val r = DataVersioned
+    *       .from(Seq((intervalFrom(0) x intervalTo(1.1)) -> "Hello"))
+    *       .getByDimension(1, 0.9)[Domain.In1D[Int]]
+    *       .getAt(0)
+    *   }}}
+    *   (This ergonomic layout is made possible by Scala 3's type and term [Clause
+    *   Interleaving](https://docs.scala-lang.org/sips/clause-interleaving.html).)
+    *
     * @return
     *   a lower-dimensional (n-1) structure
     */
-  def getByDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+  def getByDimension[H: DomainValueLike](
     dimensionIndex: Domain.DimensionIndex,
     domain: Domain1D[H]
-  )(using
+  )[R <: NonEmptyTuple: DomainLike](using
     altConfig: CoreConfig[Versioned[R]]
   )(using
     Domain.HasIndex[D, dimensionIndex.type],

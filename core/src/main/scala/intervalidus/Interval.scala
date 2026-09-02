@@ -26,11 +26,10 @@ import scala.math.Ordering.Implicits.infixOrderingOps
   * @define intervalToTest
   *   the interval to test.
   */
-case class Interval[D <: NonEmptyTuple](
+case class Interval[D <: NonEmptyTuple: DomainLike as domainLike](
   start: D,
   end: D
-)(using domainLike: DomainLike[D])
-  extends IntervalBase[D, D, Interval.Remainder[D], Interval[D]]:
+) extends IntervalBase[D, D, Interval.Remainder[D], Interval[D]]:
 
   /**
     * Either the start is before end (by both start and end ordering), or, when equal, both bounds must be closed (i.e.,
@@ -294,6 +293,7 @@ case class Interval[D <: NonEmptyTuple](
     * @param dimensionIndex
     *   the dimension where the 1D interval is inserted (e.g., inserting a new head dimension is index 0). Existing
     *   dimensions are pushed to the right.
+    *
     * @param interval1D
     *   the 1D interval to be inserted
     * @tparam H
@@ -301,13 +301,36 @@ case class Interval[D <: NonEmptyTuple](
     * @tparam R
     *   the result domain. There is a type safety check that ensures the domain type for the resulting interval is a
     *   concatenation of elements before the insert, the inserted 1D interval, and the elements after the insert.
+    *
+    * @note
+    *   The result domain type parameter is isolated in its own trailing type parameter list to facilitate fluent type
+    *   inference. While the domain value type of the inserted interval is always cleanly inferred from the term
+    *   arguments, the result domain cannot always be inferred. For example, when assigning directly to a value with an
+    *   annotated type, the compiler can infer the domain value type directly from the term arguments and the result
+    *   domain type by flowing backward from the left-hand side:
+    *   {{{
+    *     val s: Interval.In1D[Int] = interval(1, 2)
+    *     val i: Interval.In2D[Double, Int] = s.insertDimension(0, interval(1.1, 2.2))
+    *     val r: Interval.In3D[Int, Double, Int] = i.insertDimension(0, interval(3, 4))
+    *   }}}
+    *   But, because the term argument list is interleaved between type parameter lists, you can cleanly chain these
+    *   operations without intermediate variables or redundant type declarations (the Double and Int domain value types)
+    *   to obtain the final result.
+    *   {{{
+    *     val r = s
+    *       .insertDimension(0, interval(1.1, 2.2))[Domain.In2D[Double, Int]]
+    *       .insertDimension(0, interval(3, 4))[Domain.In3D[Int, Double, Int]]
+    *   }}}
+    *   (This ergonomic layout is made possible by Scala 3's type and term [Clause
+    *   Interleaving](https://docs.scala-lang.org/sips/clause-interleaving.html).)
+    *
     * @return
     *   a new higher-dimensional interval
     */
-  def insertDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+  def insertDimension[H: DomainValueLike](
     dimensionIndex: Domain.DimensionIndex,
     interval1D: Interval1D[H]
-  )(using
+  )[R <: NonEmptyTuple: DomainLike](using
     Domain.HasIndex[R, dimensionIndex.type],
     Domain.IsInsertedInResult[D, dimensionIndex.type, H, R]
   ): Interval[R] = Interval(
@@ -482,7 +505,7 @@ object Interval:
         * {{{
         *   validData.collect:
         *     case (horizontal x_: vertical) ->: value =>
-        *       (vertical x horizontal) -> s"$value (flipped)"
+        *       (vertical x horizontal) -> s"\$value (flipped)"
         * }}}
         */
       def unapply[V, D <: NonEmptyTuple: DomainLike](
@@ -533,23 +556,23 @@ object Interval:
   /**
     * Returns an interval from the input value that is unbounded on the right.
     */
-  def intervalFrom[D <: NonEmptyTuple](s: D)(using domainLike: DomainLike[D]): Interval[D] = apply(s, domainLike.top)
+  def intervalFrom[D <: NonEmptyTuple: DomainLike as domainLike](s: D): Interval[D] = apply(s, domainLike.top)
 
   /**
     * Returns an interval from after the input value that is unbounded on the right.
     */
-  def intervalFromAfter[D <: NonEmptyTuple](s: D)(using domainLike: DomainLike[D]): Interval[D] =
+  def intervalFromAfter[D <: NonEmptyTuple: DomainLike as domainLike](s: D): Interval[D] =
     apply(s.rightAdjacent, domainLike.top)
 
   /**
     * Returns an interval to the input value that is unbounded on the left.
     */
-  def intervalTo[D <: NonEmptyTuple](e: D)(using domainLike: DomainLike[D]): Interval[D] = apply(domainLike.bottom, e)
+  def intervalTo[D <: NonEmptyTuple: DomainLike as domainLike](e: D): Interval[D] = apply(domainLike.bottom, e)
 
   /**
     * Returns an interval to before the input value that is unbounded on the left.
     */
-  def intervalToBefore[D <: NonEmptyTuple](e: D)(using domainLike: DomainLike[D]): Interval[D] =
+  def intervalToBefore[D <: NonEmptyTuple: DomainLike as domainLike](e: D): Interval[D] =
     apply(domainLike.bottom, e.leftAdjacent)
 
   /**
@@ -586,7 +609,7 @@ object Interval:
   /**
     * Returns an interval unbounded on both the left and right.
     */
-  def unbounded[D <: NonEmptyTuple](using domainLike: DomainLike[D]): Interval[D] =
+  def unbounded[D <: NonEmptyTuple: DomainLike as domainLike]: Interval[D] =
     Interval(domainLike.bottom, domainLike.top)
 
   /*
@@ -621,15 +644,15 @@ object Interval:
     * @return
     *   a result extracted from the final state
     */
-  def compressGeneric[State, Data, Result, D <: NonEmptyTuple](
+  def compressGeneric[State, Data, Result, D <: NonEmptyTuple: DomainLike as domainLike](
     initialState: State,
     result: State => Result,
     dataIterable: State => Iterable[Data],
     interval: Data => Interval[D],
     valueMatch: (Data, Data) => Boolean,
     lookup: (State, D) => Option[Data],
-    compressAdjacent: (Data, Data, State) => (Data, State)
-  )(using domainLike: DomainLike[D]): Result =
+    compressAdjacent: (Data, Data, State) => (newData: Data, newState: State)
+  ): Result =
     /**
       * Each mutation gives rise to other compression possibilities. And applying a compression action can invalidate
       * the remainder of the actions (e.g., three-in-a-row). Moreover, data on the left can have multiple compression
@@ -662,10 +685,10 @@ object Interval:
             val rightData = findLatest(rightCandidate)
             if interval(leftData) ~> interval(rightData)
             then
-              val (newData, newState) = compressAdjacent(leftData, rightData, priorState)
-              compressedAs.put(leftData, newData)
-              compressedAs.put(rightData, newData)
-              newState
+              val compressed = compressAdjacent(leftData, rightData, priorState)
+              compressedAs.put(leftData, compressed.newData)
+              compressedAs.put(rightData, compressed.newData)
+              compressed.newState
             else priorState
 
         compressRecursively(updatedState)
@@ -753,9 +776,9 @@ object Interval:
     * @return
     *   true if the collection is compressible, false otherwise.
     */
-  def isCompressible[D <: NonEmptyTuple](
+  def isCompressible[D <: NonEmptyTuple: DomainLike as domainLike](
     intervals: IterableOnce[Interval[D]]
-  )(using domainLike: DomainLike[D]): Boolean =
+  ): Boolean =
     val treeMap = TreeMap.from(intervals.iterator.map(i => i.start -> i))
     val adjacent = for
       leftData <- treeMap.values.iterator
@@ -799,9 +822,9 @@ object Interval:
     * @return
     *   a new collection of intervals representing disjoint intervals covering the span of the input.
     */
-  def uniqueIntervals[D <: NonEmptyTuple](
+  def uniqueIntervals[D <: NonEmptyTuple: DomainLike as domainLike](
     intervals: Iterable[Interval[D]]
-  )(using domainLike: DomainLike[D]): Iterable[Interval[D]] =
+  ): Iterable[Interval[D]] =
     domainLike.intervalUniqueIntervals(intervals)
 
   /**
@@ -827,5 +850,5 @@ object Interval:
   /**
     * Intervals are ordered by start
     */
-  given [D <: NonEmptyTuple: DomainLike](using domainOrder: Ordering[D]): Ordering[Interval[D]] with
+  given [D <: NonEmptyTuple: {DomainLike, Ordering as domainOrder}] => Ordering[Interval[D]]:
     override def compare(x: Interval[D], y: Interval[D]): Int = domainOrder.compare(x.start, y.start)

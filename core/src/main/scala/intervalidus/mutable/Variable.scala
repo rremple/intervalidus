@@ -25,7 +25,7 @@ object Variable extends VariableObjectBase[Variable]:
   *   the value type
   */
 class Variable[T] private (override protected val underlyingData: Data[T, Time])(using
-  val config: CoreConfig[Time]
+  config: CoreConfig[Time]
 ) extends VariableBase[T]:
 
   override def history: immutable.Data[T, Time] = underlyingData.toImmutable

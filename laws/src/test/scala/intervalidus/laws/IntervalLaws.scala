@@ -10,8 +10,6 @@ import org.scalatest.propspec.AnyPropSpec
 import org.scalatest.{Assertion, ParallelTestExecution}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
-import scala.language.implicitConversions
-
 class IntervalLaws extends AnyPropSpec with ScalaCheckPropertyChecks with ParallelTestExecution with Matchers:
   // given PropertyCheckConfiguration(minSuccessful = 200 /*, workers = 2*/ )
   def laws: String = getClass.getSimpleName
@@ -21,14 +19,14 @@ class IntervalLaws extends AnyPropSpec with ScalaCheckPropertyChecks with Parall
     */
   trait ManyDimensionsPropertyTest:
     def apply[D <: NonEmptyTuple: DomainLike](intervalGen: Gen[Interval[D]]): Assertion
-    def runFor[D <: NonEmptyTuple: DomainLike: GenDomainOps]: Assertion = apply(gen[D])
+    def runFor[D <: NonEmptyTuple: {DomainLike, GenDomainOps}]: Assertion = apply(gen[D])
 
   /**
     * Property tests that are applied to collections of intervals in 1, 2, 3, and 4 dimensions.
     */
   trait ManyDimensionsIterablePropertyTest:
     def apply[D <: NonEmptyTuple: DomainLike](intervalsGen: Gen[Iterable[Interval[D]]]): Assertion
-    def runFor[D <: NonEmptyTuple: DomainLike: GenDomainOps]: Assertion = apply(genNonIntersecting[D])
+    def runFor[D <: NonEmptyTuple: {DomainLike, GenDomainOps}]: Assertion = apply(genNonIntersecting[D])
 
   /**
     * Evaluate an interval property in 1, 2, 3, and 4 dimensions using both discrete and continuous value semantics.
@@ -152,9 +150,12 @@ class IntervalLaws extends AnyPropSpec with ScalaCheckPropertyChecks with Parall
       override def apply[D <: NonEmptyTuple: DomainLike](intervalGen: Gen[Interval[D]]): Assertion =
         forAll(intervalGen, intervalGen, intervalGen, genRelation, genRelation):
           (aDraft, bDraft, cDraft, relationAbTarget, relationBcTarget) =>
-            val (a, bGuess) = closerToTarget(aDraft, bDraft, relationAbTarget)
-            // since b may wind up different from bGuess, (a relationWith b) may move further from relationAbTarget
-            val (b, c) = closerToTarget(bGuess, cDraft, relationBcTarget)
+            val firstGuess = closerToTarget(aDraft, bDraft, relationAbTarget)
+            val a = firstGuess.closer
+            // since b may wind up different, (a relationWith b) may move further from relationAbTarget
+            val secondGuess = closerToTarget(firstGuess.adjusted, cDraft, relationBcTarget)
+            val b = secondGuess.closer
+            val c = secondGuess.adjusted
 
             a isConnectedTo a shouldBe true // reflexive
             if a isConnectedTo b then b isConnectedTo a shouldBe true // symmetric

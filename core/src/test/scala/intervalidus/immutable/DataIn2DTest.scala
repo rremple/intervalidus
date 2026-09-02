@@ -118,8 +118,8 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
 
     fixture.getByHeadDimension(dayZero).getAt(0) shouldBe Some("Hello")
     fixture.getByHeadDimension[LocalDate](Domain1D.Bottom).getAt(0) shouldBe Some("Hello")
-    fixture.getByDimension[Int, Domain.In1D[LocalDate]](1, 0).getAt(dayZero) shouldBe Some("Hello")
-    fixture.getByDimension[Int, Domain.In1D[LocalDate]](1, Domain1D.Top).getAt(day(1)) shouldBe Some("World")
+    fixture.getByDimension(1, 0)[Domain.In1D[LocalDate]].getAt(dayZero) shouldBe Some("Hello")
+    fixture.getByDimension[Int](1, Domain1D.Top)[Domain.In1D[LocalDate]].getAt(day(1)) shouldBe Some("World")
 
     // this gets us coverage of compressedUpdate
     fixture
@@ -128,7 +128,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
       )
       .getAt(0) shouldBe Some("Hello")
     fixture
-      .getByDimension[Int, Domain.In1D[LocalDate]](1, 0)(using
+      .getByDimension(1, 0)[Domain.In1D[LocalDate]](using
         altConfig = CoreConfig.default.withCompressOnUpdate(false)
       )
       .getAt(dayZero) shouldBe Some("Hello")
@@ -258,7 +258,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     fixture3.getAll.toList shouldBe expectedData3
 
     val fixture4 =
-      fixture3.flatMap(d => Data.ofValue[String, MixedDim](d.value).map(x => d.interval -> x.value))
+      fixture3.flatMap(d => Data.ofValue(d.value)[MixedDim].map(x => d.interval -> x.value))
     val expectedData4 = List(
       (unbounded[LocalDate] x intervalTo(5)) -> "Hey!!!",
       (unbounded[LocalDate] x intervalFrom(16)) -> "World!!!"
@@ -267,7 +267,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     assertThrows[NoSuchElementException]:
       fixture4.get
 
-    val fixture5a = fixture4.filter(_.value == "Hey!!!").flatMap(d => Data.ofValue[String, MixedDim](d.value))
+    val fixture5a = fixture4.filter(_.value == "Hey!!!").flatMap(d => Data.ofValue(d.value)[MixedDim])
     val fixture5b = fixture4.collect:
       case d if d.value == "Hey!!!" => Interval.unbounded[MixedDim] -> d.value
     val expectedData5 = List((unbounded[LocalDate] x unbounded[Int]) -> "Hey!!!")
@@ -312,7 +312,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
 
   test("Immutable: Simple toString"):
     val fixturePadData = Data
-      .ofValue[String, MixedDim]("H")
+      .ofValue("H")[MixedDim]
       .set((intervalFrom(day(0)) x unbounded[Int]) -> "W")
     // println(fixturePadData.toString)
     fixturePadData.toString shouldBe
@@ -326,7 +326,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     concat.result() shouldBe "H->(-∞..2024-07-14] W->[2024-07-15..+∞) "
 
     val fixturePadLabel = Data
-      .ofValue[String, MixedDim]("Helloooooooooo")
+      .ofValue("Helloooooooooo")[MixedDim]
       .set((intervalFrom(day(0)) x unbounded[Int]) -> "Wooooooorld")
     // println(fixturePadLabel.toString)
     fixturePadLabel.toString shouldBe

@@ -92,18 +92,14 @@ trait DimensionalFunctionBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimens
     /**
       * Automatically converts a non-functional structure with functional values to a functional structure.
       */
-  given [V, D <: NonEmptyTuple: DomainLike]: Conversion[
-    DimensionalBase[DomainFunction[V, D], D],
-    Constructed[V, D]
-  ] = _.asDataFunction
+  given [V, D <: NonEmptyTuple: DomainLike] => Conversion[DimensionalBase[DomainFunction[V, D], D], Constructed[V, D]] =
+    _.asDataFunction
 
   /**
     * Automatically converts a functional structure to a non-functional structure with functional values.
     */
-  given [V, D <: NonEmptyTuple: DomainLike]: Conversion[
-    DimensionalFunctionBase[V, D],
-    ImmutableData[DomainFunction[V, D], D]
-  ] = _.asData
+  given [V, D <: NonEmptyTuple: DomainLike]
+    => Conversion[DimensionalFunctionBase[V, D], ImmutableData[DomainFunction[V, D], D]] = _.asData
 
   /**
     * Constructor for multiple initial function values that are valid in the various intervals.

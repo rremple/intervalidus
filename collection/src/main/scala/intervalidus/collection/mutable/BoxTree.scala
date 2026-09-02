@@ -71,7 +71,7 @@ class BoxTreeLeaf[A](
   val boundary: Boundary,
   val depth: Int,
   dataSharedReference: mutable.ArrayBuffer[BoxedPayload[A]] = null
-)(using val config: CollectionConfig)
+)(using config: CollectionConfig)
   extends BoxTree[A]:
 
   private var copyOnWrite: Boolean = dataSharedReference != null // do we have a shared reference?
@@ -133,7 +133,7 @@ class BoxTreeBranch[A](
   initialBoundary: Boundary,
   val depth: Int,
   subtreesSharedReference: Vector[BoxTree[A]] = null
-)(using val config: CollectionConfig)
+)(using config: CollectionConfig)
   extends BoxTree[A]:
 
   private var copyOnWrite: Boolean = subtreesSharedReference != null // do we have a shared reference?

@@ -5,7 +5,6 @@ import intervalidus.math.Monoid
 
 import scala.annotation.{nowarn, tailrec}
 import scala.collection.mutable
-import scala.language.implicitConversions
 
 /**
   * Constructs multidimensional, multi-interval shapes.
@@ -148,7 +147,7 @@ object IntervalShape:
     * @param config
     *   $configParam
     */
-  given [D <: NonEmptyTuple: DomainLike](using config: CoreConfig[D]): Conversion[Interval[D], IntervalShape[D]] = of(_)
+  given [D <: NonEmptyTuple: {DomainLike, CoreConfig}] => Conversion[Interval[D], IntervalShape[D]] = of(_)
 
   extension [D <: NonEmptyTuple: DomainLike](is: Iterable[Interval[D]])
     /**
@@ -374,7 +373,8 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
     * @return
     *   true if this shape completely contains the provided interval, and false otherwise.
     */
-  infix def contains(interval: Interval[D]): Boolean = interval ⊆ this // Interval lifted into an IntervalShape
+  infix def contains(interval: Interval[D]): Boolean =
+    IntervalShape.of(interval) ⊆ this // Interval lifted into an IntervalShape
 
   /**
     * Does this contain some or all of the interval?
@@ -944,16 +944,39 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
     *   - the 1D domain at the specified dimension index has the specified domain value type
     *   - the current domain type can be constructed by concatenating the elements before the domain, the domain itself,
     *     and the elements after the domain.
+    *
     * @tparam R
     *   domain of intervals in the returned shape. There is a type safety check that ensures the domain type for this
     *   result type can be constructed by concatenating the elements before and after the dropped dimension.
+    *
+    * @note
+    *   The result domain type parameter is isolated in its own trailing type parameter list to facilitate fluent type
+    *   inference. While the coordinate types of the lookup arguments are always cleanly inferred from the term
+    *   arguments, the target result domain cannot always be inferred. For example, when assigning directly to a value
+    *   with an annotated type, the compiler can infer the result domain type by flowing backward from the left-hand
+    *   side:
+    *   {{{
+    *     val s: IntervalShape[Domain.In2D[Int, Double]] = IntervalShape.of(intervalFrom(0) x intervalTo(1.1))
+    *     val i: IntervalShape[Domain.In1D[Int]] = s.getByDimension(1, 0.9)
+    *     val r: Boolean = i.contains(0)
+    *   }}}
+    *   But, because the term argument list is interleaved between type parameter lists, you can cleanly chain these
+    *   operations without redundant type declarations (the Double dimension 1 value type) to obtain the final result.
+    *   {{{
+    *     val r = IntervalShape
+    *       .of(intervalFrom(0) x intervalTo(1.1))
+    *       .getByDimension(1, 0.9)[Domain.In1D[Int]]
+    *       .contains(0)
+    *   }}}
+    *   (This ergonomic layout is made possible by Scala 3's type and term [Clause
+    *   Interleaving](https://docs.scala-lang.org/sips/clause-interleaving.html).)
     * @return
     *   a lower-dimensional (n-1) structure
     */
-  def getByDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+  def getByDimension[H: DomainValueLike](
     dimensionIndex: Domain.DimensionIndex,
     domain: Domain1D[H]
-  )(using
+  )[R <: NonEmptyTuple: DomainLike](using
     altConfig: CoreConfig[R]
   )(using
     Domain.HasIndex[D, dimensionIndex.type],
@@ -1000,13 +1023,35 @@ class IntervalShape[D <: NonEmptyTuple: DomainLike] private (
     * @tparam R
     *   the result domain. There is a type safety check that ensures the domain type for this result type is a
     *   concatenation of elements before the insert, the inserted dimension, and the elements after the insert.
+    *
+    * @note
+    *   The result domain type parameter is isolated in its own trailing type parameter list to facilitate fluent type
+    *   inference. While the domain value type of the inserted dimension is always cleanly inferred from the term
+    *   arguments, the target result domain cannot always be inferred. For example, when assigning directly to a value
+    *   with an annotated type, the compiler can infer the result domain type by flowing backward from the left-hand
+    *   side:
+    *   {{{
+    *     val s: IntervalShape[Domain.In1D[Int]] = IntervalShape.of(intervalFrom(0))
+    *     val i: IntervalShape[Domain.In2D[Int, Double]] = s.extrudeDimension(1, intervalTo(1.1))
+    *     val r: Iterable[Interval.In2D[Int, Double]] = i.allIntervals
+    *   }}}
+    *   But, because the term argument list is interleaved between type parameter lists, you can cleanly chain these
+    *   operations without redundant type declarations to obtain the final result.
+    *   {{{
+    *     val r = IntervalShape
+    *       .of(intervalFrom(0))
+    *       .extrudeDimension(1, intervalTo(1.1))[Domain.In2D[Int, Double]]
+    *       .allIntervals
+    *   }}}
+    *   (This ergonomic layout is made possible by Scala 3's type and term [Clause
+    *   Interleaving](https://docs.scala-lang.org/sips/clause-interleaving.html).)
     * @return
     *   a higher-dimensional (n+1) shape
     */
-  def extrudeDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+  def extrudeDimension[H: DomainValueLike](
     dimensionIndex: Domain.DimensionIndex,
     extent: Interval1D[H]
-  )(using
+  )[R <: NonEmptyTuple: DomainLike](using
     altConfig: CoreConfig[R]
   )(using
     Domain.HasIndex[R, dimensionIndex.type],

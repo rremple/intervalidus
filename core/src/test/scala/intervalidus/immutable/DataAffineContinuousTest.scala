@@ -6,8 +6,6 @@ import intervalidus.Interval1D.*
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
-import scala.language.implicitConversions
-
 class DataAffineContinuousTest
   extends AnyFunSuite
   with Matchers

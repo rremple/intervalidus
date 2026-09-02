@@ -15,7 +15,7 @@ import scala.language.implicitConversions
 import scala.math
 
 class PolynomialLaws extends AnyPropSpec with ScalaCheckPropertyChecks with ParallelTestExecution with Matchers:
-  given PropertyCheckConfiguration(minSuccessful = 2000 /*, workers = 2*/ )
+  // given PropertyCheckConfiguration(minSuccessful = 2000 /*, workers = 2*/ )
   def laws: String = getClass.getSimpleName
 
   import Polynomial.*

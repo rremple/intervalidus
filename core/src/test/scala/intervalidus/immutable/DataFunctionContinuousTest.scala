@@ -77,9 +77,9 @@ class DataFunctionContinuousTest extends AnyFunSuite with Matchers:
       case (Some(actual), Some(expected)) =>
         assert(math.abs(actual - expected) < epsilon, s"\nExpected: \n$expected ± $epsilon\nActual: \n$actual\n")
 
-  extension (actual: (Double, Double))
-    infix def shouldBeAbout(expected: (Double, Double)): Assertion = assert(
-      math.abs(actual._1 - expected._1) < epsilon && math.abs(actual._2 - expected._2) < epsilon,
+  extension (actual: (alongX: Double, alongY: Double))
+    infix def shouldBeAbout(expected: (alongX: Double, alongY: Double)): Assertion = assert(
+      math.abs(actual.alongX - expected.alongX) < epsilon && math.abs(actual.alongY - expected.alongY) < epsilon,
       s"\nExpected: \n$expected ± $epsilon\nActual: \n$actual\n"
     )
 

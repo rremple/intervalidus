@@ -38,7 +38,7 @@ trait DataIn2DMultiBaseBehaviors:
       val fixture2 = multiApply(allData).toImmutable.toMutable.copy
       fixture2.getAll.toList shouldBe allData
 
-      val fixture3 = multiApply(immutable.Data.ofValue[Set[String], IntDim](Set("Hello", "world")).getAll)
+      val fixture3 = multiApply(immutable.Data.ofValue(Set("Hello", "world"))[IntDim].getAll)
       fixture3.get shouldBe Set("Hello", "world")
 
       val f0: S = multiFrom(
@@ -65,7 +65,7 @@ trait DataIn2DMultiBaseBehaviors:
            || {A,B,C}  |
            |""".stripMargin.replaceAll("\r", "")
 
-      f0.getByDimension[Int, Domain.In1D[Int]](1, 15).toString shouldBe
+      f0.getByDimension(1, 15)[Domain.In1D[Int]].toString shouldBe
         """|| 0 .. 4   | 5 .. 9   | 10 .. 20 | 21 .. 25 | 26 .. 30 |
            || {A}      |
            |           | {A,B}    |
@@ -161,4 +161,4 @@ trait DataIn2DMultiBaseBehaviors:
       )
       val fixture1: S = multiFrom(allData)
       fixture1.getByHeadDimension(0).getAt(0) shouldBe Some(Set("Hello"))
-      fixture1.getByDimension[Int, Domain.In1D[Int]](1, 0).getAt(0) shouldBe Some(Set("Hello"))
+      fixture1.getByDimension(1, 0)[Domain.In1D[Int]].getAt(0) shouldBe Some(Set("Hello"))

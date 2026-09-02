@@ -61,8 +61,8 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     val fixture0 = newDataIn2DVersioned(allData)(using LocalDateTime.of(2025, 8, 1, 8, 0).asCurrent)
     fixture0.getByHeadDimension(0).getAt(0) shouldBe Some("Hello")
     fixture0.getByHeadDimension[Int](Domain1D.Top).getAt(0) shouldBe Some("World")
-    fixture0.getByDimension[Int, Domain.In1D[Int]](1, 0).getAt(0) shouldBe Some("Hello")
-    fixture0.getByDimension[Int, Domain.In1D[Int]](1, Domain1D.Bottom).getAt(10) shouldBe Some("World")
+    fixture0.getByDimension(1, 0)[Domain.In1D[Int]].getAt(0) shouldBe Some("Hello")
+    fixture0.getByDimension[Int](1, Domain1D.Bottom)[Domain.In1D[Int]].getAt(10) shouldBe Some("World")
 
     val fixture1 = fixture0
       .set((interval(5, 15) x unbounded[Int]) -> "to")
@@ -271,7 +271,7 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     fixture3.getAll.toList shouldBe expectedData3
 
     val fixture4 = fixture3
-      .flatMap(d => DataVersioned.ofValue[String, IntDim](d.value).map(x => d.interval -> x.value))
+      .flatMap(d => DataVersioned.ofValue(d.value)[IntDim].map(x => d.interval -> x.value))
     val expectedData4 = expectedData3
     fixture4.getAll.toList shouldBe expectedData4
     assertThrows[NoSuchElementException]:
@@ -287,7 +287,7 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     assertThrows[NoSuchElementException]:
       fixture5b.get
 
-    val fixture6 = fixture5b.flatMap(d => DataVersioned.ofValue[String, IntDim](d.value))
+    val fixture6 = fixture5b.flatMap(d => DataVersioned.ofValue(d.value)[IntDim])
     val expectedData6 = List((unbounded[Int] x unbounded[Int]) -> "Hey!!!")
     fixture6.getAll.toList shouldBe expectedData6
     fixture6.get shouldBe "Hey!!!"
@@ -321,7 +321,7 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
 
   test("Immutable: Updating data in intervals"):
     val one: DataVersioned[String, IntDim] = DataVersioned
-      .ofValue[String, IntDim]("value")
+      .ofValue("value")[IntDim]
       .incrementCurrentVersion()
 
     val oneSplit = one.remove(intervalAt(0) x unbounded[Int]) // split

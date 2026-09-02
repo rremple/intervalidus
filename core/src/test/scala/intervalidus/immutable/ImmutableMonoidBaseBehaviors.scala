@@ -31,11 +31,11 @@ trait ImmutableMonoidBaseBehaviors(using DomainValueLike[Int]):
   val quadrantThreeSample: Dim = Domain.in2D(-5, -5)
   val quadrantFourSample: Dim = Domain.in2D(5, -5)
 
-  val quadrantSamples: List[(Dim, Int)] = List(
-    quadrantOneSample -> 1,
-    quadrantTwoSample -> 2,
-    quadrantThreeSample -> 3,
-    quadrantFourSample -> 4
+  val quadrantSamples: List[(point: Dim, quadrant: Int)] = List(
+    (point = quadrantOneSample, quadrant = 1),
+    (point = quadrantTwoSample, quadrant = 2),
+    (point = quadrantThreeSample, quadrant = 3),
+    (point = quadrantFourSample, quadrant = 4)
   )
 
   val fromOrigin: Interval1D[Int] = intervalFrom(0)
@@ -66,7 +66,7 @@ trait ImmutableMonoidBaseBehaviors(using DomainValueLike[Int]):
       mSet.combine(Set("A", "B", "C"), Set("B", "C", "D")) shouldBe Set("A", "B", "C", "D")
 
       // Option[String] can be a monoid
-      given Semigroup[String] with
+      given Semigroup[String]:
         override def combine(lhs: String, rhs: String): String = s"$lhs $rhs"
       val mString = summon[Monoid[Option[String]]]
       mString.identity shouldBe None
@@ -121,9 +121,9 @@ trait ImmutableMonoidBaseBehaviors(using DomainValueLike[Int]):
       )
 
       val withoutOneQuadrantCount = withoutQuadrantOne.foldLeft(0): (acc, data) =>
-        acc + quadrantSamples.count(sample => sample._1 ∈ data.interval && sample._2 == data.value)
+        acc + quadrantSamples.count(sample => sample.point ∈ data.interval && sample.quadrant == data.value)
       withoutOneQuadrantCount shouldBe 3
-      quadrantSamples.count(sample => withoutQuadrantOne.isDefinedAt(sample._1)) shouldBe 3
+      quadrantSamples.count(sample => withoutQuadrantOne.isDefinedAt(sample.point)) shouldBe 3
 
       withoutQuadrantOne.size shouldBe 3
       Interval.compress(withoutQuadrantOne.allIntervals).toList shouldBe List(
@@ -131,7 +131,8 @@ trait ImmutableMonoidBaseBehaviors(using DomainValueLike[Int]):
         toBeforeOrigin x fromOrigin // II
       )
 
-      val yQuadrantFour: DataMonoid[Int, Domain.In1D[Int]] = withoutQuadrantOne.getByHeadDimension(quadrantOneSample._1)
+      val yQuadrantFour: DataMonoid[Int, Domain.In1D[Int]] =
+        withoutQuadrantOne.getByHeadDimension(quadrantOneSample.head)
       yQuadrantFour.allIntervals shouldBe Seq[Interval[Domain.In1D[Int]]](
         toBeforeOrigin // IV, below I
       )
@@ -142,16 +143,16 @@ trait ImmutableMonoidBaseBehaviors(using DomainValueLike[Int]):
       withoutQuadrantOne.isDefinedAt(quadrantFourSample) shouldBe true
 
       val withoutTwoQuadrantCount = withoutQuadrantTwo.foldLeft(0): (acc, data) =>
-        acc + quadrantSamples.count(sample => sample._1 ∈ data.interval && sample._2 == data.value)
+        acc + quadrantSamples.count(sample => sample.point ∈ data.interval && sample.quadrant == data.value)
       withoutTwoQuadrantCount shouldBe 3
-      quadrantSamples.count(sample => withoutQuadrantTwo.isDefinedAt(sample._1)) shouldBe 3
+      quadrantSamples.count(sample => withoutQuadrantTwo.isDefinedAt(sample.point)) shouldBe 3
 
       withoutQuadrantTwo.size shouldBe 3
       Interval.compress(withoutQuadrantTwo.allIntervals).toList shouldBe List(
         unbounded x toOrigin, // III & IV merged (horizontally)
         fromAfterOrigin x fromAfterOrigin // I
       )
-      val yQuadrantOne: DataMonoid[Long, Domain.In1D[Int]] = withoutQuadrantTwo.getByDimension(1, quadrantTwoSample._2)
+      val yQuadrantOne: DataMonoid[Long, Domain.In1D[Int]] = withoutQuadrantTwo.getByDimension(1, quadrantTwoSample(1))
       yQuadrantOne.allIntervals shouldBe Seq[Interval[Domain.In1D[Int]]](
         fromAfterOrigin // I, to the right of II
       )

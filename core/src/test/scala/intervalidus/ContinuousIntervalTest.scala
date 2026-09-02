@@ -5,7 +5,6 @@ import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
 import java.time.LocalDate
-import scala.language.implicitConversions
 
 class ContinuousIntervalTest extends AnyFunSuite with Matchers with IntervalCommonBehaviors:
 

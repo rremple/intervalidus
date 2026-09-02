@@ -9,7 +9,6 @@ import org.scalatest.propspec.AnyPropSpec
 import org.scalatest.{Assertion, ParallelTestExecution}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
-import scala.language.implicitConversions
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 class DomainLaws extends AnyPropSpec with ScalaCheckPropertyChecks with ParallelTestExecution with Matchers:
@@ -21,7 +20,7 @@ class DomainLaws extends AnyPropSpec with ScalaCheckPropertyChecks with Parallel
     */
   trait ManyDimensionsPropertyTest:
     def apply[D <: NonEmptyTuple: DomainLike](domainGen: Gen[D]): Assertion
-    def runFor[D <: NonEmptyTuple: DomainLike: GenDomainOps]: Assertion = apply(DomainGenerator.gen[D])
+    def runFor[D <: NonEmptyTuple: {DomainLike, GenDomainOps}]: Assertion = apply(DomainGenerator.gen[D])
 
   /**
     * Evaluate a property in 1, 2, 3, and 4 dimensions using only discrete value semantics.

@@ -22,7 +22,7 @@ object Json:
   /**
     * Domains encoded as strings/objects
     */
-  given [T: DomainValueLike: From: To]: FromTo[Domain1D[T]] =
+  given [T: {DomainValueLike, From, To}] => FromTo[Domain1D[T]] =
     asValue.bimap[Domain1D[T]](
       {
         case Domain1D.Top          => Str("Top")
@@ -42,7 +42,7 @@ object Json:
   /**
     * Intervals encoded as objects
     */
-  given [D <: NonEmptyTuple: DomainLike](using FromTo[D]): FromTo[Interval[D]] =
+  given [D <: NonEmptyTuple: {DomainLike, From, To}] => FromTo[Interval[D]] =
     asValueObj.bimap[Interval[D]](
       interval =>
         Obj(
@@ -59,10 +59,8 @@ object Json:
   /**
     * Interval shapes encoded as arrays
     */
-  given [D <: NonEmptyTuple: DomainLike](using
-    FromTo[Interval[D]],
-    CoreConfig[D]
-  ): FromTo[IntervalShape[D]] =
+  given [D <: NonEmptyTuple: {DomainLike, CoreConfig}]
+    => (FromTo[Interval[D]]) => FromTo[IntervalShape[D]] =
     asValueArr.bimap[IntervalShape[D]](
       dimensional => Arr.from(dimensional.allIntervals.map(writeJs)),
       arr => IntervalShape.withoutChecks[D](arr.value.map(_.as[Interval[D]]))
@@ -71,7 +69,7 @@ object Json:
   /**
     * Valid data encoded as objects
     */
-  given [V, D <: NonEmptyTuple: DomainLike](using FromTo[V], FromTo[D]): FromTo[ValidData[V, D]] =
+  given [V: FromTo, D <: NonEmptyTuple: DomainLike] => (FromTo[Interval[D]]) => FromTo[ValidData[V, D]] =
     asValueObj.bimap[ValidData[V, D]](
       data =>
         Obj(
@@ -88,10 +86,8 @@ object Json:
   /**
     * Diff actions encoded as objects
     */
-  given [V, D <: NonEmptyTuple: DomainLike](using
-    FromTo[ValidData[V, D]],
-    FromTo[D]
-  ): FromTo[DiffAction[V, D]] =
+  given [V, D <: NonEmptyTuple: {DomainLike, From, To}]
+    => (FromTo[ValidData[V, D]]) => FromTo[DiffAction[V, D]] =
     asValueObj.bimap[DiffAction[V, D]](
       {
         case DiffAction.Create(validData: ValidData[V, D]) =>
@@ -113,30 +109,28 @@ object Json:
     * generated names clash.
     */
 
-  given given_FromTo_immutable_Variable[V](using
+  given given_FromTo_immutable_Variable: [V] => (
     FromTo[ValidData[V, Time]],
     CoreConfig[Time]
-  ): FromTo[immutable.Variable[V]] =
+  ) => FromTo[immutable.Variable[V]] =
     asValueArr.bimap[immutable.Variable[V]](
       dimensional => Arr.from(dimensional.history.getAll.map(writeJs)),
       arr => immutable.Variable.fromHistory(arr.value.map(_.as[ValidData[V, Time]]))
     )
 
-  given given_FromTo_immutable_Data[V, D <: NonEmptyTuple: DomainLike](using
-    FromTo[ValidData[V, D]],
-    CoreConfig[D]
-  ): FromTo[immutable.Data[V, D]] =
+  given given_FromTo_immutable_Data: [V, D <: NonEmptyTuple: {DomainLike, CoreConfig}]
+    => (FromTo[ValidData[V, D]]) => FromTo[immutable.Data[V, D]] =
     asValueArr.bimap[immutable.Data[V, D]](
       dimensional => Arr.from(dimensional.getAll.map(writeJs)),
       arr => immutable.Data[V, D](arr.value.map(_.as[ValidData[V, D]]))
     )
 
-  given given_FromTo_immutable_DataVersioned[V, D <: NonEmptyTuple: DomainLike](using
+  given given_FromTo_immutable_DataVersioned: [V, D <: NonEmptyTuple: DomainLike] => (
     DomainLike[Versioned[D]],
     From[ValidData[V, Versioned[D]]],
     To[mutable.Data[V, Versioned[D]]],
     CoreConfig[Versioned[D]]
-  ): FromTo[immutable.DataVersioned[V, D]] =
+  ) => FromTo[immutable.DataVersioned[V, D]] =
     asValueObj.bimap[immutable.DataVersioned[V, D]](
       data =>
         Obj(
@@ -153,28 +147,24 @@ object Json:
         )
     )
 
-  given given_FromTo_immutable_DataMulti[V, D <: NonEmptyTuple: DomainLike](using
-    FromTo[ValidData[Set[V], D]],
-    CoreConfig[D]
-  ): FromTo[immutable.DataMulti[V, D]] =
+  given given_FromTo_immutable_DataMulti: [V, D <: NonEmptyTuple: {DomainLike, CoreConfig}]
+    => (FromTo[ValidData[Set[V], D]]) => FromTo[immutable.DataMulti[V, D]] =
     asValueArr.bimap[immutable.DataMulti[V, D]](
       dimensional => Arr.from(dimensional.getAll.map(writeJs)),
       arr => immutable.DataMulti[V, D](arr.value.map(_.as[ValidData[Set[V], D]]))
     )
 
-  given given_FromTo_immutable_DataMonoid[V: Monoid, D <: NonEmptyTuple: DomainLike](using
-    FromTo[ValidData[V, D]],
-    CoreConfig[D]
-  ): FromTo[immutable.DataMonoid[V, D]] =
+  given given_FromTo_immutable_DataMonoid: [V: Monoid, D <: NonEmptyTuple: {DomainLike, CoreConfig}]
+    => (
+      FromTo[ValidData[V, D]]
+  ) => FromTo[immutable.DataMonoid[V, D]] =
     asValueArr.bimap[immutable.DataMonoid[V, D]](
       dimensional => Arr.from(dimensional.getAll.map(writeJs)),
       arr => immutable.DataMonoid[V, D](arr.value.map(_.as[ValidData[V, D]]))
     )
 
-  given given_FromTo_immutable_DataAffine[V, D <: NonEmptyTuple: DomainAffineLike](using
-    FromTo[ValidData[V, D]],
-    CoreConfig[D]
-  ): FromTo[immutable.DataAffine[V, D]] =
+  given given_FromTo_immutable_DataAffine: [V, D <: NonEmptyTuple: {DomainAffineLike, CoreConfig}]
+    => (FromTo[ValidData[V, D]]) => FromTo[immutable.DataAffine[V, D]] =
     asValueArr.bimap[immutable.DataAffine[V, D]](
       dimensional => Arr.from(dimensional.getAll.map(writeJs)),
       arr => immutable.DataAffine[V, D](arr.value.map(_.as[ValidData[V, D]]))
@@ -185,30 +175,28 @@ object Json:
     * generated names clash.
     */
 
-  given given_FromTo_mutable_Variable[V](using
+  given given_FromTo_mutable_Variable: [V] => (
     FromTo[ValidData[V, Time]],
     CoreConfig[Time]
-  ): FromTo[mutable.Variable[V]] =
+  ) => FromTo[mutable.Variable[V]] =
     asValueArr.bimap[mutable.Variable[V]](
       dimensional => Arr.from(dimensional.history.getAll.map(writeJs)),
       arr => mutable.Variable.fromHistory(arr.value.map(_.as[ValidData[V, Time]]))
     )
 
-  given given_FromTo_mutable_Data[V, D <: NonEmptyTuple: DomainLike](using
-    FromTo[ValidData[V, D]],
-    CoreConfig[D]
-  ): FromTo[mutable.Data[V, D]] =
+  given given_FromTo_mutable_Data: [V, D <: NonEmptyTuple: {DomainLike, CoreConfig}]
+    => (FromTo[ValidData[V, D]]) => FromTo[mutable.Data[V, D]] =
     asValueArr.bimap[mutable.Data[V, D]](
       dimensional => Arr.from(dimensional.getAll.map(writeJs)),
       arr => mutable.Data[V, D](arr.value.map(_.as[ValidData[V, D]]))
     )
 
-  given given_FromTo_mutable_DataVersioned[V, D <: NonEmptyTuple: DomainLike](using
+  given given_FromTo_mutable_DataVersioned: [V, D <: NonEmptyTuple: DomainLike] => (
     DomainLike[Versioned[D]],
     From[ValidData[V, Versioned[D]]],
     To[mutable.Data[V, Versioned[D]]],
     CoreConfig[Versioned[D]]
-  ): FromTo[mutable.DataVersioned[V, D]] =
+  ) => FromTo[mutable.DataVersioned[V, D]] =
     asValueObj.bimap[mutable.DataVersioned[V, D]](
       data =>
         Obj(
@@ -225,28 +213,22 @@ object Json:
         )
     )
 
-  given given_FromTo_mutable_DataMulti[V, D <: NonEmptyTuple: DomainLike](using
-    FromTo[ValidData[Set[V], D]],
-    CoreConfig[D]
-  ): FromTo[mutable.DataMulti[V, D]] =
+  given given_FromTo_mutable_DataMulti: [V, D <: NonEmptyTuple: {DomainLike, CoreConfig}]
+    => (FromTo[ValidData[Set[V], D]]) => FromTo[mutable.DataMulti[V, D]] =
     asValueArr.bimap[mutable.DataMulti[V, D]](
       dimensional => Arr.from(dimensional.getAll.map(writeJs)),
       arr => mutable.DataMulti[V, D](arr.value.map(_.as[ValidData[Set[V], D]]))
     )
 
-  given given_FromTo_mutable_DataMonoid[V: Monoid, D <: NonEmptyTuple: DomainLike](using
-    FromTo[ValidData[V, D]],
-    CoreConfig[D]
-  ): FromTo[mutable.DataMonoid[V, D]] =
+  given given_FromTo_mutable_DataMonoid: [V: Monoid, D <: NonEmptyTuple: {DomainLike, CoreConfig}]
+    => (FromTo[ValidData[V, D]]) => FromTo[mutable.DataMonoid[V, D]] =
     asValueArr.bimap[mutable.DataMonoid[V, D]](
       dimensional => Arr.from(dimensional.getAll.map(writeJs)),
       arr => mutable.DataMonoid[V, D](arr.value.map(_.as[ValidData[V, D]]))
     )
 
-  given given_FromTo_mutable_DataAffine[V, D <: NonEmptyTuple: DomainAffineLike](using
-    FromTo[ValidData[V, D]],
-    CoreConfig[D]
-  ): FromTo[mutable.DataAffine[V, D]] =
+  given given_FromTo_mutable_DataAffine: [V, D <: NonEmptyTuple: {DomainAffineLike, CoreConfig}]
+    => (FromTo[ValidData[V, D]]) => FromTo[mutable.DataAffine[V, D]] =
     asValueArr.bimap[mutable.DataAffine[V, D]](
       dimensional => Arr.from(dimensional.getAll.map(writeJs)),
       arr => mutable.DataAffine[V, D](arr.value.map(_.as[ValidData[V, D]]))

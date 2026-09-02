@@ -8,7 +8,6 @@ import intervalidus.Interval1D.interval
 import org.openjdk.jmh.annotations.*
 
 import java.util.concurrent.TimeUnit
-import scala.language.implicitConversions
 import scala.math
 import scala.math.Ordering.Implicits.infixOrderingOps
 import scala.util.Random

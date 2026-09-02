@@ -5,8 +5,6 @@ import intervalidus.DomainLike.given
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
-import scala.language.implicitConversions
-
 /**
   * Behaviors that only depend on the immutable base trait methods (common in all dimensions).
   *

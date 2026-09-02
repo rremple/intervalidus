@@ -14,7 +14,6 @@ import org.scalatest.propspec.AnyPropSpec
 import org.scalatest.{Assertion, ParallelTestExecution}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
-import scala.language.implicitConversions
 import scala.util.{Try, Success, Failure}
 
 class IntervalShapeAffineLaws
@@ -40,7 +39,7 @@ class IntervalShapeAffineLaws
       D HasScalarType TupleOfDoubles[D]
     ): Assertion
 
-    def runFor[D <: NonEmptyTuple: DomainAffineLike: GenDomainOps: GenAffineOps](using
+    def runFor[D <: NonEmptyTuple: {DomainAffineLike, GenDomainOps, GenAffineOps}](using
       D HasDisplacementType TupleOfInts[D],
       D HasScalarType TupleOfDoubles[D]
     ): Assertion = apply(

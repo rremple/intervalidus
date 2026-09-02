@@ -95,10 +95,10 @@ trait JsonTestBehavior[W[_], R[_]](using
   extension [T: W](t: T) def asJson: String = toJsonString(t)
 
   protected def quote(s: String): String = s"\"$s\""
-  private def isomorphic[T: R: W](t: T, json: String): Assertion =
+  private def isomorphic[T: {R, W}](t: T, json: String): Assertion =
     json.as[T] shouldBe t
     t.asJson shouldBe json
-  private def isomorphicData[T: R: W, Data](t: T, json: String, extractData: T => Iterable[Data]): Assertion =
+  private def isomorphicData[T: {R, W}, Data](t: T, json: String, extractData: T => Iterable[Data]): Assertion =
     extractData(json.as[T]) should contain theSameElementsAs extractData(t)
     t.asJson shouldBe json
 
@@ -230,7 +230,7 @@ trait JsonTestBehavior[W[_], R[_]](using
       )
 
       isomorphic[DiffAction.In1D[String, Int]](
-        DiffAction.Delete(Point(0)),
+        DiffAction.Delete(Point(0).tupled),
         """{"action":"Delete","key":[{"point":0}]}"""
       )
 

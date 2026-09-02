@@ -13,7 +13,7 @@ class BsonTransformerTest extends AnyFlatSpec with Matchers:
 
   import BsonTransformer.given
 
-  given [T: Encoder]: Conversion[T, Json] = Encoder[T].apply(_)
+  given [T: Encoder as encoder] => Conversion[T, Json] = encoder(_)
 
   val arrValue = arr(1, arr(2, arr(3, 4)))
   val objValue = obj("hello" -> arr(1, 2, 3), "world" -> false)

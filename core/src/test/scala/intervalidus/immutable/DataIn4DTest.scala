@@ -128,7 +128,7 @@ class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors 
 
   test("Immutable: Simple toString"):
     val fixturePadData = Data
-      .ofValue[String, IntDim]("H")
+      .ofValue("H")[IntDim]
       .set((intervalFrom(1) x intervalTo(0) x interval(1, 9) x unbounded[Int]) -> "W")
     // if needed: .recompressAll()
     // println(fixturePadData.toString)
@@ -147,7 +147,7 @@ class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors 
       "H->{-∞, -∞, -∞, -∞} H->{-∞, -∞, 1, -∞} H->{-∞, -∞, 10, -∞} W->{1, -∞, 1, -∞} H->{1, 1, 1, -∞} "
 
     val fixturePadLabel = Data
-      .ofValue[String, IntDim]("Helloooooooooo")
+      .ofValue("Helloooooooooo")[IntDim]
       .set((intervalFrom(1) x unbounded[Int] x unbounded[Int] x unbounded[Int]) -> "Wooooooorld")
     // println(fixturePadLabel.toString)
     fixturePadLabel.toString shouldBe
@@ -232,7 +232,6 @@ class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors 
         val flippedValidData = d.getAll.map:
           case (horizontal x_: vertical x_: depth x_: forth) ->: v =>
             (depth x vertical x horizontal x forth) -> v.reverse
-          case unexpected => fail(s"$unexpected did not match pattern") // should never happen
         Data(flippedValidData)
 
       def flipEverything2: Data.In4D[String, Int, LocalDate, LocalDate, Int] =
@@ -269,7 +268,7 @@ class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors 
 
     val fixture4 =
       fixture3.flatMap: d =>
-        Data.ofValue[String, MixedDim](d.value).map(x => d.interval -> x.value)
+        Data.ofValue(d.value)[MixedDim].map(x => d.interval -> x.value)
     val expectedData4 = List(
       (unboundedDate x unboundedDate x intervalTo(5) x unbounded[Int]) -> "Hey!!!",
       (unboundedDate x unboundedDate x intervalFrom(16) x unbounded[Int]) -> "World!!!"
@@ -279,7 +278,7 @@ class DataIn4DTest extends AnyFunSuite with Matchers with DataIn4DBaseBehaviors 
       fixture4.get
 
     val fixture5 =
-      fixture4.filter(_.value == "Hey!!!").flatMap(d => Data.ofValue[String, MixedDim](d.value))
+      fixture4.filter(_.value == "Hey!!!").flatMap(d => Data.ofValue(d.value)[MixedDim])
     val expectedData5 = List((unboundedDate x unboundedDate x unbounded[Int] x unbounded[Int]) -> "Hey!!!")
     fixture5.getAll.toList shouldBe expectedData5
     fixture5.get shouldBe "Hey!!!"

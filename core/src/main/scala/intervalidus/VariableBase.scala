@@ -14,7 +14,7 @@ object VariableBase:
   /**
     * Type class for instants as discrete values by nanosecond (weird, but works in this context)
     */
-  given InstantDiscreteValue: DiscreteValue[Instant] with
+  given InstantDiscreteValue: DiscreteValue[Instant]:
     override def compare(lhs: Instant, rhs: Instant): Int = lhs.compareTo(rhs)
 
     // hashing uses millis, so this prevents long overflow when hashing
@@ -80,11 +80,7 @@ trait VariableObjectBase[Self[_] <: VariableBase[?]]:
   * @tparam T
   *   the value type
   */
-trait VariableBase[T] extends (Time => T) with DimensionalDocs:
-  /**
-    * $configParam
-    */
-  given config: CoreConfig[Time]
+trait VariableBase[T](using CoreConfig[Time]) extends (Time => T) with DimensionalDocs:
 
   // could be mutable or immutable
   protected def underlyingData: DimensionalBase[T, Time]

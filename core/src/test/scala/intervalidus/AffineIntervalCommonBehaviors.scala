@@ -66,8 +66,9 @@ trait AffineIntervalCommonBehaviors(using op: DomainAffineValueLike[Int]):
   // Folds over a tuple of Doubles to arrive at some non-tuple result
   def foldTuple[T <: Tuple](t: T, z: Double)(op: (Double, Double) => Double)(using T =:= TupleOfDoubles[T]): Double =
     @tailrec
-    @nowarn // it's a tuple of Doubles (proven), but the compiler doesn't know that
-    def loop[TT <: Tuple](t: TT, acc: Double): Double = t match
+    // compiler thinks it's not exhaustive or matchable, but we know it is both: proven to be a tuple of Doubles
+    @nowarn("msg=pattern selector should be an instance of Matchable")
+    def loop[TT <: Tuple](t: TT, acc: Double): Double = t.runtimeChecked match
       case EmptyTuple             => acc
       case (head: Double) *: tail => loop(tail, op(acc, head))
 

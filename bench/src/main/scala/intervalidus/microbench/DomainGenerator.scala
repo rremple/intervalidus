@@ -87,7 +87,7 @@ object DomainGenerator:
   /**
     * Base case, for a one-dimensional domain (empty tail)
     */
-  given GenDomainOneDimOps(using RandomNumbers, DomainValueLike[Int]): GenDomainOps[OneDimDomain] with
+  given GenDomainOneDimOps: (RandomNumbers, DomainValueLike[Int]) => GenDomainOps[OneDimDomain]:
     inline override def arity: Int = 1
     inline override def gen: Gen[OneDimDomain] = gen1D.map(_.tupled)
     inline override def genStart: Gen[OneDimDomain] = genStart1D.map(_.tupled)
@@ -96,9 +96,8 @@ object DomainGenerator:
   /**
     * Inductive case for a domain with two or more dimensions (non-empty tail)
     */
-  given GenDomainMultiDimOps[DomainTail <: NonEmptyTuple](using
-    applyToTail: GenDomainOps[DomainTail]
-  )(using RandomNumbers, DomainValueLike[Int]): GenDomainOps[Domain1D[Int] *: DomainTail] with
+  given GenDomainMultiDimOps: [DomainTail <: NonEmptyTuple] => (applyToTail: GenDomainOps[DomainTail])
+    => (RandomNumbers, DomainValueLike[Int]) => GenDomainOps[Domain1D[Int] *: DomainTail]:
 
     extension (tailGen: Gen[DomainTail])
       def withHead(headGen: Gen[Domain1D[Int]]): Gen[MultiDimDomain[DomainTail]] =

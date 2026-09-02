@@ -125,7 +125,7 @@ trait IntervalShapeCommonBehaviors(using DomainValueLike[Int]):
         fromOrigin x toBeforeOrigin // IV
       )
 
-      val yQuadrantFour: IntervalShape[Domain.In1D[Int]] = withoutQuadrantOne.getByHeadDimension(quadrantOneSample._1)
+      val yQuadrantFour: IntervalShape[Domain.In1D[Int]] = withoutQuadrantOne.getByHeadDimension(quadrantOneSample.head)
       yQuadrantFour.allIntervals shouldBe Seq[Interval[Domain.In1D[Int]]](
         toBeforeOrigin // IV, below I
       )
@@ -150,7 +150,7 @@ trait IntervalShapeCommonBehaviors(using DomainValueLike[Int]):
         unbounded x toOrigin, // III & IV merged (horizontally)
         fromAfterOrigin x fromAfterOrigin // I
       )
-      val yQuadrantOne: IntervalShape[Domain.In1D[Int]] = withoutQuadrantTwo.getByDimension(1, quadrantTwoSample._2)
+      val yQuadrantOne: IntervalShape[Domain.In1D[Int]] = withoutQuadrantTwo.getByDimension(1, quadrantTwoSample(1))
       yQuadrantOne.allIntervals shouldBe Seq[Interval[Domain.In1D[Int]]](
         fromAfterOrigin // I, to the right of II
       )

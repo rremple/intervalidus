@@ -227,10 +227,10 @@ object Domain:
   object HasDisplacementType:
     given emptyProof: (EmptyTuple HasDisplacementType EmptyTuple)()
 
-    given inductiveProof[DV, SV, DTail <: Tuple, STail <: Tuple](using
+    given inductiveProof: [DV, SV, DTail <: Tuple, STail <: Tuple] => (
       DomainAffineValueLike[DV] { type Displacement = SV },
       DTail HasDisplacementType STail
-    ): (Domain1D[DV] *: DTail HasDisplacementType SV *: STail)()
+    ) => (Domain1D[DV] *: DTail HasDisplacementType SV *: STail)()
 
   /**
     * Uses recursive structural refinement to evaluate path-dependent types in an affine domain type D to witness that S
@@ -242,10 +242,10 @@ object Domain:
   object HasScalarType:
     given emptyProof: (EmptyTuple HasScalarType EmptyTuple)()
 
-    given inductiveProof[DV, SV, DTail <: Tuple, STail <: Tuple](using
+    given inductiveProof: [DV, SV, DTail <: Tuple, STail <: Tuple] => (
       DomainAffineValueLike[DV] { type Scalar = SV },
       DTail HasScalarType STail
-    ): (Domain1D[DV] *: DTail HasScalarType SV *: STail)()
+    ) => (Domain1D[DV] *: DTail HasScalarType SV *: STail)()
 
   type In1D[R1] = Domain1D[R1] *: EmptyTuple
   type In2D[R1, R2] = (Domain1D[R1], Domain1D[R2])

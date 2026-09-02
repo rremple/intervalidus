@@ -8,7 +8,6 @@ import org.openjdk.jmh.annotations.*
 import org.openjdk.jmh.infra.Blackhole
 
 import java.util.concurrent.TimeUnit
-import scala.language.implicitConversions
 
 object BenchTreeReorg:
   private val constantSeed: Long = 42 // Random().nextLong() //
@@ -53,7 +52,7 @@ object BenchTreeReorg:
     def setUpInvocation(): Unit =
       // println(s"Set up invocation...")
       val testData = testDataIterator.next()
-      fragments = testData.iterator.zipWithIndex.map((i, v) => i -> v)
+      fragments = testData.iterator.zipWithIndex.map(_ -> _)
       dataNoHint = mutable.Data.empty(using
         config = CoreConfig
           .default[D]
@@ -107,7 +106,7 @@ object BenchTreeReorg:
     def setUpInvocation(): Unit =
       // println(s"Set up invocation...")
       val testData = testDataIterator.next()
-      fragments = testData.iterator.zipWithIndex.map((i, v) => i -> v)
+      fragments = testData.iterator.zipWithIndex.map(_ -> _)
       dataNoHint = mutable.Data.empty
       dataWithHint = mutable.Data.empty(using config = CoreConfig.default[D].withCapacityHint(capacityHint))
       // println(s"Invocation set up.")

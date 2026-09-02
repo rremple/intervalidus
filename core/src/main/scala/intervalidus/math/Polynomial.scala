@@ -17,7 +17,7 @@ import scala.math.{abs, signum}
   */
 case class Polynomial private (coefficients: Map[Int, Double]) extends DomainFunction[Double, In1D[Double]]:
 
-  import Polynomial.{from, zero, constant}
+  import Polynomial.{ExponentAndCoeffecient, from, zero, constant}
 
   private val exponents: Seq[Int] = coefficients.keys.toSeq
 
@@ -190,11 +190,11 @@ case class Polynomial private (coefficients: Map[Int, Double]) extends DomainFun
     * This polynomial multiplied with another polynomial.
     */
   def times(that: Polynomial): Polynomial =
-    val entries = for
+    val entries: Seq[ExponentAndCoeffecient] = for
       thisExponent <- exponents
       thatExponent <- that.exponents
     yield (thisExponent + thatExponent, coefficients(thisExponent) * that.coefficients(thatExponent))
-    from(entries.groupMapReduce(_._1)(_._2)(_ + _))
+    from(entries.groupMapReduce(_.exponent)(_.coeffecient)(_ + _))
 
   /**
     * This polynomial multiplied by some scalar. (An optimization to allow for multiplication by a scalar without first
@@ -275,6 +275,8 @@ case class Polynomial private (coefficients: Map[Int, Double]) extends DomainFun
   infix def ^(exponent: Int): Polynomial = pow(exponent)
 
 object Polynomial:
+  type ExponentAndCoeffecient = (exponent: Int, coeffecient: Double)
+
   /** constant zero polynomial */
   val zero: Polynomial = Polynomial(Map.empty)
 
@@ -284,8 +286,10 @@ object Polynomial:
   /** x term polynomial (degree 1) */
   val x = Polynomial(Map(1 -> 1.0))
 
-  private def from(entries: Iterable[(Int, Double)]): Polynomial =
-    Polynomial(entries.filterNot(_._2 == 0.0).toMap)
+  private def from(entries: Iterable[ExponentAndCoeffecient]): Polynomial =
+    Polynomial(entries.collect {
+      case t if t.coeffecient != 0.0 => t.toTuple
+    }.toMap)
 
   /**
     * Construct a polynomial using pairs of numbers representing exponents and coefficients.
@@ -297,8 +301,8 @@ object Polynomial:
     * @return
     *   a polynomial
     */
-  def apply(terms: (Int, Double)*): Polynomial =
-    require(terms.forall(_._1 >= 0), "Exponent must be non-negative")
+  def apply(terms: ExponentAndCoeffecient*): Polynomial =
+    require(terms.forall(_.exponent >= 0), "Exponent must be non-negative")
     from(terms)
 
   /**
@@ -327,7 +331,7 @@ object Polynomial:
 
   import DataFunction.{asData, asDataFunction} // extension methods
 
-  given (using DomainValueLike[Double]): Conversion[Polynomial, Spline] = DataFunction.ofValue
+  given DomainValueLike[Double] => Conversion[Polynomial, Spline] = DataFunction.ofValue
 
   /**
     * Using a DataFunction as a spline. The function value type is DomainFunction[Double, Domain.In1D[Double]], but the

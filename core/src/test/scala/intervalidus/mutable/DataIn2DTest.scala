@@ -124,8 +124,8 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
 
     fixture.getByHeadDimension(dayZero).getAt(0) shouldBe Some("Hello")
     fixture.getByHeadDimension[LocalDate](Domain1D.Bottom).getAt(0) shouldBe Some("Hello")
-    fixture.getByDimension[Int, Domain.In1D[LocalDate]](1, 0).getAt(dayZero) shouldBe Some("Hello")
-    fixture.getByDimension[Int, Domain.In1D[LocalDate]](1, Domain1D.Top).getAt(day(1)) shouldBe Some("World")
+    fixture.getByDimension(1, 0)[Domain.In1D[LocalDate]].getAt(dayZero) shouldBe Some("Hello")
+    fixture.getByDimension[Int](1, Domain1D.Top)[Domain.In1D[LocalDate]].getAt(day(1)) shouldBe Some("World")
 
     // this gets us coverage of compressedUpdate
     fixture
@@ -134,7 +134,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
       )
       .getAt(0) shouldBe Some("Hello")
     fixture
-      .getByDimension[Int, Domain.In1D[LocalDate]](1, 0)(using
+      .getByDimension(1, 0)[Domain.In1D[LocalDate]](using
         altConfig = CoreConfig.default.withCompressOnUpdate(false)
       )
       .getAt(dayZero) shouldBe Some("Hello")
@@ -289,7 +289,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
     assert((fixture.domain union fixture.domain.complement).isUniverse)
 
   test("Mutable: Simple toString"):
-    val fixturePadData = Data.ofValue[String, MixedDim]("H")
+    val fixturePadData = Data.ofValue("H")[MixedDim]
     fixturePadData.set((intervalFrom(day(0)) x unbounded[Int]) -> "W")
     // println(fixturePadData.toString)
     fixturePadData.toString shouldBe
@@ -302,7 +302,7 @@ class DataIn2DTest extends AnyFunSuite with Matchers with DataIn2DBaseBehaviors 
       a.append(d.value).append("->").append(d.interval.headInterval1D[LocalDate].toString).append(" ")
     concat.result() shouldBe "H->(-∞..2024-07-14] W->[2024-07-15..+∞) "
 
-    val fixturePadLabel = Data.ofValue[String, MixedDim]("Helloooooooooo")
+    val fixturePadLabel = Data.ofValue("Helloooooooooo")[MixedDim]
     fixturePadLabel.set((intervalFrom(day(0)) x unbounded[Int]) -> "Wooooooorld")
     // println(fixturePadLabel.toString)
     fixturePadLabel.toString shouldBe

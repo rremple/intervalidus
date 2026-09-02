@@ -150,7 +150,7 @@ trait DomainAffineValueLike[T] extends DomainValueLike[T]:
     start: Displacement,
     end: Displacement,
     fullStep: Displacement
-  ): IterableOnce[(Displacement, Displacement)] =
+  ): IterableOnce[(offset: Displacement, delta: Displacement)] =
     val backward = fullStep < zeroDisplacement
     val forward = fullStep > zeroDisplacement
     require(

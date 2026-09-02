@@ -7,7 +7,6 @@ import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
 import java.time.LocalDate
-import scala.language.implicitConversions
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 class DiscreteValueTest extends AnyFunSuite with Matchers:

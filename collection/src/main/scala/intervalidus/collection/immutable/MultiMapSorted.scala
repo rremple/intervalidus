@@ -32,8 +32,11 @@ object MultiMapSorted:
     * @return
     *   a new multimap
     */
-  def from[K, V: Ordering](elems: Iterable[(K, V)]): MultiMapSorted[K, V] =
-    val dict = elems.groupMap(_._1)(_._2).map((k, vs) => k -> SortedSet.from(vs)).withDefaultValue(SortedSet.empty)
+  def from[K, V: Ordering](elems: Iterable[(key: K, value: V)]): MultiMapSorted[K, V] =
+    val dict = elems
+      .groupMap(_.key)(_.value)
+      .map((key, values) => key -> SortedSet.from(values))
+      .withDefaultValue(SortedSet.empty)
     new MultiMapSorted[K, V](dict)
 
 /**
@@ -55,8 +58,8 @@ class MultiMapSorted[K, V: Ordering] private (dict: Map[K, SortedSet[V]]) extend
     * @return
     *   a new multimap that includes the new association
     */
-  def addOne(elem: (K, V)): MultiMapSorted[K, V] = new MultiMapSorted(
-    dict.updated(elem._1, dict(elem._1) + elem._2)
+  def addOne(elem: (key: K, value: V)): MultiMapSorted[K, V] = new MultiMapSorted(
+    dict.updated(elem.key, dict(elem.key) + elem.value)
   )
 
   /**
@@ -66,11 +69,11 @@ class MultiMapSorted[K, V: Ordering] private (dict: Map[K, SortedSet[V]]) extend
     * @return
     *   a new multimap that excludes the association
     */
-  def subtractOne(elem: (K, V)): MultiMapSorted[K, V] =
-    val newValue = dict(elem._1) - elem._2
+  def subtractOne(elem: (key: K, value: V)): MultiMapSorted[K, V] =
+    val newValue = dict(elem.key) - elem.value
     new MultiMapSorted(
-      if newValue.isEmpty then dict.removed(elem._1)
-      else dict.updated(elem._1, newValue)
+      if newValue.isEmpty then dict.removed(elem.key)
+      else dict.updated(elem.key, newValue)
     )
 
   /**
@@ -80,11 +83,12 @@ class MultiMapSorted[K, V: Ordering] private (dict: Map[K, SortedSet[V]]) extend
     * @return
     *   a new multimap that includes the new associations
     */
-  def addAll(elems: Iterable[(K, V)]): MultiMapSorted[K, V] = new MultiMapSorted(
+  def addAll(elems: Iterable[(key: K, value: V)]): MultiMapSorted[K, V] = new MultiMapSorted(
     elems
-      .groupMap(_._1)(_._2)
-      .foldLeft(dict): (updatedDict, kvs) =>
-        updatedDict.updated(kvs._1, updatedDict(kvs._1) ++ kvs._2)
+      .groupMap(_.key)(_.value)
+      .foldLeft(dict):
+        case (updatedDict, (key, values)) =>
+          updatedDict.updated(key, updatedDict(key) ++ values)
   )
 
   /**

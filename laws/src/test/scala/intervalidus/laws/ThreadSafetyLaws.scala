@@ -14,7 +14,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.language.implicitConversions
 import scala.util.Random
 
 class ThreadSafetyLaws extends AnyPropSpec with ScalaCheckPropertyChecks with ParallelTestExecution with Matchers:
@@ -26,7 +25,7 @@ class ThreadSafetyLaws extends AnyPropSpec with ScalaCheckPropertyChecks with Pa
     */
   trait ThreadSafetyPropertyTest:
     def apply[D <: NonEmptyTuple: DomainLike](dataGen: Gen[immutable.Data[String, D]]): Assertion
-    def runFor[D <: NonEmptyTuple: DomainLike: GenDomainOps]: Assertion =
+    def runFor[D <: NonEmptyTuple: {DomainLike, GenDomainOps}]: Assertion =
       apply(gen[D](using config = CoreConfig.default.withCompressOnUpdate(false)))
 
   def threadSafetyPropertyInt(propertyName: String, testFun: ThreadSafetyPropertyTest, paddedName: String)(using
@@ -66,13 +65,13 @@ class ThreadSafetyLaws extends AnyPropSpec with ScalaCheckPropertyChecks with Pa
 
           val maxSize = diffActionsUnordered.size
           val diffActions = diffActionsUnordered
-            .map: // add a random sequence that preserves category order
+            .map[(action: DiffAction[String, D], order: Int)]: // add a random sequence that preserves category order
               case action @ DiffAction.Delete(_) => (action, r.nextInt(maxSize)) // deletes first
               case action @ DiffAction.Update(_) => (action, maxSize + r.nextInt(maxSize)) // then updates
               case action @ DiffAction.Create(_) => (action, 2 * maxSize + r.nextInt(maxSize)) // then creates last
             .toList
-            .sortBy(_._2)
-            .map(_._1)
+            .sortBy(_.order)
+            .map(_.action)
 
           diffActions.foreach:
             case DiffAction.Delete(start)                      => result.removeByKey(start)

@@ -78,20 +78,25 @@ trait DomainLikeTupleOps[D <: NonEmptyTuple]:
    * Interval-like capabilities
    */
 
-  // (partialResult, equivalent, adjacent, total)
   def equivalencyAndAdjacencyFromIntervals(
     beforeInterval: Interval[D],
     afterInterval: Interval[D]
-  ): (Boolean, Int, Int, Int)
+  ): (partialResult: Boolean, equivalent: Int, adjacent: Int, total: Int)
 
-  // (partialResult, overlap, adjacency, total)
-  def overlapAndAdjacencyFromIntervals(a: Interval[D], b: Interval[D]): (Boolean, Int, Int, Int)
+  def overlapAndAdjacencyFromIntervals(
+    a: Interval[D],
+    b: Interval[D]
+  ): (partialResult: Boolean, overlap: Int, adjacent: Int, total: Int)
 
-  // (partialResult, overlap, sharedBoundary, total)
-  def overlapAndSharedBoundaryFromIntervals(a: Interval[D], b: Interval[D]): (Boolean, Int, Int, Int)
+  def overlapAndSharedBoundaryFromIntervals(
+    a: Interval[D],
+    b: Interval[D]
+  ): (partialResult: Boolean, overlap: Int, sharedBoundary: Int, total: Int)
 
-  // (overlap, adjacency, aIsSubset, bIsSubset, hasSharedBoundary, total)
-  def spatialRelationFromIntervals(a: Interval[D], b: Interval[D]): (Int, Int, Int, Int, Boolean, Int)
+  def spatialRelationFromIntervals(
+    a: Interval[D],
+    b: Interval[D]
+  ): (overlap: Int, adjacency: Int, aIsSubset: Int, bIsSubset: Int, hasSharedBoundary: Boolean, total: Int)
 
   def excludingFromIntervals(thisInterval: Interval[D], thatInterval: Interval[D]): Interval.Remainder[D]
 
@@ -110,14 +115,16 @@ trait DomainLikeTupleOps[D <: NonEmptyTuple]:
   def toCodeLikeStringsFromInterval(interval: Interval[D]): List[String]
 
   // first dimension start string, first dimension end string, interval grid-formatted string
-  def preprocessForGridFromIntervals(intervals: IterableOnce[Interval[D]]): Iterable[(String, String, String)]
+  def preprocessForGridFromIntervals(
+    intervals: IterableOnce[Interval[D]]
+  ): Iterable[(start: String, end: String, value: String)]
 
   /*
    * Valid data-like capabilities
    */
 
   // first dimension start string, first dimension end string, value + remaining dimension string
-  def preprocessForGridFromValidData[V](validData: ValidData[V, D]): (String, String, String)
+  def preprocessForGridFromValidData[V](validData: ValidData[V, D]): (start: String, end: String, value: String)
 
 /**
   * Use recursive decomposition of tuples to provide domain-like capabilities to tuples.
@@ -129,7 +136,7 @@ object DomainLikeTupleOps:
   /**
     * Base case, for a one-dimensional domain (empty tail)
     */
-  given DomainLikeOneDimOps[DV: DomainValueLike]: DomainLikeTupleOps[OneDimDomain[DV]] with
+  given DomainLikeOneDimOps: [DV: DomainValueLike] => DomainLikeTupleOps[OneDimDomain[DV]]:
 
     private inline def headInterval(interval: Interval[OneDimDomain[DV]]): Interval1D[DV] =
       Interval1D(interval.start.head, interval.end.head)
@@ -226,7 +233,7 @@ object DomainLikeTupleOps:
     inline override def equivalencyAndAdjacencyFromIntervals(
       beforeDomainTuple: Interval[OneDimDomain[DV]],
       afterDomainTuple: Interval[OneDimDomain[DV]]
-    ): (Boolean, Int, Int, Int) =
+    ): (partialResult: Boolean, equivalent: Int, adjacent: Int, total: Int) =
       val beforeHead = headInterval(beforeDomainTuple)
       val afterHead = headInterval(afterDomainTuple)
       val equivalent = if beforeHead equiv afterHead then 1 else 0
@@ -237,7 +244,7 @@ object DomainLikeTupleOps:
     inline override def overlapAndAdjacencyFromIntervals(
       a: Interval[OneDimDomain[DV]],
       b: Interval[OneDimDomain[DV]]
-    ): (Boolean, Int, Int, Int) =
+    ): (partialResult: Boolean, overlap: Int, adjacent: Int, total: Int) =
       val aHead = headInterval(a)
       val bHead = headInterval(b)
       val overlap = if aHead intersects bHead then 1 else 0
@@ -247,18 +254,17 @@ object DomainLikeTupleOps:
     inline override def overlapAndSharedBoundaryFromIntervals(
       a: Interval[OneDimDomain[DV]],
       b: Interval[OneDimDomain[DV]]
-    ): (Boolean, Int, Int, Int) =
+    ): (partialResult: Boolean, overlap: Int, sharedBoundary: Int, total: Int) =
       val aHead = headInterval(a)
       val bHead = headInterval(b)
       val overlap = if aHead intersects bHead then 1 else 0
       val sharedBoundary = if aHead sharesBoundaryWith bHead then 1 else 0
       (overlap == 1, overlap, sharedBoundary, 1)
 
-    // (overlap, adjacency, aIsSubset, bIsSubset, total)
     inline override def spatialRelationFromIntervals(
       a: Interval[OneDimDomain[DV]],
       b: Interval[OneDimDomain[DV]]
-    ): (Int, Int, Int, Int, Boolean, Int) =
+    ): (overlap: Int, adjacency: Int, aIsSubset: Int, bIsSubset: Int, hasSharedBoundary: Boolean, total: Int) =
       val aHead = headInterval(a)
       val bHead = headInterval(b)
       val overlap = if aHead intersects bHead then 1 else 0
@@ -309,7 +315,7 @@ object DomainLikeTupleOps:
 
     inline override def preprocessForGridFromIntervals(
       intervals: IterableOnce[Interval[OneDimDomain[DV]]]
-    ): Iterable[(String, String, String)] =
+    ): Iterable[(start: String, end: String, value: String)] =
       Interval1D.preprocessForGrid(intervals.iterator.map(headInterval))
 
     /*
@@ -318,17 +324,15 @@ object DomainLikeTupleOps:
 
     inline override def preprocessForGridFromValidData[V](
       validData: ValidData[V, OneDimDomain[DV]]
-    ): (String, String, String) =
+    ): (start: String, end: String, value: String) =
       val head = headInterval(validData.interval)
       (head.start.toString, head.end.toString, s"${validData.valueToString}") // just one dimension
 
   /**
     * Inductive case for a domain with two or more dimensions (non-empty tail)
     */
-  given DomainLikeMultiDimOps[
-    DV: DomainValueLike,
-    DomainTail <: NonEmptyTuple
-  ](using applyToTail: DomainLikeTupleOps[DomainTail]): DomainLikeTupleOps[Domain1D[DV] *: DomainTail] with
+  given DomainLikeMultiDimOps: [DV: DomainValueLike, DomainTail <: NonEmptyTuple: DomainLikeTupleOps as applyToTail]
+    => DomainLikeTupleOps[Domain1D[DV] *: DomainTail]:
 
     private inline def headInterval(interval: Interval[MultiDimDomain[DV, DomainTail]]): Interval1D[DV] =
       Interval1D(interval.start.head, interval.end.head)
@@ -462,73 +466,67 @@ object DomainLikeTupleOps:
     inline override def equivalencyAndAdjacencyFromIntervals(
       beforeDomainTuple: Interval[MultiDimDomain[DV, DomainTail]],
       afterDomainTuple: Interval[MultiDimDomain[DV, DomainTail]]
-    ): (Boolean, Int, Int, Int) =
-      val (tailPartialResult, tailEquivalency, tailAdjacency, tailTotal) =
-        applyToTail.equivalencyAndAdjacencyFromIntervals(
-          tailInterval(beforeDomainTuple),
-          tailInterval(afterDomainTuple)
-        )
-      if !tailPartialResult // adjacency test fails early returning partial results - prevents unnecessary calculations
-      then (tailPartialResult, tailEquivalency, tailAdjacency, tailTotal)
+    ): (partialResult: Boolean, equivalent: Int, adjacent: Int, total: Int) =
+      val tailStats = applyToTail.equivalencyAndAdjacencyFromIntervals(
+        tailInterval(beforeDomainTuple),
+        tailInterval(afterDomainTuple)
+      )
+      // adjacency test fails early returning partial results - prevents unnecessary calculations
+      if !tailStats.partialResult then tailStats
       else
         val beforeHead = headInterval(beforeDomainTuple)
         val afterHead = headInterval(afterDomainTuple)
-        val equivalent = tailEquivalency + (if beforeHead equiv afterHead then 1 else 0)
-        val adjacent = tailAdjacency + (if beforeHead ~> afterHead then 1 else 0)
-        val total = tailTotal + 1
+        val equivalent = tailStats.equivalent + (if beforeHead equiv afterHead then 1 else 0)
+        val adjacent = tailStats.adjacent + (if beforeHead ~> afterHead then 1 else 0)
+        val total = tailStats.total + 1
         // ultimately, adjacency == 1 && equivalency == total - 1, but in the tail, these weaker inequalities hold:
         (equivalent + adjacent == total && adjacent <= 1 && equivalent >= total - 1, equivalent, adjacent, total)
 
     inline override def overlapAndAdjacencyFromIntervals(
       a: Interval[MultiDimDomain[DV, DomainTail]],
       b: Interval[MultiDimDomain[DV, DomainTail]]
-    ): (Boolean, Int, Int, Int) =
-      val (tailPartialResult, tailOverlap, tailAdjacency, tailTotal) =
-        applyToTail.overlapAndAdjacencyFromIntervals(tailInterval(a), tailInterval(b))
-      if !tailPartialResult // test fails early returning partial results - prevents unnecessary calculations
-      then (tailPartialResult, tailOverlap, tailAdjacency, tailTotal)
+    ): (partialResult: Boolean, overlap: Int, adjacent: Int, total: Int) =
+      val tailStats = applyToTail.overlapAndAdjacencyFromIntervals(tailInterval(a), tailInterval(b))
+      // test fails early returning partial results - prevents unnecessary calculations
+      if !tailStats.partialResult then tailStats
       else
         val aHead = headInterval(a)
         val bHead = headInterval(b)
-        val overlap = tailOverlap + (if aHead intersects bHead then 1 else 0)
-        val adjacent = tailAdjacency + (if aHead ~ bHead then 1 else 0)
-        val total = tailTotal + 1
+        val overlap = tailStats.overlap + (if aHead intersects bHead then 1 else 0)
+        val adjacent = tailStats.adjacent + (if aHead ~ bHead then 1 else 0)
+        val total = tailStats.total + 1
         // ultimately, adjacency > 0 && overlap + adjacent == total, but in the tail, this weaker check must hold:
         (overlap + adjacent == total, overlap, adjacent, total)
 
     inline override def overlapAndSharedBoundaryFromIntervals(
       a: Interval[MultiDimDomain[DV, DomainTail]],
       b: Interval[MultiDimDomain[DV, DomainTail]]
-    ): (Boolean, Int, Int, Int) =
-      val (tailPartialResult, tailOverlap, tailSharedBoundary, tailTotal) =
-        applyToTail.overlapAndSharedBoundaryFromIntervals(tailInterval(a), tailInterval(b))
-
-      if !tailPartialResult // test fails early returning partial results - prevents unnecessary calculations
-      then (tailPartialResult, tailOverlap, tailSharedBoundary, tailTotal)
+    ): (partialResult: Boolean, overlap: Int, sharedBoundary: Int, total: Int) =
+      val tailStats = applyToTail.overlapAndSharedBoundaryFromIntervals(tailInterval(a), tailInterval(b))
+      // test fails early returning partial results - prevents unnecessary calculations
+      if !tailStats.partialResult then tailStats
       else
         val aHead = headInterval(a)
         val bHead = headInterval(b)
-        val overlap = tailOverlap + (if aHead intersects bHead then 1 else 0)
-        val sharedBoundary = tailSharedBoundary + (if aHead sharesBoundaryWith bHead then 1 else 0)
-        val total = tailTotal + 1
+        val overlap = tailStats.overlap + (if aHead intersects bHead then 1 else 0)
+        val sharedBoundary = tailStats.sharedBoundary + (if aHead sharesBoundaryWith bHead then 1 else 0)
+        val total = tailStats.total + 1
         // ultimately, sharedBoundary > 0 && overlap + sharedBoundary == total, but the partial result is weaker:
         (overlap == total, overlap, sharedBoundary, total)
 
-    // (overlap, adjacency, aIsSubset, bIsSubset, total)
     inline override def spatialRelationFromIntervals(
       a: Interval[MultiDimDomain[DV, DomainTail]],
       b: Interval[MultiDimDomain[DV, DomainTail]]
-    ): (Int, Int, Int, Int, Boolean, Int) =
-      val (tailOverlap, tailAdjacency, tailAIsSubset, tailBIsSubset, tailHasSharedBoundary, tailTotal) =
-        applyToTail.spatialRelationFromIntervals(tailInterval(a), tailInterval(b))
+    ): (overlap: Int, adjacency: Int, aIsSubset: Int, bIsSubset: Int, hasSharedBoundary: Boolean, total: Int) =
+      val tailStats = applyToTail.spatialRelationFromIntervals(tailInterval(a), tailInterval(b))
       val aHead = headInterval(a)
       val bHead = headInterval(b)
-      val overlap = tailOverlap + (if aHead intersects bHead then 1 else 0)
-      val adjacent = tailAdjacency + (if aHead ~ bHead then 1 else 0)
-      val aIsSubset = tailAIsSubset + (if aHead ⊆ bHead then 1 else 0)
-      val bIsSubset = tailBIsSubset + (if bHead ⊆ aHead then 1 else 0)
-      val hasSharedBoundary = tailHasSharedBoundary || (aHead sharesBoundaryWith bHead)
-      val total = tailTotal + 1
+      val overlap = tailStats.overlap + (if aHead intersects bHead then 1 else 0)
+      val adjacent = tailStats.adjacency + (if aHead ~ bHead then 1 else 0)
+      val aIsSubset = tailStats.aIsSubset + (if aHead ⊆ bHead then 1 else 0)
+      val bIsSubset = tailStats.bIsSubset + (if bHead ⊆ aHead then 1 else 0)
+      val hasSharedBoundary = tailStats.hasSharedBoundary || (aHead sharesBoundaryWith bHead)
+      val total = tailStats.total + 1
       (overlap, adjacent, aIsSubset, bIsSubset, hasSharedBoundary, total)
 
     inline override def excludingFromIntervals(
@@ -592,7 +590,7 @@ object DomainLikeTupleOps:
     // not recursive
     inline override def preprocessForGridFromIntervals(
       intervals: IterableOnce[Interval[MultiDimDomain[DV, DomainTail]]]
-    ): Iterable[(String, String, String)] =
+    ): Iterable[(start: String, end: String, value: String)] =
       Interval1D.preprocessForGrid(intervals.iterator.map(headInterval))
 
     /*
@@ -602,7 +600,7 @@ object DomainLikeTupleOps:
     // not recursive
     inline override def preprocessForGridFromValidData[V](
       validData: ValidData[V, MultiDimDomain[DV, DomainTail]]
-    ): (String, String, String) =
+    ): (start: String, end: String, value: String) =
       val head = headInterval(validData.interval)
       val tailNoBraces = applyToTail.toStringsFromInterval(tailInterval(validData.interval)).mkString(" x ")
       (head.start.toString, head.end.toString, s"${validData.valueToString} $tailNoBraces")

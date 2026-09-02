@@ -9,12 +9,12 @@ import org.scalacheck.Gen
 // Generates intervals of any dimension
 object IntervalGenerator:
 
-  def gen[D <: NonEmptyTuple: DomainLike: GenDomainOps]: Gen[Interval[D]] = for
+  def gen[D <: NonEmptyTuple: {DomainLike, GenDomainOps}]: Gen[Interval[D]] = for
     start <- genStart[D]
     end <- genEnd[D](start)
   yield Interval(start, end)
 
-  def genBounded[D <: NonEmptyTuple: DomainLike: GenDomainOps]: Gen[Interval[D]] = for
+  def genBounded[D <: NonEmptyTuple: {DomainLike, GenDomainOps}]: Gen[Interval[D]] = for
     start <- genBoundedStart[D]
     end <- genBoundedEnd[D](start)
   yield Interval(start, end)
@@ -22,7 +22,7 @@ object IntervalGenerator:
   val minSizeDim = IndexedSeq(100, 10, 3, 2)
   val maxSizeDim = IndexedSeq(200, 30, 5, 3)
 
-  def genNonIntersecting[D <: NonEmptyTuple: DomainLike: GenDomainOps]: Gen[Iterable[Interval[D]]] =
+  def genNonIntersecting[D <: NonEmptyTuple: {DomainLike, GenDomainOps}]: Gen[Iterable[Interval[D]]] =
     val dimIndex = arity[D] - 1
     val minSize: Int = minSizeDim.applyOrElse(dimIndex, _ => 2)
     val maxSize: Int = maxSizeDim.applyOrElse(dimIndex, _ => 3)
@@ -106,7 +106,7 @@ object IntervalGenerator:
     x: Interval[D],
     y: Interval[D],
     target: SpatialRelation
-  ): (Interval[D], Interval[D]) =
+  ): (closer: Interval[D], adjusted: Interval[D]) =
     (x relationWith y, x gapWith y) match
       case (
             SpatialRelation.DC,

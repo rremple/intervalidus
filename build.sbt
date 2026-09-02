@@ -1,6 +1,24 @@
 import sbt.Def
 
-ThisBuild / scalaVersion := "3.3.8"
+import java.net.URI
+import javax.xml.parsers.DocumentBuilderFactory
+
+def latestScala3Nightly(): Option[String] =
+  try
+    val url = URI.create("https://repo.scala-lang.org/artifactory/maven-nightlies/org/scala-lang/scala3-compiler_3/maven-metadata.xml").toURL
+    val builder = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+    val nodes = builder.parse(url.openStream()).getElementsByTagName("latest")
+    if nodes.getLength == 0 then None else
+      val latest = nodes.item(0).getTextContent
+      println(s"Found latest: $latest")
+      Some(latest)
+  catch
+    case _: Exception => None
+
+//resolvers += Resolver.scalaNightlyRepository
+//val scalaVersionLastKnownGood = "3.10.0-RC1-bin-20260812-7adc7af-NIGHTLY"
+//ThisBuild / scalaVersion := latestScala3Nightly().getOrElse(scalaVersionLastKnownGood)
+ThisBuild / scalaVersion := "3.9.0"
 
 ThisBuild / organization := "io.github.rremple"
 ThisBuild / versionScheme := Some("early-semver")
@@ -78,21 +96,32 @@ lazy val makeSite = taskKey[Seq[File]]("Generate unified docs and inject the lan
 @transient
 lazy val siteCheckAll = taskKey[Unit]("Scans generated HTML for Scaladoc issues")
 
+// Projects included in published API documentation and tested by default
+lazy val docProjects = Seq(
+  core,
+  collection,
+  `intervalidus-pickle`,
+  `intervalidus-weepickle`,
+  `intervalidus-upickle`,
+  `intervalidus-circe`,
+  `intervalidus-play`,
+  `intervalidus-tinyrule`
+)
+// Projects that are tested by default, but not included in published API documentation
+// (note that the laws project isn't included here, so laws tests won't be run by default)
+lazy val nonDocProjects = Seq(
+  `intervalidus-examples`,
+  `intervalidus-example-mongodb`,
+  bench
+)
+lazy val allProjects = (docProjects ++ nonDocProjects)
+
+// Project extends ProjectReference
+def referencesTo(ps: Seq[Project]): Seq[ProjectReference] = ps.map(identity)
+
 lazy val root = (project in file("."))
   .disablePlugins(MimaPlugin)
-  .aggregate(
-    core,
-    collection,
-    `intervalidus-pickle`,
-    `intervalidus-weepickle`,
-    `intervalidus-upickle`,
-    `intervalidus-circe`,
-    `intervalidus-play`,
-    `intervalidus-tinyrule`,
-    `intervalidus-examples`,
-    `intervalidus-example-mongodb`,
-    bench
-  )
+  .aggregate(referencesTo(allProjects)*)
   .enablePlugins(ScalaUnidocPlugin)
   .settings(
     name := "intervalidus-root",
@@ -125,17 +154,18 @@ lazy val root = (project in file("."))
     ScalaUnidoc / unidoc / scalacOptions ++= Seq("-project", "Intervalidus API"),
     ScalaUnidoc / unidoc / scalacOptions ++= Seq("-doc-title", "Intervalidus API"),
     ScalaUnidoc / unidoc / scalacOptions ++= Seq("-doc-version", version.value),
-    ScalaUnidoc / unidoc / scalacOptions ++= Seq(
-      "-source-links:github://rremple/intervalidus",
-      "-revision",
-      siteRevision.value
-    ),
-    ScalaUnidoc / unidoc / unidocProjectFilter := inAnyProject -- inProjects(
-      `intervalidus-examples`,
-      `intervalidus-example-mongodb`,
-      laws,
-      bench
-    ),
+    ScalaUnidoc / unidoc / scalacOptions += {
+      val rootBase = baseDirectory.value
+      val subprojectBases = docProjects.map(_.base)
+      val sourcePath = "src/main/scala"
+      val sourceLinkMappings = subprojectBases.map: subprojectBase =>
+        val absoluteBase = subprojectBase.getAbsolutePath
+        val relativeRepoPath = rootBase.toURI.relativize(subprojectBase.toURI).getPath.stripSuffix("/")
+        val repoSubPath = if relativeRepoPath.isEmpty then sourcePath else s"$relativeRepoPath/$sourcePath"
+        s"$absoluteBase/$sourcePath=github://rremple/intervalidus/${siteRevision.value}#$repoSubPath"
+      s"-source-links:${sourceLinkMappings.mkString(",")}"
+    },
+    ScalaUnidoc / unidoc / unidocProjectFilter := inProjects(referencesTo(docProjects)*),
     // Documentation checks (because sometimes my scaladoc symbolic references get broken)
     siteCheckAll := {
       val log = streams.value.log

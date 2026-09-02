@@ -15,7 +15,7 @@ object CurrentInstant:
   /**
     * Default behavior, using the actual clock.
     */
-  given CurrentInstant with
+  given CurrentInstant:
     override def now(): Instant = Instant.now()
 
   /**

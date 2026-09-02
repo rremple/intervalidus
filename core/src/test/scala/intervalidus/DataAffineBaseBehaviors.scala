@@ -6,8 +6,6 @@ import org.scalatest.compatible.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
-import scala.language.implicitConversions
-
 /**
   * Test behaviors that do not differ between discrete or continuous interval-based shapes.
   */
@@ -24,11 +22,11 @@ trait DataAffineBaseBehaviors(using
   val quadrantThreeSample: Dim = Domain.in2D(-5, -5)
   val quadrantFourSample: Dim = Domain.in2D(5, -5)
 
-  val quadrantSamples: List[(Dim, Int)] = List(
-    quadrantOneSample -> 1,
-    quadrantTwoSample -> 2,
-    quadrantThreeSample -> 3,
-    quadrantFourSample -> 4
+  val quadrantSamples: List[(point: Dim, quadrant: Int)] = List(
+    (point = quadrantOneSample, quadrant = 1),
+    (point = quadrantTwoSample, quadrant = 2),
+    (point = quadrantThreeSample, quadrant = 3),
+    (point = quadrantFourSample, quadrant = 4)
   )
 
   val fromOrigin: Interval1D[Int] = intervalFrom(0)

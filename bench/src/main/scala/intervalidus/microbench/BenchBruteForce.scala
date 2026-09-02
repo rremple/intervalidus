@@ -6,8 +6,6 @@ import intervalidus.Interval.Patterns.*
 import org.openjdk.jmh.annotations.*
 import org.openjdk.jmh.infra.Blackhole
 
-import scala.language.implicitConversions
-
 /**
   * Benchmarks only the remove method to see what affect noBruteForceUpdate has on updateOrRemove performance.
   *

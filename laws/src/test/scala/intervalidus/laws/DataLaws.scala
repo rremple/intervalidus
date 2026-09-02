@@ -11,8 +11,6 @@ import org.scalatest.propspec.AnyPropSpec
 import org.scalatest.{Assertion, ParallelTestExecution}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
-import scala.language.implicitConversions
-
 class DataLaws extends AnyPropSpec with ScalaCheckPropertyChecks with ParallelTestExecution with Matchers:
   // given PropertyCheckConfiguration(minSuccessful = 200 /*, workers = 2*/ )
   def laws: String = getClass.getSimpleName
@@ -22,7 +20,7 @@ class DataLaws extends AnyPropSpec with ScalaCheckPropertyChecks with ParallelTe
     */
   trait DataPropertyTest:
     def apply[D <: NonEmptyTuple: DomainLike](dataGen: Gen[immutable.Data[String, D]]): Assertion
-    def runFor[D <: NonEmptyTuple: DomainLike: GenDomainOps]: Assertion = apply(gen[D](using config = testCoreConfig))
+    def runFor[D <: NonEmptyTuple: {DomainLike, GenDomainOps}]: Assertion = apply(gen[D](using config = testCoreConfig))
 
   /**
     * Evaluate a random-valued immutable data property in 1, 2, 3, and 4 dimensions using both discrete and continuous

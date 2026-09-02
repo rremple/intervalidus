@@ -28,7 +28,7 @@ object Data extends DimensionalBaseObject[Data]:
   */
 class Data[V, D <: NonEmptyTuple: DomainLike] private (
   override val initialState: State[V, D]
-)(using val config: CoreConfig[D])
+)(using config: CoreConfig[D])
   extends ImmutableBase[V, D, Data[V, D]]:
 
   config.experimental.control("requireDisjoint")(
@@ -110,10 +110,10 @@ class Data[V, D <: NonEmptyTuple: DomainLike] private (
   ): Data[V, Domain.NonEmptyTail[D]] = transactionalRead:
     Data(getByHeadDimensionData(domain))(using config = altConfig).compressedUpdate()
 
-  override def getByDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+  override def getByDimension[H: DomainValueLike](
     dimensionIndex: Domain.DimensionIndex,
     domain: Domain1D[H]
-  )(using
+  )[R <: NonEmptyTuple: DomainLike](using
     altConfig: CoreConfig[R]
   )(using
     Domain.HasIndex[D, dimensionIndex.type],
@@ -136,10 +136,10 @@ class Data[V, D <: NonEmptyTuple: DomainLike] private (
       .empty[V, R]
       .mergeMany(getAllInternal.map(d => d.interval.dropDimension(dimensionIndex) -> d.value), mergeValues)
 
-  override def extrudeDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+  override def extrudeDimension[H: DomainValueLike](
     dimensionIndex: Domain.DimensionIndex,
     extent: Interval1D[H]
-  )(using
+  )[R <: NonEmptyTuple: DomainLike](using
     altConfig: CoreConfig[R]
   )(using
     Domain.HasIndex[R, dimensionIndex.type],

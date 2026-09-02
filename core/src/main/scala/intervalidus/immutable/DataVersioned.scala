@@ -67,9 +67,8 @@ object DataVersioned extends DimensionalVersionedBaseObject[DataVersioned]:
     * Automatically converts some other dimensional structure with a versioned domain to an immutable versioned
     * structure with a default initial version and comment.
     */
-  given [V, D <: NonEmptyTuple: DomainLike](using
-    DomainLike[Versioned[D]]
-  ): Conversion[DimensionalBase[V, Versioned[D]], DataVersioned[V, D]] = _.asDataVersioned
+  given [V, D <: NonEmptyTuple: DomainLike] => (DomainLike[Versioned[D]])
+    => Conversion[DimensionalBase[V, Versioned[D]], DataVersioned[V, D]] = _.asDataVersioned
 
 /**
   * Immutable versioned dimensional data in any dimension.
@@ -104,7 +103,7 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike] private (
   versionTimestamps: mutable.Map[VersionDomainValue, VersionMetadata],
   withCurrentVersion: Option[VersionDomainValue]
 )(using
-  val config: CoreConfig[Versioned[D]]
+  config: CoreConfig[Versioned[D]]
 )(using
   DomainLike[Versioned[D]],
   CurrentInstant
@@ -176,10 +175,10 @@ class DataVersioned[V, D <: NonEmptyTuple: DomainLike] private (
       )
     )
 
-  override def getByDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+  override def getByDimension[H: DomainValueLike](
     dimensionIndex: Domain.DimensionIndex,
     domain: Domain1D[H]
-  )(using
+  )[R <: NonEmptyTuple: DomainLike](using
     altConfig: CoreConfig[Versioned[R]]
   )(using
     Domain.HasIndex[D, dimensionIndex.type],

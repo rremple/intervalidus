@@ -155,7 +155,7 @@ trait Billing:
 
       case Update(ValidData(newTier, newIntervalIn1D: Interval.In1D[LocalDate])) =>
         val newInterval = newIntervalIn1D.headInterval1D[LocalDate]
-        priorTiersTruncated.getDataAt(newInterval.start) match
+        priorTiersTruncated.getDataAt(newInterval.start.tupled) match
           case Some(ValidData(priorTier, priorIntervalIn1D)) if priorTier == newTier => // different interval
             val priorInterval = priorIntervalIn1D.headInterval1D[LocalDate]
             if priorInterval.end < newInterval.end then transactions(newTier, newInterval.fromAfter(priorInterval.end))

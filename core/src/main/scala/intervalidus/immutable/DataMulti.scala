@@ -34,7 +34,7 @@ object DataMulti extends DimensionalMultiBaseObject[DataMulti]:
   */
 class DataMulti[V, D <: NonEmptyTuple: DomainLike] private (
   override val initialState: State[Set[V], D]
-)(using val config: CoreConfig[D])
+)(using config: CoreConfig[D])
   extends ImmutableBase[Set[V], D, DataMulti[V, D]]
   with DimensionalMultiBase[V, D]:
 
@@ -223,10 +223,10 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] private (
   ): DataMulti[V, Domain.NonEmptyTail[D]] = transactionalRead:
     DataMulti(getByHeadDimensionData(domain))(using config = altConfig).compressedUpdate()
 
-  override def getByDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+  override def getByDimension[H: DomainValueLike](
     dimensionIndex: Domain.DimensionIndex,
     domain: Domain1D[H]
-  )(using
+  )[R <: NonEmptyTuple: DomainLike](using
     altConfig: CoreConfig[R]
   )(using
     Domain.HasIndex[D, dimensionIndex.type],
@@ -258,10 +258,10 @@ class DataMulti[V, D <: NonEmptyTuple: DomainLike] private (
     Domain.IsDroppedInResult[D, dimensionIndex.type, R]
   ): DataMulti[V, R] = collapseDimension(dimensionIndex, _ ++ _)
 
-  override def extrudeDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+  override def extrudeDimension[H: DomainValueLike](
     dimensionIndex: Domain.DimensionIndex,
     extent: Interval1D[H]
-  )(using
+  )[R <: NonEmptyTuple: DomainLike](using
     altConfig: CoreConfig[R]
   )(using
     Domain.HasIndex[R, dimensionIndex.type],

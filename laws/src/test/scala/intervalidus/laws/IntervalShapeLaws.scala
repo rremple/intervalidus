@@ -13,8 +13,6 @@ import org.scalatest.propspec.AnyPropSpec
 import org.scalatest.{Assertion, ParallelTestExecution}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
-import scala.language.implicitConversions
-
 class IntervalShapeLaws extends AnyPropSpec with ScalaCheckPropertyChecks with ParallelTestExecution with Matchers:
   // given PropertyCheckConfiguration(minSuccessful = 200 /*, workers = 2*/ )
   def laws: String = getClass.getSimpleName
@@ -24,7 +22,7 @@ class IntervalShapeLaws extends AnyPropSpec with ScalaCheckPropertyChecks with P
     */
   trait IntervalShapePropertyTest:
     def apply[D <: NonEmptyTuple: DomainLike](intervalMultiGen: Gen[IntervalShape[D]]): Assertion
-    def runFor[D <: NonEmptyTuple: DomainLike: GenDomainOps]: Assertion = apply(gen[D](using config = testCoreConfig))
+    def runFor[D <: NonEmptyTuple: {DomainLike, GenDomainOps}]: Assertion = apply(gen[D](using config = testCoreConfig))
 
   /**
     * Evaluate an IntervalShape property in 1, 2, 3, and 4 dimensions using both discrete and continuous interval domain
@@ -70,7 +68,7 @@ class IntervalShapeLaws extends AnyPropSpec with ScalaCheckPropertyChecks with P
       Domain.IsDroppedInResult[ExtrudeAtOne[D], 1, D]
     ): Assertion
 
-    def runFor[D <: NonEmptyTuple: DomainLike: GenDomainOps](using
+    def runFor[D <: NonEmptyTuple: {DomainLike, GenDomainOps}](using
       DomainValueLike[Int],
       DomainLike[ExtrudeAtZero[D]],
       DomainLike[ExtrudeAtOne[D]],

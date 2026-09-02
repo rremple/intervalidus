@@ -19,9 +19,9 @@ object BsonTransformer:
 
   given Reads[BsonValue] = Reads(jsonTransformer)
 
-  given (using bsonValueWrites: Writes[BsonValue]): Writes[BsonDocument] = bsonValueWrites.contramap(identity)
+  given (bsonValueWrites: Writes[BsonValue]) => Writes[BsonDocument] = bsonValueWrites.contramap(identity)
 
-  given (using bsonValueReads: Reads[BsonValue]): Reads[BsonDocument] = Reads: json =>
+  given (bsonValueReads: Reads[BsonValue]) => Reads[BsonDocument] = Reads: json =>
     bsonValueReads
       .reads(json)
       .flatMap:

@@ -5,8 +5,6 @@ import intervalidus.DimensionalBase.State
 import intervalidus.Domain.{HasDisplacementType, HasScalarType}
 import intervalidus.DomainAffineLike.CenteredKernel
 
-import scala.language.implicitConversions
-
 /**
   * Constructs dimensional data where intervals exist in an affine domain.
   */
@@ -32,7 +30,7 @@ object DataAffine extends DimensionalAffineBaseObject[DataAffine]:
   */
 class DataAffine[V, D <: NonEmptyTuple: DomainAffineLike] private (
   override val initialState: State[V, D]
-)(using val config: CoreConfig[D])
+)(using config: CoreConfig[D])
   extends MutableBase[V, D]
   with DimensionalAffineBase[V, D]:
   /**
@@ -48,9 +46,7 @@ class DataAffine[V, D <: NonEmptyTuple: DomainAffineLike] private (
     * @tparam H
     *   $scaledAboutInTParamH
     */
-  def scaledAboutIn[H](using
-    dimOp: DomainAffineValueLike[H]
-  )(
+  def scaledAboutIn[H: DomainAffineValueLike as dimOp](
     dimensionIndex: Domain.DimensionIndex,
     center: Domain1D[H],
     scaledBy: dimOp.Scalar
@@ -94,9 +90,7 @@ class DataAffine[V, D <: NonEmptyTuple: DomainAffineLike] private (
     * @tparam H
     *   $displacedByInTParmH
     */
-  def displacedByIn[H](using
-    dimOp: DomainAffineValueLike[H]
-  )(
+  def displacedByIn[H: DomainAffineValueLike as dimOp](
     dimensionIndex: Domain.DimensionIndex,
     offset: dimOp.Displacement
   )(using
@@ -132,9 +126,7 @@ class DataAffine[V, D <: NonEmptyTuple: DomainAffineLike] private (
     * @tparam K
     *   $convolvedByInTParamK
     */
-  def convolvedByIn[H, K](using
-    dimOp: DomainAffineValueLike[H]
-  )(
+  def convolvedByIn[H: DomainAffineValueLike as dimOp, K](
     dimensionIndex: Domain.DimensionIndex,
     kernel: CenteredKernel[K, H],
     epsilon: dimOp.Displacement,
@@ -217,10 +209,10 @@ class DataAffine[V, D <: NonEmptyTuple: DomainAffineLike] private (
     result.compressedUpdate()
     result
 
-  override def getByDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+  override def getByDimension[H: DomainValueLike](
     dimensionIndex: Domain.DimensionIndex,
     domain: Domain1D[H]
-  )(using
+  )[R <: NonEmptyTuple: DomainLike](using
     altConfig: CoreConfig[R]
   )(using
     Domain.HasIndex[D, dimensionIndex.type],
@@ -246,10 +238,10 @@ class DataAffine[V, D <: NonEmptyTuple: DomainAffineLike] private (
     result.compressedUpdate()
     result
 
-  override def extrudeDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+  override def extrudeDimension[H: DomainValueLike](
     dimensionIndex: Domain.DimensionIndex,
     extent: Interval1D[H]
-  )(using
+  )[R <: NonEmptyTuple: DomainLike](using
     altConfig: CoreConfig[R]
   )(using
     Domain.HasIndex[R, dimensionIndex.type],

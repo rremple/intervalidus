@@ -56,7 +56,8 @@ class DomainAffineLike[D <: NonEmptyTuple: DomainLikeTupleOps](using
   */
 object DomainAffineLike:
 
-  given [D <: NonEmptyTuple: DomainAffineLikeTupleOps: DomainLikeTupleOps]: DomainAffineLike[D] = DomainAffineLike[D]
+  given [D <: NonEmptyTuple: {DomainAffineLikeTupleOps, DomainLikeTupleOps}] => DomainAffineLike[D] =
+    DomainAffineLike[D]
 
   /**
     * Many affine operations require some notion of a center relative to some element. For example, convolutions use a
@@ -105,7 +106,7 @@ object DomainAffineLike:
   /**
     * Operations on one-dimensional domains
     */
-  extension [T](lhs: Domain1D[T])(using op: DomainAffineValueLike[T])
+  extension [T: DomainAffineValueLike as op](lhs: Domain1D[T])
     /**
       * Finds the displacement from this domain to another. Overflows, such as displacements to or from Top or Bottom,
       * or overflowing underlying value operations, are returned as None.
@@ -202,7 +203,7 @@ object DomainAffineLike:
   /**
     * Operations on one-dimensional intervals
     */
-  extension [T](lhs: Interval1D[T])(using op: DomainAffineValueLike[T])
+  extension [T: DomainAffineValueLike as op](lhs: Interval1D[T])
     /**
       * Use this interval as the structuring element of a morphological probe.
       *
@@ -396,7 +397,7 @@ object DomainAffineLike:
   /**
     * Operations on multidimensional intervals
     */
-  extension [D <: NonEmptyTuple](lhs: Interval[D])(using op: DomainAffineLike[D])
+  extension [D <: NonEmptyTuple: DomainAffineLike as op](lhs: Interval[D])
     /**
       * Use this interval as the structuring element of a morphological probe.
       *
@@ -484,7 +485,7 @@ object DomainAffineLike:
   /**
     * Operations on multidimensional interval shapes
     */
-  extension [D <: NonEmptyTuple](lhs: IntervalShape[D])(using op: DomainAffineLike[D])
+  extension [D <: NonEmptyTuple: DomainAffineLike as op](lhs: IntervalShape[D])
     /**
       * Returns an interval shape consisting of this shape's interval components reflected about some pivot. For any
       * components where the reflection is not a valid interval (e.g., starts at Top), those components are excluded

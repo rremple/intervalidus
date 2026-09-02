@@ -7,7 +7,7 @@ import intervalidus.microbench.IntervalGenerator.*
 // Generates IntervalShape with intervals of any dimension
 object IntervalShapeGenerator:
 
-  def gen[D <: NonEmptyTuple: DomainLike: GenDomainOps](using RandomNumbers): Gen[IntervalShape[D]] =
+  def gen[D <: NonEmptyTuple: {DomainLike, GenDomainOps}](using RandomNumbers): Gen[IntervalShape[D]] =
     for initialData <- genNonIntersecting[D]
     yield IntervalShape.withoutChecks(initialData)
 

@@ -86,5 +86,5 @@ object CoreConfig:
       */
     case ReadUncommitted
 
-  given default[D <: NonEmptyTuple](using DomainLike[D], Experimental, CollectionConfig): CoreConfig[D] =
+  given default: [D <: NonEmptyTuple: DomainLike] => (Experimental, CollectionConfig) => CoreConfig[D] =
     CoreConfig(capacityHint = None, isolationLevel = IsolationLevel.Serializable, compressOnUpdate = true)

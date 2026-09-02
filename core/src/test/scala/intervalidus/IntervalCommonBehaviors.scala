@@ -215,7 +215,7 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       Interval.unbounded[Dim2Domain].isUnbounded shouldBe true
 
       val now = LocalDate.now
-      val d: Interval[(Domain1D[LocalDate], Domain1D[Int])] = intervalTo(now) x intervalFrom(0)
+      val d: Interval.In2D[LocalDate, Int] = intervalTo(now) x intervalFrom(0)
       d.start shouldBe ((Bottom, 0): Domain.In2D[LocalDate, Int])
       d.end shouldBe ((now, Top): Domain.In2D[LocalDate, Int])
       d.vertices shouldBe List[Domain.In2D[LocalDate, Int]](
@@ -393,10 +393,10 @@ trait IntervalCommonBehaviors(using DomainValueLike[Int], DomainValueLike[LocalD
       i.dropDimension[Dim2Domain](2) shouldBe (i[Int](0) x i[Int](1))
 
       val newDim = intervalAt(-1)
-      i.insertDimension[Int, Dim4Domain](0, newDim) shouldBe (newDim x i[Int](0) x i[Int](1) x i[Int](2))
-      i.insertDimension[Int, Dim4Domain](1, newDim) shouldBe (i[Int](0) x newDim x i[Int](1) x i[Int](2))
-      i.insertDimension[Int, Dim4Domain](2, newDim) shouldBe (i[Int](0) x i[Int](1) x newDim x i[Int](2))
-      i.insertDimension[Int, Dim4Domain](3, newDim) shouldBe (i[Int](0) x i[Int](1) x i[Int](2) x newDim)
+      i.insertDimension(0, newDim)[Dim4Domain] shouldBe (newDim x i[Int](0) x i[Int](1) x i[Int](2))
+      i.insertDimension(1, newDim)[Dim4Domain] shouldBe (i[Int](0) x newDim x i[Int](1) x i[Int](2))
+      i.insertDimension(2, newDim)[Dim4Domain] shouldBe (i[Int](0) x i[Int](1) x newDim x i[Int](2))
+      i.insertDimension(3, newDim)[Dim4Domain] shouldBe (i[Int](0) x i[Int](1) x i[Int](2) x newDim)
 
       i.withDimensionUpdate[Int](0, _ => newDim) shouldBe (newDim x i[Int](1) x i[Int](2))
       i.withDimensionUpdate[Int](1, _ => newDim) shouldBe (i[Int](0) x newDim x i[Int](2))

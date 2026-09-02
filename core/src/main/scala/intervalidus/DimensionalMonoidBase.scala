@@ -40,7 +40,7 @@ trait DimensionalMonoidBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimensio
   /**
     * Automatically converts a non-monoidal structure with monoidal values to a monoidal structure.
     */
-  given [V: Monoid, D <: NonEmptyTuple: DomainLike]: Conversion[DimensionalBase[V, D], Constructed[V, D]] =
+  given [V: Monoid, D <: NonEmptyTuple: DomainLike] => Conversion[DimensionalBase[V, D], Constructed[V, D]] =
     _.asDataMonoid
 
   /**
@@ -90,9 +90,8 @@ trait DimensionalMonoidBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimensio
     * @tparam D
     *   $intervalDomainType
     */
-  def universe[V, D <: NonEmptyTuple: DomainLike](using
-    config: CoreConfig[D],
-    monoid: Monoid[V]
+  def universe[V: Monoid as monoid, D <: NonEmptyTuple: DomainLike](using
+    config: CoreConfig[D]
   ): Constructed[V, D] = ofValue(monoid.identity)
 
   /**
@@ -115,10 +114,28 @@ trait DimensionalMonoidBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimensio
     *   $dataValueType
     * @tparam D
     *   $intervalDomainType
+    * @note
+    *   The result domain type parameter is isolated in its own trailing type parameter list to facilitate fluent type
+    *   inference. While the value type is always cleanly inferred from the term argument, the result domain cannot
+    *   always be inferred. For example, when assigning directly to a value with an annotated type, the compiler can
+    *   infer the value type directly from the term argument and the result domain type by flowing backward from the
+    *   left-hand side.
+    *   {{{
+    *     val s: DataMonoid[Set[String], Domain.In1D[Int]] = DataMonoid.of(Set("Hello", "World"))
+    *     val r: DataMonoid[Double, Domain.In1D[Int]] = s.mapValues(_.size.toDouble / 2)
+    *   }}}
+    *   But, because the term argument list is interleaved between type parameter lists, you can cleanly chain these
+    *   operations without redundant type declarations (the Set[String] value type) to obtain the final result.
+    *   {{{
+    *     val r = DataMonoid.of(Set("Hello", "World"))[Domain.In1D[Int]].mapValues(_.size.toDouble / 2)
+    *   }}}
+    *   (This ergonomic layout is made possible by Scala 3's type and term [Clause
+    *   Interleaving](https://docs.scala-lang.org/sips/clause-interleaving.html).)
+    *
     * @return
     *   a new structure with a single valid value.
     */
-  def ofValue[V: Monoid, D <: NonEmptyTuple: DomainLike](value: V)(using config: CoreConfig[D]): Constructed[V, D] =
+  def ofValue[V: Monoid](value: V)[D <: NonEmptyTuple: DomainLike](using config: CoreConfig[D]): Constructed[V, D] =
     of(Interval.unbounded[D] -> value)
 
   /**
@@ -179,7 +196,7 @@ trait DimensionalMonoidBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimensio
   *   domain of this. All intervals in the complement take the monoid identity value, equivalent to ξ \ this. See
   *   [[https://en.wikipedia.org/wiki/Complement_(set_theory)]].
   */
-trait DimensionalMonoidBase[V: Monoid, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, D]:
+trait DimensionalMonoidBase[V: Monoid, D <: NonEmptyTuple: {DomainLike, CoreConfig}] extends DimensionalBase[V, D]:
 
   /**
     * Creates a new structure with n-1 dimensions by collapsing overlapping lower-dimensional intervals and merging

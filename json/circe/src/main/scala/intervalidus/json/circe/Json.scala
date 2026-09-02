@@ -16,7 +16,7 @@ object Json:
   /**
     * Domains encoded as strings/objects
     */
-  given [T: DiscreteValue: Encoder: Decoder]: Codec[Domain1D[T]] = Codec.from(
+  given [T: {DiscreteValue, Encoder, Decoder}] => Codec[Domain1D[T]] = Codec.from(
     Decoder.instance: cursor =>
       def asClosedPoint = cursor.get[T]("point").map(Domain1D.Point(_))
       def asOpenPoint = cursor.get[T]("open").map(Domain1D.OpenPoint(_))
@@ -38,7 +38,7 @@ object Json:
   /**
     * Intervals encoded as objects
     */
-  given [D <: NonEmptyTuple: DomainLike: Encoder: Decoder]: Codec[Interval[D]] = Codec.from(
+  given [D <: NonEmptyTuple: {DomainLike, Encoder, Decoder}] => Codec[Interval[D]] = Codec.from(
     Decoder.instance: cursor =>
       for
         start <- cursor.get[D]("start")
@@ -54,10 +54,10 @@ object Json:
   /**
     * Interval shapes encoded as arrays
     */
-  given [D <: NonEmptyTuple: DomainLike](using
+  given [D <: NonEmptyTuple: DomainLike] => (
     Codec[Interval[D]],
     CoreConfig[D]
-  ): Codec[IntervalShape[D]] = Codec.from(
+  ) => Codec[IntervalShape[D]] = Codec.from(
     Decoder[Vector[Interval[D]]].map(IntervalShape.withoutChecks[D]),
     Encoder[Vector[Interval[D]]].contramap(_.allIntervals.toVector)
   )
@@ -65,27 +65,25 @@ object Json:
   /**
     * Valid data encoded as objects
     */
-  given [V: Encoder: Decoder, D <: NonEmptyTuple: DomainLike](using
-    Codec[Interval[D]]
-  ): Codec[ValidData[V, D]] = Codec.from(
-    Decoder.instance: cursor =>
-      for
-        value <- cursor.get[V]("value")
-        interval <- cursor.get[Interval[D]]("interval")
-      yield ValidData[V, D](value, interval),
-    Encoder.instance: data =>
-      obj(
-        "value" -> data.value.asJson,
-        "interval" -> data.interval.asJson
-      )
-  )
+  given [V: {Encoder, Decoder}, D <: NonEmptyTuple: DomainLike] => Codec[Interval[D]] => Codec[ValidData[V, D]] =
+    Codec.from(
+      Decoder.instance: cursor =>
+        for
+          value <- cursor.get[V]("value")
+          interval <- cursor.get[Interval[D]]("interval")
+        yield ValidData[V, D](value, interval),
+      Encoder.instance: data =>
+        obj(
+          "value" -> data.value.asJson,
+          "interval" -> data.interval.asJson
+        )
+    )
 
   /**
     * Diff actions encoded as objects
     */
-  given [V, D <: NonEmptyTuple: DomainLike: Encoder: Decoder](using
-    Codec[ValidData[V, D]]
-  ): Codec[DiffAction[V, D]] = Codec.from(
+  given [V, D <: NonEmptyTuple: {DomainLike, Encoder, Decoder}] => Codec[ValidData[V, D]]
+    => Codec[DiffAction[V, D]] = Codec.from(
     Decoder.instance: cursor =>
       cursor
         .get[String]("action")
@@ -108,28 +106,28 @@ object Json:
     * generated names clash.
     */
 
-  given given_Codec_immutable_Variable[V](using
+  given given_Codec_immutable_Variable: [V] => (
     Codec[ValidData[V, Time]],
     CoreConfig[Time]
-  ): Codec[immutable.Variable[V]] = Codec.from(
+  ) => Codec[immutable.Variable[V]] = Codec.from(
     Decoder[Vector[ValidData[V, Time]]].map(immutable.Variable.fromHistory),
     Encoder[Vector[ValidData[V, Time]]].contramap(_.history.getAll.toVector)
   )
 
-  given given_Codec_immutable_Data[V, D <: NonEmptyTuple: DomainLike](using
+  given given_Codec_immutable_Data: [V, D <: NonEmptyTuple: DomainLike] => (
     Codec[ValidData[V, D]],
     CoreConfig[D]
-  ): Codec[immutable.Data[V, D]] = Codec.from(
+  ) => Codec[immutable.Data[V, D]] = Codec.from(
     Decoder[Vector[ValidData[V, D]]].map(items => immutable.Data[V, D](items)),
     Encoder[Vector[ValidData[V, D]]].contramap(_.getAll.toVector)
   )
 
-  given given_Codec_immutable_DataVersioned[V, D <: NonEmptyTuple: DomainLike](using
+  given given_Codec_immutable_DataVersioned: [V, D <: NonEmptyTuple: DomainLike] => (
     DomainLike[Versioned[D]],
     Encoder[ValidData[V, Versioned[D]]],
     Decoder[mutable.Data[V, Versioned[D]]],
     CoreConfig[Versioned[D]]
-  ): Codec[immutable.DataVersioned[V, D]] = Codec.from(
+  ) => Codec[immutable.DataVersioned[V, D]] = Codec.from(
     Decoder.instance: cursor =>
       for
         data <- cursor.get[mutable.Data[V, Versioned[D]]]("data")
@@ -150,26 +148,26 @@ object Json:
       )
   )
 
-  given given_Codec_immutable_DataMulti[V, D <: NonEmptyTuple: DomainLike](using
+  given given_Codec_immutable_DataMulti: [V, D <: NonEmptyTuple: DomainLike] => (
     Codec[ValidData[Set[V], D]],
     CoreConfig[D]
-  ): Codec[immutable.DataMulti[V, D]] = Codec.from(
+  ) => Codec[immutable.DataMulti[V, D]] = Codec.from(
     Decoder[Vector[ValidData[Set[V], D]]].map(items => immutable.DataMulti[V, D](items)),
     Encoder[Vector[ValidData[Set[V], D]]].contramap(_.getAll.toVector)
   )
 
-  given given_Codec_immutable_DataMonoid[V: Monoid, D <: NonEmptyTuple: DomainLike](using
+  given given_Codec_immutable_DataMonoid: [V: Monoid, D <: NonEmptyTuple: DomainLike] => (
     Codec[ValidData[V, D]],
     CoreConfig[D]
-  ): Codec[immutable.DataMonoid[V, D]] = Codec.from(
+  ) => Codec[immutable.DataMonoid[V, D]] = Codec.from(
     Decoder[Vector[ValidData[V, D]]].map(items => immutable.DataMonoid[V, D](items)),
     Encoder[Vector[ValidData[V, D]]].contramap(_.getAll.toVector)
   )
 
-  given given_Codec_immutable_DataAffine[V, D <: NonEmptyTuple: DomainAffineLike](using
+  given given_Codec_immutable_DataAffine: [V, D <: NonEmptyTuple: DomainAffineLike] => (
     Codec[ValidData[V, D]],
     CoreConfig[D]
-  ): Codec[immutable.DataAffine[V, D]] = Codec.from(
+  ) => Codec[immutable.DataAffine[V, D]] = Codec.from(
     Decoder[Vector[ValidData[V, D]]].map(items => immutable.DataAffine[V, D](items)),
     Encoder[Vector[ValidData[V, D]]].contramap(_.getAll.toVector)
   )
@@ -179,28 +177,28 @@ object Json:
     * generated names clash.
     */
 
-  given given_Codec_mutable_Variable[V](using
+  given given_Codec_mutable_Variable: [V] => (
     Codec[ValidData[V, Time]],
     CoreConfig[Time]
-  ): Codec[mutable.Variable[V]] = Codec.from(
+  ) => Codec[mutable.Variable[V]] = Codec.from(
     Decoder[Vector[ValidData[V, Time]]].map(mutable.Variable.fromHistory),
     Encoder[Vector[ValidData[V, Time]]].contramap(_.history.getAll.toVector)
   )
 
-  given given_Codec_mutable_Data[V, D <: NonEmptyTuple: DomainLike](using
+  given given_Codec_mutable_Data: [V, D <: NonEmptyTuple: DomainLike] => (
     Codec[ValidData[V, D]],
     CoreConfig[D]
-  ): Codec[mutable.Data[V, D]] = Codec.from(
+  ) => Codec[mutable.Data[V, D]] = Codec.from(
     Decoder[Vector[ValidData[V, D]]].map(items => mutable.Data[V, D](items)),
     Encoder[Vector[ValidData[V, D]]].contramap(_.getAll.toVector)
   )
 
-  given given_Codec_mutable_DataVersioned[V, D <: NonEmptyTuple: DomainLike](using
+  given given_Codec_mutable_DataVersioned: [V, D <: NonEmptyTuple: DomainLike] => (
     DomainLike[Versioned[D]],
     Encoder[ValidData[V, Versioned[D]]],
     Decoder[mutable.Data[V, Versioned[D]]],
     CoreConfig[Versioned[D]]
-  ): Codec[mutable.DataVersioned[V, D]] = Codec.from(
+  ) => Codec[mutable.DataVersioned[V, D]] = Codec.from(
     Decoder.instance: cursor =>
       for
         data <- cursor.get[mutable.Data[V, Versioned[D]]]("data")
@@ -221,26 +219,26 @@ object Json:
       )
   )
 
-  given given_Codec_mutable_DataMulti[V, D <: NonEmptyTuple: DomainLike](using
+  given given_Codec_mutable_DataMulti: [V, D <: NonEmptyTuple: DomainLike] => (
     Codec[ValidData[Set[V], D]],
     CoreConfig[D]
-  ): Codec[mutable.DataMulti[V, D]] = Codec.from(
+  ) => Codec[mutable.DataMulti[V, D]] = Codec.from(
     Decoder[Vector[ValidData[Set[V], D]]].map(items => mutable.DataMulti[V, D](items)),
     Encoder[Vector[ValidData[Set[V], D]]].contramap(_.getAll.toVector)
   )
 
-  given given_Codec_mutable_DataMonoid[V: Monoid, D <: NonEmptyTuple: DomainLike](using
+  given given_Codec_mutable_DataMonoid: [V: Monoid, D <: NonEmptyTuple: DomainLike] => (
     Codec[ValidData[V, D]],
     CoreConfig[D]
-  ): Codec[mutable.DataMonoid[V, D]] = Codec.from(
+  ) => Codec[mutable.DataMonoid[V, D]] = Codec.from(
     Decoder[Vector[ValidData[V, D]]].map(items => mutable.DataMonoid[V, D](items)),
     Encoder[Vector[ValidData[V, D]]].contramap(_.getAll.toVector)
   )
 
-  given given_Codec_mutable_DataAffine[V, D <: NonEmptyTuple: DomainAffineLike](using
+  given given_Codec_mutable_DataAffine: [V, D <: NonEmptyTuple: DomainAffineLike] => (
     Codec[ValidData[V, D]],
     CoreConfig[D]
-  ): Codec[mutable.DataAffine[V, D]] = Codec.from(
+  ) => Codec[mutable.DataAffine[V, D]] = Codec.from(
     Decoder[Vector[ValidData[V, D]]].map(items => mutable.DataAffine[V, D](items)),
     Encoder[Vector[ValidData[V, D]]].contramap(_.getAll.toVector)
   )

@@ -7,7 +7,6 @@ import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
 import intervalidus.Domain1D.{Bottom, Top}
 
 import java.nio.charset.StandardCharsets
-import scala.annotation.nowarn
 import scala.util.{Failure, Success, Try}
 import scala.util.control.NonFatal
 
@@ -51,7 +50,7 @@ object Visualize3D:
       )
 
       def domainToJson[D <: NonEmptyTuple: DomainLike](d: D): String =
-        (d: @nowarn("msg=match may not be exhaustive")) match
+        d.runtimeChecked match
           case x *: y *: z *: EmptyTuple => s"""["$x","$y","$z"]"""
 
       val dataParameters = validData.map: d =>
@@ -182,7 +181,6 @@ object Visualize3D:
   def main(args: Array[String]): Unit =
     import intervalidus.DiscreteValue.given
     import intervalidus.Interval1D.*
-    import scala.language.implicitConversions
     val data = intervalidus.immutable.Data.of(
       (intervalFrom(-6).to(5) x intervalFrom(0).to(5) x intervalFrom(0).to(5)) -> "Hello",
       (intervalFrom(5).to(10) x intervalFrom(-1).to(6) x intervalFrom(-1).to(6)) -> "World"

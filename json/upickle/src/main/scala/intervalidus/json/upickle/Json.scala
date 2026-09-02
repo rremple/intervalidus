@@ -26,7 +26,7 @@ object Json:
   /**
     * Domains encoded as strings/objects
     */
-  given [T: DiscreteValue: Reader: Writer]: ReadWriter[Domain1D[T]] =
+  given [T: {DomainValueLike, Reader, Writer}] => ReadWriter[Domain1D[T]] =
     asValue.bimap[Domain1D[T]](
       {
         case Domain1D.Top          => Str("Top")
@@ -46,7 +46,7 @@ object Json:
   /**
     * Intervals encoded as objects
     */
-  given [D <: NonEmptyTuple: DomainLike](using ReadWriter[D]): ReadWriter[Interval[D]] =
+  given [D <: NonEmptyTuple: {DomainLike, Reader, Writer}] => ReadWriter[Interval[D]] =
     asValueObj.bimap[Interval[D]](
       interval =>
         Obj(
@@ -63,10 +63,8 @@ object Json:
   /**
     * Interval shapes encoded as arrays
     */
-  given [D <: NonEmptyTuple: DomainLike](using
-    ReadWriter[Interval[D]],
-    CoreConfig[D]
-  ): ReadWriter[IntervalShape[D]] =
+  given [D <: NonEmptyTuple: {DomainLike, CoreConfig}]
+    => (ReadWriter[Interval[D]]) => ReadWriter[IntervalShape[D]] =
     asValueArr.bimap[IntervalShape[D]](
       dimensional => Arr.from(dimensional.allIntervals.map(writeJs)),
       arr => IntervalShape.withoutChecks[D](arr.value.map(_.as[Interval[D]]))
@@ -75,7 +73,7 @@ object Json:
   /**
     * Valid data encoded as objects
     */
-  given [V, D <: NonEmptyTuple: DomainLike](using ReadWriter[V], ReadWriter[D]): ReadWriter[ValidData[V, D]] =
+  given [V: ReadWriter, D <: NonEmptyTuple: DomainLike] => (ReadWriter[Interval[D]]) => ReadWriter[ValidData[V, D]] =
     asValueObj.bimap[ValidData[V, D]](
       data =>
         Obj(
@@ -92,10 +90,8 @@ object Json:
   /**
     * Diff actions encoded as objects
     */
-  given [V, D <: NonEmptyTuple: DomainLike](using
-    ReadWriter[ValidData[V, D]],
-    ReadWriter[D]
-  ): ReadWriter[DiffAction[V, D]] =
+  given [V, D <: NonEmptyTuple: {DomainLike, Reader, Writer}]
+    => (ReadWriter[ValidData[V, D]]) => ReadWriter[DiffAction[V, D]] =
     asValueObj.bimap[DiffAction[V, D]](
       {
         case DiffAction.Create(validData: ValidData[V, D]) =>
@@ -117,30 +113,28 @@ object Json:
     * generated names clash.
     */
 
-  given given_ReadWriter_immutable_Variable[V](using
+  given given_ReadWriter_immutable_Variable: [V] => (
     ReadWriter[ValidData[V, Time]],
     CoreConfig[Time]
-  ): ReadWriter[immutable.Variable[V]] =
+  ) => ReadWriter[immutable.Variable[V]] =
     asValueArr.bimap[immutable.Variable[V]](
       dimensional => Arr.from(dimensional.history.getAll.map(writeJs)),
       arr => immutable.Variable.fromHistory(arr.value.map(_.as[ValidData[V, Time]]))
     )
 
-  given given_ReadWriter_immutable_Data[V, D <: NonEmptyTuple: DomainLike](using
-    ReadWriter[ValidData[V, D]],
-    CoreConfig[D]
-  ): ReadWriter[immutable.Data[V, D]] =
+  given given_ReadWriter_immutable_Data: [V, D <: NonEmptyTuple: {DomainLike, CoreConfig}]
+    => (ReadWriter[ValidData[V, D]]) => ReadWriter[immutable.Data[V, D]] =
     asValueArr.bimap[immutable.Data[V, D]](
       dimensional => Arr.from(dimensional.getAll.map(writeJs)),
       arr => immutable.Data[V, D](arr.value.map(_.as[ValidData[V, D]]))
     )
 
-  given given_ReadWriter_immutable_DataVersioned[V, D <: NonEmptyTuple: DomainLike](using
+  given given_ReadWriter_immutable_DataVersioned: [V, D <: NonEmptyTuple: DomainLike] => (
     DomainLike[Versioned[D]],
     Writer[ValidData[V, Versioned[D]]],
     Reader[mutable.Data[V, Versioned[D]]],
     CoreConfig[Versioned[D]]
-  ): ReadWriter[immutable.DataVersioned[V, D]] =
+  ) => ReadWriter[immutable.DataVersioned[V, D]] =
     asValueObj.bimap[immutable.DataVersioned[V, D]](
       data =>
         Obj(
@@ -157,28 +151,24 @@ object Json:
         )
     )
 
-  given given_ReadWriter_immutable_DataMulti[V, D <: NonEmptyTuple: DomainLike](using
-    ReadWriter[ValidData[Set[V], D]],
-    CoreConfig[D]
-  ): ReadWriter[immutable.DataMulti[V, D]] =
+  given given_ReadWriter_immutable_DataMulti: [V, D <: NonEmptyTuple: {DomainLike, CoreConfig}]
+    => (ReadWriter[ValidData[Set[V], D]]) => ReadWriter[immutable.DataMulti[V, D]] =
     asValueArr.bimap[immutable.DataMulti[V, D]](
       dimensional => Arr.from(dimensional.getAll.map(writeJs)),
       arr => immutable.DataMulti[V, D](arr.value.map(_.as[ValidData[Set[V], D]]))
     )
 
-  given given_ReadWriter_immutable_DataMonoid[V: Monoid, D <: NonEmptyTuple: DomainLike](using
-    ReadWriter[ValidData[V, D]],
-    CoreConfig[D]
-  ): ReadWriter[immutable.DataMonoid[V, D]] =
+  given given_ReadWriter_immutable_DataMonoid: [V: Monoid, D <: NonEmptyTuple: {DomainLike, CoreConfig}]
+    => (
+      ReadWriter[ValidData[V, D]]
+  ) => ReadWriter[immutable.DataMonoid[V, D]] =
     asValueArr.bimap[immutable.DataMonoid[V, D]](
       dimensional => Arr.from(dimensional.getAll.map(writeJs)),
       arr => immutable.DataMonoid[V, D](arr.value.map(_.as[ValidData[V, D]]))
     )
 
-  given given_ReadWriter_immutable_DataAffine[V, D <: NonEmptyTuple: DomainAffineLike](using
-    ReadWriter[ValidData[V, D]],
-    CoreConfig[D]
-  ): ReadWriter[immutable.DataAffine[V, D]] =
+  given given_ReadWriter_immutable_DataAffine: [V, D <: NonEmptyTuple: {DomainAffineLike, CoreConfig}]
+    => (ReadWriter[ValidData[V, D]]) => ReadWriter[immutable.DataAffine[V, D]] =
     asValueArr.bimap[immutable.DataAffine[V, D]](
       dimensional => Arr.from(dimensional.getAll.map(writeJs)),
       arr => immutable.DataAffine[V, D](arr.value.map(_.as[ValidData[V, D]]))
@@ -189,30 +179,28 @@ object Json:
     * generated names clash.
     */
 
-  given given_ReadWriter_mutable_Variable[V](using
+  given given_ReadWriter_mutable_Variable: [V] => (
     ReadWriter[ValidData[V, Time]],
     CoreConfig[Time]
-  ): ReadWriter[mutable.Variable[V]] =
+  ) => ReadWriter[mutable.Variable[V]] =
     asValueArr.bimap[mutable.Variable[V]](
       dimensional => Arr.from(dimensional.history.getAll.map(writeJs)),
       arr => mutable.Variable.fromHistory(arr.value.map(_.as[ValidData[V, Time]]))
     )
 
-  given given_ReadWriter_mutable_Data[V, D <: NonEmptyTuple: DomainLike](using
-    ReadWriter[ValidData[V, D]],
-    CoreConfig[D]
-  ): ReadWriter[mutable.Data[V, D]] =
+  given given_ReadWriter_mutable_Data: [V, D <: NonEmptyTuple: {DomainLike, CoreConfig}]
+    => (ReadWriter[ValidData[V, D]]) => ReadWriter[mutable.Data[V, D]] =
     asValueArr.bimap[mutable.Data[V, D]](
       dimensional => Arr.from(dimensional.getAll.map(writeJs)),
       arr => mutable.Data[V, D](arr.value.map(_.as[ValidData[V, D]]))
     )
 
-  given given_ReadWriter_mutable_DataVersioned[V, D <: NonEmptyTuple: DomainLike](using
+  given given_ReadWriter_mutable_DataVersioned: [V, D <: NonEmptyTuple: DomainLike] => (
     DomainLike[Versioned[D]],
     Writer[ValidData[V, Versioned[D]]],
     Reader[mutable.Data[V, Versioned[D]]],
     CoreConfig[Versioned[D]]
-  ): ReadWriter[mutable.DataVersioned[V, D]] =
+  ) => ReadWriter[mutable.DataVersioned[V, D]] =
     asValueObj.bimap[mutable.DataVersioned[V, D]](
       data =>
         Obj(
@@ -229,28 +217,22 @@ object Json:
         )
     )
 
-  given given_ReadWriter_mutable_DataMulti[V, D <: NonEmptyTuple: DomainLike](using
-    ReadWriter[ValidData[Set[V], D]],
-    CoreConfig[D]
-  ): ReadWriter[mutable.DataMulti[V, D]] =
+  given given_ReadWriter_mutable_DataMulti: [V, D <: NonEmptyTuple: {DomainLike, CoreConfig}]
+    => (ReadWriter[ValidData[Set[V], D]]) => ReadWriter[mutable.DataMulti[V, D]] =
     asValueArr.bimap[mutable.DataMulti[V, D]](
       dimensional => Arr.from(dimensional.getAll.map(writeJs)),
       arr => mutable.DataMulti[V, D](arr.value.map(_.as[ValidData[Set[V], D]]))
     )
 
-  given given_ReadWriter_mutable_DataMonoid[V: Monoid, D <: NonEmptyTuple: DomainLike](using
-    ReadWriter[ValidData[V, D]],
-    CoreConfig[D]
-  ): ReadWriter[mutable.DataMonoid[V, D]] =
+  given given_ReadWriter_mutable_DataMonoid: [V: Monoid, D <: NonEmptyTuple: {DomainLike, CoreConfig}]
+    => (ReadWriter[ValidData[V, D]]) => ReadWriter[mutable.DataMonoid[V, D]] =
     asValueArr.bimap[mutable.DataMonoid[V, D]](
       dimensional => Arr.from(dimensional.getAll.map(writeJs)),
       arr => mutable.DataMonoid[V, D](arr.value.map(_.as[ValidData[V, D]]))
     )
 
-  given given_ReadWriter_mutable_DataAffine[V, D <: NonEmptyTuple: DomainAffineLike](using
-    ReadWriter[ValidData[V, D]],
-    CoreConfig[D]
-  ): ReadWriter[mutable.DataAffine[V, D]] =
+  given given_ReadWriter_mutable_DataAffine: [V, D <: NonEmptyTuple: {DomainAffineLike, CoreConfig}]
+    => (ReadWriter[ValidData[V, D]]) => ReadWriter[mutable.DataAffine[V, D]] =
     asValueArr.bimap[mutable.DataAffine[V, D]](
       dimensional => Arr.from(dimensional.getAll.map(writeJs)),
       arr => mutable.DataAffine[V, D](arr.value.map(_.as[ValidData[V, D]]))

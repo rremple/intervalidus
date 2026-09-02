@@ -1,6 +1,6 @@
 package intervalidus
 
-import intervalidus.DimensionalBase.{State, Transaction, UpdateTransaction}
+import intervalidus.DimensionalBase.{State, UpdateTransaction}
 
 import scala.collection.mutable
 
@@ -58,7 +58,7 @@ trait DimensionalMultiBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimension
   /**
     * Automatically converts a non-monoidal structure with monoidal values to a monoidal structure.
     */
-  given [V, D <: NonEmptyTuple: DomainLike]: Conversion[DimensionalBase[Set[V], D], Constructed[V, D]] = _.asDataMulti
+  given [V, D <: NonEmptyTuple: DomainLike] => Conversion[DimensionalBase[Set[V], D], Constructed[V, D]] = _.asDataMulti
 
   /**
     * Constructor for multiple initial value sets that are valid in the various intervals.
@@ -125,12 +125,29 @@ trait DimensionalMultiBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimension
     *   $dataValueType
     * @tparam D
     *   $intervalDomainType
+    * @note
+    *   The result domain type parameter is isolated in its own trailing type parameter list to facilitate fluent type
+    *   inference. While the value type is always cleanly inferred from the term argument, the result domain cannot
+    *   always be inferred. For example, when assigning directly to a value with an annotated type, the compiler can
+    *   infer the value type directly from the term argument and the result domain type by flowing backward from the
+    *   left-hand side.
+    *   {{{
+    *     val s: DataMulti[String, Domain.In1D[Int]] = DataMulti.of("Hello")
+    *     val r: DataMulti[String, Domain.In1D[Int]] = s.addOne(unbounded -> "World")
+    *   }}}
+    *   But, because the term argument list is interleaved between type parameter lists, you can cleanly chain these
+    *   operations without redundant type declarations (the String value type) to obtain the final result.
+    *   {{{
+    *     val r = DataMulti.of("Hello")[Domain.In1D[Int]].addOne(unbounded -> "World")
+    *   }}}
+    *   (This ergonomic layout is made possible by Scala 3's type and term [Clause
+    *   Interleaving](https://docs.scala-lang.org/sips/clause-interleaving.html).)
     * @return
     *   [[DimensionalMultiBase]] structure with a single valid value.
     */
-  def ofValue[V, D <: NonEmptyTuple: DomainLike](
+  def ofValue[V](
     value: V
-  )(using config: CoreConfig[D]): Constructed[V, D] = of(Interval.unbounded[D] -> value)
+  )[D <: NonEmptyTuple: DomainLike](using config: CoreConfig[D]): Constructed[V, D] = of(Interval.unbounded[D] -> value)
 
   /**
     * Get a Builder based on an intermediate buffer of valid data.
@@ -197,7 +214,8 @@ trait DimensionalMultiBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimension
   * @define intersectionParamThat
   *   shape to intersect.
   */
-trait DimensionalMultiBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[Set[V], D]:
+trait DimensionalMultiBase[V, D <: NonEmptyTuple: {DomainLike, CoreConfig as config}]
+  extends DimensionalBase[Set[V], D]:
 
   private def addToValueSet(value: V)(existingValues: Set[V]): Option[Set[V]] =
     Some(existingValues + value)

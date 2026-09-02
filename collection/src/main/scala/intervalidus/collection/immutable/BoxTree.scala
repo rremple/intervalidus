@@ -21,7 +21,7 @@ object BoxTree:
   * @tparam A
   *   payload type
   */
-sealed trait BoxTree[A] extends BoxTreeLike[A, BoxTree[A]]:
+sealed trait BoxTree[A](using CollectionConfig) extends BoxTreeLike[A, BoxTree[A]]:
   /**
     * Inserts/updates boxed data into the tree.
     *
@@ -68,7 +68,7 @@ class BoxTreeLeaf[A] private (
   val boundary: Boundary,
   val depth: Int,
   private val data: List[BoxedPayload[A]] // state
-)(using val config: CollectionConfig)
+)(using config: CollectionConfig)
   extends BoxTree[A]:
 
   // manage state as new instances
@@ -110,7 +110,7 @@ class BoxTreeBranch[A] private (
   val boundary: Boundary,
   val depth: Int,
   private val subtrees: Vector[BoxTree[A]] // state
-)(using val config: CollectionConfig)
+)(using config: CollectionConfig)
   extends BoxTree[A]:
 
   // manage state as new instances

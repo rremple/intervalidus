@@ -5,7 +5,6 @@ import intervalidus.DiscreteValue.given
 import intervalidus.immutable.Data
 
 import java.time.LocalDate
-import scala.language.implicitConversions
 
 /**
   * Toy billing system showing how intervalidus data in two dimensions can be used to drive billing logic.

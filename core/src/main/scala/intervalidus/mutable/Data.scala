@@ -28,7 +28,7 @@ object Data extends DimensionalBaseObject[Data]:
   */
 class Data[V, D <: NonEmptyTuple: DomainLike] private (
   override val initialState: State[V, D]
-)(using val config: CoreConfig[D])
+)(using config: CoreConfig[D])
   extends MutableBase[V, D]:
 
   config.experimental.control("requireDisjoint")(
@@ -64,10 +64,10 @@ class Data[V, D <: NonEmptyTuple: DomainLike] private (
     result.compressedUpdate()
     result
 
-  override def getByDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+  override def getByDimension[H: DomainValueLike](
     dimensionIndex: Domain.DimensionIndex,
     domain: Domain1D[H]
-  )(using
+  )[R <: NonEmptyTuple: DomainLike](using
     altConfig: CoreConfig[R]
   )(using
     Domain.HasIndex[D, dimensionIndex.type],
@@ -93,10 +93,10 @@ class Data[V, D <: NonEmptyTuple: DomainLike] private (
     result.compressedUpdate()
     result
 
-  override def extrudeDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+  override def extrudeDimension[H: DomainValueLike](
     dimensionIndex: Domain.DimensionIndex,
     extent: Interval1D[H]
-  )(using
+  )[R <: NonEmptyTuple: DomainLike](using
     altConfig: CoreConfig[R]
   )(using
     Domain.HasIndex[R, dimensionIndex.type],

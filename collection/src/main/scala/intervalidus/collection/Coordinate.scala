@@ -13,7 +13,7 @@ opaque type Coordinate = Array[Double]
   * Common definitions for points/unbound limits in multidimensional double space.
   */
 object Coordinate:
-  private type MinMaxCoordinates = (Coordinate, Coordinate)
+  private type MinMaxCoordinates = (min: Coordinate, max: Coordinate)
 
   // Slower, only used in tests
   def apply(coordinates: Option[Double]*): Coordinate =
@@ -163,16 +163,16 @@ object Coordinate:
     def binarySplit(midPoint: Coordinate, other: Coordinate): Vector[MinMaxCoordinates] =
       @tailrec
       def helper(
-        minMidMax: Vector[(Double, Double, Double)],
+        minMidMax: Vector[(min: Double, mid: Double, max: Double)],
         protoBoxes: Vector[MinMaxCoordinates] = Vector.empty
       ): Vector[MinMaxCoordinates] = minMidMax.headOption match
-        case Some((min, mid, max)) =>
-          def growProtoBox(b: MinMaxCoordinates, appendMin: Double, appendMax: Double) = b match
-            case (protoMin, protoMax) => (protoMin.appended(appendMin), protoMax.appended(appendMax))
+        case Some(i) =>
+          def growProtoBox(proto: MinMaxCoordinates, appendMin: Double, appendMax: Double) =
+            (proto.min.appended(appendMin), proto.max.appended(appendMax))
 
           val newProtoBoxes =
-            if protoBoxes.isEmpty then Vector((Array(min), Array(mid)), (Array(mid), Array(max)))
-            else protoBoxes.map(growProtoBox(_, min, mid)) ++ protoBoxes.map(growProtoBox(_, mid, max))
+            if protoBoxes.isEmpty then Vector((Array(i.min), Array(i.mid)), (Array(i.mid), Array(i.max)))
+            else protoBoxes.map(growProtoBox(_, i.min, i.mid)) ++ protoBoxes.map(growProtoBox(_, i.mid, i.max))
           helper(minMidMax.tail, newProtoBoxes)
 
         case None => protoBoxes

@@ -10,7 +10,6 @@ import org.openjdk.jmh.infra.Blackhole
 
 import java.util.concurrent.TimeUnit
 import scala.compiletime.uninitialized
-import scala.language.implicitConversions
 import scala.math
 
 // Similar to BenchTreeReorg, but providing one size hint/depth/capacity, and using both mutable. and immutable.Data.
@@ -52,7 +51,7 @@ object BenchImmutableCore:
     @Setup(Level.Invocation)
     def setUpInvocation(): Unit =
       // println(s"Set up invocation...")
-      fragments = testDataIterator.next().iterator.zipWithIndex.map((i, v) => i -> v)
+      fragments = testDataIterator.next().iterator.zipWithIndex.map(_ -> _)
       dataImmutable = immutable.Data.empty
       dataMutableClean = mutable.Data.empty // default config
       dataMutableDirty = mutable.Data.empty(using config = CoreConfig.default.withIsolationLevel(ReadUncommitted))

@@ -3,7 +3,6 @@ package intervalidus
 import intervalidus.Domain1D.*
 import intervalidus.Interval1D.{intervalFrom, intervalTo}
 
-import scala.annotation.nowarn
 import scala.collection.mutable
 import scala.compiletime.error
 import scala.math.Ordering.Implicits.infixOrderingOps
@@ -20,11 +19,10 @@ import scala.math.Ordering.Implicits.infixOrderingOps
   * @param end
   *   the "supremum", i.e., the right boundary of the interval -- must be greater than or equal to the start
   */
-case class Interval1D[T](
+case class Interval1D[T: DomainValueLike as domainValue](
   start: Domain1D[T],
   end: Domain1D[T]
-)(using domainValue: DomainValueLike[T])
-  extends IntervalBase[Domain1D[T], Domain.In1D[T], Interval1D.Remainder[Interval1D[T]], Interval1D[T]]:
+) extends IntervalBase[Domain1D[T], Domain.In1D[T], Interval1D.Remainder[Interval1D[T]], Interval1D[T]]:
 
   require(Interval1D.validBounds(start, end), s"Interval $this invalid")
 
@@ -149,7 +147,7 @@ case class Interval1D[T](
   override def toCodeLikeString: String =
     import Domain1D.codeLikeValue
     // Exhaustivity would require matching the seven invalid cases related to (Top, _) and (_, Bottom)
-    ((start, end): @nowarn("msg=match may not be exhaustive")) match
+    (start, end).runtimeChecked match
       case (Bottom, Top)                  => "unbounded"
       case (Bottom, Point(e))             => s"intervalTo(${codeLikeValue(e)})"
       case (Bottom, OpenPoint(e))         => s"intervalToBefore(${codeLikeValue(e)})"
@@ -236,7 +234,7 @@ object Interval1D:
     */
   def preprocessForGrid[T: DomainValueLike](
     intervals: IterableOnce[Interval1D[T]]
-  ): Iterable[(String, String, String)] =
+  ): Iterable[(start: String, end: String, value: String)] =
     uniqueIntervals(intervals).map: interval =>
       val headStartString = interval.start.toString
       val headEndString = interval.end.toString
@@ -442,10 +440,10 @@ object Interval1D:
   /**
     * Intervals are ordered by start
     */
-  given [T](using domainOrder: Ordering[Domain1D[T]]): Ordering[Interval1D[T]] with
+  given [T] => (domainOrder: Ordering[Domain1D[T]]) => Ordering[Interval1D[T]]:
     override def compare(x: Interval1D[T], y: Interval1D[T]): Int = domainOrder.compare(x.start, y.start)
 
   /**
     * So a fixed one-dimensional interval can be used when the general notion of a multidimensional interval is needed.
     */
-  given [T: DomainValueLike]: Conversion[Interval1D[T], Interval.In1D[T]] = _.tupled
+  given [T: DomainValueLike] => Conversion[Interval1D[T], Interval.In1D[T]] = _.tupled

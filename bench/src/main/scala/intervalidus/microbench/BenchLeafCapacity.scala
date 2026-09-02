@@ -7,7 +7,6 @@ import org.openjdk.jmh.annotations.*
 import org.openjdk.jmh.infra.Blackhole
 
 import java.util.concurrent.TimeUnit
-import scala.language.implicitConversions
 
 object BenchLeafCapacity:
   private val constantSeed: Long = 42 // Random().nextLong() //

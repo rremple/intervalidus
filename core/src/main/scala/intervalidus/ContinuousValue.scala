@@ -34,7 +34,7 @@ object ContinuousValue:
   /**
     * Type class for doubles as continuous values.
     */
-  given DoubleContinuousValue: ContinuousValue[Double] with
+  given DoubleContinuousValue: ContinuousValue[Double]:
     override def compare(lhs: Double, rhs: Double): Int = lhs.compareTo(rhs)
 
     override def orderedHashOf(x: Double): Double = x
@@ -46,7 +46,7 @@ object ContinuousValue:
   /**
     * Type class for local date-times as continuous values.
     */
-  given LocalDateTimeContinuousValue: ContinuousValue[LocalDateTime] with
+  given LocalDateTimeContinuousValue: ContinuousValue[LocalDateTime]:
     override def compare(lhs: LocalDateTime, rhs: LocalDateTime): Int = lhs.compareTo(rhs)
 
     // hashing uses millis, so this prevents long overflow when hashing
@@ -66,7 +66,7 @@ object ContinuousValue:
   /**
     * Type class for local date-times as continuous values.
     */
-  given InstantContinuousValue: ContinuousValue[Instant] with
+  given InstantContinuousValue: ContinuousValue[Instant]:
     override def compare(lhs: Instant, rhs: Instant): Int = lhs.compareTo(rhs)
 
     // hashing uses millis, so this prevents long overflow when hashing
@@ -86,7 +86,7 @@ object ContinuousValue:
   /**
     * Type class for integers as continuous values (even though they are discrete).
     */
-  given IntContinuousValue: ContinuousValue[Int] with
+  given IntContinuousValue: ContinuousValue[Int]:
     override def compare(lhs: Int, rhs: Int): Int = lhs.compareTo(rhs)
 
     override def orderedHashOf(x: Int): Double = x.toDouble
@@ -98,7 +98,7 @@ object ContinuousValue:
   /**
     * Type class for long integers as continuous values (even though they are discrete).
     */
-  given LongContinuousValue: ContinuousValue[Long] with
+  given LongContinuousValue: ContinuousValue[Long]:
     override def compare(lhs: Long, rhs: Long): Int = lhs.compareTo(rhs)
 
     override def orderedHashOf(x: Long): Double = x.toDouble
@@ -110,7 +110,7 @@ object ContinuousValue:
   /**
     * Type class for local dates as continuous values (even though they are discrete).
     */
-  given LocalDateContinuousValue: ContinuousValue[LocalDate] with
+  given LocalDateContinuousValue: ContinuousValue[LocalDate]:
     override def compare(lhs: LocalDate, rhs: LocalDate): Int = lhs.compareTo(rhs)
 
     override def orderedHashOf(x: LocalDate): Double = x.toEpochDay.toDouble

@@ -40,7 +40,7 @@ trait DataIn4DMultiBaseBehaviors:
       val fixture2 = multiApply(allData).toImmutable.toMutable.copy
       fixture2.getAll.toList shouldBe allData
 
-      val fixture3 = multiApply(immutable.Data.ofValue[Set[String], IntDim](Set("Hello", "world")).getAll)
+      val fixture3 = multiApply(immutable.Data.ofValue(Set("Hello", "world"))[IntDim].getAll)
       fixture3.get shouldBe Set("Hello", "world")
 
       val f0: S = multiFrom(
@@ -69,8 +69,8 @@ trait DataIn4DMultiBaseBehaviors:
            |""".stripMargin.replaceAll("\r", "")
 
       f0
-        .getByDimension[Int, Domain.In3D[Int, Int, Int]](1, 15)
-        .getByDimension[Int, Domain.In2D[Int, Int]](2, 15)
+        .getByDimension(1, 15)[Domain.In3D[Int, Int, Int]]
+        .getByDimension(2, 15)[Domain.In2D[Int, Int]]
         .toString shouldBe
         """|| 0 .. 4           | 5 .. 9           | 10 .. 20         | 21 .. 25         | 26 .. 30         |
            || {A} (-∞..+∞)     |
@@ -168,7 +168,7 @@ trait DataIn4DMultiBaseBehaviors:
       val fixture1: S = multiFrom(allData)
       fixture1.getByHeadDimension(0).getByHeadDimension(5).getByHeadDimension(10).getAt(10) shouldBe Some(Set("Hello"))
       fixture1
-        .getByDimension[Int, Domain.In3D[Int, Int, Int]](2, 10)
-        .getByDimension[Int, Domain.In2D[Int, Int]](2, 10)
-        .getByDimension[Int, Domain.In1D[Int]](1, 5)
+        .getByDimension(2, 10)[Domain.In3D[Int, Int, Int]]
+        .getByDimension(2, 10)[Domain.In2D[Int, Int]]
+        .getByDimension(1, 5)[Domain.In1D[Int]]
         .getAt(0) shouldBe Some(Set("Hello"))

@@ -61,8 +61,8 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     val fixture = newDataIn2DVersioned(allData)(using LocalDateTime.of(2025, 8, 1, 8, 0).asCurrent)
     fixture.getByHeadDimension(0).getAt(0) shouldBe Some("Hello")
     fixture.getByHeadDimension[Int](Domain1D.Top).getAt(0) shouldBe Some("World")
-    fixture.getByDimension[Int, Domain.In1D[Int]](1, 0).getAt(0) shouldBe Some("Hello")
-    fixture.getByDimension[Int, Domain.In1D[Int]](1, Domain1D.Bottom).getAt(10) shouldBe Some("World")
+    fixture.getByDimension(1, 0)[Domain.In1D[Int]].getAt(0) shouldBe Some("Hello")
+    fixture.getByDimension[Int](1, Domain1D.Bottom)[Domain.In1D[Int]].getAt(10) shouldBe Some("World")
 
     fixture.set((interval(5, 15) x unbounded[Int]) -> "to")
     fixture.incrementCurrentVersion()(using LocalDateTime.of(2025, 8, 2, 8, 0).asCurrent)
@@ -293,7 +293,7 @@ class DataIn2DVersionedTest extends AnyFunSuite with Matchers with DataIn2DVersi
     assertThrows[NoSuchElementException]:
       fixture.get
 
-    fixture.flatMap(d => DataVersioned.ofValue[String, IntDim](d.value))
+    fixture.flatMap(d => DataVersioned.ofValue(d.value)[IntDim])
     val expectedData6 = List(Interval.unbounded[IntDim] -> "Hey!!!")
     fixture.getAll.toList shouldBe expectedData6
     fixture.get shouldBe "Hey!!!"

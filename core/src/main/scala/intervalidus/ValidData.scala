@@ -19,11 +19,10 @@ import scala.compiletime.asMatchable
   * @param interval
   *   the interval in which the value is valid.
   */
-case class ValidData[V, D <: NonEmptyTuple](
+case class ValidData[V, D <: NonEmptyTuple: DomainLike as domainLike](
   value: V,
   interval: Interval[D]
-)(using domainLike: DomainLike[D])
-  extends PartialFunction[D, V]:
+) extends PartialFunction[D, V]:
 
   /**
     * Approximate this valid data as a boxed payload in double space based on the domain ordered hash.
@@ -69,7 +68,7 @@ case class ValidData[V, D <: NonEmptyTuple](
     case _                                               => value.toString
 
   // first dimension start string, first dimension end string, value + remaining dimension string
-  def preprocessForGrid: (String, String, String) = domainLike.validDataPreprocessForGrid(this)
+  def preprocessForGrid: (start: String, end: String, value: String) = domainLike.validDataPreprocessForGrid(this)
 
 /**
   * Common definitions for values that are valid in multidimensional intervals.
@@ -99,6 +98,15 @@ object ValidData:
 
     override def clear(): Unit = validDataBuilder.clear()
 
+    // Redefine scaladoc because of a Scala 3.9 bug leaving $symbols unresolved.
+    /**
+      * Adds a single valid data element to this builder.
+      *
+      * @param elem
+      *   The valid data element to add.
+      * @return
+      *   This builder instance.
+      */
     override def addOne(elem: ValidData[V, D]): this.type =
       validDataBuilder.addOne(elem)
       this
@@ -108,6 +116,6 @@ object ValidData:
   /**
     * Valid data are ordered using interval start ordering
     */
-  given [V, D <: NonEmptyTuple](using intervalOrder: Ordering[Interval[D]]): Ordering[ValidData[V, D]] with
+  given [V, D <: NonEmptyTuple] => (intervalOrder: Ordering[Interval[D]]) => Ordering[ValidData[V, D]]:
     override def compare(x: ValidData[V, D], y: ValidData[V, D]): Int =
       intervalOrder.compare(x.interval, y.interval)

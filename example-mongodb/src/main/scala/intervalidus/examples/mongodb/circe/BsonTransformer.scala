@@ -20,9 +20,9 @@ object BsonTransformer:
 
   given Decoder[BsonValue] = Decoder.decodeJson.map(jsonTransformer)
 
-  given (using bsonValueEncoder: Encoder[BsonValue]): Encoder[BsonDocument] = bsonValueEncoder.contramap(identity)
+  given (bsonValueEncoder: Encoder[BsonValue]) => Encoder[BsonDocument] = bsonValueEncoder.contramap(identity)
 
-  given (using bsonValueDecoder: Decoder[BsonValue]): Decoder[BsonDocument] = Decoder.instance: cursor =>
+  given (bsonValueDecoder: Decoder[BsonValue]) => Decoder[BsonDocument] = Decoder.instance: cursor =>
     bsonValueDecoder(cursor).flatMap:
       case doc: BsonDocument => Right(doc)
       case other => Left(DecodingFailure(s"Expected BsonDocument but got ${other.getBsonType}", cursor.history))

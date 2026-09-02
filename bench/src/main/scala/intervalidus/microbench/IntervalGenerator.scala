@@ -5,13 +5,12 @@ import intervalidus.microbench.DomainGenerator.*
 import intervalidus.Interval.unbounded
 
 import java.util
-import scala.language.implicitConversions
 import scala.math
 
 // Generates intervals of any dimension
 object IntervalGenerator:
 
-  def gen[D <: NonEmptyTuple: DomainLike: GenDomainOps](using RandomNumbers): Gen[Interval[D]] = for
+  def gen[D <: NonEmptyTuple: {DomainLike, GenDomainOps}](using RandomNumbers): Gen[Interval[D]] = for
     start <- genStart[D]
     end <- genEnd[D](start)
   yield Interval(start, end)
@@ -19,7 +18,7 @@ object IntervalGenerator:
   val minSizeDim = IndexedSeq(290, 20, 4, 3, 3)
   val maxSizeDim = IndexedSeq(310, 60, 6, 5, 4)
 
-  def genNonIntersecting[D <: NonEmptyTuple: DomainLike: GenDomainOps](using
+  def genNonIntersecting[D <: NonEmptyTuple: {DomainLike, GenDomainOps}](using
     RandomNumbers
   ): Gen[Iterable[Interval[D]]] =
     val dimIndex = DomainGenerator.arity[D] - 1
@@ -41,7 +40,7 @@ object IntervalGenerator:
   )(using RandomNumbers, DomainValueLike[Int]): Gen[Iterable[Interval[Dim2]]] =
     val edgePoints = math.sqrt(limit).toInt
     val ops = summon[IntDomainTuple[Dim2]]
-    def produceSequence(): Seq[Interval[Dim2]] = ops.shattered(edgePoints).map(_._1).toSeq // ignore Euclidean distances
+    def produceSequence(): Seq[Interval[Dim2]] = ops.shattered(edgePoints).map(_.interval).toSeq // ignore metrics
     Gen(Iterator.continually(produceSequence())).flatMap(is => Gen.someOf(is, atLeast = 0.5))
 
   def genNonIntersectingDim3Special(
@@ -49,7 +48,7 @@ object IntervalGenerator:
   )(using RandomNumbers, DomainValueLike[Int]): Gen[Iterable[Interval[Dim3]]] =
     val edgePoints = math.exp(math.log(limit) / 3.0).toInt
     val ops = summon[IntDomainTuple[Dim3]]
-    def produceSequence(): Seq[Interval[Dim3]] = ops.shattered(edgePoints).map(_._1).toSeq // ignore Euclidean distances
+    def produceSequence(): Seq[Interval[Dim3]] = ops.shattered(edgePoints).map(_.interval).toSeq // ignore metrics
     Gen(Iterator.continually(produceSequence())).flatMap(is => Gen.someOf(is, atLeast = 0.5))
 
   trait IntDomainTuple[D <: NonEmptyTuple]:
@@ -58,7 +57,8 @@ object IntervalGenerator:
     def fullDomain: Interval[D]
 
     // returns tuple of interval and the squared Euclidean distance from origin of the start and end points
-    def shattered(edgePoints: Int)(using RandomNumbers): Iterator[(Interval[D], Double, Double)]
+    type IntervalMetric = (interval: Interval[D], startMetric: Double, endMetric: Double)
+    def shattered(edgePoints: Int)(using RandomNumbers): Iterator[IntervalMetric]
 
   object IntDomainTuple:
     private type OneDimDomain = Domain1D[Int] *: EmptyTuple
@@ -85,22 +85,24 @@ object IntervalGenerator:
       Iterator(first) ++ middle ++ Iterator(last)
 
     // Base case - one dimension
-    given IntDomainTupleOneDimOps(using DomainValueLike[Int]): IntDomainTuple[OneDimDomain] with
+    given IntDomainTupleOneDimOps: (DomainValueLike[Int]) => IntDomainTuple[OneDimDomain]:
       inline override def arity: Int = 1
 
       inline def fullDomain: Interval[OneDimDomain] = Interval1D.interval(intRange.start, intRange.end).tupled
 
-      inline def shattered(edgePoints: Int)(using RandomNumbers): Iterator[(Interval[OneDimDomain], Double, Double)] =
+      inline def shattered(edgePoints: Int)(using RandomNumbers): Iterator[IntervalMetric] =
         intervals1d(edgePoints).map: i =>
-          (i.tupled, math.pow(i.start.orderedHashFixed, 2), math.pow(i.end.orderedHashFixed, 2))
+          (
+            interval = i.tupled,
+            startMetric = math.pow(i.start.orderedHashFixed, 2),
+            endMetric = math.pow(i.end.orderedHashFixed, 2)
+          )
 
     // Inductive case - multiple dimensions
-    given IntDomainTupleMultiDimOps[DomainTail <: NonEmptyTuple](using
-      applyToTail: IntDomainTuple[DomainTail]
-    )(using
+    given IntDomainTupleMultiDimOps: [DomainTail <: NonEmptyTuple: IntDomainTuple as applyToTail] => (
       DomainLike[MultiDimDomain[DomainTail]],
       DomainValueLike[Int]
-    ): IntDomainTuple[MultiDimDomain[DomainTail]] with
+    ) => IntDomainTuple[MultiDimDomain[DomainTail]]:
       inline override def arity: Int = 1 + applyToTail.arity
 
       inline def fullDomain: Interval[MultiDimDomain[DomainTail]] =
@@ -108,7 +110,7 @@ object IntervalGenerator:
 
       inline def shattered(
         edgePoints: Int
-      )(using RandomNumbers): Iterator[(Interval[MultiDimDomain[DomainTail]], Double, Double)] =
+      )(using RandomNumbers): Iterator[IntervalMetric] =
         for
           (head1d, headStartMetric, headEndMetric) <- intervals1d(edgePoints).map: i =>
             (i, math.pow(i.start.orderedHashFixed, 2), math.pow(i.end.orderedHashFixed, 2))
@@ -136,12 +138,12 @@ object IntervalGenerator:
       // println("shattering...")
       val arr = ops
         .shattered(edgePoints)
-        .map((i, startMetric, endMetric) => (i, math.max(startMetric, endMetric)))
-        .toArray
+        .map(s => (s.interval, math.max(s.startMetric, s.endMetric)))
+        .toArray[(interval: Interval[D], metric: Double) & Object]
       // println("sorting...")
-      util.Arrays.parallelSort(arr, (a, b) => java.lang.Double.compare(a._2, b._2))
+      util.Arrays.parallelSort(arr, (a, b) => java.lang.Double.compare(a.metric, b.metric))
       // println("removing metric...")
-      arr.map(_._1)
+      arr.map(_.interval)
     Gen(Iterator.continually(produceSequence()))
 
   def genFromOrigin[D <: NonEmptyTuple: DomainLike](leafCapacity: Int, treeDepth: Int)(using

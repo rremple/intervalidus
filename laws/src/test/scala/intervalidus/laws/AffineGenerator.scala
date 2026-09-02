@@ -70,16 +70,15 @@ object AffineGenerator:
   /**
     * Base case, for a one-dimensional domain (empty tail)
     */
-  given GenAffineOneDimOps[T]: GenAffineOps[OneDimTuple[T]] with
+  given GenAffineOneDimOps: [T] => GenAffineOps[OneDimTuple[T]]:
     override lazy val genDisplacement: Gen[TupleOfInts[OneDimTuple[T]]] = genDisplacemen1D.map(_ *: EmptyTuple)
     override lazy val genScalar: Gen[TupleOfDoubles[OneDimTuple[T]]] = genScalar1D.map(_ *: EmptyTuple)
 
   /**
     * Inductive case for a domain with two or more dimensions (non-empty tail)
     */
-  given GenAffineMultiDimOps[T, DomainTail <: NonEmptyTuple](using
-    applyToTail: GenAffineOps[DomainTail]
-  ): GenAffineOps[MultiDimTuple[T, DomainTail]] with
+  given GenAffineMultiDimOps: [T, DomainTail <: NonEmptyTuple] => (applyToTail: GenAffineOps[DomainTail])
+    => GenAffineOps[MultiDimTuple[T, DomainTail]]:
     override lazy val genDisplacement: Gen[TupleOfInts[MultiDimTuple[T, DomainTail]]] =
       Gen.zip(genDisplacemen1D, applyToTail.genDisplacement).map(_ *: _)
 

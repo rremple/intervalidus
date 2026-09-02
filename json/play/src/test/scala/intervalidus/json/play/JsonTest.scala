@@ -21,8 +21,8 @@ class JsonTest extends AnyFunSuite with Matchers with JsonTestBehavior[Writes, R
   testsFor(commonBehaviors("Play"))
 
   test("Play: invalid JSON code coverage"):
-    def messages(errors: Iterable[(JsPath, Iterable[JsonValidationError])]): String =
-      errors.flatMap(_._2).map(_.message).mkString("|")
+    def messages(pathErrors: Iterable[(path: JsPath, validationErrors: Iterable[JsonValidationError])]): String =
+      pathErrors.flatMap(_.validationErrors).map(_.message).mkString("|")
 
     parse("""{ "action": "UnknownAction" }""").validate[DiffAction.In1D[String, Int]] match
       case JsError(errors) => messages(errors) shouldBe "Unknown DiffAction: UnknownAction"

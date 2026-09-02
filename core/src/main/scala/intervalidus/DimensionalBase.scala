@@ -53,7 +53,7 @@ trait DimensionalBaseObject[Constructed[_, _ <: NonEmptyTuple] <: DimensionalBas
   /**
     * Automatically converts some other dimensional structure to a general dimensional data structure.
     */
-  given [V, D <: NonEmptyTuple: DomainLike]: Conversion[DimensionalBase[V, D], Constructed[V, D]] = _.asData
+  given [V, D <: NonEmptyTuple: DomainLike] => Conversion[DimensionalBase[V, D], Constructed[V, D]] = _.asData
 
   /**
     * Constructor for multiple initial values that are valid in the various intervals.
@@ -119,12 +119,30 @@ trait DimensionalBaseObject[Constructed[_, _ <: NonEmptyTuple] <: DimensionalBas
     *   $intervalDomainType
     * @param value
     *   value that is valid in the full domain (`Interval.unbounded[D]`).
+    * @note
+    *   The result domain type parameter is isolated in its own trailing type parameter list to facilitate fluent type
+    *   inference. While the value type is always cleanly inferred from the term argument, the result domain cannot
+    *   always be inferred. For example, when assigning directly to a value with an annotated type, the compiler can
+    *   infer the value type directly from the term argument and the result domain type by flowing backward from the
+    *   left-hand side.
+    *   {{{
+    *     val s: Data[String, Domain.In1D[Int]] = Data.of("Hello")
+    *     val r: Data[Double, Domain.In1D[Int]] = s.mapValues(_.length.toDouble / 2)
+    *   }}}
+    *   But, because the term argument list is interleaved between type parameter lists, you can cleanly chain these
+    *   operations without redundant type declarations (the String value type) to obtain the final result.
+    *   {{{
+    *     val r = Data.of("Hello")[Domain.In1D[Int]].mapValues(_.length.toDouble / 2)
+    *   }}}
+    *   (This ergonomic layout is made possible by Scala 3's type and term [Clause
+    *   Interleaving](https://docs.scala-lang.org/sips/clause-interleaving.html).)
+    *
     * @return
     *   a new structure with a single valid value.
     */
-  def ofValue[V, D <: NonEmptyTuple: DomainLike](
+  def ofValue[V](
     value: V
-  )(using config: CoreConfig[D]): Constructed[V, D] = of(Interval.unbounded[D] -> value)
+  )[D <: NonEmptyTuple: DomainLike](using config: CoreConfig[D]): Constructed[V, D] = of(Interval.unbounded[D] -> value)
 
   /**
     * Get a Builder based on an intermediate buffer of valid data.
@@ -366,18 +384,17 @@ object DimensionalBase:
       *   tuple of `TreeMap` data, `MultiMapSorted` data, and `BoxTree` data used when constructing something that is a
       *   `DimensionalBase` and has overridden `dataByStart`, `dataByValue`, and `dataInBoxTree` in the constructor.
       */
-    def from[V, D <: NonEmptyTuple](
+    def from[V, D <: NonEmptyTuple: DomainLike as domainLike](
       initialData: Iterable[ValidData[V, D]]
     )(using
-      domainValue: DomainLike[D],
       config: CoreConfig[D]
     ): State[V, D] =
       val initialPayloads = initialData.map(_.asBoxedPayload)
       val initialCapacity = config.capacityHint match
         case Some(hint) =>
-          hint.asBox.fixUnbounded(Capacity.aroundOrigin(domainValue.arity))
+          hint.asBox.fixUnbounded(Capacity.aroundOrigin(domainLike.arity))
         case None =>
-          initialPayloads.foldLeft(Capacity.aroundOrigin(domainValue.arity)): (capacity, payload) =>
+          initialPayloads.foldLeft(Capacity.aroundOrigin(domainLike.arity)): (capacity, payload) =>
             capacity.growAround(payload.box)
       State(
         TreeMap.from(initialData.map(_.withStartKey)),
@@ -389,18 +406,11 @@ import intervalidus.DimensionalBase.*
 
 /**
   * Base for all dimensional data, both mutable and immutable, of multiple dimensions.
-  * @define configParam
-  *   context parameter for configuration -- uses defaults if not given explicitly
   */
-trait DimensionalBase[V, D <: NonEmptyTuple](using
-  domainLike: DomainLike[D]
+trait DimensionalBase[V, D <: NonEmptyTuple: DomainLike as domainLike](using
+  val config: CoreConfig[D]
 ) extends PartialFunction[D, V]
   with DimensionalDocs:
-
-  /**
-    * $configParam
-    */
-  given config: CoreConfig[D]
 
   /**
     * The single source of truth for this structure's internal data.
@@ -435,7 +445,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     */
   protected def atomicStartReadTransactionWith[B, S <: NonEmptyTuple](
     that: DimensionalBase[B, S]
-  ): (ReadTransaction[V, D], ReadThatTransaction[B, S]) = stateLock.synchronized:
+  ): (readThis: ReadTransaction[V, D], readThat: ReadThatTransaction[B, S]) = stateLock.synchronized:
     (ReadTransaction.start(state), ReadThatTransaction.start(that.state))
 
   /**
@@ -443,7 +453,7 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     */
   protected def atomicStartUpdateTransactionWith[B, S <: NonEmptyTuple](
     that: DimensionalBase[B, S]
-  ): (UpdateTransaction[V, D], ReadThatTransaction[B, S]) = stateLock.synchronized:
+  ): (updateThis: UpdateTransaction[V, D], readThat: ReadThatTransaction[B, S]) = stateLock.synchronized:
     val updateTransaction = config.isolationLevel match
       case Serializable    => UpdateTransaction.start(state)
       case ReadUncommitted => UpdateTransaction.startDirty(state)
@@ -472,8 +482,8 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
   protected def transactionalReadWith[T, B, S <: NonEmptyTuple](that: DimensionalBase[B, S])(
     body: ReadTransaction[V, D] ?=> ReadThatTransaction[B, S] => T
   ): T =
-    val (readThisTransaction, readThatTransaction) = atomicStartReadTransactionWith(that)
-    body(using readThisTransaction)(readThatTransaction)
+    val transaction = atomicStartReadTransactionWith(that)
+    body(using transaction.readThis)(transaction.readThat)
 
   @nowarn("msg=pattern selector should be an instance of Matchable")
   override def equals(obj: Any): Boolean = obj match
@@ -1129,13 +1139,11 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
       // tuples of first dimension start string, first dimension end string, value + remaining dimension string
       val validDataStrings = getAll.map(_.preprocessForGrid)
       val maxDataSize = validDataStrings
-        .map: (_, _, valueString) =>
-          valueString.length + 3
+        .map(_.value.length + 3)
         .maxOption
         .getOrElse(3)
       val maxHorizontalIntervalsSize = horizontalIntervalStrings
-        .map: (_, _, intervalString) =>
-          intervalString.length
+        .map(_.value.length)
         .maxOption
         .getOrElse(7)
 
@@ -1143,33 +1151,27 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
 
       def pad(chars: Int, p: String = " "): String = p * chars
 
-      val horizontalBuilders = (StringBuilder(), Map.newBuilder[String, Int], Map.newBuilder[String, Int])
-      val (horizontalStringBuilder, horizontalStartPositionBuilder, horizontalEndPositionBuilder) =
-        horizontalIntervalStrings.zipWithIndex.foldLeft(horizontalBuilders):
-          case (
-                (stringBuilder, startPositionBuilder, endPositionBuilder),
-                ((startString, endString, formatted), pos)
-              ) =>
-            startPositionBuilder.addOne(startString, stringBuilder.size)
-            stringBuilder.append(formatted)
-            val padTo = cellSize * (pos + 1)
-            if stringBuilder.size < padTo then stringBuilder.append(pad(padTo - stringBuilder.size))
-            endPositionBuilder.addOne(endString, stringBuilder.size)
-            (stringBuilder, startPositionBuilder, endPositionBuilder)
+      val stringBuilder = StringBuilder()
+      val startPositionBuilder = Map.newBuilder[String, Int]
+      val endPositionBuilder = Map.newBuilder[String, Int]
+      horizontalIntervalStrings.zipWithIndex.foreach: (formatted, pos) =>
+        startPositionBuilder.addOne(formatted.start, stringBuilder.size)
+        stringBuilder.append(formatted.value)
+        val padTo = cellSize * (pos + 1)
+        if stringBuilder.size < padTo then stringBuilder.append(pad(padTo - stringBuilder.size))
+        endPositionBuilder.addOne(formatted.end, stringBuilder.size)
 
-      val horizontalStartPosition = horizontalStartPositionBuilder.result()
-      val horizontalEndPosition = horizontalEndPositionBuilder.result()
-      horizontalStringBuilder.append("|\n")
+      val horizontalStartPosition = startPositionBuilder.result()
+      val horizontalEndPosition = endPositionBuilder.result()
+      stringBuilder.append("|\n")
 
-      validDataStrings.foreach: (startString, endString, valueString) =>
-        val leftPosition = horizontalStartPosition(startString)
-        val rightPosition = horizontalEndPosition(endString)
-        val valuePadding = rightPosition - leftPosition - valueString.length - 2
-        horizontalStringBuilder.append(
-          s"${pad(leftPosition)}| $valueString${pad(valuePadding)}|\n"
-        )
+      validDataStrings.foreach: formatted =>
+        val leftPosition = horizontalStartPosition(formatted.start)
+        val rightPosition = horizontalEndPosition(formatted.end)
+        val valuePadding = rightPosition - leftPosition - formatted.value.length - 2
+        stringBuilder.append(s"${pad(leftPosition)}| ${formatted.value}${pad(valuePadding)}|\n")
 
-      horizontalStringBuilder.result()
+      stringBuilder.result()
 
   // from PartialFunction
   override def isDefinedAt(key: D): Boolean = getAt(key).isDefined
@@ -1506,16 +1508,40 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     *   - the 1D domain at the specified dimension index has the specified domain value type
     *   - the current domain type can be constructed by concatenating the elements before the domain, the domain itself,
     *     and the elements after the domain.
+    *
     * @tparam R
     *   domain of intervals in the returned structure. There is a type safety check that ensures the domain type for
     *   this result type can be constructed by concatenating the elements before and after the dropped dimension.
+    *
+    * @note
+    *   The result domain type parameter is isolated in its own trailing type parameter list to facilitate fluent type
+    *   inference. While the coordinate types of the lookup arguments are always cleanly inferred from the term
+    *   arguments, the target result domain cannot always be inferred. For example, when assigning directly to a value
+    *   with an annotated type, the compiler can infer the result domain type by flowing backward from the left-hand
+    *   side:
+    *   {{{
+    *     val s: Data[String, Domain.In2D[Int, Double]] = Data.of((intervalFrom(0) x intervalTo(1.1)) -> "Hello")
+    *     val i: Data[String, Domain.In1D[Int]] = s.getByDimension(1, 0.9)
+    *     val r: Option[String] = i.getAt(0)
+    *   }}}
+    *   But, because the term argument list is interleaved between type parameter lists, you can cleanly chain these
+    *   operations without redundant type declarations (the String value type and the Double dimension 1 domain value *
+    *   type) to obtain the final result.
+    *   {{{
+    *     val r = Data.of((intervalFrom(0) x intervalTo(1.1)) -> "Hello")
+    *       .getByDimension(1, 0.9)[Domain.In1D[Int]]
+    *       .getAt(0)
+    *   }}}
+    *   (This ergonomic layout is made possible by Scala 3's type and term [Clause
+    *   Interleaving](https://docs.scala-lang.org/sips/clause-interleaving.html).)
+    *
     * @return
     *   a lower-dimensional (n-1) structure
     */
-  def getByDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+  def getByDimension[H: DomainValueLike](
     dimensionIndex: Domain.DimensionIndex,
     domain: Domain1D[H]
-  )(using
+  )[R <: NonEmptyTuple: DomainLike](using
     altConfig: CoreConfig[R]
   )(using
     Domain.HasIndex[D, dimensionIndex.type],
@@ -1567,13 +1593,35 @@ trait DimensionalBase[V, D <: NonEmptyTuple](using
     * @tparam R
     *   the result domain. There is a type safety check that ensures the domain type for this result type is a
     *   concatenation of elements before the insert, the inserted dimension, and the elements after the insert.
+    *
+    * @note
+    *   The result domain type parameter is isolated in its own trailing type parameter list to facilitate fluent type
+    *   inference. While the domain value type of the inserted dimension is always cleanly inferred from the term
+    *   arguments, the target result domain cannot always be inferred. For example, when assigning directly to a value
+    *   with an annotated type, the compiler can infer the result domain type by flowing backward from the left-hand
+    *   side:
+    *   {{{
+    *     val s: Data.In1D[String, Int] = Data.of(intervalFrom(0) -> "Hello")
+    *     val i: Data.In2D[String, Int, Double] = s.extrudeDimension(1, intervalTo(1.1))
+    *     val r: Iterable[ValidData.In2D[String, Int, Double]] = i.getAll
+    *   }}}
+    *   But, because the term argument list is interleaved between type parameter lists, you can cleanly chain these
+    *   operations without redundant type declarations to obtain the final result.
+    *   {{{
+    *     val r = Data
+    *       .of(intervalFrom(0) -> "Hello")
+    *       .extrudeDimension(1, intervalTo(1.1))[Domain.In2D[Int, Double]]
+    *       .getAll
+    *   }}}
+    *   (This ergonomic layout is made possible by Scala 3's type and term [Clause
+    *   Interleaving](https://docs.scala-lang.org/sips/clause-interleaving.html).)
     * @return
     *   a higher-dimensional (n+1) structure
     */
-  def extrudeDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+  def extrudeDimension[H: DomainValueLike](
     dimensionIndex: Domain.DimensionIndex,
     extent: Interval1D[H]
-  )(using
+  )[R <: NonEmptyTuple: DomainLike](using
     altConfig: CoreConfig[R]
   )(using
     Domain.HasIndex[R, dimensionIndex.type],

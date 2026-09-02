@@ -24,12 +24,7 @@ package intervalidus.collection
   * @tparam Self
   *   F-bounded self-type
   */
-trait BoxTreeLike[A, Self <: BoxTreeLike[A, Self]]:
-
-  /**
-    * Configuration for this box tree, including its node capacity and depth limit.
-    */
-  given config: CollectionConfig
+trait BoxTreeLike[A, Self <: BoxTreeLike[A, Self]](using CollectionConfig):
 
   /**
     * Make a copy of this tree.

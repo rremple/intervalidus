@@ -41,7 +41,7 @@ trait DimensionalAffineBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimensio
   /**
     * Automatically converts a non-affine structure in an affine domain to an affine structure.
     */
-  given [V, D <: NonEmptyTuple: DomainAffineLike]: Conversion[DimensionalBase[V, D], Constructed[V, D]] =
+  given [V, D <: NonEmptyTuple: DomainAffineLike] => Conversion[DimensionalBase[V, D], Constructed[V, D]] =
     _.asDataAffine
 
   /**
@@ -94,10 +94,28 @@ trait DimensionalAffineBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimensio
     *   $dataValueType
     * @tparam D
     *   $intervalDomainType
+    * @note
+    *   The result domain type parameter is isolated in its own trailing type parameter list to facilitate fluent type
+    *   inference. While the value type is always cleanly inferred from the term argument, the result domain cannot
+    *   always be inferred. For example, when assigning directly to a value with an annotated type, the compiler can
+    *   infer the value type directly from the term argument and the result domain type by flowing backward from the
+    *   left-hand side.
+    *   {{{
+    *     val s: DataAffine[String, Domain.In1D[Int]] = DataAffine.of("Hello")
+    *     val r: DataAffine[Double, Domain.In1D[Int]] = s.mapValues(_.length.toDouble / 2)
+    *   }}}
+    *   But, because the term argument list is interleaved between type parameter lists, you can cleanly chain these
+    *   operations without redundant type declarations (the String value type) to obtain the final result.
+    *   {{{
+    *     val r = DataAffine.of("Hello")[Domain.In1D[Int]].mapValues(_.length.toDouble / 2)
+    *   }}}
+    *   (This ergonomic layout is made possible by Scala 3's type and term [Clause
+    *   Interleaving](https://docs.scala-lang.org/sips/clause-interleaving.html).)
+    *
     * @return
     *   a new structure with a single valid value.
     */
-  def ofValue[V, D <: NonEmptyTuple: DomainAffineLike](value: V)(using config: CoreConfig[D]): Constructed[V, D] =
+  def ofValue[V](value: V)[D <: NonEmptyTuple: DomainAffineLike](using config: CoreConfig[D]): Constructed[V, D] =
     of(Interval.unbounded[D] -> value)
 
   /**
@@ -234,7 +252,8 @@ trait DimensionalAffineBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimensio
   * @define scaledAboutInTParamH
   *   The domain value type of the dimension being scaled.
   */
-trait DimensionalAffineBase[V, D <: NonEmptyTuple: DomainAffineLike] extends DimensionalBase[V, D]:
+trait DimensionalAffineBase[V, D <: NonEmptyTuple: {DomainAffineLike, CoreConfig as config}]
+  extends DimensionalBase[V, D]:
   import DomainAffineLike.* // extension methods
   import Domain.{HasDisplacementType, HasScalarType}
 
@@ -293,9 +312,7 @@ trait DimensionalAffineBase[V, D <: NonEmptyTuple: DomainAffineLike] extends Dim
     * @tparam H
     *   $reflectedAboutInTParmH
     */
-  protected def maybeReflected1d[H](using
-    dimOp: DomainAffineValueLike[H]
-  )(
+  protected def maybeReflected1d[H: DomainAffineValueLike as dimOp](
     dimensionIndex: Domain.DimensionIndex,
     pivot: Domain1D[H]
   )(
@@ -332,9 +349,7 @@ trait DimensionalAffineBase[V, D <: NonEmptyTuple: DomainAffineLike] extends Dim
     * @tparam H
     *   $displacedByInTParmH
     */
-  protected def maybeDisplaced1d[H](using
-    dimOp: DomainAffineValueLike[H]
-  )(
+  protected def maybeDisplaced1d[H: DomainAffineValueLike as dimOp](
     dimensionIndex: Domain.DimensionIndex,
     offset: dimOp.Displacement
   )(
@@ -380,9 +395,7 @@ trait DimensionalAffineBase[V, D <: NonEmptyTuple: DomainAffineLike] extends Dim
     * @return
     *   A mutable structure for additional processing.
     */
-  protected def convolvedInternal[H, K](using
-    dimOp: DomainAffineValueLike[H]
-  )(
+  protected def convolvedInternal[H: DomainAffineValueLike as dimOp, K](
     kernel: CenteredKernel[K, H],
     epsilon: dimOp.Displacement,
     accumulate: (V, V) => V
@@ -402,8 +415,8 @@ trait DimensionalAffineBase[V, D <: NonEmptyTuple: DomainAffineLike] extends Dim
         * [[DomainAffineValueLike.measure]].
         */
       val offsetsAndDeltas = dimOp.range(toCenterFrom(_.start), toCenterFrom(_.end.rightAdjacent), epsilon.negated)
-      offsetsAndDeltas.iterator.foreach: (offset, delta) =>
-        resultBuffer.merge(offsetLayer(kernelComponent.value, offset, delta.magnitude), accumulate)
+      offsetsAndDeltas.iterator.foreach: i =>
+        resultBuffer.merge(offsetLayer(kernelComponent.value, i.offset, i.delta.magnitude), accumulate)
 
     if config.compressOnUpdate then resultBuffer.compressAll()
     resultBuffer

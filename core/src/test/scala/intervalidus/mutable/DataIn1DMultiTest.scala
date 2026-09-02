@@ -7,8 +7,6 @@ import intervalidus.DomainLike.given
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
-import scala.language.implicitConversions
-
 class DataIn1DMultiTest
   extends AnyFunSuite
   with Matchers
@@ -87,7 +85,7 @@ class DataIn1DMultiTest
   test("Immutable: equals and hashCode"):
     val empty1 = DataMulti[String, IntDim]()
     val empty2 = DataMulti.empty[String, IntDim]
-    val nonEmpty = DataMulti.ofValue[String, IntDim]("Hello")
+    val nonEmpty = DataMulti.ofValue("Hello")[IntDim]
     empty1 shouldBe empty2
     assert(empty1 != nonEmpty)
     empty1.hashCode() shouldBe empty2.hashCode()

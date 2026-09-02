@@ -27,9 +27,9 @@ object DataMonoid extends DimensionalMonoidBaseObject[DataMonoid]:
   * @tparam D
   *   $intervalDomainType
   */
-class DataMonoid[V, D <: NonEmptyTuple: DomainLike] private (
+class DataMonoid[V: Monoid as monoid, D <: NonEmptyTuple: DomainLike] private (
   override val initialState: State[V, D]
-)(using val config: CoreConfig[D], monoid: Monoid[V])
+)(using config: CoreConfig[D])
   extends MutableBase[V, D]
   with DimensionalMonoidBase[V, D]:
 
@@ -114,10 +114,10 @@ class DataMonoid[V, D <: NonEmptyTuple: DomainLike] private (
     result.compressedUpdate()
     result
 
-  override def getByDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+  override def getByDimension[H: DomainValueLike](
     dimensionIndex: Domain.DimensionIndex,
     domain: Domain1D[H]
-  )(using
+  )[R <: NonEmptyTuple: DomainLike](using
     altConfig: CoreConfig[R]
   )(using
     Domain.HasIndex[D, dimensionIndex.type],
@@ -152,10 +152,10 @@ class DataMonoid[V, D <: NonEmptyTuple: DomainLike] private (
     Domain.IsDroppedInResult[D, dimensionIndex.type, R]
   ): DataMonoid[V, R] = collapseDimension(dimensionIndex, monoid.combine)
 
-  override def extrudeDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+  override def extrudeDimension[H: DomainValueLike](
     dimensionIndex: Domain.DimensionIndex,
     extent: Interval1D[H]
-  )(using
+  )[R <: NonEmptyTuple: DomainLike](using
     altConfig: CoreConfig[R]
   )(using
     Domain.HasIndex[R, dimensionIndex.type],

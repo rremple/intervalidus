@@ -20,7 +20,7 @@ import scala.collection.mutable
   *   Because each dimension is evaluated independently, there is no guarantee the result will equal either of the
   *   arguments.
   */
-class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D]):
+class DomainLike[D <: NonEmptyTuple: DomainLikeTupleOps as applyToDomain]:
 
   /*
    * Domain-like capabilities
@@ -220,6 +220,7 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
       * @param dimensionIndex
       *   the dimension where the domain is inserted (e.g., inserting a new head dimension is index 0). Existing
       *   dimensions are pushed to the right.
+      *
       * @param domain1D
       *   the domain to be inserted
       * @tparam H
@@ -227,13 +228,36 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
       * @tparam R
       *   the result domain. There is a type safety check that ensures the domain type for the result dimension is a
       *   concatenation of elements before the insert, the inserted domain, and the elements after the insert.
+      *
+      * @note
+      *   The result domain type parameter is isolated in its own trailing type parameter list to facilitate fluent type
+      *   inference. While the domain value type of the inserted domain is always cleanly inferred from the term
+      *   arguments, the result domain cannot always be inferred. For example, when assigning directly to a value with
+      *   an annotated type, the compiler can infer the domain value type directly from the term arguments and the
+      *   result domain type by flowing backward from the left-hand side:
+      *   {{{
+      *     val s: Domain.In1D[Int] = 1
+      *     val i: Domain.In2D[Double, Int] = s.insertDimension(0, 1.1)
+      *     val r: Domain.In3D[Int, Double, Int] = i.insertDimension(0, 3)
+      *   }}}
+      *   But, because the term argument list interleaved between type parameter lists, you can cleanly chain these
+      *   operations without intermediate variables or redundant type declarations (the Double and Int domain value
+      *   types) to obtain the final result.
+      *   {{{
+      *     val r = s
+      *       .insertDimension(0, 1.1)[Domain.In2D[Double, Int]]
+      *       .insertDimension(0, 3)[Domain.In3D[Int, Double, Int]]
+      *   }}}
+      *   (This ergonomic layout is made possible by Scala 3's type and term [Clause
+      *   Interleaving](https://docs.scala-lang.org/sips/clause-interleaving.html).)
+      *
       * @return
       *   a new higher-dimensional domain
       */
-    def insertDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+    def insertDimension[H: DomainValueLike](
       dimensionIndex: Domain.DimensionIndex,
       domain1D: Domain1D[H]
-    )(using
+    )[R <: NonEmptyTuple: DomainLike](using
       Domain.HasIndex[R, dimensionIndex.type],
       Domain.IsInsertedInResult[D, dimensionIndex.type, H, R]
     ): R = domain.take(dimensionIndex) ++ (domain1D *: domain.drop(dimensionIndex))
@@ -362,48 +386,44 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
     *   true if the before interval is "left" adjacent to the after interval
     */
   infix def intervalIsLeftAdjacentTo(beforeInterval: Interval[D], afterInterval: Interval[D]): Boolean =
-    val (partialResult, equivalency, adjacency, total) = applyToDomain.equivalencyAndAdjacencyFromIntervals(
-      beforeInterval,
-      afterInterval
-    )
-    partialResult && adjacency == 1 && equivalency == total - 1
+    val stats = applyToDomain.equivalencyAndAdjacencyFromIntervals(beforeInterval, afterInterval)
+    stats.partialResult && stats.adjacent == 1 && stats.equivalent == stats.total - 1
 
   /**
     * Internal method. Determines if two interval are touching. That is, they are adjacent in at least one dimension and
     * overlapping in all others.
     */
   def intervalTouching(a: Interval[D], b: Interval[D]): Boolean =
-    val (partialResult, overlap, adjacency, total) =
-      applyToDomain.overlapAndAdjacencyFromIntervals(a, b)
-    partialResult && adjacency > 0 && overlap + adjacency == total
+    val stats = applyToDomain.overlapAndAdjacencyFromIntervals(a, b)
+    stats.partialResult && stats.adjacent > 0 && stats.overlap + stats.adjacent == stats.total
 
   /**
     * Internal method. Determines in two intervals have a shared boundary to differentiate [[SpatialRelation.TPP]] and
     * [[SpatialRelation.NTPP]] (and their inverses).
     */
   def intervalSharedBoundary(a: Interval[D], b: Interval[D]): Boolean =
-    val (partialResult, overlap, sharedBoundary, total) =
-      applyToDomain.overlapAndSharedBoundaryFromIntervals(a, b)
-    partialResult && sharedBoundary > 0 && overlap == total
+    val stats = applyToDomain.overlapAndSharedBoundaryFromIntervals(a, b)
+    stats.partialResult && stats.sharedBoundary > 0 && stats.overlap == stats.total
 
   /**
     * Internal method. Spatial relationships of two intervals.
     */
   def intervalSpatialRelation(a: Interval[D], b: Interval[D]): SpatialRelation =
-    val (overlap, adjacency, aIsSubset, bIsSubset, hasSharedBoundary, total) =
-      applyToDomain.spatialRelationFromIntervals(a, b)
+    val stats = applyToDomain.spatialRelationFromIntervals(a, b)
     // Overlap: This is the "parent" for the six overlap relations:
-    if overlap == total then
+    if stats.overlap == stats.total then
       // EQ (Equal): All boundaries match exactly.
-      if aIsSubset == total && bIsSubset == total then SpatialRelation.EQ
+      if stats.aIsSubset == stats.total && stats.bIsSubset == stats.total then SpatialRelation.EQ
       // TPP/NTPP (Inside, touching/not touching): a is subset of b and they share/don't share boundaries.
-      else if aIsSubset == total then if hasSharedBoundary then SpatialRelation.TPP else SpatialRelation.NTPP
+      else if stats.aIsSubset == stats.total then
+        if stats.hasSharedBoundary then SpatialRelation.TPP else SpatialRelation.NTPP
       // TPPi/NTPPi (Inside, touching/not touching): b is subset of a and they share/don't share boundaries.
-      else if bIsSubset == total then if hasSharedBoundary then SpatialRelation.TPPi else SpatialRelation.NTPPi
+      else if stats.bIsSubset == stats.total then
+        if stats.hasSharedBoundary then SpatialRelation.TPPi else SpatialRelation.NTPPi
       // PO (Partial Overlap): They share volume but neither is a subset of the other.
       else SpatialRelation.PO
     // EC (Externally Connected): no gaps, same as our isConnectedTo definition.
-    else if overlap + adjacency == total then SpatialRelation.EC
+    else if stats.overlap + stats.adjacency == stats.total then SpatialRelation.EC
     // DC (Disconnected): At least one dimension has a gap.
     else SpatialRelation.DC
 
@@ -490,7 +510,9 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
     *   1. first dimension end string
     *   1. interval grid-formatted string
     */
-  def intervalPreprocessForGrid(intervals: IterableOnce[Interval[D]]): Iterable[(String, String, String)] =
+  def intervalPreprocessForGrid(
+    intervals: IterableOnce[Interval[D]]
+  ): Iterable[(start: String, end: String, value: String)] =
     applyToDomain.preprocessForGridFromIntervals(intervals)
 
   /*
@@ -510,14 +532,14 @@ class DomainLike[D <: NonEmptyTuple](using applyToDomain: DomainLikeTupleOps[D])
     *   1. first dimension end string
     *   1. value + remaining dimension string (the content of the grid)
     */
-  def validDataPreprocessForGrid[V](validData: ValidData[V, D]): (String, String, String) =
+  def validDataPreprocessForGrid[V](validData: ValidData[V, D]): (start: String, end: String, value: String) =
     applyToDomain.preprocessForGridFromValidData(validData)
 
 /**
   * Common definitions for multidimensional domain type classes.
   */
 object DomainLike:
-  given domainOrdering[D <: NonEmptyTuple](using domainLike: DomainLike[D]): Ordering[D] with
+  given domainOrdering: [D <: NonEmptyTuple: DomainLike as domainLike] => Ordering[D]:
     override def compare(x: D, y: D): Int = domainLike.compareDomains(x, y)
 
-  given [D <: NonEmptyTuple: DomainLikeTupleOps]: DomainLike[D] = DomainLike[D]
+  given [D <: NonEmptyTuple: DomainLikeTupleOps] => DomainLike[D] = DomainLike[D]

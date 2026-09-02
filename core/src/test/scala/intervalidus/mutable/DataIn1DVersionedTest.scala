@@ -281,7 +281,7 @@ class DataIn1DVersionedTest extends AnyFunSuite with Matchers with DataIn1DVersi
     assertThrows[NoSuchElementException]:
       fixture.get
 
-    fixture.flatMap(d => DataVersioned.ofValue[String, IntDim](d.value))
+    fixture.flatMap(d => DataVersioned.ofValue(d.value)[IntDim])
     val expectedData6 = List(unbounded[Int] -> "Hey!!!")
     fixture.getAll.toList shouldBe expectedData6
     fixture.get shouldBe "Hey!!!"

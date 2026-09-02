@@ -8,8 +8,8 @@ import scala.compiletime.summonInline
   */
 object SumTypeValues:
 
-  inline def sumTypeValues[E](using m: SumOf[E]): List[E] =
-    valueList[m.MirroredElemTypes, E]
+  inline def sumTypeValues[E: SumOf as mirror]: List[E] =
+    valueList[mirror.MirroredElemTypes, E]
 
   private inline def valueList[T <: Tuple, E]: List[E] =
     inline compiletime.erasedValue[T] match

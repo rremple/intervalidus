@@ -11,22 +11,22 @@ trait Monoid[V] extends Semigroup[V]:
   def identity: V
 
 object Monoid:
-  given Monoid[Unit] with
+  given Monoid[Unit]:
     override def identity: Unit = ()
 
     override def combine(lhs: Unit, rhs: Unit): Unit = ()
 
-  given Monoid[Int] with
+  given Monoid[Int]:
     override def identity: Int = 0
 
     override def combine(lhs: Int, rhs: Int): Int = lhs + rhs
 
-  given Monoid[Long] with
+  given Monoid[Long]:
     override def identity: Long = 0L
 
     override def combine(lhs: Long, rhs: Long): Long = lhs + rhs
 
-  given Monoid[Double] with
+  given Monoid[Double]:
     override def identity: Double = 0.0
 
     override def combine(lhs: Double, rhs: Double): Double = lhs + rhs
@@ -34,7 +34,7 @@ object Monoid:
   /*
    * Unitize a semigroup as an optional monoid
    */
-  given [T](using s: Semigroup[T]): Monoid[Option[T]] with
+  given [T: Semigroup as semigroup] => Monoid[Option[T]]:
 
     override def identity: Option[T] = None
 
@@ -42,12 +42,12 @@ object Monoid:
       case (None, None)              => None
       case (leftOnly, None)          => leftOnly
       case (None, rightOnly)         => rightOnly
-      case (Some(left), Some(right)) => Some(s.combine(left, right))
+      case (Some(left), Some(right)) => Some(semigroup.combine(left, right))
 
   /*
    * Sets as monoids
    */
-  given [T]: Monoid[Set[T]] with
+  given [T] => Monoid[Set[T]]:
 
     override def identity: Set[T] = Set.empty
 
@@ -61,7 +61,7 @@ object Monoid:
 //  enum Rps:
 //    case Rock, Paper, Scissors
 //
-//  given Semigroup[Rps] with
+//  given Semigroup[Rps]:
 //    import Rps.*
 //    def combine(lhs: Rps, rhs: Rps): Rps = (lhs, rhs) match
 //      case (Rock, Scissors)  | (Scissors, Rock)  => Rock     // rock  crushes  scissors

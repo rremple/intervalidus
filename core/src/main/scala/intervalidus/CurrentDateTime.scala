@@ -15,7 +15,7 @@ object CurrentDateTime:
   /**
     * Default behavior, using the actual clock.
     */
-  given CurrentDateTime with
+  given CurrentDateTime:
     override def now(): LocalDateTime = LocalDateTime.now()
 
   /**

@@ -93,9 +93,10 @@ object DomainAffineLikeTupleOps:
   /**
     * Base case, for a one-dimensional domain (empty tail)
     */
-  given OneDimOps[DV, DispV, ScalarV](using
-    DomainAffineValueLike[DV] { type Displacement = DispV; type Scalar = ScalarV }
-  ): DomainAffineLikeTupleOps[OneDimDomain[DV]] with
+  given OneDimOps: [DV, DispV, ScalarV]
+    => (
+      DomainAffineValueLike[DV] { type Displacement = DispV; type Scalar = ScalarV }
+  ) => DomainAffineLikeTupleOps[OneDimDomain[DV]]:
 
     private inline def headInterval(interval: Interval[OneDimDomain[DV]]): Interval1D[DV] =
       Interval1D(interval.start.head, interval.end.head)
@@ -199,20 +200,18 @@ object DomainAffineLikeTupleOps:
   /**
     * Inductive case for a domain with two or more dimensions (non-empty tail)
     */
-  given MultiDimOps[
+  given MultiDimOps: [
     DV,
     DispV,
     ScalarV,
-    DomainTail <: NonEmptyTuple: DomainAffineLike,
+    DomainTail <: NonEmptyTuple: {DomainAffineLike, DomainAffineLikeTupleOps as applyToTail},
     DispTail <: NonEmptyTuple,
     ScalarTail <: NonEmptyTuple
-  ](using
+  ] => (
     DomainAffineValueLike[DV] { type Displacement = DispV; type Scalar = ScalarV },
     DomainTail HasDisplacementType DispTail,
     DomainTail HasScalarType ScalarTail
-  )(using
-    applyToTail: DomainAffineLikeTupleOps[DomainTail]
-  ): DomainAffineLikeTupleOps[Domain1D[DV] *: DomainTail] with
+  ) => DomainAffineLikeTupleOps[Domain1D[DV] *: DomainTail]:
 
     private inline def headInterval(interval: Interval[MultiDimDomain[DV, DomainTail]]): Interval1D[DV] =
       Interval1D(interval.start.head, interval.end.head)

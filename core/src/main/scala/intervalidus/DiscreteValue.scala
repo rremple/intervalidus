@@ -58,7 +58,7 @@ object DiscreteValue:
   /**
     * Type class for integers as discrete values.
     */
-  given IntDiscreteValue: DiscreteValue[Int] with
+  given IntDiscreteValue: DiscreteValue[Int]:
     override def compare(lhs: Int, rhs: Int): Int = lhs.compareTo(rhs)
 
     override def successorOf(x: Int): Option[Int] = if x < maxValue then Some(x + 1) else None
@@ -74,7 +74,7 @@ object DiscreteValue:
   /**
     * Type class for long integers as discrete values.
     */
-  given LongDiscreteValue: DiscreteValue[Long] with
+  given LongDiscreteValue: DiscreteValue[Long]:
     override def compare(lhs: Long, rhs: Long): Int = lhs.compareTo(rhs)
 
     override def successorOf(x: Long): Option[Long] = if x < maxValue then Some(x + 1) else None
@@ -92,7 +92,7 @@ object DiscreteValue:
   /**
     * Type class for local dates as discrete values.
     */
-  given LocalDateDiscreteValue: DiscreteValue[LocalDate] with
+  given LocalDateDiscreteValue: DiscreteValue[LocalDate]:
     override def compare(lhs: LocalDate, rhs: LocalDate): Int = lhs.compareTo(rhs)
 
     override def successorOf(x: LocalDate): Option[LocalDate] =
@@ -118,7 +118,7 @@ object DiscreteValue:
     *   override this and pick your own "biggest" BigInt based on how you plan to use it rather than this theoretically
     *   biggest one...
     */
-  given BigIntDiscreteValue: DiscreteValue[BigInt] with
+  given BigIntDiscreteValue: DiscreteValue[BigInt]:
     override def compare(lhs: BigInt, rhs: BigInt): Int = lhs.compareTo(rhs)
 
     override def successorOf(x: BigInt): Option[BigInt] =

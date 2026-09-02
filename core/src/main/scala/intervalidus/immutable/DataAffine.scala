@@ -5,8 +5,6 @@ import intervalidus.DimensionalBase.{State, Transaction}
 import intervalidus.Domain.{HasDisplacementType, HasScalarType}
 import intervalidus.DomainAffineLike.CenteredKernel
 
-import scala.language.implicitConversions
-
 /**
   * Constructs dimensional data where intervals exist in an affine domain.
   */
@@ -30,11 +28,13 @@ object DataAffine extends DimensionalAffineBaseObject[DataAffine]:
   * @tparam D
   *   $intervalDomainType
   */
-class DataAffine[V, D <: NonEmptyTuple] private (
+class DataAffine[V, D <: NonEmptyTuple: DomainAffineLike as domainAffineLike] private (
   override val initialState: State[V, D]
-)(using val config: CoreConfig[D], domainAffineLike: DomainAffineLike[D])
+)(using config: CoreConfig[D])
   extends ImmutableBase[V, D, DataAffine[V, D]]
   with DimensionalAffineBase[V, D]:
+  import DataAffine.asDataAffine
+
   /**
     * $scaledAboutInDesc
     * @note
@@ -50,9 +50,7 @@ class DataAffine[V, D <: NonEmptyTuple] private (
     * @return
     *   A new structure representing this scaled about the center.
     */
-  def scaledAboutIn[H](using
-    dimOp: DomainAffineValueLike[H]
-  )(
+  def scaledAboutIn[H: DomainAffineValueLike as dimOp](
     dimensionIndex: Domain.DimensionIndex,
     center: Domain1D[H],
     scaledBy: dimOp.Scalar
@@ -84,7 +82,7 @@ class DataAffine[V, D <: NonEmptyTuple] private (
     Domain.IsAtIndex[D, dimensionIndex.type, H],
     Domain.IsUpdatableAtIndex[D, dimensionIndex.type, H]
   ): DataAffine[V, D] =
-    collectIntervals(maybeReflected1d(dimensionIndex, pivot).unlift)
+    collectIntervals(maybeReflected1d(dimensionIndex, pivot).unlift).asDataAffine
 
   /**
     * $displacedByInDesc
@@ -109,7 +107,7 @@ class DataAffine[V, D <: NonEmptyTuple] private (
     Domain.IsUpdatableAtIndex[D, dimensionIndex.type, H]
   ): DataAffine[V, D] =
     if offset == dimOp.zeroDisplacement then this
-    else collectIntervals(maybeDisplaced1d(dimensionIndex, offset).unlift)
+    else collectIntervals(maybeDisplaced1d(dimensionIndex, offset).unlift).asDataAffine
 
   /**
     * $convolvedByInDesc1
@@ -139,9 +137,7 @@ class DataAffine[V, D <: NonEmptyTuple] private (
     * @return
     *   A new structure representing the convolution of this with the supplied kernel.
     */
-  def convolvedByIn[H, K](using
-    dimOp: DomainAffineValueLike[H]
-  )(
+  def convolvedByIn[H: DomainAffineValueLike as dimOp, K](
     dimensionIndex: Domain.DimensionIndex,
     kernel: CenteredKernel[K, H],
     epsilon: dimOp.Displacement,
@@ -167,7 +163,7 @@ class DataAffine[V, D <: NonEmptyTuple] private (
     *   A new structure representing this reflected about the pivot.
     */
   def reflectedAbout(pivot: D): DataAffine[V, D] =
-    collectIntervals(maybeReflected(pivot).unlift)
+    collectIntervals(maybeReflected(pivot).unlift).asDataAffine
 
   /**
     * $scaledAboutDesc
@@ -196,7 +192,7 @@ class DataAffine[V, D <: NonEmptyTuple] private (
     *   A new structure representing this displaced by the offset.
     */
   def displacedBy[S <: NonEmptyTuple](offset: S)(using D HasDisplacementType S): DataAffine[V, D] =
-    collectIntervals(maybeDisplaced(offset).unlift)
+    collectIntervals(maybeDisplaced(offset).unlift).asDataAffine
 
   // ---------- Implement methods from ImmutableBase that create new instances ----------
   // ---  (some return Data rather than DataAffine because the resultant domain isn't necessarily an affine domain) ---
@@ -275,10 +271,10 @@ class DataAffine[V, D <: NonEmptyTuple] private (
   ): Data[V, Domain.NonEmptyTail[D]] = transactionalRead:
     Data(getByHeadDimensionData(domain))(using config = altConfig).compressedUpdate()
 
-  override def getByDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+  override def getByDimension[H: DomainValueLike](
     dimensionIndex: Domain.DimensionIndex,
     domain: Domain1D[H]
-  )(using
+  )[R <: NonEmptyTuple: DomainLike](using
     altConfig: CoreConfig[R]
   )(using
     Domain.HasIndex[D, dimensionIndex.type],
@@ -301,10 +297,10 @@ class DataAffine[V, D <: NonEmptyTuple] private (
       .empty[V, R]
       .mergeMany(getAllInternal.map(d => d.interval.dropDimension(dimensionIndex) -> d.value), mergeValues)
 
-  override def extrudeDimension[H: DomainValueLike, R <: NonEmptyTuple: DomainLike](
+  override def extrudeDimension[H: DomainValueLike](
     dimensionIndex: Domain.DimensionIndex,
     extent: Interval1D[H]
-  )(using
+  )[R <: NonEmptyTuple: DomainLike](using
     altConfig: CoreConfig[R]
   )(using
     Domain.HasIndex[R, dimensionIndex.type],

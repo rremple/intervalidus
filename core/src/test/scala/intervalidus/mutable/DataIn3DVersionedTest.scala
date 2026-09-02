@@ -58,8 +58,8 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
     val fixture = newDataIn3DVersioned(allData)(using LocalDateTime.of(2025, 8, 1, 8, 0).asCurrent)
     fixture.getByHeadDimension(0).getByHeadDimension(0).getAt(0) shouldBe Some("Hello")
     fixture
-      .getByDimension[Int, Domain.In2D[Int, Int]](2, 0)
-      .getByDimension[Int, Domain.In1D[Int]](1, 0)
+      .getByDimension(2, 0)[Domain.In2D[Int, Int]]
+      .getByDimension(1, 0)[Domain.In1D[Int]]
       .getAt(0) shouldBe Some("Hello")
 
     fixture.set((interval(5, 15) x unbounded[Int] x unbounded[Int]) -> "to")
@@ -276,7 +276,7 @@ class DataIn3DVersionedTest extends AnyFunSuite with Matchers with DataIn3DVersi
     assertThrows[NoSuchElementException]:
       fixture.get
 
-    fixture.flatMap(d => DataVersioned.ofValue[String, IntDim](d.value))
+    fixture.flatMap(d => DataVersioned.ofValue(d.value)[IntDim])
     val expectedData6 = List((unbounded[Int] x unbounded[Int] x unbounded[Int]) -> "Hey!!!")
     fixture.getAll.toList shouldBe expectedData6
     fixture.get shouldBe "Hey!!!"

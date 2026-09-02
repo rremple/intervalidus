@@ -32,14 +32,15 @@ object Gen:
     Iterator.continually:
       shards(random.int(0, shards.size - 1))
 
-  def frequency[T](gs: (Int, Gen[T])*)(using random: RandomNumbers): Gen[T] =
-    val weightTailSums = gs.map(_._1).tails.map(_.sum).toList
+  def frequency[T](gs: (weight: Int, generator: Gen[T])*)(using random: RandomNumbers): Gen[T] =
+    val weightTailSums = gs.map(_.weight).tails.map(_.sum).toList
     val totalWeight = weightTailSums.head
-    val thresholds = weightTailSums.tail.map(sum => 1.0 - (sum.toDouble / totalWeight)).zip(gs.map(_._2))
+    val thresholds: List[(cumulativeWeight: Double, generator: Gen[T])] =
+      weightTailSums.tail.map(sum => 1.0 - (sum.toDouble / totalWeight)).zip(gs.map(_.generator))
     val it = Iterator.unfold(()): _ =>
       for
-        (_, g) <- thresholds.find(_._1 > random.double())
-        t <- g.iterator.nextOption()
+        selected <- thresholds.find(_.cumulativeWeight > random.double())
+        t <- selected.generator.iterator.nextOption()
       yield (t, ())
     Gen(it)
 

@@ -12,7 +12,7 @@ import intervalidus.DimensionalBase.{ReadThatTransaction, UpdateTransaction}
   * @tparam D
   *   $intervalDomainType
   */
-trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, D]:
+trait MutableBase[V, D <: NonEmptyTuple: {DomainLike, CoreConfig}] extends DimensionalBase[V, D]:
 
   /**
     * Wraps a function body in a new update transaction, committing the resulting changes and returning the result.
@@ -38,9 +38,9 @@ trait MutableBase[V, D <: NonEmptyTuple: DomainLike] extends DimensionalBase[V, 
   protected def transactionalUpdateWith[T, B, S <: NonEmptyTuple](that: DimensionalBase[B, S])(
     body: UpdateTransaction[V, D] ?=> ReadThatTransaction[B, S] => T
   ): T = synchronized:
-    val (updateTransaction, readThatTransaction) = atomicStartUpdateTransactionWith(that)
-    val result = body(using updateTransaction)(readThatTransaction)
-    commit()(using updateTransaction)
+    val transaction = atomicStartUpdateTransactionWith(that)
+    val result = body(using transaction.updateThis)(transaction.readThat)
+    commit()(using transaction.updateThis)
     result
 
   /**

@@ -5,8 +5,6 @@ import intervalidus.DiscreteValue.given
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
-import scala.language.implicitConversions
-
 /*
  * Behaviors that only depend on the mutable base trait methods (do not differ in 1D, 2D, or 3D).
  */

@@ -13,7 +13,8 @@ import intervalidus.DimensionalBase.{ReadThatTransaction, Transaction, UpdateTra
   * @tparam Self
   *   F-bounded self-type.
   */
-trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, D, Self]] extends DimensionalBase[V, D]:
+trait ImmutableBase[V, D <: NonEmptyTuple: {DomainLike, CoreConfig}, Self <: ImmutableBase[V, D, Self]]
+  extends DimensionalBase[V, D]:
 
   this: Self =>
 
@@ -31,12 +32,12 @@ trait ImmutableBase[V, D <: NonEmptyTuple: DomainLike, Self <: ImmutableBase[V, 
   protected def copyAndModifyWith(that: DimensionalBase[V, D])(
     f: Self => UpdateTransaction[V, D] ?=> ReadThatTransaction[V, D] => Unit
   ): Self =
-    val (readThisTransaction, readThatTransaction) = atomicStartReadTransactionWith(that)
+    val transaction = atomicStartReadTransactionWith(that)
     // in this case, copy always uses the same config as this (given abstractly in DimensionalBase)
-    val result = copyInternal(using readThisTransaction)
+    val result = copyInternal(using transaction.readThis)
     // dirty because result.state is already copied
     given UpdateTransaction[V, D] = UpdateTransaction.startDirty(result.state)
-    f(result)(readThatTransaction)
+    f(result)(transaction.readThat)
     result.commit()
     result
 

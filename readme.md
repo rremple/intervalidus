@@ -623,7 +623,6 @@ println(s"reLU at  0 = ${reLU(0)}") // reLU at  0 = 0
 println(s"reLU at  1 = ${reLU(1)}") // reLU at  1 = 1
 ```
 
-Polynomial // TODO
 When used in conjunction with the `Polynomial` class one can use `DataFunction` to represent
 [splines](https://en.wikipedia.org/wiki/Spline_(mathematics)) (piecewise polynomial functions). Arithmetic and exact
 calculus methods are available through extension methods. For example:

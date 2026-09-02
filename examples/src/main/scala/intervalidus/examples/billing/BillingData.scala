@@ -5,7 +5,6 @@ import intervalidus.*
 import intervalidus.immutable.Data
 
 import java.time.LocalDate
-import scala.language.implicitConversions
 
 /**
   * Supports toy billing systems with core data definition.
@@ -49,7 +48,7 @@ object BillingData:
   object Tier:
     // Test tiers, where on April 20, the rates go up 20% (basic from $1.00 to $1.20, premium from $1.50 to $1.80)
     private val basicDailyRate =
-      Data.ofValue[Dollars, Domain.In1D[LocalDate]](1.0) + (intervalFromAfter(Apr / 20) -> 1.2)
+      Data.ofValue[Dollars](1.0)[Domain.In1D[LocalDate]] + (intervalFromAfter(Apr / 20) -> 1.2)
     val basic: Tier = Tier(TierId(1), "basic", basicDailyRate)
     val premium: Tier = Tier(TierId(2), "premium", basicDailyRate.mapValues(_ * 1.5))
     val all: Map[TierId, Tier] = Map.from(Seq(basic.withId, premium.withId))
@@ -78,7 +77,7 @@ object BillingData:
 
   object Transaction:
     // order transactions by date, period, amount, and remark
-    given Ordering[Transaction] with
+    given Ordering[Transaction]:
       override def compare(x: Transaction, y: Transaction): Int =
         def by[T](getFrom: Transaction => T)(using order: Ordering[T]): Option[Int] =
           Some(order.compare(getFrom(x), getFrom(y))).filterNot(_ == 0)

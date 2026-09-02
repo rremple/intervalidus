@@ -17,14 +17,14 @@ import scala.jdk.CollectionConverters.*
   */
 object BsonTransformer:
 
-  given Writer[BsonValue] with
+  given Writer[BsonValue]:
     def write0[Out](out: Visitor[?, Out], in: BsonValue): Out = bsonValueTransformer.transform(in, out)
 
   given Reader[BsonValue] = Reader.Delegate(bsonValueTransformer)
 
-  given (using bsonValueWriter: Writer[BsonValue]): Writer[BsonDocument] = bsonValueWriter.narrow
+  given (bsonValueWriter: Writer[BsonValue]) => Writer[BsonDocument] = bsonValueWriter.narrow
 
-  given (using bsonValueReader: Reader[BsonValue]): Reader[BsonDocument] = bsonValueReader.map(_.asDocument())
+  given (bsonValueReader: Reader[BsonValue]) => Reader[BsonDocument] = bsonValueReader.map(_.asDocument())
 
   private val bsonValueTransformer: AstTransformer[BsonValue] = new AstTransformer:
 

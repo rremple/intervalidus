@@ -33,8 +33,10 @@ object MultiMapSorted:
     * @return
     *   a new multimap
     */
-  def from[K, V: Ordering](elems: Iterable[(K, V)]): MultiMapSorted[K, V] =
-    val elements = elems.groupMap(_._1)(_._2).map((k, vs) => k -> SortedSet.from(vs))
+  def from[K, V: Ordering](elems: Iterable[(key: K, value: V)]): MultiMapSorted[K, V] =
+    val elements = elems
+      .groupMap(_.key)(_.value)
+      .map((key, values) => key -> SortedSet.from(values))
     val dict = mutable.Map.from(elements).withDefaultValue(SortedSet.empty)
     new MultiMapSorted[K, V](dict)
 
@@ -56,26 +58,26 @@ class MultiMapSorted[K, V: Ordering] private (dict: mutable.Map[K, SortedSet[V]]
     * @param elem
     *   a key-value pair to associate.
     */
-  def addOne(elem: (K, V)): Unit = dict.update(elem._1, dict(elem._1) + elem._2)
+  def addOne(elem: (key: K, value: V)): Unit = dict.update(elem.key, dict(elem.key) + elem.value)
 
   /**
     * Disassociate a value from a key.
     * @param elem
     *   a key-value pair which should no longer be associated.
     */
-  def subtractOne(elem: (K, V)): Unit =
-    val newValue = dict(elem._1) - elem._2
-    if newValue.isEmpty then dict.remove(elem._1)
-    else dict.update(elem._1, newValue)
+  def subtractOne(elem: (key: K, value: V)): Unit =
+    val newValue = dict(elem.key) - elem.value
+    if newValue.isEmpty then dict.remove(elem.key)
+    else dict.update(elem.key, newValue)
 
   /**
     * Associate many keys and values.
     * @param elems
     *   key-value pairs to associate.
     */
-  def addAll(elems: Iterable[(K, V)]): Unit =
+  def addAll(elems: Iterable[(key: K, value: V)]): Unit =
     elems
-      .groupMap(_._1)(_._2)
+      .groupMap(_.key)(_.value)
       .foreach: (key, values) =>
         dict.update(key, dict(key) ++ values)
 

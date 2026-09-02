@@ -123,13 +123,13 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
 
     fixture.getByHeadDimension(dayZero).getByHeadDimension(dayZero).getAt(0) shouldBe Some("Hello")
     fixture
-      .getByDimension[Int, Domain.In2D[LocalDate, LocalDate]](2, 0)
-      .getByDimension[LocalDate, Domain.In1D[LocalDate]](1, dayZero)
+      .getByDimension(2, 0)[Domain.In2D[LocalDate, LocalDate]]
+      .getByDimension(1, dayZero)[Domain.In1D[LocalDate]]
       .getAt(dayZero) shouldBe Some("Hello")
 
   test("Immutable: Simple toString"):
     val fixturePadData = Data
-      .ofValue[String, IntDim]("H")
+      .ofValue("H")[IntDim]
       .set((intervalFrom(1) x intervalTo(0) x interval(1, 9)) -> "W")
     // if needed: .recompressAll()
     // println(fixturePadData.toString)
@@ -147,7 +147,7 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
     concat.result() shouldBe "H->{-∞, -∞, -∞} H->{-∞, -∞, 1} H->{-∞, -∞, 10} W->{1, -∞, 1} H->{1, 1, 1} "
 
     val fixturePadLabel = Data
-      .ofValue[String, IntDim]("Helloooooooooo")
+      .ofValue("Helloooooooooo")[IntDim]
       .set((intervalFrom(1) x unbounded[Int] x unbounded[Int]) -> "Wooooooorld")
     // println(fixturePadLabel.toString)
     fixturePadLabel.toString shouldBe
@@ -232,7 +232,6 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
       def flipEverything1: Data.In3D[String, Int, LocalDate, LocalDate] =
         val flippedValidData = d.getAll.map:
           case (horizontal x_: vertical x_: depth) ->: v => (depth x vertical x horizontal) -> v.reverse
-          case unexpected => fail(s"$unexpected did not match pattern") // should never happen
         Data(flippedValidData)
 
       def flipEverything2: Data.In3D[String, Int, LocalDate, LocalDate] =
@@ -269,7 +268,7 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
 
     val fixture4 =
       fixture3.flatMap: d =>
-        Data.ofValue[String, MixedDim](d.value).map(x => d.interval -> x.value)
+        Data.ofValue(d.value)[MixedDim].map(x => d.interval -> x.value)
     val expectedData4 = List(
       (unboundedDate x unboundedDate x intervalTo(5)) -> "Hey!!!",
       (unboundedDate x unboundedDate x intervalFrom(16)) -> "World!!!"
@@ -279,7 +278,7 @@ class DataIn3DTest extends AnyFunSuite with Matchers with DataIn3DBaseBehaviors 
       fixture4.get
 
     val fixture5 =
-      fixture4.filter(_.value == "Hey!!!").flatMap(d => Data.ofValue[String, MixedDim](d.value))
+      fixture4.filter(_.value == "Hey!!!").flatMap(d => Data.ofValue(d.value)[MixedDim])
     val expectedData5 = List((unboundedDate x unboundedDate x unbounded[Int]) -> "Hey!!!")
     fixture5.getAll.toList shouldBe expectedData5
     fixture5.get shouldBe "Hey!!!"

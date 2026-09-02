@@ -445,7 +445,7 @@ object SoftwareProductFeatureManagement:
       * "Across what time periods and environments was the specific combination {Feat('A'), Feat('B')} active?" This
       * goes beyond individual features to sets of features, leveraging DataMulti's design.
       */
-    val comboReleased: Option[(LocalDate, Release)] = currentFeatureReleasePlan.toImmutable
+    val comboReleased: Option[(effectiveDate: LocalDate, release: Release)] = currentFeatureReleasePlan.toImmutable
       .filter(d => (d.value contains Feat("A")) && (d.value contains Feat("B")))
       .getAll
       .map(_.interval)
@@ -454,13 +454,13 @@ object SoftwareProductFeatureManagement:
 
     print(s"\nFeature A/B combination was ")
     comboReleased match
-      case None                           => println(s"never released")
-      case Some((effectiveDate, release)) =>
-        println(s"initially released on $effectiveDate in $release - regional deployment history:")
+      case None        => println(s"never released")
+      case Some(combo) =>
+        println(s"initially released on ${combo.effectiveDate} in ${combo.release} - regional deployment history:")
         val subsetData: DataMulti.In2D[Region, LocalDate, Environment] =
-          currentRegionalDeploymentPlan.getByDimension(2, release) // for this release
+          currentRegionalDeploymentPlan.getByDimension(2, combo.release) // for this release
         subsetData
-          .getIntersecting(effectiveOn(effectiveDate) x anyEnvironment) // effective in our timeline
+          .getIntersecting(effectiveOn(combo.effectiveDate) x anyEnvironment) // effective in our timeline
           .foreach:
             case (effective x_: environments) ->: regions =>
               println(s" - effective $effective deployed to ${regions.mkString("/")} in $environments environment(s)")
