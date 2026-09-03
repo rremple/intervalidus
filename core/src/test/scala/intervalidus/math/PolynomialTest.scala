@@ -224,3 +224,26 @@ class PolynomialTest extends AnyFunSuite with Matchers:
       val _ = fitCubicSpline(Seq((0.0, 0.0), (1.0, 4.0))) // At least 3 points are required for a cubic spline
     assertThrows[Exception]:
       val _ = fitCubicSpline(Seq((4.0, 40.0), (0.0, 0.0), (1.0, 4.0))) // x values must be strictly increasing
+
+  test("Taxes using spline  (like in DataIn1DBaseBehaviors)")
+  // Marginal rate function: a piecewise step function (degree 0)
+  // https://www.fidelity.com/learning-center/personal-finance/tax-brackets
+  val marginalRates: Spline = DataFunction
+    .of(intervalFrom(0.0) -> constant(0.10))
+    .set(intervalFrom(23200.0) -> constant(0.12))
+    .set(intervalFrom(94300.0) -> constant(0.22))
+    .set(intervalFrom(201050.0) -> constant(0.24))
+    .set(intervalFrom(383900.0) -> constant(0.32))
+    .set(intervalFrom(487450.0) -> constant(0.35))
+    .set(intervalFrom(731200.0) -> constant(0.37))
+
+  // Total tax curve: continuous piecewise linear (degree 1)
+  val totalTaxCurve: Spline = marginalRates.integral
+
+  val expectedTax = 0.1 * (23200 - 0) +
+    0.12 * (94300 - 23200) +
+    0.22 * (201050 - 94300) +
+    0.24 * (250000 - 201050)
+
+  totalTaxCurve(250000.0) shouldBe expectedTax // 2320 + 8532 + 23485 + 11747
+  marginalRates.integrate(interval(0.0, 250000.0)) shouldBe expectedTax
