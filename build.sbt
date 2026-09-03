@@ -208,11 +208,12 @@ lazy val `intervalidus-pickle` = (project in file("json/common"))
   .dependsOn(core)
   .settings(commonPublishSettings("intervalidus-pickle-common"))
 
+val jackson2Version = "2.22.2"
 lazy val `intervalidus-weepickle` = (project in file("json/weepickle"))
   .dependsOn(core, `intervalidus-pickle` % "compile->compile;test->test")
   .settings(commonPublishSettings("intervalidus-weepickle"))
   .settings(
-    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.22.2",
+    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % jackson2Version,
     libraryDependencies += "com.rallyhealth" %% "weepickle-v1" % "1.9.1"
   )
 
@@ -237,7 +238,9 @@ lazy val `intervalidus-play` = (project in file("json/play"))
   .dependsOn(core, `intervalidus-pickle` % "test->test")
   .settings(commonPublishSettings("intervalidus-play"))
   .settings(
-    libraryDependencies += "org.playframework" %% "play-json" % "3.0.6"
+    libraryDependencies += "org.playframework" %% "play-json" % "3.0.6",
+    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % jackson2Version,
+    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % jackson2Version,
   )
 
 lazy val `intervalidus-tinyrule` = (project in file("sidequests/tinyrule"))
