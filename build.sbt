@@ -5,15 +5,19 @@ import javax.xml.parsers.DocumentBuilderFactory
 
 def latestScala3Nightly(): Option[String] =
   try
-    val url = URI.create("https://repo.scala-lang.org/artifactory/maven-nightlies/org/scala-lang/scala3-compiler_3/maven-metadata.xml").toURL
+    val url = URI
+      .create(
+        "https://repo.scala-lang.org/artifactory/maven-nightlies/org/scala-lang/scala3-compiler_3/maven-metadata.xml"
+      )
+      .toURL
     val builder = DocumentBuilderFactory.newInstance().newDocumentBuilder()
     val nodes = builder.parse(url.openStream()).getElementsByTagName("latest")
-    if nodes.getLength == 0 then None else
+    if nodes.getLength == 0 then None
+    else
       val latest = nodes.item(0).getTextContent
       println(s"Found latest: $latest")
       Some(latest)
-  catch
-    case _: Exception => None
+  catch case _: Exception => None
 
 //resolvers += Resolver.scalaNightlyRepository
 //val scalaVersionLastKnownGood = "3.10.0-RC1-bin-20260812-7adc7af-NIGHTLY"
@@ -240,7 +244,7 @@ lazy val `intervalidus-play` = (project in file("json/play"))
   .settings(
     libraryDependencies += "org.playframework" %% "play-json" % "3.0.6",
     libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % jackson2Version,
-    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % jackson2Version,
+    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % jackson2Version
   )
 
 lazy val `intervalidus-tinyrule` = (project in file("sidequests/tinyrule"))
@@ -265,7 +269,7 @@ lazy val `intervalidus-example-mongodb` = (project in file("example-mongodb"))
       "org.mongodb" % "mongodb-driver-sync" % mongodbVersion,
       "com.dimafeng" %% "testcontainers-scala-scalatest" % testcontainersVersion % Test,
       "com.dimafeng" %% "testcontainers-scala-mongodb" % testcontainersVersion % Test,
-      "org.slf4j" % "slf4j-nop" % "2.0.18" % Test
+      "org.slf4j" % "slf4j-nop" % "2.0.19" % Test
     )
   )
 
