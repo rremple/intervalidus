@@ -52,45 +52,6 @@ object DataFunction extends DimensionalFunctionBaseObject[DataFunction]:
   *   2. When querying or modifying existing pieces dynamically, reuse references retrieved directly from the structure
   *      (e.g., `df.getDataAt(pt).map(_.value)`).
   *
-  * @note
-  *   This class inherits [[DimensionalFunctionBase]] methods exported from the underlying [[mutable.Data]] structure,
-  *   and also exports additional underlying methods. Because of this
-  *   [[https://github.com/scala/scala3/issues/14342 Scala issue]], only exported methods without parameters are
-  *   rendered correctly in the API docs. Although not in the API doc, these methods are also available:
-  *   - [[mutable.Data.isDefinedAt isDefinedAt]]
-  *   - [[mutable.Data.getDataAt getDataAt]]
-  *   - [[mutable.Data.getIntersecting getIntersecting]]
-  *   - [[mutable.Data.intersects intersects]]
-  *   - [[mutable.Data.isSubsetOf isSubsetOf]]
-  *   - [[mutable.Data.intervals intervals]]
-  *   - [[mutable.Data.foldLeft foldLeft]]
-  *   - [[mutable.Data.diffActionsFrom diffActionsFrom]]
-  *   - [[mutable.Data.⊆ ⊆]]
-  *   - [[mutable.Data.map map]]
-  *   - [[mutable.Data.mapIntervals mapIntervals]]
-  *   - [[mutable.Data.collect collect]]
-  *   - [[mutable.Data.collectValues collectValues]]
-  *   - [[mutable.Data.collectIntervals collectIntervals]]
-  *   - [[mutable.Data.filter filter]]
-  *   - [[mutable.Data.set set]]
-  *   - [[mutable.Data.setMany setMany]]
-  *   - [[mutable.Data.setIfNoConflict setIfNoConflict]]
-  *   - [[mutable.Data.update update]]
-  *   - [[mutable.Data.replace replace]]
-  *   - [[mutable.Data.replaceByKey replaceByKey]]
-  *   - [[mutable.Data.remove remove]]
-  *   - [[mutable.Data.removeByKey removeByKey]]
-  *   - [[mutable.Data.removeMany removeMany]]
-  *   - [[mutable.Data.removeValue removeValue]]
-  *   - [[mutable.Data.compress compress]]
-  *   - [[mutable.Data.compressAll compressAll]]
-  *   - [[mutable.Data.recompressAll recompressAll]]
-  *   - [[mutable.Data.applyDiffActions applyDiffActions]]
-  *   - [[mutable.Data.fill fill]]
-  *   - [[mutable.Data.+ +]]
-  *   - [[mutable.Data.++ ++]]
-  *   - [[mutable.Data.- -]]
-  *   - [[mutable.Data.-- --]]
   * @tparam V
   *   the result type of the domain function managed as data.
   * @tparam D
@@ -291,7 +252,6 @@ class DataFunction[V, D <: NonEmptyTuple: DomainLike] private (
   def ∩(interval: Interval[D]): Unit = intersection(interval)
 
   // Everything else exports cleanly
-  // All these methods take parameters (or have an empty parameter list), so scaladoc does not generate
   export underlying.{
     map,
     mapIntervals,

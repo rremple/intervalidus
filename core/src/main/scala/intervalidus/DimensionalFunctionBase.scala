@@ -202,20 +202,6 @@ trait DimensionalFunctionBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimens
   * Interface is similar to [[DimensionalBase]], but it operates on an underlying [[mutable.Data]] where values are
   * domain functions.
   *
-  * @note
-  *   This class exports methods from the underlying [[mutable.Data]] structure. Because of this
-  *   [[https://github.com/scala/scala3/issues/14342 Scala issue]], only exported methods without parameters are
-  *   rendered correctly in the API docs. Although not in the API doc, these methods are also available:
-  *   - [[mutable.Data.isDefinedAt isDefinedAt]]
-  *   - [[mutable.Data.getDataAt getDataAt]]
-  *   - [[mutable.Data.getIntersecting getIntersecting]]
-  *   - [[mutable.Data.intersects intersects]]
-  *   - [[mutable.Data.isSubsetOf isSubsetOf]]
-  *   - [[mutable.Data.intervals intervals]]
-  *   - [[mutable.Data.foldLeft foldLeft]]
-  *   - [[mutable.Data.diffActionsFrom diffActionsFrom]]
-  *   - [[mutable.Data.⊆ ⊆]]
-  *
   * @tparam V
   *   the result type of the domain function managed as data.
   * @tparam D
@@ -594,7 +580,6 @@ trait DimensionalFunctionBase[V, D <: NonEmptyTuple: DomainLike](
   // ---------- (no function-specific arguments or return types) ----------
 
   export underlying.{
-    // These methods don't take parameters, so scaladoc generates fine
     isEmpty,
     size,
     get,
@@ -604,7 +589,6 @@ trait DimensionalFunctionBase[V, D <: NonEmptyTuple: DomainLike](
     values,
     allIntervals,
     boundingInterval,
-    // These methods take parameters, so scaladoc does not generate
     isDefinedAt,
     getDataAt,
     getIntersecting,

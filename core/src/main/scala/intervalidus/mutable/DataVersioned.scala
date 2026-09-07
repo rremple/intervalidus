@@ -82,26 +82,6 @@ object DataVersioned extends DimensionalVersionedBaseObject[DataVersioned]:
   * @note
   *   $classNote
   *
-  * @note
-  *   This class inherits [[DimensionalVersionedBase]] methods exported from the underlying [[mutable.Data]] structure,
-  *   and also exports additional underlying methods. Because of this
-  *   [[https://github.com/scala/scala3/issues/14342 Scala issue]], only exported methods without parameters are
-  *   rendered correctly in the API docs. Although not in the API doc, these methods are also available:
-  *   - [[mutable.Data.isDefinedAt isDefinedAt]]
-  *   - [[mutable.Data.apply apply]]
-  *   - [[mutable.Data.foldLeft foldLeft]]
-  *   - [[mutable.Data.compress compress]]
-  *   - [[mutable.Data.compressAll compressAll]]
-  *   - [[mutable.Data.recompressAll recompressAll]]
-  *   - [[mutable.Data.applyDiffActions applyDiffActions]]
-  *   - [[mutable.Data.filter filter]]
-  *   - [[mutable.Data.map map]]
-  *   - [[mutable.Data.collect collect]]
-  *   - [[mutable.Data.mapValues mapValues]]
-  *   - [[mutable.Data.collectValues collectValues]]
-  *   - [[mutable.Data.mapIntervals mapIntervals]]
-  *   - [[mutable.Data.collectIntervals collectIntervals]]
-  *
   * @param config
   *   $configParam
   * @tparam V

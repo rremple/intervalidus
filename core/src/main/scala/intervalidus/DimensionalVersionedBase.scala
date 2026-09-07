@@ -305,14 +305,6 @@ trait DimensionalVersionedBaseObject[Constructed[_, _ <: NonEmptyTuple] <: Dimen
   * @note
   *   Updates starting with "current" also update unapproved changes (since intervalFrom goes to the Top).
   *
-  * @note
-  *   This class exports methods from the underlying [[mutable.Data]] structure. Because of this
-  *   [[https://github.com/scala/scala3/issues/14342 Scala issue]], only exported methods without parameters are
-  *   rendered correctly in the API docs. Although not in the API doc, these methods are also available:
-  *   - [[mutable.Data.isDefinedAt isDefinedAt]]
-  *   - [[mutable.Data.apply apply]]
-  *   - [[mutable.Data.foldLeft foldLeft]]
-  *
   * @tparam V
   *   $dataValueType
   * @tparam D
