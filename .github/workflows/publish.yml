@@ -89,4 +89,4 @@ jobs:
         # Automatically delete credentials when sbt completes
         trap 'rm -f ~/.sbt/1.0/sonatype.sbt' EXIT
 
-        sbt "publishSigned; sonaRelease"
+        sbt "clean; publishSigned; sonaRelease"
