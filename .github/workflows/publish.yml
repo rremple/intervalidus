@@ -53,6 +53,9 @@ jobs:
         passphrase: ${{ secrets.PGP_PASSPHRASE }}
 
     - name: Build and Package Site
+      # For now use 3.10 for Scaladoc until 3.9 becomes more stable
+      env:
+        SCALA_VERSION: "3.10.0-RC1"
       run: sbt "makeSite; siteCheckAll"
 
     - name: Setup Pages Infrastructure

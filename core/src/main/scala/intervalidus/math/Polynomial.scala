@@ -531,8 +531,10 @@ object Polynomial:
       val secondOrder = c(i)
       val thirdOrder = (c(i + 1) - c(i)) / (3.0 * h(i))
       val dx = Polynomial.x - x(i)
+
+      /** Use Horner's method to avoid floating point artifacts: [[https://en.wikipedia.org/wiki/Horner%27s_method]] */
       val pieceFunction: DomainFunction[Double, In1D[Double]] =
-        (thirdOrder * (dx ^ 3)) + (secondOrder * (dx ^ 2)) + (firstOrder * dx) + y(i)
+        ((thirdOrder * dx + secondOrder) * dx + firstOrder) * dx + y(i)
 
       pieceInterval -> pieceFunction
 

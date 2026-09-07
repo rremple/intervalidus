@@ -163,13 +163,13 @@ object Fact:
     * @return
     *   A collection of attributes representing the provided element.
     */
-  private inline def attributesFromOneElement[T](elementName: String, elementValue: T): Iterable[Attribute[?]] =
+  private inline def attributesFromOneElement[T](elementName: String)(elementValue: T): Iterable[Attribute[?]] =
     summonFrom:
       case given AttributeValueLike[T] => Seq(Attribute(elementName, elementValue))
       case _                           =>
         inline elementValue.asMatchable match
-          case a: Option[?] => a.toSeq.flatMap(attributesFromOneElement(elementName, _))
-          case a: Set[?]    => a.toSeq.flatMap(attributesFromOneElement(elementName, _))
+          case a: Option[?] => a.toSeq.flatMap(attributesFromOneElement(elementName))
+          case a: Set[?]    => a.toSeq.flatMap(attributesFromOneElement(elementName))
           case a            => Seq(Attribute(elementName, a.toString)) // fallback to String
 
   /**
@@ -203,7 +203,7 @@ object Fact:
         attributesFromElements[elementsTailTypes](
           elementNames.tail,
           elementValues.tail,
-          accumulatedAttributes ++ attributesFromOneElement(elementNames.head, typedElement)
+          accumulatedAttributes ++ attributesFromOneElement(elementNames.head)(typedElement)
         )
 
   /**

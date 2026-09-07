@@ -167,12 +167,12 @@ object Coordinate:
         protoBoxes: Vector[MinMaxCoordinates] = Vector.empty
       ): Vector[MinMaxCoordinates] = minMidMax.headOption match
         case Some(i) =>
-          def growProtoBox(proto: MinMaxCoordinates, appendMin: Double, appendMax: Double) =
+          def growProtoBox(appendMin: Double, appendMax: Double)(proto: MinMaxCoordinates) =
             (proto.min.appended(appendMin), proto.max.appended(appendMax))
 
           val newProtoBoxes =
             if protoBoxes.isEmpty then Vector((Array(i.min), Array(i.mid)), (Array(i.mid), Array(i.max)))
-            else protoBoxes.map(growProtoBox(_, i.min, i.mid)) ++ protoBoxes.map(growProtoBox(_, i.mid, i.max))
+            else protoBoxes.map(growProtoBox(i.min, i.mid)) ++ protoBoxes.map(growProtoBox(i.mid, i.max))
           helper(minMidMax.tail, newProtoBoxes)
 
         case None => protoBoxes

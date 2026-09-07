@@ -71,9 +71,9 @@ object IntervalGenerator:
       val lattice = (1 to edgePoints).foldLeft(List.empty[Int]): (acc, _) =>
         val size = rand.int(1, sizeMax)
         acc match
-          case Nil                                                  => List(intRange.end - size)
-          case prior :: tail if intRange.contains(prior - size - 1) => (prior - size) :: prior :: tail
-          case cannotAddAnymore                                     => cannotAddAnymore
+          case Nil                                               => List(intRange.end - size)
+          case prior :: _ if intRange.contains(prior - size - 1) => (prior - size) :: acc
+          case cannotAddAnymore                                  => cannotAddAnymore
 
       val first = Interval1D.intervalToBefore(lattice.head)
       val last = Interval1D.intervalFrom(lattice.last)

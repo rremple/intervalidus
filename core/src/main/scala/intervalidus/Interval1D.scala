@@ -327,8 +327,7 @@ object Interval1D:
     intervals: Iterable[Interval1D[T]]
   ): Iterable[Interval1D[T]] = intervals.foldRight(List.empty[Interval1D[T]]):
     case (left, right :: tail) if (left ~> right) || (left intersects right) => (left ∪ right) :: tail
-    case (left, right :: tail)                                               => left :: right :: tail
-    case (left, Nil)                                                         => List(left)
+    case (left, right)                                                       => left :: right
 
   /**
     * Checks if the collection of intervals is compressible. That is, are there any intervals that are adjacent to, or

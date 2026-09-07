@@ -26,7 +26,8 @@ lazy val latestScala3Nightly: Option[String] =
 //resolvers += Resolver.scalaNightlyRepository
 //val scalaVersionLastKnownGood = "3.10.1-RC1-bin-20260903-297c812-NIGHTLY"
 //scalaVersion := latestScala3Nightly.getOrElse(scalaVersionLastKnownGood)
-scalaVersion := "3.9.0"
+val defaultScalaVersion = "3.9.0"
+scalaVersion := sys.env.getOrElse("SCALA_VERSION", defaultScalaVersion)
 
 organization := "io.github.rremple"
 versionScheme := Some("early-semver")
