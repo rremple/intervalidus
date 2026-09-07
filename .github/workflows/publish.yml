@@ -53,10 +53,10 @@ jobs:
         passphrase: ${{ secrets.PGP_PASSPHRASE }}
 
     - name: Build and Package Site
-      # For now use 3.10 for Scaladoc until 3.9 becomes more stable
+      # For now use 3.10 for Scaladoc until 3.9 works; need shutdown so 3.10 doesn't carry over into publish step
       env:
         SCALA_VERSION: "3.10.0-RC1"
-      run: sbt "makeSite; siteCheckAll"
+      run: sbt "makeSite; siteCheckAll; shutdown"
 
     - name: Setup Pages Infrastructure
       uses: actions/configure-pages@v6
@@ -89,4 +89,4 @@ jobs:
         # Automatically delete credentials when sbt completes
         trap 'rm -f ~/.sbt/1.0/sonatype.sbt' EXIT
 
-        sbt "clean; publishSigned; sonaRelease"
+        sbt "publishSigned; sonaRelease"
