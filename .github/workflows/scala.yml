@@ -40,3 +40,6 @@ jobs:
     - name: Upload dependency graph
       if: github.event_name == 'push' && github.ref == 'refs/heads/master'
       uses: scalacenter/sbt-dependency-submission@v3
+      with:
+        # Explicitly drop compiler and scaladoc configurations
+        configs-ignore: 'scala-tool scala-doc-tool'
