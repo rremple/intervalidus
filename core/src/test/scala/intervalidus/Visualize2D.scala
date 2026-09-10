@@ -21,8 +21,8 @@ object Visualize2D:
     title: String
   ): Unit =
     val mainPanel = new Visualize2D(validData, title)
-    val frame = new JFrame("Visualize 2D Data")
-    frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
+    val frame = JFrame("Visualize 2D Data")
+    frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
     frame.getContentPane.add(mainPanel)
     frame.pack()
     frame.setLocationByPlatform(true)
@@ -45,7 +45,7 @@ protected class Visualize2D[V, R1: DomainValueLike, R2: DomainValueLike](
   private val horizontalInterstitialMargin: Double = 20.0
   private val outsideMargin: Double = 40.0 // Note that the title is printed within this margin
 
-  override def getPreferredSize: Dimension = new Dimension(1200, 500) // TODO: can we do better than guessing?
+  override def getPreferredSize: Dimension = Dimension(1200, 500) // just the initial width and height
 
   private val horizontalIntervals = Interval1D.uniqueIntervals(validData.map(_.interval.horizontal))
   private val verticalIntervals = Interval1D.uniqueIntervals(validData.map(_.interval.vertical))
@@ -71,11 +71,11 @@ protected class Visualize2D[V, R1: DomainValueLike, R2: DomainValueLike](
       graphics.drawString(label, labelPosition.getX.toInt, labelPosition.getY.toInt)
 
     def drawLeftEdge(rectangle: Rectangle2D.Double): Unit =
-      val edge = new Line2D.Double(rectangle.getX, rectangle.getY, rectangle.getX, rectangle.getY + rectangle.getHeight)
+      val edge = Line2D.Double(rectangle.getX, rectangle.getY, rectangle.getX, rectangle.getY + rectangle.getHeight)
       graphics.draw(edge)
 
     def drawTopEdge(rectangle: Rectangle2D.Double): Unit =
-      val edge = new Line2D.Double(rectangle.getX, rectangle.getY, rectangle.getX + rectangle.getWidth, rectangle.getY)
+      val edge = Line2D.Double(rectangle.getX, rectangle.getY, rectangle.getX + rectangle.getWidth, rectangle.getY)
       graphics.draw(edge)
 
     val maxLabelHeight =
@@ -94,7 +94,7 @@ protected class Visualize2D[V, R1: DomainValueLike, R2: DomainValueLike](
     val verticalPositionData = verticalIntervals.zipWithIndex.map: (interval, index) =>
       val startPosition = verticalPositionByIndex(index)
       val endPosition = verticalPositionByIndex(index + 1)
-      val rectangle = new Rectangle2D.Double(
+      val rectangle = Rectangle2D.Double(
         outsideMargin,
         startPosition,
         maxVerticalLabelWidth + horizontalInterstitialMargin,
@@ -109,7 +109,7 @@ protected class Visualize2D[V, R1: DomainValueLike, R2: DomainValueLike](
     val verticalStartPosition = verticalPositionByIndex(0)
     val verticalEndPosition = verticalPositionByIndex(verticalIntervals.size)
     val verticalSize = verticalStartPosition + outsideMargin
-    val verticalEndRectangle = new Rectangle2D.Double(
+    val verticalEndRectangle = Rectangle2D.Double(
       outsideMargin,
       verticalEndPosition,
       maxVerticalLabelWidth + horizontalInterstitialMargin,
@@ -125,7 +125,7 @@ protected class Visualize2D[V, R1: DomainValueLike, R2: DomainValueLike](
     val horizontalPositionData = horizontalIntervals.zipWithIndex.map: (interval, index) =>
       val startPosition = horizontalPositionByIndex(index)
       val endPosition = horizontalPositionByIndex(index + 1)
-      val rectangle = new Rectangle2D.Double(
+      val rectangle = Rectangle2D.Double(
         startPosition,
         verticalStartPosition,
         endPosition - startPosition,
@@ -139,7 +139,7 @@ protected class Visualize2D[V, R1: DomainValueLike, R2: DomainValueLike](
       (startData, endData) => (Map.from(startData), Map.from(endData))
     val horizontalEndPosition = horizontalPositionByIndex(horizontalIntervals.size)
     val horizontalSize = horizontalEndPosition + outsideMargin
-    val horizontalEndRectangle = new Rectangle2D.Double(
+    val horizontalEndRectangle = Rectangle2D.Double(
       horizontalEndPosition,
       verticalStartPosition,
       0,
@@ -148,7 +148,7 @@ protected class Visualize2D[V, R1: DomainValueLike, R2: DomainValueLike](
     drawLeftEdge(horizontalEndRectangle)
 
     drawStringCentered(title, Rectangle2D.Double(0, 0, horizontalSize, outsideMargin))
-    setSize(new Dimension(horizontalSize.toInt, verticalSize.toInt))
+    setSize(Dimension(horizontalSize.toInt, verticalSize.toInt))
 
     validData.foreach: v =>
       val leftPosition = horizontalPositionByStart(v.interval.horizontal.start)
@@ -156,7 +156,7 @@ protected class Visualize2D[V, R1: DomainValueLike, R2: DomainValueLike](
       val lowPosition = verticalPositionByStart(v.interval.vertical.start)
       val highPosition = verticalPositionByEnd(v.interval.vertical.end)
       val rectangle =
-        new Rectangle2D.Double(leftPosition, highPosition, rightPosition - leftPosition, lowPosition - highPosition)
+        Rectangle2D.Double(leftPosition, highPosition, rightPosition - leftPosition, lowPosition - highPosition)
       graphics.draw(rectangle)
       drawStringCentered(v.value.toString, rectangle)
 
