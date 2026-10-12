@@ -247,8 +247,8 @@ lazy val `intervalidus-circe` = project
   .settings(commonPublishSettings("intervalidus-circe"))
   .settings(
     libraryDependencies ++= Seq(
-      "io.circe" %% "circe-core" % "0.14.16",
-      "io.circe" %% "circe-parser" % "0.14.16" % Test
+      "io.circe" %% "circe-core" % "0.14.17",
+      "io.circe" %% "circe-parser" % "0.14.17" % Test
     )
   )
 
