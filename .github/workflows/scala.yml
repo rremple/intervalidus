@@ -26,7 +26,7 @@ jobs:
       with:
         fetch-depth: 0
     - name: Restore cache
-      uses: coursier/cache-action@v8
+      uses: coursier/cache-action@v9
     - name: Set up JDK 21 & Scala
       uses: coursier/setup-action@v3
       with:
