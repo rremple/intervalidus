@@ -220,7 +220,7 @@ lazy val `intervalidus-pickle` = project
   .dependsOn(core)
   .settings(commonPublishSettings("intervalidus-pickle-common"))
 
-val jackson2Version = "2.22.4"
+val jackson2Version = "2.23.0"
 
 lazy val `intervalidus-weepickle` = project
   .in(file("json/weepickle"))
