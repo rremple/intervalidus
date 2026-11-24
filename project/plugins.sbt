@@ -1,7 +1,7 @@
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "2.4.4")
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.6.2")
 addSbtPlugin("com.github.sbt" % "sbt-unidoc" % "0.6.1")
-addSbtPlugin("com.github.sbt" % "sbt-pgp" % "2.3.2")
+addSbtPlugin("com.github.sbt" % "sbt-pgp" % "2.4.0")
 addSbtPlugin("com.github.sbt" % "sbt-dynver" % "5.2.0")
 addSbtPlugin("ch.epfl.scala" % "sbt-version-policy" % "3.4.0")
 addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "1.2.1")
